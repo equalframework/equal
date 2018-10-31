@@ -1,0 +1,34 @@
+<ul>
+    <li name="Questions &amp; Réponses">
+        <ul>
+            <li target="resiexchange\Question" sortname="created" sortorder="desc" domain="[[['count_answers','=','0']]]">Questions non répondues</li>
+            <li target="resiexchange\Question" sortname="created" sortorder="desc" >Dernières questions</li>
+            <li target="resiexchange\Answer" sortname="created" sortorder="desc" >Dernières réponses</li>
+            <li target="resiexchange\Question">Toutes les questions</li>            
+        </ul>    
+    </li>
+    <li name="Documents">
+        <ul>
+            <li target="resilib\Document" sortname="created" sortorder="desc" >Derniers documents</li>
+            <li target="resilib\Document">Tous les documents</li>            
+        </ul>    
+    </li>    
+    <li name="Utilisateurs">
+        <ul>
+            <li target="resiway\User" sortname="created" sortorder="desc">Derniers inscrits</li>
+            <li target="resiway\User">Tous les utilisateurs</li>
+        </ul>
+    </li>
+    <li name="Catégories">
+        <ul>
+            <li target="resiway\Category" sortname="created" sortorder="desc" domain="[[['parent_id', '=', '0']]]">Categories orphelines</li>
+            <li target="resiway\Category">Toutes les catégories</li>
+        </ul>
+    </li>    
+    <li name="Auteurs">
+        <ul>
+            <li target="resiway\Author">Tous les auteurs</li>
+        </ul>
+    </li>    
+    
+</ul>

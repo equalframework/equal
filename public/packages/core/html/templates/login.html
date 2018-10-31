@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+
+<title>Login to Qinoa</title>
+<head>
+<link rel="stylesheet" href="packages/core/html/css/qinoa-ui.min.css" type="text/css" />
+<link rel="stylesheet" href="packages/core/html/css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="packages/core/html/css/font-awesome.min.css" type="text/css" />
+
+<script language="javascript" type="text/javascript" src="packages/core/html/js/jquery.min.js"></script>
+<script language="javascript" type="text/javascript" src="packages/core/html/js/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="packages/core/html/js/qinoa.api.min.js"></script>
+<script language="javascript" type="text/javascript" src="packages/core/html/js/qinoa-ui.min.js"></script>
+
+<style>
+html, body {
+ 	margin: 0;
+    padding: 0;
+    border: 0;
+    height: 100%;
+    width: 100%;
+    background-color:#fff;
+}
+
+body {
+	background-color: #870101;
+	box-shadow: 0px 0px 100px 0px rgba(0, 0, 0, 0.5) inset;
+}
+
+body::before {
+    position: absolute;
+    top: 10pt;
+    font-family: "Qinoa";
+    font-size: 50pt;
+    color: white;
+    text-shadow: 2px 5px 2px rgba(0,0,0,0.5);
+    width: 100%;
+    text-align: center;
+    content: "Qinoa";
+}
+
+
+::-moz-selection { background: #de615e; color: #fff; text-shadow: none; }
+::selection { background: #de615e; color: #fff; text-shadow: none; }
+
+
+
+/***** Top content *****/
+
+.top-content {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12pt;
+    font-weight: 300;
+    color: #888;
+    line-height: 22pt;
+    text-align: center;
+}
+
+.inner-bg {
+    height: 100%;
+    width: 100%;
+    padding: 80pt 0 170pt 0;
+}
+
+.top-content .text {
+	color: #fff;
+}
+
+.top-content .text h1 { color: #fff; }
+
+.top-content .description {
+	margin: 20px 0 10px 0;
+}
+
+.top-content .description p { opacity: 0.8; }
+
+.top-content .description a {
+	color: #fff;
+}
+.top-content .description a:hover, 
+.top-content .description a:focus { border-bottom: 1px dotted #fff; }
+
+.form-box {
+	margin-top: 35px;
+}
+
+.form-top {
+	overflow: hidden;
+	padding: 0 25px 15px 25px;
+	background: #444;
+	background: rgba(0, 0, 0, 0.35);
+	-moz-border-radius: 4px 4px 0 0; -webkit-border-radius: 4px 4px 0 0; border-radius: 4px 4px 0 0;
+	text-align: left;
+}
+
+.form-top-left {
+	float: left;
+	width: 75%;
+	padding-top: 25px;
+}
+
+.form-top-left h3 { 
+	font-size: 22px;
+    font-weight: 300;
+    line-height: 30px;
+    margin-top: 0; 
+    color: #fff; 
+}
+
+.form-top-left p { 
+    opacity: 0.8; 
+    color: #fff; 
+}
+
+.form-top-right {
+	float: left;
+	width: 25%;
+	padding-top: 5px;
+	font-size: 66px;
+	color: #fff;
+	line-height: 100px;
+	text-align: right;
+	opacity: 0.3;
+}
+
+.form-bottom {
+	padding: 25px 25px 30px 25px;
+	background: #444;
+	background: rgba(0, 0, 0, 0.3);
+	-moz-border-radius: 0 0 4px 4px; -webkit-border-radius: 0 0 4px 4px; border-radius: 0 0 4px 4px;
+	text-align: left;
+}
+
+.form-bottom form textarea {
+	height: 100px;
+}
+
+.form-bottom form button.btn {
+	width: 100%;
+}
+
+.form-bottom form .input-error {
+	border-color: #de615e;
+}
+
+
+
+/***** Media queries *****/
+
+@media (min-width: 992px) and (max-width: 1199px) {}
+
+@media (min-width: 768px) and (max-width: 991px) {}
+
+@media (max-width: 767px) {
+	
+	.inner-bg { padding: 60px 0 110px 0; }
+
+}
+
+@media (max-width: 415px) {
+	
+	h1, h2 { font-size: 32px; }
+
+}
+
+
+
+
+/****** form items customization *******/
+
+input[type="text"], 
+input[type="password"], 
+textarea {
+	height: 50px;
+    margin: 0;
+    padding: 0 20px;
+    vertical-align: middle;
+    background: #fff;
+    border: 3px solid #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 50px;
+    color: #888;
+    -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px;
+    -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;
+    -o-transition: all .3s; -moz-transition: all .3s; -webkit-transition: all .3s; -ms-transition: all .3s; transition: all .3s;
+}
+
+textarea {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	line-height: 30px;
+}
+
+input[type="text"]:focus, 
+input[type="password"]:focus, 
+textarea:focus {
+	outline: 0;
+	background: #fff;
+    border: 3px solid #fff;
+    -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;
+}
+
+input[type="text"]:-moz-placeholder, input[type="password"]:-moz-placeholder, 
+textarea:-moz-placeholder, textarea.form-control:-moz-placeholder { color: #888; }
+
+input[type="text"]:-ms-input-placeholder, input[type="password"]:-ms-input-placeholder, 
+textarea:-ms-input-placeholder, textarea.form-control:-ms-input-placeholder { color: #888; }
+
+input[type="text"]::-webkit-input-placeholder, input[type="password"]::-webkit-input-placeholder, 
+textarea::-webkit-input-placeholder, textarea.form-control::-webkit-input-placeholder { color: #888; }
+
+
+
+button.btn {
+	height: 50px;
+    margin: 0;
+    padding: 0 20px;
+    vertical-align: middle;
+    background: #de615e;
+    border: 0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 50px;
+    color: #fff;
+    -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px;
+    text-shadow: none;
+    -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;
+    -o-transition: all .3s; -moz-transition: all .3s; -webkit-transition: all .3s; -ms-transition: all .3s; transition: all .3s;
+}
+
+button.btn:hover { opacity: 0.6; color: #fff; }
+
+button.btn:active { outline: 0; opacity: 0.6; color: #fff; -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none; }
+
+button.btn:focus { outline: 0; opacity: 0.6; background: #de615e; color: #fff; }
+
+button.btn:active:focus, button.btn.active:focus { outline: 0; opacity: 0.6; background: #de615e; color: #fff; }
+
+
+
+</style>
+<script>
+$(document).ready(function() {
+
+    $('form').submit(function(event){
+        event.preventDefault();
+                
+		// $('#password').val(qinoa.lock($('#user-key').val(), hex_md5($('#form-password').val())));
+        $('#password').val(hex_md5($('#form-password').val()));
+        
+		$.ajax({
+			type: 'GET',
+			url: 'index.php?do=core_user_login',
+			dataType: 'json',
+			data: $(this).serialize(),
+			contentType: 'application/json; charset=utf-8',
+			success: function(json_data){
+				if(json_data.result == null || parseInt(json_data.result) == NaN || json_data.result < 0) {
+					alert('invalid password or username');
+				}
+				else {
+                    $('html').fadeOut('slow');
+                    window.location.href = json_data.url;
+                }
+			},
+			error: function(e){
+			}
+		});        
+        return false;
+    });
+
+
+});
+</script>
+</head>
+
+<html>
+
+<body>
+
+        <div class="top-content">
+            <div class="inner-bg">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3 form-box">
+                        	<div class="form-top">
+                        		<div class="form-top-left">
+                        			<h3>Sign in to your account</h3>
+                            		<p>Please enter your username and password to log on:</p>
+                        		</div>
+                        		<div class="form-top-right">
+                        			<i class="fa fa-lock"></i>
+                        		</div>
+                            </div>
+                            <div class="form-bottom">
+			                    <form role="form" action="" method="post" class="login-form">
+			                    	<div class="form-group">
+			                    		<label class="sr-only" for="form-username">Username</label>
+			                        	<input type="text" id="form-username" name="login" placeholder="Username..." class="form-username form-control" >
+                                        <input type="hidden" id="user-key">
+			                        </div>
+			                        <div class="form-group">
+			                        	<label class="sr-only" for="form-password">Password</label>
+			                        	<input type="password" id="form-password" placeholder="Password..." class="form-password form-control" >
+                                        <input type="hidden" name="password" id="password" >
+			                        </div>
+                                    <div class="form-group">
+                                        <input type="checkbox" id="form-remember" name="form-remember" />
+                                        Keep me signed in
+                                    </div>
+			                        <button type="submit" class="btn">Sign in</button>
+			                    </form>
+		                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+</body>
+
+</html>

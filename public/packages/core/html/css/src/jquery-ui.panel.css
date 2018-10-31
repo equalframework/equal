@@ -1,0 +1,6 @@
+.ui-panel { display: inline-block; border: 1px solid #aaaaaa; }
+.ui-panel > .ui-panel-list { float: left; border: 0; border-right: 1px solid #aaaaaa; padding: 0; margin: 0; background-position: top; overflow: auto; }
+.ui-panel > .ui-panel-list-flip { float: right; border-right: 0; border-left: 1px solid #aaaaaa;}
+.ui-panel > .ui-panel-list > .ui-panel-item { list-style: none; border: 0; border-bottom: 1px solid #aaaaaa; padding: .3em; cursor: pointer; }
+.ui-panel > .ui-panel-content { float: right; padding: 1em; margin: 0; overflow: auto; }
+.ui-panel > .ui-panel-content-flip { float: left; }

@@ -1,0 +1,7 @@
+{
+    "qinoa-ui.qForm.js":		["qinoa-ui.js", "qinoa-ui.qFormWidget.js"],
+    "qinoa-ui.qGrid.js":		["qinoa-ui.js", "qinoa-ui.qGridCell.js", "qinoa-ui.qForm.js"],
+    "qinoa-ui.qSearchGrid.js":	["qinoa-ui.js", "qinoa-ui.qSearchWidget.js"],
+    "qinoa-ui.qRichtext.js":	["rangy-core.js", "evol.colorpicker.js"],
+    "qinoa-ui.qFormWidget.js":	["qinoa-ui.js", "qinoa-ui.qGrid.js", "jquery.inputmask.bundle.js", "jquery-ui.daterangepicker.js", "jquery-ui.timepicker-1.0.1.js", "date.js"]
+}

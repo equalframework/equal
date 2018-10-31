@@ -1,0 +1,209 @@
+#login-panel {
+	position: relative;
+	display: block;
+	height: 28px;
+}
+
+#sliding-pane {
+	position: absolute;
+	display: block;
+	top: -250px;
+	z-index: 9999;
+	width: 100%;
+	height: 274px;
+	overflow: hidden;
+	background-color: #B6B4B6;
+	border-bottom: 1px solid white;
+	box-shadow:0 2px 2px rgba(0,0,0,.9);
+}
+
+/* Menu */
+#sliding-pane .close-tab {
+	position: absolute;
+  	right: 20px;
+	top: 3px;
+	line-height: 20px;
+}
+
+#sliding-pane .close-tab a.close {
+	display: block;
+	cursor: pointer;
+	font-size: 80%;	
+	font-weight: bold;
+	padding-right: 25px;	
+	background: url(images/bt_close.png) no-repeat right 0px;
+}
+#sliding-pane .close-tab a:hover.close {
+	background: url(images/bt_close.png) no-repeat right -20px;
+}
+#sliding-pane .login-tab {
+	position: absolute;
+  	right: 40px;
+	bottom: 0px;
+	line-height: 20px;	
+}
+
+#sliding-pane .login-tab ul.login {
+	height: 24px;
+	margin: 0;
+	padding: 0 10px;
+}
+
+#sliding-pane .login-tab ul.login li {
+	display: block;
+	float: left;
+	height: 20px;
+	line-height: 20px;
+	text-align: left;
+  	color: white;
+  	font-weight: bold;
+  	font-size: 80%;	
+	margin: 2px 6px;
+}
+#sliding-pane .login-tab ul.login li.sep {
+	color:#414141
+}
+
+#sliding-pane .login-tab ul.login li a {
+	color: white;
+	text-decoration: none;
+}
+
+#sliding-pane .login-tab ul.login li a:hover {
+	text-decoration: underline;
+}
+
+#sliding-pane .login-tab ul.login a.open {
+	display: block;
+	cursor: pointer;
+	padding-left: 25px;	
+	background: url(images/bt_open.png) no-repeat left 0px;
+}
+#sliding-pane .login-tab ul.login a:hover.open {
+	background: url(images/bt_open.png) no-repeat left -20px;
+}
+
+/* content */
+#sliding-pane h1 {
+	font-size: 1.6em;
+	padding: 5px 0 10px;
+	margin: 0;
+	color: white;
+}
+
+#sliding-pane h2{
+	font-size: 1.2em;
+	padding: 10px 0 5px;
+	margin: 0;
+	color: white;
+}
+
+#sliding-pane p {
+	margin: 5px 0;
+	padding: 0;
+}
+
+#sliding-pane a {
+	text-decoration: none;
+	color: #347AA4;
+}
+
+#sliding-pane a:hover {
+	color: white;
+}
+
+#sliding-pane a-lost-pwd {
+	display: block;
+	float: left;
+}
+#sliding-pane .grey {
+	color: #414141;
+}
+#sliding-pane .content {
+	width: 960px;
+	margin: 0 auto;
+	padding-top: 15px;
+	text-align: left;
+	font-size: 0.85em;
+}
+
+#sliding-pane .content .left {
+	width: 280px;
+	float: right;
+	padding: 0 15px;
+	border-left: 1px solid #333;
+}
+
+#sliding-pane .content form {
+	margin: 0 0 10px 0;
+}
+
+#sliding-pane .content label {
+	float: left;
+	padding-top: 8px;
+	clear: both;
+	width: 280px;
+	display: block;
+}
+
+#sliding-pane .content input.field {
+	border: 1px #1A1A1A solid;
+	background: #414141;
+	margin-right: 5px;
+	margin-top: 4px;
+	width: 200px;
+	color: white;
+	height: 16px;
+}
+
+#sliding-pane .content input:focus.field {
+	background: #545454;
+}
+
+/* BUTTONS */
+/* Login and Register buttons */
+#sliding-pane .content input.bt_login,
+#sliding-pane .content input.bt_register {
+	display: block;
+	float: left;
+	clear: left;
+	height: 24px;
+	text-align: center;
+	cursor: pointer;
+	border: none;
+	font-weight: bold;
+	margin: 10px 0;
+}
+
+#sliding-pane .content input.bt_login {
+	width: 74px;
+	background: transparent url(images/bt_login.png) no-repeat 0 0;
+}
+
+#sliding-pane .content input.bt_register {
+	width: 94px;
+	color: white;
+	background: transparent url(images/bt_register.png) no-repeat 0 0;
+}
+
+#sliding-pane .lost-pwd {
+	display: block;
+	float:left;
+	clear: right;
+	padding: 15px 5px 0;
+	font-size: 0.95em;
+	text-decoration: underline;
+}
+
+
+
+/***** clearfix *****/
+.clear {clear: both;height: 0;line-height: 0;}
+.clearfix:after {content: ".";display: block;height: 0;clear: both;visibility: hidden;}
+.clearfix {display: inline-block;}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+.clearfix {height: 1%;}
+.clearfix {display: block;}

@@ -1,0 +1,13 @@
+{
+	"model": {
+		"login":{"label":"Username", "help":"Your username is your email address."},
+		"password":{"label":"Password"}
+	},
+	"view": {
+		"identification":{"label":"Identification"},
+		"ok":{"label":"Connect"},
+		"subscribe":{"label":"Create an account"},
+		"invalid_login":{"label":"Incorrect login format: not a valid e-mail address"},
+		"invalid_password":{"label":"Incorrect password format: not an md5 value"}			
+	}
+}

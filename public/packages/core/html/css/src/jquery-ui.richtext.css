@@ -1,0 +1,145 @@
+.ui-editor {
+	position: relative;
+	padding: 2px;
+	width: 100%;
+	box-sizing: border-box;		
+}
+
+.ui-editor .ui-icon {
+	background-image: url("images/icons.png");
+	background-size: 16px;		
+}
+
+.ui-editor-toolbar {
+	position: relative;
+	height: auto;
+	box-sizing: border-box;
+	padding: 2px 0 0 2px;
+	user-select: none;		
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+
+.ui-editor-toolbar .ui-button {	
+	margin: 2px;
+	padding: 4px 0;
+	border: 0;
+	width: 24px;
+	height: 16px;
+}
+
+.ui-editor-toolbar-group {
+	display: inline-block;
+	margin: 0 4px 3px 0;
+}
+
+.ui-editor-toolbar-separator {
+	display: inline-block;
+	position: relative;
+	vertical-align: middle;
+	background-color: rgba(0,0,0,.2);
+	margin: 2px;
+	padding: 0;
+	border: 0;
+	width: 1px;
+	height: 16px;
+	-webkit-box-shadow: 1px 0 1px rgba(255,255,255,.5);
+	-moz-box-shadow: 1px 0 1px rgba(255,255,255,.5);
+	box-shadow: 1px 0 1px rgba(255,255,255,.5);	
+ }
+
+.ui-editor-toolbar-break {
+  display: block;
+  clear: left;
+}
+
+.ui-editor-content, .ui-editor-source {
+	cursor: text;
+	width: 100%;
+	border: 0;
+	padding: .5em ;
+	overflow: scroll;		
+	background: none;
+	box-sizing: border-box;
+	font-size: 1em !important;
+}
+
+.ui-editor-content {
+	font-family: sans-serif, Arial, Verdana, "Trebuchet MS" !important;
+
+	/* reset editable styles to default */
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: none;
+	color: #000000;
+	text-align: left;
+}
+
+.ui-editor-source {
+	font-family: 'DejaVu Sans Mono', monospace, 'Courier New' !important;
+	resize: none;
+}
+	
+.ui-icon-editor-about {background-position: 0 -0px;}
+.ui-icon-editor-anchor {background-position: 0 -48px;}
+.ui-icon-editor-bgcolor {background-position: 0 -72px;}
+.ui-icon-editor-bidiltr {background-position: 0 -96px;}
+.ui-icon-editor-blockquote {background-position: 0 -144px;}
+.ui-icon-editor-bold {background-position: 0 -168px;}
+.ui-icon-editor-bulletedlist {background-position: 0 -216px;}
+.ui-icon-editor-button {background-position: 0 -240px;}
+.ui-icon-editor-checkbox {background-position: 0 -264px;}
+.ui-icon-editor-copy {background-position: 0 -312px;}
+.ui-icon-editor-creatediv {background-position: 0 -336px;}
+.ui-icon-editor-cut {background-position: 0 -384px;}
+.ui-icon-editor-find {background-position: 0 -408px;}
+.ui-icon-editor-flash {background-position: 0 -432px;}
+.ui-icon-editor-form {background-position: 0 -456px;}
+.ui-icon-editor-hiddenfield {background-position: 0 -504px;}
+.ui-icon-editor-horizontalrule {background-position: 0 -528px;}
+.ui-icon-editor-iframe {background-position: 0 -552px;}
+.ui-icon-editor-image {background-position: 0 -576px;}
+.ui-icon-editor-imagebutton {background-position: 0 -600px;}
+.ui-icon-editor-indent {background-position: 0 -648px;}
+.ui-icon-editor-italic {background-position: 0 -672px;}
+.ui-icon-editor-justifyblock {background-position: 0 -696px;}
+.ui-icon-editor-justifycenter {background-position: 0 -720px;}
+.ui-icon-editor-justifyleft {background-position: 0 -744px;}
+.ui-icon-editor-justifyright {background-position: 0 -768px;}
+.ui-icon-editor-link {background-position: 0 -792px;}
+.ui-icon-editor-maximize {background-position: 0 -816px;}
+.ui-icon-editor-newpage {background-position: 0 -864px;}
+.ui-icon-editor-numberedlist {background-position: 0 -912px;}
+.ui-icon-editor-outdent {background-position: 0 -960px;}
+.ui-icon-editor-pagebreak {background-position: 0 -1008px;}
+.ui-icon-editor-paste {background-position: 0 -1056px;}
+.ui-icon-editor-pastefromword {background-position: 0 -1104px;}
+.ui-icon-editor-pastetext {background-position: 0 -1152px;}
+.ui-icon-editor-preview {background-position: 0 -1200px;}
+.ui-icon-editor-print {background-position: 0 -1224px;}
+.ui-icon-editor-radio {background-position: 0 -1248px;}
+.ui-icon-editor-redo {background-position: 0 -1296px;}
+.ui-icon-editor-removeformat {background-position: 0 -1320px;}
+.ui-icon-editor-replace {background-position: 0 -1344px;}
+.ui-icon-editor-save {background-position: 0 -1368px;}
+.ui-icon-editor-scayt {background-position: 0 -1392px;}
+.ui-icon-editor-select {background-position: 0 -1440px;}
+.ui-icon-editor-selectall {background-position: 0 -1464px;}
+.ui-icon-editor-showblocks {background-position: 0 -1512px;}
+.ui-icon-editor-smiley {background-position: 0 -1536px;}
+.ui-icon-editor-source {background-position: 0 -1584px;}
+.ui-icon-editor-specialchar {background-position: 0 -1608px;}
+.ui-icon-editor-spellchecker {background-position: 0 -1632px;}
+.ui-icon-editor-strike {background-position: 0 -1656px;}
+.ui-icon-editor-subscript {background-position: 0 -1680px;}
+.ui-icon-editor-superscript {background-position: 0 -1704px;}
+.ui-icon-editor-table {background-position: 0 -1728px;}
+.ui-icon-editor-templates {background-position: 0 -1776px;}
+.ui-icon-editor-textarea {background-position: 0 -1824px;}
+.ui-icon-editor-textcolor {background-position: 0 -1848px;}
+.ui-icon-editor-textfield {background-position: 0 -1896px;}
+.ui-icon-editor-underline {background-position: 0 -1920px;}
+.ui-icon-editor-undo {background-position: 0 -1968px;}
+.ui-icon-editor-unlink {background-position: 0 -1992px;}
