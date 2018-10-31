@@ -545,5 +545,4 @@ namespace config {
 namespace {
     // provide an "eQual" class to global scope
     class eQual extends config\QNlib {}
-
 }
