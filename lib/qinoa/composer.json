@@ -1,0 +1,16 @@
+{
+    "name": "cedricfrancoys/qinoa",
+    "description": "Full Stack RESTful framework for fast and easy development",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Cedric Francoys",
+            "email": "cedricfrancoys@gmail.com",
+            "homepage": "http://www.cedricfrancoys.be",
+            "role": "Main Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0"
+    }
+}
