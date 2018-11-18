@@ -14,9 +14,8 @@
 *  Usage examples:
 *
 *    * CLI
-*            php run.php --get=public:test_simple --id=1 --test=2 --announce=true
+*            php run.php --get=public:test_hello
 *    * HTTP
-*
 *            /index.php?get=resiway_tests&id=1&test=2
 *
 */
@@ -32,8 +31,7 @@ use qinoa\route\Router;
 $bootstrap = dirname(__FILE__).'/qn.lib.php';
 if( (include($bootstrap)) === false ) die('qinoa lib is missing');
 
-try {
-    
+try {    
     // 1) retrieve current HTTP context
     
     // get PHP context
@@ -126,7 +124,9 @@ catch(Exception $e) {
     // an exception with code 0 is an explicit process halt with no errror
     if($e->getCode() != 0) {
         // retrieve current HTTP response
-        $context->httpResponse()        
+        $response = $context->httpResponse();
+        // adapt response and send it
+        $response
         // set status accordingly to raised exception
         ->status(qn_error_http($e->getCode()))
         // explicitely tell we're returning JSON
