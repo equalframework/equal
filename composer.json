@@ -1,5 +1,6 @@
 {
     "require": {
+	"cedricfrancoys/qinoa": "^1.0",
         "phpoffice/phpspreadsheet": "^1.4"
     }
 }

@@ -31,7 +31,7 @@ $data = array();
 
 $package_dir = 'packages/'.$params['package'].'/classes';
 if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
-    throw new Exception("'{$params['package']}' not found", QN_ERROR_INVALID_CONFIG);        
+    throw new Exception("No classes found for package '{$params['package']}'", QN_ERROR_INVALID_CONFIG);        
 }
 foreach($list as $node) {
     if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {

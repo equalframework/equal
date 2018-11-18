@@ -76,7 +76,7 @@ namespace config {
 	* Checks if a parameter has already been defined
 	*/	
 	function defined($name) {
-		return isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+		return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
 	}
 
 
@@ -136,7 +136,7 @@ namespace config {
             
             // check service container availability
             if(!is_callable('qinoa\services\Container::getInstance')) {
-                throw new \Exception('Qinoa init : mandatory Container service is missing or cannot be instanciated', QN_REPORT_FATAL);
+                throw new \Exception('Qinoa init: mandatory Container service is missing or cannot be instanciated', QN_REPORT_FATAL);
             }
             // instanciate service container
             $container = Container::getInstance();
@@ -256,6 +256,8 @@ namespace config {
                 if(count($missing_params)) {
                     // no feedback about services
                     if(isset($announcement['providers'])) unset($announcement['providers']);
+                    // no feedback about constants
+                    if(isset($announcement['constants'])) unset($announcement['constants']);                    
                 }
                 // add announcement to response body
                 $context->httpResponse()->body(['announcement' => $announcement]);
@@ -343,6 +345,18 @@ namespace config {
                 // set result as an array holding params and providers
                 $result = [$result, $providers];                
             }
+            
+            // 6) check for requested constants
+
+            if(isset($announcement['constants']) && count($announcement['constants'])) {
+                // inject dependencies
+                foreach($announcement['constants'] as $name) {
+                    if(!defined($name)) {
+                        throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
+                    }
+                }
+            }
+            
 			return $result;
 		}
 
@@ -517,13 +531,13 @@ namespace config {
             }
             else {
                 $GLOBALS['QNlib_loading_classes'][$class_name] = true;
-                $file_path = QN_BASE_DIR.'/vendor/'.str_replace('\\', '/', $class_name);
+                $file_path = QN_BASE_DIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use Qinoa class extention
                 if(file_exists($file_path.'.class.php')) $result = include_once $file_path.'.class.php';
                 // Fallback to simple php extension
                 else if(file_exists($file_path.'.php')) $result = include_once $file_path.'.php';
                 else {
-                    // give up (hopefully another registered loader will succeed)
+                    // give up an relay to next registered loader, if any
                 }
                 unset($GLOBALS['QNlib_loading_classes'][$class_name]);
             }

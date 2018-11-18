@@ -19,29 +19,39 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 /*
-* file: packages/core/apps/setup.php
-*
-* Checks the current installation.
-*
+ @actions   this is a data provider: no change is made to the stored data
+ @rights    everyone has read access on these data
+ @returns   list of objects matching given criteria
 */
 
-// Dispatcher (index.php) is in charge of setting the context and should include easyObject library
-defined('__QN_LIB') or die(__FILE__.' cannot be executed directly.');
-require_once('../qn.api.php');
+// announce script and fetch parameters values
+list($params, $providers) = eQual::announce(
+	[	
+        'description'	=>	"Checks the validity of current installation.",
+        'params' 		=>	[],
+        'providers'		=>	['orm'],
+        'constants'     =>  ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_DBMS']
+	]
+);
+
+list($orm) = [ $providers['orm'] ];
 
 
 // todo : this script should also test the php configuration and the folders permissions
 
+$db = $orm->getDB();
 
 
-QNlib::load_class('utils/HtmlWrapper');
+if(!$db->canConnect()) {
+    //$result[] = "Unable to find a ".DB_DBMS." server at specified location (".DB_HOST.":".DB_PORT.")";
+echo  "Unable to find a ".DB_DBMS." server at specified location (".DB_HOST.":".DB_PORT.")";
+}
+else {
+    echo "connection ok";
+}
 
-// we instanciate eventListener to catch all errors (we need to do it here since we might not use the obect Manager)
-new eventListener();
-set_silent(true);
-
-$dbConnection = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
 
 
 // result of the tests : array containing errors (when no errors are found, array is empty)
@@ -50,14 +60,17 @@ $result = array();
 // A) DATABASE ACCESS
 
 // 1) test access to DB server
-if(!DBManipulator::is_db_server(DB_HOST,DB_PORT)) $result[] = "Unable to find a ".DB_DBMS." server at specified location (".DB_HOST.":".DB_PORT.")";
+if(!$db->canConnect()) {
+    $result[] = "Unable to find a ".DB_DBMS." server at specified location (".DB_HOST.":".DB_PORT.")";
+}
+
 else {
 	// 2) try to connect to DB server
-	if(!$dbConnection->connect(false)) $result[] = "Unable to establish a connection to specified ".DB_DBMS." server (".DB_HOST.":".DB_PORT.")";
+	if(!$db->connect(false)) $result[] = "Unable to establish a connection to specified ".DB_DBMS." server (".DB_HOST.":".DB_PORT.")";
 	else {
 		// 3) try to select specified DB
-		if(!$dbConnection->select(DB_NAME)) $result[] = "Database specified in config (".DB_NAME.") not found";
-		$dbConnection->disconnect();
+		if(!$db->select(DB_NAME)) $result[] = "Database specified in config (".DB_NAME.") not found";
+		$db->disconnect();
 	}
 }
 
@@ -71,29 +84,10 @@ if(FILE_STORAGE_MODE == 'FS') {
         if(!file_exists($folder) || !is_writable($folder)) $result[] = "PHP process has no write access on folder $folder";
     }
 
-    // todo: check 777 mod for folder library/classes/utils/HTMLPurifier/HTMLPurifier/DefinitionCache
+    // todo: check permissions mod for folders
 }
 
 
 // Output result
 
-$html = new HtmlWrapper();
-
-if(!count($result)) {
-	$html->add("<b>Congratulations, your installation is ready to be used!</b><br /><br />\n");
-	$html->add("Now, you might want to:\n");
-	$html->add($ul = new HtmlBlock(0, 'ul'));
-	$ul->add("<li><a href=\"index.php?show=core_user_login\">Login</a> with a specific account</li>\n");
-	$ul->add("<li>Run some <a href=\"index.php?show=core_utils\">utilities</a></li>\n");
-	$ul->add("<li>Start using the <a href=\"index.php?show=core_manage\">manager</a></li>\n");
-}
-else {
-	$html->add($pre = new HtmlBlock(0, 'pre'));
-	$pre->add("<b>Some errors have been detected in your installation:</b>\n");
-	$pre->add($ul = new HtmlBlock(0, 'ul'));
-	foreach($result as $message) {
-		$ul->add("<li>".$message."</li>\n");
-	}
-}
-
-print($html);
+print_r($result);

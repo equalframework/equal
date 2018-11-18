@@ -5,6 +5,5 @@
 /bin/
 /cache/
 /log/
-composer.phar
-!/vendor/qinoa
-!/vendor/qinoa/*
+composer.pharc
+omposer.lock

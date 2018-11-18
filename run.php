@@ -4,16 +4,21 @@
     Some Rights Reserved, Cedric Francoys, 2017, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-
 /**
-* This script is the root entry point and acts as dispatcher.
-* Its role is to set up the context and handle the client request.
-* Dispatching consists of resolving targeted operation and include related script file.
+*
+*  This is the root entry point and acts as dispatcher.
+*  Its role is to set up the context and handle the client request.
+*  Dispatching consists of resolving targeted operation and include related script file.
 *
 *
-* Usage examples:
-* CLI: php run.php --get=public:resiway_tests --id=1 --test=2 --announce=true
-* HTTP: /index.php?get=resiway_tests&id=1&test=2
+*  Usage examples:
+*
+*    * CLI
+*            php run.php --get=public:test_simple --id=1 --test=2 --announce=true
+*    * HTTP
+*
+*            /index.php?get=resiway_tests&id=1&test=2
+*
 */
 use config\QNLib;
 use qinoa\php\Context;
@@ -121,11 +126,12 @@ catch(Exception $e) {
     // an exception with code 0 is an explicit process halt with no errror
     if($e->getCode() != 0) {
         // retrieve current HTTP response
-        $response = $context->httpResponse();
-        // set status and body according to raised exception
-        $response
+        $context->httpResponse()        
+        // set status accordingly to raised exception
         ->status(qn_error_http($e->getCode()))
-        ->header('Content-Type', 'application/json')        
+        // explicitely tell we're returning JSON
+        ->header('Content-Type', 'application/json')
+        // append an 'error' section to response body
         ->body( array_merge(
                     (array) $response->body(), 
                     [ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ]

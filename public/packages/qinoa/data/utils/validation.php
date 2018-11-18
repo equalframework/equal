@@ -45,6 +45,13 @@ $result = array();
 $json = QNLib::run('get', 'qinoa_config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
 
+// relay error if any
+if($classes['errors']) {
+    foreach($classes['errors'] as $name => $message) {
+        throw new Exception($message, qn_error_code($name));
+    }
+}
+
 
 /**
 * TESTING FILES
@@ -148,7 +155,7 @@ if(is_file('packages/'.$params['package'].'/config.inc.php')) include('packages/
 
 $db = &DBConnection::getInstance(config('DB_HOST', DB_HOST), config('DB_PORT', DB_PORT), config('DB_NAME', DB_NAME), config('DB_USER', DB_USER), config('DB_PASSWORD',DB_PASSWORD), config('DB_DBMS',DB_DBMS));
 
-if(!$db->is_connected()) {
+if(!$db->connected()) {
     if($db->connect() == false) {
         die('Error: Unable to connect to database');
     }
@@ -184,7 +191,7 @@ foreach($classes as $class) {
 	$class_name = $params['package'].'\\'.$class;
 
         $model = $orm->getModel($class_name);    
-    if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);    
+    if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
         
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
