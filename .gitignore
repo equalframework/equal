@@ -1,8 +1,4 @@
 /node_modules/
 /vendor/
-/spool/
-/bin/
-/cache/
-/log/
 composer.phar
 omposer.lock
