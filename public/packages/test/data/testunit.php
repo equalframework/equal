@@ -5,15 +5,6 @@
 *    Copyright (C) Cedric Francoys, 2015, Yegen
 *    Some Rights Reserved, GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-
-
-/*
-* file: packages/test/data/testunit.php
-*
-*
-*/
-
-
 use config\QNLib as QNLib;
 use qinoa\orm\ObjectManager;
 
@@ -382,17 +373,22 @@ foreach($tests as $id => $test) {
                     }
                     else {
                         echo '<b style="color: red;">KO</b>';
+                        $fails = true;
                     }
                 }
                 else {
                     if($result == $test['expected']) {
                         echo '<b style="color: green;">OK</b>';
                     }
-                    else echo '<b style="color: red;">KO</b>';
+                    else {
+                        echo '<b style="color: red;">KO</b>';
+                        $fails = true;                        
+                    }
                 }
             }
             else {
-                echo '<b style="color: red;">KO</b>';                
+                echo '<b style="color: red;">KO</b>';
+                $fails = true;
             }
         }
         else {
@@ -401,6 +397,7 @@ foreach($tests as $id => $test) {
     }
     else {
         echo '<b style="color: red;">KO</b>';
+        $fails = true;
     }
     echo "  (result=".json_encode($result)."), (expected=".json_encode($test['expected']).")";
 
@@ -408,3 +405,7 @@ foreach($tests as $id => $test) {
 }
 
 echo "</pre>";
+
+if($fails) {
+    exit(1);
+}
