@@ -89,7 +89,7 @@ try {
             // redirect to resulting URL
             header('Location: '.$route['redirect']);
             // good job, let's rest now
-            exit();
+            exit(0);
         }
         // update current request URI query string with extra params from operation string
         $request->uri()->set($route['operation']['params']);

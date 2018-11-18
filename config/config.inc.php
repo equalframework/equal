@@ -267,11 +267,11 @@ function qn_error_http($error_id) {
     /*
     * EMAIL related parameters
     */
-    define('EMAIL_SMTP_HOST',               'ssl0.ovh.net');
+    define('EMAIL_SMTP_HOST',               'smtp.gmail.com');
     define('EMAIL_SMTP_PORT',               '465');
-    define('EMAIL_SMTP_ACCOUNT_USERNAME',   'info@resiway.org');
-    define('EMAIL_SMTP_ACCOUNT_PASSWORD',   'resiway0123');
-    define('EMAIL_SMTP_ACCOUNT_EMAIL',	    'info@resiway.org');    
+    define('EMAIL_SMTP_ACCOUNT_USERNAME',   'info@example.com');
+    define('EMAIL_SMTP_ACCOUNT_PASSWORD',   'examplepassword');
+    define('EMAIL_SMTP_ACCOUNT_EMAIL',	    'info@example.com');    
 
     /**
     * Email spooler directory
@@ -288,7 +288,7 @@ function qn_error_http($error_id) {
     define('DB_PORT',		'3306');		// this is the default port for MySQL
     define('DB_USER',		'root');        // this should be changed for security reasons
     define('DB_PASSWORD',	'');			// this should be changed for security reasons
-    define('DB_NAME', 		'resiway');	    // specify the name of the DB that you have created or you plan to use
+    define('DB_NAME', 		'my_db');	    // specify the name of the DB that you have created or you plan to use
     define('DB_CHARSET',	'UTF8');		// unless you are really sure of what you're doing, leave this constant to 'UTF8'
 
     /**

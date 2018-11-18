@@ -359,6 +359,8 @@ function array_equals($array1, $array2) {
 
 echo "<pre>";
 
+$fails = false;
+
 foreach($tests as $id => $test) {
     echo "{ $id } :  {$test['description']} - ";
     $result = $test['test']();
@@ -408,4 +410,7 @@ echo "</pre>";
 
 if($fails) {
     exit(1);
+}
+else {
+    exit(0);
 }
