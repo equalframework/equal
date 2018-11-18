@@ -1,0 +1,12 @@
+{
+    "/test/:foo?": {
+        "GET": {
+            "description": "Retrieve test data",
+            "operation": "?get=demo_tests&test=1"
+        },
+        "POST": {
+            "description": "ADD test data",
+            "operation": "?get=demo_tests"
+        }        
+    }
+}
