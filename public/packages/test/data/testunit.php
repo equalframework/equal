@@ -12,6 +12,12 @@ use qinoa\orm\ObjectManager;
 use core\User;
 use core\Group;
 
+$params = eQual::announce([
+    'description'   => 'Initialise database for core package',
+    'params'        => [],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
+]);
+
 
 $tests = array(
             //0xxx : calls related to QNLib methods
@@ -154,7 +160,7 @@ $tests = array(
             '2110' => array(
                             'description'       => "Call ObjectManager::read with missing \$ids parameters",
                             'return'            => array('integer', 'array'),
-                            'expected'          => MISSING_PARAM,
+                            'expected'          => QN_ERROR_MISSING_PARAM,
                             'test'              => function (){
                                                         $om = &ObjectManager::getInstance();
                                                         return $om->read('core\User');
@@ -172,7 +178,7 @@ $tests = array(
             '2130' => array(
                             'description'       => "Call ObjectManager::read some unexisting object from non-existing class",
                             'return'            => array('integer', 'array'),
-                            'expected'          => UNKNOWN_OBJECT,
+                            'expected'          => QN_ERROR_UNKNOWN_OBJECT,
                             'test'              => function (){
                                                         $om = &ObjectManager::getInstance();
                                                         return $om->read('core\Foo', array('1'), array('bar'));
@@ -260,7 +266,7 @@ $tests = array(
             '2501' => array(
                             'description'       => "Search an object with invalid clause 'ilike' (non-existing field)",
                             'return'            => array('integer', 'array'),
-                            'expected'          => INVALID_PARAM,
+                            'expected'          => QN_ERROR_INVALID_PARAM,
                             'test'              => function (){
                                                         $om = &ObjectManager::getInstance();
                                                         return $om->search('core\Group', array(array(array('badname', 'ilike', '%Default%'))));
@@ -304,7 +310,7 @@ $tests = array(
             '3000' => array(
                             'description'       => "Search a user object using Collection (result as map)",
                             'return'            => array('integer', 'array'),
-                            'expected'          => array('3' => ['login' => 'cedricfrancoys@gmail.com']),
+                            'expected'          => array('2' => ['login' => 'cedricfrancoys@gmail.com']),
                             'test'              => function () {
                                                         try {
                                                             $values = User::search(['login', 'like', 'cedricfrancoys@gmail.com'])
@@ -340,6 +346,9 @@ $tests = array(
 
 function array_equals($array1, $array2) {
     $res = true;
+    if(count($array1) != count($array2)) {
+        return false;
+    }
     foreach($array1 as $key => $value) {
         if(!isset($array2[$key]) || gettype($value) != gettype($array2[$key])) {
             $res = false;

@@ -4,4 +4,22 @@ php:
   - '7.1'
   - '7.2'
   
-script: php run.php --get=test_testunit
+services:
+# make the `mysql` binary available
+  - mysql
+
+env:
+  # make environment variables available
+  # bash: `$SITE_FOLDER` 
+  # PHP : `getenv('SITE_FOLDER');` 
+  global:
+    - DB_NAME="qinoa"
+    
+before_script:
+  # travis DB user is `root`, password is empty and host is `127.0.0.1`
+  - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
+  
+script: 
+  - php run.php --get=test_db-connectivity
+  - php run.php --do=test_db-init
+  - php run.php --get=test_testunit

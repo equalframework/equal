@@ -39,16 +39,22 @@ class DBManipulatorMySQL extends DBManipulator {
 	 * @return   integer   The status of the connect function call
 	 * @access   public
 	 */
-	public function connect($auto_select=true) {
+	public function connect($no_select=true) {
 		$result = false;
 		if(self::canConnect($this->host, $this->port)) {
-			if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)){
-				if(!$auto_select) $result = true;
-				elseif($result = $this->select($this->db_name)) {
-					mysqli_query($this->dbms_handler, 'SET NAMES '.DB_CHARSET);
-					$result = true;
-				}
-			}
+            if($no_select) {
+                if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, '', $this->port)) {
+                    $result = true;
+                }
+            }
+            else {
+                if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
+                    if($result = $this->select($this->db_name)) {
+                        mysqli_query($this->dbms_handler, 'SET NAMES '.DB_CHARSET);
+                        $result = true;
+                    }
+                }
+            }
 		}
 		return $result;
 	}
@@ -79,19 +85,27 @@ class DBManipulatorMySQL extends DBManipulator {
         // debug
 	    trigger_error("QN_DEBUG_SQL::$query", E_USER_NOTICE);
 		$this->setLastQuery($query);
-		if(($result = mysqli_query($this->dbms_handler, $query)) === false) throw new Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', SQL_ERROR);
+		if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
+            throw new Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', QN_ERROR_SQL);
+        }
 		else {
 			// if everything went well, fetch some additional info
 			// a) for 'select' queries
 			if(stristr(substr($query, 0, 6), 'select')) {
-				if(($res = mysqli_query($this->dbms_handler, "SELECT FOUND_ROWS();")) === false) throw new Exception(__METHOD__.' : query failure, '.mysqli_error($this->dbms_handler), SQL_ERROR);
+				if(($res = mysqli_query($this->dbms_handler, "SELECT FOUND_ROWS();")) === false) {
+                    throw new Exception(__METHOD__.' : query failure, '.mysqli_error($this->dbms_handler), QN_ERROR_SQL);
+                }
 				$row = mysqli_fetch_row($res);
 				$this->setAffectedRows($row[0]);
 			}
 			// b) for 'show' queries
-			else if(stristr(substr($query, 0, 4), 'show')) $this->setAffectedRows(mysqli_num_rows($result));
+			else if(stristr(substr($query, 0, 4), 'show')) {
+                $this->setAffectedRows(mysqli_num_rows($result));
+            }
 			// c) for other queries (insert, update, replace, delete)
-			else $this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
+			else {
+                $this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
+            }
 			$this->setLastId(mysqli_insert_id($this->dbms_handler));
 		}
 		return $result;
@@ -210,12 +224,12 @@ class DBManipulatorMySQL extends DBManipulator {
 		if(isset($ids) && !is_array($ids))			$ids = (array) $ids;						
 
         // test values and types        
-		if(empty($tables)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'tables' array is empty.", SQL_ERROR);
+		if(empty($tables)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'tables' array is empty.", QN_ERROR_SQL);
 /* irrelevant
-		if(!empty($fields) && !is_array($fields)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'fields' is not an array.", SQL_ERROR);
-		if(!empty($ids) && !is_array($ids)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'ids' is not an array.", SQL_ERROR);
+		if(!empty($fields) && !is_array($fields)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'fields' is not an array.", QN_ERROR_SQL);
+		if(!empty($ids) && !is_array($ids)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'ids' is not an array.", QN_ERROR_SQL);
 */		
-		if(!empty($conditions) && !is_array($conditions)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'conditions' is not an array.", SQL_ERROR);
+		if(!empty($conditions) && !is_array($conditions)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'conditions' is not an array.", QN_ERROR_SQL);
 
 		// select clause
 		// we could add the following directive for better performance (we disabled it to maximize code portability)
@@ -253,8 +267,8 @@ class DBManipulatorMySQL extends DBManipulator {
 
 	public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
         // test values and types
-		if(empty($table)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'table' empty.", SQL_ERROR);
-		if(empty($fields)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'fields' empty.", SQL_ERROR);
+		if(empty($table)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'table' empty.", QN_ERROR_SQL);
+		if(empty($fields)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'fields' empty.", QN_ERROR_SQL);
 
 		// update clause
 		$sql = 'UPDATE `'.$table.'`';
@@ -280,7 +294,7 @@ class DBManipulatorMySQL extends DBManipulator {
 	 */
 	public function addRecords($table, $fields, $values) {
 		$result = false;
-		if (!is_array($fields) || !is_array($values)) throw new Exception(__METHOD__.' : at least one parameter is missing', SQL_ERROR);
+		if (!is_array($fields) || !is_array($values)) throw new Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
 		$cols = '';
 		$vals = '';
 		foreach ($fields as $field) $cols .= "`$field`,";

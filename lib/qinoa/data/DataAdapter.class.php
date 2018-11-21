@@ -90,6 +90,7 @@ class DataAdapter extends Service {
                                     return $value;
                                 }
                 ],
+                // internally, we handle dates as timestamps
                 'php'   => [
                     'txt' =>    function ($value) {
                                     // return date as a ISO 8601 formatted string

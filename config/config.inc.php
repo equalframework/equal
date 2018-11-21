@@ -43,26 +43,17 @@ namespace {
 	* Error codes
     * we use negative values to make it possible to distinguish error codes from object ids
 	*/
-	define('UNKNOWN_ERROR',		 -1);	// something went wrong (that requires to check the logs)
-	define('MISSING_PARAM',		 -2);	// one or more mandatory parameters are missing
-	define('INVALID_PARAM',		 -4);	// one or more parameters have invalid or incompatible value
-	define('SQL_ERROR',			 -8);	// error while building SQL query or processing it (check that object class matches DB schema)
-	define('UNKNOWN_OBJECT',	 -16);	// unknown resource (class, object, view, ...)
-	define('NOT_ALLOWED',		 -32);	// action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
-
-    
-        
-   	define('QN_ERROR_UNKNOWN',	        UNKNOWN_ERROR);
-	define('QN_ERROR_MISSING_PARAM',    MISSING_PARAM);	    
-	define('QN_ERROR_INVALID_PARAM',	INVALID_PARAM);	    
-	define('QN_ERROR_SQL',			    SQL_ERROR);	        
-	define('QN_ERROR_UNKNOWN_OBJECT',	UNKNOWN_OBJECT);	
-	define('QN_ERROR_NOT_ALLOWED',		NOT_ALLOWED);    
+   	define('QN_ERROR_UNKNOWN',	        -1);        // something went wrong (that requires to check the logs)
+	define('QN_ERROR_MISSING_PARAM',    -2);	    // one or more mandatory parameters are missing
+	define('QN_ERROR_INVALID_PARAM',	-4);	    // one or more parameters have invalid or incompatible value
+	define('QN_ERROR_SQL',			    -8);	    // error while building SQL query or processing it (check that object class matches DB schema)
+	define('QN_ERROR_UNKNOWN_OBJECT',	-16);	    // unknown resource (class, object, view, ...)
+	define('QN_ERROR_NOT_ALLOWED',		-32);       // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
 	define('QN_ERROR_LOCKED_OBJECT',    -64);    
 	define('QN_ERROR_CONFLICT_OBJECT',  -128);
-    define('QN_ERROR_INVALID_USER',     -256);              // auth failure
-	define('QN_ERROR_UNKNOWN_SERVICE',  -512);              // server errror : missing service
-    define('QN_ERROR_INVALID_CONFIG',   -1024);             // serfver error : faulty configuration
+    define('QN_ERROR_INVALID_USER',     -256);      // auth failure
+	define('QN_ERROR_UNKNOWN_SERVICE',  -512);      // server errror : missing service
+    define('QN_ERROR_INVALID_CONFIG',   -1024);     // serfver error : faulty configuration
     
     
 
@@ -161,11 +152,24 @@ function qn_error_http($error_id) {
 	define('QN_DEBUG_SQL',			2);
 	define('QN_DEBUG_ORM',			4);
 	define('QN_DEBUG_APP',			8);    
-    
+
+
     define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
     define('QN_REPORT_WARNING',     E_USER_WARNING);    // 512  
     define('QN_REPORT_ERROR',       E_USER_ERROR);      // 256
     define('QN_REPORT_FATAL',       E_ERROR);           // 1    
+    
+    function qn_report_name($code) {
+        switch($code) {
+        case QN_REPORT_DEBUG:    return 'DEBUG';
+        case QN_REPORT_WARNING:  return 'WARNING';
+        case QN_REPORT_ERROR:    return 'ERROR';    
+        case QN_REPORT_FATAL:    return 'FATAL';
+        }
+        return 'UNKNOWN';
+    }
+    
+
     
     /**
     * Logs storage directory
@@ -176,7 +180,7 @@ function qn_error_http($error_id) {
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('display_errors', 0);
-    ini_set('html_errors', false);    
+    ini_set('html_errors', true);    
     ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
     
     // use QN_REPORT_x, E_ERROR for fatal errors only, E_ALL for all errors
@@ -284,11 +288,11 @@ function qn_error_http($error_id) {
     * note: most utilities need these parameters. 
     */
     define('DB_DBMS',		'MYSQL');		// only MySQL is supported so far
-    define('DB_HOST',		'localhost');   // the full qualified domain name (ex.: www.example.com)
+    define('DB_HOST',		'127.0.0.1');   // the full qualified domain name (ex.: www.example.com)
     define('DB_PORT',		'3306');		// this is the default port for MySQL
     define('DB_USER',		'root');        // this should be changed for security reasons
     define('DB_PASSWORD',	'');			// this should be changed for security reasons
-    define('DB_NAME', 		'my_db');	    // specify the name of the DB that you have created or you plan to use
+    define('DB_NAME', 		'qinoa');	    // specify the name of the DB that you have created or you plan to use
     define('DB_CHARSET',	'UTF8');		// unless you are really sure of what you're doing, leave this constant to 'UTF8'
 
     /**

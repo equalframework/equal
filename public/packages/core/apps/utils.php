@@ -26,12 +26,10 @@
 *
 */
 
-// the dispatcher (index.php) is in charge of setting the context and should include the easyObject library
-defined('__QN_LIB') or die(__FILE__.' cannot be executed directly.');
-require_once('../qn.api.php');
+
 
 use easyobject\orm\I18n as I18n;
-use html\HtmlWrapper as HtmlWrapper;
+use qinoa\html\HtmlWrapper;
 
 
 $html = new HtmlWrapper();
@@ -45,7 +43,7 @@ $html->addJSFile('packages/core/html/js/qinoa-ui.min.js');
 
 
 $js_plugins = function () {
-	$plugins_directory = 'packages/utils/data';
+	$plugins_directory = 'packages/qinoa/data/utils';
 	$plugins_list = array();
 	if(is_dir($plugins_directory) && ($list = scandir($plugins_directory))) {
 		foreach($list as $node) {
@@ -81,53 +79,73 @@ $(document).ready(function() {
 
 	// events
 	$('#submit').click(function() {
-		$.getJSON('index.php?get=utils_'+$('#plugin').val()+'&'+$('#params').serialize(), function (json_data) {
-				$('#main').empty();
+		$.getJSON('index.php?get=qinoa_utils_'+$('#plugin').val()+'&'+$('#params').serialize(), function () {})
+        .always(function(response, textStatus) {
+            var json_data = response;
+            
+            if(typeof response.responseJSON == 'object') {
+                json_data = response.responseJSON;
+            }
+            console.log(textStatus);
+            console.log(response);
+            console.log(json_data);
+                $('#main').empty();
 				$('#main').append($('<div/>').css({'font-weight': 'bold', 'margin-bottom': '20px'}).append('Plugin results :'));
 				$('#main').append($('<div/>').attr('id', 'result').css({'width': '100%', 'height': '400px'}));
-				if(typeof json_data.result == 'object') {
+
+				if(textStatus == 'success') {
 					// result is an object					
 					$('#result').append($('<textarea/>').attr('id', 'output').css({'width': '100%', 'height': '100%'}));
-					$.each(json_data.result, function(i, item){
+					$.each(json_data, function(i, item){
 						$('#output').append(item+'\\r\\n');
 					});
 				}
 				else {
 					// result is an error code
-					if(json_data.result == -2) {
-						// MISSING_PARAM
-						$('#result').append($('<div/>').css({'font-size': '90%', 'margin-bottom': '30px'}).html('This script requires one or more paramters.<br />(Seeing this message after sumbitting a form means that at least one parameter is missing or has invalid value.)'));
-						// try to build a form matching requirements
-						if(typeof json_data.announcement == 'object') {
-							// we received an announcement
-							$('#result').append(json_data.announcement.description+'<br /><br />');
-							$('#result').append($('<form/>').attr('id', 'params').append($('<table/>').addClass('widgets').css({'border': 'solid 1px grey'})));
-							$.each(json_data.announcement.params, function(i, item){
-								var conf = {
-									type: item.type,
-									name: i
-								};
-								if(typeof item.selection != 'undefined') {
-									conf.type = 'selection';
-									conf.selection = item.selection;
-								}
-								$('#params .widgets').append($('<tr/>')
-									.append($('<td/>').css({'padding':'10px','width':'150px', 'font-weight':'bold'}).text(i+':'))
-									.append($('<td/>').css({'padding':'10px',}).editable(conf))
-									.append($('<td/>').css({'padding':'10px',}).html(item.description))
-								);
-							});
-							$('#params .widgets').append($('<tr/>')
-								.append($('<td/>').attr('colspan', '3').css({'padding':'10px','text-align': 'right'})
-									.append(
-										$('<button type=\"button\"/>').html('submit').on('click', function() {
-										$('#submit').click();
-										})
-									)
-								)
-							);
-						}
-						else $('#result').append($('<div/>').html('No announcement received from the script.'));
+					if(typeof json_data.errors == 'object') {
+                        
+                        if(Object.keys(json_data.errors)[0] == 'MISSING_PARAM') {
+                            // MISSING_PARAM
+                            $('#result').append($('<div/>').css({'font-size': '90%', 'margin-bottom': '30px'}).html('This script requires one or more paramters.<br />(Seeing this message after sumbitting a form means that at least one parameter is missing or has invalid value.)'));
+                            // try to build a form matching requirements
+                            if(typeof json_data.announcement == 'object') {
+                                // we received an announcement
+                                $('#result').append(json_data.announcement.description+'<br /><br />');
+                                $('#result').append($('<form/>').attr('id', 'params').append($('<table/>').addClass('widgets').css({'border': 'solid 1px grey'})));
+                                $.each(json_data.announcement.params, function(i, item){
+                                    var conf = {
+                                        type: item.type,
+                                        name: i
+                                    };
+                                    if(typeof item.selection != 'undefined') {
+                                        conf.type = 'selection';
+                                        conf.selection = item.selection;
+                                    }
+                                    $('#params .widgets').append($('<tr/>')
+                                        .append($('<td/>').css({'padding':'10px','width':'150px', 'font-weight':'bold'}).text(i+':'))
+                                        .append($('<td/>').css({'padding':'10px',}).editable(conf))
+                                        .append($('<td/>').css({'padding':'10px',}).html(item.description))
+                                    );
+                                });
+                                $('#params .widgets').append($('<tr/>')
+                                    .append($('<td/>').attr('colspan', '3').css({'padding':'10px','text-align': 'right'})
+                                        .append(
+                                            $('<button type=\"button\"/>').html('submit').on('click', function() {
+                                            $('#submit').click();
+                                            })
+                                        )
+                                    )
+                                );
+                            }
+                            else {
+                                $('#result').append($('<div/>').html('No announcement received from the script.'));
+                            }                            
+                        }
+                        else {
+                            $('#result').append($('<div/>').html(JSON.stringify(json_data.errors)));
+                        }
+
+                        
 						
 						/*						
 						if(typeof json_data.announcement == 'object') {
@@ -135,8 +153,8 @@ $(document).ready(function() {
 						}
 						*/
 					}
-				}
-		});
+				}            
+        });
 	});
 });
 ");

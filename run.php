@@ -17,6 +17,8 @@
 *            php run.php --get=public:test_hello
 *    * HTTP
 *            /index.php?get=resiway_tests&id=1&test=2
+*    * PHP
+*            eQual::run('get', 'qinoa_utils_sql-schema', ['package'=>'core']);
 *
 */
 use config\QNLib;

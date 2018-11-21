@@ -374,7 +374,7 @@ namespace config {
          * @param $body
          * @param $root
          *         
-         * @example run('get', 'public:resiway_tests', [test => 1])
+         * @example run('get', 'public:resiway_tests', ['test'=> 1])
          */
 		public static function run($type, $operation, $body=[], $root=false) {
             trigger_error("DEBUG_ORM::calling run method for $type:$operation", QN_REPORT_DEBUG);

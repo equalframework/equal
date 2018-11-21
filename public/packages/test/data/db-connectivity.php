@@ -1,0 +1,25 @@
+<?php
+use qinoa\db\DBConnection;
+
+$params = eQual::announce([
+    'description'   => 'Tests connectivity to the DBMS server',
+    'params'        => [],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
+]);
+
+// retrieve connection object
+$db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
+
+// 1) test access to DBMS service
+if(!$db->canConnect()) {
+    throw new Exception('Unable to establish connection to DBMS host (wrong hostname or port)', QN_ERROR_INVALID_CONFIG);
+}
+
+// 2) try to connect to DBMS 
+if(!$db->connected()) {
+    if($db->connect(true) == false) {
+        throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', QN_ERROR_INVALID_CONFIG);
+    }
+}
+
+// no error, exit code will be 0

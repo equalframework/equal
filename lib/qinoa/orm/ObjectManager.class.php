@@ -174,7 +174,7 @@ class ObjectManager extends Service {
 */        
         // open DB connection
         if(!$this->db->connected()) {
-            if($this->db->connect() === false) {
+            if($this->db->connect(false) === false) {
                 // fatal error
                 trigger_error(	'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
                                 'unable to establish connection to database: check connection parameters '.
@@ -219,12 +219,12 @@ class ObjectManager extends Service {
             if(!is_file($filename)) {
                 // we might find ourselves in the 'private' directory (where classes definition is not mandatory)
                 $filename = '../public/'.$filename;
-                if(!is_file($filename)) throw new Exception("unknown model: '$class'", UNKNOWN_OBJECT);
+                if(!is_file($filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
             }
             preg_match('/\bextends\b(.*)\{/iU', file_get_contents($filename), $matches);
-            if(!isset($matches[1])) throw new Exception("malformed class file for model '$class': parent class name not found in file", INVALID_PARAM);
+            if(!isset($matches[1])) throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
             else $parent_class = trim($matches[1]);
-            if(!(include $filename)) throw new Exception("unknown model: '$class'", UNKNOWN_OBJECT);
+            if(!(include $filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
         }
         if(!isset($this->instances[$class])) $this->instances[$class] = new $class();
         return $this->instances[$class];
@@ -300,7 +300,7 @@ class ObjectManager extends Service {
 	* @return bool
 	*/
 	public static function checkFieldAttributes($check_array, $schema, $field) {
-		if (!isset($schema) || !isset($schema[$field])) throw new Exception("empty schema or unknown field name '$field'", UNKNOWN_OBJECT);
+		if (!isset($schema) || !isset($schema[$field])) throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
 		$attributes = $check_array[$schema[$field]['type']];
 		return !(count(array_intersect($attributes, array_keys($schema[$field]))) < count($attributes));
 	}
@@ -430,7 +430,7 @@ class ObjectManager extends Service {
 			'one2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
 				try {
 					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(ObjectManager::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", INVALID_PARAM);
+						if(!ObjectManager::checkFieldAttributes(ObjectManager::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 						$order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
 						$sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
 // todo : handle alias fields (require subsequent schema)
@@ -463,7 +463,7 @@ class ObjectManager extends Service {
 			'many2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
 				try {
 					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", INVALID_PARAM);
+						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 						// obtain the ids by searching inside relation table
 						$result = $om->db->getRecords(	
 							array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']), 
@@ -494,7 +494,7 @@ class ObjectManager extends Service {
 			'function'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
 				try {
 					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", INVALID_PARAM);
+						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 						if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
 						$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
 						foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = $res[$oid];
@@ -628,7 +628,7 @@ class ObjectManager extends Service {
 					foreach($ids as $oid) {
 						foreach($fields as $field) {
 							$value = $om->cache[$class][$oid][$field][$lang];
-							if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", INVALID_PARAM);
+							if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
 							$ids_to_remove = array();
 							$ids_to_add = array();
 							foreach($value as $id) {
@@ -1070,7 +1070,7 @@ todo: signature differs from other methods	(returned value)
                  if(!is_numeric($oid)) unset($ids[$key]);
             }
          
-            if(empty($ids)) throw new Exception("argument is not an array of objects identifiers (emtpy array or wrong type): '$ids'", INVALID_PARAM);
+            if(empty($ids)) throw new Exception("argument is not an array of objects identifiers (emtpy array or wrong type): '$ids'", QN_ERROR_INVALID_PARAM);
             
 			// 1) check rights and object schema
 			$object = &$this->getStaticInstance($object_class);
