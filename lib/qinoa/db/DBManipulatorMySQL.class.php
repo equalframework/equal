@@ -111,11 +111,11 @@ class DBManipulatorMySQL extends DBManipulator {
 		return $result;
 	}
 
-	public static function fetchRow(&$result) {
+	public static function fetchRow($result) {
 		return mysqli_fetch_row($result);
 	}
 
-	public static function fetchArray(&$result) {
+	public static function fetchArray($result) {
 		return mysqli_fetch_array($result, MYSQLI_ASSOC);
 	}
 

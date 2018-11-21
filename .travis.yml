@@ -20,6 +20,9 @@ before_script:
   - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
   
 script: 
+  # check connectivity to db service
   - php run.php --get=test_db-connectivity
+  # initialise database with demo data
   - php run.php --do=test_db-init
+  # run test units
   - php run.php --get=test_testunit
