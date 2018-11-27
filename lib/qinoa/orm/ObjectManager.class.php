@@ -416,8 +416,9 @@ class ObjectManager extends Service {
 						$oid = $row['id'];
 						foreach($row as $field => $value) {
 							// do some pre-treatment if necessary (this step is symetrical to the one in store method)
-							// $value = DataAdapter::adapt('db', 'orm', $schema[$field]['type'], $value, $class, $oid, $field, $lang);
-                            $value = $this->container->get('adapt')->adapt($value, $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            $type = $schema[$field]['type'];
+                            if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
+                            $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
 							// update the internal buffer with fetched value
 							$om->cache[$class][$oid][$field][$lang] = $value;
 						}
@@ -497,7 +498,10 @@ class ObjectManager extends Service {
 						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 						if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
 						$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
-						foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = $res[$oid];
+						foreach($ids as $oid) {
+                            $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            $om->cache[$class][$oid][$field][$lang] = $value;
+                        }
 					}
 				}
 				catch(Exception $e) {
