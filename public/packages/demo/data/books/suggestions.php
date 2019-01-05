@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal-framework>
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -31,7 +31,6 @@ list($params, $providers) = eQual::announce([
 list($context) = [$providers['context']];
 
 
-
 $store = [
     4  => ['Goldielocks and the three bears', 'Three little pigs'],
     5  => ["Charlotte's web", 'The Little Prince'],
@@ -52,8 +51,8 @@ foreach($store as $age => $books) {
                 }
             }
         }
-        else {
-            $result = $result + $books;
+        else if($age >= $params['age']-2){
+            $result = array_merge($result, $books);
         }
     }
     else break;

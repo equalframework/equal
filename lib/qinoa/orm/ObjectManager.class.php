@@ -410,6 +410,7 @@ class ObjectManager extends Service {
 					$fields[] = 'id';
 					// get all records at once
 					$result = $om->db->getRecords(array($table_name), $fields, $ids);
+
 					// treat sql result in the same order than the ids list
 					while($row = $om->db->fetchArray($result)) {
 						// retrieve the id of the object associated with current record
@@ -418,7 +419,11 @@ class ObjectManager extends Service {
 							// do some pre-treatment if necessary (this step is symetrical to the one in store method)
                             $type = $schema[$field]['type'];
                             if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
-                            $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
+                            
+                            if(!is_null($value)) {
+                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
+                            }
+                            
 							// update the internal buffer with fetched value
 							$om->cache[$class][$oid][$field][$lang] = $value;
 						}
@@ -499,7 +504,12 @@ class ObjectManager extends Service {
 						if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
 						$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
 						foreach($ids as $oid) {
-                            $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            if(isset($res[$oid][$field])) {
+                                $value = $this->container->get('adapt')->adapt($res[$oid][$field], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            }
+                            else {
+                                $value = null;
+                            }
                             $om->cache[$class][$oid][$field][$lang] = $value;
                         }
 					}

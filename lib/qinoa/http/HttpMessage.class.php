@@ -83,7 +83,16 @@ class HttpMessage {
     private $headers;    
 
     protected static $HTTP_METHODS = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE', 'PURGE', 'OPTIONS', 'TRACE', 'CONNECT'];
-
+    
+    /**
+    * Handle sub objects for deep cloning
+    *
+    */
+    public function __clone() {
+        if($this->uri)     $this->uri = clone $this->uri;
+        if($this->headers) $this->headers = clone $this->headers;
+    }
+    
     /**
      *  List from Wikipedia article "List of HTTP status codes"
      *  @link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -328,6 +337,8 @@ class HttpMessage {
                 $json = json_encode($xml);
                 $body = json_decode($json, true);
                 break;
+            case 'text/plain':
+            case 'text/html':                
             default:
                 // fallback to raw content
             }

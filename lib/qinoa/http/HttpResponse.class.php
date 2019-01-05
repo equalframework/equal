@@ -83,6 +83,10 @@ class HttpResponse extends HttpMessage {
                 // JSON-P
 // todo                
                 break;
+            case 'text/html':
+            case 'text/plain':
+                // raw content
+                break;
             case 'text/xml':
             case 'application/xml':
             case 'text/xml, application/xml':

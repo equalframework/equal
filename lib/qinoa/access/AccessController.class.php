@@ -26,8 +26,7 @@ class AccessController extends Service {
 
     public static function constants() {
         return ['R_CREATE', 'R_READ', 'R_WRITE', 'R_DELETE', 'R_MANAGE', 'DEFAULT_RIGHTS', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
-    }
-    
+    }    
 
     private function getUserGroups($user_id) {        
         if(!isset($this->groupsTable[$user_id])) {
@@ -38,7 +37,7 @@ class AccessController extends Service {
         return $this->groupsTable[$user_id];
     }
     
-    private function getUserRights($user_id, $object_class) {
+    private function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
 		// all users are at least granted the default permissions
 		$user_rights = DEFAULT_RIGHTS;
 
@@ -122,8 +121,8 @@ class AccessController extends Service {
         $user_id = $auth->userId();
 
         // build final user rights
-        $user_rights = DEFAULT_RIGHTS;		
-        $user_rights |= $this->getUserRights($user_id, $object_class);
+        $user_rights = DEFAULT_RIGHTS;
+        $user_rights |= $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
 		return (bool) ($user_rights & $operation);
     }

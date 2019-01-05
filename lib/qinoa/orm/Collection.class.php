@@ -189,7 +189,9 @@ class Collection implements \Iterator {
         return $this->get(true);
     }
 
-
+    /**
+     * create an empty object based on a given id
+     */
     public function id($id) {
         return $this->ids([$id]);
     }
@@ -204,9 +206,16 @@ class Collection implements \Iterator {
             return array_keys($this->objects);
         }
         else {
-            $ids = (array) $args[0];
+            $ids = array_unique((array) $args[0]);            
+            // filter resulting ids based on current user permissions 
+            // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)            
+            foreach($ids as $i => $id) {
+                if(!$this->ac->isAllowed(R_READ, $this->class, [], $id)) {
+                    unset($ids[$i]);
+                }
+            }
             // init keys of 'objects' member (for now, contain only an empty array)
-            $this->objects = array_fill_keys(array_unique($ids), []);            
+            $this->objects = array_fill_keys($ids, []);
         }
         return $this;
     }
@@ -291,7 +300,7 @@ class Collection implements \Iterator {
         }
         if(count($ids)) {
             // init keys of 'objects' member (for now, contain only an empty array)
-            $this->objects = array_fill_keys($ids, []);
+            $this->ids($ids);
         }
         else {
             // reset objects map if not empty
@@ -311,7 +320,7 @@ class Collection implements \Iterator {
         // 1) silently drop invalid fields
         $values = $this->filter($values);
         // 2) validate
-        $this->validate($values);        
+        $this->validate($values);
         // retrieve targeted fields names
         $fields = array_keys($values);        
         // 3) check that current user has enough privilege to perform CREATE operation
@@ -330,7 +339,7 @@ class Collection implements \Iterator {
         }
         // store new object in current collection
         $this->objects[$oid] = $values;
-        return $this;        
+        return $this;
     }
     
     public function read($fields, $lang=DEFAULT_LANG) {

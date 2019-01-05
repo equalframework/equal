@@ -43,21 +43,26 @@ function get_line($entry) {
     $class= '';
     switch($errcode) {
         case 'Notice':
+        case 'NOTICE':
+        case 'DEBUG':
         case E_USER_NOTICE:
             $type = 'Debug';
             $icon = 'fa-bug';
             $class = 'text-success';
             break;
+        case 'WARNING':
         case E_USER_WARNING:
             $type = 'Warning';
             $icon = 'fa-warning';
             $class = 'text-warning';
             break;
+        case 'ERROR':            
         case E_USER_ERROR:
             $type = 'Error';
             $icon = 'fa-times-circle';
             $class = 'text-danger';
-            break;        
+            break;
+        case 'FATAL':
         case E_ERROR:
             $type = 'Fatal error';
         case 'Fatal error':
@@ -77,7 +82,8 @@ function get_header($thread_id, $selected_thread_id, $previous_thread=null, $nex
     else {
         $info = base64_decode(strtr($thread_id, '-_', '+/'));
     }
-    list($thread_pid, $thread_time, $thread_script) = explode(';', $info);
+    // list($thread_pid, $thread_time, $thread_script) = explode(';', $info);
+    $thread_pid = $info;
     list($up, $down, $color) = ['', '', ''];
     if($previous_thread) {
         $up = "<a href=\"?thread_id=$previous_thread\"><i class=\"fa fa-caret-up\"></i></a>";
@@ -88,7 +94,8 @@ function get_header($thread_id, $selected_thread_id, $previous_thread=null, $nex
             $color = 'background-color: lightblue;';        
         }        
     }
-    return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;    
+    // return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;    
+    return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;        
 }
 
 $history = [];
@@ -198,7 +205,9 @@ if(substr($thread_id, 0, 3) != 'PHP') {
         $entry = $lines[$i];
         if(strlen($entry) == 0) break;
         if(substr($entry, 0, 1) != '#') {
-            list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
+            $values = explode(';', $entry);            
+            $tid = $values[0];
+            
             if($tid != $thread_id) break;    
             $current_thread .= get_line($entry);
         }
@@ -222,8 +231,8 @@ if(substr($thread_id, 0, 3) != 'PHP') {
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="packages/resipedia/apps/assets/css/bootstrap.min.css" />
-<link rel="stylesheet" type="text/css" href="packages/resipedia/apps/assets/css/font-awesome.min.css" />
+<link rel="stylesheet" type="text/css" href="packages/qinoa/apps/assets/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="packages/qinoa/apps/assets/css/font-awesome.min.css" />
 <style>
 html,body {
     padding:0;

@@ -46,7 +46,7 @@ $json = QNLib::run('get', 'qinoa_config_classes', ['package' => $params['package
 $classes = json_decode($json, true);
 
 // relay error if any
-if($classes['errors']) {
+if(isset($classes['errors'])) {
     foreach($classes['errors'] as $name => $message) {
         throw new Exception($message, qn_error_code($name));
     }

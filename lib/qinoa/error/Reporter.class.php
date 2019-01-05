@@ -149,8 +149,9 @@ class Reporter extends Service {
             $file = (isset($trace['file']))?$trace['file']:'';
             $line = (isset($trace['line']))?$trace['line']:'';
             
-            $utime = microtime(true);
-            $time_parts = explode(".",$utime);
+            // $utime = microtime(true);
+            // $time_parts = explode(".",$utime);
+            $time_parts = explode(" ", microtime());
             $error =  $this->getThreadId().';'.sprintf("%s.%s", date("m-d-Y H:i:s", $time_parts[0]), $time_parts[1]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.$msg.PHP_EOL;
             
             // append backtrace if required (fatal errors)

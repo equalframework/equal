@@ -318,15 +318,21 @@ class Context extends Service {
     private function getHttpBody() {
         // in case script was invoked by CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
-            // fetch body from stdin
-            $body = '';
-            $stdin = fopen('php://stdin', "r");
-            $read  = array($stdin);
-            $write = null;
-            $except = null;
-            if ( stream_select( $read, $write, $except, 0 ) === 1 ) {
-                while ($line = fgets( $stdin )) {
-                    $body .= $line;
+            // Windows does not support non-bloking reading from STDIN
+            $OS = strtoupper(substr(PHP_OS, 0, 3));
+            $options = getopt('f::');
+            // so we disable auto-feed from stdin unless there is a 'f' args (to force it)
+            if ( $OS !== 'WIN' || isset($options['f'])) {
+                // fetch body from stdin
+                $body = '';
+                $stdin = fopen('php://stdin', "r");
+                $read  = array($stdin);
+                $write = null;
+                $except = null;
+                if ( stream_select( $read, $write, $except, 0 ) === 1 ) {
+                    while ($line = fgets( $stdin )) {
+                        $body .= $line;
+                    }
                 }
             }
         }
