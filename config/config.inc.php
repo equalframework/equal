@@ -292,14 +292,14 @@ function qn_error_http($error_id) {
     define('DB_PORT',		'3306');		// this is the default port for MySQL
     define('DB_USER',		'root');        // this should be changed for security reasons
     define('DB_PASSWORD',	'');			// this should be changed for security reasons
-    define('DB_NAME', 		'toomanysolutions');	    // specify the name of the DB that you have created or you plan to use
+    define('DB_NAME', 		'qinoa');	    // specify the name of the DB that you have created or you plan to use
     define('DB_CHARSET',	'UTF8');		// unless you are really sure of what you're doing, leave this constant to 'UTF8'
 
     /**
     * Default Package
     */
     // Package we'll try to access if nothing is specified in the url (typically while accessing root folder)
-    define('DEFAULT_PACKAGE', 'resiway');    
+    define('DEFAULT_PACKAGE', 'core');    
 }
 namespace config {
     /** 
