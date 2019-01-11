@@ -53,7 +53,7 @@ namespace {
 	define('QN_ERROR_CONFLICT_OBJECT',  -128);
     define('QN_ERROR_INVALID_USER',     -256);      // auth failure
 	define('QN_ERROR_UNKNOWN_SERVICE',  -512);      // server errror : missing service
-    define('QN_ERROR_INVALID_CONFIG',   -1024);     // serfver error : faulty configuration
+    define('QN_ERROR_INVALID_CONFIG',   -1024);     // server error : faulty configuration
     
     
 

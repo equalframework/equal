@@ -286,9 +286,9 @@ class HttpMessage {
      *
      * @param $body mixed (string | array)
      */
-    public function setBody($body) {
+    public function setBody($body, $raw=false) {
 
-        if(!is_array($body)) {
+        if(!$raw && !is_array($body)) {
             // attempt to convert body to an associative array 
             switch($this->contentType()) {
             case 'multipart/form-data':                
@@ -328,14 +328,23 @@ class HttpMessage {
             case 'application/json':
             case 'application/javascript':
             case 'text/javascript':
-                $body = json_decode($body, true);
+                $arr = json_decode($body, true);
+                if(!is_null($arr)) {
+                    $body = $arr;
+                }
                 break;
             case 'text/xml':
             case 'application/xml':
             case 'application/xhtml+xml':
+                libxml_use_internal_errors(true);
                 $xml = simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
-                $json = json_encode($xml);
-                $body = json_decode($json, true);
+                if($xml) {
+                    $json = json_encode($xml);
+                    $arr = json_decode($json, true);
+                    if(!is_null($arr)) {
+                        $body = $arr;
+                    }
+                }
                 break;
             case 'text/plain':
             case 'text/html':                
@@ -538,8 +547,7 @@ class HttpMessage {
             return $this->getBody();
         }
         else {
-            $body = $args[0];
-            return $this->setBody($body);
+            return $this->setBody(...$args);
         }
     }
 

@@ -18,19 +18,18 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+use qinoa\html\HtmlWrapper;
 
-/*
-* file: packages/core/apps/apps.php
-*
-* App for using utility plugins
-*
-*/
-
-// the dispatcher (index.php) is in charge of setting the context and should include the easyObject library
-defined('__QN_LIB') or die(__FILE__.' cannot be executed directly.');
-require_once('../qn.api.php');
-
-load_class('utils/HtmlWrapper');
+list($params, $providers) = eQual::announce([
+    'description'   => 'UI for browsing controllers and their defintion amongst packages',
+    'params'        => [],
+    'response'      => [
+        'content-type'  => 'text/html',
+        'charset'       => 'UTF-8'
+    ],
+    'constants'     => [],
+    'providers'     => ['context']
+]);
 
 
 $html = new HtmlWrapper();
@@ -42,16 +41,25 @@ $html->addJSFile('packages/core/html/js/jquery-ui.min.js');
 $html->addJSFile('packages/core/html/js/qinoa.api.min.js');
 $html->addJSFile('packages/core/html/js/qinoa-ui.min.js');
 
-$js_packages = function () {
-	return json_encode(get_packages());
-};
 
+
+
+$js_packages = eQual::run('get', 'qinoa_config_packages');    
+
+function glob_recursive($directory, $flags = 0) {
+    $files = glob($directory.'/*.php', $flags);
+    foreach (glob($directory.'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
+    }
+    return $files;
+}
 
 function recurse_dir($directory, $parent_name='') {
     $result = array();
     if( is_dir($directory) && ($list = scandir($directory)) ) {
         foreach($list as $node) {
             if(is_dir($directory.'/'.$node) && !in_array($node, array('.', '..'))) {
+                if(count(glob_recursive($directory.'/'.$node)) === 0) continue;                
                 $result = array_merge($result, recurse_dir($directory.'/'.$node, (strlen($parent_name)?$parent_name.'_'.$node:$node)));
             }
             else if(!is_dir($directory.'/'.$node) && !in_array($node, array('.', '..'))) $result[] = (strlen($parent_name)?$parent_name.'_':'').(explode('.', $node)[0]);
@@ -60,9 +68,9 @@ function recurse_dir($directory, $parent_name='') {
     return $result;
 }
 
-$php_scripts = function ($directory) {
+$php_scripts = function ($directory) use ($js_packages){
 	$result = array();
-	$packages_list = get_packages();
+	$packages_list = json_decode($js_packages, true);
 	foreach($packages_list as $package) {
         $result[$package] = recurse_dir("packages/$package/$directory");
 	}
@@ -73,7 +81,7 @@ $php_scripts = function ($directory) {
 $html->addScript("
 $(document).ready(function() {
 	// vars
-	var packages = {$js_packages()};
+	var packages = {$js_packages};
 	var apps = {$php_scripts('apps')};
 	var actions = {$php_scripts('actions')};
 	var datas = {$php_scripts('data')};	
@@ -128,12 +136,12 @@ $(document).ready(function() {
 	function request_script(type, name) {
 		$.getJSON('index.php?'+type+'='+$('#package').val()+'_'+name+'&announce=1', function (json_data) {
 				$('#main').empty();
-				$('#main').append($('<div/>').css({'font-weight': 'bold', 'margin-bottom': '20px'}).append('Plugin description :'));
+				$('#main').append($('<div/>').css({'font-weight': 'bold', 'margin-bottom': '20px'}).append('Controller description :'));
 				$('#main').append($('<div/>').attr('id', 'result').css({'width': '100%', 'height': '400px'}));
 				if(typeof json_data.announcement == 'object') {
 					// we received an announcement
 					$('#result').append(json_data.announcement.description+'<br /><br />');
-					$('#result').append($('<div/>').css({'font-weight': 'bold', 'margin-bottom': '20px'}).append('Plugin params :'));					
+					$('#result').append($('<div/>').css({'font-weight': 'bold', 'margin-bottom': '20px'}).append('Controller parameters :'));					
 					$('#result').append($('<table/>').attr('id', 'params').css({'border': 'solid 1px grey'})
 						.append($('<tr/>')
 							.append($('<th/>').css({'padding':'10px','text-align': 'left'}).text('name'))
@@ -171,4 +179,4 @@ $(document).ready(function() {
 });
 ");
 
-print($html);
+$providers['context']->httpResponse()->body($html)->send();

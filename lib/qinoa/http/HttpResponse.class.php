@@ -69,9 +69,10 @@ class HttpResponse extends HttpMessage {
             // header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
         }
         
-        // output body
+        // retrieve body
         $body = $this->getBody();
 
+        // if baody is an associative array, try to convert it into plain text
         if(is_array($body)) {
             switch($this->getHeaders()->getContentType()) {
             case 'application/vnd.api+json':                
@@ -111,7 +112,9 @@ class HttpResponse extends HttpMessage {
                 $body = http_build_query($body);
             }
         }
+        // set header accordingly to body size
         header('Content-Length: '.strlen($body));
+        // output body
         print($body);
         // we return a pointer to current instance for consistency, but no output should be emitted after this point
         return $this;        

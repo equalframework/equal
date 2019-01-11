@@ -38,5 +38,3 @@ foreach($queries as $query) {
         $db->sendQuery($query.';');
     }
 }
-
-

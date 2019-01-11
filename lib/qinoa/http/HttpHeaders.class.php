@@ -30,6 +30,9 @@ class HttpHeaders {
         $this->setHeaders($headers);
     }
     
+    public function toArray() {
+        return $this->getHeaders();
+    }
     
     public function set($header, $value) {
         $header = self::normalizeName($header);

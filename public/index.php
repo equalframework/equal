@@ -14,17 +14,21 @@ if(isset($_REQUEST['_escaped_fragment_'])) {
     exit();
 }
 
-// this script is used to cache result of 'show' requests 
-// ('show' requests should always return static HTML, and expect no params)
-/*
-if( isset($_REQUEST['show']) ) {
-    $cache_filename = '../cache/'.$_REQUEST['show'];
+// handle cached response : GET requests might be cached (@see announce() and response/cacheable property)
+if( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+    $url = 'http'.(isset($_SERVER['HTTPS'])?'s':'').'://'."{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+    $cache_id = md5($url);
+    $cache_filename = '../cache/'.$cache_id;
     if(file_exists($cache_filename)) {
-        print(file_get_contents($cache_filename));
+        list($headers, $result) = unserialize(file_get_contents($cache_filename));
+        foreach($headers as $header => $value) {
+            header("$header: $value");
+        }
+        print_r($result);
         exit();
     }
 }
-*/
+
 
 function getAppOutput() {
     ob_start();	
@@ -33,11 +37,6 @@ function getAppOutput() {
 };
 
 $content = getAppOutput();
-
-// store restult if it needs to be cached
-if( isset($cache_filename) && is_writable(dirname($cache_filename)) ) {
-    file_put_contents($cache_filename, $content);
-}
 
 // relay result to php://stdout
 print($content);

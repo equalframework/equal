@@ -119,7 +119,7 @@ try {
     // $context->httpResponse()->header('Access-Control-Allow-Origin', '*');
     
     // 3) perform requested operation
-    QNLib::run($route['operation']['type'], $route['operation']['name'], $request->body(), true);
+    echo QNLib::run($route['operation']['type'], $route['operation']['name'], $request->body(), true);
 }
 // something went wrong: send an HTTP response with code related to the raised exception
 catch(Exception $e) {

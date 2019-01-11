@@ -238,7 +238,14 @@ namespace config {
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');
                     $response->header('Allow', '*');
-                }                
+                }
+
+                if( $request->method() == 'GET' 
+                    && isset($announcement['response']['cacheable']) 
+                    && $announcement['response']['cacheable']) {
+                    $context->set('cache', true);
+                    $context->set('cache-id', md5($request->uri()));
+                }
             }
             // normalize $announcement array
 			if(!isset($announcement['params'])) $announcement['params'] = array();
@@ -499,7 +506,15 @@ namespace config {
                     $result = $getOperationOutput($filename);
                 }
                 else {
-                    include($filename); 
+                    // handle output buffering
+                    ob_start();	 
+                    include($filename);
+                    $result = ob_get_clean();
+                    // cache output result, if requested (@see announce() method)
+                    if($context->get('cache')) {
+                        $headers = $context->httpResponse()->headers()->toArray();
+                        file_put_contents('../cache/'.$context->get('cache-id'), serialize([$headers, $result]));
+                    }
                 }
             }
             

@@ -31,7 +31,16 @@ class HttpUri {
 
  
     private $parts = null;
-    
+
+    private static $standard_ports = [
+        'ftp'   => 21,
+        'sftp'  => 22,
+        'ssh'   => 22,
+        'http'  => 80,
+        'https' => 443
+    ];
+
+        
     public function __construct($uri='') {
         // init $parts member to allow further methods calls even if provided URI is not valid
         $this->parts = [
@@ -216,16 +225,10 @@ class HttpUri {
     }
 
     public function getPort() {
-        static $standard_ports = [
-            'ftp'   => 21,
-            'sftp'  => 22,
-            'ssh'   => 22,
-            'http'  => 80,
-            'https' => 443
-        ];
         $scheme = $this->getScheme();
-        $default_port = isset($standard_ports[$scheme])?$standard_ports[$scheme]:'';
-        return isset($this->parts['port'])?$this->parts['port']:$default_port;
+        $default_port = isset(self::$standard_ports[$scheme])?self::$standard_ports[$scheme]:'';
+        $port = isset($this->parts['port'])?$this->parts['port']:$default_port;
+        return $port;
     }
 
     public function getAuthority() {
@@ -237,7 +240,14 @@ class HttpUri {
             }
             $user_info .= '@';
         }
-        return $user_info.$this->getHost().':'.$this->getPort();
+        $port = $this->getPort();
+        $scheme = $this->getScheme();
+        if($port == self::$standard_ports[$scheme]) {
+            $port = '';
+        }
+        else $port = ':'.$port;
+        
+        return $user_info.$this->getHost().$port;
     }
     
     public function getPath() {
