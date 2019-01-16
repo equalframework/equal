@@ -56,18 +56,19 @@ class AccessController extends Service {
                 $groups_ids = $this->getUserGroups($user_id);                                
                 // check if permissions are defined for the current user on given object class
                 $acl_ids = $orm->search('core\Permission', [
-                                    [ ['class_name', '=', '*'] ],
+                                    [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ],
+                                    [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ],                
                                     [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids] ],
                                     [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ],
                                     [ ['class_name', '=', $object_package.'\*'], ['group_id', 'in', $groups_ids] ],
                                     [ ['class_name', '=', $object_package.'\*'], ['user_id', '=', $user_id] ],
                                 ]);
+                                
                 if(count($acl_ids)) {
                     // get the user permissions
                     $values = $orm->read('core\Permission', $acl_ids, array('rights'));
                     foreach($values as $acl_id => $row) $user_rights |= $row['rights'];
-                }
-                
+                }                
                 
                 if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();
                 // first element of the class-related array is used to store the user permissions for the whole class
@@ -95,11 +96,19 @@ class AccessController extends Service {
         else {
             $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $rights]);
         }
+        // update internal cache
+        if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();        
+        // handle wildcard class name
+        if($object_class == '*') {
+            foreach($this->permissionsTable[$user_id] as $oclass => $orights) {
+                $this->permissionsTable[$user_id][$oclass] = $orights | $rights;
+            }
+        }
         $this->permissionsTable[$user_id][$object_class] = $rights;
     }
     
 
-    public function grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+    public function grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {        
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
         $rights = $this->getUserRights($user_id, $object_class);
@@ -117,15 +126,12 @@ class AccessController extends Service {
     
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 		if(DEFAULT_RIGHTS & $operation) return true;
-
-        $auth = $this->container->get('auth');
-        
+        // retrieve current user identifier
+        $auth = $this->container->get('auth');        
         $user_id = $auth->userId();
-
         // build final user rights
         $user_rights = DEFAULT_RIGHTS;
-        $user_rights |= $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
-
+        $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 		return (bool) ($user_rights & $operation);
     }
 }

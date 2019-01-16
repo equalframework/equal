@@ -15,7 +15,7 @@ list($params, $providers) = eQual::announce([
     'description'   => 'Initialise database for core package',
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context']
+    'providers'     => ['context', 'auth', 'access']
 ]);
 
 
@@ -324,6 +324,23 @@ $tests = [
                             ),
 
             // 3xxx methods : related to Collections calls
+            '3001' => array(
+                            'description'       => "Check uniqueness of services instances",
+                            'return'            => array('boolean', 'array'),
+                            'expected'          => true,
+                            'test'              => function () use($providers) {
+
+                                                        $auth1 = $providers['context']->container->get('auth');
+                                                        $auth2 = $providers['auth'];
+                                                        
+                                                        $access1 = $providers['context']->container->get('access');
+                                                        $access2 = $providers['access'];
+                                                            
+                                                            
+                                                        return ( $auth1 == $auth2 && $access1 == $access2);
+                                                }
+                            ),
+            
             '3101' => array(
                             'description'       => "Search for an existing user object using Collection (result as map)",
                             'return'            => array('integer', 'array'),
