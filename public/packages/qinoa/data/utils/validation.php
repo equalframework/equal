@@ -36,6 +36,12 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $params['package'] = strtolower($params['package']);
 
 
+/*
+
+TODO : check config and json files syntax.
+
+*/
+
 
 
 // result of the tests : array containing errors (if no errors are found, array is empty)

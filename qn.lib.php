@@ -22,39 +22,180 @@
 namespace {
 	define('__QN_LIB', true) or die('fatal error: __QN_LIB already defined or cannot be defined');
 
-    define('QN_BASE_DIR', dirname(__FILE__));
+    /**
+     *	All constants required by the core are prefixed with QN_
+     *	(in addition, user might define its own constants following his own formatting rules)
+     */    
+    
+    /**
+     * Current version of Qinoa
+     */
+    define('QN_VERSION', '1.0.0');
+    
+    /**
+     * Root directory of current install 
+     */ 
+    define('QN_BASEDIR', realpath(dirname(__FILE__)));
     
 	/**
-	* Add some global system-related constants (those cannot be modified by other scripts)
-	*/
-    include_once('config/config.inc.php');
-
+	 * Error codes
+     * we use negative values to make it possible to distinguish error codes from object ids
+	 */
+   	define('QN_ERROR_UNKNOWN',	        -1);        // something went wrong (that requires to check the logs)
+	define('QN_ERROR_MISSING_PARAM',    -2);	    // one or more mandatory parameters are missing
+	define('QN_ERROR_INVALID_PARAM',	-4);	    // one or more parameters have invalid or incompatible value
+	define('QN_ERROR_SQL',			    -8);	    // error while building SQL query or processing it (check that object class matches DB schema)
+	define('QN_ERROR_UNKNOWN_OBJECT',	-16);	    // unknown resource (class, object, view, ...)
+	define('QN_ERROR_NOT_ALLOWED',		-32);       // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
+	define('QN_ERROR_LOCKED_OBJECT',    -64);    
+	define('QN_ERROR_CONFLICT_OBJECT',  -128);
+    define('QN_ERROR_INVALID_USER',     -256);      // auth failure
+	define('QN_ERROR_UNKNOWN_SERVICE',  -512);      // server errror : missing service
+    define('QN_ERROR_INVALID_CONFIG',   -1024);     // server error : faulty configuration
     
 
+
+	/**
+	 * Debugging modes
+	 */	
+	define('QN_DEBUG_PHP',			1);
+	define('QN_DEBUG_SQL',			2);
+	define('QN_DEBUG_ORM',			4);
+	define('QN_DEBUG_APP',			8);    
+
+
+    define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
+    define('QN_REPORT_WARNING',     E_USER_WARNING);    // 512  
+    define('QN_REPORT_ERROR',       E_USER_ERROR);      // 256
+    define('QN_REPORT_FATAL',       E_ERROR);           // 1   
+
+    
+    /**
+     * Logs storage directory
+     *
+     * Note: ensure http service has read/write permissions on this directory
+     */
+    define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');    
+
+    // EventHandler will deal with error and debug messages depending on debug source value
+    ini_set('display_errors', 0);
+    ini_set('html_errors', true);    
+    ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
+    
+    // use QN_REPORT_x, E_ERROR for fatal errors only, E_ALL for all errors
+    error_reporting(E_ALL);
+
+    
+	/**
+	 * Users & Groups permissions masks
+	 */
+	define('QN_R_CREATE',    1);
+	define('QN_R_READ',      2);
+	define('QN_R_WRITE',     4);
+	define('QN_R_DELETE',    8);
+	define('QN_R_MANAGE',   16);
+
+	/**
+	 * Built-in Users and Groups
+	 *
+	 * Note : make sure that the ids in DB are set and matching these
+	 */
+	define('GUEST_USER_ID',		0);
+	define('ROOT_USER_ID',		1);
+    
+    // default group (all users are members of the default group)
+	define('DEFAULT_GROUP_ID',	1);	
+    
+    /**
+    * Session parameters
+    */
+    // Use session identification by COOKIE only
+    ini_set('session.use_cookies', '1');
+    ini_set('session.use_only_cookies', '1');
+    // and make sure not to rewrite URL
+    ini_set('session.use_trans_sid', '0');
+    ini_set('url_rewriter.tags', '');    
+    
+    
+    
+    
 	/** 
-	* Add some config-utility functions to the global namespace
+	* Add error-utility functions to the global namespace
 	*/
+    
+    
+    function qn_error_name($error_id) {
+        switch($error_id) {
+        case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
+        case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
+        case QN_ERROR_SQL:              return 'SQL_ERROR';    
+        case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
+        case QN_ERROR_UNKNOWN_OBJECT:	return 'UNKNOWN_OBJECT';
+        case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
+        case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
+        case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
+        case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
+        case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';    
+        }
+        return 'UNKNOWN_ERROR';
+    }
 
+    function qn_error_code($error_name) {
+        switch($error_name) {
+        case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
+        case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
+        case 'SQL_ERROR':           return QN_ERROR_SQL;
+        case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
+        case 'UNKNOWN_OBJECT':	    return QN_ERROR_UNKNOWN_OBJECT;
+        case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
+        case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
+        case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
+        case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
+        case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;    
+        }
+        return QN_ERROR_UNKNOWN;
+    }
+
+    /**
+
+     */
+    function qn_error_http($error_id) {
+        switch($error_id) {
+        case 0:                         return 200;        
+        case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
+        case QN_ERROR_INVALID_PARAM:    return 400;
+        case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario happend and operation could not be performed
+        case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'          	user has not enough privilege to perform requested operation (includes method not allowed-
+        case QN_ERROR_UNKNOWN_OBJECT:	return 404;     // 'Not Found'				object or route does not exist
+        case QN_ERROR_LOCKED_OBJECT:    return 423;     // 'Locked'		  	        resource is currently locked
+        case QN_ERROR_CONFLICT_OBJECT:  return 409;     // 'Conflict' 				version conflict
+        case QN_ERROR_INVALID_USER:     return 401;     // 'Unauthorized'           auth required or auth failure
+        // server errors
+        case QN_ERROR_UNKNOWN:
+        case QN_ERROR_INVALID_CONFIG:   return 500;    
+        case QN_ERROR_UNKNOWN_SERVICE:  return 503;
+        }
+        // fallback to 'Internal Server Error': something went wrong (details should be available in the log)
+        return 500;
+    }
+    
+ 
+    
+    function qn_report_name($code) {
+        switch($code) {
+        case QN_REPORT_DEBUG:    return 'DEBUG';
+        case QN_REPORT_WARNING:  return 'WARNING';
+        case QN_REPORT_ERROR:    return 'ERROR';    
+        case QN_REPORT_FATAL:    return 'FATAL';
+        }
+        return 'UNKNOWN';
+    }    
+    
 	/**
-	* Returns a configuraiton parameter.
-	*/
-	function config($name, $default=null) {
-        return (defined($name))?constant($name):$default;
-	}
-
-	/**
-	* Force the script to be either silent (no output) or verbose (according to DEBUG_MODE).
-	* @param boolean $silent
-	*/
-	function set_silent($silent) {
-		$GLOBALS['SILENT_MODE'] = $silent;
-        /*
-		ini_set('display_errors', !$silent);
-		if($silent) error_reporting(0);
-		else error_reporting(E_ALL);
-        */
-	}
-
+	 * Add global system-related constants 
+     * (which cannot be modified by other scripts)
+	 */
+    include_once('config/config.inc.php');
 }
 namespace config {
     use qinoa\services\Container;
@@ -127,8 +268,8 @@ namespace config {
 		*/
 		public static function init() {
             // allow inclusion and autoloading of external classes
-            if(file_exists(QN_BASE_DIR.'/vendor/autoload.php')) {            
-                include_once(QN_BASE_DIR.'/vendor/autoload.php');
+            if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {            
+                include_once(QN_BASEDIR.'/vendor/autoload.php');
             }
             
             // register own class loader
@@ -179,27 +320,7 @@ namespace config {
             
 		}
 
-		/**
-		* Gets the complete URL (uniform resource locator)
-		*
-		* @static
-		* @param	boolean $server_port	display server port (required when differs from 80)
-		* @param	boolean	$query_string	display query_string (i.e.: script.php?...&...&...)
-		* @return	string
-		*/
-// todo : deprecate        
-		public static function get_url($server_port=true, $query_string=true) {
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://';
-			$url = $protocol.$_SERVER['SERVER_NAME'];
-			if($server_port && $_SERVER['SERVER_PORT'] != '80')  $url .= ':'.$_SERVER['SERVER_PORT'];
-			// add full request URI if required
-			if($query_string) $url .= $_SERVER['REQUEST_URI'];	
-			// otherwise get the base directory of the current script (assuming this script is located in the root installation dir)
-			else $url .= substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/')+1);
-			return $url;
-		}
-
-
+		
 		/**
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
@@ -367,8 +488,6 @@ namespace config {
 			return $result;
 		}
 
-        private static function resolveRoute(string $uri) {
-        }
            
         /**
          * Execute a given operation.
@@ -384,7 +503,7 @@ namespace config {
          * @example run('get', 'public:resiway_tests', ['test'=> 1])
          */
 		public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("DEBUG_ORM::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("QN_DEBUG_ORM::calling run method for $type:$operation", QN_REPORT_DEBUG);
             $result = '';
             $resolved = [
                 'type'      => $type,       // 'do', 'get' or 'show'
@@ -428,11 +547,7 @@ namespace config {
                         // set status and body according to raised exception
                         ->status(qn_error_http($e->getCode()))
                         ->header('Content-Type', 'application/json')
-                        ->body( array_merge(
-                                    (array) $response->body(), 
-                                    [ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ]
-                                )
-                        )
+                        ->extendBody( [ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ] )
                         // send HTTP response
                         ->send();
                     }
@@ -494,7 +609,7 @@ namespace config {
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) $resolved['script'] = config('DEFAULT_APP').'.php';
                 $filename = 'packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
                 // set current dir according to visibility (i.e. 'public' or 'private')
-                chdir(QN_BASE_DIR.'/'.$resolved['visibility']);
+                chdir(QN_BASEDIR.'/'.$resolved['visibility']);
                 if(!is_file($filename)) {
                     throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);        
                 }
@@ -546,7 +661,7 @@ namespace config {
             }
             else {
                 $GLOBALS['QNlib_loading_classes'][$class_name] = true;
-                $file_path = QN_BASE_DIR.'/lib/'.str_replace('\\', '/', $class_name);
+                $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use Qinoa class extention
                 if(file_exists($file_path.'.class.php')) $result = include_once $file_path.'.class.php';
                 // Fallback to simple php extension
@@ -572,6 +687,6 @@ namespace config {
 	QNlib::init();
 }
 namespace {
-    // provide an "eQual" class to global scope
+    // extend global scope with `eQual` class
     class eQual extends config\QNlib {}
 }

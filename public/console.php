@@ -30,13 +30,7 @@ function get_stack($stack) {
 }
 
 function get_line($entry) {
-    list($thread_id, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    if(strpos($timestamp, '.') > 0) {
-        $time = str_pad(explode('.', $timestamp)[1], 4, '0').'ms';
-    }
-    else {
-        $time = date('H:i:s', $timestamp);
-    }
+    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
 
     $type = $errcode;
     $icon = 'fa-info';
@@ -72,18 +66,23 @@ function get_line($entry) {
             break;
     }
     $in = (strlen($origin))?"<b>in</b> <code class=\"$class\">$origin</code>":'';
-    return "<div style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> $time $type</a> <b>@</b> [<code class=\"$class\">{$file}:{$line}</code>] $in: $msg</div>".PHP_EOL;
+    return "<div style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> $datetime $type</a> <b>@</b> [<code class=\"$class\">{$file}:{$line}</code>] $in: $msg</div>".PHP_EOL;
 }
 
 function get_header($thread_id, $selected_thread_id, $previous_thread=null, $next_thread=null) {
+    global $threads_dt;
+    
+    if(isset($threads_dt[$thread_id])) {
+        $datetime = $threads_dt[$thread_id];
+    }
+    else $datetime = '';
+    
     if(substr($thread_id, 0, 3) == 'PHP') {
-        $info = base64_decode(strtr(substr($thread_id, 3), '-_', '+/'));        
+        $thread_pid = substr($thread_id, 3);        
     }
     else {
-        $info = base64_decode(strtr($thread_id, '-_', '+/'));
+        $thread_pid = $thread_id;
     }
-    // list($thread_pid, $thread_time, $thread_script) = explode(';', $info);
-    $thread_pid = $info;
     list($up, $down, $color) = ['', '', ''];
     if($previous_thread) {
         $up = "<a href=\"?thread_id=$previous_thread\"><i class=\"fa fa-caret-up\"></i></a>";
@@ -95,10 +94,12 @@ function get_header($thread_id, $selected_thread_id, $previous_thread=null, $nex
         }        
     }
     // return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;    
-    return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;        
+    return "<div style=\"margin-left: 10px; $color\"><div style=\"display: inline-block; width: 120px;\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;        
 }
 
 $history = [];
+// quick fix to get datetime inside get_header function
+$threads_dt = [];
 
 // todo : && if(!file_exists(PHP_LOG_FILE))
 if(!file_exists(QN_LOG_FILE)) die('no log found');
@@ -125,8 +126,12 @@ else {
     }
     // fetch the thread_id
 // todo : use a funciton to fetch an entry, and validate it based on values count (otherwise, ignore)    
-    list($thread_id, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+    list($datetime, $microtime) = explode('+', $datetime);    
+    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");    
+    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
     // syntax:  $this->thread_id.';'.time().';'.$code.';'.$origin.';'.$trace['file'].';'.$trace['line'].';'.$msg.PHP_EOL;
+    $threads_dt[$thread_id] = $datetime;    
 }
 
 // init next and previous threads ids
@@ -139,14 +144,22 @@ for($i = 0; $i < $len-1; ++$i) {
     $entry = $lines[$i];
     // skip stack descriptors
     if(substr($entry, 0, 1) == '#' || strlen($entry) < 20) continue;    
+
+
     // fetch the thread_id
-    list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
+    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
+    list($datetime, $microtime) = explode('+', $datetime);    
+    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");    
+    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
+
+    $threads_dt[$tid] = $datetime;
     if($tid == $thread_id) {
-        $history[$timestamp] = $entry;        
+
+        $history[$timestamp.'+'.$microtime] = $entry;        
         break;        
     }
     if($previous_thread != $tid) {
-        $history[$timestamp] = $entry;        
+        $history[$timestamp.'+'.$microtime] = $entry;
     }
     // remebrer previous thread id
     $previous_thread = $tid;
@@ -158,13 +171,18 @@ for($j = $i+1;$j < $len-1; ++$j){
     $entry = $lines[$j];
     if(strlen($entry) == 0) break;
     if(substr($entry, 0, 1) == '#' || strlen($entry) < 20) continue;
-    list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
+    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
     if($tid == $thread_id) continue;
+    
+    list($datetime, $microtime) = explode('+', $datetime);    
+    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");    
+    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
+    $threads_dt[$tid] = $datetime;    
     if(!$next_thread && $tid != $thread_id) {
         $next_thread = $tid;
     }
     if($prev != $tid) {
-        $history[$timestamp] = $entry;    
+        $history[$timestamp.'+'.$microtime] = $entry;    
     }
     $prev = $tid;
 }
@@ -185,16 +203,21 @@ if(file_exists(PHP_LOG_FILE)) {
         //[31-Jan-2018 21:21:36 Europe/Brussels] PHP Fatal error:  Class 'qinoa\services\Service' not found in C:\DEV\wamp64\www\resiway\vendor\qinoa\services\Container.class.php on line 6        
         if(preg_match("/\[([^\s]*) ([^\s]*) ([^\s]*)\] ([^\s]*) (.*): (.*) in ([^\s]*) on line ([0-9]+)/", $line, $match)) {
             $timestamp = strtotime($match[1].' '.$match[2]);
+            $datetime = date("m-d-Y H:i:s", $timestamp);
+            $microtime = '0.00000000';
             list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = [0, $timestamp, $match[5], '', $match[7], $match[8], $match[6]];
-            $tid = 'PHP'.strtr(base64_encode('0;0 '.$timestamp.';'.$file), '+/', '-_');
-            $entry = "$tid;$timestamp.0000;$errcode;$origin;$file;$line;$msg";
-            $history[$timestamp] = $entry;
+            
+            $tid = 'PHP'.substr(md5('0;0 '.$timestamp.';'.$file), 0, 6);
+            $entry = "$tid;$datetime+$microtime;$errcode;$origin;$file;$line;$msg";
+            $history[$timestamp.'+'.$microtime] = $entry;
+            $threads_dt[$tid] = $datetime;
             if(substr($thread_id, 0, 3) == 'PHP' && $tid == $thread_id) {
                 $current_thread .= get_line($entry);
             }            
         }
     }
 }
+
 
 
 
@@ -231,8 +254,8 @@ if(substr($thread_id, 0, 3) != 'PHP') {
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="packages/qinoa/apps/assets/css/bootstrap.min.css" />
-<link rel="stylesheet" type="text/css" href="packages/qinoa/apps/assets/css/font-awesome.min.css" />
+<link rel="stylesheet" type="text/css" href="packages/qinoa/assets/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="packages/qinoa/assets/css/font-awesome.css" />
 <style>
 html,body {
     padding:0;
@@ -244,10 +267,11 @@ html,body {
 <body>
 <div style="width: 100%; height: 34%; overflow: scroll;">
 <?php
+// order history by timestamp
 ksort($history);
 foreach($history as $timestamp => $entry) {
-        list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-        echo get_header($tid, $thread_id);
+    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+    echo get_header($tid, $thread_id);
 }
 ?>
 </div>

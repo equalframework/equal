@@ -193,7 +193,7 @@ class HttpMessage {
         // headers have to be set before body
         $this->setHeaders($headers);
         // assign body and tries to convert raw content to an array, based on content-type from headers
-        $this->setBody($body);
+        $this->setBody($body, true);
         // default protocol
         $this->setProtocol('HTTP/1.1');
         // default method
@@ -273,8 +273,17 @@ class HttpMessage {
     }    
     
     public function extendBody($params) {
-        if(is_array($params) && is_array($this->body)) {
-            $this->body = array_merge($this->body, $params);
+        if(is_array($params)) {
+            if(!is_array($this->body) && !empty($this->body)) {
+                $this->body = array_merge((array) $this->body, $params);
+            }
+            else $this->body = $params;
+        }
+        else {
+            if(is_array($this->body)) {
+                $this->body = array_merge($this->body, (array)$params);
+            }
+            else $this->body .= $params;
         }
         return $this;
     }

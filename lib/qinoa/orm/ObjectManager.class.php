@@ -54,7 +54,6 @@ class ObjectManager extends Service {
 	private $db;
 
     public static $virtual_types = array('alias');
-// todo : remove date and time    
 	public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'html', 'array', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
 	public static $complex_types = array('one2many', 'many2many', 'function');
 

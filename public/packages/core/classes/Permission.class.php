@@ -28,11 +28,11 @@ class Permission extends Model {
         foreach($ids as $oid) {
             $rights_txt = array();
             $rights = $$values[$oid]['rights'];
-            if($rights & R_CREATE)	$rights_txt[] = 'create';
-            if($rights & R_READ)	$rights_txt[] = 'read';
-            if($rights & R_WRITE)	$rights_txt[] = 'write';
-            if($rights & R_DELETE)	$rights_txt[] = 'delete';
-            if($rights & R_MANAGE)	$rights_txt[] = 'manage';
+            if($rights & QN_R_CREATE)   $rights_txt[] = 'create';
+            if($rights & QN_R_READ)     $rights_txt[] = 'read';
+            if($rights & QN_R_WRITE)    $rights_txt[] = 'write';
+            if($rights & QN_R_DELETE)   $rights_txt[] = 'delete';
+            if($rights & QN_R_MANAGE)   $rights_txt[] = 'manage';
             $res[$oid] = implode(', ', $rights_txt);
         }
         return $res;

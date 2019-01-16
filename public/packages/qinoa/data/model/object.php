@@ -4,10 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use config\QNLib;
 
-
-list($params, $providers) = QNLib::announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Returns values map of the specified fields for object matching given class and identifier.",
     'response'      => [
         'content-type'  => 'application/json',
@@ -40,10 +38,9 @@ list($params, $providers) = QNLib::announce([
 /*
     Access control is handled inside the qinoa\orm\Collection class
     Default Access controller and Authentication manager can be overriden this way:
-    'providers'     => [
-        'auth' => custom\AuthenticationManeger, 
-        'access' => custom\AccessController,
-        ...
+    'providers' => [
+        'auth'      => custom\AuthenticationManeger, 
+        'access'    => custom\AccessController
     ]         
 */    
 ]);

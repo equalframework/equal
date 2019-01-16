@@ -30,9 +30,6 @@ require_once('../qn.api.php');
 
 use easyobject\orm\I18n as I18n;
 
-// force silent mode (debug output would corrupt json data)
-set_silent(true);
-
 
 // announce script and fetch parameters values
 $params = announce(

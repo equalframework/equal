@@ -1,227 +1,25 @@
 <?php
-/**
-*	This file is part of the easyObject project.
-*	http://www.cedricfrancoys.be/easyobject
-*
-*	Copyright (C) 2012  Cedric Francoys
-*
-*	This program is free software: you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License as published by
-*	the Free Software Foundation, either version 3 of the License, or
-*	(at your option) any later version.
-*
-*	This program is distributed in the hope that it will be useful,
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*	GNU General Public License for more details.
-*
-*	You should have received a copy of the GNU General Public License
-*	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /** 
-* Add stuff in the global namespace.
+* Main configuration file
 * Constants defined in this file are mandatory and cannot be modified in customs config.inc.php
 */
 namespace {
-    /**
-    *	All constants required by the core are prefixed with QN_
-    *	(in addition, user might define its own constants following his own formatting rules)
-    */    
-    
-    /**
-    * Current version of Qinoa
+    /** 
+    * Add configuration in the global namespace: those cannot be changed in cascade config files.
     */
-    define('QN_VERSION', '1.0.0');
     
     /**
-    * Root directory of current install (current file is expected to be located in /config)
-    */ 
-    define('QN_BASEDIR', realpath(dirname(__FILE__).'/..'));
-    
-	/**
-	* Error codes
-    * we use negative values to make it possible to distinguish error codes from object ids
-	*/
-   	define('QN_ERROR_UNKNOWN',	        -1);        // something went wrong (that requires to check the logs)
-	define('QN_ERROR_MISSING_PARAM',    -2);	    // one or more mandatory parameters are missing
-	define('QN_ERROR_INVALID_PARAM',	-4);	    // one or more parameters have invalid or incompatible value
-	define('QN_ERROR_SQL',			    -8);	    // error while building SQL query or processing it (check that object class matches DB schema)
-	define('QN_ERROR_UNKNOWN_OBJECT',	-16);	    // unknown resource (class, object, view, ...)
-	define('QN_ERROR_NOT_ALLOWED',		-32);       // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
-	define('QN_ERROR_LOCKED_OBJECT',    -64);    
-	define('QN_ERROR_CONFLICT_OBJECT',  -128);
-    define('QN_ERROR_INVALID_USER',     -256);      // auth failure
-	define('QN_ERROR_UNKNOWN_SERVICE',  -512);      // server errror : missing service
-    define('QN_ERROR_INVALID_CONFIG',   -1024);     // server error : faulty configuration
-    
-    
-
-/*    
-function error_message($error_code) {
-    switch($error_code) {
-    case QN_ERROR_UNKNOWN:          return 'unknown error';
-    case QN_ERROR_MISSING_PARAM:    return 'a mandatory parameter is missing';    
-    case QN_ERROR_INVALID_PARAM:    return 'a provided parameter is invalid';
-    case QN_ERROR_SQL:              return 'an SQL error occured';
-    case QN_ERROR_UNKNOWN_OBJECT:   return 'specified object is unknown';
-    case QN_ERROR_NOT_ALLOWED:      return 'requested action not allowed';
-    }
-}
-*/
-
-function qn_error_name($error_id) {
-    switch($error_id) {
-    case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
-    case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
-    case QN_ERROR_SQL:              return 'SQL_ERROR';    
-    case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
-    case QN_ERROR_UNKNOWN_OBJECT:	return 'UNKNOWN_OBJECT';
-    case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
-    case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
-    case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
-    case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
-    case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';    
-    }
-    return 'UNKNOWN_ERROR';
-}
-
-function qn_error_code($error_name) {
-    switch($error_name) {
-    case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
-    case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
-    case 'SQL_ERROR':           return QN_ERROR_SQL;
-    case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
-    case 'UNKNOWN_OBJECT':	    return QN_ERROR_UNKNOWN_OBJECT;
-    case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
-    case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
-    case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
-    case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
-    case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;    
-    }
-    return QN_ERROR_UNKNOWN;
-}
-
-/*
-
-        '400' => 'Bad Request',				missing data or invalid format for mandatory parameter
-        '401' => 'Unauthorized',			auth required or auth failure
-        '403' => 'Forbidden',				user has not enough privilege to perform requested operation
-        '404' => 'Not Found',				route does not exist
-        '405' => 'Method Not Allowed',		route exists but no controller is assigned for given HTTP method
-        '406' => 'Not Acceptable',			unrecognized payload format
-        '409' => 'Conflict',				version conflict
-        '423' => 'Locked',				    resource is currently locked
-        '429' => 'Too Many Requests',		request blocked because client reached the maximum allowed requests quota
-        '456' => 'Unrecoverable Error',		an unhandled scenario happend and operation could not be performed
-        
-        // server error (inside controller code)
-        '500' => 'Internal Server Error'    something went wrong (details should be available in the log)
-        '503' => 'Service Unavailable',     a required service is unavailable
-
-*/
-function qn_error_http($error_id) {
-    switch($error_id) {
-    case 0:                         return 200;        
-    case QN_ERROR_MISSING_PARAM:    return 400;
-    case QN_ERROR_INVALID_PARAM:    return 400;
-    case QN_ERROR_SQL:              return 456;    
-    case QN_ERROR_NOT_ALLOWED:      return 403;
-    case QN_ERROR_UNKNOWN_OBJECT:	return 404;
-    case QN_ERROR_LOCKED_OBJECT:    return 423;
-    case QN_ERROR_CONFLICT_OBJECT:  return 409;
-    case QN_ERROR_INVALID_USER:     return 401;
-    // server errors
-    case QN_ERROR_UNKNOWN:
-    case QN_ERROR_INVALID_CONFIG:   return 500;    
-    case QN_ERROR_UNKNOWN_SERVICE:  return 503;
-    }
-    // fallback to 'Internal Server Error'
-    return 500;
-}
-    
-	/**
-	* Debugging modes
-	*/	
-	define('DEBUG_PHP',			1);
-	define('DEBUG_SQL',			2);
-	define('DEBUG_ORM',			4);
-	define('DEBUG_APP',			8);
-
-	define('QN_DEBUG_PHP',			1);
-	define('QN_DEBUG_SQL',			2);
-	define('QN_DEBUG_ORM',			4);
-	define('QN_DEBUG_APP',			8);    
-
-
-    define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
-    define('QN_REPORT_WARNING',     E_USER_WARNING);    // 512  
-    define('QN_REPORT_ERROR',       E_USER_ERROR);      // 256
-    define('QN_REPORT_FATAL',       E_ERROR);           // 1    
-    
-    function qn_report_name($code) {
-        switch($code) {
-        case QN_REPORT_DEBUG:    return 'DEBUG';
-        case QN_REPORT_WARNING:  return 'WARNING';
-        case QN_REPORT_ERROR:    return 'ERROR';    
-        case QN_REPORT_FATAL:    return 'FATAL';
-        }
-        return 'UNKNOWN';
-    }
-    
-
-    
-    /**
-    * Logs storage directory
-    */
-    // Note: ensure http service has read/write permissions on this directory
-    define('LOG_STORAGE_DIR', QN_BASEDIR.'/log');
-    define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');    
-
-    // EventHandler will deal with error and debug messages depending on debug source value
-    ini_set('display_errors', 0);
-    ini_set('html_errors', true);    
-    ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
-    
-    // use QN_REPORT_x, E_ERROR for fatal errors only, E_ALL for all errors
-    error_reporting(E_ALL);
-
-    
-	/**
-	* Users & Groups permissions masks
-	*/
-	define('R_CREATE',			1);
-	define('R_READ',			2);
-	define('R_WRITE',			4);
-	define('R_DELETE',			8);
-	define('R_MANAGE',			16);
-
-	/**
-	* Built-in Users and Groups
-	*
-	* Note : make sure that the ids in DB are set and matching these
-	*/
-	define('GUEST_USER_ID',		0);
-	define('ROOT_USER_ID',		1);
-    
-	define('DEFAULT_GROUP_ID',	1);	// default group (all users are members of the default group)
-    
-    /**
-    * Session parameters
-    */
-    // Use session identification by COOKIE only
-    ini_set('session.use_cookies', '1');
-    ini_set('session.use_only_cookies', '1');
-    // and make sure not to rewrite URL
-    ini_set('session.use_trans_sid', '0');
-    ini_set('url_rewriter.tags', '');
-
-
-    /**
-    *
-    * Possible values are: 'ORM' and 'JSON' (router.json)
-    */
+     *
+     * Possible values are: 'ORM' and 'JSON' (router.json)
+     */
     define('ROUTING_METHOD', 'JSON');
+
+    /**
+     *
+     * Routing configuration directory
+     */
+    define('ROUTING_CONFIG_DIR', QN_BASEDIR.'/config/routing');
+    
     
     /**
     * Binary type storage mode
@@ -232,9 +30,10 @@ function qn_error_http($error_id) {
 
 
     /**
-    * Binaries storage directory
-    */
-    // Note: ensure http service has read/write permissions on this directory
+     * Binaries storage directory
+     *
+     * Note: ensure http service has read/write permissions on this directory    
+     */
     define('FILE_STORAGE_DIR', QN_BASEDIR.'/bin');
 
 
@@ -243,12 +42,12 @@ function qn_error_http($error_id) {
     *
     * If no ACL is defined (which is the case by default) for an object nor for its class, any user will be granted the permissions set below
     */
-    // Note: in order to allow a user to fully create objects, he must be granted R_CREATE and R_WRITE permissions
+    // Note: in order to allow a user to fully create objects, he must be granted QN_R_CREATE and QN_R_WRITE permissions
     // Note: to set several rights at once, use the OR binary operator	
-    // define('DEFAULT_RIGHTS', R_CREATE | R_READ | R_WRITE | R_DELETE | R_MANAGE);
+    // define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE);
     
     
-    define('DEFAULT_RIGHTS', R_CREATE | R_READ |R_DELETE | R_WRITE);
+    define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE);
     // define('DEFAULT_RIGHTS', 0);
 
 
@@ -299,7 +98,7 @@ function qn_error_http($error_id) {
     * Default Package
     */
     // Package we'll try to access if nothing is specified in the url (typically while accessing root folder)
-    define('DEFAULT_PACKAGE', 'core');    
+    define('DEFAULT_PACKAGE', 'qinoa');    
 }
 namespace config {
     /** 
@@ -313,7 +112,7 @@ namespace config {
     /**
     * Debugging
     */	
-    define('DEBUG_MODE', DEBUG_PHP | DEBUG_ORM | DEBUG_SQL | DEBUG_APP);
+    define('DEBUG_MODE', QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL | QN_DEBUG_APP);
     // define('DEBUG_MODE', 0);
 
     /**
@@ -343,7 +142,7 @@ namespace config {
     * Logging
     */
     // note : keep in mind that enabling logging makes I/O operations a little bit longer
-    define('LOGGING_MODE', R_CREATE | R_WRITE | R_DELETE);
+    define('LOGGING_MODE', QN_R_CREATE | QN_R_WRITE | QN_R_DELETE);
     //define('LOGGING_MODE', false);
 
 

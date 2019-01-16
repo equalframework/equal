@@ -68,9 +68,9 @@ try {
 
         $router = Router::getInstance();
         // add routes providers according to current request
-        if($request->isBot()) $router->add(QN_BASE_DIR.'/config/routing/bot/*.json');
-        $router->add(QN_BASE_DIR.'/config/routing/*.json');
-        $router->add(QN_BASE_DIR.'/config/routing/i18n/*.json');
+        if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
+        $router->add(QN_BASEDIR.'/config/routing/*.json');
+        $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
         // if route cannot be resolved, raise a HTTP 404 exception
         if(!($route = $router->resolve($path, $method))) {        
             throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
@@ -134,11 +134,7 @@ catch(Exception $e) {
         // explicitely tell we're returning JSON
         ->header('Content-Type', 'application/json')
         // append an 'error' section to response body
-        ->body( array_merge(
-                    (array) $response->body(), 
-                    [ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ]
-                )
-        )
+        ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ])
         // send HTTP response
         ->send();
     }

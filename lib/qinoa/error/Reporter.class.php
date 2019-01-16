@@ -37,14 +37,10 @@ class Reporter extends Service {
         static $thread_id = null;
         
         if(!$thread_id){
-/*            
             // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)            
             $operation = $this->context->get('operation');
-            $data = $this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].(($operation)?" ($operation)":'');
-*/            
-            $data = substr($this->context->getPid(), 0, 6);
-            // return a base64 URL-safe encoded identifier
-            $thread_id = strtr(base64_encode($data), '+/', '-_');
+            $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].(($operation)?" ($operation)":''));
+            $thread_id = substr($data, 0, 6);
         }
         return $thread_id;
     }
@@ -152,7 +148,7 @@ class Reporter extends Service {
             // $utime = microtime(true);
             // $time_parts = explode(".",$utime);
             $time_parts = explode(" ", microtime());
-            $error =  $this->getThreadId().';'.sprintf("%s.%s", date("m-d-Y H:i:s", $time_parts[0]), $time_parts[1]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.$msg.PHP_EOL;
+            $error =  $this->getThreadId().';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.$msg.PHP_EOL;
             
             // append backtrace if required (fatal errors)
             

@@ -140,6 +140,9 @@ class Router  extends Service {
             foreach($resolver as $route_method => $route_details) {
                 $route['method'] = $route_method;
                 $route['operation'] = $route_details['operation'];
+                if(isset($route_details['description'])) {
+                    $route['description'] = $route_details['description'];
+                }
                 $result[$route_method] = $route;
             }
         }

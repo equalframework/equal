@@ -210,7 +210,7 @@ class Collection implements \Iterator {
             // filter resulting ids based on current user permissions 
             // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)            
             foreach($ids as $i => $id) {
-                if(!$this->ac->isAllowed(R_READ, $this->class, [], $id)) {
+                if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
                     unset($ids[$i]);
                 }
             }
@@ -324,7 +324,7 @@ class Collection implements \Iterator {
         // retrieve targeted fields names
         $fields = array_keys($values);        
         // 3) check that current user has enough privilege to perform CREATE operation
-        if(!$this->ac->isAllowed(R_CREATE, $this->class, $fields)) {
+        if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
             throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
         }
         // set current user as creator
@@ -385,7 +385,7 @@ class Collection implements \Iterator {
             $ids = array_keys($this->objects);
             
             // 2) check that current user has enough privilege to perform READ operation
-            if(!$this->ac->isAllowed(R_READ, $this->class, $fields, $ids)) {
+            if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
                 throw new \Exception('READ,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
             }
             
@@ -434,7 +434,7 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
             // 3) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(R_WRITE, $this->class, $ids, $fields, $ids)) {
+            if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $ids, $fields, $ids)) {
                 throw new \Exception('WRITE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
             }
             // set current user as modifier
@@ -457,7 +457,7 @@ class Collection implements \Iterator {
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
             // 1) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(R_DELETE, $this->class, [], $ids)) {
+            if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
                 throw new \Exception('DELETE,'.$this->class.',['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
             // 2) delete

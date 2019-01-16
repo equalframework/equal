@@ -24,3 +24,5 @@ if(!$db->select(DB_NAME)) {
     $db->disconnect();
     throw new Exception('Unable to establish connection to DBMS host (database not found)', QN_ERROR_INVALID_CONFIG);
 }
+
+// no error, exit code will be 0

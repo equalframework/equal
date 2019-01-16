@@ -25,7 +25,7 @@ class AccessController extends Service {
     }
 
     public static function constants() {
-        return ['R_CREATE', 'R_READ', 'R_WRITE', 'R_DELETE', 'R_MANAGE', 'DEFAULT_RIGHTS', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
+        return ['DEFAULT_RIGHTS', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
     }    
 
     private function getUserGroups($user_id) {        
@@ -47,7 +47,7 @@ class AccessController extends Service {
         }
 		else {
             // root user always has full rights
-            if($user_id == ROOT_USER_ID) $user_rights = R_CREATE | R_READ | R_WRITE | R_DELETE | R_MANAGE;
+            if($user_id == ROOT_USER_ID) $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
             else if($user_id != GUEST_USER_ID) {
                 $orm = $this->container->get('orm');
                 // extract package from class name (for wildcard notation)

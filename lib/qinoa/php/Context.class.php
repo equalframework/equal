@@ -83,7 +83,7 @@ class Context extends Service {
     public function getHttpResponse() {
         if(is_null($this->httpResponse)) {
             // build response (set protocol to HTTP 1.1, status to success, content-type to 'application/json; charset=UTF-8', and retrieve default headers set by PHP)
-            $this->httpResponse = new HttpResponse('HTTP/1.1 200 OK', $this->getHttpResponseHeaders());            
+            $this->httpResponse = new HttpResponse('HTTP/1.1 200 OK', $this->getHttpResponseHeaders());
         }
         return $this->httpResponse;
     }
