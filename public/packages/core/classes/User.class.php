@@ -14,7 +14,12 @@ class User extends Model {
             'start'			=> array('type' => 'string'),
             'language'		=> array('type' => 'string'),
             'validated'		=> array('type' => 'boolean'),
-            'groups_ids'	=> array('type' => 'many2many', 'foreign_object' => 'core\Group', 'foreign_field' => 'users_ids', 'rel_table' => 'core_rel_group_user', 'rel_foreign_key' => 'group_id', 'rel_local_key' => 'user_id'),
+            'groups_ids'	=> array('type' => 'many2many', 
+                                'foreign_object'    => 'core\Group', 
+                                'foreign_field'     => 'users_ids', 
+                                'rel_table'         => 'core_rel_group_user', 
+                                'rel_foreign_key'   => 'group_id', 
+                                'rel_local_key'     => 'user_id'),
         );
     }
 

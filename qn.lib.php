@@ -79,7 +79,7 @@ namespace {
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('display_errors', 0);
-    ini_set('html_errors', true);    
+    ini_set('html_errors', false);    
     ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
     
     // use QN_REPORT_x, E_ERROR for fatal errors only, E_ALL for all errors

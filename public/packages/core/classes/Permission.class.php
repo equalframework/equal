@@ -16,18 +16,18 @@ class Permission extends Model {
         );
     }
 
-    public static function onchange_rights($om, $uid, $ids, $lang) {
+    public static function onchange_rights($om, $ids, $lang) {
         // note : we are in the core namespace, so we don't need to specify it when referring to this class
-        $rights = Permission::getRightsTxt($om, $uid, $ids, $lang);
-        foreach($ids as $oid) $om->write($uid, 'core\Permission', $oid, array('rights_txt' => $rights[$oid]), $lang);
+        $rights = Permission::getRightsTxt($om, $ids, $lang);
+        foreach($ids as $oid) $om->write('core\Permission', $oid, array('rights_txt' => $rights[$oid]), $lang);
     }
 
-    public static function getRightsTxt($om, $uid, $ids, $lang) {
+    public static function getRightsTxt($om, $ids, $lang) {
         $res = array();
-        $values = $om->read($uid, 'core\Permission', $ids, array('rights'), $lang);
+        $values = $om->read('core\Permission', $ids, array('rights'), $lang);
         foreach($ids as $oid) {
             $rights_txt = array();
-            $rights = $$values[$oid]['rights'];
+            $rights = $values[$oid]['rights'];
             if($rights & QN_R_CREATE)   $rights_txt[] = 'create';
             if($rights & QN_R_READ)     $rights_txt[] = 'read';
             if($rights & QN_R_WRITE)    $rights_txt[] = 'write';

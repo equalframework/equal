@@ -47,8 +47,8 @@ namespace {
     // define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE);
     
     
-    define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE);
-    // define('DEFAULT_RIGHTS', 0);
+    // define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE);
+    define('DEFAULT_RIGHTS', 0);
 
 
     /**
