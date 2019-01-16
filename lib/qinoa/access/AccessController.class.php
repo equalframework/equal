@@ -82,7 +82,7 @@ class AccessController extends Service {
      * @param   $object_class  string  name of the class on which rights apply to : wildcards are allowed (ex. '*' or 'core\*')
      *
      */
-    private function setUserRights($right, $user_id, $object_class) {
+    private function setUserRights($rights, $user_id, $object_class) {
         // all users belong to the default group
         $orm = $this->container->get('orm');
         // search for an ACL describing this specific user
@@ -90,11 +90,12 @@ class AccessController extends Service {
                             [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
                         ]);       
         if(count($acl_ids)) {
-            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $right]);
+            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $rights]);
         }
         else {
-            $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $right]);
+            $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $rights]);
         }
+        $this->permissionsTable[$user_id][$object_class] = $rights;
     }
     
 
