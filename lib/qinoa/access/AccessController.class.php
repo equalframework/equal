@@ -56,6 +56,7 @@ class AccessController extends Service {
                 $groups_ids = $this->getUserGroups($user_id);                                
                 // check if permissions are defined for the current user on given object class
                 $acl_ids = $orm->search('core\Permission', [
+                                    [ ['class_name', '=', '*'] ],
                                     [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids] ],
                                     [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ],
                                     [ ['class_name', '=', $object_package.'\*'], ['group_id', 'in', $groups_ids] ],
@@ -89,10 +90,10 @@ class AccessController extends Service {
                             [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
                         ]);       
         if(count($acl_ids)) {
-            $values = $orm->write('core\Permission', $acl_ids, ['right' => $right]);
+            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $right]);
         }
         else {
-            $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'right' => $right]);
+            $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $right]);
         }
     }
     
