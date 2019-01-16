@@ -435,7 +435,7 @@ function array_equals($array1, $array2) {
 }
 
 $results = [];
-$fails = false;
+$failing = [];
 
 foreach($tests as $id => $test) {
     
@@ -470,7 +470,7 @@ foreach($tests as $id => $test) {
         $status = 'ko';
     }
 //         throw new Exception("invalid test structure", QN_ERROR_INVALID_PARAM);
-    if($status == 'ko') $fails = true;
+    if($status == 'ko') $failing[] = $id;
     else {
         if(isset($test['rollback']) && is_callable($test['rollback'])) {
             $test['rollback']();
@@ -492,9 +492,15 @@ foreach($tests as $id => $test) {
     }
 }
 
-$providers['context']->httpResponse()->body($results)->send();
+$body = ['result' => 'ok', 'log' => $results];
+if(count($failing)) {
+    $body['result'] = 'ko';
+    $body['failed'] = $failing;
+}
 
-if($fails) {
+$providers['context']->httpResponse()->body($body)->send();
+
+if(count($failing)) {
     exit(1);
 }
 else {
