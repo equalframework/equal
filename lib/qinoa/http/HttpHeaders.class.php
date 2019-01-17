@@ -150,7 +150,7 @@ class HttpHeaders {
             }
         }
         if(empty($charsets)) {
-            $charsets = (array) 'utf-8';
+            $charsets = (array) 'UTF-8';
         }
         return $charsets;
     }

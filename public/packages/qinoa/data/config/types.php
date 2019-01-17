@@ -53,12 +53,12 @@ $types = [
 
     'one2many'  => [
         'foreign_object' => ['type' => 'select_class'],
-        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selected']
+        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selection']
     ],    
 
     'many2many' => [
         'foreign_object' => ['type' => 'select_class'],
-        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selected'],
+        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selection'],
     ],
     
     'function'  => [

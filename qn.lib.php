@@ -360,6 +360,9 @@ namespace config {
                     $response->header('Access-Control-Expose-Headers', '*');
                     $response->header('Allow', '*');
                 }
+                if(isset($announcement['response']['content-disposition'])) {
+                    $response->header('Content-Disposition', $announcement['response']['content-disposition']);
+                }
 
                 if( $request->method() == 'GET' 
                     && isset($announcement['response']['cacheable']) 

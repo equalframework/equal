@@ -42,7 +42,7 @@ class HttpResponse extends HttpMessage {
     public function send() {
         // reset default headers, if any
         header_remove();
-        
+
         // set status-line
         header($this->getProtocol().' '.$this->getStatus());
         // CGI SAPI 
@@ -58,7 +58,7 @@ class HttpResponse extends HttpMessage {
         }
         
         // set cookies, if any
-        foreach($this->getHeaders()->getCookies() as $cookie => $value) {            
+        foreach($this->headers()->getCookies() as $cookie => $value) {            
             $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
             $host_parts = explode('.', $host);
             $tld = array_pop($host_parts);
@@ -68,13 +68,13 @@ class HttpResponse extends HttpMessage {
             // equivalent to 
             // header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
         }
-        
         // retrieve body
-        $body = $this->getBody();
+        $body = $this->body();
 
-        // if baody is an associative array, try to convert it into plain text
+        // if body is an associative array, try to convert it into plain text
         if(is_array($body)) {
-            switch($this->getHeaders()->getContentType()) {
+            
+            switch($this->headers()->getContentType()) {
             case 'application/vnd.api+json':                
             case 'application/json':
                 $body = json_encode($body, JSON_PRETTY_PRINT);
@@ -84,6 +84,8 @@ class HttpResponse extends HttpMessage {
                 // JSON-P
 // todo                
                 break;
+            case 'text/csv':
+// todo            
             case 'text/html':
             case 'text/plain':
                 // raw content
@@ -110,6 +112,15 @@ class HttpResponse extends HttpMessage {
                 break;
             default:
                 $body = http_build_query($body);
+            }
+        }
+        else {
+            switch($this->headers()->getContentType()) {
+            case 'text/csv':
+                if($this->headers()->getCharset() == 'UTF-8') {               
+                     $body = "\xEF\xBB\xBF".$body;
+                }
+                break;
             }
         }
         // set header accordingly to body size
