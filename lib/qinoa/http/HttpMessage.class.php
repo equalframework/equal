@@ -275,7 +275,7 @@ class HttpMessage {
     public function extendBody($params) {
         if(is_array($params)) {
             if(is_array($this->body) && !empty($this->body)) {
-                $this->body = array_merge_recursive($this->body, $params);
+                $this->body = array_merge($this->body, $params);
             }
             else $this->body = $params;
         }
