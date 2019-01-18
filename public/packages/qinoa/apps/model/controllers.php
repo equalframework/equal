@@ -52,7 +52,7 @@ $html->addJSFile('packages/core/html/js/qinoa-ui.min.js');
 function glob_recursive($directory, $flags = 0) {
     $files = glob($directory.'/*.php', $flags);
     foreach (glob($directory.'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
-        $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
+        $files = array_merge($files, glob_recursive($dir, $flags));
     }
     return $files;
 }

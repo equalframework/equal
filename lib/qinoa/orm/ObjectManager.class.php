@@ -905,7 +905,7 @@ todo: signature differs from other methods	(returned value)
                     trigger_error('unknown field ('.$field.') in $fields arg', E_USER_WARNING);
                 }
             }
-            $fields = array_merge($fields, ['state' => 'instance', 'modified' => date("Y-m-d H:i:s")]);
+            $fields = array_merge($fields, ['state' => 'instance', 'modified' => time()]);
 
             
 			// 3) update internal buffer with given values

@@ -314,7 +314,27 @@ class Context extends Service {
         }            
         return $scheme."://".$auth."$host:$port{$uri}";
     }
-    
+
+    private static function normalizeFiles() {
+        foreach($_FILES as $index => $file) {
+            $normalized_files = [];
+            if (!is_array($file['name'])) {
+                $normalized_files[$index][] = $file;
+                continue;
+            }
+            foreach($file['name'] as $idx => $name) {
+                $normalized_files[$index][$idx] = [
+                    'name'      => $file['name'][$idx],
+                    'type'      => $file['type'][$idx],
+                    'error'     => $file['error'][$idx],
+                    'size'      => $file['size'][$idx],
+                    'tmp_name'  => $file['tmp_name'][$idx]
+                ];
+            }
+            return $normalized_files;
+        }
+    }
+
     private function getHttpBody() {
         // in case script was invoked by CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
@@ -346,7 +366,7 @@ class Context extends Service {
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
             // we allow this only when there's nothing from ://stdin
             if(isset($_FILES) && !empty($_FILES)) {
-                $body = array_merge($_REQUEST, $_FILES);
+                $body = array_merge_recursive($_REQUEST, self::normalizeFiles());
             }
             else {
                 $body = $_REQUEST;

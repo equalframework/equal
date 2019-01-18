@@ -9,7 +9,7 @@ list($params, $providers) = eQual::announce([
     'description'   => "Create a new object using given fields values.",
     'response'      => [
         'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
+        'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
     'params'        => [
@@ -29,21 +29,29 @@ list($params, $providers) = eQual::announce([
             'default'       => DEFAULT_LANG
         ]
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
+// fields and values have been received as a raw array : some additional treatment might be required
+$schema = $orm->getObjectSchema($params['entity']);
 
 foreach($params['fields'] as $field => $value) {
+    // drop empty fields
     if(is_null($value)) {
         unset($params['fields'][$field]);
     }
+    else {
+        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
+    }
 }
 
-$result = $params['entity']::create($params['fields'], $params['lang'])->first();
+$instance = $params['entity']::create($params['fields'], $params['lang'])->adapt('txt')->first();
 
-                               
+$result = ['entity'  => $params['entity'], 'id' => $instance['id']];
+
 $context->httpResponse()
         ->body($result)
         ->send();
