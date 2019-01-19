@@ -28,12 +28,16 @@ class User extends Model {
             'login'			=> array(
                                 'error_message_id' => 'invalid_login',
                                 'function' => function ($login) {
+                                        // valid email address
+                                        // ... with an exception for admin
+                                        if($login == 'admin') return true;
                                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/', $login, $matches));
                                     }
                                 ),
             'password'		=> array(
                                 'error_message_id' => 'invalid_password',
                                 'function' => function ($password) {
+                                        // 32 chars md5 hash
                                         return (bool) (preg_match('/^[0-9|a-z]{32}$/', $password, $matches));
                                     }
                                 ),

@@ -125,7 +125,10 @@ class AccessController extends Service {
     }
     
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-		if(DEFAULT_RIGHTS & $operation) return true;
+        // grant all rights when using CLI
+        if(php_sapi_name() === 'cli' || defined('STDIN')) return true;
+        // check operation against default rights
+		if(DEFAULT_RIGHTS & $operation) return true;        
         // retrieve current user identifier
         $auth = $this->container->get('auth');        
         $user_id = $auth->userId();
