@@ -39,24 +39,25 @@ class DBManipulatorMySQL extends DBManipulator {
 	 * @return   integer   The status of the connect function call
 	 * @access   public
 	 */
-	public function connect($no_select=true) {
+	public function connect($auto_select=true) {
 		$result = false;
 		if(self::canConnect($this->host, $this->port)) {
-            if($no_select) {
-                if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, '', $this->port)) {
-                    $result = true;
-                }
-            }
-            else {
+            if($auto_select) {
                 if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
                     if($result = $this->select($this->db_name)) {
                         mysqli_query($this->dbms_handler, 'SET NAMES '.DB_CHARSET);
                         $result = true;
                     }
-                }
+                }                
+            }
+            else {
+                if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, '', $this->port)) {
+                    $result = true;
+                }                
             }
 		}
-		return $result;
+        if(!$result) return $false;
+		return $this;
 	}
 
 
@@ -69,7 +70,7 @@ class DBManipulatorMySQL extends DBManipulator {
 	public function disconnect() {
         if(isset($this->dbms_handler)) {
 			mysqli_close($this->dbms_handler);
-			unset($this->dbms_handler);
+			$this->dbms_handler = null;
 		}
 		return true;
 	}

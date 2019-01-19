@@ -113,7 +113,7 @@ class DBManipulator {
 	 * @return   integer   The status of the connect function call (ie: a handler to identify the connection)
 	 * @access   public
 	 */
-	public function connect($no_select=true) {
+	public function connect($auto_select=true) {
 	}
 
 	public function select($db_name) {

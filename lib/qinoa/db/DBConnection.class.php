@@ -33,9 +33,9 @@ class DBConnection extends Service {
         return ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'];
     }
     
-	public function connect($no_select=true) {
+	public function connect($auto_select=true) {
 		if(!isset($this->dbConnection)) return false;
-		return $this->dbConnection->connect($no_select);
+		return $this->dbConnection->connect($auto_select);
 	}
 
 	public function disconnect() {

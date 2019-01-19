@@ -53,5 +53,6 @@ $instance = $params['entity']::create($params['fields'], $params['lang'])->adapt
 $result = ['entity'  => $params['entity'], 'id' => $instance['id']];
 
 $context->httpResponse()
+        ->status(201)
         ->body($result)
         ->send();

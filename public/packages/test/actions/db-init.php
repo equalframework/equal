@@ -19,8 +19,6 @@ $params = eQual::announce([
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);
 
-// retrieve connection object
-$db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
 
 $json = eQual::run('get', 'test_db-access');
 
@@ -30,6 +28,10 @@ if(strlen($json)) {
     // return an error code
     exit(1);
 }
+
+// retrieve connection object
+$db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
+
 // retrieve schema for core package
 $json = eQual::run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array

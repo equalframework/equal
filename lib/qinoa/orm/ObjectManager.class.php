@@ -173,7 +173,7 @@ class ObjectManager extends Service {
 */        
         // open DB connection
         if(!$this->db->connected()) {
-            if($this->db->connect(false) === false) {
+            if($this->db->connect() === false) {
                 // fatal error
                 trigger_error(	'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
                                 'unable to establish connection to database: check connection parameters '.

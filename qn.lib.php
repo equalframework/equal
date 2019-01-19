@@ -510,7 +510,7 @@ namespace config {
             $result = '';
             $resolved = [
                 'type'      => $type,       // 'do', 'get' or 'show'
-                'operation' => null,        // {package}_{script_path}
+                'operation' => null,        // {package}_{script-path}
                 'visibility'=> 'public',    // 'public' or 'private'
                 'package'   => null,        // {package}   
                 'script'    => null         // {path/to/script.php}
@@ -614,7 +614,11 @@ namespace config {
                 // set current dir according to visibility (i.e. 'public' or 'private')
                 chdir(QN_BASEDIR.'/'.$resolved['visibility']);
                 if(!is_file($filename)) {
-                    throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);        
+                    // always try to fallback to qinoa package
+                    $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    if(!is_file($filename)) {
+                        throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);        
+                    }
                 }
                 // export as constants all parameters declared with config\define() to make them accessible through global scope
                 export_config();

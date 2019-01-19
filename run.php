@@ -111,6 +111,7 @@ try {
         if(!isset($route['operation']['name'])) {
             if(defined('DEFAULT_PACKAGE')) {
                 $route['operation']['name'] = DEFAULT_PACKAGE;
+                $route['operation']['type'] = 'show';
             }
         }        
     }
