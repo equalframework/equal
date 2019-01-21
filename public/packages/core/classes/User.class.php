@@ -25,22 +25,30 @@ class User extends Model {
 
     public static function getConstraints() {
         return [
-            'login'			=> array(
-                                'error_message_id' => 'invalid_login',
-                                'function' => function ($login) {
+            'login'			=>  [
+                                'error_message_id'  => 'invalid_login',
+                                'error_message'     => 'login must be a valid email address',
+                                'function'          => function ($login) {
                                         // valid email address
                                         // ... with an exception for admin
                                         if($login == 'admin') return true;
                                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/', $login, $matches));
                                     }
-                                ),
-            'password'		=> array(
-                                'error_message_id' => 'invalid_password',
-                                'function' => function ($password) {
+                                ],
+            'password'		=>  [
+                                'error_message_id'  => 'invalid_password',
+                                'error_message'     => 'password must be a 32 chars md5 encoded string',
+                                'function'          => function ($password) {
                                         // 32 chars md5 hash
                                         return (bool) (preg_match('/^[0-9|a-z]{32}$/', $password, $matches));
                                     }
-                                ),
+                                ]
         ];
     }
+    
+    public static function getUnique() {
+        return array(
+            ['login']
+        );
+    }    
 }

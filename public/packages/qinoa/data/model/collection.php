@@ -1,16 +1,15 @@
 <?php
 /*
-    This file is part of the Resipedia project <http://www.github.com/cedricfrancoys/resipedia>
+    This file is part of the Qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use config\QNLib;
 
-list($params, $providers) = QNLib::announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
     'response'      => [
         'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
+        'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],    
     'params'        => [

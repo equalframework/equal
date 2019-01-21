@@ -270,11 +270,25 @@ class Collection implements \Iterator {
      * @param $fields   array   associative array holding values and their related fields as keys 
      *
      */
-    private function validate(array $fields) {
-        $validation = $this->om->validate($this->class, $fields);
+    private function validate(array $fields, $check_unique=false) {
+        $validation = $this->om->validate($this->class, $fields, $check_unique);
         if($validation < 0 || count($validation)) {
-            throw new \Exception($this->class.'::'.implode(',', array_keys($fields)), QN_ERROR_INVALID_PARAM);
+            foreach($validation as $error_code => $error_descr) {
+                throw new \Exception(implode(',', array_keys($error_descr)), $error_code);
+            }
         }
+    }
+    
+    public function grant($users_ids, $operation, $fields=[]) {
+        // retrieve targeted identifiers
+        $ids = array_keys($this->objects);
+
+        // 2) check that current user has enough privilege to perform READ operation
+        if(!$this->ac->isAllowed(QN_R_MANAGE, $operation, $this->class, $fields, $ids)) {
+            throw new \Exception('MANAGE,'.$this->class, QN_ERROR_NOT_ALLOWED);
+        }
+        $this->ac->grantUsers($users_ids, $operation, $this->class, $fields, $ids);
+        return $this;        
     }
     
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
@@ -287,12 +301,18 @@ class Collection implements \Iterator {
 
         if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
         $params = array_merge($defaults, $params);
-        // sanitize and validate given domain
+        // 1) sanitize and validate given domain
         $domain = Domain::normalize($domain);
         if(!Domain::validate($domain, $this->instance->getSchema())) {
             throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);            
         }
-        // perform search
+
+        // 2) check that current user has enough privilege to perform READ operation
+        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
+            throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
+        }
+        
+        // 3) perform search
         $ids = $this->om->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $params['lang']);
         // $ids is an error code
         if($ids < 0) {           
@@ -319,14 +339,14 @@ class Collection implements \Iterator {
     public function create(array $values=null, $lang=DEFAULT_LANG) {
         // 1) silently drop invalid fields
         $values = $this->filter($values);
-        // 2) validate
-        $this->validate($values);
         // retrieve targeted fields names
         $fields = array_keys($values);        
-        // 3) check that current user has enough privilege to perform CREATE operation
+        // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
             throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
         }
+        // 3) validate and check unique keys
+        $this->validate($values, true);        
         // set current user as creator
         $values = array_merge($values, ['creator' => $this->am->userId()]);
         // 4) create the new object
@@ -369,8 +389,7 @@ class Collection implements \Iterator {
                         unset($fields[$key]);
                     }
                 }
-            }
-            
+            }            
             /*
                 When $field argument is empty, nothing is loaded.
                 Alternate strategies for empty $fields situation:
@@ -380,7 +399,6 @@ class Collection implements \Iterator {
                 // load all fields
                 $requested_fields = array_keys($schema);            
             */
-
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
             
@@ -394,11 +412,10 @@ class Collection implements \Iterator {
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
-            }
-            
-            $this->objects = $res;
+            }            
             
             // 4) load sub-fields (recusion), if any
+            $this->objects = $res;            
             foreach($fields as $field => $subfields) {
                 // load batches of sub-objects grouped by field
                 $ids = [];
@@ -427,19 +444,23 @@ class Collection implements \Iterator {
         if(count($this->objects)) {        
             // 1) silently drop invalid fields
             $values = $this->filter($values);
-            // 2) validate
-            $this->validate($values);
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
             // retrieve targeted fields names
             $fields = array_keys($values);
-            // 3) check that current user has enough privilege to perform WRITE operation
+            
+            // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $ids, $fields, $ids)) {
                 throw new \Exception('WRITE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
             }
-            // set current user as modifier
-            $values = array_merge($values, ['modifier' => $this->am->userId()]);
+            
+            // 3) validate
+            $this->validate($values);            
+            
+            
             // 4) write
+            // set current user as modifier
+            $values = array_merge($values, ['modifier' => $this->am->userId()]);            
             $res = $this->om->write($this->class, $ids, $values, $lang);
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
@@ -465,7 +486,7 @@ class Collection implements \Iterator {
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $ids), $res);
             }
-            // update current collection (remove all objects)
+            // 3) update current collection (remove all objects)
             $this->objects = [];
         }
         return $this;

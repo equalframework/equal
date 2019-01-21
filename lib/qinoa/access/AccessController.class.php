@@ -15,26 +15,37 @@ class AccessController extends Service {
     
     private $groupsTable;
    
+    private $usersTable;
     
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      */
     protected function __construct(Container $container) {
         $this->permissionsTable = array();        
-        $this->groupsTable = array();        
+        $this->groupsTable = array();
+        $this->usersTable = array();
     }
 
     public static function constants() {
         return ['DEFAULT_RIGHTS', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
     }    
 
-    private function getUserGroups($user_id) {        
+    private function getUserGroups($user_id) {
         if(!isset($this->groupsTable[$user_id])) {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
             $this->groupsTable[$user_id] = array_unique(array_merge([(string) DEFAULT_GROUP_ID], $values[$user_id]['groups_ids']));
         }
         return $this->groupsTable[$user_id];
+    }
+
+    private function getGroupUsers($group_id) {
+        if(!isset($this->usersTable[$group_id])) {
+            $orm = $this->container->get('orm');
+            $values = $orm->read('core\Group', $group_id, ['users_ids']);
+            $this->usersTable[$group_id] = array_unique(array_merge([(string) DEFAULT_GROUP_ID], $values[$group_id]['users_ids']));
+        }
+        return $this->usersTable[$group_id];
     }
     
     private function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
@@ -107,21 +118,50 @@ class AccessController extends Service {
         $this->permissionsTable[$user_id][$object_class] = $rights;
     }
     
-
-    public function grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {        
-        $auth = $this->container->get('auth');
-        $user_id = $auth->userId();
-        $rights = $this->getUserRights($user_id, $object_class);
-        $rights = $rights | $operation;
-        $this->setUserRights($rights, $user_id, $object_class);
+    private function setGroupRights($rights, $group_id, $object_class) {
+        // all users belong to the default group
+        $orm = $this->container->get('orm');
+        // search for an ACL describing this specific user
+        $acl_ids = $orm->search('core\Permission', [
+                            [ ['class_name', '=', $object_class], ['group_id', '=', $group_id] ]
+                        ]);       
+        if(count($acl_ids)) {
+            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $rights]);
+        }
+        else {
+            $orm->create('core\Permission', ['class_name' => $object_class, 'group_id' => $group_id, 'rights' => $rights]);
+        }
+        // update internal cache
+        $users_ids = $this->getGroupUsers($group_id);
+        foreach($users_ids as $user_id) {
+            if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();        
+            // handle wildcard class name
+            if($object_class == '*') {
+                foreach($this->permissionsTable[$user_id] as $oclass => $orights) {
+                    $this->permissionsTable[$user_id][$oclass] = $orights | $rights;
+                }
+            }
+            $this->permissionsTable[$user_id][$object_class] = $rights;
+        }
+    }
+    
+    public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        if(!is_array($users_ids)) $users_ids = (array) $users_ids;
+        foreach($users_ids as $user_id) {
+            $rights = $this->getUserRights($user_id, $object_class);
+            $rights = $rights | $operation;
+            $this->setUserRights($rights, $user_id, $object_class);
+        }
     }
    
-    public function revoke($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+    public function revokeUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        if(!is_array($users_ids)) $users_ids = (array) $users_ids;
         $auth = $this->container->get('auth');
-        $user_id = $auth->userId();            
-        $rights = $this->getUserRights($user_id, $object_class);   
-        $rights = $rights & ~$operation;   
-        $this->setUserRights($rights, $user_id, $object_class);        
+        foreach($users_ids as $user_id) {
+            $rights = $this->getUserRights($user_id, $object_class);
+            $rights = $rights & ~$operation;
+            $this->setUserRights($rights, $user_id, $object_class);
+        }
     }
     
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
@@ -130,7 +170,7 @@ class AccessController extends Service {
         // check operation against default rights
 		if(DEFAULT_RIGHTS & $operation) return true;        
         // retrieve current user identifier
-        $auth = $this->container->get('auth');        
+        $auth = $this->container->get('auth');
         $user_id = $auth->userId();
         // build final user rights
         $user_rights = DEFAULT_RIGHTS;

@@ -778,30 +778,66 @@ class ObjectManager extends Service {
 
 	* @param string $class object class
 	* @param array $values
-	* @return array resulting associative array
+	* @param boolean $check_unique
+	* @return array resulting associative array (empty if no error found)
 	*/
-	public function validate($class, $values) {
-// todo : check unicity in case the 'unique' attribute is set in field description        
+	public function validate($class, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
-		$res = array();
+		$res = [];
 
-        $static_instance = &$this->getStaticInstance($class);	
-        if(method_exists($static_instance, 'getConstraints')) {
-            $constraints = $static_instance->getConstraints();
+        $model = &$this->getStaticInstance($class);
+        
+        if(method_exists($model, 'getConstraints')) {
+            $constraints = $model->getConstraints();
             //(unexisting fields are ignored by write method)
             foreach($values as $field => $value) {
                 if(isset($constraints[$field]) 
                 && isset($constraints[$field]['function']) ) {
-                    $validation_func = $constraints[$field]['function'];
+                    $constraint = $constraints[$field];
+                    $validation_func = $constraint['function'];
                     if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
-                        if(!isset($constraints[$field]['error_message_id'])) $res[$field] = 'invalid';
-                        else $res[$field] = $constraints[$field]['error_message_id'];
+                        if(!isset($constraint['error_message_id'])) {
+                            $constraint['error_message_id'] = 'invalid_'.$field;
+                        }
+                        if(!isset($constraint['error_message'])) {
+                            $constraint['error_message'] = $field.' is invalid';
+                        }
+                        trigger_error("field {$field} violates constraint : {$constraint['error_message']}", E_USER_WARNING);                                    
+                        $error_code = QN_ERROR_INVALID_PARAM;
+                        $res[$field] = $constraint['error_message_id'];
                     }
                 }
             }
         }
+        
+        if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
+            $uniques = $model->getUnique();
 
-		return $res;
+            foreach($uniques as $unique) {
+                $domain = [['state', '=', 'instance']];
+                foreach($unique as $field) {
+                    // map unique fields with the given values
+                    $domain[] = [$field, '=', $values[$field]];
+                }
+                // search for objects already set with unique values
+                $ids = $this->search($class, $domain);
+                // there is a violation : stop and fetch info about it
+                if(count($ids)) {
+                    $objects = $this->read($class, $ids, $unique);                
+                    foreach($objects as $oid => $odata) {
+                        foreach($odata as $field => $value) {
+                            if($value == $values[$field]) {
+                                trigger_error("field {$field} violates unique constraint with object {$oid}", E_USER_WARNING);                                    
+                                $error_code = QN_ERROR_CONFLICT_OBJECT;
+                                $res[$field] = "duplicate_{$field}";
+                            }
+                        }
+                    }                
+                }
+            }
+        }
+
+		return (count($res))?[$error_code => $res]:[];
 	}
 
 
@@ -809,6 +845,7 @@ class ObjectManager extends Service {
     if $fields is empty, a draft object is created 
     if $field contains some values, object is created and its state is set to 'instance' (@see write method)
 todo : to validate
+    @returns integer    identfier of the newly created used or, in case of error, the code of the error that was raised
 	*/
 	public function create($class, $fields=NULL, $lang=DEFAULT_LANG) {
 		$res = 0;
@@ -822,8 +859,7 @@ todo : to validate
 			// $creation_array = array('created' => date("Y-m-d H:i:s"), 'creator' => $uid);
 			$creation_array = array_merge( ['created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
             
-			// list ids of records having creation date older than DRAFT_VALIDITY
-            // $ids = $this->search($uid, $class, array(array(array('state', '=', 'draft'),array('created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))))), 'id', 'asc'); 
+			// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
             $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
 			// use the oldest expired draft, if any            
 			if(!count($ids)) $oid = 0;
