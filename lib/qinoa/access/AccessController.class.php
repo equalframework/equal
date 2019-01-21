@@ -156,12 +156,24 @@ class AccessController extends Service {
    
     public function revokeUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
-        $auth = $this->container->get('auth');
+
         foreach($users_ids as $user_id) {
             $rights = $this->getUserRights($user_id, $object_class);
             $rights = $rights & ~$operation;
             $this->setUserRights($rights, $user_id, $object_class);
         }
+    }
+    
+    public grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        $auth = $this->container->get('auth');
+        $user_id = $auth->userId();
+        $this->grantUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
+    }
+    
+    public revoke($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        $auth = $this->container->get('auth');
+        $user_id = $auth->userId();
+        $this->revokeUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
     }
     
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
