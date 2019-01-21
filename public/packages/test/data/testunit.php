@@ -14,7 +14,7 @@ use core\Group;
 list($params, $providers) = eQual::announce([
     'description'   => 'Test unit for Qinoa and Core packages. This unit assumes that a DB connection is available and config vars are set accordingly.',
     'params'        => [],
-    'providers'     => ['context', 'auth', 'access']
+    'providers'     => ['context', 'orm', 'auth', 'access']
 ]);
 
 
@@ -310,7 +310,7 @@ $tests = [
             '2540' => array(
                             'description'       =>  "Search for some object : clause contain on many2many field",
                             'return'            =>  array('integer', 'array'),
-                            'expected'          =>  array(1 => ['login' => 'root@example.com'], 2 => ['login' => 'cedricfrancoys@gmail.com']),
+                            'expected'          =>  array(1 => ['login' => 'admin'], 2 => ['login' => 'cedricfrancoys@gmail.com']),
                             'test'              =>  function () use($providers) {
                                                         try {
                                                             $providers['auth']->authenticate('cedricfrancoys@gmail.com', '02e5408967241673cd03126fe55dcd1a');
@@ -398,8 +398,11 @@ $tests = [
                                                         }
                                                         return $values;
                                                     },
-                            'rollback'          =>  function() {
-                                                        User::search(['login', '=', 'test@equal.run'])->delete(true);
+                            'rollback'          =>  function() use($providers) {
+                                                        $om = $providers['orm'];
+                                                        $ids = $om->search('core\User', [['login', '=', 'test@equal.run']]);
+                                                        $om->remove('core\User', $ids, true);
+                                                        $providers['access']->revoke(QN_R_CREATE|QN_R_DELETE);
                                                     },
                             'test'              =>  function () {
                                                         try {

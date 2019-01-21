@@ -59,27 +59,47 @@ class AccessController extends Service {
 		else {
             // root user always has full rights
             if($user_id == ROOT_USER_ID) $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
-            else if($user_id != GUEST_USER_ID) {
+            else {
                 $orm = $this->container->get('orm');
-                // extract package from class name (for wildcard notation)
-                $object_package = $orm->getObjectPackageName($object_class);
                 // get user groups  
-                $groups_ids = $this->getUserGroups($user_id);                                
-                // check if permissions are defined for the current user on given object class
-                $acl_ids = $orm->search('core\Permission', [
-                                    [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ],
-                                    [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ],                
-                                    [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids] ],
-                                    [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ],
-                                    [ ['class_name', '=', $object_package.'\*'], ['group_id', 'in', $groups_ids] ],
-                                    [ ['class_name', '=', $object_package.'\*'], ['user_id', '=', $user_id] ],
-                                ]);
-                                
-                if(count($acl_ids)) {
-                    // get the user permissions
-                    $values = $orm->read('core\Permission', $acl_ids, array('rights'));
-                    foreach($values as $acl_id => $row) $user_rights |= $row['rights'];
-                }                
+                $groups_ids = $this->getUserGroups($user_id);
+                
+                // build array of domain variants
+                if($object_class == '*') {
+                    $domains = [
+                        [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ]
+                    ];
+                    if(count($groups_ids)) {
+                        $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ];
+                    }
+                }
+                else {
+                    // extract package from class name (for wildcard notation)
+                    $object_package = $orm->getObjectPackageName($object_class);
+                    $domains = [
+                        [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
+                    ];                    
+                    $domains[] = [ ['class_name', '=', $object_package.'\*'], ['user_id', '=', $user_id] ];
+                    if(count($groups_ids)) {
+                        $domains[] = [ ['class_name', '=', $object_package.'\*'], ['group_id', 'in', $groups_ids] ];
+                    }
+                    $domains[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ];
+                    if(count($groups_ids)) {                        
+                        $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ];
+                    }
+                }
+
+                // try domain variants with decreasing precision                
+                foreach($domains as $domain) {
+                    $acl_ids = $orm->search('core\Permission', $domain);
+                    if(count($acl_ids)) {
+                        // get the user permissions
+                        $values = $orm->read('core\Permission', $acl_ids, ['rights']);
+                        foreach($values as $acl_id => $row) {
+                            $user_rights |= $row['rights'];
+                        }                        
+                    }
+                }
                 
                 if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();
                 // first element of the class-related array is used to store the user permissions for the whole class
@@ -94,7 +114,7 @@ class AccessController extends Service {
      * @param   $object_class  string  name of the class on which rights apply to : wildcards are allowed (ex. '*' or 'core\*')
      *
      */
-    private function setUserRights($rights, $user_id, $object_class) {
+    private function changeUserRights($operator, $rights, $user_id, $object_class) {
         // all users belong to the default group
         $orm = $this->container->get('orm');
         // search for an ACL describing this specific user
@@ -102,55 +122,32 @@ class AccessController extends Service {
                             [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
                         ]);       
         if(count($acl_ids)) {
-            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $rights]);
+            $values = $orm->read('core\Permission', $acl_ids, ['rights']);            
+            // there should be only one result
+            foreach($values as $acl_id => $acl) {
+                
+                if($operator == '+') {
+                    $acl['rights'] |= $rights;
+                }
+                else if($operator == '-') {
+                    $acl['rights'] &= ~$rights;
+                }
+                $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+            }
         }
-        else {
+        else if($operator == '+') {
             $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $rights]);
         }
-        // update internal cache
-        if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();        
-        // handle wildcard class name
-        if($object_class == '*') {
-            foreach($this->permissionsTable[$user_id] as $oclass => $orights) {
-                $this->permissionsTable[$user_id][$oclass] = $orights | $rights;
-            }
-        }
-        $this->permissionsTable[$user_id][$object_class] = $rights;
-    }
-    
-    private function setGroupRights($rights, $group_id, $object_class) {
-        // all users belong to the default group
-        $orm = $this->container->get('orm');
-        // search for an ACL describing this specific user
-        $acl_ids = $orm->search('core\Permission', [
-                            [ ['class_name', '=', $object_class], ['group_id', '=', $group_id] ]
-                        ]);       
-        if(count($acl_ids)) {
-            $values = $orm->write('core\Permission', $acl_ids, ['rights' => $rights]);
-        }
-        else {
-            $orm->create('core\Permission', ['class_name' => $object_class, 'group_id' => $group_id, 'rights' => $rights]);
-        }
-        // update internal cache
-        $users_ids = $this->getGroupUsers($group_id);
-        foreach($users_ids as $user_id) {
-            if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();        
-            // handle wildcard class name
-            if($object_class == '*') {
-                foreach($this->permissionsTable[$user_id] as $oclass => $orights) {
-                    $this->permissionsTable[$user_id][$oclass] = $orights | $rights;
-                }
-            }
-            $this->permissionsTable[$user_id][$object_class] = $rights;
+        // reset internal cache
+        if(isset($this->permissionsTable[$user_id])) {
+            unset($this->permissionsTable[$user_id]);
         }
     }
-    
+       
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
         foreach($users_ids as $user_id) {
-            $rights = $this->getUserRights($user_id, $object_class);
-            $rights = $rights | $operation;
-            $this->setUserRights($rights, $user_id, $object_class);
+            $this->changeUserRights('+', $operation, $user_id, $object_class);
         }
     }
    
@@ -158,19 +155,17 @@ class AccessController extends Service {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
 
         foreach($users_ids as $user_id) {
-            $rights = $this->getUserRights($user_id, $object_class);
-            $rights = $rights & ~$operation;
-            $this->setUserRights($rights, $user_id, $object_class);
+            $this->changeUserRights('-', $operation, $user_id, $object_class);
         }
     }
     
-    public grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+    public function grant($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
         $this->grantUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
     }
     
-    public revoke($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+    public function revoke($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
         $this->revokeUsers($user_id, $operation, $object_class, $object_fields, $object_ids);

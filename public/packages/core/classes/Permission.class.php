@@ -5,15 +5,22 @@ use qinoa\orm\Model;
 class Permission extends Model {
 
     public static function getColumns() {
-        return array(
-            'class_name'		=> array('type' => 'string'),
-            'group_id'			=> array('type' => 'many2one', 'foreign_object' => 'core\Group'),
-            'user_id'			=> array('type' => 'many2one', 'foreign_object' => 'core\User'),                
-            'rights'			=> array('type' 	=> 'integer',
-                                         'onchange' => 'core\Permission::onchange_rights'),
+        return [
+            'class_name'		=> ['type' => 'string'],
+            'group_id'			=> ['type' => 'many2one', 'foreign_object' => 'core\Group'],
+            'user_id'			=> ['type' => 'many2one', 'foreign_object' => 'core\User'],
+            'rights'			=> [
+                                    'type' 	        => 'integer',
+                                    'onchange'      => 'core\Permission::onchange_rights'
+                                   ],
             // virtual fields, used in list views
-            'rights_txt'		=> array('type' => 'function', 'store' => true, 'result_type' => 'string', 'function' => 'core\Permission::getRightsTxt'),
-        );
+            'rights_txt'		=> [
+                                    'type'          => 'function', 
+                                    'store'         => true, 
+                                    'result_type'   => 'string', 
+                                    'function'      => 'core\Permission::getRightsTxt'
+                                   ]
+        ];
     }
 
     public static function onchange_rights($om, $ids, $lang) {
