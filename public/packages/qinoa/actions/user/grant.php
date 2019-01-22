@@ -31,10 +31,10 @@ list($params, $providers) = eQual::announce([
             'default'       => '*'
         ]        
     ],
-    'providers'     => ['context', 'auth', 'access'] 
+    'providers'     => ['context', 'auth', 'access', 'orm'] 
 ]);
 
-list($context, $am, $ac) = [ $providers['context'], $providers['auth'], $providers['access'] ];
+list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
 
 
 $operations = [
@@ -59,9 +59,19 @@ if(!count($ids)) {
     throw new Exception("no user by that username", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$ac->grantUsers($ids, $operations[$params['right']], $params['entity']);
+$user_id = array_shift($ids);
+
+$ac->grantUsers($user_id, $operations[$params['right']], $params['entity']);
+
+
+$acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['user_id', '=', $user_id] ]);       
+if(!count($acl_ids)) {
+    throw new Exception("unable to create ACL", QN_ERROR_UNKNOWN);
+}
+
+$acls = $orm->read('core\Permission', $acl_ids, ['user_id', 'class_name', 'rights', 'rights_txt']);
 
 $context->httpResponse()
-        ->status(204)
-        ->body('')
+        ->status(200)
+        ->body(['result' => array_shift($acls)])
         ->send();

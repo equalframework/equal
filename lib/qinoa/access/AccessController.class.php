@@ -118,30 +118,32 @@ class AccessController extends Service {
         // all users belong to the default group
         $orm = $this->container->get('orm');
         // search for an ACL describing this specific user
-        $acl_ids = $orm->search('core\Permission', [
-                            [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
-                        ]);       
+        $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]);       
         if(count($acl_ids)) {
             $values = $orm->read('core\Permission', $acl_ids, ['rights']);            
             // there should be only one result
-            foreach($values as $acl_id => $acl) {
-                
+            foreach($values as $acl_id => $acl) {                
                 if($operator == '+') {
                     $acl['rights'] |= $rights;
                 }
                 else if($operator == '-') {
                     $acl['rights'] &= ~$rights;
                 }
-                $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+                if(!$acl['rights']) {
+                    // remove ACL if empty (no right granted)
+                    $orm->remove('core\Permission', $acl_id, true);
+                }
+                else {
+                    $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+                }
             }
+            $rights = $acl['rights'];
         }
         else if($operator == '+') {
             $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $rights]);
         }
-        // reset internal cache
-        if(isset($this->permissionsTable[$user_id])) {
-            unset($this->permissionsTable[$user_id]);
-        }
+        // update internal cache
+        if(isset($this->permissionsTable[$user_id])) unset($this->permissionsTable[$user_id]);
     }
        
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
@@ -180,7 +182,6 @@ class AccessController extends Service {
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
         // build final user rights
-        $user_rights = DEFAULT_RIGHTS;
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 		return (bool) ($user_rights & $operation);
     }
