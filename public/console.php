@@ -12,26 +12,32 @@ define('QN_LOG_FILE', '../log/qn_error.log');
 define('PHP_LOG_FILE', '../log/error.log');
  
 date_default_timezone_set('Europe/Brussels');
-     
-function get_stack($stack) {    
-    $res = "<table style=\"margin-left: 20px;\">".PHP_EOL;
-    for($i = 0, $n = count($stack); $i < $n; ++$i) {
-        $entry = $stack[$i];
-        list($function, $file) = explode('@', $entry);
-        $function = str_replace('#', strval($n-$i).'.', $function);
-        $res .= "<tr>
-            <td> $function&nbsp;</td>
-            <td><b>@</b>&nbsp;$file</td>
-        </tr>".PHP_EOL;
-        
+
+
+function normalize_error_code($errcode) {
+    switch($errcode) {
+        case 'Notice':
+        case 'NOTICE':
+        case 'DEBUG':
+        case E_USER_NOTICE:
+            return E_USER_NOTICE;
+        case 'WARNING':
+        case E_USER_WARNING:
+            return E_USER_WARNING;
+        case 'ERROR':            
+        case E_USER_ERROR:
+            return E_USER_ERROR;
+        case 'FATAL':
+        case E_ERROR:
+        case 'Fatal error':
+        case 'Parse error':
+        case 'Catchable fatal error':
+            return E_ERROR;
     }
-    $res .= '</table>'.PHP_EOL;
-    return $res;
+    return E_ALL;
 }
 
-function get_line($entry) {
-    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-
+function get_error_class($errcode) {
     $type = $errcode;
     $icon = 'fa-info';
     $class= '';
@@ -65,12 +71,35 @@ function get_line($entry) {
             $class = 'text-danger';
             break;
     }
+    return [$type, $icon, $class];
+}
+
+function get_stack($stack) {    
+    $res = "<table style=\"margin-left: 20px;\">".PHP_EOL;
+    for($i = 0, $n = count($stack); $i < $n; ++$i) {
+        $entry = $stack[$i];
+        list($function, $file) = explode('@', $entry);
+        $function = str_replace('#', strval($n-$i).'.', $function);
+        $res .= "<tr>
+            <td> $function&nbsp;</td>
+            <td><b>@</b>&nbsp;$file</td>
+        </tr>".PHP_EOL;
+        
+    }
+    $res .= '</table>'.PHP_EOL;
+    return $res;
+}
+
+function get_line($entry) {
+    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+    list($type, $icon, $class) = get_error_class($errcode);
+
     $in = (strlen($origin))?"<b>in</b> <code class=\"$class\">$origin</code>":'';
     return "<div style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> $datetime $type</a> <b>@</b> [<code class=\"$class\">{$file}:{$line}</code>] $in: $msg</div>".PHP_EOL;
 }
 
 function get_header($thread_id, $selected_thread_id, $previous_thread=null, $next_thread=null) {
-    global $threads_dt;
+    global $threads_dt, $threads_ec;
     
     if(isset($threads_dt[$thread_id])) {
         $datetime = $threads_dt[$thread_id];
@@ -83,23 +112,35 @@ function get_header($thread_id, $selected_thread_id, $previous_thread=null, $nex
     else {
         $thread_pid = $thread_id;
     }
-    list($up, $down, $color) = ['', '', ''];
+    list($up, $down, $active) = ['', '', ''];
     if($previous_thread) {
-        $up = "<a href=\"?thread_id=$previous_thread\"><i class=\"fa fa-caret-up\"></i></a>";
-        $down = "<a href=\"?thread_id=$next_thread\"><i class=\"fa fa-caret-down\"></i></a>";
+        $up = "<a target=\"details\" href=\"?thread_id=$previous_thread\"><i class=\"fa fa-caret-up\"></i></a>";
+        $down = "<a target=\"details\" href=\"?thread_id=$next_thread\"><i class=\"fa fa-caret-down\"></i></a>";
     }
     else {
         if($selected_thread_id == $thread_id) {
-            $color = 'background-color: lightblue;';        
+            $active = 'active';        
         }        
     }
+    
+    if(isset($threads_dt[$thread_id])) {
+        $errcode = $threads_ec[$thread_id];
+    }
+    else {
+        $errcode = E_ERROR;
+    }
+    
+    list($type, $icon, $class) = get_error_class($errcode);
+    
     // return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;    
-    return "<div style=\"margin-left: 10px; $color\"><div style=\"display: inline-block; width: 120px;\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;        
+    return "<div id=\"$thread_pid\" class=\"$active\" style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> </a> <div style=\"display: inline-block; width: 120px;\"> <a target=\"details\" title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\" onclick=\"document.querySelector('div.active').className='';document.getElementById('$thread_pid').className='active';\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;        
 }
 
 $history = [];
 // quick fix to get datetime inside get_header function
 $threads_dt = [];
+// quick fix to get errcode inside get_header function
+$threads_ec = [];
 
 // todo : && if(!file_exists(PHP_LOG_FILE))
 if(!file_exists(QN_LOG_FILE)) die('no log found');
@@ -119,19 +160,29 @@ if(isset($_GET['thread_id']) && strlen($_GET['thread_id']) > 0) {
 }
 else {
     $entry = $lines[$len-$k-1];
+    // skip preceeding lines
     while(substr($entry, 0, 1) == '#' || strlen($entry) < 20) {
         ++$k;
         if(($len-$k) <= 0) die();
         $entry = $lines[$len-$k-1];
     }
     // fetch the thread_id
-// todo : use a funciton to fetch an entry, and validate it based on values count (otherwise, ignore)    
+// todo : use a function to fetch an entry, and validate it based on values count (otherwise, ignore)    
     list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
     list($datetime, $microtime) = explode('+', $datetime);    
     list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");    
     $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
     // syntax:  $this->thread_id.';'.time().';'.$code.';'.$origin.';'.$trace['file'].';'.$trace['line'].';'.$msg.PHP_EOL;
-    $threads_dt[$thread_id] = $datetime;    
+    $threads_dt[$thread_id] = $datetime;
+    if(!isset($threads_ec[$thread_id])) {
+        $threads_ec[$thread_id] = normalize_error_code($errcode);
+    }
+    else {
+        $err = normalize_error_code($errcode);
+        if($threads_ec[$thread_id] > $err) {
+            $threads_ec[$thread_id] = $err;
+        }
+    }
 }
 
 // init next and previous threads ids
@@ -153,8 +204,16 @@ for($i = 0; $i < $len-1; ++$i) {
     $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
 
     $threads_dt[$tid] = $datetime;
+    if(!isset($threads_ec[$tid])) {
+        $threads_ec[$tid] = normalize_error_code($errcode);
+    }
+    else {
+        $err = normalize_error_code($errcode);
+        if($threads_ec[$tid] > $err) {
+            $threads_ec[$tid] = $err;
+        }
+    }  
     if($tid == $thread_id) {
-
         $history[$timestamp.'+'.$microtime] = $entry;        
         break;        
     }
@@ -171,13 +230,24 @@ for($j = $i+1;$j < $len-1; ++$j){
     $entry = $lines[$j];
     if(strlen($entry) == 0) break;
     if(substr($entry, 0, 1) == '#' || strlen($entry) < 20) continue;
-    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);    
+    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+    if(!isset($threads_ec[$tid])) {
+        $threads_ec[$tid] = normalize_error_code($errcode);
+    }
+    else {
+        $err = normalize_error_code($errcode);
+        if($threads_ec[$tid] > $err) {
+            $threads_ec[$tid] = $err;
+        }
+    }
+    
     if($tid == $thread_id) continue;
     
     list($datetime, $microtime) = explode('+', $datetime);    
     list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");    
     $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
     $threads_dt[$tid] = $datetime;    
+    
     if(!$next_thread && $tid != $thread_id) {
         $next_thread = $tid;
     }
@@ -201,7 +271,7 @@ if(file_exists(PHP_LOG_FILE)) {
         $match = [];
 
         //[31-Jan-2018 21:21:36 Europe/Brussels] PHP Fatal error:  Class 'qinoa\services\Service' not found in C:\DEV\wamp64\www\resiway\vendor\qinoa\services\Container.class.php on line 6        
-        if(preg_match("/\[([^\s]*) ([^\s]*) ([^\s]*)\] ([^\s]*) (.*): (.*) in ([^\s]*) on line ([0-9]+)/", $line, $match)) {
+        if(preg_match("/\[([^\s]*) ([^\s]*) ([^\s]*)\] ([^\s]*) (.*): ((.*):)? (.*) in ([^\s]*) on line ([0-9]+)/", $line, $match)) {
             $timestamp = strtotime($match[1].' '.$match[2]);
             $datetime = date("m-d-Y H:i:s", $timestamp);
             $microtime = '0.00000000';
@@ -211,6 +281,15 @@ if(file_exists(PHP_LOG_FILE)) {
             $entry = "$tid;$datetime+$microtime;$errcode;$origin;$file;$line;$msg";
             $history[$timestamp.'+'.$microtime] = $entry;
             $threads_dt[$tid] = $datetime;
+            if(!isset($threads_ec[$tid])) {
+                $threads_ec[$tid] = normalize_error_code($errcode);
+            }
+            else {
+                $err = normalize_error_code($errcode);
+                if($threads_ec[$tid] > $err) {
+                    $threads_ec[$tid] = $err;
+                }
+            }
             if(substr($thread_id, 0, 3) == 'PHP' && $tid == $thread_id) {
                 $current_thread .= get_line($entry);
             }            
@@ -219,9 +298,6 @@ if(file_exists(PHP_LOG_FILE)) {
 }
 
 
-
-
-// todo : handle param thread_id when targeting PHP error.log
 if(substr($thread_id, 0, 3) != 'PHP') {
     // get lines that belong to current thread
     while(true) {
@@ -262,21 +338,43 @@ html,body {
     margin:0;
     height:100%;
 }
+
+div.active {
+    background-color: lightblue;
+}
 </style>
 </head>
 <body>
-<div style="width: 100%; height: 34%; overflow: scroll;">
 <?php
-// order history by timestamp
-ksort($history);
-foreach($history as $timestamp => $entry) {
-    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    echo get_header($tid, $thread_id);
+if(isset($_REQUEST['list'])) {
+
+    // order history by timestamp
+    ksort($history);
+    foreach($history as $timestamp => $entry) {
+        list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
+        echo get_header($tid, $thread_id);
+    }
+    ?>
+    <script>window.scrollTo(0,document.body.scrollHeight);</script>
+    <?php
+}
+else if( isset($_REQUEST['details']) || isset($_REQUEST['thread_id']) ) {
+
+    echo $current_thread;
+    
+}
+else {
+?>
+<style>    
+html, body {
+    overflow: hidden;
+}
+</style>
+<iframe name="list" width="100%" height="30%" src="/console.php?list=true" frameborder="0" allowfullscreen></iframe>
+
+<iframe name="details" width="100%" height="70%" src="/console.php?details=true" frameborder="0" allowfullscreen></iframe>
+<?php 
 }
 ?>
-</div>
-<div style="width: 100%; height: 66%; overflow: scroll;">
-<?php echo $current_thread; ?>
-</div>
 </body>
 </html>
