@@ -320,7 +320,19 @@ namespace config {
 
         }
 
-
+        public static function request(array $providers) {            
+            $result = [];
+            // retrieve service container
+            $container = Container::getInstance();
+            
+            // retrieve providers
+            foreach($providers as $name) {
+                $result[$name] = $container->get($name);
+            }
+            
+            return $result;
+        }
+        
         /**
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
@@ -702,4 +714,9 @@ namespace {
     function announce(array $announcement) {
         return config\QNlib::announce($announcement);        
     }
+    
+    function request(array $providers) {
+        return config\QNlib::request($providers);
+    }
+    
 }

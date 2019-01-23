@@ -1,4 +1,9 @@
 <?php
+use qinoa\orm\ObjectManager;
+use core\User;
+use core\Group;
+
+$providers = request(['context', 'orm', 'auth', 'access']);
 
 $tests = [
     //0xxx : calls related to QN methods

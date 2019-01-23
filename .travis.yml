@@ -28,4 +28,4 @@ script:
   # initialise database with demo data
   - php run.php --do=init_db --package=core
   # run test units
-  - php run.php --get=test_testunit
+  - php run.php --do=test_package --package=qinoa

@@ -32,7 +32,7 @@ if(strlen($json)) {
 // retrieve connection object
 $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
 
-// retrieve schema for core package
+// 1) retrieve schema for core package
 $json = eQual::run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array
 $data = json_decode($json, true);
@@ -41,9 +41,7 @@ $schema = str_replace(["\r","\n"], "", $data['result']);
 // push each line/query into an array
 $queries = explode(';', $schema);
 
-
-// populate core_user table with demo data
-
+// 2) populate core_user table with demo data
 $data_sql = "packages/{$params['package']}/init/data.sql";
 if(file_exists($data_sql)) {
     $queries = array_merge($queries, explode(PHP_EOL, file_get_contents($data_sql)));
