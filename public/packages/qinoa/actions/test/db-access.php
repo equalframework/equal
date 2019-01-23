@@ -11,7 +11,7 @@ $params = eQual::announce([
 $db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
 
 // 1) test connectivity to DBMS service
-$json = eQual::run('get', 'test_db-connectivity');
+$json = eQual::run('do', 'test_db-connectivity');
 if(strlen($json)) {
     // relay result
     print($json);
