@@ -32,7 +32,7 @@ class User extends Model {
                                         // valid email address
                                         // ... with an exception for admin
                                         if($login == 'admin') return true;
-                                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/', $login, $matches));
+                                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,8})$/', $login, $matches));
                                     }
                                 ],
             'password'		=>  [
