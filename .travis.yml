@@ -22,9 +22,9 @@ before_script:
   
 script: 
   # check connectivity to db service
-  - php run.php --get=test_fs-consistency
+  - php run.php --do=test_fs-consistency
   # check connectivity to db service
-  - php run.php --get=test_db-connectivity
+  - php run.php --do=test_db-connectivity
   # initialise database with demo data
   - php run.php --do=test_db-init
   # run test units
