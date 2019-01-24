@@ -532,8 +532,8 @@ namespace config {
             // define valid operations specifications
             $operations = array(
                 'do'    => array('kind' => 'ACTION_HANDLER','dir' => 'actions'),    // do something server-side
-                'get'    => array('kind' => 'DATA_PROVIDER',    'dir' => 'data'),       // return some data
-                'show'    => array('kind' => 'APPLICATION',    'dir' => 'apps')        // output rendering information (UI)
+                'get'   => array('kind' => 'DATA_PROVIDER', 'dir' => 'data'),       // return some data
+                'show'  => array('kind' => 'APPLICATION',   'dir' => 'apps')        // output rendering information (UI)
             );
             $container = Container::getInstance();
 
@@ -628,10 +628,13 @@ namespace config {
                 // set current dir according to visibility (i.e. 'public' or 'private')
                 chdir(QN_BASEDIR.'/'.$resolved['visibility']);
                 if(!is_file($filename)) {
-                    // always try to fallback to qinoa package
+                    // always try to fallback to qinoa package (for short syntax calls)
                     $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
+                        $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        if(!is_file($filename)) {
+                            throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
+                        }
                     }
                 }
                 // export as constants all parameters declared with config\define() to make them accessible through global scope
