@@ -36,5 +36,5 @@ $user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt
 
     
 $context->httpResponse()
-        ->body($data)
+        ->body($user)
         ->send();
