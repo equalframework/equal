@@ -32,7 +32,7 @@ if(!count($collection->ids())) {
     throw new Exception($login, QN_ERROR_INVALID_USER);
 }
 
-$user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->get(true);
+$user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
 
     
 $context->httpResponse()
