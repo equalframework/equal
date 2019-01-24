@@ -1139,7 +1139,7 @@ todo: signature differs from other methods	(returned value)
 				$db->deleteRecords($table_name, $ids);
                 // 3) cascade deletions / relations updates
                 foreach($schema as $field => $def) {
-                    if(in_array($def['type'], ['one2many', 'many2many'])) {
+                    if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
                         switch($def['type']) {
                         case 'file':
                             // FILE_STORAGE_MODE == 'FS'
