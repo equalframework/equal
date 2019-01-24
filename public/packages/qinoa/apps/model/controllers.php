@@ -1,22 +1,8 @@
 <?php
-/**
-*    This file is part of the easyObject project.
-*    http://www.cedricfrancoys.be/easyobject
-*
-*    Copyright (C) 2012  Cedric Francoys
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*
+    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
+    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use qinoa\html\HtmlWrapper;
 
@@ -38,54 +24,29 @@ list($params, $providers) = eQual::announce([
 
 
 $html = new HtmlWrapper();
-$html->addCSSFile('packages/core/html/css/jquery-ui.min.css');
-$html->addCSSFile('packages/core/html/css/qinoa-ui.min.css');
+$html->addCSSFile('packages/qinoa/assets/css/jquery-ui.min.css');
 
-$html->addJSFile('packages/core/html/js/jquery.min.js');
-$html->addJSFile('packages/core/html/js/jquery-ui.min.js');
-$html->addJSFile('packages/core/html/js/qinoa.api.min.js');
-$html->addJSFile('packages/core/html/js/qinoa-ui.min.js');
+$html->addJSFile('packages/qinoa/assets/js/jquery.min.js');
+$html->addJSFile('packages/qinoa/assets/js/jquery-ui.min.js');
 
 
 
+$json = run('get', 'qinoa_config_controllers', ['package' => $params['package']]);
 
-function glob_recursive($directory, $flags = 0) {
-    $files = glob($directory.'/*.php', $flags);
-    foreach (glob($directory.'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
-        $files = array_merge($files, glob_recursive($dir, $flags));
-    }
-    return $files;
-}
+$data = json_decode($json, true);
 
-function recurse_dir($directory, $parent_name='') {
-    $result = array();
-    if( is_dir($directory) && ($list = scandir($directory)) ) {
-        foreach($list as $node) {
-            if(is_dir($directory.'/'.$node) && !in_array($node, array('.', '..'))) {
-                if(count(glob_recursive($directory.'/'.$node)) === 0) continue;                
-                $result = array_merge($result, recurse_dir($directory.'/'.$node, (strlen($parent_name)?$parent_name.'_'.$node:$node)));
-            }
-            else if(!is_dir($directory.'/'.$node) && !in_array($node, array('.', '..'))) $result[] = (strlen($parent_name)?$parent_name.'_':'').(explode('.', $node)[0]);
-        }
-    }
-    return $result;
-}
-
-$php_scripts = function ($directory) use ($params){
-	$result = array();
-    $package = $params['package'];
-    $result[$package] = recurse_dir("packages/$package/$directory");
-	return json_encode($result, JSON_FORCE_OBJECT);
-};
+$scripts_apps = json_encode([$params['package'] => $data['apps']], JSON_FORCE_OBJECT);
+$scripts_actions = json_encode([$params['package'] => $data['actions']], JSON_FORCE_OBJECT);
+$scripts_datas = json_encode([$params['package'] => $data['data']], JSON_FORCE_OBJECT);
 
 
 $html->addScript("
 $(document).ready(function() {
 	// vars
 	var model = '{$params['package']}';
-	var apps = {$php_scripts('apps')};
-	var actions = {$php_scripts('actions')};
-	var datas = {$php_scripts('data')};	
+	var apps = {$scripts_apps};
+	var actions = {$scripts_actions};
+	var datas = {$scripts_datas};	
 	// layout
 	$('body')
 	.append($('<div/>').attr('id', 'menu').css({'height': $(window).height()+'px', 'float':'left', 'width':'200px'}) 		

@@ -84,7 +84,7 @@ class AuthenticationManager extends Service {
         $orm = $this->container->get('orm');
         
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
-        if(count($errors)) throw new \Exception($login, QN_ERROR_INVALID_USER);
+        if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
         
         $ids = $orm->search('core\User', [['login', '=', $login], ['password', '=', $password]]);        
         if(!count($ids)) throw new \Exception($login, QN_ERROR_INVALID_USER);
