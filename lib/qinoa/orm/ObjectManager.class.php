@@ -1141,6 +1141,19 @@ todo: signature differs from other methods	(returned value)
                 foreach($schema as $field => $def) {
                     if(in_array($def['type'], ['one2many', 'many2many'])) {
                         switch($def['type']) {
+                        case 'file':
+                            // FILE_STORAGE_MODE == 'FS'
+                            // build a unique name  (package/class/field/oid.lang)
+                            $path = sprintf("%s/%s", str_replace('\\', '/', $object_class), $field);
+                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+
+                            foreach($ids as $oid) {
+                                foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
+                                    unlink($filename);
+                                }
+                            }
+                        
+                            break;
                         case 'one2many':
                             $res = $this->read($object_class, $ids, $field);
                             $rel_ids = array_map(function ($item) use($field) { return $item[$field];}, array_values($res));
