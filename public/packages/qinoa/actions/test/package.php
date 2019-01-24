@@ -12,7 +12,7 @@ use core\User;
 use core\Group;
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Test unit for Qinoa and Core packages. This unit assumes that a DB connection is available and config vars are set accordingly.',
+    'description'   => 'Check for test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
             'description'   =>  "Name of the package on which to perform test units",
@@ -39,7 +39,7 @@ if(is_dir($tests_path)) {
             // force 1 as exit code if there is any failing test
             exit(1);            
         }
-        $result[basename($filename)] = $body;
+        $result[basename($filename, '.php')] = $body;
     }    
 
 }
