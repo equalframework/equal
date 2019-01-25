@@ -8,7 +8,11 @@
     AllowOverride All
     Require all granted
   </Directory>
-
+  
+    <FilesMatch \.php$>
+     SetHandler "proxy:unix:/var/run/php/php7.3-fpm.sock|fcgi://localhost/"
+    </FilesMatch>
+    
   # Wire up Apache to use Travis CI's php-fpm.
   <IfModule mod_fastcgi.c>
     AddHandler php5-fcgi .php
