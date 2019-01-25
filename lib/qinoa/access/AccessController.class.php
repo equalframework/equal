@@ -89,16 +89,14 @@ class AccessController extends Service {
                     }
                 }
 
-                // try domain variants with decreasing precision                
-                foreach($domains as $domain) {
-                    $acl_ids = $orm->search('core\Permission', $domain);
-                    if(count($acl_ids)) {
-                        // get the user permissions
-                        $values = $orm->read('core\Permission', $acl_ids, ['rights']);
-                        foreach($values as $acl_id => $row) {
-                            $user_rights |= $row['rights'];
-                        }                        
-                    }
+                // fetch ACLs for all domain variants
+                $acl_ids = $orm->search('core\Permission', $domains);
+                if(count($acl_ids)) {
+                    // get the user permissions
+                    $values = $orm->read('core\Permission', $acl_ids, ['rights']);
+                    foreach($values as $acl_id => $row) {
+                        $user_rights |= $row['rights'];
+                    }                        
                 }
                 
                 if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();

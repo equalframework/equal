@@ -10,7 +10,7 @@ list($params, $providers) = QNLib::announce([
     'description'   => "Update (fully or partially) the given object.",
     'response'      => [
         'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
+        'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
     'params'        => [
@@ -41,14 +41,19 @@ list($params, $providers) = QNLib::announce([
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 
-$fields = [];
 // adapt received values for parameter 'fields' (are still text formated)
 $schema = $orm->getModel($params['entity'])->getSchema();
 foreach($params['fields'] as $field => $value) {
-    $fields[$field] = $adapter->adapt($value, $schema[$field]['type'], 'php', 'txt');
+    // drop empty fields
+    if(is_null($value)) {
+        unset($params['fields'][$field]);
+    }
+    else {
+        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
+    }
 }
 // retrieve entity and update it    
-$result = $params['entity']::id($params['id'])->update($fields, $params['lang'])->first();
+$result = $params['entity']::id($params['id'])->update($params['fields'], $params['lang'])->adapt('txt')->first();
 
 $context->httpResponse()
         ->body($result)

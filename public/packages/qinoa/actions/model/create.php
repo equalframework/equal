@@ -36,7 +36,7 @@ list($params, $providers) = eQual::announce([
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 // fields and values have been received as a raw array : some additional treatment might be required
-$schema = $orm->getObjectSchema($params['entity']);
+$schema = $orm->getModel($params['entity'])->getSchema();
 
 foreach($params['fields'] as $field => $value) {
     // drop empty fields

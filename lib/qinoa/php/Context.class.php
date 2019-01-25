@@ -266,9 +266,12 @@ class Context extends Service {
                 }
             }
         }
+        if(isset($headers['content-type'])) {
+            $headers['Content-Type'] = $headers['content-type'];
+        }
         // adapt Content-Type for multipart/form-data (already parsed by PHP)
         if(isset($headers['Content-Type'])) {
-            if(strpos($headers['Content-Type'], 'multipart/form-data') === 0) {
+            if($this->getHttpMethod() == 'POST' && strpos($headers['Content-Type'], 'multipart/form-data') === 0) {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }

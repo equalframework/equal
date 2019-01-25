@@ -192,8 +192,8 @@ class HttpMessage {
         $this->setStatus(null);
         // headers have to be set before body
         $this->setHeaders($headers);
-        // assign body and tries to convert raw content to an array, based on content-type from headers
-        $this->setBody($body, true);
+        // assign body and try to convert raw content to an array, based on content-type from headers
+        $this->setBody($body);
         // default protocol
         $this->setProtocol('HTTP/1.1');
         // default method

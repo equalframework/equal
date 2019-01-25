@@ -36,7 +36,7 @@ if(!is_object($model)) {
 // get the complete schema of the object (including special fields)
 $schema = $model->getSchema();
 
-$data = $schema;
+$data['fields'] = $schema;
 
 if(method_exists($model, 'getUnique')) {
     $data['unique'] = $model::getUnique();

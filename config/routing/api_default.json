@@ -1,4 +1,10 @@
 {
+    "/users": {
+        "GET": {
+            "description": "Retrieve all users matching given criteria",
+            "operation": "?get=qinoa_model_collection&entity=core\\User"
+        }
+    },
     "/user/:id": {
         "GET": {
             "description": "Retrieve fields values related to a given user",
@@ -11,6 +17,16 @@
         "PUT": {
             "description": "Update a user",
             "operation": "?do=qinoa_model_update&entity=core\\User"
-        }        
-    }
+        },
+        "DELETE": {
+            "description": "Delete a user",
+            "operation": "?do=qinoa_model_delete&entity=core\\User"
+        }           
+    },
+    "/user": {
+        "POST": {
+            "description": "Create a new user",
+            "operation": "?do=qinoa_model_create&entity=core\\User"
+        }
+    }    
 }
