@@ -404,7 +404,7 @@ $tests = [
                     'expected'          =>  [
                                                 "login" => "cedricfrancoys@gmail.com",
                                                 "firstname"=> "Cédric",
-                                                "lastname"=> "FRANCOYS",
+                                                "lastname"=> "FRANÇOYS",
                                                 "language"=> "fr"
                                             ],
                     'test'              =>  function () {
