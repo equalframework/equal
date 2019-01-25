@@ -4,8 +4,9 @@
   DocumentRoot %TRAVIS_BUILD_DIR%/public
 
   <Directory "%TRAVIS_BUILD_DIR%/public">
-    Options Indexes Includes FollowSymLinks MultiViews ExecCGI
+    Options Indexes Includes FollowSymLinks ExecCGI
     AllowOverride All
+    Require all granted
   </Directory>
 
   # Wire up Apache to use Travis CI's php-fpm.
@@ -14,6 +15,10 @@
     Action php5-fcgi /php5-fcgi
     Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
     FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
+    
+    <Directory /usr/lib/cgi-bin>
+        Require all granted
+    </Directory>    
   </IfModule>
 
     ErrorLog "%TRAVIS_BUILD_DIR%/apache-error.log" 
