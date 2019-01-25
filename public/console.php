@@ -13,6 +13,7 @@ define('PHP_LOG_FILE', '../log/error.log');
  
 date_default_timezone_set('Europe/Brussels');
 
+error_reporting(0);
 
 function normalize_error_code($errcode) {
     switch($errcode) {

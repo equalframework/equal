@@ -814,13 +814,19 @@ class ObjectManager extends Service {
             $uniques = $model->getUnique();
 
             foreach($uniques as $unique) {
-                $domain = [['state', '=', 'instance']];
+                $domain = [];
                 foreach($unique as $field) {
                     // map unique fields with the given values
-                    $domain[] = [$field, '=', $values[$field]];
+                    if(isset($values[$field])) {
+                        $domain[] = [$field, '=', $values[$field]];
+                    }
                 }
+                $ids = [];
                 // search for objects already set with unique values
-                $ids = $this->search($class, $domain);
+                if(count($domain)) {
+                    $domain[] = ['state', '=', 'instance'];
+                    $ids = $this->search($class, $domain);
+                }
                 // there is a violation : stop and fetch info about it
                 if(count($ids)) {
                     $objects = $this->read($class, $ids, $unique);                
