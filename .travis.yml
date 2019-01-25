@@ -30,7 +30,7 @@ before_script:
   # - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo cp build/www.conf ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.d/; fi    
   - sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
   - sudo a2enmod rewrite actions fastcgi alias
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo a2enmod proxy_fcgi; fi
+  #- if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo a2enmod proxy_fcgi; fi
   - echo "cgi.fix_pathinfo = 1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - sudo sed -i -e "s,www-data,travis,g" /etc/apache2/envvars
   - sudo chown -R travis:travis /var/lib/apache2/fastcgi
@@ -38,7 +38,9 @@ before_script:
   # configure apache virtual hosts
   - sudo cp -f build/travis-ci-apache /etc/apache2/sites-available/000-default.conf
   - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/000-default.conf
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo systemctl restart php7.3-fpm; fi  
   - sudo service apache2 restart
+  
   
 script: 
   # check that mandatory directories are present and have correct access rights set
