@@ -93,7 +93,7 @@ class Tester {
                 $status = 'ko';
             }
 
-            if($status == 'ko') $failing[] = $id;
+            if($status == 'ko') $this->failing[] = $id;
             else {
                 if(isset($test['rollback']) && is_callable($test['rollback'])) {
                     $test['rollback']();

@@ -28,5 +28,11 @@
             "description": "Create a new user",
             "operation": "?do=qinoa_model_create&entity=core\\User"
         }
-    }    
+    },    
+    "/me": {
+        "GET": {
+            "description": "Return authentified user, if any",
+            "operation": "?get=qinoa_me"
+        }
+    }        
 }

@@ -296,8 +296,16 @@ class Context extends Service {
         $port = isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:80;
         // fallback to current script name (using CLI, REQUEST_URI is not set), i.e. '/index.php'
         $uri = '/'.$_SERVER['SCRIPT_NAME'];
+
         if(isset($_SERVER['REQUEST_URI'])) {
-            $uri = $_SERVER['REQUEST_URI'];
+            if(substr($_SERVER['REQUEST_URI'], 0, 1) == '/') {
+                // relative URI
+                $uri = $_SERVER['REQUEST_URI'];
+            }
+            else {
+                // absolute URI
+                $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH).'?'.parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+            }
         }
         else if(php_sapi_name() === 'cli' || defined('STDIN')) {
             $args = [];

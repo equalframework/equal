@@ -65,8 +65,8 @@ class Router  extends Service {
             foreach(glob($provider) as $json_file) {
                 // load content from first file
                 if($first) {
-                    if( ($json = @file_get_contents($json_file)) === false) throw new \Exception("routing config file $json_file not found", QN_ERROR_INVALID_CONFIG);    
-                    if( ($routes = json_decode($json, true)) === null) throw new \Exception("malformed json in routing config file $json_file", QN_ERROR_INVALID_CONFIG);
+                    if( ($json = @file_get_contents($json_file)) === false) throw new \Exception("routing config file ".basename($json_file)." not found", QN_ERROR_INVALID_CONFIG);    
+                    if( ($routes = json_decode($json, true)) === null) throw new \Exception("malformed json in routing config file ".basename($json_file), QN_ERROR_INVALID_CONFIG);
                     $first = false;
                 }
                 else {

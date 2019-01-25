@@ -256,6 +256,7 @@ class HttpMessage {
      */
     public function setUri($uri) {        
         $this->uri = new HttpUri($uri);
+
         // maintain headers consistency
         if($host = $this->uri->getHost()) {
             if($port = $this->uri->getPort()) {

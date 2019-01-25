@@ -14,57 +14,58 @@ class HttpRequest extends HttpMessage {
 
     public function __construct($headline='', $headers=[], $body='') {
         parent::__construct($headline, $headers, $body);        
-        // parse headline
-        $parts = explode(' ', $headline, 3);        
+        // parse headline        
+        $re = '/((GET|POST|PUT|DELETE|PATCH|OPTIONS) )?( )?([^ ]*)(( )HTTP.*)?/i';
+        preg_match($re, $headline, $matches);
+
+        if(isset($matches[2]) && strlen($matches[2])) {
+            $method = $matches[2];
+        }
+
+        if(isset($matches[4]) && strlen($matches[4])) {
+            $uri = $matches[4];
+        }
+        if(isset($matches[7]) && strlen($matches[7])) {
+            $protocol = $matches[7];
+        }        
+print_r($matches);        
         // 1) retrieve protocol
-        if(isset($parts[2])) {
-            $this->setProtocol($parts[2]);
+        if(isset($protocol)) {
+            $this->setProtocol($protocol);
         }
         // 2) retrieve URI and host
-        if(isset($parts[1])) {
+        if(isset($uri)) {
             // URI ?
-            if(HttpUri::isValid($parts[1])) {
-                $this->setUri($parts[1]);
-            }
-            else {
-                // check Host header for a port number (see RFC2616)
-                // @link https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23
+            if(substr($uri, 0, 1) == '/') {
+                // relative URI
                 $host = $this->getHeader('Host', null);
                 if(!is_null($host)) {
                     $host_parts = explode(':', $host);
                     $host = $host_parts[0];
+                    // check Host header for a port number (see RFC2616)
+                    // @link https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23
                     $port = isset($host_parts[1])?trim($host_parts[1]):80;
                     $scheme = ($port==443)?'https':'http';
-                    $uri = $scheme.'://'.$host.':'.$port.$parts[1];
+                    $uri = $scheme.'://'.$host.':'.$port.$uri;                    
                     $this->setUri($uri);
-                }
+                }                
+            }
+            else {
+                // absolute URI
+                $this->setUri($uri);
+            }
+
+            if(!HttpUri::isValid($uri)) {
+                echo 'invalid';
+// todo : should we raise an Exception ?
             }
         }
         // 3) retrieve method
-        if(isset($parts[0])) {
+        if(isset($method)) {
             // method ?
-            if(in_array($parts[0], self::$HTTP_METHODS) ) {
-                $this->setMethod($parts[0]);
-            }
-            else {
-                // URI ?
-                if(HttpUri::isValid($parts[0])) {
-                    $this->setUri($parts[0]);
-                }
-                else {
-                    // check Host header for a port number (see RFC2616)
-                    // @link https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23
-                    $host = $this->getHeader('Host', null);
-                    if(!is_null($host)) {
-                        $host_parts = explode(':', $host);
-                        $host = $host_parts[0];
-                        $port = isset($host_parts[1])?trim($host_parts[1]):80;
-                        $scheme = ($port==443)?'https':'http';
-                        $uri = $scheme.'://'.$host.':'.$port.$parts[0];
-                        $this->setUri($uri);
-                    }                
-                }                
-            }
+            if(in_array($method, self::$HTTP_METHODS) ) {
+                $this->setMethod($method);
+            }           
         }
 
     }
@@ -86,7 +87,7 @@ class HttpRequest extends HttpMessage {
                 // accept any content type
                 'Accept'            => '*',
                 // ask for unicode charset
-                'Accept-Charset'    => 'utf-8'
+                'Accept-Charset'    => 'UTF-8'
             ];
             // retrieve content type
             $content_type = $this->getHeaders()->getContentType();            
@@ -137,7 +138,7 @@ class HttpRequest extends HttpMessage {
                                         false,
                                         $context
                                        );
-            // build HTTP response object                           
+            // build HTTP response object
             if(isset($http_response_header[0])) {                               
                 $response_status = $http_response_header[0];
                 unset($http_response_header[0]);

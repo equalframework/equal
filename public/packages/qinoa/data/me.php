@@ -16,20 +16,18 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'auth']
 ]);
 
-
 list($context, $am) = [$providers['context'], $providers['auth']];
-
 
 
 $user_id = $am->userId();
 if($user_id <= 0) {
-    throw new Exception($login, QN_ERROR_INVALID_USER);    
+    throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
 }
 
 $collection = User::search(['id', '=', $user_id]);
 
 if(!count($collection->ids())) {
-    throw new Exception($login, QN_ERROR_INVALID_USER);
+    throw new Exception('unexpected error', QN_ERROR_INVALID_USER);
 }
 
 $user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
