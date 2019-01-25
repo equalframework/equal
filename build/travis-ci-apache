@@ -16,9 +16,6 @@
     Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
     FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
     
-    <Directory /usr/lib/cgi-bin>
-        Require all granted
-    </Directory>    
   </IfModule>
 
     ErrorLog "%TRAVIS_BUILD_DIR%/apache-error.log" 
