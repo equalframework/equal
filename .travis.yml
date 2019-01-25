@@ -20,7 +20,7 @@ before_script:
   # travis DB user is `root`, password is empty and host is `127.0.0.1`
   - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
   # install apache2
-  - sudo apt-get install apache2
+  - sudo apt-get install apache2 libapache2-mod-fastcgi  
   # enable php-fpm
   - sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
   - sudo a2enmod rewrite actions fastcgi alias
