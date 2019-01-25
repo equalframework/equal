@@ -409,9 +409,11 @@ $tests = [
                                             ],
                     'test'              =>  function () {
                                                 try {
+                                                    /*
+                                                    Test HttpRequest
                                                     $oauthRequest = new HttpRequest('/plus/v1/people/me', ['Host' => 'www.googleapis.com:443']);
                                                     $res = $oauthRequest->send();
-                                                    print_r($res->body());
+                                                    */
                                                     $request = new HttpRequest("http://equal.local/me");                                              
                                                     $response = $request
                                                                 ->header('Authorization', 'Basic '.base64_encode("cedricfrancoys@gmail.com:02e5408967241673cd03126fe55dcd1a"))

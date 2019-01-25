@@ -28,7 +28,7 @@ class HttpRequest extends HttpMessage {
         if(isset($matches[7]) && strlen($matches[7])) {
             $protocol = $matches[7];
         }        
-print_r($matches);        
+
         // 1) retrieve protocol
         if(isset($protocol)) {
             $this->setProtocol($protocol);
