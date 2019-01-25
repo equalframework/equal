@@ -8,10 +8,14 @@
     AllowOverride All
     Require all granted
   </Directory>
-  
+
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+    SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
+    SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1        
+    
     <FilesMatch \.php$>
      SetHandler  "proxy:fcgi://localhost:9000"
-      Require all granted
+      Require all granted    
     </FilesMatch>
     
   # Wire up Apache to use Travis CI's php-fpm.
@@ -21,7 +25,7 @@
     Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
     FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
     
-    # ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+    ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
     
     <Directory /usr/lib/cgi-bin>
         Require all granted
