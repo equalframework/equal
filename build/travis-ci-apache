@@ -3,7 +3,7 @@
   ServerName localhost
   DocumentRoot %TRAVIS_BUILD_DIR%/public
 
-  <Directory "%TRAVIS_BUILD_DIR%/public">
+  <Directory "%TRAVIS_BUILD_DIR%/public/">
     Options Indexes Includes FollowSymLinks ExecCGI
     AllowOverride All
     Require all granted
