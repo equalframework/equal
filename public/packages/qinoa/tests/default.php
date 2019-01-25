@@ -414,14 +414,13 @@ $tests = [
                                                     $oauthRequest = new HttpRequest('/plus/v1/people/me', ['Host' => 'www.googleapis.com:443']);
                                                     $res = $oauthRequest->send();
                                                     */
-                                                    $request = new HttpRequest("http://equal.local/me");                                              
+                                                    $request = new HttpRequest("http://localhost/me");                                              
                                                     $response = $request
                                                                 ->header('Authorization', 'Basic '.base64_encode("cedricfrancoys@gmail.com:02e5408967241673cd03126fe55dcd1a"))
                                                                 ->send();
                                                     return $response->body();
                                                 }
                                                 catch(\Exception $e) {
-                                                    print_r($e);
                                                     // possible raised Exception codes : QN_ERROR_INVALID_USER
                                                     $values = $e->getCode();
                                                 }
