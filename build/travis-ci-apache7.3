@@ -10,10 +10,23 @@
   </Directory>
   
     <FilesMatch \.php$>
-     SetHandler "proxy:unix:/var/run/php/php7.3-fpm.sock|fcgi://localhost/"
+     SetHandler  "proxy:fcgi://localhost:9000"
+      Require all granted
     </FilesMatch>
     
   # Wire up Apache to use Travis CI's php-fpm.
+  <IfModule mod_fastcgi.c>
+    AddHandler php5-fcgi .php
+    Action php5-fcgi /php5-fcgi
+    Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
+    FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
+    
+    # ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+    
+    <Directory /usr/lib/cgi-bin>
+        Require all granted
+    </Directory>    
+  </IfModule>
 
     ErrorLog "%TRAVIS_BUILD_DIR%/apache-error.log" 
     CustomLog "%TRAVIS_BUILD_DIR%/apache-access.log" combined
