@@ -1259,7 +1259,7 @@ todo: signature differs from other methods	(returned value)
 
 			$schema = $this->getObjectSchema($object_class);
 			$table_alias = $add_table($this->getObjectTableName($object_class));
-die('1');
+
 			// first pass : build conditions and the tables names arrays
 			if(!empty($domain) && !empty($domain[0]) && !empty($domain[0][0])) { // domain structure is correct and contains at least one condition
 
