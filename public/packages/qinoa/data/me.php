@@ -18,10 +18,6 @@ list($params, $providers) = announce([
 
 list($context, $am) = [$providers['context'], $providers['auth']];
 
-$context->httpResponse()
-        ->body(array_merge($_SERVER, getallheaders()))
-        ->send();
-die();
         
 $user_id = $am->userId();
 if($user_id <= 0) {
