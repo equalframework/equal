@@ -91,7 +91,7 @@ class AuthenticationManager extends Service {
     public function authenticate($login, $password) {
 
         $orm = $this->container->get('orm');
-        die('2');        
+
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
         if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
         die('3');        
