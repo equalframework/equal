@@ -42,9 +42,11 @@ class AuthenticationManager extends Service {
         // return user_id member, if already resolved
         if($this->user_id > 0) return $this->user_id;
         // init JWT
-        $jwt = null;        
+        $jwt = null;
+        die('1');        
         // look the request headers for a JWT
         $request = $this->container->get('context')->httpRequest();     
+        die('2');
         $auth_header = $request->header('Authorization');
         if(!is_null($auth_header)) {
             if(strpos($auth_header, 'Bearer ') !== false) {
@@ -63,6 +65,7 @@ class AuthenticationManager extends Service {
         }
         // no Authorization header : fallback to cookie
         else {
+            die('4');
             $jwt = $request->cookie('access_token');
         }    
         // decode token, if found
