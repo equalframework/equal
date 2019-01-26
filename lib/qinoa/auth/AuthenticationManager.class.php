@@ -91,13 +91,13 @@ die($auth_header);
     public function authenticate($login, $password) {
         die('1');
         $orm = $this->container->get('orm');
-        die('1');        
+        die('2');        
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
         if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
-        die('1');        
+        die('3');        
         $ids = $orm->search('core\User', [['login', '=', $login], ['password', '=', $password]]);        
         if(!count($ids)) throw new \Exception($login, QN_ERROR_INVALID_USER);
-        die('1');
+        die('4');
         // remember current user identifier
         $this->user_id = $ids[0];       
 
