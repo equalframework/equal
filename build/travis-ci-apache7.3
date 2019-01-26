@@ -9,7 +9,7 @@
         Require all granted
     </Directory>
 
-    #to test :
+    #to test : if adding this, get a 503 error
      # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
      # SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
      # SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
@@ -23,7 +23,7 @@
     # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
        # Require all granted
-       # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+       SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
        # SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
        # SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
     </FilesMatch>
