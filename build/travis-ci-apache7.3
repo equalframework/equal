@@ -10,7 +10,7 @@
     </Directory>
 
     #to test :
-     SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+     # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
      # SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
      # SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
     
@@ -22,7 +22,7 @@
     <FilesMatch \.php$>
     # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
-        Require all granted
+       # Require all granted
        # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
        # SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
        # SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
@@ -30,10 +30,10 @@
     
     # Wire up Apache to use Travis CI's php-fpm.
     <IfModule mod_fastcgi.c>
-        AddHandler php5-fcgi .php
-        Action php5-fcgi /php5-fcgi
-        Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
-        FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
+        # AddHandler php5-fcgi .php
+        # Action php5-fcgi /php5-fcgi
+        # Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
+        # FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -host 127.0.0.1:9000 -pass-header Authorization
 
         # ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
 
