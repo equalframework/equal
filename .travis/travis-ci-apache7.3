@@ -7,11 +7,11 @@
         Options Indexes Includes FollowSymLinks ExecCGI
         AllowOverride All
         Require all granted
-        # Generates a 503 error (though apache seems to be 2.14.18, so it shoudl work)
+# Generates a 503 error (though apache seems to be 2.14.18, so it shoudl work)
         # CGIPassAuth On
     </Directory>
 
-    #to test : if adding this, get a 503 error
+# if adding this, get a 503 error
     # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
     # SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
     # SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
@@ -20,7 +20,7 @@
     
     
     <FilesMatch \.php$>
-        # this seems to work but Authorization header is missing
+# this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"        
     </FilesMatch>  
 
