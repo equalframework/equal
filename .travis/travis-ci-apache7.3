@@ -20,6 +20,7 @@
 #         </IfModule> 
 
     SetEnv proxy-chain-auth 
+    CGIPassAuth on
     
     <FilesMatch \.php$>
     # this seems to work but Authorization header is missing
