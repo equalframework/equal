@@ -4,7 +4,7 @@ php:
   - '5.6'
   - '7.1'
   - '7.2'
-  - '7.3'  
+  # - '7.3'  # cannot make it work : HTTP header Authorization is not relayed to php-fpm
   
 services:
 # make the `mysql` binary available
@@ -29,13 +29,13 @@ before_script:
   # - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo cp build/www.conf ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.d/; fi    
   - sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
   - sudo a2enmod rewrite actions fastcgi alias
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo a2enmod proxy_fcgi setenvif headers; fi
   - echo "cgi.fix_pathinfo = 1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - sudo sed -i -e "s,www-data,travis,g" /etc/apache2/envvars
   - sudo chown -R travis:travis /var/lib/apache2/fastcgi
   - ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
   # configure apache virtual hosts
   - sudo cp -f build/travis-ci-apache /etc/apache2/sites-available/000-default.conf
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo a2enmod proxy_fcgi setenvif headers; fi  
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then sudo cp -f build/travis-ci-apache7.3 /etc/apache2/sites-available/000-default.conf; fi
   - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/000-default.conf
   - sudo service apache2 restart
