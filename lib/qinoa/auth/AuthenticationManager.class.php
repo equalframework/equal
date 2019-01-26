@@ -43,7 +43,7 @@ class AuthenticationManager extends Service {
         if($this->user_id > 0) return $this->user_id;
         // init JWT
         $jwt = null;
-        die('1');        
+
         // look the request headers for a JWT
         $request = $this->container->get('context')->httpRequest();     
         die('2');
