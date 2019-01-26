@@ -42,26 +42,19 @@ class AuthenticationManager extends Service {
         // return user_id member, if already resolved
         if($this->user_id > 0) return $this->user_id;
         // init JWT
-        $jwt = null;
-
+        $jwt = null;        
         // look the request headers for a JWT
         $request = $this->container->get('context')->httpRequest();     
-
         $auth_header = $request->header('Authorization');
         if(!is_null($auth_header)) {
             if(strpos($auth_header, 'Bearer ') !== false) {
-                
                 // retrieve JWT token    
                 list($jwt) = sscanf($auth_header, 'Bearer %s');
-                die('4');
             }
             else if(strpos($auth_header, 'Basic ') !== false) {
-// here
-
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
-                die('6');
                 $jwt = $this->token();
             }
             else if(strpos($auth_header, 'Digest ') !== false) {
@@ -70,7 +63,6 @@ class AuthenticationManager extends Service {
         }
         // no Authorization header : fallback to cookie
         else {
-            die('7');
             $jwt = $request->cookie('access_token');
         }    
         // decode token, if found
@@ -89,15 +81,14 @@ class AuthenticationManager extends Service {
     }
     
     public function authenticate($login, $password) {
-
         $orm = $this->container->get('orm');
-
+        
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
         if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
-
+// this generates a 503 error with PHP 7.3        
         $ids = $orm->search('core\User', [['login', '=', $login], ['password', '=', $password]]);        
         if(!count($ids)) throw new \Exception($login, QN_ERROR_INVALID_USER);
-        die('4');
+
         // remember current user identifier
         $this->user_id = $ids[0];       
 

@@ -1259,7 +1259,7 @@ todo: signature differs from other methods	(returned value)
 
 			$schema = $this->getObjectSchema($object_class);
 			$table_alias = $add_table($this->getObjectTableName($object_class));
-
+die('1');
 			// first pass : build conditions and the tables names arrays
 			if(!empty($domain) && !empty($domain[0]) && !empty($domain[0][0])) { // domain structure is correct and contains at least one condition
 
@@ -1287,7 +1287,7 @@ todo: signature differs from other methods	(returned value)
                         // check the validity of the field name and the operator
                         if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$object_class'", QN_ERROR_INVALID_PARAM);						                        
 						if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$object_class'", QN_ERROR_INVALID_PARAM);						
-						
+die('2');						
                         // remember special fields involved in the domain (by removing them from the special_fields list)
 						if(isset($special_fields[$field])) unset($special_fields[$field]);
 
@@ -1341,6 +1341,7 @@ todo: signature differs from other methods	(returned value)
 								else $field = $table_alias.'.'.$field;
 								break;
 						}
+die('3');                        
                         // handle particular cases involving arrays
                         if(in_array($type, ['many2one', 'one2many', 'many2many'])) {
                             if( in_array($operator, ['in', 'not in']) ) {
@@ -1361,7 +1362,7 @@ todo: signature differs from other methods	(returned value)
 				$conditions[0][] = array($table_alias.'.state', '<>', 'draft');
 				$conditions[0][] = array($table_alias.'.deleted', '=', '0');
 			}
-
+die('4');
 			// second pass : fetch the ids of matching objects
 			$select_fields = array($table_alias.'.id');
 			$order_table_alias = $table_alias;
@@ -1397,18 +1398,21 @@ todo: signature differs from other methods	(returned value)
             if(!in_array('id', array_keys($sort))) {
                 $order_clause[$table_alias.'.id'] = 'ASC';
             }            
+die('5');            
 			// get the matching records by generating the resulting SQL query
 			$res = $db->getRecords($tables, $select_fields, NULL, $conditions, $table_alias.'.id', $order_clause, $start, $limit);
 			while ($row = $db->fetchArray($res)) {
 				// maintain ids order provided by the SQL sort
 				$res_list[] = $row['id'];
 			}
+die('6');            
             // remove duplicates, if any
 			$res_list = array_unique($res_list);            
             // mark resulting identifiers as safe (matching existing objets)
             foreach($res_list as $object_id) {
                 $this->identifiers[$object_class][$object_id] = true;
             }
+            
 		}
 		catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
