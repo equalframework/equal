@@ -46,17 +46,22 @@ class AuthenticationManager extends Service {
 
         // look the request headers for a JWT
         $request = $this->container->get('context')->httpRequest();     
-        die('2');
+
         $auth_header = $request->header('Authorization');
         if(!is_null($auth_header)) {
+            die('3');
             if(strpos($auth_header, 'Bearer ') !== false) {
+                
                 // retrieve JWT token    
                 list($jwt) = sscanf($auth_header, 'Bearer %s');
+                die('4');
             }
             else if(strpos($auth_header, 'Basic ') !== false) {
+                die('5');
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
+                die('6');
                 $jwt = $this->token();
             }
             else if(strpos($auth_header, 'Digest ') !== false) {
@@ -65,7 +70,7 @@ class AuthenticationManager extends Service {
         }
         // no Authorization header : fallback to cookie
         else {
-            die('4');
+            die('7');
             $jwt = $request->cookie('access_token');
         }    
         // decode token, if found
