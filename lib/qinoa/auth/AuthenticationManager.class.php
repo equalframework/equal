@@ -57,7 +57,7 @@ class AuthenticationManager extends Service {
             }
             else if(strpos($auth_header, 'Basic ') !== false) {
 // here
-die($auth_header);
+
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
