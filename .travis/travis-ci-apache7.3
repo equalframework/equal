@@ -25,7 +25,7 @@
     <FilesMatch \.php$>
     # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
-        CGIPassAuth On
+        #CGIPassAuth On
         <IfModule setenvif_module> 
               SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1 
         </IfModule> 
