@@ -5,7 +5,7 @@ sudo apt-get install apache2 libapache2-mod-fastcgi
 # enable php-fpm
 sudo cp .travis/www.conf ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.d/
 sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
-sudo a2enmod rewrite actions alias proxy_fcgi
+sudo a2enmod rewrite actions alias proxy_fcgi authnz_fcgi
 sudo sed -i -e "s,www-data,travis,g" /etc/apache2/envvars
 sudo chown -R travis:travis /var/lib/apache2/fastcgi
 ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
