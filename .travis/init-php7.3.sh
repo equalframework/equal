@@ -10,7 +10,6 @@ sudo sed -i -e "s,www-data,travis,g" /etc/apache2/envvars
 sudo chown -R travis:travis /var/lib/apache2/fastcgi
 ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
 # configure apache virtual hosts
-sudo cp -f .travis/travis-ci-apache /etc/apache2/sites-available/000-default.conf
-cp -f .travis/travis-ci-apache7.3 /etc/apache2/sites-available/000-default.conf
+sudo cp -f .travis/travis-ci-apache7.3 /etc/apache2/sites-available/000-default.conf
 sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/000-default.conf
 sudo service apache2 restart
