@@ -89,7 +89,7 @@ class AuthenticationManager extends Service {
     }
     
     public function authenticate($login, $password) {
-        die('1');
+
         $orm = $this->container->get('orm');
         die('2');        
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
