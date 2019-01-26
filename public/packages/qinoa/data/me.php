@@ -18,7 +18,7 @@ list($params, $providers) = announce([
 
 list($context, $am) = [$providers['context'], $providers['auth']];
 
-die('ok1');        
+
 $user_id = $am->userId();
 if($user_id <= 0) {
     throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
