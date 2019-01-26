@@ -19,12 +19,13 @@
 #               SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1 
 #         </IfModule> 
 
-    SetEnv proxy-chain-auth 
-    CGIPassAuth on
+    SetEnv proxy-chain-auth On
+    
     
     <FilesMatch \.php$>
     # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
+        CGIPassAuth on
     </FilesMatch>  
 
     
