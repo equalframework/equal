@@ -57,6 +57,7 @@ class AuthenticationManager extends Service {
             }
             else if(strpos($auth_header, 'Basic ') !== false) {
 // here
+die($auth_header);
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
@@ -88,14 +89,15 @@ class AuthenticationManager extends Service {
     }
     
     public function authenticate($login, $password) {
+        die('1');
         $orm = $this->container->get('orm');
-        
+        die('1');        
         $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
         if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
-        
+        die('1');        
         $ids = $orm->search('core\User', [['login', '=', $login], ['password', '=', $password]]);        
         if(!count($ids)) throw new \Exception($login, QN_ERROR_INVALID_USER);
-
+        die('1');
         // remember current user identifier
         $this->user_id = $ids[0];       
 
