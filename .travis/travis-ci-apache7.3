@@ -18,6 +18,9 @@
      
     SetEnv proxy-chain-auth On
     
+    <IfModule mod_proxy_fcgi.c>
+        SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
+    </IfModule>
     
     <FilesMatch \.php$>
 # this seems to work but Authorization header is missing ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] is not set)
