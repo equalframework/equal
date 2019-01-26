@@ -8,7 +8,7 @@ sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.ph
 sudo a2enmod rewrite actions alias proxy_fcgi authnz_fcgi
 sudo sed -i -e "s,www-data,travis,g" /etc/apache2/envvars
 sudo chown -R travis:travis /var/lib/apache2/fastcgi
-~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
+sudo ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
 # configure apache virtual hosts
 sudo cp -f .travis/travis-ci-apache7.3 /etc/apache2/sites-available/000-default.conf
 sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/000-default.conf
