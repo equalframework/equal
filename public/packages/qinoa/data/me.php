@@ -18,20 +18,20 @@ list($params, $providers) = announce([
 
 list($context, $am) = [$providers['context'], $providers['auth']];
 
-// problem arises here !!
+
 $user_id = $am->userId();
 if($user_id <= 0) {
     throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
 }
-die('ok2');
+
 $collection = User::search(['id', '=', $user_id]);
-die('ok3');
+
 if(!count($collection->ids())) {
     throw new Exception('unexpected error', QN_ERROR_INVALID_USER);
 }
-die('ok4');
+
 $user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
-die('ok5');
+
     
 $context->httpResponse()
         ->body($user)

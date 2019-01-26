@@ -7,7 +7,6 @@ use core\Group;
 $providers = inject(['context', 'orm', 'auth', 'access']);
 
 $tests = [
-/*
     //0xxx : calls related to QN methods
     '0101' => array(
                 'description'       =>  "Get auth provider",
@@ -398,7 +397,7 @@ $tests = [
                                                 return $values;
                                             }
                     ),
-*/
+
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
