@@ -1,5 +1,6 @@
 Options -Indexes
 DirectoryIndex index.php
+CGIPassAuth on 
 
 <IfModule mod_rewrite.c>
 
