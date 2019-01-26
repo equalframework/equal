@@ -18,7 +18,11 @@ list($params, $providers) = announce([
 
 list($context, $am) = [$providers['context'], $providers['auth']];
 
-
+$context->httpResponse()
+        ->body($_SERVER)
+        ->send();
+die();
+        
 $user_id = $am->userId();
 if($user_id <= 0) {
     throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
@@ -34,5 +38,5 @@ $user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt
 
     
 $context->httpResponse()
-        ->body($_SERVER)
+        ->body($user)
         ->send();
