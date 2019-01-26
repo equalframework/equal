@@ -20,7 +20,7 @@
     
     
     <FilesMatch \.php$>
-# this seems to work but Authorization header is missing
+# this seems to work but Authorization header is missing ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] is not set)
         SetHandler  "proxy:fcgi://localhost:9000"        
     </FilesMatch>  
 

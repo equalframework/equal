@@ -19,7 +19,7 @@ list($params, $providers) = announce([
 list($context, $am) = [$providers['context'], $providers['auth']];
 
 $context->httpResponse()
-        ->body($_SERVER)
+        ->body(array_merge($_SERVER, getallheaders()))
         ->send();
 die();
         
