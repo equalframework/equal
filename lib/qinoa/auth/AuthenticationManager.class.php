@@ -49,7 +49,6 @@ class AuthenticationManager extends Service {
 
         $auth_header = $request->header('Authorization');
         if(!is_null($auth_header)) {
-            die('3');
             if(strpos($auth_header, 'Bearer ') !== false) {
                 
                 // retrieve JWT token    
