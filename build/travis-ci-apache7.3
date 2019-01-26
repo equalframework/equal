@@ -8,8 +8,19 @@
         AllowOverride All
         Require all granted
     </Directory>
-  
+
+    #to test :
+     SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+     SetEnvIf Content-Type "(.*)" HTTP_CONTENT_TYPE=$1
+     SetEnvIf Accept "(.*)" HTTP_ACCEPT=$1      
+    
+         # Enable http authorization headers 
+#         <IfModule setenvif_module> 
+#               SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1 
+#         </IfModule> 
+         
     <FilesMatch \.php$>
+    # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
         Require all granted
        # SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
