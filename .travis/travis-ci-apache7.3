@@ -18,7 +18,9 @@
 #         <IfModule setenvif_module> 
 #               SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1 
 #         </IfModule> 
-         
+
+    SetEnv proxy-chain-auth 
+    
     <FilesMatch \.php$>
     # this seems to work but Authorization header is missing
         SetHandler  "proxy:fcgi://localhost:9000"
