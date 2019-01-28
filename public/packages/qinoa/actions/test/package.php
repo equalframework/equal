@@ -11,7 +11,7 @@ use qinoa\test\Tester;
 use core\User;
 use core\Group;
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Check for test units for given package and run them, if any.',
     'params'        => [
         'package'   => [

@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => "Create a new object using given fields values.",
     'response'      => [
         'content-type'  => 'application/json',

@@ -1,7 +1,7 @@
 <?php
 use qinoa\db\DBConnection;
 
-$params = eQual::announce([
+$params = announce([
     'description'   => 'Tests access to the database',
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
@@ -11,7 +11,7 @@ $params = eQual::announce([
 $db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
 
 // 1) test connectivity to DBMS service
-$json = eQual::run('do', 'test_db-connectivity');
+$json = run('do', 'test_db-connectivity');
 if(strlen($json)) {
     // relay result
     print($json);

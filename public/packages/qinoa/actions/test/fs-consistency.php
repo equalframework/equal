@@ -1,5 +1,5 @@
 <?php
-$params = eQual::announce([
+$params = announce([
     'description'   => 'Checks current installation directories integrity',
     'params'        => [],
     'constants'     => ['FILE_STORAGE_MODE', 'FILE_STORAGE_DIR', 'ROUTING_METHOD', 'ROUTING_CONFIG_DIR']

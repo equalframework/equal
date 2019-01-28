@@ -11,7 +11,7 @@ use qinoa\orm\ObjectManager;
 use core\User;
 use core\Group;
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Test unit for Qinoa and Core packages. This unit assumes that a DB connection is available and config vars are set accordingly.',
     'params'        => [],
     'providers'     => ['context', 'orm', 'auth', 'access']
@@ -33,7 +33,7 @@ $tests = [
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function (){
-                                                list($params, $providers) = eQual::announce([
+                                                list($params, $providers) = announce([
                                                     'providers' => ['qinoa\auth\AuthenticationManager']
                                                 ]);
                                                 $auth = $providers['qinoa\auth\AuthenticationManager'];
@@ -46,7 +46,7 @@ $tests = [
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function (){
-                                                list($params, $providers) = eQual::announce([
+                                                list($params, $providers) = announce([
                                                     'providers' => ['@@testAuth' => 'qinoa\auth\AuthenticationManager']
                                                 ]);
                                                 $auth = $providers['@@testAuth'];

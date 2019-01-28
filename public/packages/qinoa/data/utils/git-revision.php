@@ -1,6 +1,6 @@
 <?php
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => "Provide a unique identifier of the current git revision.\n".
                        "This script assumes the current installation is versionned using git.",
     'response'      => [

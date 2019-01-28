@@ -6,7 +6,7 @@
 */
 
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Suggests books for bedtime stories based on child age and interests',
     'params'        => [
         'keywords' => [

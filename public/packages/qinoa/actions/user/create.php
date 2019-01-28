@@ -6,7 +6,7 @@
 */
 use core\User;
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Creates a new user account based in given credentials and details.',
     'response'      => [
         'content-type'  => 'application/json',

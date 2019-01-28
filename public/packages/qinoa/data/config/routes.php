@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Returns existing routes for a given API, along with their description and expected parameters',
     'params'        => [
                         'api'   => [

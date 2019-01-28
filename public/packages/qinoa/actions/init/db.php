@@ -5,7 +5,7 @@ use qinoa\db\DBConnection;
 $json = eQUal::run('get', 'qinoa_config_packages');
 $packages = json_decode($json, true);
 
-$params = eQual::announce([
+$params = announce([
     'description'   => 'Initialise database for core package',
     'params'        => [
         'package'	=> [
@@ -20,7 +20,7 @@ $params = eQual::announce([
 ]);
 
 
-$json = eQual::run('do', 'test_db-access');
+$json = run('do', 'test_db-access');
 
 if(strlen($json)) {
     // relay result
@@ -33,7 +33,7 @@ if(strlen($json)) {
 $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
 
 // 1) retrieve schema for core package
-$json = eQual::run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
+$json = run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array
 $data = json_decode($json, true);
 // join all lines

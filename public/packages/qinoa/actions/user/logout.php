@@ -20,7 +20,7 @@
 */
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'	=>	"Logs a user out.",
     'response'      => [
         'content-type'  => 'application/json'

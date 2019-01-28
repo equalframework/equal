@@ -1,7 +1,7 @@
 <?php
 use qinoa\db\DBConnection;
 
-$params = eQual::announce([
+$params = announce([
     'description'   => 'Tests connectivity to the DBMS server',
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']

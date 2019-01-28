@@ -6,7 +6,7 @@
 */
 use qinoa\html\HtmlWrapper;
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'UI for browsing controllers and their defintion amongst packages',
     'params'        => [
         'package'   => [

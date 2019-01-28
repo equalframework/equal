@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
     'response'      => [
         'content-type'  => 'application/json',

@@ -13,7 +13,7 @@ $tests = [
                 'return'            =>  array('boolean'),
                 'expected'          =>  true,
                 'test'              =>  function (){
-                                            list($params, $providers) = eQual::announce([
+                                            list($params, $providers) = announce([
                                                 'providers' => ['qinoa\auth\AuthenticationManager']
                                             ]);
                                             $auth = $providers['qinoa\auth\AuthenticationManager'];
@@ -26,7 +26,7 @@ $tests = [
                 'return'            =>  array('boolean'),
                 'expected'          =>  true,
                 'test'              =>  function (){
-                                            list($params, $providers) = eQual::announce([
+                                            list($params, $providers) = announce([
                                                 'providers' => ['@@testAuth' => 'qinoa\auth\AuthenticationManager']
                                             ]);
                                             $auth = $providers['@@testAuth'];

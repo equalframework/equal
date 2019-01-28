@@ -7,7 +7,7 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'	=>	"Attempts to log a user in.",
     'params' 		=>	[
         'login'		=>	[

@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => "Returns a list of existing API (string identifiers).\nResult is based on json files stored into config/routing.\nExpected format is api_{identifier}",
     'response'      => [
         'content-type'  => 'application/json',

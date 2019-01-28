@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Returns the list of classes defined in specified package',
     'response'      => [
         'content-type'      => 'application/json',

@@ -1,6 +1,6 @@
 <?php
 
-$params = eQual::announce([
+$params = announce([
     'description'   => 'This ia an example to show how to use the announce() method',
     'params' => [
         'a'  => [

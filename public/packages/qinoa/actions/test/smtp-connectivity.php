@@ -1,6 +1,6 @@
 <?php
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Check SMTP connectivity using values defined in config file',
     'constants'     => ['FILE_STORAGE_MODE', 'FILE_STORAGE_DIR', 'ROUTING_METHOD', 'ROUTING_CONFIG_DIR'],
     'providers'     => ['context']

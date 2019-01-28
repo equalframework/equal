@@ -1,2 +1,2 @@
 <?php
-echo eQual::run('get', 'test_simple');
+echo run('get', 'test_simple');

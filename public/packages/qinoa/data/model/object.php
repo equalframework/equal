@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'	=>	"Returns values map of the specified fields for object matching given class and identifier.",
     'response'      => [
         'content-type'  => 'application/json',
