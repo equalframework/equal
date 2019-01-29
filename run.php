@@ -18,10 +18,9 @@
 *    * HTTP
 *            /index.php?get=resiway_tests&id=1&test=2
 *    * PHP
-*            eQual::run('get', 'qinoa_utils_sql-schema', ['package'=>'core']);
+*            run('get', 'qinoa_utils_sql-schema', ['package'=>'core']);
 *
 */
-use config\QNLib;
 use qinoa\php\Context;
 use qinoa\route\Router;
 
@@ -120,7 +119,7 @@ try {
     // $context->httpResponse()->header('Access-Control-Allow-Origin', '*');
     
     // 3) perform requested operation
-    echo QNLib::run($route['operation']['type'], $route['operation']['name'], $request->body(), true);
+    echo run($route['operation']['type'], $route['operation']['name'], $request->body(), true);
 }
 // something went wrong: send an HTTP response with code related to the raised exception
 catch(Exception $e) {

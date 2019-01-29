@@ -704,8 +704,6 @@ namespace config {
     QNlib::init();
 }
 namespace {
-    // extend global scope with `eQual` class
-    class eQual extends config\QNlib {}
     
     /**
     * inject standalone functions into global scope (to relieve the user from the scope resolution notation)

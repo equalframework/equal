@@ -37,7 +37,7 @@ foreach($routes as $path => $resolver) {
         // add 'announce' parameter to force script to announce itself (script description)
         $route['operation']['params']['announce'] = true;
 
-        $json = eQUal::run($route['operation']['type'], $route['operation']['name'], $route['operation']['params']);
+        $json = run($route['operation']['type'], $route['operation']['name'], $route['operation']['params']);
         $announce = json_decode($json, true);
 
         $descriptor = [

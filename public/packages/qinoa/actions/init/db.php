@@ -2,7 +2,7 @@
 use qinoa\db\DBConnection;
 
 // get listing of existing packages
-$json = eQUal::run('get', 'qinoa_config_packages');
+$json = run('get', 'qinoa_config_packages');
 $packages = json_decode($json, true);
 
 $params = announce([
