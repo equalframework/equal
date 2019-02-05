@@ -33,6 +33,6 @@ script:
   # check ability to connect to the dbms service
   - php run.php --do=test_db-connectivity
   # initialise database with demo data
-  - php run.php --do=init_db --package=core
+  - php run.php --do=init --package=core
   # run test units
   - php run.php --do=test_package --package=qinoa
