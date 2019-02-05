@@ -156,7 +156,11 @@ class Model {
 	* @access public
 	*/
 	public function getTable() {
-		return strtolower(str_replace('\\', '_', get_class($this)));
+        $class_name = get_parent_class($this);
+        if($class_name == __CLASS__) {
+            $class_name = get_class($this);
+        }
+		return strtolower(str_replace('\\', '_', $class_name));
 	}
 
     // qinoa integration : if available

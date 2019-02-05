@@ -4,9 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use config\QNLib;
 
-list($params, $providers) = QNLib::announce([
+list($params, $providers) = announce([
     'description'   => "Returns the schema of given class (model)",
     'params'        => [
         'entity' =>  [
@@ -17,7 +16,7 @@ list($params, $providers) = QNLib::announce([
     ],
     'response'      => [
         'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
+        'charset'       => 'UTF-8',
         'accept-origin' => '*'        
     ],
     'providers'     => ['context', 'orm'] 
@@ -54,6 +53,7 @@ if(method_exists($model, 'getDefaults')) {
         }
     }
 }
+
 
 /*
 if(method_exists($model, 'getConstraints')) {

@@ -22,17 +22,18 @@
             adapt: function(type) { // translation table from qn types to ng-admin
                 var res = type;
                 switch(type) {
+                    case 'boolean': return 'choice';
                     case 'integer': return 'number';    
                     case 'html': return 'wysiwyg';
                     case 'many2one':  return 'reference';
                     case 'one2many':  return 'referenced_list';
-// neded to adjust this : fake one-to-many with rel_table                
+// needed to adjust this : fake one-to-many with rel_table                
                     case 'many2many':  return 'referenced_list';
                 }
                 return res;
             },
             targetType: function(field, classname) {
-                var schema = qinoa.config.entities[classname].schema;
+                var schema = qinoa.config.entities[classname].schema.fields;
                 var target_field  = field;
                 var target_type = schema[field]['type'];
                 while(target_type == 'function' || target_type == 'alias') {
@@ -176,7 +177,7 @@
 
                     switch(operation) {
                         case 'get':
-                            params['fields[]'] = qnConf.fields[params.entity]['show'];
+                            params['fields[]'] = qnConf.fields[params.entity]['show'].concat(qnConf.fields[params.entity]['edit']);
                             params.operation = 'get=qinoa_model_object';
                             params.id = url.substr(url.lastIndexOf('/') + 1);
                             break;
@@ -303,19 +304,24 @@
                 var buildFields = function(classname, view_type) {
                     
                     var view = qnConf.entities[classname].views[view_type];
-                    var schema = qnConf.entities[classname].schema;  
+                    var schema = qnConf.entities[classname].schema.fields;  
                     
                     var fields = [];
                     for(var item of view) {
+                        console.log(item);
                         var target_field = item.field;
-                        var target_type = qnConf.adapt(schema[target_field].type);
+                        var target_type;
                         
                         if(typeof item.widget != 'undefined') {
                             target_type = item.widget;
                         }
+                        else if(typeof schema[item.field].selection != 'undefined') {
+                            target_type = 'choice';
+                        }                        
                         else {                                
                             target_type = qnConf.adapt(qnConf.targetType(target_field, classname));
                         }
+                        
 
                         var field = nga.field(item.field, target_type);
                         var prepend_fields = [];
@@ -349,12 +355,22 @@
                             );
 
                         }
-                        else if(target_type == 'boolean') {
-                            field
-                             .choices([
+                        else if(target_type == 'choice') {
+                            var choices = [];
+                            if(schema[target_field].type == 'boolean') {
+                                choices = [
                                   { value: true, label: 'true' },
                                   { value: false, label: 'false' }
-                              ]);
+                              ];
+                            }
+                            else {
+                                for(var value of schema[item.field].selection) {
+                                    choices.push({value: value, label: value});
+                                }                                
+                            }
+                            console.log('choices');
+                            console.log(choices);
+                            field.choices(choices);
                         }
                         else if(target_type == 'number') {
                             // adapt formatting base on field role
@@ -362,7 +378,8 @@
                                 field.format('0000');
                             }
                         }                        
-                        
+
+                                                   
                         if(typeof item.label != 'undefined') {
                             field.label(item.label);
                         }
@@ -396,7 +413,7 @@
 
                     
                     var entity = ngaConf.entities[classname];
-                    var schema = entities[classname].schema;                    
+                    var schema = entities[classname].schema.fields;
                     
                     for(var view_type in entities[classname]['views']) {
                     

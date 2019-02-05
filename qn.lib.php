@@ -454,11 +454,20 @@ namespace config {
                         $constraints[] = ['kind' => $constraint, 'rule' => $config[$constraint]];
                     }
                 }
+
                 // validate parameter's value
                 if(!$dataValidator->validate($value, $constraints)) {
                     if(!in_array($param, $mandatory_params)) {
-                        $reporter->warning("dropped invalid non-mandatory parameter '{$param}'");
-                        unset($result[$param]);
+                        // if it has a default value, assign to it
+                        if(isset($config['default'])) {
+                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");                            
+                            $result[$param] = $config['default'];
+                        }
+                        else {
+                            // otherwise, drop it
+                            $reporter->warning("dropped invalid non-mandatory parameter '{$param}'");
+                            unset($result[$param]);
+                        }
                     }
                     else $invalid_params[] = $param;
                 }

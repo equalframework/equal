@@ -47,8 +47,8 @@ namespace {
     // define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE);
     
     
-    // define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE);
-    define('DEFAULT_RIGHTS', 0);
+    define('DEFAULT_RIGHTS', QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE);
+    // define('DEFAULT_RIGHTS', 0);
 
 
     /**
@@ -174,6 +174,9 @@ namespace config {
     define('NUMERIC_DECIMAL_PRECISION', 2);
 
 
+    // define('HTTP_REDIRECT_404', '404.html');
+    // define('HTTP_REDIRECT_500', '500.html');
+    
 // todo : generate a random key during install process
     define('AUTH_SECRET_KEY', 'my_secret_key');
 }

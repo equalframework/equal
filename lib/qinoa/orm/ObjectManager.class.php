@@ -62,7 +62,7 @@ class ObjectManager extends Service {
 			'alias'		    => array('type', 'alias'),    
 			'boolean'		=> array('type', 'onchange'),
 			'integer'		=> array('type', 'onchange', 'selection', 'unique'),
-			'float'			=> array('type', 'onchange', 'precision'),
+			'float'			=> array('type', 'onchange', 'selection', 'precision'),
 			'string'		=> array('type', 'onchange', 'multilang', 'selection', 'unique'),
 			'text'			=> array('type', 'onchange', 'multilang'),
 			'html'			=> array('type', 'onchange', 'multilang'),            

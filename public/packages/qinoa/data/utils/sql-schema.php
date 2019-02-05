@@ -4,15 +4,13 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use config\QNLib;
-
 
 // get listing of existing packages
-$json = QNLib::run('get', 'qinoa_config_packages');
+$json = run('get', 'qinoa_config_packages');
 $packages = json_decode($json, true);
 
 
-list($params, $providers) = QNLib::announce([
+list($params, $providers) = announce([
     'description'	=>	"This script returns the sql schema of the specified package.",
     'params' 		=>	[
                             'package'	=> [
@@ -36,7 +34,7 @@ $params['package'] = strtolower($params['package']);
 $result = array();
 
 // get classes listing
-$json = QNLib::run('get', 'qinoa_config_classes', ['package' => $params['package']]);
+$json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
     
 
@@ -114,7 +112,7 @@ foreach($m2m_tables as $table => $columns) {
 	$result[] = "PRIMARY KEY ({$key})";
 	$result[] = ");\n";
 	// add an empty records (mandatory for JOIN conditions on empty tables)
-	$result[] = "INSERT INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
+	$result[] = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
 	$result[]= '('.implode(',', array_fill(0, count($columns), 0)).");\n";
 }
 

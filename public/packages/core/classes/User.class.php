@@ -12,7 +12,7 @@ class User extends Model {
             'firstname'		=> array('type' => 'string'),
             'lastname'		=> array('type' => 'string'),
             'start'			=> array('type' => 'string'),
-            'language'		=> array('type' => 'string'),
+            'language'		=> array('type' => 'string', 'selection' => ['en', 'fr', 'nl', 'de', 'es']),
             'validated'		=> array('type' => 'boolean'),
             'groups_ids'	=> array('type' => 'many2many', 
                                 'foreign_object'    => 'core\Group', 

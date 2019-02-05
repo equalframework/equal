@@ -125,12 +125,19 @@ try {
 catch(Exception $e) {
     // an exception with code 0 is an explicit process halt with no errror
     if($e->getCode() != 0) {
+        // get HTTP status code according to raised exception
+        $http_status = qn_error_http($e->getCode());
+        // redirect to custom location defined for this code, if any
+        if(defined('HTTP_REDIRECT_'.$http_status)) {
+            header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
+            exit();
+        }        
         // retrieve current HTTP response
         $response = $context->httpResponse();
         // adapt response and send it
         $response
-        // set status accordingly to raised exception
-        ->status(qn_error_http($e->getCode()))
+        // set HTTP status code
+        ->status($http_status)
         // explicitely tell we're returning JSON
         ->header('Content-Type', 'application/json')
         // append an 'error' section to response body
