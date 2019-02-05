@@ -47,10 +47,13 @@ $res = $db->sendQuery($query);
 
 if ($row = $db->fetchArray($res)) {
     // package already initialized
+    // todo: this does not cover all cases : e.g. a package having exclusively classes inherited from another package
 }
 else {
 
-    // 1) retrieve schema for core package
+    // PASS-ONE : execute schema SQL
+    
+    // 1) retrieve schema for given package
     $json = run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
     // decode json into an array
     $data = json_decode($json, true);
@@ -59,7 +62,17 @@ else {
     // push each line/query into an array
     $queries = explode(';', $schema);
 
-
+    // send each query to the DBMS
+    foreach($queries as $query) {
+        if(strlen($query)) {
+            $db->sendQuery($query.';');
+        }
+    }
+    
+    // PASS-TWO: check for missing columns    
+    // for classes with inheritance, we must check against non yet created fields
+    $queries = [];
+    
     // 2) retrieve classes listing
     $json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
     $classes = json_decode($json, true);
@@ -82,8 +95,7 @@ else {
     );
 
     $m2m_tables = array();
-
-    // for classes with inheritance, in addition we need to check against non-existing fields
+    
     foreach($classes as $class) {
         // get the full class name
         $class_name = $params['package'].'\\'.$class;
