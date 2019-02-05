@@ -42,6 +42,7 @@ $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
 
 
 // 0) check if package has already been initialized
+/*
 $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME like '{$params['package']}_%';";
 $res = $db->sendQuery($query);
 
@@ -50,7 +51,7 @@ if ($row = $db->fetchArray($res)) {
     // todo: this does not cover all cases : e.g. a package having exclusively classes inherited from another package
 }
 else {
-
+*/
     // PASS-ONE : execute schema SQL
     
     // 1) retrieve schema for given package
@@ -168,4 +169,6 @@ else {
             $db->sendQuery($query.';');
         }
     }
+/*	
 }
+*/
