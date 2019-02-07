@@ -25,6 +25,7 @@ list($params, $providers) = announce([
 
 $html = new HtmlWrapper();
 $html->addCSSFile('packages/qinoa/assets/css/jquery-ui.min.css');
+$html->addCSSFile('packages/qinoa/assets/css/bootstrap.css');
 
 $html->addJSFile('packages/qinoa/assets/js/jquery.min.js');
 $html->addJSFile('packages/qinoa/assets/js/jquery-ui.min.js');

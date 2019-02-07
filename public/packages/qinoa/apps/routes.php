@@ -59,9 +59,9 @@
         border-color: #923e00;
     }
     .route > span.route-method {
-        position: absolute;
-        right: 10px;
-        top: 10px;
+        float: left;
+        margin-top: 10px;
+		margin-right: 10px;
         border: solid;
         padding-left: 5px;
         padding-right: 5px;
@@ -115,6 +115,7 @@
     
     .route .route-params {
         font-weight: normal;
+		overflow: hidden;
     }
 
     </style>
@@ -137,12 +138,12 @@
                     <span class="route-method route-method-{{route.method}}">{{route.method}}</span>
                     <h3 class="route-uri">{{route.uri}}</h3>
                     <div class="route-description">
-                    {{route.description}}
+                    
                     </div>
                     <uib-accordion>                    
                     <div uib-accordion-group class="panel-default" is-open="status[route.uri+'_'+route.method].open">
                         <uib-accordion-heading>
-                            Params <i class="pull-right fa" ng-class="{'fa-chevron-down': status.open, 'fa-chevron-right': !status.open}"></i>
+                            {{route.description}} <i class="pull-right fa" ng-class="{'fa-chevron-down': status.open, 'fa-chevron-right': !status.open}"></i>
                         </uib-accordion-heading>
                         <div class="route-params">
 

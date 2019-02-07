@@ -1,0 +1,1 @@
+<?phpnamespace test;use qinoa\orm\Model;class User extends \core\User {    public static function getColumns() {        return array_merge(parent::getColumns(), [            'new_field'			=> array('type' => 'string')                    ]);    }}

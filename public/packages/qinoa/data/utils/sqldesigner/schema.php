@@ -98,7 +98,8 @@ foreach($classes as $class) {
 
 
     $new_table = $xml->addChild('table');
-    $new_table->addAttribute('name', $orm->getObjectTableName($class_name));
+    // $new_table->addAttribute('name', $orm->getObjectTableName($class_name));
+    $new_table->addAttribute('name', $class_name);	
 
     foreach($schema as $field => $definition) {
         

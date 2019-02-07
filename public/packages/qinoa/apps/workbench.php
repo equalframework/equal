@@ -96,32 +96,33 @@
             </div>
             <div class="col-lg-8" style="display: inline-block;">          
 
+<div class="btn-group" role="group" style="margin-top: -5px;">			
                 <div class="btn-group" uib-dropdown is-open="status.model.isopen">
-                    <button id="single-button" type="button" class="btn btn-primary" style="width: 130px;" uib-dropdown-toggle>
+                    <button type="button" class="btn btn-lg btn-default" style="width: 130px;" uib-dropdown-toggle>
                         <span class="fa fa-cubes"></span> Model <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" >
                         <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_editor')">Edit model</a></li>
                         <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_uml')">View UML</a></li>
                     </ul>
                 </div>            
 
-                <a href="#" onclick="showApp('qinoa_model_controllers')" class="btn btn-success" style="width: 130px;"><span class="fa fa-code"></span> Controllers</a>
+                <a href="#" onclick="showApp('qinoa_model_controllers')" class="btn btn-lg btn-default" style="width: 150px;"><span class="fa fa-code"></span> Controllers</a>
 
                 <div class="btn-group" uib-dropdown is-open="status.routes.isopen">
-                    <button id="single-button" type="button" class="btn btn-info" style="width: 130px;" uib-dropdown-toggle>
+                    <button id="single-button" type="button" class="btn btn-lg btn-default" style="width: 130px;" uib-dropdown-toggle>
                         <span class="fa fa-globe"></span> Routes <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" >
                         <li role="menuitem"><a href="#" onclick="showApp('qinoa_routes')">App routes</a></li>
                         <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_uml')">Browse APIs</a></li>
                     </ul>
                 </div>            
 
                 
-                <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-warning" style="width: 130px;"><span class="fa fa-cogs"></span> API explorer</a>                    
-                <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-danger" style="width: 130px;"><span class="fa fa-th-list"></span> Data</a>
-
+                <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-lg btn-default" style="width: 160px;"><span class="fa fa-cogs"></span> API explorer</a>                    
+                <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-lg btn-default" style="width: 130px;"><span class="fa fa-th-list"></span> Data</a>
+</div>
             </div>
           </div>
         </div>

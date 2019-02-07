@@ -33,7 +33,8 @@ $types = [
     'integer'   => [],
     'float'     => [],    
     'string'    => [
-        'multilang'   => ['type' => 'boolean']    
+        'multilang'   => ['type' => 'boolean'],
+        'selection'   => ['type' => 'string']
     ],
     'text'      => [
         'multilang'   => ['type' => 'boolean']           
@@ -53,18 +54,19 @@ $types = [
 
     'one2many'  => [
         'foreign_object' => ['type' => 'select_class'],
-        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selection']
+        'foreign_field'  => ['type' => 'select_field', 'origin' => 'foreign_object']
     ],    
 
     'many2many' => [
         'foreign_object' => ['type' => 'select_class'],
-        'foreign_field'  => ['type' => 'select_field', 'origin' => 'selection'],
+        'foreign_field'  => ['type' => 'select_field', 'origin' => 'foreign_object'],
     ],
     
     'function'  => [
-        'result_type' => ['type' => 'select', 'select' => $orm::$simple_types],
+        'result_type' => ['type' => 'selection', 'selection' => $orm::$simple_types],
         'store'       => ['type' => 'boolean'],
-        'multilang'   => ['type' => 'boolean']        
+        'multilang'   => ['type' => 'boolean'],
+        'function'    => ['type' => 'string']
     ]
 ];
 $context->httpResponse()
