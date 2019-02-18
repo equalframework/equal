@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
+    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace qinoa\orm;
 
 
@@ -308,10 +313,15 @@ class Collection implements \Iterator {
         }
 
         // 2) check that current user has enough privilege to perform READ operation
-        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
-            throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
+        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {			
+			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {		
+
+				throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
+			}
+			// user might have created some objects: limit search to those, if any
+			$domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);
         }
-        
+		
         // 3) perform search
         $ids = $this->om->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $params['lang']);
         // $ids is an error code
@@ -363,6 +373,7 @@ class Collection implements \Iterator {
     }
     
     public function read($fields, $lang=DEFAULT_LANG) {
+
         if(count($this->objects)) {
             // force argument into an array (single field name is accepted, empty array is accepted: load all fields)
             $fields = (array) $fields;            
@@ -401,10 +412,14 @@ class Collection implements \Iterator {
             */
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
-            
-            // 2) check that current user has enough privilege to perform READ operation
-            if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
-                throw new \Exception('READ,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+
+			// 2) check that current user has enough privilege to perform READ operation
+			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {			
+				if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {	
+				    throw new \Exception('READ,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+				}
+				// user might have created some objects: limit search to those, if any
+				$domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);            
             }
             
             // 3) read values

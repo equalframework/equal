@@ -85,7 +85,7 @@ class HttpRequest extends HttpMessage {
                 // simulate a XHR request
                 'X-Requested-With'  => 'XMLHttpRequest',
                 // accept any content type
-                'Accept'            => '*',
+                'Accept'            => '*/*',
                 // ask for unicode charset
                 'Accept-Charset'    => 'UTF-8'
             ];
@@ -144,8 +144,16 @@ class HttpRequest extends HttpMessage {
                 unset($http_response_header[0]);
                 $headers = [];
                 foreach($http_response_header as $line) {
-                    list($header, $value) = array_map('trim', explode(':', $line));
-                    $headers[$header] = $value;
+					list($header, $value) = ['', ''];
+                    $parts = array_map('trim', explode(':', $line));
+					if(isset($parts[0])) $header = $parts[0];
+					if(isset($parts[1])) $value = $parts[1];
+					if(strpos($header, 'HTTP/1.1') === 0) {
+						$response_status = $header;						
+					}
+					else {
+						$headers[$header] = $value;
+					}
                 }
                 $response = new HttpResponse($response_status, $headers, $data);
             }

@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
+    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace qinoa\orm;
 
 
@@ -9,15 +14,13 @@ class Domain {
             [   // condition
                 '{operand}', '{operator}', '{value}'
             ],         
-            [],    
-            [],    
+            ['{operand}', '{operator}', '{value}'] 	// another contition (AND)   
         ],
-        [
-            ['', '', '']    
-        ],
-        [
-            [],
-            [],
+        [		// another clause (OR)
+            [	// condition
+				'{operand}', '{operator}', '{value}'
+			],
+            ['{operand}', '{operator}', '{value}'] 	// another contition (AND)   			
         ]
     ];
 */  
@@ -31,7 +34,7 @@ class Domain {
     */
     
     /** 
-     *
+     * Checks condition validity (format and consistency against schema)
      * operand is checked based on value/type compatibility                       
      *
      */
@@ -116,12 +119,20 @@ class Domain {
         return '['.implode(',', $domain).']';
     }
 
+	/**
+	 * Adds a condition to a clause
+	 */
     public static function clauseConditionAdd($clause, $condition) {
         if(!self::conditionCheck($condition)) return $clause;
         $clause[] = $condition;
         return $clause;
     }
     
+	/** 
+	 * Adds a condition to the domain
+	 *
+	 * @return	array	resulting domain 
+	 */
     public static function conditionAdd($domain, $condition) {
         if(!self::conditionCheck($condition)) return $domain;
         
@@ -129,6 +140,7 @@ class Domain {
             $domain[] = self::clauseConditionAdd([], $condition);
         }
         else {
+			// add contion to all clauses
             for($i = 0, $j = count($domain); $i < $j; ++$i) {
                 $domain[$i] = self::clauseConditionAdd($domain[$i], $condition);
             }
@@ -136,6 +148,9 @@ class Domain {
         return $domain;
     }
 
+	/** 
+	 * Adds a clause to the domain
+	 */
     public static function clauseAdd($domain, $clause) {
         if(!self::clauseCheck($clause)) return $domain;
         $domain[] = $clause;

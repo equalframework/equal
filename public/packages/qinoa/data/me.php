@@ -13,26 +13,24 @@ list($params, $providers) = announce([
         'charset'           => 'UTF-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context', 'auth']
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
-list($context, $am) = [$providers['context'], $providers['auth']];
-
-
+list($context, $om, $am) = [$providers['context'], $providers['orm'], $providers['auth']];
+// retrieve current User identifier (HTTP headers lookup through Authentication Manager)
 $user_id = $am->userId();
 if($user_id <= 0) {
     throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
 }
-
-$collection = User::search(['id', '=', $user_id]);
-
-if(!count($collection->ids())) {
+// request directly the mapper to bypass permission check on User class 
+$ids = $om->search('core\User', ['id', '=', $user_id]);
+// make sure the User object is available
+if(!count($ids)) {
     throw new Exception('unexpected error', QN_ERROR_INVALID_USER);
 }
-
-$user = $collection->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
-
-    
+// user has allways READ right on its own object
+$user = User::ids($ids)->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
+// send back basic info of the User object   
 $context->httpResponse()
         ->body($user)
         ->send();

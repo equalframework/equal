@@ -651,7 +651,18 @@ class HttpMessage {
             return $this->setStatus($status);
         }
     }
-    
+
+    public function statusCode() {
+        $args = func_get_args();
+        if(count($args) < 1) {
+            return $this->getStatusCode();
+        }
+        else {
+            $status = $args[0];
+            return $this->setStatus($status);
+        }
+	}
+	
     /**
      * Content type getter/setter method based on arguments list
      * reminder: content type in stored either in 'content-type' or 'accept' header
