@@ -19,7 +19,7 @@
     <script type="text/javascript" src="packages/qinoa/assets/js/ui-bootstrap-tpls-2.2.0.min.js"></script>
     <script type="text/javascript" src="packages/qinoa/assets/js/select-tpls.min.js"></script>
         
-    <script type="text/javascript" src="packages/qinoa/apps/model/builder.js"></script>
+    <script type="text/javascript" src="packages/qinoa/apps/model/editor.js"></script>
     
     <style>
    

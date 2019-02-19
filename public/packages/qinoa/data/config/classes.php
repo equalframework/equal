@@ -16,7 +16,7 @@ list($params, $providers) = announce([
         'package' => [
             'description'   => 'Name of the package for which the list is requested',
             'type'          => 'string',
-            'required'      => true
+            'default'       => '*'
         ]
     ],
     'providers'     => ['context'] 
@@ -26,17 +26,43 @@ list($params, $providers) = announce([
 list($context) = [$providers['context']];
 
 
+
+function get_classes($package) {
+	$data = array();	
+	$package_dir = 'packages/'.$package.'/classes';
+	if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
+		throw new Exception("No classes found for package '{$package}'", QN_ERROR_INVALID_PARAM);        
+	}
+	foreach($list as $node) {
+		if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {
+			$data[] = substr($node, 0, -10);
+		}
+	}
+	return $data;
+}
+
 $data = array();
 
-$package_dir = 'packages/'.$params['package'].'/classes';
-if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
-    throw new Exception("No classes found for package '{$params['package']}'", QN_ERROR_INVALID_PARAM);        
+// if no package is given, return a map having packages as keys and arrays of related classes as values
+if($params['package'] == '*') {
+	// get listing of existing packages
+	$json = run('get', 'qinoa_config_packages');
+	$packages = json_decode($json, true);
+	foreach($packages as $package) {
+		try {
+			$data[$package] = get_classes($package);
+		}
+		catch(Exception $e) {
+			// ignore package with no class definition
+			continue;
+		}
+	}
 }
-foreach($list as $node) {
-    if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {
-        $data[] = substr($node, 0, -10);
-    }
+else {
+	// if a package is specified, return an array of all related classes
+	$data = get_classes($params['package']);
 }
+
     
 $context->httpResponse()
         ->body($data)

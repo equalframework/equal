@@ -38,6 +38,7 @@ class Model {
 
     private $values;
     
+	
 	/**
 	 * Constructor
 	 *
@@ -45,7 +46,18 @@ class Model {
 	 */
 	public final function __construct() {
         // schema is the concatenation of spcecial-columns and custom-defined columns
-		$this->schema = array_merge(self::getSpecialColumns(), $this->getColumns());
+		$this->schema = self::getSpecialColumns();
+		
+		// piles up the getColumns methods from oldest ancestor to called class
+		$parent_class = get_parent_class(get_called_class());
+		$parents_classes = [get_called_class()];
+		while( $parent_class != __CLASS__) {
+			array_unshift($parents_classes, $parent_class);
+			$parent_class = get_parent_class($parent_class);
+		}
+		foreach($parents_classes as $class) {
+			$this->schema = array_merge($this->schema, call_user_func_array([$class, 'getColumns'], []));
+		}		
 		
         // make sure that a field 'name' is always defined 
 		if( !isset($this->schema['name']) ) {
@@ -156,10 +168,12 @@ class Model {
 	* @access public
 	*/
 	public function getTable() {
-        $class_name = get_parent_class($this);
+        $class_name = get_parent_class($this);		
         if($class_name == __CLASS__) {
+			// class directly inherits from qinoa\orm\Model : use its name
             $class_name = get_class($this);
         }
+		// otherwise use the parent class to obtain targeted table
 		return strtolower(str_replace('\\', '_', $class_name));
 	}
 

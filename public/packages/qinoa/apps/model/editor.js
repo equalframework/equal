@@ -151,6 +151,30 @@ var project = angular.module('project', [
 		);
 		
 		$http({
+            method: 'GET',
+            url: '/index.php?get=qinoa_config_classes'
+        })
+        .then(
+            function success(json) {
+				console.log(json.data);
+				for(let pkg in json.data) {
+					
+					for(let cls of json.data[pkg]) {
+						console.log(pkg + '\\' +cls);
+					}
+					
+					
+				}
+            },
+            function error() {
+            }        
+		);
+				
+		
+		
+		
+		
+		$http({
 			method: 'GET',
 			url: '/index.php?get=qinoa_config_classes&package='+global_config['package']
 		})
