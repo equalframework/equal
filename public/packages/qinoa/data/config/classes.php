@@ -27,18 +27,20 @@ list($context) = [$providers['context']];
 
 
 
-function get_classes($package) {
-	$data = array();	
-	$package_dir = 'packages/'.$package.'/classes';
-	if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
-		throw new Exception("No classes found for package '{$package}'", QN_ERROR_INVALID_PARAM);        
-	}
-	foreach($list as $node) {
-		if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {
-			$data[] = substr($node, 0, -10);
+if(!function_exists('get_classes')) {
+	function get_classes($package) {
+		$data = array();	
+		$package_dir = 'packages/'.$package.'/classes';
+		if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
+			throw new Exception("No classes found for package '{$package}'", QN_ERROR_INVALID_PARAM);        
 		}
+		foreach($list as $node) {
+			if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {
+				$data[] = substr($node, 0, -10);
+			}
+		}
+		return $data;
 	}
-	return $data;
 }
 
 $data = array();
