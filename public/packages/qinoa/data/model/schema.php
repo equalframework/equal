@@ -35,6 +35,7 @@ if(!is_object($model)) {
 // get the complete schema of the object (including special fields)
 $schema = $model->getSchema();
 
+$data['parent'] = get_parent_class($model);
 $data['fields'] = $schema;
 
 if(method_exists($model, 'getUnique')) {

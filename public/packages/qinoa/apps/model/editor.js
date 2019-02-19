@@ -130,6 +130,7 @@ var project = angular.module('project', [
 		$scope.params = {
 			types: [],
 			fields: [],
+			classes: ['qinoa\\orm\\Model'],
 			selected_class: -1,
 			selected_field: -1
 		};
@@ -157,21 +158,15 @@ var project = angular.module('project', [
         .then(
             function success(json) {
 				console.log(json.data);
-				for(let pkg in json.data) {
-					
+				for(let pkg in json.data) {					
 					for(let cls of json.data[pkg]) {
-						console.log(pkg + '\\' +cls);
+						$scope.params.classes.push(pkg + '\\' +cls);
 					}
-					
-					
 				}
             },
             function error() {
             }        
 		);
-				
-		
-		
 		
 		
 		$http({
@@ -217,8 +212,9 @@ var project = angular.module('project', [
 								}
 								class_def.fields.push({name: field, type: type, attributes: angular.copy(attributes)});
 							}
+							class_def.parent = json.data.parent;
 							$scope.classes.unshift(angular.copy(class_def));
-							
+							console.log($scope.classes);
 							return json.data;
 						},
 						function error() {

@@ -11,6 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="stylesheet" href="packages/qinoa/assets/css/bootstrap.css" media="screen">
     <link rel="stylesheet" href="packages/qinoa/assets/css/font-awesome.css" media="screen">
+    <link rel="stylesheet" href="packages/qinoa/assets/css/select.min.css" media="screen">	
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="https://code.angularjs.org/1.6.9/angular.min.js"></script>    
@@ -54,8 +55,17 @@
 					</div>
 					<div class="col-sm-10" style="padding-left: 40px;">
 
-						<div class="row">				
-							<h3 style="margin-top: 0;"><input ng-model="classes[params.selected_class].name"></h3>
+						<div class="row" style="position: relative;">
+							<div class="col-sm-4 pull-left" style="padding: 0;">
+								<h3 style="display: inline-block; margin-top: 0; width: 200px;"><input ng-model="classes[params.selected_class].name"></h3>
+							</div>
+							<div class="col-sm-4 pull-left">
+								<oi-select
+											oi-options="cls for cls in params['classes']"
+											ng-model="classes[params.selected_class].parent"
+											placeholder="Select">
+								</oi-select>
+							</div>
 						</div> 
 
 						
