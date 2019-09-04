@@ -14,5 +14,9 @@
     },
     {
         "field": "start"
-    }
+    },
+    {
+        "field": "groups_ids",
+		"label": "Groups"
+    }	
 ]

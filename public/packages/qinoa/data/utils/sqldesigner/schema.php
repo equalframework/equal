@@ -98,7 +98,6 @@ foreach($classes as $class) {
 
 
     $new_table = $xml->addChild('table');
-    // $new_table->addAttribute('name', $orm->getObjectTableName($class_name));
     $new_table->addAttribute('name', $class_name);	
 
     foreach($schema as $field => $definition) {
@@ -147,13 +146,13 @@ foreach($classes as $class) {
                     $new_key->addChild('part', $definition['rel_foreign_key']);
                     $new_key->addChild('part', $definition['rel_local_key']);    
                 }
-                // create relaiton node
+                // create relation node
                 $new_relation->addAttribute('table', $definition['rel_table']);
                 $new_relation->addAttribute('row', $definition['rel_local_key']);
             }
             else {
-                // create relaiton node                
-                $new_relation->addAttribute('table', $orm->getObjectTableName($definition['foreign_object']));
+                // create relation node                
+                $new_relation->addAttribute('table', $definition['foreign_object']);
                 $new_relation->addAttribute('row', 'id');
             }            
         }        

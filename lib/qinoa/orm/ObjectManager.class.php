@@ -59,22 +59,22 @@ class ObjectManager extends Service {
 
 // todo : add large integer support (using GNU GMP library)    
 	public static $valid_attributes = array(
-			'alias'		    => array('type', 'alias'),    
-			'boolean'		=> array('type', 'onchange'),
-			'integer'		=> array('type', 'onchange', 'selection', 'unique'),
-			'float'			=> array('type', 'onchange', 'selection', 'precision'),
-			'string'		=> array('type', 'onchange', 'multilang', 'selection', 'unique'),
-			'text'			=> array('type', 'onchange', 'multilang'),
-			'html'			=> array('type', 'onchange', 'multilang'),            
-			'date'			=> array('type', 'onchange'),
-			'time'			=> array('type', 'onchange'),
-			'datetime'		=> array('type', 'onchange'),
-			'file'  		=> array('type', 'onchange', 'multilang'),           
-			'binary'		=> array('type', 'onchange', 'multilang'),
-			'many2one'		=> array('type', 'foreign_object', 'onchange', 'multilang'),
-			'one2many'		=> array('type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
-			'many2many'		=> array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-			'function'		=> array('type', 'result_type', 'function', 'onchange', 'store', 'multilang')
+			'alias'		    => array('description', 'type', 'alias'),    
+			'boolean'		=> array('description', 'type', 'onchange'),
+			'integer'		=> array('description', 'type', 'onchange', 'selection', 'unique'),
+			'float'			=> array('description', 'type', 'onchange', 'selection', 'precision'),
+			'string'		=> array('description', 'type', 'onchange', 'multilang', 'selection', 'unique'),
+			'text'			=> array('description', 'type', 'onchange', 'multilang'),
+			'html'			=> array('description', 'type', 'onchange', 'multilang'),            
+			'date'			=> array('description', 'type', 'onchange'),
+			'time'			=> array('description', 'type', 'onchange'),
+			'datetime'		=> array('description', 'type', 'onchange'),
+			'file'  		=> array('description', 'type', 'onchange', 'multilang'),           
+			'binary'		=> array('description', 'type', 'onchange', 'multilang'),
+			'many2one'		=> array('description', 'type', 'foreign_object', 'onchange', 'multilang'),
+			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
+			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
+			'function'		=> array('description', 'type', 'result_type', 'function', 'onchange', 'store', 'multilang')
 	);
 
 	public static $mandatory_attributes = array(

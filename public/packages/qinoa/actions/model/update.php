@@ -4,9 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use config\QNLib;
 
-list($params, $providers) = QNLib::announce([
+list($params, $providers) = announce([
     'description'   => "Update (fully or partially) the given object.",
     'response'      => [
         'content-type'  => 'application/json',

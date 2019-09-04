@@ -102,11 +102,12 @@
                         <span class="fa fa-cubes"></span> Model <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" uib-dropdown-menu role="menu" >
-                        <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_editor')">Edit model</a></li>
+                        <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_model')">Edit model</a></li>
                         <li role="menuitem"><a href="#" onclick="showApp('qinoa_model_uml')">View UML</a></li>
                     </ul>
                 </div>            
 
+                <a href="#" onclick="showApp('qinoa_model_views')" class="btn btn-lg btn-default" style="width: 150px;"><span class="fa fa-eye"></span> Views</a>				
                 <a href="#" onclick="showApp('qinoa_model_controllers')" class="btn btn-lg btn-default" style="width: 150px;"><span class="fa fa-code"></span> Controllers</a>
 
                 <div class="btn-group" uib-dropdown is-open="status.routes.isopen">
@@ -120,7 +121,7 @@
                 </div>            
 
                 
-                <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-lg btn-default" style="width: 160px;"><span class="fa fa-cogs"></span> API explorer</a>                    
+                <!-- <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-lg btn-default" style="width: 160px;"><span class="fa fa-cogs"></span> API explorer</a> -->
                 <a href="#" onclick="showApp('qinoa_admin')" class="btn btn-lg btn-default" style="width: 130px;"><span class="fa fa-th-list"></span> Data</a>
 </div>
             </div>

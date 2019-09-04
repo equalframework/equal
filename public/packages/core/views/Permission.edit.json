@@ -1,0 +1,19 @@
+[
+    {
+        "field": "class_name"
+    },    
+    {
+        "field": "user_id",
+        "label": "User"
+    },
+    {
+        "field": "group_id",
+        "label": "Group"
+    },	
+    {
+        "field": "rights"
+    },
+    {
+        "field": "rights_txt"
+    }	
+]

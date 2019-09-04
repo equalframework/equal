@@ -128,7 +128,10 @@
         .text-danger {
             color: #923e00;
         }
-        
+		
+		a.btn-xs span.hidden-xs {
+			display: none;
+		}        
         </style>        
     </head>
     <body>

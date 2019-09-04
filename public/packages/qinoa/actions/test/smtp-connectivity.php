@@ -2,7 +2,7 @@
 
 list($params, $providers) = announce([
     'description'   => 'Check SMTP connectivity using values defined in config file',
-    'constants'     => ['FILE_STORAGE_MODE', 'FILE_STORAGE_DIR', 'ROUTING_METHOD', 'ROUTING_CONFIG_DIR'],
+    'constants'     => ['EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'providers'     => ['context']
 ]);
 
@@ -108,7 +108,7 @@ try {
     $line = read_line($sock);
 
     if(!$line || intval(explode(' ', $line)[0]) != 235) {
-        throw new Exception('Unable to authenticate with provided credentials', QN_ERROR_UNKNOWN);
+        throw new Exception("Unable to authenticate with provided credentials: $line", QN_ERROR_UNKNOWN);
     }
 }
 catch(Exception $e) {
@@ -117,4 +117,4 @@ catch(Exception $e) {
 
 fclose($sock);
 
-$providers['context']->httpResponse()->body(['result' => $result])->send();
+$providers['context']->httpResponse()->body(['result' => $line])->send();

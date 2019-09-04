@@ -21,7 +21,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     if(in_array($value, ['TRUE', 'true', '1', 1, true], true)) return true;
-                                    else if(in_array($value, ['FALSE', 'false', '0', 0, false], true)) return false;
+                                    else if(in_array($value, ['FALSE', 'false', '0', '', 0, false], true)) return false;
                                     return $value;
                                 }
                 ],

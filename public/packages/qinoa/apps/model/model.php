@@ -20,7 +20,7 @@
     <script type="text/javascript" src="packages/qinoa/assets/js/ui-bootstrap-tpls-2.2.0.min.js"></script>
     <script type="text/javascript" src="packages/qinoa/assets/js/select-tpls.min.js"></script>
         
-    <script type="text/javascript" src="packages/qinoa/apps/model/editor.js"></script>
+    <script type="text/javascript" src="packages/qinoa/apps/model/model.js"></script>
     
     <style>
    
@@ -56,10 +56,12 @@
 					<div class="col-sm-10" style="padding-left: 40px;">
 
 						<div class="row" style="position: relative;">
-							<div class="col-sm-4 pull-left" style="padding: 0;">
-								<h3 style="display: inline-block; margin-top: 0; width: 200px;"><input ng-model="classes[params.selected_class].name"></h3>
+							<div class="col-sm-3 pull-left" style="padding: 0;">
+								<h3 style="display: inline-block; margin-top: 0; width: 200px;">
+									<input class="form-control input-md" ng-model="classes[params.selected_class].name">
+								</h3>
 							</div>
-							<div class="col-sm-4 pull-left">
+							<div class="col-sm-6 pull-left">
 								<oi-select
 											oi-options="cls for cls in params['classes']"
 											ng-model="classes[params.selected_class].parent"

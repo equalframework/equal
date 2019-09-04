@@ -106,7 +106,8 @@ var project = angular.module('project', [
     '$scope',
     '$location',
     '$http',
-    function($rootScope, $scope, $location, $http) {
+	'$uibModal',
+    function($rootScope, $scope, $location, $http, $uibModal) {
         console.log('root controller');
 
         var rootCtrl = this;
@@ -114,6 +115,7 @@ var project = angular.module('project', [
 		// @def
         var classStruct = {
 			name: 'new_class',
+			parent: 'qinoa\\orm\\Model',
 			fields: []
 		};
 		
@@ -125,13 +127,15 @@ var project = angular.module('project', [
 		
 		
 		
-		$scope.classes = [];		
+		$scope.classes = [];
+		$scope.views = [];
 		
 		$scope.params = {
 			types: [],
 			fields: [],
 			classes: ['qinoa\\orm\\Model'],
 			selected_class: -1,
+			selected_view: 'create',
 			selected_field: -1
 		};
 		
@@ -189,32 +193,38 @@ var project = angular.module('project', [
 							for(let field in json.data.fields) {
 								if(exclusions.indexOf(field) > -1) continue;
 								var type = json.data.fields[field].type;
-								var attributes = angular.extend({}, $scope.params.defs[type], json.data.fields[field]);
+								var attributes = angular.merge({}, $scope.params.defs[type], json.data.fields[field]);
 								delete attributes.type;
 								for(let attr in attributes) {
-									var val = attributes[attr];
-									if(typeof $scope.params.defs[type][attr] != 'undefined') {
+									var attr_val = attributes[attr];
+									var val = '';
+									if(typeof $scope.params.defs[type][attr] == 'undefined') {
+										delete attributes[attr];
+									}
+									else {
 										if(attr == 'foreign_object') {
-											val = val.split('\\').pop();
+											val = attr_val.split('\\').pop();
 										}									
-										if(type == 'string' && attr == 'selection') {
+										else if(attr == 'selection' && type == 'string') {
 
 											if(val.constructor == Array) {
-												val = val.join(',');
+												val = attr_val.join(',');
 											}
 											else {
 												val = '';
 											}
 										}
+										else if(attr == 'multilang') {
+											val = (attr_val == true || attr_val === 'true');
+										}
 										attributes[attr] = $scope.params.defs[type][attr];
 										attributes[attr].value = val;									
 									}
 								}
-								class_def.fields.push({name: field, type: type, attributes: angular.copy(attributes)});
+								class_def.fields.push({name: field, type: type, attributes: angular.merge({}, attributes)});
 							}
 							class_def.parent = json.data.parent;
 							$scope.classes.unshift(angular.copy(class_def));
-							console.log($scope.classes);
 							return json.data;
 						},
 						function error() {
@@ -243,7 +253,52 @@ var project = angular.module('project', [
 		}
 		
 		$scope.save = function() {
-			console.log($scope.classes);
+
+			
+			var class_def = $scope.classes[$scope.params.selected_class];
+			
+			console.log(class_def);
+			
+			var modalInstance = $uibModal.open({
+				template: '<div class="modal-header"><h3>Confirm</h3></div><div class="modal-body"><p>This will overwrite existing object definition along with embedded methods, key and constraint defintion.</p> <p>Are you sure?</p></div><div class="modal-footer"><button class="btn btn-success" ng-click="ctrl.ok()">OK</button><button class="btn btn-warning" ng-click="ctrl.cancel()">Cancel</button></div>',
+				controller: ['$uibModalInstance', function ($uibModalInstance, items) {
+					var ctrl = this;
+					ctrl.ok = function () {
+						$uibModalInstance.close();
+					};
+					ctrl.cancel = function () {
+						$uibModalInstance.dismiss();
+					};
+				}],
+				controllerAs: 'ctrl',
+				size: 'sm',
+				appendTo: angular.element(window.document.querySelector(".modal-wrapper")),
+				resolve: {
+					items: function () {
+						return [];
+					}
+				}					
+			});
+
+
+			modalInstance.result.then(
+				function () {
+					$http.post('index.php?do=qinoa_config_save-model', {
+						schema: class_def,
+						package: global_config.package,
+						entity: class_def.name
+					})
+					.then(
+						function (response) {
+							console.log(response.data);
+						}
+					);
+				}, 
+				function () {
+					console.log('cancel');
+				}
+			);
+
 		}
 		
 		$scope.select_field = function(index) {
@@ -263,13 +318,21 @@ var project = angular.module('project', [
 			}
 		}
 		
-		$scope.new_class = function () {
-			$scope.classes.push(angular.copy(classStruct));
+
+		$scope.add_field = function () {
+			console.log($scope.params);
+			if(typeof $scope.views[$scope.params.selected_view] == 'undefined') {
+				$scope.views[$scope.params.selected_view] = [];
+			}
+			if(typeof $scope.views[$scope.params.selected_view][$scope.params.selected_class] == 'undefined') {
+				$scope.views[$scope.params.selected_view][$scope.params.selected_class] = {};
+			}
+			$scope.views[$scope.params.selected_view][$scope.params.selected_class][$scope.params.selected_field] = angular.copy(fieldStruct);
 		}
-		
-		$scope.new_field = function () {
-			$scope.classes[$scope.params.selected_class].fields.push(angular.copy(fieldStruct));
-		}
+
+		$scope.remove_field = function () {
+			delete $scope.views[$scope.params.selected_view][$scope.params.selected_class].fields[$scope.params.selected_field];
+		}		
 		
 		$scope.select_target_type = function (index) {
 			var selected_type = $scope.classes[$scope.params.selected_class].fields[$scope.params.selected_field].type;

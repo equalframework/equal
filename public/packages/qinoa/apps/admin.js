@@ -239,7 +239,12 @@
                                     case 'text':
                                         params['domain['+i+'][1]'] = 'ilike';
                                         params['domain['+i+'][2]'] = '%'+params._filters[field]+'%';
-                                        break
+                                        break;
+                                    case 'one2many':										
+                                    case 'many2many':
+                                        params['domain['+i+'][1]'] = 'contains';
+                                        params['domain['+i+'][2]'] = params._filters[field];
+										break;
                                     default:
                                         params['domain['+i+'][1]'] = '=';
                                         params['domain['+i+'][2]'] = params._filters[field];
