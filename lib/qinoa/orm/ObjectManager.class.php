@@ -503,8 +503,8 @@ class ObjectManager extends Service {
 						if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
 						$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
 						foreach($ids as $oid) {
-                            if(isset($res[$oid][$field])) {
-                                $value = $this->container->get('adapt')->adapt($res[$oid][$field], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            if(isset($res[$oid])) {
+                                $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
                             }
                             else {
                                 $value = null;
