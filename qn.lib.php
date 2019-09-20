@@ -195,7 +195,7 @@ namespace {
      * Add global system-related constants
      * (which cannot be modified by other scripts)
      */
-    include_once('config/config.inc.php');
+    if( (include_once('config/config.inc.php')) === false ) die('oops, root config file is missing');
 }
 namespace config {
     use qinoa\services\Container;
