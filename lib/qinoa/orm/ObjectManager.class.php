@@ -71,7 +71,7 @@ class ObjectManager extends Service {
 			'datetime'		=> array('description', 'type', 'onchange'),
 			'file'  		=> array('description', 'type', 'onchange', 'multilang'),           
 			'binary'		=> array('description', 'type', 'onchange', 'multilang'),
-			'many2one'		=> array('description', 'type', 'foreign_object', 'onchange', 'multilang'),
+			'many2one'		=> array('description', 'type', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
 			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
 			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
 			'function'		=> array('description', 'type', 'result_type', 'function', 'onchange', 'store', 'multilang')
@@ -1162,7 +1162,9 @@ todo: signature differs from other methods	(returned value)
                             break;
                         case 'one2many':
                             $res = $this->read($object_class, $ids, $field);
-                            $rel_ids = array_map(function ($item) use($field) { return $item[$field];}, array_values($res));
+                            $rel_ids = [];
+                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $res);
+
                             // foregin field is many2one
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
