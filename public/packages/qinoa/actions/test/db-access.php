@@ -2,7 +2,7 @@
 use qinoa\db\DBConnection;
 
 $params = announce([
-    'description'   => 'Tests access to the database',
+    'description'   => "Tests access to the database.\nIn case of success, the script simply terminates with a status code of 0 (no output).",
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);

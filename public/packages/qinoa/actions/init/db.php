@@ -11,7 +11,7 @@ $json = run('get', 'qinoa_config_packages');
 $packages = json_decode($json, true);
 
 list($params, $providers) = announce([
-    'description'   => 'Initialise database for core package',
+    'description'   => 'Initialise database for given package. If no package is given, initialize core package.',
     'params'        => [
         'package'	=> [
             'description'   => 'Package for which we want SQL schema.',
