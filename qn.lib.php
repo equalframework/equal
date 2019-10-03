@@ -58,10 +58,10 @@ namespace {
     /**
      * Debugging modes
      */
-    define('QN_DEBUG_PHP',            1);
-    define('QN_DEBUG_SQL',            2);
-    define('QN_DEBUG_ORM',            4);
-    define('QN_DEBUG_APP',            8);
+    define('QN_DEBUG_PHP',          1);
+    define('QN_DEBUG_SQL',          2);
+    define('QN_DEBUG_ORM',          4);
+    define('QN_DEBUG_APP',          8);
 
 
     define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
@@ -420,7 +420,7 @@ namespace config {
             $allowed_params = array_keys($announcement['params']);
             $invalid_params = array_diff(array_keys($body), $allowed_params);
             foreach($invalid_params as $invalid_param) {
-                $reporter->warning("dropped unexpected parameter '{$invalid_param}'");
+                $reporter->debug("dropped unexpected parameter '{$invalid_param}'");
                 unset($body[$invalid_param]);
             }
             $missing_params = array_diff($allowed_params, array_intersect($allowed_params, array_keys($body)));
