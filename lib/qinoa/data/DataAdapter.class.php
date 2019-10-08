@@ -31,9 +31,12 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php' => [
+                    'txt' =>    function ($value) {
+                                    return ($value)?'true':'false';                                                                        
+                                },
                     'sql' =>    function ($value) {
                                     return ($value)?'1':'0';                                                                        
-                                }
+                                }                                
                 ]
             ],
             'integer' => [
