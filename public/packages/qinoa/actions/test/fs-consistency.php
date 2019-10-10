@@ -66,7 +66,7 @@ function check_permissions($path, $mask) {
 
 // check mod
 foreach($paths as $item) {
-    if(!file_exists($path)) {
+    if(!file_exists($item['path'])) {
         throw new Exception("Missing mandatory directory {$item['path']}", QN_ERROR_INVALID_CONFIG);        
     }
     if( ($res = check_permissions($item['path'], $item['rights'])) <= 0) {
