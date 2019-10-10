@@ -1,9 +1,13 @@
 <?php
 /** 
 * Main configuration file
-* Constants defined in this file are mandatory and cannot be modified in customs config.inc.php
+* Constants with name starting with QN_ are defined in qn.lib.php
 */
 namespace {
+    /**
+    * Constants defined in this section are mandatory and cannot be modified in customs config.inc.php
+    */    
+    
     /** 
     * Add configuration in the global namespace: those cannot be changed in cascade config files.
     */

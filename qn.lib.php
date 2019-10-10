@@ -564,7 +564,7 @@ namespace config {
                     include($script);
                 }
                 catch(\Exception $e) {
-                    // an exception with code 0 is an explicit process halt with no errror
+                    // an exception with code 0 is an explicit process halt with no error
                     if($e->getCode() != 0) {
                         // retrieve current HTTP response
                         $response = $context->httpResponse();

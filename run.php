@@ -144,5 +144,6 @@ catch(Exception $e) {
         ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ])
         // send HTTP response
         ->send();
+        exit(1);
     }
 }

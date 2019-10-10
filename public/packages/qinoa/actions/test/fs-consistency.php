@@ -50,9 +50,6 @@ if(FILE_STORAGE_MODE == 'FS') {
 
 
 function check_permissions($path, $mask) {
-    if(!file_exists($path)) {
-        return false;
-    }
     if($mask & QN_R_READ) {
         if(!is_readable($path)) return -QN_R_READ;
     }
@@ -69,18 +66,21 @@ function check_permissions($path, $mask) {
 
 // check mod
 foreach($paths as $item) {
+    if(!file_exists($path)) {
+        throw new Exception("Missing mandatory directory {$item['path']}", QN_ERROR_INVALID_CONFIG);        
+    }
     if( ($res = check_permissions($item['path'], $item['rights'])) <= 0) {
         switch(-$res) {
             case QN_R_READ: 
-                $missing = ' read ';
+                $missing = 'read';
                 break;
             case QN_R_WRITE: 
-                $missing = ' write ';
+                $missing = 'write';
                 break;
             default:
-                $missing = ' ';
+                $missing = '';
         }
-        throw new Exception("PHP process has no{$missing}access on {$item['path']}", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("PHP process has no {$missing} access on {$item['path']}", QN_ERROR_INVALID_CONFIG);
     }
 }
 
