@@ -20,7 +20,7 @@ env:
     
 before_script:
   # travis DB user is `root`, password is empty and host is `127.0.0.1`
-  - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
+  # - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
   # install apache2
   - chmod +x .travis/*.sh
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then .travis/init-php7.3.sh; else .travis/init-php.sh; fi
