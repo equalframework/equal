@@ -4,6 +4,5 @@
 /bin/
 /cache/
 /log/
-/config/config.inc.php
 composer.phar
-omposer.lock
+composer.lock

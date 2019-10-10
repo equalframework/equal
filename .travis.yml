@@ -32,7 +32,9 @@ script:
   - php run.php --do=test_fs-consistency
   # check ability to connect to the dbms service
   - php run.php --do=test_db-connectivity
+  # create an empty database 
+  - php run.php --do=init_db  
   # initialise database with demo data
-  - php run.php --do=init --package=core
+  - php run.php --do=init_package --package=core
   # run test units
   - php run.php --do=test_package --package=qinoa
