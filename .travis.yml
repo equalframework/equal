@@ -4,7 +4,7 @@ php:
   # - '5.6'
   - '7.1'
   - '7.2'
-  # - '7.3'  
+  - '7.3'  
   # cannot make 7.3 work : there is an unidentified error leading to HTTP 503 when using HttpRequest calls
   
 services:
