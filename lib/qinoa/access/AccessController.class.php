@@ -128,14 +128,18 @@ class AccessController extends Service {
 
     /**
      *
-     * @param   $object_class  string  name of the class on which rights apply to : wildcards are allowed (ex. '*' or 'core\*')
+     * @param   $identity       string   'user' or 'group'
+     * @param   $operator       string   '+' or '-'     
+     * @param   $rights         integer  binary mask of the rights to apply
+     * @param   $identity_id    integer  identifier of targeted user or group
+     * @param   $object_class   string   name of the class on which rights apply to : wildcards are allowed (ex. '*' or 'core\*')
      *
      */
-    private function changeUserRights($operator, $rights, $user_id, $object_class) {
+    private function changeRights($identity, $operator, $rights, $identity_id, $object_class) {
         // all users belong to the default group
         $orm = $this->container->get('orm');
         // search for an ACL describing this specific user
-        $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]);
+        $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], [$identity.'_id', '=', $identity_id] ]);
         if(count($acl_ids)) {
             $values = $orm->read('core\Permission', $acl_ids, ['rights']);
             // there should be only one result
@@ -157,16 +161,23 @@ class AccessController extends Service {
             $rights = $acl['rights'];
         }
         else if($operator == '+') {
-            $orm->create('core\Permission', ['class_name' => $object_class, 'user_id' => $user_id, 'rights' => $rights]);
+            $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
         }
         // update internal cache
-        if(isset($this->permissionsTable[$user_id])) unset($this->permissionsTable[$user_id]);
+        if($identity == 'user' && isset($this->permissionsTable[$identity_id])) unset($this->permissionsTable[$identity_id]);
     }
 
+    public function grantGroups($groups_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        if(!is_array($groups_ids)) $groups_ids = (array) $groups_ids;
+        foreach($groups_ids as $group_id) {
+            $this->changeRights('group', '+', $operation, $group_id, $object_class);
+        }
+    }
+    
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
         foreach($users_ids as $user_id) {
-            $this->changeUserRights('+', $operation, $user_id, $object_class);
+            $this->changeRights('user', '+', $operation, $user_id, $object_class);
         }
     }
 
@@ -174,7 +185,7 @@ class AccessController extends Service {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
 
         foreach($users_ids as $user_id) {
-            $this->changeUserRights('-', $operation, $user_id, $object_class);
+            $this->changeRights('user', '-', $operation, $user_id, $object_class);
         }
     }
 
