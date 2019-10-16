@@ -4,19 +4,19 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\User;
+use core\Group;
 
 list($params, $providers) = announce([
-    'description'   => 'Grant additional privilege to given user.',
+    'description'   => 'Grant additional privilege to given group.',
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],    
     'params'        => [
-        'user' =>  [
-            'description'   => 'login (email address) or ID of targeted user.',
-            'type'          => 'string', 
+        'group' =>  [
+            'description'   => 'ID of targeted group.',
+            'type'          => 'integer', 
             'required'      => true
         ],
         'right' =>  [
@@ -49,32 +49,21 @@ if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
     throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 
-// retrieve targeted user identifier
+// retrieve group object
+$ids = Group::search(['id', '=', $params['group']])->ids();
 
-
-if(is_numeric($params['user'])) {
-    $user_id = $params['user'];
-}
-else {
-    // retrieve by login
-    $ids = User::search(['login', '=', $params['user']])->ids();
-
-    if(!count($ids)) { 
-        throw new \Exception("no user by that username", QN_ERROR_UNKNOWN_OBJECT);
-    }
-
-    $user_id = array_shift($ids);
+if(!count($ids)) { 
+    throw new \Exception("no group by that ID", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$ac->grantUsers($user_id, $operations[$params['right']], $params['entity']);
+$ac->grantGroups($params['group'], $operations[$params['right']], $params['entity']);
 
-
-$acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['user_id', '=', $user_id] ]);       
+$acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['group_id', '=', $params['group']] ]);       
 if(!count($acl_ids)) {
     throw new \Exception("unable to create ACL", QN_ERROR_UNKNOWN);
 }
 
-$acls = $orm->read('core\Permission', $acl_ids, ['user_id', 'class_name', 'rights', 'rights_txt']);
+$acls = $orm->read('core\Permission', $acl_ids, ['group_id', 'class_name', 'rights', 'rights_txt']);
 
 $context->httpResponse()
         ->status(200)

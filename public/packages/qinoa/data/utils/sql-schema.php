@@ -11,7 +11,7 @@ $packages = json_decode($json, true);
 
 
 list($params, $providers) = announce([
-    'description'	=>	"This script returns the sql schema of the specified package.",
+    'description'	=>	"Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
     'params' 		=>	[
                             'package'	=> [
                                 'description'   => 'Package for which we want SQL schema.',

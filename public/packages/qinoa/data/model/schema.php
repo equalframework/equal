@@ -6,7 +6,7 @@
 */
 
 list($params, $providers) = announce([
-    'description'   => "Returns the schema of given class (model)",
+    'description'   => "Returns the schema of given class (model) in JSON",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',

@@ -160,7 +160,7 @@ else {
     // 4) populate tables with demo data
     $data_sql = "packages/{$params['package']}/init/data.sql";
     if(file_exists($data_sql)) {
-        $queries = array_merge($queries, explode(PHP_EOL, file_get_contents($data_sql)));
+        $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
     }
 
     // send each query to the DBMS
@@ -172,3 +172,8 @@ else {
 /*	
 }
 */
+
+$context->httpResponse()
+        ->status(201)
+        ->body()
+        ->send();
