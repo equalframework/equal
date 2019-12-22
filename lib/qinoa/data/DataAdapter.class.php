@@ -46,6 +46,7 @@ class DataAdapter extends Service {
                                         if(in_array($value, ['TRUE', 'true'])) $value = 1;
                                         else if(in_array($value, ['FALSE', 'false'])) $value = 0;
                                     }
+                                    // arg represents a numeric value (numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = intval($value);
                                     }
@@ -62,6 +63,7 @@ class DataAdapter extends Service {
             'double' => [
                 'txt'   => [
                     'php' =>    function ($value) {
+                                    // arg represents a numeric value (numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = floatval($value);
                                     }

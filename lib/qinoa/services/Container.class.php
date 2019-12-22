@@ -116,7 +116,7 @@ class Container extends Service {
     
     /**
      *
-     *
+     * @param  mixed    $name (string | array) name(s) of services to retrieve
      * @return mixed (object | array) 
      * @throws Exception
      */

@@ -32,7 +32,7 @@ class DataValidator extends Service {
      * and the description of the rule itself
      *
      * examples:
-     * [ ['kind' => 'function', 'rule' => function() {return true;}],
+     * [ ['kind' => 'function', 'rule' => function($a) {return !($a%2);}],
      *   ['kind' => 'min', 'rule' => 0 ],      
      *   ['kind' => 'in', 'rule' => [1, 2, 3] ]     
      * ]
@@ -62,7 +62,7 @@ class DataValidator extends Service {
                     if(!in_array(gettype($value), ['string', 'array'])) return false;
                 }
                 else if($constraint['rule'] == 'date') {
-                    // dates are internally handed as Unix timestamps
+                    // dates are internally handled as Unix timestamps
                     if(!gettype($value) == 'integer') return false;
                 }
                 else if(gettype($value) != $constraint['rule']) return false;

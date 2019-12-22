@@ -3,7 +3,7 @@
 *	This file is part of the easyObject project.
 *	http://www.cedricfrancoys.be/easyobject
 *
-*	Copyright (C) 2012  Cedric Francoys
+*	Some Rights Reserved, Cedric Francoys
 *
 *	This program is free software: you can redistribute it and/or modify
 *	it under the terms of the GNU General Public License as published by

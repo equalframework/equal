@@ -1,9 +1,9 @@
 <?php
 /**
-*    This file is part of the Qinoa framework.
-*    https://github.com/cedricfrancoys/qinoa
+*    This file is part of the eQual framework.
+*    https://github.com/cedricfrancoys/equal-framework
 *
-*    Some Rights Reserved, Cedric Francoys, 2017, Yegen
+*    Some Rights Reserved, Cedric Francoys, 2010-2019
 *    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -341,9 +341,9 @@ namespace config {
          * Note: un-announced parameters in HTTP request are ignored (dropped)
          *
          * @static
-         * @param    array    $announcement    Array holding the description of the script and its parameters.
-         * @return    array    parameters and their final values
-         * @throws Exception raises an exception if: a dependency failed to load, OR a mandatory param is missing OR a param has invalid value
+         * @param    array      $announcement    Array holding the description of the script and its parameters.
+         * @return   array      parameters and their final values
+         * @throws   Exception  raises an exception if: a dependency failed to load, OR a mandatory param is missing OR a param has invalid value
          */
         public static function announce(array $announcement) {
             // 0) init vars
@@ -428,7 +428,7 @@ namespace config {
             // 3) build result array and set default values for optional missing parameters
 
             foreach($announcement['params'] as $param => $config) {
-                // note : at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data
+                // note: at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data
                 if(in_array($param, $missing_params) && isset($config['default'])) {
                     $body[$param] = $config['default'];
                 }

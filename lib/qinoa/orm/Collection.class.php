@@ -273,7 +273,7 @@ class Collection implements \Iterator {
     /**
      *
      * @param $fields   array   associative array holding values and their related fields as keys 
-     *
+     * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
     private function validate(array $fields, $check_unique=false) {
         $validation = $this->om->validate($this->class, $fields, $check_unique);

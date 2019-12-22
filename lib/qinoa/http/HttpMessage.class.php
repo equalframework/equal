@@ -11,7 +11,7 @@ use qinoa\http\HttpHeaders;
 
 
 /*
-    # What is a HTTP message ?
+    # What is a HTTP message?
 
 
     ## HTTP request
@@ -62,10 +62,10 @@ use qinoa\http\HttpHeaders;
 
 class HttpMessage {
       
-    // @var string      (ex.: POST)
+    // @var string      (ex.: 'POST')
     private $method;
     
-    // @var string      (ex.: HTTP/1.1)
+    // @var string      (ex.: 'HTTP/1.1')
     private $protocol;
     
     // @var mixed (string | array)
@@ -338,7 +338,8 @@ class HttpMessage {
             case 'application/json':
             case 'application/javascript':
             case 'text/javascript':
-                $arr = json_decode($body, true);
+                // convert to JSON (with type convertion + fallback to string)
+                $arr = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
                 if(!is_null($arr)) {
                     $body = $arr;
                 }
@@ -386,8 +387,6 @@ class HttpMessage {
         $this->status = $status;
         return $this;
     }
-        
-
 
     /**
      * 
@@ -416,7 +415,6 @@ class HttpMessage {
         }
         return $this->headers;
     }
-
     
     public function getHeader($header, $default=null) {
         return $this->headers->get($header, $default);
@@ -538,7 +536,7 @@ class HttpMessage {
         return $this;
     }
         
-    // Here-below are additional method using short name and get/set based on arguments
+    // Here-below are additional method using short name and get/set behaviour based on arguments
 
     public function method() {
         $args = func_get_args();
