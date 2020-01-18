@@ -57,21 +57,21 @@ class ObjectManager extends Service {
 	public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'html', 'array', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
 	public static $complex_types = array('one2many', 'many2many', 'function');
 
-// todo : add large integer support (using GNU GMP library)    
 	public static $valid_attributes = array(
-			'alias'		    => array('description', 'type', 'alias'),    
-			'boolean'		=> array('description', 'type', 'onchange'),
-			'integer'		=> array('description', 'type', 'onchange', 'selection', 'unique'),
-			'float'			=> array('description', 'type', 'onchange', 'selection', 'precision'),
-			'string'		=> array('description', 'type', 'onchange', 'multilang', 'selection', 'unique'),
-			'text'			=> array('description', 'type', 'onchange', 'multilang'),
-			'html'			=> array('description', 'type', 'onchange', 'multilang'),            
-			'date'			=> array('description', 'type', 'onchange'),
-			'time'			=> array('description', 'type', 'onchange'),
-			'datetime'		=> array('description', 'type', 'onchange'),
-			'file'  		=> array('description', 'type', 'onchange', 'multilang'),           
-			'binary'		=> array('description', 'type', 'onchange', 'multilang'),
-			'many2one'		=> array('description', 'type', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
+			'alias'		    => array('description', 'type', 'alias', 'required'),    
+			'boolean'		=> array('description', 'type', 'required', 'onchange'),
+			'integer'		=> array('description', 'type', 'required', 'onchange', 'selection', 'unique'),
+			'float'			=> array('description', 'type', 'required', 'onchange', 'selection', 'precision'),
+			'string'		=> array('description', 'type', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+			'text'			=> array('description', 'type', 'required', 'onchange', 'multilang'),
+// todo : html should be handled as text/html            
+			'html'			=> array('description', 'type', 'required', 'onchange', 'multilang'),            
+			'date'			=> array('description', 'type', 'required', 'onchange'),
+			'time'			=> array('description', 'type', 'required', 'onchange'),
+			'datetime'		=> array('description', 'type', 'required', 'onchange'),
+			'file'  		=> array('description', 'type', 'required', 'onchange', 'multilang'),           
+			'binary'		=> array('description', 'type', 'required', 'onchange', 'multilang'),
+			'many2one'		=> array('description', 'type', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
 			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
 			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
 			'function'		=> array('description', 'type', 'result_type', 'function', 'onchange', 'store', 'multilang')
@@ -214,7 +214,7 @@ class ObjectManager extends Service {
         // if class is unknown, load the file containing the class declaration of the requested object
         if(!class_exists($class)) {
             // first, read the file to see if the class extends from another (which could not be loaded yet)
-            $filename = 'packages/'.self::getObjectPackageName($class).'/classes/'.self::getObjectName($class).'.class.php';
+            $filename = 'packages/'.self::getObjectPackageName($class).'/classes/'.self::getObjectClassFileName($class);
             if(!is_file($filename)) {
                 // we might find ourselves in the 'private' directory (where classes definition is not mandatory)
                 $filename = '../public/'.$filename;
@@ -254,7 +254,9 @@ class ObjectManager extends Service {
 	* @return string
 	*/
 	public static function getObjectClassFileName($object_class) {
-		return str_replace('\\', '/', $object_class);
+		$parts = explode('\\', $object_class);
+        array_shift($parts);
+        return implode('/', $parts).'.class.php';
 	}
 
 	/**
@@ -264,7 +266,8 @@ class ObjectManager extends Service {
 	* @return string
 	*/
 	public static function getObjectPackageName($object_class) {
-		return str_replace('\\', '', substr($object_class, 0, strrpos($object_class, '\\')));
+		$parts = explode('\\', $object_class);
+        return array_shift($parts);
 	}
 
    	/**
