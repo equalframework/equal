@@ -309,9 +309,9 @@ class ObjectManager extends Service {
 
 
     /**
-    * Filters given object ids and returns on valid identifiers (from existing objects)
+    * Filters given object ids and returns only valid identifiers (existing objects).
+    * Ids that do not match an actual object in the database are removed from the list.
     *
-    * Ids that do not match an object in the database are removed from the list.
     */
     private function filterValidIdentifiers($class, $ids) {
         $valid_ids = [];
