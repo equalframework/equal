@@ -309,7 +309,7 @@ namespace config {
                 // and raise an exception (will be output in PHP error log)
                 throw new \Exception("Qinoa init: a mandatory dependency is missing or cannot be instanciated", QN_REPORT_FATAL);
             }
-            // register ORM classes autoloader, if any
+            // register ORM classes autoloader
             try {
                 $om = $container->get('orm');
                 // init collections provider
@@ -679,10 +679,10 @@ namespace config {
 
 
         /**
-        * Loads a class file from its class name (compatible with Zend classes)
+        * Loads a class file from its class name
         *
         * @static
-        * @example    load_class('db/DBConnection');
+        * @example    load_class('qinoa/db/DBConnection');
         * @param    string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
         * @return    bool
         */
@@ -690,9 +690,11 @@ namespace config {
             $result = false;
 
             if(class_exists($class_name, false) || isset($GLOBALS['QNlib_loading_classes'][$class_name])) {
+                // class is already loaded or being loaded
                 $result = true;
             }
             else {
+                // mark class as being loaded
                 $GLOBALS['QNlib_loading_classes'][$class_name] = true;
                 $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use Qinoa class extention
@@ -702,6 +704,7 @@ namespace config {
                 else {
                     // give up an relay to next registered loader, if any
                 }
+                // set class as fully loaded
                 unset($GLOBALS['QNlib_loading_classes'][$class_name]);
             }
             return $result;
