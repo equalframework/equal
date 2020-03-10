@@ -118,7 +118,7 @@ class AccessController extends Service {
                 }
 
                 if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();
-                // first element of the class-related array is used to store the user permissions for the whole class
+                // note: first element ([0]) of the class-related array could be used to store the user permissions for the whole class
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
 		}
@@ -201,6 +201,13 @@ class AccessController extends Service {
         $this->revokeUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
     }
 
+    /**
+     *  Check if a current user (retrieved using Auth service) has rights to perform a given operation.
+     *
+     *  This method is called by the Collection service, when performing CRUD 
+     *  Qinoa's Access Controller is trivial and only check for rights at class level.
+     *  For a more complex behaviour, this class can be replaced by a custom Auth service.
+     */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) return true;
@@ -243,4 +250,29 @@ class AccessController extends Service {
 
 		return (bool) ($user_rights & $operation);
     }
+    
+    /**
+    *  Filter a list of objects and return only ids of objects on which current user has permission for given operation.
+    *  This method is called by the Collection service, when performing Search
+    */
+    public function filter($operation, $object_class, $object_ids) {
+/*
+an operation cannot be denied : right is granted or not 
+get current user (id)
+get user's groups (gids)
+
+$rows = select rights from core_permission where class_name = $object_class OR class_name = '*'
+
+
+get all ACL defined for given objects (class_name, object_id)
+$rows = select object_id, rights from core_permission where class_name = $object_class AND object_id in ($objects_ids)
+$ids = [];
+foreach($rows as $key => $row) {
+    if(right & $operation) {
+        $ids[$row['object_id']] = true;
+    }
+}
+
+*/
+    }    
 }
