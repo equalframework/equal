@@ -312,14 +312,17 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);            
         }
 
-        // 2) check that current user has enough privilege to perform READ operation
-        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {			
+        // 2) check that current user has enough privilege to perform READ operation on given class
+        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
+            // user has always READ access to its own objects
 			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {		
-
+                // no READ nor CREATE permission: deny request
 				throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
 			}
-			// user might have created some objects: limit search to those, if any
-			$domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);
+            else {
+                // user has CREATE access and might have created some objects: limit search to those, if any
+                $domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);                
+            }
         }
 		
         // 3) perform search
@@ -330,6 +333,9 @@ class Collection implements \Iterator {
         }
         if(count($ids)) {
             // init keys of 'objects' member (for now, contain only an empty array)
+            
+// todo : filter results using access controller... (reduce resulting ids based on access rights)
+            
             $this->ids($ids);
         }
         else {
@@ -405,10 +411,14 @@ class Collection implements \Iterator {
                 When $field argument is empty, nothing is loaded.
                 Alternate strategies for empty $fields situation:
                 
-                // load all simple fields
+                * load all simple fields
+                ```
                 $requested_fields = array_keys(array_filter($schema, function($field) { return in_array($field['type'], ObjectManager::$simple_types);}));
-                // load all fields
+                ```
+                * load all fields
+                ```
                 $requested_fields = array_keys($schema);            
+                ```
             */
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
