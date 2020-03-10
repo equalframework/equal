@@ -26,19 +26,41 @@ list($params, $providers) = announce([
 list($context) = [$providers['context']];
 
 
-
+/**
+ * Utilities for retrieving classes within a package namespace and sub-namespaces.
+ *
+ */
+// prevent multi-declaration in global scope
 if(!function_exists('get_classes')) {
+    
+    // recurse within the `classes` directory
+    function get_files($dir) {
+        $result = [];
+        if(is_dir($dir) && $list = scandir($dir)) {
+            foreach($list as $node) {
+                if(is_file($dir.'/'.$node)) {                
+                    if(stristr($node, '.class.php')) {
+                        $result[] = substr($node, 0, -10);
+                    }                
+                }
+                else if(!in_array($node, ['.', '..']) && is_dir($dir.'/'.$node)) {
+                    $data = get_files($dir.'/'.$node);
+                    foreach($data as $subnode) {
+                        $result[] = "$node\\$subnode";
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+    
 	function get_classes($package) {
-		$data = array();	
+		$data = [];
 		$package_dir = 'packages/'.$package.'/classes';
 		if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
 			throw new Exception("No classes found for package '{$package}'", QN_ERROR_INVALID_PARAM);        
 		}
-		foreach($list as $node) {
-			if(stristr($node, '.class.php') && is_file($package_dir.'/'.$node)) {
-				$data[] = substr($node, 0, -10);
-			}
-		}
+		$data = get_files($package_dir);
 		return $data;
 	}
 }
