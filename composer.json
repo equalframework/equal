@@ -1,5 +1,7 @@
 {
     "require": {
-        "phpoffice/phpspreadsheet": "^1.4"
+        "phpoffice/phpspreadsheet": "^1.4",
+        "dompdf/dompdf": "^0.8.3",
+        "electrolinux/phpquery": "^0.9.6"
     }
 }
