@@ -16,9 +16,12 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
+
 list($context, $om, $am) = [$providers['context'], $providers['orm'], $providers['auth']];
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
+
 $user_id = $am->userId();
+
 if($user_id <= 0) {
     throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
 }
@@ -29,7 +32,10 @@ if(!count($ids)) {
     throw new Exception('unexpected error', QN_ERROR_INVALID_USER);
 }
 // user has allways READ right on its own object
-$user = User::ids($ids)->read(['login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
+$user = User::ids($ids)
+            ->read(['login', 'firstname', 'lastname', 'language'])
+            ->adapt('txt')
+            ->first();
 // send back basic info of the User object   
 $context->httpResponse()
         ->body($user)
