@@ -285,6 +285,9 @@ class Context extends Service {
     private function getHttpUri() {
         $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
         $auth = '';
+        /*
+        // deprecated as of 2020-03-28 (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#Access_using_credentials_in_the_URL)
+        // + URL passwords do not allow NIST policy
         if(isset($_SERVER['PHP_AUTH_USER']) && strlen($_SERVER['PHP_AUTH_USER']) > 0) {
             $auth = $_SERVER['PHP_AUTH_USER'];
             if(isset($_SERVER['PHP_AUTH_PW']) && strlen($_SERVER['PHP_AUTH_PW']) > 0) {
@@ -292,6 +295,7 @@ class Context extends Service {
             }
             $auth .= '@';
         }
+        */
         $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
         $port = isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:80;
         // fallback to current script name (using CLI, REQUEST_URI is not set), i.e. '/index.php'
