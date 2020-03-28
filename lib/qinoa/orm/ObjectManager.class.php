@@ -867,7 +867,9 @@ todo : to validate
 			$object_table = $this->getObjectTableName($class);
 			// $creation_array = array('created' => date("Y-m-d H:i:s"), 'creator' => $uid);
 			$creation_array = array_merge( ['created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
-            
+
+// todo : we need to check that all fields marked as required (mandatory) are provided            
+
 			// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
             $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
 			// use the oldest expired draft, if any            

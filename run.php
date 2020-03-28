@@ -75,7 +75,7 @@ try {
         $request->del('route');
     }
 
-    // 2) handle routing, if required (i.e. URL to operation transaltion)
+    // 2) handle routing, if required (i.e. URL to operation translation)
 
     // if routing is required
     if( strlen($path) > 1 && !in_array(basename($path), ['index.php', 'run.php']) ) {
@@ -85,6 +85,12 @@ try {
         if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
+        // translate preflight requests (OPTIONS) to be handled as GET, with announcement
+        // (so API does not have to explicitely define OPTIONS routes)
+        if($method == 'OPTIONS') {
+            $method = 'GET';
+            $params['announce'] = true;
+        }
         // if route cannot be resolved, raise a HTTP 404 exception
         if(!($route = $router->resolve($path, $method))) {        
             throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
@@ -129,9 +135,6 @@ try {
             }
         }        
     }
-
-    // todo: base this on config
-    // $context->httpResponse()->header('Access-Control-Allow-Origin', '*');
     
     // 3) perform requested operation
     echo run($route['operation']['type'], $route['operation']['name'], $request->body(), true);

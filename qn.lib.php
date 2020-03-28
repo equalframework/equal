@@ -366,7 +366,20 @@ namespace config {
                     $response->headers()->setCharset($announcement['response']['charset']);
                 }
                 if(isset($announcement['response']['accept-origin'])) {
-                    $response->header('Access-Control-Allow-Origin', $announcement['response']['accept-origin']);
+                    // force param as an array
+                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)                    
+                    $announcement['response']['accept-origin'] = (array) $announcement['response']['accept-origin'];
+                    // retrieve origin from header
+                    $request_origin = $request->header('origin');
+                    // `Access-Control-Allow-Origin` must be a single URI (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
+                    // so we check for a list of allowed URI
+                    foreach($announcement['response']['accept-origin'] as $origin) {
+// todo: use a compare method to handle explicit/implicit port notation                        
+                        if(in_array($origin, ['*', $request_origin])) {
+                            $response->header('Access-Control-Allow-Origin', $origin);
+                            break;
+                        }
+                    }                    
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');

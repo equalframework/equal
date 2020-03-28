@@ -34,14 +34,6 @@ class User extends Model {
                                         if($login == 'admin') return true;
                                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login, $matches));
                                     }
-                                ],
-            'password'		=>  [
-                                'error_message_id'  => 'invalid_password',
-                                'error_message'     => 'password must be a 32 chars md5 encoded string',
-                                'function'          => function ($password) {
-                                        // 32 chars md5 hash
-                                        return (bool) (preg_match('/^[0-9|a-z]{32}$/', $password, $matches));
-                                    }
                                 ]
         ];
     }

@@ -245,8 +245,8 @@ class Reporter extends Service {
         $this->log(QN_REPORT_WARNING, $msg, self::getTrace());        
     }
     
-    public function debug($source, $msg) {
-        $this->log(QN_REPORT_DEBUG, $source.'::'.$msg, self::getTrace());
+    public function debug($msg) {
+        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace());
     }   
     
 }

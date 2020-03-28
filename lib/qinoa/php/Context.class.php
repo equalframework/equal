@@ -313,14 +313,26 @@ class Context extends Service {
             for($i = 1; $i < $_SERVER['argc']; ++$i) {
                 if(strpos($_SERVER['argv'][$i], '--') === 0) {
                     $parts = explode('=', substr($_SERVER['argv'][$i], 2));
+                    $param = $parts[0];
                     $value = (isset($parts[1]))?$parts[1]:null;
-                    $args[$parts[0]] = $value;
-                    // mimic PHP behaviour: inject query string args to the body (if not already set)
-                    if(!isset($_REQUEST[$parts[0]])) {
-                        $_REQUEST[$parts[0]] = $value;
+                    // handle array notation (a name followed by brackets)
+                    if(preg_match("/(.*)\[(.*)\]/i", $param, $matches)) {                        
+                        $param = $matches[1];
+                        if(!isset($args[$param])) {
+                            $args[$param] = [];
+                        }
+                        if(strlen($matches[2])) {
+                            $args[$param][$matches[2]] = $value;
+                        }
+                        else $args[$param][] = $value;
                     }
+                    else {
+                        $args[$param] = $value;
+                    }                    
                 }
             }
+            // mimic PHP behaviour: inject query string args to the body (if not already set)
+            $_REQUEST = array_merge_recursive($_REQUEST, $args); 
             $uri .= '?'.http_build_query($args);
         }            
         return $scheme."://".$auth."$host:$port{$uri}";

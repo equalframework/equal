@@ -20,9 +20,8 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'password' =>  [
-            'description'   => 'md5 value (32 chars) of the user password.',
+            'description'   => 'the user chosen password.',
             'type'          => 'string',
-            'pattern'       => '/^[a-f0-9]{32}$/i',
             'required'      => true
         ],
         'firstname' =>  [
@@ -41,7 +40,14 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-$instance = User::create($params)->read(['id', 'login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
+// Encrypt password
+$params['password'] = password_hash($params['password'], PASSWORD_DEFAULT);
+
+// Resulting Collection will check for current user privilege; validate the received values
+$instance = User::create($params)
+                ->read(['id', 'login', 'firstname', 'lastname', 'language'])
+                ->adapt('txt')
+                ->first();
 
 $context->httpResponse()
         ->status(201)

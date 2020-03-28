@@ -83,14 +83,24 @@ class AuthenticationManager extends Service {
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');
         
-        $errors = $orm->validate('core\User', ['login' => $login, 'password' => $password]);
-        if(count($errors)) throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
-// this generates a 503 error with PHP 7.3        
-        $ids = $orm->search('core\User', [['login', '=', $login], ['password', '=', $password]]);        
-        if(!count($ids)) throw new \Exception($login, QN_ERROR_INVALID_USER);
-
+        $errors = $orm->validate('core\User', ['login' => $login]);
+        if(count($errors)) {
+            throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
+        }
+        
+        $ids = $orm->search('core\User', ['login', '=', $login]);
+        if(!count($ids)) {
+            throw new \Exception($login, QN_ERROR_INVALID_USER);
+        }
+        
+        $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
+        $user = array_shift($list);
+        if(!password_verify($password, $user['password'])) {
+            throw new \Exception($login, QN_ERROR_INVALID_USER);
+        }
+        
         // remember current user identifier
-        $this->user_id = $ids[0];       
+        $this->user_id = $user['id'];
 
         return $this;
     }
