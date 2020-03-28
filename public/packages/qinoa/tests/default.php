@@ -293,7 +293,7 @@ $tests = [
                     'expected'          =>  array(1 => ['login' => 'admin'], 2 => ['login' => 'cedricfrancoys@gmail.com']),
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedricfrancoys@gmail.com', '02e5408967241673cd03126fe55dcd1a');
+                                                    $providers['auth']->authenticate('cedricfrancoys@gmail.com', 'Cedric#01');
                                                     $providers['access']->grant(QN_R_READ);
 
                                                     $values = User::search(array(array('groups_ids', 'contains', array(1, 2, 3))))
@@ -414,9 +414,9 @@ $tests = [
                                                     $oauthRequest = new HttpRequest('/plus/v1/people/me', ['Host' => 'www.googleapis.com:443']);
                                                     $res = $oauthRequest->send();
                                                     */
-                                                    $request = new HttpRequest("http://localhost/me");                                              
+                                                    $request = new HttpRequest("http://localhost/me");
                                                     $response = $request
-                                                                ->header('Authorization', 'Basic '.base64_encode("cedricfrancoys@gmail.com:02e5408967241673cd03126fe55dcd1a"))
+                                                                ->header('Authorization', 'Basic '.base64_encode("cedricfrancoys@gmail.com:Cedric#01"))
                                                                 ->send();
                                                     return $response->body();
                                                 }
