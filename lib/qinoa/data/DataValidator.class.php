@@ -37,7 +37,7 @@ class DataValidator extends Service {
                 return ['kind' => 'pattern', 'rule' => '/([-+]?)([0-9]{1,2})(\.)([0-9]+)/'];            
             case 'coordinate/decimal:latitude':
                 return ['kind' => 'pattern', 'rule' => '/(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))/'];
-            case 'coordinate/decimal:longitude'
+            case 'coordinate/decimal:longitude':
                 return ['kind' => 'pattern', 'rule' => '/(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))/'];
             
                 

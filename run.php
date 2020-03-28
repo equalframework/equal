@@ -85,8 +85,7 @@ try {
         if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
-        // translate preflight requests (OPTIONS) to be handled as GET, with announcement
-        // (so API does not have to explicitely define OPTIONS routes)
+        // translate preflight requests (OPTIONS) to be handled as GET, with announcement (so that API does not have to explicitely define OPTIONS routes)
         if($method == 'OPTIONS') {
             $method = 'GET';
             $params['announce'] = true;
