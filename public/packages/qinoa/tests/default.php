@@ -290,7 +290,7 @@ $tests = [
     '2540' => array(
                     'description'       =>  "Search for some object : clause contain on many2many field",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(1 => ['login' => 'admin'], 2 => ['login' => 'cedric@equal.run']),
+                    'expected'          =>  array(1 => ['id' => 1, 'login' => 'admin'], 2 => ['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
@@ -330,7 +330,7 @@ $tests = [
     '3101' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as map)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('2' => ['login' => 'cedric@equal.run']),
+                    'expected'          =>  array('2' => ['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
 
@@ -348,7 +348,7 @@ $tests = [
     '3102' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['login' => 'cedric@equal.run']),
+                    'expected'          =>  array(['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
                                                     $values = User::search(['login', '=', 'cedric@equal.run'])
@@ -366,7 +366,7 @@ $tests = [
     '3103' => array(
                     'description'       =>  "Search for a new user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['login' => 'test@equal.run']),
+                    'expected'          =>  array(['id' => 2, 'login' => 'test@equal.run']),
                     'arrange'           =>  function() use($providers) {
                                                 try {
                                                     $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
