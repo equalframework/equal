@@ -85,10 +85,17 @@ try {
         if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
-        // translate preflight requests (OPTIONS) to be handled as GET, with announcement (so that API does not have to explicitely define OPTIONS routes)
+        // translate preflight requests (OPTIONS) to be handled as first available method, with announcement 
+        // (to relieve API from having to explicitely define OPTIONS routes)
         if($method == 'OPTIONS') {
-            $method = 'GET';
             $params['announce'] = true;
+            $methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE'];
+            foreach($methods as $test_method) {
+                if($router->resolve($path, $test_method)) {
+                    $method = $test_method;
+                    break;
+                }
+            }
         }
         // if route cannot be resolved, raise a HTTP 404 exception
         if(!($route = $router->resolve($path, $method))) {        

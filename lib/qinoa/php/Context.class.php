@@ -251,20 +251,17 @@ class Context extends Service {
                     $headers['ETag'] = '';
                 }
             }
-            // handle client's IP address
+            // handle client's IP address: we populate 'X-Forwarded-For' with the most probable client IP
             // fallback to localhost (using CLI, REMOTE_ADDR is not set), i.e. '127.0.0.1'
             $client_ip = '127.0.0.1';
             if(isset($_SERVER['REMOTE_ADDR'])) {
                 $client_ip = $_SERVER['REMOTE_ADDR'];
-                if(!isset($headers['X-Forwarded-For']) || strpos($headers['X-Forwarded-For'], $client_ip) === false ) {
-                    if(!isset($headers['X-Forwarded-For'])) {
-                        $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'];
-                    } 
-                    else {
-                        $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'].','.$headers['X-Forwarded-For'];
-                    }
-                }
             }
+            if(!isset($headers['X-Forwarded-For'])) {
+                $headers['X-Forwarded-For'] = $client_ip;
+            }
+            // assign X-Forwarded-For with a single IP (first in list)
+            $headers['X-Forwarded-For'] = stristr($headers['X-Forwarded-For'],',') ? stristr($headers['X-Forwarded-For'],',',true) : $headers['X-Forwarded-For'];
         }
         if(isset($headers['content-type'])) {
             $headers['Content-Type'] = $headers['content-type'];
@@ -343,8 +340,11 @@ class Context extends Service {
     }
 
     private static function normalizeFiles() {
+        $normalized_files = [];
+        if(count($_FILES) == 1) {
+            return $_FILES;
+        }
         foreach($_FILES as $index => $file) {
-            $normalized_files = [];
             if (!is_array($file['name'])) {
                 $normalized_files[$index][] = $file;
                 continue;
@@ -357,9 +357,9 @@ class Context extends Service {
                     'size'      => $file['size'][$idx],
                     'tmp_name'  => $file['tmp_name'][$idx]
                 ];
-            }
-            return $normalized_files;
+            }            
         }
+        return $normalized_files;        
     }
 
     private function getHttpBody() {

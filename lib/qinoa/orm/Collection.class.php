@@ -137,8 +137,7 @@ class Collection implements \Iterator {
     public function first() {
         $this->objects = array_slice($this->objects, 0, 1, true);
         $res = $this->toArray();
-        return $res[0];
-        // return reset($this->objects);
+        return count($res)?$res[0]:null;
     }
     
     /**
@@ -389,7 +388,7 @@ class Collection implements \Iterator {
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
             // build a list of direct field to load (i.e. "object attributes")
-            $requested_fields = [];
+            $requested_fields = ['id'];
             foreach($fields as $key => $val ) {
                 // handle array notation                
                 $field = (!is_numeric($key))?$key:$val;

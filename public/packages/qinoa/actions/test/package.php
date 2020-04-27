@@ -45,4 +45,6 @@ if(is_dir($tests_path)) {
 }
 
 
-$providers['context']->httpResponse()->body($result)->send();
+$providers['context']->httpResponse()
+                     ->body($result)
+                     ->send();

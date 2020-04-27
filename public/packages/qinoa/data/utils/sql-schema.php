@@ -56,6 +56,8 @@ $types_associations = array(
 
 $m2m_tables = array();
 
+// remember tables used by inherited classes (can only be overriden by children, not by ancestor)
+$parent_tables = [];
 
 foreach($classes as $class) {
 	// get the full class name
@@ -63,14 +65,30 @@ foreach($classes as $class) {
     $model = $orm->getModel($class_name);    
     if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);    
     
-	// get the SQL table name
-	$table_name = $orm->getObjectTableName($class_name);	
-   
+	
+    
+    // get the SQL table name
+    $table_name = $orm->getObjectTableName($class_name);	
+    $direct_name = strtolower(str_replace('\\', '_', $class_name));    
+ 
+    // skip tables used by inherited classes
+    if(in_array($table_name, $parent_tables)) {        
+// todo : means we need to use ALTER rather than CREATE TABLE        
+// so we should rather run a sql query to check existing tables at each loop
+        continue;
+    }
+     
+    // handle inherited classes
+    if($table_name != $direct_name) {
+        // table name is the table of an ancestor
+        $parent_tables[] = $table_name;
+    }
+    
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
-
 	// init result array
+    $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
 	$result[] = "CREATE TABLE IF NOT EXISTS `{$table_name}` (";
 	
 	foreach($schema as $field => $description) {

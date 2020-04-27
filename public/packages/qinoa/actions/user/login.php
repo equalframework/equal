@@ -11,20 +11,20 @@ list($params, $providers) = announce([
     'description'	=>	"Attempts to log a user in.",
     'params' 		=>	[
         'login'		=>	[
-            'description'   => "user's name",
+            'description'   => "user name",
             'type'          => 'string',
             'required'      => true
         ],
         'password' =>  [
-            'description'   => 'md5 value (32 chars) of the user password.',
+            'description'   => "user password",
             'type'          => 'string',
-            'pattern'       => '/^[a-f0-9]{32}$/i',
             'required'      => true
         ]
     ],
     'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8'
+        'content-type'      => 'application/json',
+        'charset'           => 'utf-8',
+        'accept-origin'     => '*'
     ],    
     'providers'     => ['context', 'auth', 'orm']
 ]);
@@ -38,7 +38,13 @@ if($validation < 0 || count($validation)) {
 
 $auth->authenticate($params['login'], $params['password']);
 
-$instance = User::id($auth->userId())->read(['id', 'login', 'firstname', 'lastname', 'language'])->adapt('txt')->first();
+$instance = User::id($auth->userId())
+                ->read(['id', 'login', 'firstname', 'lastname', 'language'])
+                ->adapt('txt')
+                ->first();
+                
 $instance['access_token'] = $auth->token();
 
-$context->httpResponse()->body($instance)->send();
+$context->httpResponse()
+        ->body($instance)
+        ->send();

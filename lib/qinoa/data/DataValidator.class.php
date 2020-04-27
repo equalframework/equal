@@ -83,13 +83,13 @@ class DataValidator extends Service {
                     }
                 }
                 // $value type should be amongst elementary PHP types
-                if(!in_array($constraint['rule'], ['boolean', 'integer', 'double', 'string', 'date', 'array', 'file'])) {
+                if(!in_array($constraint['rule'], ['boolean', 'integer', 'double', 'string', 'date', 'datetime', 'array', 'file'])) {
                     throw new \Exception("Invalid type {$constraint['rule']}", QN_ERROR_INVALID_CONFIG);
                 }
                 if($constraint['rule'] == 'file') {
                     if(!in_array(gettype($value), ['string', 'array'])) return false;
                 }
-                else if($constraint['rule'] == 'date') {
+                else if($constraint['rule'] == 'date' || $constraint['rule'] == 'datetime') {
                     // dates are internally handled as Unix timestamps
                     if(!gettype($value) == 'integer') return false;
                 }

@@ -78,6 +78,11 @@ class DataAdapter extends Service {
                 
             ],
             'string' => [
+                'txt'   => [
+                    'php' =>    function ($value) {
+                                    return urldecode($value);
+                                }
+                ]                
             ],
             // dates are handled as unix timestamp
             'date' => [

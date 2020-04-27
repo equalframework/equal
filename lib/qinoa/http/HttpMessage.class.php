@@ -300,7 +300,15 @@ class HttpMessage {
 
         if(!$raw && !is_array($body)) {
             // attempt to convert body to an associative array 
-            switch($this->contentType()) {
+            $content_type = $this->contentType();
+            // adapt content type to map known MIMES to generic ones (@see https://www.iana.org/assignments/media-types/media-types.xhtml)
+            if(stripos($content_type, '+json')) {
+                $content_type = 'application/json';
+            }
+            else if(stripos($content_type, '+xml')) {
+                $content_type = 'application/xml';
+            }
+            switch($content_type) {
             case 'multipart/form-data':                
                 // retrieve boundary from content type header
                 preg_match('/boundary=(.*)$/', $this->getHeader('Content-Type'), $matches);
@@ -346,7 +354,6 @@ class HttpMessage {
                 break;
             case 'text/xml':
             case 'application/xml':
-            case 'application/xhtml+xml':
                 libxml_use_internal_errors(true);
                 $xml = simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
                 if($xml) {

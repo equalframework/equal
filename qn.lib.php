@@ -320,19 +320,19 @@ namespace config {
 
         }
 
-        public static function inject(array $providers) {            
+        public static function inject(array $providers) {
             $result = [];
             // retrieve service container
             $container = Container::getInstance();
-            
+
             // retrieve providers
             foreach($providers as $name) {
                 $result[$name] = $container->get($name);
             }
-            
+
             return $result;
         }
-        
+
         /**
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
@@ -367,19 +367,19 @@ namespace config {
                 }
                 if(isset($announcement['response']['accept-origin'])) {
                     // force param as an array
-                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)                    
+                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)
                     $announcement['response']['accept-origin'] = (array) $announcement['response']['accept-origin'];
                     // retrieve origin from header
                     $request_origin = $request->header('origin');
                     // `Access-Control-Allow-Origin` must be a single URI (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
                     // so we check for a list of allowed URI
                     foreach($announcement['response']['accept-origin'] as $origin) {
-// todo: use a compare method to handle explicit/implicit port notation                        
+// todo: use a compare method to handle explicit/implicit port notation
                         if(in_array($origin, ['*', $request_origin])) {
                             $response->header('Access-Control-Allow-Origin', $origin);
                             break;
                         }
-                    }                    
+                    }
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');
@@ -419,9 +419,9 @@ namespace config {
                 $context->httpResponse()->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     $context->httpResponse()
-                    ->status(200)
-                    ->header('Content-Type', 'application/json')
-                    ->send();
+                            ->status(200)
+                            ->header('Content-Type', 'application/json')
+                            ->send();
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
@@ -473,7 +473,7 @@ namespace config {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
-                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");                            
+                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
                             $result[$param] = $config['default'];
                         }
                         else {
@@ -491,7 +491,7 @@ namespace config {
                 // no feedback about constants
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
-                $context->httpResponse()->body(['announcement' => $announcement]);                
+                $context->httpResponse()->body(['announcement' => $announcement]);
                 // raise an exception with error details
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
@@ -729,20 +729,20 @@ namespace config {
     QNlib::init();
 }
 namespace {
-    
+
     /**
     * inject standalone functions into global scope (to relieve the user from the scope resolution notation)
     */
     function run(string $type, string $operation, array $body=[], $root=false) {
         return config\QNlib::run($type, $operation, $body, $root);
     }
-    
+
     function announce(array $announcement) {
-        return config\QNlib::announce($announcement);        
+        return config\QNlib::announce($announcement);
     }
-    
+
     function inject(array $providers) {
         return config\QNlib::inject($providers);
     }
-    
+
 }

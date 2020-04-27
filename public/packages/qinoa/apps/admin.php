@@ -131,7 +131,14 @@
 		
 		a.btn-xs span.hidden-xs {
 			display: none;
-		}        
+		}
+        
+        ul.nav li.entities-repeat a {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;             
+        }
         </style>        
     </head>
     <body>

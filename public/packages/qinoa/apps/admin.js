@@ -307,7 +307,7 @@
                 }
                 
                 var buildFields = function(classname, view_type) {
-                    
+                    console.log('building view for '+classname+' '+view_type);
                     var view = qnConf.entities[classname].views[view_type];
                     var schema = qnConf.entities[classname].schema.fields;  
                     

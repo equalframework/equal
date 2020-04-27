@@ -166,9 +166,19 @@ class HttpHeaders {
         if(isset($this->headers['Accept-Language'])) {
             // general syntax: language [q=qvalue]
             // example: Accept-Language: da, en-gb;q=0.8, en;q=0.7
-            $parts = explode(',', $this->headers['Accept-Language']);
-            if(count($parts)) {
-                $languages = array_map(function($a) { return trim(explode(';', $a)[0]); }, $parts);
+            $matches = [];
+            if( preg_match_all("/([^-;]*)(?:-([^;]*))?(?:;q=([0-9]\.[0-9]))?/", $this->headers['Accept-Language'], $matches)) {
+                if(count($matches)) {
+                    $languages = [];
+                    foreach($matches[0] as $factor) {
+                        if(!strlen($factor)) continue;
+                        $parts = explode(';q=', $factor);
+                        $lang_descr = explode(',', trim($parts[0], ','));
+                        foreach($lang_descr as $lang) {
+                            $languages[] = $lang;
+                        }
+                    }       
+                }
             }
         }
         else if(isset($this->headers['Content-Language'])) {

@@ -60,8 +60,7 @@ foreach($queries as $query) {
     }
 }
 
-// PASS-TWO: check for missing columns
-
+// PASS-TWO: check for missing columns    
 // for classes with inheritance, we must check against non yet created fields
 $queries = [];
 

@@ -290,10 +290,10 @@ $tests = [
     '2540' => array(
                     'description'       =>  "Search for some object : clause contain on many2many field",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(1 => ['login' => 'admin'], 2 => ['login' => 'cedricfrancoys@gmail.com']),
+                    'expected'          =>  array(1 => ['login' => 'admin'], 2 => ['login' => 'cedric@equal.run']),
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedricfrancoys@gmail.com', 'Cedric#01');
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
                                                     $providers['access']->grant(QN_R_READ);
 
                                                     $values = User::search(array(array('groups_ids', 'contains', array(1, 2, 3))))
@@ -330,11 +330,11 @@ $tests = [
     '3101' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as map)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('2' => ['login' => 'cedricfrancoys@gmail.com']),
+                    'expected'          =>  array('2' => ['login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
 
-                                                    $values = User::search(['login', 'like', 'cedricfrancoys@gmail.com'])
+                                                    $values = User::search(['login', 'like', 'cedric@equal.run'])
                                                               ->read(['login'])
                                                               ->get();
                                                 }
@@ -348,10 +348,10 @@ $tests = [
     '3102' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['login' => 'cedricfrancoys@gmail.com']),
+                    'expected'          =>  array(['login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
-                                                    $values = User::search(['login', '=', 'cedricfrancoys@gmail.com'])
+                                                    $values = User::search(['login', '=', 'cedric@equal.run'])
                                                               ->read(['login'])
                                                               ->get(true);
                                                 }
@@ -402,10 +402,11 @@ $tests = [
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  [
-                                                "login" => "cedricfrancoys@gmail.com",
-                                                "firstname"=> "Cédric",
-                                                "lastname"=> "FRANÇOYS",
-                                                "language"=> "fr"
+                                                "id"        => 2,
+                                                "login"     => "cedric@equal.run",
+                                                "firstname" => "Cédric",
+                                                "lastname"  => "FRANÇOYS",
+                                                "language"  => "fr"
                                             ],
                     'test'              =>  function () {
                                                 try {
@@ -414,9 +415,9 @@ $tests = [
                                                     $oauthRequest = new HttpRequest('/plus/v1/people/me', ['Host' => 'www.googleapis.com:443']);
                                                     $res = $oauthRequest->send();
                                                     */
-                                                    $request = new HttpRequest("http://localhost/me");
+                                                    $request = new HttpRequest("http://localhost/me");                                              
                                                     $response = $request
-                                                                ->header('Authorization', 'Basic '.base64_encode("cedricfrancoys@gmail.com:Cedric#01"))
+                                                                ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
                                                                 ->send();
                                                     return $response->body();
                                                 }
