@@ -366,7 +366,7 @@ $tests = [
     '3103' => array(
                     'description'       =>  "Search for a new user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['id' => 2, 'login' => 'test@equal.run']),
+                    'expected'          =>  array(['id' => 4, 'login' => 'test@equal.run']),
                     'arrange'           =>  function() use($providers) {
                                                 try {
                                                     $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
