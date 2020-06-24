@@ -312,6 +312,8 @@ class HttpMessage {
             case 'multipart/form-data':                
                 // retrieve boundary from content type header
                 preg_match('/boundary=(.*)$/', $this->getHeader('Content-Type'), $matches);
+                // ignore malformed request
+                if(!isset($matches[1]) || !isset($matches[2])) break;
                 $boundary = $matches[1];
                 // split content by boundary and get rid of last -- element
                 $blocks = preg_split("/-+$boundary/", $body);
@@ -413,7 +415,7 @@ class HttpMessage {
      * 
      * can be forced to cast to array using $as_array boolean
      *
-     * @return HttpHeaders
+     * @return HttpHeaders, array
      *
      */    
     public function getHeaders($as_array=false) {

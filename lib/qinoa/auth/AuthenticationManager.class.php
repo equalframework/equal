@@ -20,7 +20,7 @@ class AuthenticationManager extends Service {
     }
     
     public static function constants() {
-        return ['AUTH_SECRET_KEY'];
+        return ['AUTH_SECRET_KEY', 'ROOT_USER_ID'];
     }
     
     /**
@@ -28,10 +28,10 @@ class AuthenticationManager extends Service {
      *
      * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token() {
+    public function token($user_id=null) {
         // generate access token (valid for 1 year)
         $token = JWT::encode([
-            'id'    => $this->user_id,
+            'id'    => ($user_id)?$user_id:$this->user_id,
             'exp'   => time()+60*60*24*365
         ], 
         AUTH_SECRET_KEY);
@@ -55,13 +55,13 @@ class AuthenticationManager extends Service {
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
-                $jwt = $this->token();
+                // $jwt = $this->token();
             }
             else if(strpos($auth_header, 'Digest ') !== false) {
                 // todo
             }            
         }
-        // no Authorization header : fallback to cookie
+        // no Authorization header : fallback to cookie, if any
         else {
             $jwt = $request->cookie('access_token');
         }    
@@ -92,9 +92,10 @@ class AuthenticationManager extends Service {
         if(!count($ids)) {
             throw new \Exception($login, QN_ERROR_INVALID_USER);
         }
-        
+
         $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
         $user = array_shift($list);
+
         if(!password_verify($password, $user['password'])) {
             throw new \Exception($login, QN_ERROR_INVALID_USER);
         }
@@ -102,6 +103,21 @@ class AuthenticationManager extends Service {
         // remember current user identifier
         $this->user_id = $user['id'];
 
+        return $this;
+    }
+
+    /**
+     * Switch to another user account.
+     * This operation impacts all scripts within the current call stack (cascade), so it has to be used carefully.
+     * In most situations, switching to ROOT has to be reverted as soon as possible by switching back to current user.
+     *
+     * @param   $user_id    integer Identifier of an existing user account.
+     */
+    public function su(int $user_id = ROOT_USER_ID) {
+        if($user_id > 0) {
+            // update current user identifier
+            $this->user_id = $user_id;
+        }
         return $this;
     }
 }

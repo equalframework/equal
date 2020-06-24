@@ -30,10 +30,9 @@ list($params, $providers) = announce([
 
 list($context) = [ $providers['context'] ];
 
-// server-side: generate a new session
-session_regenerate_id(true);
 // client-side: delete session identification cookie and all cookies from current domain
-setcookie(session_name(), '');
 $response = $context->httpResponse();
 $response->getHeaders()->set('Cookie', '');
 $response->body('')->status(204)->->send();
+// server-side: generate a new session
+session_regenerate_id(true);

@@ -82,7 +82,7 @@ class DataAdapter extends Service {
                     'php' =>    function ($value) {
                                     return urldecode($value);
                                 }
-                ]                
+                ]
             ],
             // dates are handled as unix timestamp
             'date' => [
@@ -188,6 +188,8 @@ class DataAdapter extends Service {
                             ]
                         */                        
                         if(!is_array($value)) {
+                            // @see RFC2397 
+                            $value = str_replace(' ', '+', substr($value, strpos($value,',')+1) );
                             $res = base64_decode($value);
                         }
                         else {

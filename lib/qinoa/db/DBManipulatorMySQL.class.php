@@ -56,7 +56,7 @@ class DBManipulatorMySQL extends DBManipulator {
                 }                
             }
 		}
-        if(!$result) return $false;
+        if(!$result) return false;
 		return $this;
 	}
 
@@ -233,12 +233,23 @@ class DBManipulatorMySQL extends DBManipulator {
 		if(!empty($conditions) && !is_array($conditions)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'conditions' is not an array.", QN_ERROR_SQL);
 
 		// select clause
-		// we could add the following directive for better performance (we disabled it to maximize code portability)
+		// we could add the following directive for better performance (disabled to maximize code portability)
 		// $sql = 'SELECT SQL_CALC_FOUND_ROWS ';
 		$sql = 'SELECT ';
 		if(empty($fields)) $sql .= '*';
-		else foreach($fields as $field) $sql .= self::escapeFieldName($field).', ';
-		$sql = rtrim($sql, ' ,');
+		else {
+			if(count($fields) > 1) {
+				$selection = [];
+				foreach($fields as $field) {
+					$selection[] = self::escapeFieldName($field);
+				}
+				$sql .= implode(',', $selection);
+			}
+			else {
+				$sql .= 'DISTINCT '.self::escapeFieldName($fields[0]);
+			}			
+		}
+		
 
 		// from clause
         $sql .= ' FROM ';

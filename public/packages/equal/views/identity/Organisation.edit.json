@@ -1,0 +1,53 @@
+[
+    {
+        "field": "name"
+    },
+    {
+        "field": "legal_name"
+    },
+    {
+        "field": "type"
+    },    
+    {
+        "field": "email"
+    },
+    {
+        "field": "phone"
+    },    
+    {
+        "field": "VAT_number"
+    },
+    {
+        "field": "registration_number"
+    },
+    {
+        "field": "description"
+    },
+    {
+        "field": "address_country"
+    },
+    {
+        "field": "address_street"
+    },
+    {
+        "field": "address_city"
+    },
+    {
+        "field": "address_zip"
+    },    
+    {
+        "field": "contact_position"
+    },
+    {
+        "field": "contact_firstname"
+    },
+    {
+        "field": "contact_lastname"
+    },    
+    {
+        "field": "contact_gender"
+    },
+    {
+        "field": "contact_birthdate"
+    }
+]

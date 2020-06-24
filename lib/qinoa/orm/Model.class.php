@@ -22,8 +22,9 @@ namespace qinoa\orm;
 
 
 /**
-	This class holds the description of an object (and not the object itself)
-*/
+ *  Root Model for all objects.
+ *	This class holds the description of an object (and not the object itself)
+ */
 class Model {
 	
 	/**
@@ -90,16 +91,32 @@ class Model {
 	}
 
 	public final static function getSpecialColumns() {
-		static $special_columns = array(
-			'id'		=> array('type' => 'integer'),
+		static $special_columns = [
+			'id' => [				
+				'type'				=> 'integer'
+			],
             // 'name' field is set in constructor if not defined in getColumns method
-			'creator'	=> array('type' => 'integer'),            
-			'created'	=> array('type' => 'datetime'),
-			'modifier'	=> array('type' => 'integer'),
-			'modified'	=> array('type' => 'datetime'),
-			'deleted'	=> array('type' => 'boolean'),		
-			'state'		=> array('type' => 'string'),			
-		);
+            'creator' => [
+                'type'              => 'many2one',
+				'foreign_object'    => 'core\User'
+			],
+			'created' => [
+				'type' 				=> 'datetime'
+			],
+			'modifier' => [
+                'type'              => 'many2one',
+				'foreign_object'    => 'core\User'
+			],
+			'modified' => [
+				'type' 				=> 'datetime'
+			],
+			'deleted' => [
+				'type' 				=> 'boolean'
+			],
+			'state' => [
+				'type' 				=> 'string'
+			]
+		];
 		return $special_columns;
 	}
     

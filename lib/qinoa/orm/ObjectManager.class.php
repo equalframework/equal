@@ -58,19 +58,19 @@ class ObjectManager extends Service {
 	public static $complex_types = array('one2many', 'many2many', 'function');
 
 	public static $valid_attributes = array(
-			'alias'		    => array('description', 'type', 'alias', 'required'),    
-			'boolean'		=> array('description', 'type', 'required', 'onchange'),
-			'integer'		=> array('description', 'type', 'required', 'onchange', 'selection', 'unique'),
-			'float'			=> array('description', 'type', 'required', 'onchange', 'selection', 'precision'),
-			'string'		=> array('description', 'type', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-			'text'			=> array('description', 'type', 'required', 'onchange', 'multilang'),
+			'alias'		    => array('description', 'type', 'usage', 'alias', 'required'),    
+			'boolean'		=> array('description', 'type', 'usage', 'required', 'onchange'),
+			'integer'		=> array('description', 'type', 'usage', 'required', 'onchange', 'selection', 'unique'),
+			'float'			=> array('description', 'type', 'usage', 'required', 'onchange', 'selection', 'precision'),
+			'string'		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+			'text'			=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),
 // todo : html should be handled as text/html            
 			'html'			=> array('description', 'type', 'required', 'onchange', 'multilang'),            
-			'date'			=> array('description', 'type', 'required', 'onchange'),
+			'date'			=> array('description', 'type', 'usage', 'required', 'onchange'),
 			'time'			=> array('description', 'type', 'required', 'onchange'),
-			'datetime'		=> array('description', 'type', 'required', 'onchange'),
-			'file'  		=> array('description', 'type', 'required', 'onchange', 'multilang'),           
-			'binary'		=> array('description', 'type', 'required', 'onchange', 'multilang'),
+			'datetime'		=> array('description', 'type', 'usage', 'required', 'onchange'),
+			'file'  		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),           
+			'binary'		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),
 			'many2one'		=> array('description', 'type', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
 			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
 			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
@@ -865,11 +865,12 @@ todo : to validate
 			$object = &$this->getStaticInstance($class);
             
 			$object_table = $this->getObjectTableName($class);
+// todo : retrieve current user ID			
 			// $creation_array = array('created' => date("Y-m-d H:i:s"), 'creator' => $uid);
+
+			// create object with default values
 			$creation_array = array_merge( ['created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
-
-// todo : we need to check that all fields marked as required (mandatory) are provided            
-
+            
 			// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
             $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
 			// use the oldest expired draft, if any            
@@ -1254,6 +1255,8 @@ todo: signature differs from other methods	(returned value)
 			$res_list = array();
 
 			$conditions = array(array());
+			// join conditions that have to be applies to all clauses
+			$join_conditions = array();
 			$tables = array();
 
 			// we use a nested closure to define a function that stores original table names and returns corresponding aliases
@@ -1303,12 +1306,13 @@ todo: signature differs from other methods	(returned value)
 							case 'many2one':
 								// use operator '=' instead of 'contains' (which is not sql standard)
 								if($operator == 'contains') $operator = '=';
+								$field = $table_alias.'.'.$field;
 								break;
 							case 'one2many':
 								// add foreign table to sql query
 								$foreign_table_alias =  $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
 								// add the join condition
-								$conditions[$j][] = array($foreign_table_alias.'.'.$schema[$field]['foreign_field'], '=', '`'.$table_alias.'`.`id`');
+								$join_conditions[] = array($foreign_table_alias.'.'.$schema[$field]['foreign_field'], '=', '`'.$table_alias.'`.`id`'); 								
 								// as comparison field, use foreign table's 'foreign_key' if any, 'id' otherwise
 								if(isset($schema[$field]['foreign_key'])) $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
 								else $field = $foreign_table_alias.'.id';
@@ -1321,13 +1325,13 @@ todo: signature differs from other methods	(returned value)
 								// if the relation points out to objects of the same class
 								if($schema[$field]['foreign_object'] == $object_class) {
 									// add the join condition on 'rel_foreign_key'
-									$conditions[$j][] = array($table_alias.'.id', '=', '`'.$rel_table_alias.'`.`'.$schema[$field]['rel_foreign_key'].'`');
+									$join_conditions[] = array($table_alias.'.id', '=', '`'.$rel_table_alias.'`.`'.$schema[$field]['rel_foreign_key'].'`');
 									// use 'rel_local_key' column as comparison field
 									$field = $rel_table_alias.'.'.$schema[$field]['rel_local_key'];
 								}
 								else {
 									// add the join condition on 'rel_local_key'
-									$conditions[$j][] = array($table_alias.'.id', '=', '`'.$rel_table_alias.'`.`'.$schema[$field]['rel_local_key'].'`');
+									$join_conditions[] = array($table_alias.'.id', '=', '`'.$rel_table_alias.'`.`'.$schema[$field]['rel_local_key'].'`');
 									// use 'rel_foreign_key' column as comparison field
 									$field = $rel_table_alias.'.'.$schema[$field]['rel_foreign_key'];
 								}
@@ -1362,6 +1366,13 @@ todo: signature differs from other methods	(returned value)
 					if(isset($special_fields['state']))	    $conditions[$j][] = array($table_alias.'.state', '<>', 'draft');
 					if(isset($special_fields['deleted']))	$conditions[$j][] = array($table_alias.'.deleted', '=', '0');
 				}
+				// add joins conditions to all clauses
+				foreach($conditions as $i => $condition) {
+					foreach($join_conditions as $join_condition) {
+						$conditions[$i][] = $join_condition;
+					}
+				}
+
 			}
 			else { // no domain is specified
 				// search only among non-draft and non-deleted records

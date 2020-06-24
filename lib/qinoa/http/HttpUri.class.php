@@ -32,7 +32,7 @@ class HttpUri {
  
     private $parts = null;
 
-    private static $standard_ports = [
+    public static $standard_ports = [
         'ftp'   => 21,
         'sftp'  => 22,
         'ssh'   => 22,
@@ -146,12 +146,12 @@ class HttpUri {
     }
 
     public function setScheme($scheme) {
-        $this->parts['scheme'] = $scheme;
+        $this->parts['scheme'] = strtolower($scheme);
         return $this;
     }
     
     public function setHost($host) {
-        $this->parts['host'] = $host;
+        $this->parts['host'] = strtolower($host);
         return $this;
     }
 
@@ -219,9 +219,26 @@ class HttpUri {
     public function getScheme() {
         return isset($this->parts['scheme'])?$this->parts['scheme']:'';
     }
+
+    public function scheme() {
+        $args = func_get_args();
+        if(count($args) < 1) {
+            return $this->getScheme();
+        }
+        return $this->setScheme(...$args);
+    }
     
     public function getHost() {
         return isset($this->parts['host'])?$this->parts['host']:'';
+    }
+    
+    public function host() {
+        $args = func_get_args();
+        if(count($args) < 1) {
+            return $this->getHost();
+        }
+        return $this->setHost(...$args);
+
     }
 
     public function getPort() {

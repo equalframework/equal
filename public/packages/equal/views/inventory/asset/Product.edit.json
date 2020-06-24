@@ -1,0 +1,11 @@
+[
+    {
+        "field": "name"
+    },
+    {
+        "field": "description"
+    },
+    {
+        "field": "instances_ids"
+    }
+]

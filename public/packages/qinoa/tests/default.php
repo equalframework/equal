@@ -62,7 +62,7 @@ $tests = [
     // @return      mixed (int or array) error code OR resulting associative array
 
     '2100' => array(
-                'description'       =>  "Requesting User object by passing an id array holding a unique id",
+                'description'       =>  "Requesting User object by passing an array holding a unique id",
                 'return'            =>  array('integer', 'array'),
                 'expected'          =>  array(
                                         '1' => array(
@@ -287,17 +287,36 @@ $tests = [
                                             }
                     ),
 
-    '2540' => array(
-                    'description'       =>  "Search for some object : clause contain on many2many field",
+    // calls related to authentication
+    '2610' => array(
+                    'description'       =>  "Authenticate: return the identifier of a given user.",
+                    'return'            =>  array('integer'),
+                    'expected'          =>  2,
+                    'test'              =>  function () use($providers) {
+                                                try {
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');                                                    
+                                                    $values = $providers['auth']->userId();
+                                                }
+                                                catch(Exception $e) {
+                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    $values = $e->getCode();
+                                                }
+                                                return $values;
+                                            }
+                    ),
+    
+    '2620' => array(
+                    'description'       =>  "Search for some object : clause 'contains' on many2many field",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(1 => ['id' => 1, 'login' => 'admin'], 2 => ['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
+                                                    // grant READ operation on all classes
                                                     $providers['access']->grant(QN_R_READ);
 
                                                     $values = User::search(array(array('groups_ids', 'contains', array(1, 2, 3))))
-                                                          ->read(['login'])
+                                                          ->read(['id', 'login'])
                                                           ->get();
                                                 }
                                                 catch(Exception $e) {
@@ -397,7 +416,7 @@ $tests = [
                                                 return $values;
                                             }
                     ),
-
+/*
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
@@ -410,11 +429,6 @@ $tests = [
                                             ],
                     'test'              =>  function () {
                                                 try {
-                                                    /*
-                                                    Test HttpRequest
-                                                    $oauthRequest = new HttpRequest('/plus/v1/people/me', ['Host' => 'www.googleapis.com:443']);
-                                                    $res = $oauthRequest->send();
-                                                    */
                                                     $request = new HttpRequest("http://localhost/me");                                              
                                                     $response = $request
                                                                 ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
@@ -428,6 +442,6 @@ $tests = [
                                                 return $values;
                                             }
                     ),
-                    
+*/
                     
 ];

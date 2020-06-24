@@ -56,7 +56,8 @@ class HttpRequest extends HttpMessage {
             }
 
             if(!HttpUri::isValid($uri)) {
-                throw new \Exception('invalid resulting URI detected', QN_ERROR_UNKNOWN);
+                echo 'invalid';
+// todo : should we raise an Exception ?
             }
         }
         // 3) retrieve method
@@ -68,7 +69,7 @@ class HttpRequest extends HttpMessage {
         }
 
     }
-        
+
    
     public function send() {       
         $response = null;

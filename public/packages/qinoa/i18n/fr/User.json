@@ -1,0 +1,17 @@
+{
+	"model": {
+		"login":{"label":"Identifiant", "help":"Votre identifiant est votre adresse e-mail."},
+		"password":{"label":"Mot de passe"},
+		"firstname":{"label":"Prénom"},
+		"lastname":{"label":"Nom"}
+	},
+	"view": {
+		"identification":{"label":"Identification"},
+		"ok":{"label":"Ok"},
+		"cancel":{"label":"Annuler"},
+		"subscribe":{"label":"S'inscrire"},
+		"error_identification":{"label":"Erreur lors de l'identification"},
+		"error_login":{"label":"Format d'identifiant incorrect: n'est pas une adresse e-mail valide"},
+		"error_password":{"label":"Format de mot de passe incorrect: n'est pas une valeur md5"}			
+	}
+}

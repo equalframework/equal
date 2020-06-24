@@ -13,8 +13,6 @@ class Context extends Service {
     private $pid;
     
     private $time;
-
-    private $session_id;
     
     private $httpRequest;
     
@@ -31,13 +29,6 @@ class Context extends Service {
         $this->pid = getmypid();
         // get current unix time in microseconds
         $this->time = microtime();
-        // retrieve current session identifier
-        $this->session_id = session_id();
-        // init session if not yet started
-        if(!strlen($this->session_id)) {
-            session_start();
-            $this->session_id = session_id();
-        }
         $this->httpRequest = null;
         $this->httpResponse = null;
     }
@@ -89,7 +80,7 @@ class Context extends Service {
     }
     
     public function getSessionId() {
-        return $this->session_id;
+        return 0;
     }
     
     public function setHttpRequest(HttpRequest $request) {
@@ -102,8 +93,7 @@ class Context extends Service {
         return $this;
     }
     
-    public function setSessionId(int $session_id) {
-        $this->session_id = $session_id;
+    public function setSessionId(int $session_id) {        
         return $this;
     }    
 
@@ -251,12 +241,12 @@ class Context extends Service {
                     $headers['ETag'] = '';
                 }
             }
-            // handle client's IP address: we populate 'X-Forwarded-For' with the most probable client IP
+            // handle client's IP address : we make sure that 'X-Forwarded-For' is always set with the most probable client IP
             // fallback to localhost (using CLI, REMOTE_ADDR is not set), i.e. '127.0.0.1'
             $client_ip = '127.0.0.1';
             if(isset($_SERVER['REMOTE_ADDR'])) {
                 $client_ip = $_SERVER['REMOTE_ADDR'];
-            }
+            }            
             if(!isset($headers['X-Forwarded-For'])) {
                 $headers['X-Forwarded-For'] = $client_ip;
             }
@@ -282,9 +272,6 @@ class Context extends Service {
     private function getHttpUri() {
         $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
         $auth = '';
-        /*
-        // deprecated as of 2020-03-28 (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#Access_using_credentials_in_the_URL)
-        // + URL passwords do not allow NIST policy
         if(isset($_SERVER['PHP_AUTH_USER']) && strlen($_SERVER['PHP_AUTH_USER']) > 0) {
             $auth = $_SERVER['PHP_AUTH_USER'];
             if(isset($_SERVER['PHP_AUTH_PW']) && strlen($_SERVER['PHP_AUTH_PW']) > 0) {
@@ -292,7 +279,6 @@ class Context extends Service {
             }
             $auth .= '@';
         }
-        */
         $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
         $port = isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:80;
         // fallback to current script name (using CLI, REQUEST_URI is not set), i.e. '/index.php'
@@ -340,7 +326,7 @@ class Context extends Service {
     }
 
     private static function normalizeFiles() {
-        $normalized_files = [];
+        $normalized_files = [];        
         if(count($_FILES) == 1) {
             return $_FILES;
         }
@@ -357,9 +343,24 @@ class Context extends Service {
                     'size'      => $file['size'][$idx],
                     'tmp_name'  => $file['tmp_name'][$idx]
                 ];
-            }            
+            }
         }
         return $normalized_files;        
+    }
+
+    private static function getMaxMemory() {
+        function to_bytes($val) {
+            $val = strtolower(trim($val));
+            $chars = str_split($val);
+            $suffix = array_pop($chars);
+            switch($suffix) {
+                case 'g': return intval($val) * 1024 * 1024 * 1024;
+                case 'm': return intval($val) * 1024 * 1024;
+                case 'k': return intval($val) * 1024;
+            }
+            return intval($val);
+        }        
+        return min(to_bytes(ini_get('upload_max_filesize')), to_bytes(ini_get('post_max_size')));
     }
 
     private function getHttpBody() {
@@ -384,14 +385,20 @@ class Context extends Service {
             }
         }
         else {
-            // load raw content from input stream (HttpMessage class in in charge of turning it into an associative array)
-            $body = file_get_contents('php://input');
+            // load raw content from input stream (HttpMessage class is in charge of turning it into an associative array)
+            // careful here: in case raw data exceed `upload_max_filesize` or `post_max_size`, stream `php://input` might contain more data than available memory
+            $max = self::getMaxMemory() - memory_get_usage() - 1;
+            $body = file_get_contents('php://input', false, null, 0, $max+1);
+            if(strlen($body) > $max) {
+                throw new \Exception("received data exceed maximum available size", QN_ERROR_NOT_ALLOWED);
+            }
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
         if(empty($body) 
             || strlen($body) < 3) { // we could have received a formatted empty body (e.g.: {})
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
-            // we allow this only when there's nothing from ://stdin
+            // we allow this only when there's nothing from php://input
+
             if(isset($_FILES) && !empty($_FILES)) {
                 $body = array_merge_recursive($_REQUEST, self::normalizeFiles());
             }

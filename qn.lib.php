@@ -78,7 +78,7 @@ namespace {
     define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');
 
     // EventHandler will deal with error and debug messages depending on debug source value
-    ini_set('display_errors', 0);
+    ini_set('display_errors', 1);
     ini_set('html_errors', false);
     ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
 
@@ -100,29 +100,26 @@ namespace {
      *
      * Note : make sure that the ids in DB are set and matching these
      */
-    define('GUEST_USER_ID',        0);
+    define('GUEST_USER_ID',       0);
     define('ROOT_USER_ID',        1);
 
     // default group (all users are members of the default group)
     define('DEFAULT_GROUP_ID',    1);
 
     /**
-    * Session parameters
-    */
-    // Use session identification by COOKIE only
-    ini_set('session.use_cookies', '1');
+     * Session parameters
+     */     
+    // Disable SID and sessions
+    ini_set('session.use_cookies',      '0');
     ini_set('session.use_only_cookies', '1');
     // and make sure not to rewrite URL
-    ini_set('session.use_trans_sid', '0');
-    ini_set('url_rewriter.tags', '');
-
-
+    ini_set('session.use_trans_sid',    '0');
+    ini_set('url_rewriter.tags',        '');
 
 
     /**
-    * Add error-utility functions to the global namespace
-    */
-
+     * Add error-utility functions to the global namespace
+     */
 
     function qn_error_name($error_id) {
         switch($error_id) {
@@ -195,7 +192,24 @@ namespace {
      * Add global system-related constants
      * (which cannot be modified by other scripts)
      */
-    if( (include_once('config/config.inc.php')) === false ) die('oops, root config file is missing');
+    if( file_exists(QN_BASEDIR.'/config/config.inc.php') ) {
+        include_once(QN_BASEDIR.'/config/config.inc.php');
+    }
+    else {
+        if( (include_once(QN_BASEDIR.'/config/default.inc.php')) === false ) die('oops, default root config file is missing');
+    }
+
+/*
+// for debugging: uncomment this to force the header of generated HTTP response
+        header("HTTP/1.1 200 OK");
+        header('Content-type: application/json; charset=UTF-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
+        header('Access-Control-Allow-Headers: *');
+        header('Access-Control-Expose-Headers: *');
+        header('Allow: *');
+        flush();
+*/
 }
 namespace config {
     use qinoa\services\Container;
@@ -320,19 +334,19 @@ namespace config {
 
         }
 
-        public static function inject(array $providers) {
+        public static function inject(array $providers) {            
             $result = [];
             // retrieve service container
             $container = Container::getInstance();
-
+            
             // retrieve providers
             foreach($providers as $name) {
                 $result[$name] = $container->get($name);
             }
-
+            
             return $result;
         }
-
+        
         /**
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
@@ -357,6 +371,7 @@ namespace config {
             $request = $context->httpRequest();
             $body = (array) $request->body();
             $method = $request->method();
+
             if(isset($announcement['response'])) {
                 $response = $context->httpResponse();
                 if(isset($announcement['response']['content-type'])) {
@@ -365,21 +380,27 @@ namespace config {
                 if(isset($announcement['response']['charset'])) {
                     $response->headers()->setCharset($announcement['response']['charset']);
                 }
+
                 if(isset($announcement['response']['accept-origin'])) {
                     // force param as an array
-                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)
+                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)                    
                     $announcement['response']['accept-origin'] = (array) $announcement['response']['accept-origin'];
                     // retrieve origin from header
                     $request_origin = $request->header('origin');
                     // `Access-Control-Allow-Origin` must be a single URI (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
                     // so we check for a list of allowed URI
                     foreach($announcement['response']['accept-origin'] as $origin) {
-// todo: use a compare method to handle explicit/implicit port notation
+                        // todo: use a compare method to handle explicit/implicit port notation                        
                         if(in_array($origin, ['*', $request_origin])) {
                             $response->header('Access-Control-Allow-Origin', $origin);
                             break;
                         }
                     }
+                    /*
+                    if($origin != '*' && $origin != $request_origin) {
+                        // prevent requests from non-allowed origins (can be bypassed by manually setting requests header)
+                    }
+                    */
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');
@@ -389,11 +410,61 @@ namespace config {
                     $response->header('Content-Disposition', $announcement['response']['content-disposition']);
                 }
 
+                // handle caching options
+                /*
+                    Caching is only available for GET methods 
+                    and offers support at URL level only (params in body are not considered).
+                    This mechanism should not be used for requests whose response depend on current user.
+                */
                 if( $request->method() == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
+                    // compute the cache ID
+                    $cache_id = md5($request->uri());
+                    // and related filename
+                    $cache_filename = '../cache/'.$cache_id;
+                    // update context for further processing
                     $context->set('cache', true);
-                    $context->set('cache-id', md5($request->uri()));
+                    $context->set('cache-id', $cache_id);
+                    // check if a validity expiration is defined for client-side
+                    if(isset($announcement['response']['client-max-age'])) {
+                        $context->set('client-max-age', intval($announcement['response']['client-max-age']));
+                    }                    
+                    // check if a validity expiration is defined for server-side
+                    $serve_from_cache = true;
+                    if(isset($announcement['response']['expires'])) {
+                        $expires = intval($announcement['response']['expires']);
+                        $age = time() - filemtime(realpath($cache_filename));
+                        if($age >= $expires) {
+                            $serve_from_cache = false;
+                        }
+                    }
+                    // request is already present in cache and is valid : serve from cache
+                    if(file_exists($cache_filename) && $serve_from_cache) {
+                        // handle client cache expiry (no change)
+                        if($request->header('If-None-Match') == $cache_id) {
+                            // send "304 Not Modified"
+                            $context->httpResponse()
+                            ->status(304)
+                            ->send();
+                            throw new \Exception('', 0);
+                        }
+                        $reporter->debug("serving from cache");
+                        list($headers, $result) = unserialize(file_get_contents($cache_filename));
+                        // build response with cached headers
+                        $response = $context->httpResponse();
+                        foreach($headers as $header => $value) {
+                            $response->header($header, $value);
+                        }
+                        $response
+                        // inject raw body
+                        ->body($result, true)
+                        // set status and body according to raised exception
+                        ->status(200)
+                        // send HTTP response
+                        ->send();
+                        exit();
+                    }
                 }
             }
             // normalize $announcement array
@@ -409,19 +480,20 @@ namespace config {
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
             // if(    count(array_intersect($mandatory_params, array_keys($body))) != count($mandatory_params)
             if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS') {
-                if(count($missing_params)) {
-                    // no feedback about services
-                    if(isset($announcement['providers'])) unset($announcement['providers']);
-                    // no feedback about constants
-                    if(isset($announcement['constants'])) unset($announcement['constants']);
-                }
+                // no feedback about services
+                if(isset($announcement['providers'])) unset($announcement['providers']);
+                // no feedback about constants
+                if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
                 $context->httpResponse()->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
+                    // user asked for the announcement or browser requested fingerprint
                     $context->httpResponse()
-                            ->status(200)
-                            ->header('Content-Type', 'application/json')
-                            ->send();
+                    ->status(200)
+                    // allow browser to cache the response for 1 year
+                    ->header('Cache-Control', 'max-age=31536000')
+                    ->header('Content-Type', 'application/json')
+                    ->send();
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
@@ -473,7 +545,7 @@ namespace config {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
-                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
+                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");                            
                             $result[$param] = $config['default'];
                         }
                         else {
@@ -491,7 +563,7 @@ namespace config {
                 // no feedback about constants
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
-                $context->httpResponse()->body(['announcement' => $announcement]);
+                $context->httpResponse()->body(['announcement' => $announcement]);                
                 // raise an exception with error details
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
@@ -532,7 +604,7 @@ namespace config {
          * Execute a given operation.
          *
          * This method stacks the context, sets URI and body according to arguments, and calls the targeted script.
-         . In case the operation is not defined, a QN_ERROR_UNKNOWN_OBJECT error is raised (HTTP 404)
+         * In case the operation is not defined, a QN_ERROR_UNKNOWN_OBJECT error is raised (HTTP 404)
          *
          * @param $type
          * @param $operation
@@ -673,8 +745,13 @@ namespace config {
                     $result = ob_get_clean();
                     // cache output result, if requested (@see announce() method)
                     if($context->get('cache')) {
+                        $cache_id = $context->get('cache-id');
+                        if( ($max_age = $context->get('client-max-age')) ) {
+                            $context->httpResponse()->header('Cache-Control', "max-age={$max_age}");
+                        }
+                        $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
-                        file_put_contents('../cache/'.$context->get('cache-id'), serialize([$headers, $result]));
+                        file_put_contents('../cache/'.$cache_id, serialize([$headers, $result]));
                     }
                 }
             }
@@ -729,20 +806,20 @@ namespace config {
     QNlib::init();
 }
 namespace {
-
+    
     /**
     * inject standalone functions into global scope (to relieve the user from the scope resolution notation)
     */
     function run(string $type, string $operation, array $body=[], $root=false) {
         return config\QNlib::run($type, $operation, $body, $root);
     }
-
+    
     function announce(array $announcement) {
-        return config\QNlib::announce($announcement);
+        return config\QNlib::announce($announcement);        
     }
-
+    
     function inject(array $providers) {
         return config\QNlib::inject($providers);
     }
-
+    
 }

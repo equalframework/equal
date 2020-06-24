@@ -9,18 +9,22 @@ namespace qinoa\orm;
 
 class Domain {
     /*
-    $domain = [ // domain
-        [       // clause 
-            [   // condition
-                '{operand}', '{operator}', '{value}'
+    $domain = [                                         // domain
+        [                                               // clause 
+            [                                           
+                '{operand}', '{operator}', '{value}'    // condition
             ],         
-            ['{operand}', '{operator}', '{value}'] 	// another contition (AND)   
+            [                                           
+                '{operand}', '{operator}', '{value}'    // another contition (AND)
+            ]
         ],
-        [		// another clause (OR)
-            [	// condition
-				'{operand}', '{operator}', '{value}'
+        [		                                        // another clause (OR)
+            [	
+				'{operand}', '{operator}', '{value}'    // condition
 			],
-            ['{operand}', '{operator}', '{value}'] 	// another contition (AND)   			
+            [   
+                '{operand}', '{operator}', '{value}'    // another contition (AND)
+            ] 	
         ]
     ];
 */  
@@ -86,18 +90,16 @@ class Domain {
     }
 
     public static function normalize($domain) {
-        if(!is_array($domain)) return [];
-        if(!empty($domain)) {
-            if(!is_array($domain[0])) {
-                // single condition
-                $domain = [[$domain]];
-            }
-            else {
-                if(empty($domain[0])) return [];
-                if(!is_array($domain[0][0])) {
-                    // single clause
-                    $domain = [$domain];
-                }
+        if(!is_array($domain) || empty($domain) ) return [[]];
+        if(!is_array($domain[0])) {
+            // single condition
+            $domain = [[$domain]];
+        }
+        else {
+            if(empty($domain[0])) return [[[]]];
+            if(!is_array($domain[0][0])) {
+                // single clause
+                $domain = [$domain];
             }
         }
         return $domain;
@@ -135,16 +137,13 @@ class Domain {
 	 */
     public static function conditionAdd($domain, $condition) {
         if(!self::conditionCheck($condition)) return $domain;
-        
-        if(empty($domain)) {
-            $domain[] = self::clauseConditionAdd([], $condition);
+ 
+        $domain = self::normalize($domain);
+        // add contion to all clauses
+        for($i = 0, $j = count($domain); $i < $j; ++$i) {
+            $domain[$i] = self::clauseConditionAdd($domain[$i], $condition);
         }
-        else {
-			// add contion to all clauses
-            for($i = 0, $j = count($domain); $i < $j; ++$i) {
-                $domain[$i] = self::clauseConditionAdd($domain[$i], $condition);
-            }
-        }
+
         return $domain;
     }
 
@@ -153,6 +152,9 @@ class Domain {
 	 */
     public static function clauseAdd($domain, $clause) {
         if(!self::clauseCheck($clause)) return $domain;
+        
+        $domain = self::normalize($domain);
+
         $domain[] = $clause;
         return $domain;
     }

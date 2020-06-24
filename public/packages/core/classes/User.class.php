@@ -22,18 +22,25 @@ class User extends Model {
         );
     }
 
+    public static function getDefaults() {
+        return [
+            'validated'    => function() { return false; },
+            'language'     => function() { return 'en'; }
+        ];
+    }
+
     public static function getConstraints() {
         return [
             'login'			=>  [
-                                'error_message_id'  => 'invalid_login',
-                                'error_message'     => 'login must be a valid email address',
-                                'function'          => function ($login) {
-                                        // valid email address
-                                        // ... with an exception for admin
-                                        if($login == 'admin') return true;
-                                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login, $matches));
-                                    }
-                                ]
+                'error_message_id'  => 'invalid_login',
+                'error_message'     => 'login must be a valid email address',
+                'function'          => function ($login) {
+                    // valid email address
+                    // ... with an exception for admin
+                    if($login == 'admin') return true;
+                    return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login, $matches));
+                }
+            ]
         ];
     }
     

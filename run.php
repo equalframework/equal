@@ -85,8 +85,8 @@ try {
         if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
-        // translate preflight requests (OPTIONS) to be handled as first available method, with announcement 
-        // (to relieve API from having to explicitely define OPTIONS routes)
+        // translate preflight requests (OPTIONS) to be handled as GET, with announcement 
+        // (so API does not have to explicitely define OPTIONS routes)
         if($method == 'OPTIONS') {
             $params['announce'] = true;
             $methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE'];
@@ -96,7 +96,7 @@ try {
                     break;
                 }
             }
-        }
+        }                
         // if route cannot be resolved, raise a HTTP 404 exception
         if(!($route = $router->resolve($path, $method))) {        
             throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);

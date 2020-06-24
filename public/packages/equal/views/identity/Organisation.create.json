@@ -1,0 +1,26 @@
+[
+    {
+        "field": "name"
+    },
+    {
+        "field": "legal_name"
+    },
+    {
+        "field": "type"
+    },    
+    {
+        "field": "email"
+    },
+    {
+        "field": "phone"
+    },    
+    {
+        "field": "VAT_number"
+    },
+    {
+        "field": "registration_number"
+    },
+    {
+        "field": "description"
+    }
+]

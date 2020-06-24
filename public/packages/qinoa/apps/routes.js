@@ -111,7 +111,7 @@ var project = angular.module('project', [
         var ctrl = this;
         var rootCtrl = this;
 
-        $scope.status = [];
+        $scope.status = {};
         $scope.apis = {
             list: ['[Select an API]'],
             selected: '[Select an API]'
@@ -146,6 +146,24 @@ var project = angular.module('project', [
             function error() {
             }
         );
+        
+        $scope.unfoldAll = function() {            
+            angular.forEach($scope.routes, function(route) {
+                if(typeof $scope.status[route.uri+'_'+route.method] == 'undefined') {
+                    $scope.status[route.uri+'_'+route.method] = {};
+                }
+                $scope.status[route.uri+'_'+route.method].open = true;
+            });
+        }
+
+        $scope.foldAll = function() {            
+            angular.forEach($scope.routes, function(route) {
+                if(typeof $scope.status[route.uri+'_'+route.method] == 'undefined') {
+                    $scope.status[route.uri+'_'+route.method] = {};
+                }
+                $scope.status[route.uri+'_'+route.method].open = false;
+            });
+        }
              
         
     }

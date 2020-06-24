@@ -138,6 +138,7 @@ class Collection implements \Iterator {
         $this->objects = array_slice($this->objects, 0, 1, true);
         $res = $this->toArray();
         return count($res)?$res[0]:null;
+        // return reset($this->objects);
     }
     
     /**
@@ -213,11 +214,13 @@ class Collection implements \Iterator {
             $ids = array_unique((array) $args[0]);            
             // filter resulting ids based on current user permissions 
             // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)            
+/*            
             foreach($ids as $i => $id) {
                 if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
                     unset($ids[$i]);
                 }
             }
+*/            
             // init keys of 'objects' member (for now, contain only an empty array)
             $this->objects = array_fill_keys($ids, []);
         }
@@ -241,7 +244,7 @@ class Collection implements \Iterator {
                 $result = array_intersect_key($fields, array_flip($allowed_fields));
             }
             else {
-                $result = array_intersect($field, $allowed_fields);
+                $result = array_intersect($fields, $allowed_fields);
             }
         }
         return $result;
@@ -288,7 +291,7 @@ class Collection implements \Iterator {
         $ids = array_keys($this->objects);
 
         // 2) check that current user has enough privilege to perform READ operation
-        if(!$this->ac->isAllowed(QN_R_MANAGE, $operation, $this->class, $fields, $ids)) {
+        if(!$this->ac->isAllowed(QN_R_MANAGE, $this->class, $fields, $ids)) {
             throw new \Exception('MANAGE,'.$this->class, QN_ERROR_NOT_ALLOWED);
         }
         $this->ac->grantUsers($users_ids, $operation, $this->class, $fields, $ids);
@@ -306,12 +309,15 @@ class Collection implements \Iterator {
         if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
         $params = array_merge($defaults, $params);
         // 1) sanitize and validate given domain
-        $domain = Domain::normalize($domain);
-        if(!Domain::validate($domain, $this->instance->getSchema())) {
-            throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);            
+        if(!empty($domain)) {
+            $domain = Domain::normalize($domain);
+            if(!Domain::validate($domain, $this->instance->getSchema())) {
+                throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);            
+            }    
         }
 
         // 2) check that current user has enough privilege to perform READ operation on given class
+// toto : extract fields names from domain, and make sure user has R_READ access on those        
         if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
             // user has always READ access to its own objects
 			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {		
@@ -331,10 +337,10 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // init keys of 'objects' member (for now, contain only an empty array)
-            
-// todo : filter results using access controller... (reduce resulting ids based on access rights)
-            
+            // init keys of 'objects' member (so far, it is an empty array)
+            // filter results using access controller... (reduce resulting ids based on access rights)            
+            $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
+
             $this->ids($ids);
         }
         else {
@@ -419,16 +425,20 @@ class Collection implements \Iterator {
                 $requested_fields = array_keys($schema);            
                 ```
             */
-            // retrieve targeted identifiers
-            $ids = array_keys($this->objects);
+            // retrieve targeted identifiers (remove null entries)
+            $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
 
 			// 2) check that current user has enough privilege to perform READ operation
-			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {			
+			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
+                throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
+                
+                /*
 				if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {	
 				    throw new \Exception('READ,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
 				}
 				// user might have created some objects: limit search to those, if any
 				$domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);            
+                */
             }
             
             // 3) read values
@@ -474,8 +484,8 @@ class Collection implements \Iterator {
             $fields = array_keys($values);
             
             // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $ids, $fields, $ids)) {
-                throw new \Exception('WRITE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+            if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
+                throw new \Exception($this->am->userId().';WRITE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
             
             // 3) validate

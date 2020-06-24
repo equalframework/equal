@@ -9,39 +9,11 @@ class DataValidator extends Service {
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      * the value will be returned unchanged if:
-     * - a conversion is not explicitely defined
+     * - a conversion is not explicitely    fined
      * - a conversion cannot be made
      */
     protected function __construct(/* no dependency */) {
         // initial configuration
-    }
-    
-    /**
-     * Convert a field definition into a list of constraints
-     `type`, and `usage`
-     */
-    public static function getConstraintByType($type) {
-        return ['kind' => 'type', 'rule' => $type];
-    }
-
-    public static function getConstraintByUsage($usage) {
-        switch($usage) {
-            case 'hash/md2':
-            case 'hash/md4':            
-            case 'hash/md5':
-                return ['kind' => 'pattern', 'rule' => '/[a-f0-9]{32}/'];
-            case 'password':
-            case 'password/NIST':
-                return ['kind' => 'pattern', 'rule' => '/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#])[A-Za-z\d@$#]{8,}/'];
-            case 'coordinate/decimal':
-                return ['kind' => 'pattern', 'rule' => '/([-+]?)([0-9]{1,2})(\.)([0-9]+)/'];            
-            case 'coordinate/decimal:latitude':
-                return ['kind' => 'pattern', 'rule' => '/(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))/'];
-            case 'coordinate/decimal:longitude':
-                return ['kind' => 'pattern', 'rule' => '/(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))/'];
-            
-                
-        }
     }
     
     /**  
@@ -70,13 +42,13 @@ class DataValidator extends Service {
         if(!is_array($constraints) || empty($constraints)) return true;
         foreach($constraints as $id => $constraint) {
             if(!isset($constraint['kind']) || !isset($constraint['rule'])) {
-                // todo: raise warning
+                // raise error
                 continue;
             }
             switch($constraint['kind']) {
             case 'type':
                 // fix alternate names to the expected value
-                foreach(['bool' => 'boolean', 'int' => 'integer', 'float' => 'double'] as $key => $type) {
+                foreach(['bool' => 'boolean', 'int' => 'integer', 'float' => 'double', 'text' => 'string'] as $key => $type) {
                     if($constraint['rule'] == $key) {
                         $constraint['rule'] = $type;
                         break;

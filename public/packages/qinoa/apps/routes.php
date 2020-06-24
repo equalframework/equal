@@ -54,7 +54,11 @@
     .route.route-PUT {
         border-color: #325ea0;
     }
-
+    
+    .route.route-PATCH {
+        border-color: #325ea0;
+    }
+    
     .route.route-DELETE {
         border-color: #923e00;
     }
@@ -84,7 +88,12 @@
         border-color: #325ea0;
         background-color: #325ea0;    
     }
-
+    
+    .route > span.route-method-PATCH {
+        border-color: #325ea0;
+        background-color: #325ea0;    
+    }
+    
     .route > span.route-method-DELETE {
         border-color: #923e00;
         background-color: #923e00;    
@@ -131,6 +140,12 @@
                     <select class="form-control" ng-model="apis.selected" ng-change="selectAPI()" ng-options="api as api for api in apis.list"></select>
                 </div>                
             </div>
+            <div class="bs-component" style="margin-bottom: 40px;">
+                <div class="form-group">
+                    <button class="btn btn-default" ng-click="unfoldAll()">Unfold all routes</button>
+                    <button class="btn btn-default" ng-click="foldAll()">Fold all routes</button>
+                </div>                
+            </div>            
             
             <div class="bs-component" style="margin-bottom: 40px;">
 
@@ -143,7 +158,7 @@
                     <uib-accordion>                    
                     <div uib-accordion-group class="panel-default" is-open="status[route.uri+'_'+route.method].open">
                         <uib-accordion-heading>
-                            {{route.description}} <i class="pull-right fa" ng-class="{'fa-chevron-down': status.open, 'fa-chevron-right': !status.open}"></i>
+                            {{route.description}} <i class="pull-right fa" ng-class="{'fa-chevron-down': status[route.uri+'_'+route.method].open, 'fa-chevron-right': !status[route.uri+'_'+route.method].open}"></i>
                         </uib-accordion-heading>
                         <div class="route-params">
 

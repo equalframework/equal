@@ -25,7 +25,7 @@ $paths = [
     ],    
     [
         'rights'    =>  QN_R_READ,
-        'path'      =>  QN_BASEDIR.'/config/config.inc.php'
+        'path'      =>  QN_BASEDIR.'/config/default.inc.php'
     ]    
 ];
 
@@ -67,7 +67,7 @@ function check_permissions($path, $mask) {
 // check mod
 foreach($paths as $item) {
     if(!file_exists($item['path'])) {
-        throw new Exception("Missing mandatory directory {$item['path']}", QN_ERROR_INVALID_CONFIG);        
+        throw new Exception("Missing mandatory node {$item['path']}", QN_ERROR_INVALID_CONFIG);        
     }
     if( ($res = check_permissions($item['path'], $item['rights'])) <= 0) {
         switch(-$res) {

@@ -1,41 +1,35 @@
 <?php
-/**
-*	This file is part of the easyObject project.
-*	http://www.cedricfrancoys.be/easyobject
-*
-*	Copyright (C) 2012  Cedric Francoys
-*
-*	This program is free software: you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License as published by
-*	the Free Software Foundation, either version 3 of the License, or
-*	(at your option) any later version.
-*
-*	This program is distributed in the hope that it will be useful,
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*	GNU General Public License for more details.
-
-*	You should have received a copy of the GNU General Public License
-*	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** 
-* Use the config namespace and its related functions.
-* Constants defined in this file are mandatory but can be modified/re-defined in customs config.inc.php (i.e.: packages/[package_name]/config.inc.php)
-* Notes: 
-* - instead, you could use the global namespace and explicitely call the config\define function
-* - parameters defined with config\define() are automatically exported as global constants at the end of main entry point (index.php)
-*/
 namespace config;
+
+/** 
+* Constants defined in this section are mandatory but can be modified/re-defined in customs config.inc.php (i.e.: packages/[package_name]/config.inc.php)
+*
+*/
+
+// flag constant allowing to detect if config has been exported
+define('EXPORT_FLAG', true);
+
+/**
+* Debugging
+*/	
+define('DEBUG_MODE', QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL | QN_DEBUG_APP);
+// define('DEBUG_MODE', 0);
+
+/**
+* List of public objects 
+*/
+// array of classes involved in right management and SPAM protection mechanism
+define ("PUBLIC_OBJECTS", serialize (array ('icway\Comment')));
 
 /**
 * File transfer parameters
 */
 // maximum authorized size for file upload (in octet)
 // keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive
-// so it can be more restrictive but cannot be higher!
-// note: 'upload_max_filesize' is a PHP_INI_PERDIR directive and therefore must be defined in php.ini
+// so it can be more restrictive but will not be effective if set higher
+// ('upload_max_filesize' and 'post_max_size' are PHP_INI_PERDIR directives and must be defined in php.ini)
 
-define('UPLOAD_MAX_FILE_SIZE', 30000000);		// set upload limit to 30Mo
+define('UPLOAD_MAX_FILE_SIZE', 64*1024*1024);		// set upload limit to 64Mo
 
 
 /**
@@ -79,18 +73,6 @@ define('CURRENCY_FORMAT', '£#,##0.00');
 */
 define('NUMERIC_DECIMAL_PRECISION', 2);
 
-/**
-* Email sending
-*/
-define('EMAIL_SMTP_HOST',				'smtp.gmail.com');
-define('EMAIL_SMTP_ACCOUNT_USERNAME',	'example');
-define('EMAIL_SMTP_ACCOUNT_PASSWORD',	'password');
-define('EMAIL_SMTP_ACCOUNT_EMAIL',	'example@gmail.com');
 
-
-/**
-* Default App
-*/
-// Application that will be invoked if URL does not specify any app after the package name
-// todo : we should display a homepage telling that the installation is successfull and redirecting to documentation for further customization
-define('DEFAULT_APP', 'manage');
+// define('HTTP_REDIRECT_404', '404.html');
+// define('HTTP_REDIRECT_500', '500.html');

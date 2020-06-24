@@ -223,7 +223,27 @@ class AccessController extends Service {
 		if(!is_array($object_ids)) {
 			$object_ids = (array) $object_ids;
 		}
+        
+        // remove duplicates, if any
+        $object_ids = array_unique($object_ids);
+        // keep only ids of object for which user has required privilege
+        $filtered_ids = $this->filter($operation, $object_class, $object_fields, $object_ids);
+        // compute difference
+        $diff = array_diff($object_ids, $filtered_ids);
+        // if equal then operation is granted
+        return !((bool) count($diff));
+    }
+    
+    /**
+     *  Filter a list of objects and return only ids of objects on which current user has permission for given operation.
+     *  This method is called by the Collection service, when performing Search
+     */
+    public function filter($operation, $object_class, $object_fields, $object_ids) {
 
+        // retrieve current user identifier
+        $auth = $this->container->get('auth');
+        $user_id = $auth->userId();
+        
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
@@ -248,31 +268,6 @@ class AccessController extends Service {
 			}
 		}
 
-		return (bool) ($user_rights & $operation);
-    }
-    
-    /**
-    *  Filter a list of objects and return only ids of objects on which current user has permission for given operation.
-    *  This method is called by the Collection service, when performing Search
-    */
-    public function filter($operation, $object_class, $object_ids) {
-/*
-an operation cannot be denied : right is granted or not 
-get current user (id)
-get user's groups (gids)
-
-$rows = select rights from core_permission where class_name = $object_class OR class_name = '*'
-
-
-get all ACL defined for given objects (class_name, object_id)
-$rows = select object_id, rights from core_permission where class_name = $object_class AND object_id in ($objects_ids)
-$ids = [];
-foreach($rows as $key => $row) {
-    if(right & $operation) {
-        $ids[$row['object_id']] = true;
-    }
-}
-
-*/
+		return ((bool)($user_rights & $operation))?$object_ids:[];
     }    
 }
