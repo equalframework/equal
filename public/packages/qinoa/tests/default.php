@@ -416,10 +416,10 @@ $tests = [
                                                 return $values;
                                             }
                     ),
-/*
+
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
-                    'return'            =>  array('integer', 'array'),
+                    'return'            =>  array('array'),
                     'expected'          =>  [
                                                 "id"        => 2,
                                                 "login"     => "cedric@equal.run",
@@ -428,18 +428,14 @@ $tests = [
                                                 "language"  => "fr"
                                             ],
                     'test'              =>  function () {
-                                                try {
-                                                    $request = new HttpRequest("http://localhost/me");                                              
-                                                    $response = $request
-                                                                ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
-                                                                ->send();
-                                                    return $response->body();
-                                                }
-                                                catch(\Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_INVALID_USER
-                                                    $values = $e->getCode();
-                                                }
-                                                return $values;
+
+                                                $request = new HttpRequest("http://127.0.0.1/me");                            
+                                                $response = $request
+                                                            ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
+                                                            ->send();
+
+
+                                                return json_decode($response->body(), true);
                                             }
                     ),
 */
