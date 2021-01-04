@@ -166,6 +166,8 @@ catch(Exception $e) {
         ->header('Content-Type', 'application/json')
         // append an 'error' section to response body
         ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ])
+        // for debug purpose
+        // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         // send HTTP response
         ->send();
         exit(1);

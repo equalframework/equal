@@ -3,7 +3,7 @@
 *    This file is part of the eQual framework.
 *    https://github.com/cedricfrancoys/equal-framework
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2019
+*    Some Rights Reserved, Cedric Francoys, 2010-2020
 *    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -104,7 +104,8 @@ namespace {
     define('ROOT_USER_ID',        1);
 
     // default group (all users are members of the default group)
-    define('DEFAULT_GROUP_ID',    1);
+    define('ROOT_GROUP_ID',       1);
+    define('DEFAULT_GROUP_ID',    2);    
 
     /**
      * Session parameters
@@ -117,10 +118,14 @@ namespace {
     ini_set('url_rewriter.tags',        '');
 
 
-    /**
-     * Add error-utility functions to the global namespace
+    /*
+     * Error-utility functions to the global namespace
      */
 
+
+    /**
+     * Mapper from internal eror codes to string constants
+     */
     function qn_error_name($error_id) {
         switch($error_id) {
         case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
@@ -137,6 +142,9 @@ namespace {
         return 'UNKNOWN_ERROR';
     }
 
+    /**
+     * Mapper from string constants to internal eror codes
+     */
     function qn_error_code($error_name) {
         switch($error_name) {
         case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
@@ -154,7 +162,7 @@ namespace {
     }
 
     /**
-
+     * Mapper from internal eror codes to HTTP codes
      */
     function qn_error_http($error_id) {
         switch($error_id) {
@@ -200,7 +208,8 @@ namespace {
     }
 
 /*
-// for debugging: uncomment this to force the header of generated HTTP response
+// #DEBUG
+// for debugging, uncomment this to force the header of generated HTTP response
         header("HTTP/1.1 200 OK");
         header('Content-type: application/json; charset=UTF-8');
         header('Access-Control-Allow-Origin: *');
@@ -216,31 +225,32 @@ namespace config {
 
 
 
-    /**
-    * Add some config-utility functions to the 'config' namespace
-    */
+    /*
+     * Add some config-utility functions to the 'config' namespace
+     */
 
     /**
-    * Adds a parameter to the configuration array
-    */
+     * Adds a parameter to the configuration array
+     */
     function define($name, $value) {
         $GLOBALS['QN_CONFIG_ARRAY'][$name] = $value;
     }
 
     /**
-    * Checks if a parameter has already been defined
-    */
+     * Checks if a parameter has already been defined
+     */
     function defined($name) {
         return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
     }
 
 
     /**
-    *
-    * can be invoked in local config files to override a specific service (used by the core services)
-    * same global array is used by the service container
-    *
-    */
+     * Register a service by assigning an identifier (name) to a class (stored under `/lib`).
+     * 
+     * This method can be invoked in local config files to register a custom service and/or to override any existing service,
+     * and uses the `QN_SERVICES_POOL` global array which is used by the root container.
+     *
+     */
     function register($name, $class=null) {
         if(!isset($GLOBALS['QN_SERVICES_POOL'])) {
             $GLOBALS['QN_SERVICES_POOL'] = [];
@@ -256,15 +266,17 @@ namespace config {
     }
 
     /**
-    * Returns a configuraiton parameter.
-    */
+     * Retrieve  a configuraiton parameter.
+     */
     function config($name, $default=null) {
         return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
     }
 
     /**
-    * Export parameters declared with config\define function, as constants (i.e.: accessible through global scope)
-    */
+     * Export all parameters declared with `config\define()` function, as constants.
+     * 
+     * After a call to this method, these params will be accessible in global scope.
+     */
     function export_config() {
         if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) $GLOBALS['QN_CONFIG_ARRAY'] = array();
         foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
@@ -276,10 +288,13 @@ namespace config {
     class QNlib {
 
         /**
-        * Adds the library folder to the include path (library folder should contain the Zend framework if required)
-        *
-        * @static
-        */
+         * Initialise Qinoa.
+         * 
+         * Adds the library folder to the include path (library folder should contain the Zend framework if required).
+         * This is the bootstrap method for setting everything in place.
+         *
+         * @static
+         */
         public static function init() {
             // allow inclusion and autoloading of external classes
             if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
@@ -297,6 +312,7 @@ namespace config {
             $container = Container::getInstance();
 
             // register names for common services and assign default classes
+            // (these can be overriden in the `config.inc.php` of invoked package)
             $container->register([
                 'report'    => 'qinoa\error\Reporter',
                 'auth'      => 'qinoa\auth\AuthenticationManager',
@@ -305,7 +321,8 @@ namespace config {
                 'validate'  => 'qinoa\data\DataValidator',
                 'adapt'     => 'qinoa\data\DataAdapter',
                 'orm'       => 'qinoa\orm\ObjectManager',
-                'route'     => 'qinoa\route\Router'
+                'route'     => 'qinoa\route\Router',
+                'spool'     => 'qinoa\email\EmailSpooler'
             ]);
 
             // make sure mandatory dependencies are available (reporter requires context)
@@ -348,6 +365,8 @@ namespace config {
         }
         
         /**
+         * Announce the definition of an operation.
+         * 
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
          *
@@ -366,7 +385,7 @@ namespace config {
             // retrieve service container
             $container = Container::getInstance();
             // retrieve required services
-            list($context, $reporter, $dataValidator, $dataAdapter) = $container->get(['context', 'report', 'validate', 'adapt']);
+            list($context, $auth, $reporter, $dataValidator, $dataAdapter) = $container->get(['context', 'auth', 'report', 'validate', 'adapt']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
             $body = (array) $request->body();
@@ -420,7 +439,7 @@ namespace config {
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
                     // compute the cache ID
-                    $cache_id = md5($request->uri());
+                    $cache_id = md5($auth->userId().'::'.$request->header('origin').'::'.$request->uri());
                     // and related filename
                     $cache_filename = '../cache/'.$cache_id;
                     // update context for further processing
@@ -510,13 +529,14 @@ namespace config {
             }
             $missing_params = array_diff($allowed_params, array_intersect($allowed_params, array_keys($body)));
 
-            // 3) build result array and set default values for optional missing parameters
+            // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
             foreach($announcement['params'] as $param => $config) {
-                // note: at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data
+                // note: at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
                     $body[$param] = $config['default'];
                 }
+                // ignore optional params without default value (this allows PATCH of objects on specific fields only)
                 if(array_key_exists($param, $body)) {
                     // prevent type confusion while converting data from text
                     // all inputs are handled as text, conversion is made based on expected type
@@ -624,11 +644,11 @@ namespace config {
                 'script'    => null         // {path/to/script.php}
             ];
             // define valid operations specifications
-            $operations = array(
+            $operations = [
                 'do'    => array('kind' => 'ACTION_HANDLER','dir' => 'actions'),    // do something server-side
                 'get'   => array('kind' => 'DATA_PROVIDER', 'dir' => 'data'),       // return some data
                 'show'  => array('kind' => 'APPLICATION',   'dir' => 'apps')        // output rendering information (UI)
-            );
+            ];
             $container = Container::getInstance();
 
             if(!$root) {
@@ -727,7 +747,7 @@ namespace config {
                     if(!is_file($filename)) {
                         $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
-                            throw new \Exception("Unknown {$operation_conf['kind']} {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
+                            throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
                         }
                     }
                 }
@@ -769,16 +789,16 @@ namespace config {
 
 
         /**
-        * Loads a class file from its class name
-        *
-        * @static
-        * @example    load_class('qinoa/db/DBConnection');
-        * @param    string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
-        * @return    bool
-        */
+         * Load a given class.
+         *
+         * @static
+         * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
+         * @return  bool
+         * 
+         * @example load_class('qinoa/db/DBConnection');
+         */
         public static function load_class($class_name) {
             $result = false;
-
             if(class_exists($class_name, false) || isset($GLOBALS['QNlib_loading_classes'][$class_name])) {
                 // class is already loaded or being loaded
                 $result = true;
