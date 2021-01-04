@@ -12,12 +12,17 @@ use core\User;
 use core\Group;
 
 list($params, $providers) = announce([
-    'description'   => 'Check for test units for given package and run them, if any.',
+    'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
             'description'   =>  "Name of the package on which to perform test units",
             'type'          =>  'string',
             'default'       =>  '*'
+        ],
+        'logs'      => [
+            'description'   =>  "Embed logs in result",
+            'type'          =>  'boolean',
+            'default'       =>  false
         ]
     ],
     'providers'     => ['context']
@@ -27,6 +32,7 @@ list($params, $providers) = announce([
 $result = [];
 
 // 2) populate core_user table with demo data
+$failed = false;
 $tests_path = "packages/{$params['package']}/tests";
 if(is_dir($tests_path)) {
     
@@ -35,16 +41,19 @@ if(is_dir($tests_path)) {
         $tester = new Tester($tests);
         $body = $tester->test()->toArray();
         if(isset($body['failed'])) {
-            $providers['context']->httpResponse()->body($body)->send();
-            // force 1 as exit code if there is any failing test
-            exit(1);            
+            $failed = true;
         }
         $result[basename($filename, '.php')] = $body;
     }    
-
 }
-
+if($params['logs']) {
+    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log');            
+}
 
 $providers['context']->httpResponse()
                      ->body($result)
                      ->send();
+                     
+if($failed) {
+    exit(1);
+}

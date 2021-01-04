@@ -27,42 +27,42 @@ class AccessController extends Service {
     }
 
     public static function constants() {
-        return ['DEFAULT_RIGHTS', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
+        return ['DEFAULT_RIGHTS', 'ROOT_GROUP_ID', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
     }
 
-    private function getUserGroups($user_id) {
+    protected function getUserGroups($user_id) {
 		$groups_ids = [];
-		if(isset($this->groupsTable[$user_id])) {
-			$groups_ids = $this->groupsTable[$user_id];
-		}
-        else {
+		if(!isset($this->groupsTable[$user_id])) {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
-			if($values) {
+			if($values > 0 && isset($values[$user_id])) {
 				$this->groupsTable[$user_id] = array_unique(array_merge([(string) DEFAULT_GROUP_ID], $values[$user_id]['groups_ids']));
-				$groups_ids = $this->groupsTable[$user_id];
-			}
+            }
+            else {
+                $this->groupsTable[$user_id] = [];
+            }
         }
+        $groups_ids = $this->groupsTable[$user_id];        
         return $groups_ids;
     }
 
-    private function getGroupUsers($group_id) {
+    protected function getGroupUsers($group_id) {
 		$users_ids = [];
-		if(isset($this->usersTable[$group_id])) {
-			$users_ids = $this->usersTable[$group_id];
-		}
-        else {
+		if(!isset($this->usersTable[$group_id])) {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\Group', $group_id, ['users_ids']);
-			if($values) {
-				$this->usersTable[$group_id] = array_unique(array_merge([(string) DEFAULT_GROUP_ID], $values[$group_id]['users_ids']));
-				$users_ids = $this->usersTable[$group_id];
-			}
+			if($values > 0 && isset($values[$group_id])) {
+				$this->usersTable[$group_id] = $values[$group_id]['users_ids'];				
+            }
+            else {
+                $this->usersTable[$group_id] = [];
+            }
         }
+        $users_ids = $this->usersTable[$group_id];
         return $users_ids;
     }
 
-    private function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
+    protected function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
 		// all users are at least granted the default permissions
 		$user_rights = DEFAULT_RIGHTS;
 
@@ -210,7 +210,7 @@ class AccessController extends Service {
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         // grant all rights when using CLI
-        if(php_sapi_name() === 'cli' || defined('STDIN')) return true;
+        if(php_sapi_name() === 'cli') return true;
 
         // check operation against default rights
 		if(DEFAULT_RIGHTS & $operation) return true;
@@ -247,25 +247,22 @@ class AccessController extends Service {
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
-		// do we need to perform additional testing ?
-		if($operation == QN_R_READ) {
-			// user always has READ right on its own object
-			if($object_class == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
-				$user_rights |= QN_R_READ;
-			}
-			else {
-				// if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
-				$orm = $this->container->get('orm');
-				$objects = $orm->read($object_class, $object_ids, ['creator']);
-				$user_ids = [];
-				foreach($objects as $oid => $odata) {
-					$user_ids[$odata['creator']] = true;
-				}
-				// user always has READ right on objects he created
-				if(count($user_ids) == 1 && array_keys($user_ids)[0] == $user_id) {
-					$user_rights |= QN_R_READ;
-				}
-			}
+        // user always has READ and WRITE rights on its own object
+        if($object_class == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+            $user_rights |= (QN_R_READ | QN_R_WRITE);
+        }
+		else if($operation == QN_R_READ) {
+            // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
+            $orm = $this->container->get('orm');
+            $objects = $orm->read($object_class, $object_ids, ['creator']);
+            $user_ids = [];
+            foreach($objects as $oid => $odata) {
+                $user_ids[$odata['creator']] = true;
+            }
+            // user always has READ right on objects he created
+            if(count($user_ids) == 1 && array_keys($user_ids)[0] == $user_id) {
+                $user_rights |= QN_R_READ;
+            }
 		}
 
 		return ((bool)($user_rights & $operation))?$object_ids:[];

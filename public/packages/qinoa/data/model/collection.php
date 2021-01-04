@@ -8,9 +8,10 @@
 list($params, $providers) = announce([
     'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
     'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
+        'content-type'      => 'application/json',
+        'charset'           => 'UTF-8',
+        'accept-origin'     => '*',
+        'cacheable'         => false
     ],    
     'params'        => [
         'entity' =>  [
@@ -41,7 +42,7 @@ list($params, $providers) = announce([
         'sort' => [
             'description'   => 'The direction  (i.e. \'asc\' or \'desc\').',
             'type'          => 'string',
-            'default'       => 'desc'
+            'default'       => 'asc'
         ],
         'start' => [
             'description'   => 'The row from which results have to start.',
@@ -56,14 +57,18 @@ list($params, $providers) = announce([
             'default'       => 25
         ]
     ],
-    'providers'     => ['context'] 
+    
+    'providers'     => ['context', 'auth', 'report'] 
 ]);
 
-list($context) = [ $providers['context'] ];
+list($context, $auth, $reporter) = [ $providers['context'], $providers['auth'] , $providers['report']  ];
 
 if(!class_exists($params['entity'])) {
     throw new Exception("unknown class '{$params['entity']}'", QN_ERROR_UNKNOWN_OBJECT);
 }
+
+$user_id = $auth->userId();
+$reporter->debug("identified as user: ".$user_id);
 
 $collection = $params['entity']::search($params['domain'], [ 'sort' => [ $params['order'] => $params['sort']] ]);
 

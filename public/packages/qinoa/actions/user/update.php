@@ -18,16 +18,7 @@ list($params, $providers) = announce([
             'description'   => 'Identifier of the user to update.',
             'type'          => 'integer',
             'required'      => true
-        ],
-// todo : hanle password update
-/*        
-        'password' =>  [
-            'description'   => 'the user chosen password.',
-            'type'          => 'string',
-            'usage'         => 'password/NIST',
-            'required'      => true
-        ],
-*/        
+        ],    
         'firstname' =>  [
             'description'   => 'User firstname.',
             'type'          => 'string', 
@@ -49,19 +40,12 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-// todo: 
-/*
-in case of password change: require old password as well
-// Encrypt password
-$params['password'] = password_hash($params['password'], PASSWORD_DEFAULT);
-*/
-
 // update user instance
 $instance = User::id($params['id'])
     ->update([
         'firstname' => $params['firstname'], 
         'lastname'  => $params['lastname'], 
-        'language'  => $params['language'], 
+        'language'  => $params['language']
     ])
     ->adapt('txt')
     ->first();

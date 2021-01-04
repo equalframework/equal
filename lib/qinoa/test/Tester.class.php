@@ -23,10 +23,11 @@ class Tester {
     
     public function toArray() {
         $result = [
-            'result'    => 'ok',
-            'log'       => $this->results
+            'result'        => 'ok',
+            'count_test'    => count($this->tests),
+            'log'           => $this->results
         ];
-
+        // if something went wrong, append details
         if(count($this->failing)) {
             $result['result'] = 'ko';
             $result['failed'] = $this->failing;
@@ -67,33 +68,36 @@ class Tester {
             }
 
             $result = $test['test']();
-            $status = 'ok';
+            $success = true;
 
-            if(in_array(gettype($result), $test['return'])) {
+            if(in_array(gettype($result), (array) $test['return'])) {
 
                 if(isset($test['expected'])) {
                     if(gettype($result) == gettype($test['expected'])) {
                         if(gettype($result) == "array") {
                             if(!self::array_equals($result, $test['expected'])) {
-                                $status= 'ko';
+                                $success = false;
                             }
                         }
                         else {
                             if($result != $test['expected']) {
-                                $status = 'ko';
+                                $success = false;
                             }
                         }
                     }
                     else {
-                        $status = 'ko';
+                        $success = false;
                     }
+                }
+                else if(isset($test['assert']) && is_callable($test['assert'])) {
+                    $success = $test['assert']($result);
                 }
             }
             else {
-                $status = 'ko';
+                $success = false;
             }
 
-            if($status == 'ko') $this->failing[] = $id;
+            if(!$success) $this->failing[] = $id;
             else {
                 if(isset($test['rollback']) && is_callable($test['rollback'])) {
                     $test['rollback']();
@@ -102,7 +106,7 @@ class Tester {
 
             $this->results[$id] = [
                 'description'   => $test['description'],
-                'status'        => $status,
+                'status'        => $success?'ok':'ko',
                 'result'        => $result
             ];
 

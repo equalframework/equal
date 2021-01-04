@@ -32,7 +32,8 @@ class DataAdapter extends Service {
                 ],
                 'php' => [
                     'txt' =>    function ($value) {
-                                    return ($value)?'true':'false';                                                                        
+                                    //return ($value)?'true':'false';                                                                        
+                                    return (bool) $value;
                                 },
                     'sql' =>    function ($value) {
                                     return ($value)?'1':'0';                                                                        
@@ -142,6 +143,13 @@ class DataAdapter extends Service {
                                 }
                 ]                
             ],
+            'many2one'  => [
+                'sql' => [
+                    'php' =>    function ($value) {                                    
+                                    return (int) $value;                        
+                                }
+                ]
+            ],            
             'one2many'  => [
                 'txt' => [
                     'php' =>    function ($value) {
@@ -151,7 +159,7 @@ class DataAdapter extends Service {
                                     return $value;                        
                                 }
                 ]
-            ],            
+            ],
             'many2many' => [
                 'txt' => [
                     'php' =>    function($value) {

@@ -394,7 +394,7 @@ class Collection implements \Iterator {
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
             // build a list of direct field to load (i.e. "object attributes")
-            $requested_fields = ['id'];
+            $requested_fields = ['id', 'deleted'];
             foreach($fields as $key => $val ) {
                 // handle array notation                
                 $field = (!is_numeric($key))?$key:$val;
@@ -447,8 +447,15 @@ class Collection implements \Iterator {
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
             }            
-            
-            // 4) load sub-fields (recusion), if any
+
+            // 4) remove any deleted items (to handle ::ids()->read())
+            foreach($res as $oid => $odata) {
+                if($odata['deleted']) {
+                    unset($res[$oid]);
+                }
+            }
+
+            // 5) load sub-fields (recusion), if any
             $this->objects = $res;            
             foreach($fields as $field => $subfields) {
                 // load batches of sub-objects grouped by field

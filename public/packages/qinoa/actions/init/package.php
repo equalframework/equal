@@ -84,7 +84,14 @@ $types_associations = array(
     'many2one' 		=> 'int(11)'
 );
 
+$usages_associations = [
+	'coordinate/decimal'	=> 'decimal(9,6)',
+	'language/iso-639:2'	=> 'char(2)',
+	'amount/money'			=> 'decimal(15,2)'
+];
+
 $m2m_tables = array();
+
 
 foreach($classes as $class) {
     // get the full class name
@@ -111,6 +118,11 @@ foreach($classes as $class) {
             $description = $schema[$field];
             if(in_array($description['type'], array_keys($types_associations))) {
                 $type = $types_associations[$description['type']];
+                
+                if( isset($description['usage']) && isset($usages_associations[$description['usage']]) ) {
+                    $type = $usages_associations[$description['usage']];
+                }
+
                 $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
             }
             else if($description['type'] == 'function' && isset($description['store']) && $description['store']) {
@@ -160,6 +172,13 @@ foreach($queries as $query) {
     }
 }
 
+
+// 5) if a `bin` folder exists, copy its content to /bin/<package>/
+$bin_folder = "packages/{$params['package']}/init/bin";
+if(file_exists($bin_folder) && is_dir($bin_folder)) {
+    exec("cp -r $bin_folder ../bin/{$params['package']}");
+    exec("chown www-data:www-data -R ../bin/{$params['package']}");    
+}
 
 $context->httpResponse()
         ->status(201)

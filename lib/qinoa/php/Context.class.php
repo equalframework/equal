@@ -207,6 +207,7 @@ class Context extends Service {
                     'CONTENT_LENGTH' => 'Content-Length',
                     'CONTENT_MD5'    => 'Content-MD5',
                 );
+                // Convert back headers added by PHP with `HTTP_` prefix to their original name (origin, referer, host, user-agent, accept-language, accept-encoding, accept-charset)
                 foreach ($_SERVER as $key => $value) {
                     if (substr($key, 0, 5) === 'HTTP_') {
                         $key = substr($key, 5);

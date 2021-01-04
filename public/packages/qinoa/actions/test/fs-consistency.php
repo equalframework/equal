@@ -17,6 +17,10 @@ $paths = [
     ],
     [
         'rights'    =>  QN_R_READ | QN_R_WRITE,
+        'path'      =>  QN_BASEDIR.'/bin'
+    ],    
+    [
+        'rights'    =>  QN_R_READ | QN_R_WRITE,
         'path'      =>  QN_BASEDIR.'/spool'
     ],
     [

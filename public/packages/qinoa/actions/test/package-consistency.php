@@ -85,13 +85,13 @@ foreach($classes as $class) {
     $class_filename = str_replace('\\', '/', "packages/{$params['package']}/classes/{$class}".'.class.php');
     // check file existence
     if(!file_exists($class_filename)) {
-        throw new Exception("class defintion file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("FATAL - class defintion file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
     }
 
     // check PHP syntax
     $output = shell_exec(sprintf('php -l %s 2>&1', escapeshellarg($class_filename)));
     if(! preg_match('!No syntax errors detected!', $output)) {
-        throw new Exception("syntax error found in '{$class_name}' class definition file ", QN_ERROR_UNKNOWN);
+        throw new Exception("FATAL - syntax error found in '{$class_name}' class definition file ", QN_ERROR_UNKNOWN);
         /*
         $result[] = "Class $class: Missing 'type' attribute for field $field";
         continue;
@@ -100,7 +100,7 @@ foreach($classes as $class) {
     
     $model = $orm->getModel($class_name);    
     if(!is_object($model)) {
-        throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("FATAL - unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
     }
         
     // get the complete schema of the object (including special fields)
@@ -111,23 +111,23 @@ foreach($classes as $class) {
 
 	foreach($schema as $field => $description) {
 		if(!isset($description['type'])) {
-			$result[] = "Class $class: Missing 'type' attribute for field $field";
+			$result[] = "ERROR - Class $class: Missing 'type' attribute for field $field";
 			continue;
 		}
         if(!in_array($description['type'], $valid_types)) {
-			$result[] = "Class $class: Invalid type '{$description['type']}' for field $field";
+			$result[] = "ERROR - Class $class: Invalid type '{$description['type']}' for field $field";
 			continue;
         }
 		if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-			$result[] = "Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', ObjectManager::$mandatory_attributes[$description['type']]);	
+			$result[] = "ERROR - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', ObjectManager::$mandatory_attributes[$description['type']]);	
 			continue;
 		}
 		foreach($description as $attribute => $value) {
 			if(!in_array($attribute, $orm::$valid_attributes[$description['type']])) {
-				$result[] = "Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', ObjectManager::$valid_attributes[$description['type']]);
+				$result[] = "ERROR - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', ObjectManager::$valid_attributes[$description['type']]);
 			}
 			if(in_array($attribute, array('store', 'multilang', 'search')) && $value !== true && $value !== false) {
-				$result[] = "Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)";
+				$result[] = "ERROR - Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)";
 			}
 		}
 	}
@@ -137,14 +137,14 @@ foreach($classes as $class) {
 
     // 3) check if default views are present (form.default.html and list.default.html)
     if(!is_file("$view_dir/$class.form.default.html"))
-		$result[] = "Class $class: missing default form view (/views/$class.form.default.html)";
+		$result[] = "WARN - Class $class: missing default form view (/views/$class.form.default.html)";
     if(!is_file("$view_dir/$class.list.default.html"))
-		$result[] = "Class $class: missing default list view (/views/$class.list.default.html)";
+		$result[] = "WARN - Class $class: missing default list view (/views/$class.list.default.html)";
 
     // 4) check if translation file are present (.json)
     foreach($lang_list as $lang) {
          if(!is_file("$lang_dir/$lang/$class.json")) {
-             $result[] = "Class $class: missing translation file for language $lang";
+             $result[] = "WARN - Class $class: missing translation file for language $lang";
          }
     }
 
@@ -180,7 +180,7 @@ $db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 if(!$db->connected()) {
     if($db->connect() == false) {
-        die('Error: Unable to connect to database');
+        die('FATAL - Unable to connect to database');
     }
 }
                 
@@ -224,7 +224,7 @@ foreach($classes as $class) {
     
 	// 1) verify that the DB table exists
 	if(!isset($tables[$table])) {
-		$result[] = "Class $class: Associated table ({$table}) does not exist in database";
+		$result[] = "ERROR - Class $class: Associated table ({$table}) does not exist in database";
 		continue;
 	}
 
@@ -256,7 +256,7 @@ foreach($classes as $class) {
 			$type = $schema[$field]['type'];
 			if(in_array($type, array('function', 'related'))) $type = $schema[$field]['result_type'];
 			if(!in_array($db_schema[$field]['type'], $allowed_associations[$type])) {
-				$result[] = "Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']})";
+				$result[] = "ERROR - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']})";
 			}
 		}
 	}
@@ -266,13 +266,13 @@ foreach($classes as $class) {
 		$table_name = $schema[$field]['rel_table'];
 
 		if(!isset($tables[$table_name])) {
-			$result[] = "Class $class: Relational table ($table_name) specified by field {$field} does not exist in database";
+			$result[] = "ERROR - Class $class: Relational table ($table_name) specified by field {$field} does not exist in database";
 		}
 	}
 }
 
 
-if(!count($result)) $result[] = "No errors found.";
+if(!count($result)) $result[] = "INFO - No errors found.";
 
 // send json result
 $context->httpResponse()

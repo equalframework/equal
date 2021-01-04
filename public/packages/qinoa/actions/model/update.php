@@ -21,7 +21,12 @@ list($params, $providers) = announce([
         'id' =>  [
             'description'   => 'Unique identifier of the object to update.',
             'type'          => 'integer',
-            'required'      => true
+            'default'       => 0
+        ],
+        'ids' =>  [
+            'description'   => 'List of Unique identifiers of the objects to update.',
+            'type'          => 'array',
+            'default'       => []
         ],
         'fields' =>  [
             'description'   => 'Associative map of fields to be updated, with their related values.',
@@ -39,8 +44,14 @@ list($params, $providers) = announce([
 
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
+if( empty($params['ids']) ) {
+    if( !isset($params['id']) || $params['id'] <= 0 ) {
+        throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
+    }
+    $params['ids'][] = $params['id'];
+}
 
-// adapt received values for parameter 'fields' (are still text formated)
+// adapt received values for parameter 'fields' (which are still text formated)
 $schema = $orm->getModel($params['entity'])->getSchema();
 foreach($params['fields'] as $field => $value) {
     // drop empty fields
@@ -48,11 +59,18 @@ foreach($params['fields'] as $field => $value) {
         unset($params['fields'][$field]);
     }
     else {
+        // adapt received values based on their type (as defined in schema)
         $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
 }
-// retrieve entity and update it    
-$result = $params['entity']::id($params['id'])->update($params['fields'], $params['lang'])->adapt('txt')->first();
+                           // retrieve objects
+$result = $params['entity']::ids($params['ids'])
+                           // update with received values
+                           ->update($params['fields'], $params['lang'])
+                           // convert to text
+                           ->adapt('txt')
+                           // return collection as an array
+                           ->get(true);
 
 $context->httpResponse()
         ->body($result)

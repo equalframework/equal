@@ -38,7 +38,7 @@ $json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
     
 
-$types_associations = array(
+$types_associations = [
 	'boolean' 		=> 'tinyint(4)',
 	'integer' 		=> 'int(11)',
 	'float' 		=> 'decimal(10,2)',	
@@ -52,7 +52,13 @@ $types_associations = array(
 	'file' 		    => 'mediumblob',    
 	'binary' 		=> 'mediumblob',
 	'many2one' 		=> 'int(11)'
-);
+];
+
+$usages_associations = [
+	'coordinate/decimal'	=> 'decimal(9,6)',
+	'language/iso-639:2'	=> 'char(2)',
+	'amount/money'			=> 'decimal(15,2)'
+];
 
 $m2m_tables = array();
 
@@ -94,6 +100,11 @@ foreach($classes as $class) {
 	foreach($schema as $field => $description) {
 		if(in_array($description['type'], array_keys($types_associations))) {
 			$type = $types_associations[$description['type']];
+
+			if( isset($description['usage']) && isset($usages_associations[$description['usage']]) ) {
+				$type = $usages_associations[$description['usage']];
+			}
+
 			if($field == 'id') $result[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
 			elseif(in_array($field, array('creator','modifier','published','deleted'))) $result[] = "`{$field}` {$type} NOT NULL DEFAULT '0',";
 			else $result[] = "`{$field}` {$type},";

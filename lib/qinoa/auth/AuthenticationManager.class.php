@@ -97,7 +97,7 @@ class AuthenticationManager extends Service {
         $user = array_shift($list);
 
         if(!password_verify($password, $user['password'])) {
-            throw new \Exception($login, QN_ERROR_INVALID_USER);
+            throw new \Exception("$login:$password", QN_ERROR_INVALID_USER);
         }
         
         // remember current user identifier

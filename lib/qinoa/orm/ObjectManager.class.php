@@ -74,7 +74,7 @@ class ObjectManager extends Service {
 			'many2one'		=> array('description', 'type', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
 			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
 			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-			'function'		=> array('description', 'type', 'result_type', 'function', 'onchange', 'store', 'multilang')
+			'function'		=> array('description', 'type', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
 	);
 
 	public static $mandatory_attributes = array(
@@ -195,11 +195,22 @@ class ObjectManager extends Service {
     
     public function getPackages() {
         if(!$this->packages) {
-            $this->packages = [];
-            $package_directory = 'packages';
-            if(is_dir($package_directory) && ($list = scandir($package_directory))) {
-                foreach($list as $node) if(is_dir($package_directory.'/'.$node) && !in_array($node, array('.', '..'))) $this->packages[] = $node;
-            }
+			$this->packages = [];
+			$package_directories = [
+				'../public/packages',
+				'../private/packages'
+			];
+			foreach($package_directories as $package_directory) {
+				if(is_dir($package_directory) && ($list = scandir($package_directory))) {
+					foreach($list as $node) {
+						if(is_dir($package_directory.'/'.$node) 
+						&& !in_array($node, array('.', '..'))
+						&& !in_array($node, $this->packages)) {
+							$this->packages[] = $node;
+						}
+					}
+				}	
+			}
         }
         return $this->packages;
     }
@@ -753,14 +764,14 @@ class ObjectManager extends Service {
 
 	public function &getStatic($object_class) {
         $instance = false;        
-        $packages = $this->getPackages();
-        $package = self::getObjectPackageName($object_class);
+		$packages = $this->getPackages();
+		$package = self::getObjectPackageName($object_class);
         if(in_array($package, $packages)) {
             try {
                 $instance = &$this->getStaticInstance($object_class);
             }
             catch(Exception $e) {
-                trigger_error($e->getMessage(), E_USER_ERROR);
+				trigger_error($e->getMessage(), E_USER_ERROR);
             }
         }
 		return $instance;
@@ -773,17 +784,17 @@ class ObjectManager extends Service {
     }
 
 	/**
-	* Checks whether the values of given object fields are valid or not.
-	* Checks if the given array contains valid values for related fields.
-	* This is done using the class validation method.
-	* Returns an associative array containing invalid fields with their associated error_message_id 
-    * (an empty array means all fields are valid)
+	 * Checks whether the values of given object fields are valid or not.
+	 * Checks if the given array contains valid values for related fields.
+	 * This is done using the class validation method.
+	 * Returns an associative array containing invalid fields with their associated error_message_id 
+     * (an empty array means all fields are valid)
 
-	* @param string $class object class
-	* @param array $values
-	* @param boolean $check_unique
-	* @return array resulting associative array (empty if no error found)
-	*/
+	 * @param string $class object class
+	 * @param array $values
+	 * @param boolean $check_unique
+	 * @return array resulting associative array (empty if no error found)
+	 */
 	public function validate($class, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
 		$res = [];
@@ -850,12 +861,12 @@ class ObjectManager extends Service {
 	}
 
 
-	/*
-    if $fields is empty, a draft object is created 
-    if $field contains some values, object is created and its state is set to 'instance' (@see write method)
-todo : to validate
-    @returns integer    identfier of the newly created used or, in case of error, the code of the error that was raised
-	*/
+	/**
+     * if $fields is empty, a draft object is created 
+     * if $field contains some values, object is created and its state is set to 'instance' (@see write method)
+	 * 
+     * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised
+	 */
 	public function create($class, $fields=NULL, $lang=DEFAULT_LANG) {
 		$res = 0;
         // get DB handler (init DB connection if necessary)
@@ -865,24 +876,26 @@ todo : to validate
 			$object = &$this->getStaticInstance($class);
             
 			$object_table = $this->getObjectTableName($class);
-// todo : retrieve current user ID			
-			// $creation_array = array('created' => date("Y-m-d H:i:s"), 'creator' => $uid);
 
 			// create object with default values
-			$creation_array = array_merge( ['created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
+			$creation_array = array_merge( ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
             
 			// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
             $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
 			// use the oldest expired draft, if any            
-			if(!count($ids)) $oid = 0;
-            else $oid = $ids[0];
-            
-			if($oid  > 0) {
+			if(!count($ids)) {
+				$oid = 0;
+			}
+            else {
+				$oid = $ids[0];
+			}            
+			if($oid > 0) {
 				// store the id to reuse
 				$creation_array['id'] = $oid;
 				// and delete the associated record (which might contain obsolete data)
 				$db->deleteRecords($object_table, array($oid));
 			}
+
 			// create a new record with the found value, or let the autoincrement do the job
 			$db->addRecords($object_table, array_keys($creation_array), array(array_values($creation_array)));
 			if($oid <= 0) $oid = $db->getLastId();
@@ -944,6 +957,9 @@ todo: signature differs from other methods	(returned value)
             
             // remove unknown fields
 			$allowed_fields = $object->getFields();
+			// prevent updating id field
+			if(isset($fields['id'])) unset($fields['id']);
+
             foreach($fields as $field => $values) {
                 // handle 'dot' notation (ignore '.' and following chars)
                 $field = explode('.', $field)[0];

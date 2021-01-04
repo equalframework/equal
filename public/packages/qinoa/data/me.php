@@ -20,13 +20,13 @@ list($context, $om, $am) = [$providers['context'], $providers['orm'], $providers
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
 $user_id = $am->userId();
 if($user_id <= 0) {
-    throw new Exception('user unknown', QN_ERROR_INVALID_USER);    
+    throw new Exception('user_unknown', QN_ERROR_INVALID_USER);    
 }
 // request directly the mapper to bypass permission check on User class 
 $ids = $om->search('core\User', ['id', '=', $user_id]);
 // make sure the User object is available
 if(!count($ids)) {
-    throw new Exception('unexpected error', QN_ERROR_INVALID_USER);
+    throw new Exception('unexpected_error', QN_ERROR_INVALID_USER);
 }
 // user has allways READ right on its own object
 $user = User::ids($ids)
