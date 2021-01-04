@@ -457,7 +457,7 @@ class Collection implements \Iterator {
                         unset($res[$oid]);
                     }
                     else {
-                        unset($odata['deleted']);
+                        unset($res[$oid]['deleted']);
                     }
                 }
             }
