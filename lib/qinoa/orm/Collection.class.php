@@ -393,8 +393,10 @@ class Collection implements \Iterator {
             
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
-            // build a list of direct field to load (i.e. "object attributes")
+            // build a list of direct field to load (i.e. "object attributes") 
+            // we might access an object directly by giving its ID, as some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set
             $requested_fields = ['id', 'deleted'];
+            
             foreach($fields as $key => $val ) {
                 // handle array notation                
                 $field = (!is_numeric($key))?$key:$val;
@@ -448,10 +450,15 @@ class Collection implements \Iterator {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
             }            
 
-            // 4) remove any deleted items (to handle ::ids()->read())
-            foreach($res as $oid => $odata) {
-                if($odata['deleted']) {
-                    unset($res[$oid]);
+            // 4) remove any deleted items (to handle ::ids()->read()), if `deleted` field was not explicitely requested
+            if(!in_array('deleted', $fields)) {            
+                foreach($res as $oid => $odata) {
+                    if($odata['deleted']) {
+                        unset($res[$oid]);
+                    }
+                    else {
+                        unset($odata['deleted']);
+                    }
                 }
             }
 

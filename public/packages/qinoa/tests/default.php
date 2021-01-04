@@ -244,7 +244,7 @@ $tests = [
     '2501' => array(
                     'description'       =>  "Search an object with valid clause 'ilike'",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('1'),
+                    'expected'          =>  array('2'),
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
                                                 return $om->search('core\Group', array(array(array('name', 'ilike', '%Default%'))));
