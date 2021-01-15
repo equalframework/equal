@@ -1271,7 +1271,7 @@ todo: signature differs from other methods	(returned value)
 			$res_list = array();
 
 			$conditions = array(array());
-			// join conditions that have to be applies to all clauses
+			// join conditions that have to be additionaly applied to all clauses
 			$join_conditions = array();
 			$tables = array();
 

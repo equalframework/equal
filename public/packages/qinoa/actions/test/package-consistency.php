@@ -250,7 +250,7 @@ foreach($classes as $class) {
 	// a) check that every declared simple field is present in the associated DB table
 	foreach($simple_fields as $field) {
 		// 2) verify that the fields exists in DB
-		if(!isset($db_schema[$field])) $result[] = "Class $class: Field $field ({$schema[$field]['type']}) does not exist in table {$table}";
+		if(!isset($db_schema[$field])) $result[] = "ERROR - Class $class: Field $field ({$schema[$field]['type']}) does not exist in table {$table}";
 		else {
 		// 3) verify types compatibility
 			$type = $schema[$field]['type'];

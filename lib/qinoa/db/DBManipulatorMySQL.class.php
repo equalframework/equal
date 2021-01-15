@@ -235,21 +235,15 @@ class DBManipulatorMySQL extends DBManipulator {
 		// select clause
 		// we could add the following directive for better performance (disabled to maximize code portability)
 		// $sql = 'SELECT SQL_CALC_FOUND_ROWS ';
-		$sql = 'SELECT ';
+		$sql = 'SELECT DISTINCT ';
 		if(empty($fields)) $sql .= '*';
 		else {
-			if(count($fields) > 1) {
-				$selection = [];
-				foreach($fields as $field) {
-					$selection[] = self::escapeFieldName($field);
-				}
-				$sql .= implode(',', $selection);
-			}
-			else {
-				$sql .= 'DISTINCT '.self::escapeFieldName($fields[0]);
-			}			
-		}
-		
+            $selection = [];
+            foreach($fields as $field) {
+                $selection[] = self::escapeFieldName($field);
+            }
+            $sql .= implode(',', $selection);
+		}		
 
 		// from clause
         $sql .= ' FROM ';
