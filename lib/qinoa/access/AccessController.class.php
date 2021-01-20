@@ -209,6 +209,7 @@ class AccessController extends Service {
      *  For a more complex behaviour, this class can be replaced by a custom Auth service.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        $allowed = false;
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') return true;
 
@@ -224,14 +225,24 @@ class AccessController extends Service {
 			$object_ids = (array) $object_ids;
 		}
         
-        // remove duplicates, if any
-        $object_ids = array_unique($object_ids);
-        // keep only ids of object for which user has required privilege
-        $filtered_ids = $this->filter($operation, $object_class, $object_fields, $object_ids);
-        // compute difference
-        $diff = array_diff($object_ids, $filtered_ids);
-        // if equal then operation is granted
-        return !((bool) count($diff));
+        //  permission query is for class and/or fields only (no specific objects)        
+        if(!count($object_ids)) {
+            $user_rights = $this->getUserRights($user_id, $object_class, $object_fields);
+            $allowed = (bool) ($user_rights & $operation);            
+        }
+        // we have to check several objects
+        else {
+            // remove duplicates, if any
+            $object_ids = array_unique($object_ids);
+            // keep only ids of object for which user has required privilege
+            $filtered_ids = $this->filter($operation, $object_class, $object_fields, $object_ids);
+            // compute difference
+            $diff = array_diff($object_ids, $filtered_ids);
+            // if equal then operation is granted
+            $allowed = !((bool) count($diff));
+        }
+
+        return $allowed;
     }
     
     /**
