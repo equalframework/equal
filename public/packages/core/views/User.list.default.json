@@ -1,0 +1,43 @@
+{
+    "name": "Users list",
+    "description": "This view is intended for displaying basic listing of existing users",
+    "list": {
+        "fields": [
+            {
+                "field": "id",
+                "width": "5%"
+            },
+            {
+                "field": "created",
+                "width": "10%"
+            },    
+            {
+                "field": "login",
+                "label": "Login",
+                "link": true,
+                "width": "10%"
+            },
+            {
+                "field": "firstname",
+                "label": "Firstname",
+                "width": "15%"
+            },
+            {
+                "field": "lastname",
+                "label": "Lastname",
+                "width": "15%"            
+            },
+            {
+                "field": "language",
+                "label": "Language",
+                "width": "10%"            
+            },
+            {
+                "field": "groups_ids",
+                "label": "Groups",
+                "width": "35%",
+                "widget": "one2many"
+            }        
+        ]
+    }
+}

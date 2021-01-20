@@ -1,0 +1,47 @@
+{
+    "name": "User",
+    "description": "Simple form for displaying User",
+    "form": {
+        "sections": [
+            {
+                "label": "",
+                "containers": [                 // si plusieurs containers, affichage avec tabs
+                    {
+                        "label": "",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "label",
+                                                "value": "Identifier",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "id",
+                                                "width": "50%"
+                                                "widget": "",           // filtre pour l'affichage (date, montant, pourcent, sélection, ...)
+                                                "view": ""              // dans le cas d'un widget utilisant une vue
+                                                "domain": ""            // dans le cas d'un widget utilisant un domaine
+                                            },
+                                            {
+                                                "type": "button",
+                                                "value": "custom action",
+                                                "width: "50%",
+                                                "action": ""            // action liée à l'objet édité
+                                            }
+                                        ]
+                                    }
+                                ],
+                            },
+                        ]
+                    }
+                ]
+            },
+        ]
+    }
+}
