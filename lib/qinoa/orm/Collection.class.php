@@ -221,7 +221,7 @@ class Collection implements \Iterator {
                 }
             }
 */            
-            // init keys of 'objects' member (for now, contain only an empty array)
+            // init keys of 'objects' member (resulting in a map with keys but no values)
             $this->objects = array_fill_keys($ids, []);
         }
         return $this;

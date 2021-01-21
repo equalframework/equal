@@ -33,13 +33,13 @@ class AccessController extends Service {
     protected function getUserGroups($user_id) {
 		$groups_ids = [];
 		if(!isset($this->groupsTable[$user_id])) {
+            // all users are members of default group (including unidentified users)
+            $this->groupsTable[$user_id] = [(string) DEFAULT_GROUP_ID];
+
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
 			if($values > 0 && isset($values[$user_id])) {
-				$this->groupsTable[$user_id] = array_unique(array_merge([(string) DEFAULT_GROUP_ID], $values[$user_id]['groups_ids']));
-            }
-            else {
-                $this->groupsTable[$user_id] = [];
+				$this->groupsTable[$user_id] = array_unique(array_merge($this->groupsTable[$user_id], $values[$user_id]['groups_ids']));
             }
         }
         $groups_ids = $this->groupsTable[$user_id];        
