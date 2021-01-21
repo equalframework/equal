@@ -209,12 +209,14 @@ class AccessController extends Service {
      *  For a more complex behaviour, this class can be replaced by a custom Auth service.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-        $allowed = false;
+
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') return true;
 
         // check operation against default rights
 		if(DEFAULT_RIGHTS & $operation) return true;
+
+        $allowed = false;
 
         // retrieve current user identifier
         $auth = $this->container->get('auth');
@@ -250,6 +252,9 @@ class AccessController extends Service {
      *  This method is called by the Collection service, when performing Search
      */
     public function filter($operation, $object_class, $object_fields, $object_ids) {
+
+        // grant all rights when using CLI
+        if(php_sapi_name() === 'cli') return $object_ids;
 
         // retrieve current user identifier
         $auth = $this->container->get('auth');
