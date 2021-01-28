@@ -797,6 +797,8 @@ class ObjectManager extends Service {
 	 */
 	public function validate($class, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
+// todo : support for 'usage' attribute
+// todo : support partial object check (individual field validation) and complete object check (with support for the 'required' attribute)
 		$res = [];
 
         $model = &$this->getStaticInstance($class);

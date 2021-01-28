@@ -201,6 +201,18 @@ class AccessController extends Service {
         $this->revokeUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
     }
 
+    public function addGroups($groups_ids) {
+        $groups_ids = (array) $groups_ids;
+        $auth = $this->container->get('auth');
+        $orm = $this->container->get('orm');
+        $user_id = $auth->userId();
+        return $orm->update('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
+    }
+
+    public function addGroup($group_id) {
+        return $this->addGroups($group_id);
+    }
+    
     /**
      *  Check if a current user (retrieved using Auth service) has rights to perform a given operation.
      *
