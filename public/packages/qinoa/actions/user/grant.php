@@ -74,7 +74,7 @@ $ac->grantUsers($user_id, $operations[$params['right']], $params['entity']);
 
 $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['user_id', '=', $user_id] ]);       
 if(!count($acl_ids)) {
-    throw new \Exception("unable to create ACL", QN_ERROR_UNKNOWN);
+    throw new \Exception("acl_creation_failed", QN_ERROR_UNKNOWN);
 }
 
 $acls = $orm->read('core\Permission', $acl_ids, ['user_id', 'class_name', 'rights', 'rights_txt']);

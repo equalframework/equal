@@ -33,6 +33,6 @@ list($context) = [ $providers['context'] ];
 // client-side: delete session identification cookie and all cookies from current domain
 $response = $context->httpResponse();
 $response->getHeaders()->set('Cookie', '');
-$response->body('')->status(204)->->send();
+$response->body('')->status(204)->send();
 // server-side: generate a new session
 session_regenerate_id(true);

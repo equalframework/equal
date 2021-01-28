@@ -16,7 +16,7 @@ list($params, $providers) = announce([
     'params'        => [
         'group' =>  [
             'description'   => 'name or ID of targeted group.',
-            'type'          => 'integer', 
+            'type'          => 'string', 
             'required'      => true
         ],
         'right' =>  [
@@ -72,9 +72,9 @@ else {
 
 $ac->grantGroups($group_id, $operations[$params['right']], $params['entity']);
 
-$acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['group_id', '=', $params['group']] ]);       
+$acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['group_id', '=', $group_id] ]);
 if(!count($acl_ids)) {
-    throw new \Exception("unable to create ACL", QN_ERROR_UNKNOWN);
+    throw new \Exception("acl_creation_failed", QN_ERROR_UNKNOWN);
 }
 
 $acls = $orm->read('core\Permission', $acl_ids, ['group_id', 'class_name', 'rights', 'rights_txt']);
