@@ -208,7 +208,7 @@ $tests = [
 
 
     //22xx : calls related to the create method
-    '2201' => array(
+    '2210' => array(
                     'description'       =>  "Create a user (no validation)",
                     'return'            =>  array('integer'),
                     'test'              =>  function () {
@@ -223,6 +223,18 @@ $tests = [
                                                 return $dummy_user_id;
                                             },
                     ),
+
+    '2220' => array(
+                    'description'       =>  "Create a group (no validation)",
+                    'return'            =>  array('integer'),
+                    'expected'          =>  3,
+                    'test'              =>  function () {
+                                                $om = &ObjectManager::getInstance();
+                                                $group_id = $om->create('core\Group', ['name' => 'test']);
+                                                return $group_id;
+                                            },
+                    ),
+    
 
     //23xx : calls related to the write method
 
@@ -322,7 +334,28 @@ $tests = [
                                                 catch(Exception $e) {
                                                     // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
+                                                }
+                                                return $values;
+                                            }
+                    ),
 
+    '2630' => array(
+                    'description'       =>  "Add a user to a given group",
+                    'return'            =>  array('integer', 'array'),
+                    'expected'          =>  array( 2 => ['id' => 2, 'login' => 'cedric@equal.run'] ),
+                    'test'              =>  function () use($providers) {
+                                                try {
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
+                                                    // grant READ operation on all classes
+                                                    $providers['access']->addGroup(3);
+
+                                                    $values = User::search( array(array('groups_ids', 'contains', [3])) )
+                                                            ->read(['id', 'login'])
+                                                            ->get();
+                                                }
+                                                catch(Exception $e) {
+                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    $values = $e->getCode();
                                                 }
                                                 return $values;
                                             }
