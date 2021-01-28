@@ -5,6 +5,19 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
+
+/*
+Usage examples :  
+
+PHP 
+
+
+CLI
+  php run.php --do=model_create --entity=core\group --fields[name]="test group"
+
+
+*/
+
 list($params, $providers) = announce([
     'description'   => "Create a new object using given fields values.",
     'response'      => [
@@ -39,13 +52,12 @@ list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $pro
 $schema = $orm->getModel($params['entity'])->getSchema();
 
 foreach($params['fields'] as $field => $value) {
-    // drop empty fields
-    if(is_null($value)) {
+    // drop empty and unknown fields
+    if(is_null($value) || !isset($schema[$field])) {
         unset($params['fields'][$field]);
+        continue;
     }
-    else {
-        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
-    }
+    $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
 }
 
 $instance = $params['entity']::create($params['fields'], $params['lang'])->adapt('txt')->first();

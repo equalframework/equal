@@ -15,7 +15,7 @@ list($params, $providers) = announce([
     ],    
     'params'        => [
         'group' =>  [
-            'description'   => 'ID of targeted group.',
+            'description'   => 'name or ID of targeted group.',
             'type'          => 'integer', 
             'required'      => true
         ],
@@ -49,14 +49,28 @@ if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
     throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 
-// retrieve group object
-$ids = Group::search(['id', '=', $params['group']])->ids();
+// retrieve targeted group 
 
-if(!count($ids)) { 
-    throw new \Exception("no group by that ID", QN_ERROR_UNKNOWN_OBJECT);
+if(is_numeric($params['group'])) {
+    $group_id = $params['group'];
+
+    $ids = Group::search(['id', '=', $group_id])->ids();
+    if(!count($ids)) { 
+        throw new \Exception("unknown_group_id", QN_ERROR_UNKNOWN_OBJECT);
+    }
+}
+else {
+    // retrieve by name
+    $ids = Group::search(['name', '=', $params['group']])->ids();
+
+    if(!count($ids)) { 
+        throw new \Exception("unknown_group_name", QN_ERROR_UNKNOWN_OBJECT);
+    }
+
+    $group_id = array_shift($ids);    
 }
 
-$ac->grantGroups($params['group'], $operations[$params['right']], $params['entity']);
+$ac->grantGroups($group_id, $operations[$params['right']], $params['entity']);
 
 $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['group_id', '=', $params['group']] ]);       
 if(!count($acl_ids)) {
