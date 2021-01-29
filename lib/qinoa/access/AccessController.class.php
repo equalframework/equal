@@ -155,6 +155,7 @@ class AccessController extends Service {
                     $orm->remove('core\Permission', $acl_id, true);
                 }
                 else {
+                    // update ACL with new permissions
                     $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
                 }
             }
@@ -164,7 +165,9 @@ class AccessController extends Service {
             $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
         }
         // update internal cache
-        if($identity == 'user' && isset($this->permissionsTable[$identity_id])) unset($this->permissionsTable[$identity_id]);
+        if($identity == 'user' && isset($this->permissionsTable[$identity_id])) {
+            unset($this->permissionsTable[$identity_id]);
+        }
     }
 
     public function grantGroups($groups_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
@@ -186,6 +189,13 @@ class AccessController extends Service {
 
         foreach($users_ids as $user_id) {
             $this->changeRights('user', '-', $operation, $user_id, $object_class);
+        }
+    }
+
+    public function revokeGroups($groups_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        if(!is_array($groups_ids)) $groups_ids = (array) $groups_ids;
+        foreach($groups_ids as $group_id) {
+            $this->changeRights('group', '-', $operation, $group_id, $object_class);
         }
     }
 
