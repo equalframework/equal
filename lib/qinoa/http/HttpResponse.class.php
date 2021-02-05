@@ -75,7 +75,8 @@ class HttpResponse extends HttpMessage {
         if(is_array($body)) {
             
             switch($this->headers()->getContentType()) {
-            case 'application/vnd.api+json':                
+            case 'application/vnd.api+json':
+            case 'application/x-json':
             case 'application/json':
                 $body = json_encode($body, JSON_PRETTY_PRINT);
                 break;

@@ -14,7 +14,7 @@ class HttpHeaders {
         'MIME_TXT'   => ['text/plain'],
         'MIME_JS'    => ['application/javascript', 'application/x-javascript', 'text/javascript'],
         'MIME_CSS'   => ['text/css'],
-        'MIME_JSON'  => ['application/json', 'application/x-json'],
+        'MIME_JSON'  => ['application/json', 'application/vnd.api+json', 'application/x-json'],
         'MIME_XML'   => ['text/xml', 'application/xml', 'application/x-xml'],
         'MIME_RDF'   => ['application/rdf+xml'],
         'MIME_ATOM'  => ['application/atom+xml'],

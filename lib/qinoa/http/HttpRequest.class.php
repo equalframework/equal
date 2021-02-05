@@ -78,6 +78,7 @@ class HttpRequest extends HttpMessage {
         
         if(strlen($uri) > 0) {
             $method = $this->getMethod();
+
             $http_options = [];
             $additional_headers = [
                 // invalidate keep-alive behavior
@@ -90,22 +91,38 @@ class HttpRequest extends HttpMessage {
                 'Accept-Charset'    => 'UTF-8'
             ];
             // retrieve content type
-            $content_type = $this->getHeaders()->getContentType();            
+            $content_type = $this->getHeaders()->getContentType();
+
             if(strlen($content_type) <= 0 && in_array($method,['GET', 'POST'])) {
                 // fallback to form encoded data 
                 $content_type = 'application/x-www-form-urlencoded';
             }            
-            // retrieve content
-            $body = $this->getBody();
+
+            // retrieve content            
+            $body = $this->body();
+
             if(is_array($body)) {
-                $body = http_build_query($body);
-                // force parameters to the URI in case of GET request
-                if($method == 'GET') {
-                    $uri = explode('?', $uri)[0].'?'.$body;
-                    // GET request shouldn't hold a body
-                    $body = '';
-                }
-            }            
+                switch($content_type) {
+                    case 'application/x-www-form-urlencoded':
+                        $body = http_build_query($body);
+                        break;
+                    case 'application/vnd.api+json':
+                    case 'application/x-json':
+                    case 'application/json':
+                        $body = json_encode($body, JSON_PRETTY_PRINT);
+                        break;
+                    default:
+                        $body = http_build_query($body);
+                }                
+            }
+
+            // force parameters to the URI in case of GET request
+            if($method == 'GET') {
+                $uri = explode('?', $uri)[0].'?'.$body;
+                // GET request shouldn't hold a body
+                $body = '';
+            }
+
             // compute content length
             $body_length = strlen($body);
             // set content and content-type if relevant
@@ -132,6 +149,7 @@ class HttpRequest extends HttpMessage {
             $context = stream_context_create([
                 'http' => $http_options
             ]);
+
             // send request                     
             $data = @file_get_contents(
                                         $uri, 
