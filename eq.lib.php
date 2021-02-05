@@ -1,14 +1,14 @@
 <?php
 /**
 *    This file is part of the eQual framework.
-*    https://github.com/cedricfrancoys/equal-framework
+*    https://github.com/cedricfrancoys/equal
 *
 *    Some Rights Reserved, Cedric Francoys, 2010-2020
-*    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
+*    it under the terms of the GNU Lesser General Public License as published
+*    by the Free Software Foundation, either version 3 of the License, or
 *    (at your option) any later version.
 *
 *    This program is distributed in the hope that it will be useful,
@@ -16,7 +16,7 @@
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU General Public License for more details.
 *
-*    You should have received a copy of the GNU General Public License
+*    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 namespace {
@@ -285,10 +285,10 @@ namespace config {
         }
     }
 
-    class QNlib {
+    class eQual {
 
         /**
-         * Initialise Qinoa.
+         * Initialise eQual.
          * 
          * Adds the library folder to the include path (library folder should contain the Zend framework if required).
          * This is the bootstrap method for setting everything in place.
@@ -302,7 +302,7 @@ namespace config {
             }
 
             // register own class loader
-            spl_autoload_register(__NAMESPACE__.'\QNlib::load_class');
+            spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
 
             // check service container availability
             if(!is_callable('qinoa\services\Container::getInstance')) {
@@ -799,13 +799,13 @@ namespace config {
          */
         public static function load_class($class_name) {
             $result = false;
-            if(class_exists($class_name, false) || isset($GLOBALS['QNlib_loading_classes'][$class_name])) {
+            if(class_exists($class_name, false) || isset($GLOBALS['eQual_loading_classes'][$class_name])) {
                 // class is already loaded or being loaded
                 $result = true;
             }
             else {
                 // mark class as being loaded
-                $GLOBALS['QNlib_loading_classes'][$class_name] = true;
+                $GLOBALS['eQual_loading_classes'][$class_name] = true;
                 $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use Qinoa class extention
                 if(file_exists($file_path.'.class.php')) $result = include_once $file_path.'.class.php';
@@ -815,15 +815,15 @@ namespace config {
                     // give up an relay to next registered loader, if any
                 }
                 // set class as fully loaded
-                unset($GLOBALS['QNlib_loading_classes'][$class_name]);
+                unset($GLOBALS['eQual_loading_classes'][$class_name]);
             }
             return $result;
         }
 
     }
 
-    //Initialize the QNlib class for further 'load_class' calls
-    QNlib::init();
+    //Initialize the eQual class for further 'load_class' calls
+    eQual::init();
 }
 namespace {
     
@@ -831,15 +831,15 @@ namespace {
     * inject standalone functions into global scope (to relieve the user from the scope resolution notation)
     */
     function run(string $type, string $operation, array $body=[], $root=false) {
-        return config\QNlib::run($type, $operation, $body, $root);
+        return config\eQual::run($type, $operation, $body, $root);
     }
     
     function announce(array $announcement) {
-        return config\QNlib::announce($announcement);        
+        return config\eQual::announce($announcement);        
     }
     
     function inject(array $providers) {
-        return config\QNlib::inject($providers);
+        return config\eQual::inject($providers);
     }
     
 }

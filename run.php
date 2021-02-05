@@ -44,7 +44,7 @@ use qinoa\route\Router;
  Load bootstrap library: system constants and functions definitions
  (QN library allows to include required files and classes)
 */
-$bootstrap = dirname(__FILE__).'/qn.lib.php';
+$bootstrap = dirname(__FILE__).'/eq.lib.php';
 if( (include($bootstrap)) === false ) die('qinoa lib is missing');
 
 try {    

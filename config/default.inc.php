@@ -1,7 +1,7 @@
 <?php
 /** 
 * Main configuration file
-* Constants with name starting with QN_ are defined in qn.lib.php
+* Constants with name starting with QN_ are defined in eq.lib.php
 */
 namespace {
     /**

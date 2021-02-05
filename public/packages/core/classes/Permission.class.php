@@ -7,19 +7,20 @@ class Permission extends Model {
     public static function getColumns() {
         return [
             'class_name'		=> ['type' => 'string'],
+            'domain'		    => ['type' => 'string'],            
             'group_id'			=> ['type' => 'many2one', 'foreign_object' => 'core\Group'],
             'user_id'			=> ['type' => 'many2one', 'foreign_object' => 'core\User'],
             'rights'			=> [
                                     'type' 	        => 'integer',
                                     'onchange'      => 'core\Permission::onchange_rights'
-                                   ],
+            ],
             // virtual fields, used in list views
             'rights_txt'		=> [
-                                    'type'          => 'function', 
+                                    'type'          => 'computed', 
                                     'store'         => true, 
                                     'result_type'   => 'string', 
                                     'function'      => 'core\Permission::getRightsTxt'
-                                   ]
+            ]
         ];
     }
 

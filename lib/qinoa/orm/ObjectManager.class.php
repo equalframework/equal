@@ -55,26 +55,26 @@ class ObjectManager extends Service {
 
     public static $virtual_types = array('alias');
 	public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'html', 'array', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
-	public static $complex_types = array('one2many', 'many2many', 'function');
+	public static $complex_types = array('one2many', 'many2many', 'computed');
 
 	public static $valid_attributes = array(
-			'alias'		    => array('description', 'type', 'usage', 'alias', 'required'),    
-			'boolean'		=> array('description', 'type', 'usage', 'required', 'onchange'),
-			'integer'		=> array('description', 'type', 'usage', 'required', 'onchange', 'selection', 'unique'),
-			'float'			=> array('description', 'type', 'usage', 'required', 'onchange', 'selection', 'precision'),
-			'string'		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-			'text'			=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),
-// todo : html should be handled as text/html            
-			'html'			=> array('description', 'type', 'required', 'onchange', 'multilang'),            
-			'date'			=> array('description', 'type', 'usage', 'required', 'onchange'),
-			'time'			=> array('description', 'type', 'required', 'onchange'),
-			'datetime'		=> array('description', 'type', 'usage', 'required', 'onchange'),
-			'file'  		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),           
-			'binary'		=> array('description', 'type', 'usage', 'required', 'onchange', 'multilang'),
-			'many2one'		=> array('description', 'type', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
-			'one2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
-			'many2many'		=> array('description', 'type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-			'function'		=> array('description', 'type', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
+			'alias'		    => array('description', 'type', 'visible', 'usage', 'alias', 'required'),    
+			'boolean'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+			'integer'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'unique'),
+			'float'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'precision'),
+			'string'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+			'text'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
+// todo : html should be handled as `'usage': 'text/html'`	
+			'html'			=> array('description', 'type', 'visible', 'required', 'onchange', 'multilang'),            
+			'date'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+			'time'			=> array('description', 'type', 'visible', 'required', 'onchange'),
+			'datetime'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+			'file'  		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),           
+			'binary'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
+			'many2one'		=> array('description', 'type', 'visible', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
+			'one2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
+			'many2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
+			'computed'		=> array('description', 'type', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
 	);
 
 	public static $mandatory_attributes = array(
@@ -93,7 +93,7 @@ class ObjectManager extends Service {
 			'many2one'		=> array('type', 'foreign_object'),
 			'one2many'		=> array('type', 'foreign_object', 'foreign_field'),
 			'many2many'		=> array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
-			'function'		=> array('type', 'result_type', 'function')
+			'computed'		=> array('type', 'result_type', 'function')			
 	);
 
     public static $valid_operators = array(
@@ -108,7 +108,7 @@ class ObjectManager extends Service {
             'datetime'		=> array('=', '<>', '<', '>', '<=', '>='),
             'file'		    => array('like', 'ilike', '='),                
             'binary'		=> array('like', 'ilike', '='),
-            // for compatibilty reasons, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
+            // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
             'many2one'		=> array('is', 'in', '=', '<>', 'contains'),
             'one2many'		=> array('contains'),
             'many2many'		=> array('contains'),
@@ -234,9 +234,14 @@ class ObjectManager extends Service {
             preg_match('/\bextends\b(.*)\{/iU', file_get_contents($filename), $matches);
             if(!isset($matches[1])) throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
             else $parent_class = trim($matches[1]);
-            if(!(include $filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+			if(!(include_once $filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+			if(!class_exists($class)) {				
+				throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
+			}			
         }
-        if(!isset($this->instances[$class])) $this->instances[$class] = new $class();
+        if(!isset($this->instances[$class])) {
+			$this->instances[$class] = new $class();
+		}
         return $this->instances[$class];
 	}
 
@@ -510,7 +515,7 @@ class ObjectManager extends Service {
                     trigger_error($e->getMessage(), E_USER_ERROR);
 				}
 			},
-			'function'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
+			'computed'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
 				try {
 					foreach($fields as $field) {
 						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
@@ -530,7 +535,8 @@ class ObjectManager extends Service {
 				catch(Exception $e) {
                     trigger_error($e->getMessage(), E_USER_ERROR);
 				}
-			});
+			}		
+			);
 
 			// build an associative array ordering given fields by their type
 			$fields_lists = array();
@@ -541,8 +547,8 @@ class ObjectManager extends Service {
 			foreach($fields as $key => $field) {
                 // retrieve field type
 				$type = $schema[$field]['type'];
-				// stored computed fields are handled following their resulting type
-				if( $type == 'function'
+				// computed fields are handled following their resulting type
+				if( ($type == 'function' || $type == 'computed')
 					&& isset($schema[$field]['store'])
 					&& $schema[$field]['store']
 				) {
@@ -571,10 +577,10 @@ class ObjectManager extends Service {
 				$oids = array();
 				// if store attribute is set and no result was found, we need to compute the value
 				// note : we use is_null() rather than empty() because an empty value could be the result of a calculation 
-                // (this implies that the DB schema has 'DEFAULT NULL' for the associated column)
+                // (this implies that the DB schema has 'DEFAULT NULL' for columns associated to computed fields)
 				foreach($ids as $oid) if(is_null($this->cache[$class][$oid][$field][$lang])) $oids[] = $oid;
 				// compute field for incomplete objects
-				$load_fields['function']($this, $oids, array($field));
+				$load_fields['computed']($this, $oids, array($field));
 				// store newly computed fields to database (to avoid computing them at each object load)
 				$this->store($class, $oids, array($field), $lang);
 			}
@@ -724,7 +730,7 @@ class ObjectManager extends Service {
                     trigger_error($e->getMessage(), E_USER_ERROR);
 				}
 			},
-			'function' =>	function($om, $ids, $fields) use ($schema, $class, $lang){
+			'computed' =>	function($om, $ids, $fields) use ($schema, $class, $lang){
 				// nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
 			});
 
@@ -736,7 +742,7 @@ class ObjectManager extends Service {
                 // retrieve field type
 				$type = $schema[$field]['type'];
 				// stored computed fields are handled following their resulting type
-				if( $type == 'function'
+				if( ($type == 'function' || $type == 'computed')
 					&& isset($schema[$field]['store'])
 					&& $schema[$field]['store']
 				) {
@@ -762,24 +768,24 @@ class ObjectManager extends Service {
 	}
 
 
-	public function &getStatic($object_class) {
+	public function getStatic($object_class) {
         $instance = false;        
 		$packages = $this->getPackages();
 		$package = self::getObjectPackageName($object_class);
         if(in_array($package, $packages)) {
             try {
-                $instance = &$this->getStaticInstance($object_class);
+                $instance = $this->getStaticInstance($object_class);
             }
             catch(Exception $e) {
 				trigger_error($e->getMessage(), E_USER_ERROR);
             }
-        }
+		}
 		return $instance;
 	}
     
     // alias for getStatic
-    public function &getModel($object_class) {
-        $instance = $this->getStatic($object_class);
+    public function getModel($object_class) {
+		$instance = $this->getStatic($object_class);
         return $instance;
     }
 
@@ -1311,7 +1317,7 @@ todo: signature differs from other methods	(returned value)
                         }
                         // get final type
                         $type = $schema[$field]['type'];
-						if($type == 'function') $type = $schema[$field]['result_type'];                        
+						if($type == 'function' || $type == 'computed') $type = $schema[$field]['result_type'];                        
                         // check the validity of the field name and the operator
                         if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$object_class'", QN_ERROR_INVALID_PARAM);						                        
 						if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$object_class'", QN_ERROR_INVALID_PARAM);						
@@ -1407,7 +1413,7 @@ todo: signature differs from other methods	(returned value)
             
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
-                if(!isset($schema[$sort_field]) || ($schema[$sort_field]['type'] == 'function' && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
+                if(!isset($schema[$sort_field]) || ( ($schema[$sort_field]['type'] == 'function' || $schema[$sort_field]['type'] == 'computed') && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
                     trigger_error("invalid order field '$sort_field' for class '$object_class'", E_USER_WARNING);
                     // $order = 'id';
                     $sort_field = 'id';

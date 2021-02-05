@@ -129,6 +129,18 @@ class Model {
     }
 
 	/**
+	 * Gets Model readable name
+	 * This method is meant to be overridden by children classes.
+	 * 
+	 * @access public
+	 * @return array
+	 */
+	public static function getName() {
+		return 'Base Model';
+	}
+
+
+	/**
 	 * Gets object schema
 	 *
 	 * @access public
@@ -175,7 +187,7 @@ class Model {
 	* @access public
 	*/
 	public static function getColumns() {
-		return array();
+		return [];
 	}
 
 	/**
