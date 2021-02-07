@@ -97,7 +97,7 @@ class ObjectManager extends Service {
 	);
 
     public static $valid_operators = array(
-            'boolean'		=> array('=', '<>', '<', '>'),
+            'boolean'		=> array('=', '<>', '<', '>', 'in'),
             'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
             'float'			=> array('=', '<>', '<', '>', '<=', '>='),
             'string'		=> array('like', 'ilike', 'in', '=', '<>'),
@@ -385,155 +385,130 @@ class ObjectManager extends Service {
                 // nothing to do : this type is handled in read methods
             },
 			// 'multilang' is a particular case of simple field
-			'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					$result = $om->db->getRecords(
-						array('core_translation'),
-						array('object_id', 'object_field', 'value'),
-						$ids,
-						array(array(
-								array('language','=',$lang),
-								array('object_class','=',$class),
-								array('object_field','in',$fields)
-							 )
-						),
-						'object_id');
-					// fill in the internal buffer with returned rows (translation is stored in the 'value' column)
-					while($row = $om->db->fetchArray($result)) {
-						$oid = $row['object_id'];
-						$field = $row['object_field'];
-						// do some pre-treatment if necessary (this step is symetrical to the one in store method)
+			'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				$result = $om->db->getRecords(
+					array('core_translation'),
+					array('object_id', 'object_field', 'value'),
+					$ids,
+					array(array(
+							array('language','=',$lang),
+							array('object_class','=',$class),
+							array('object_field','in',$fields)
+							)
+					),
+					'object_id');
+				// fill in the internal buffer with returned rows (translation is stored in the 'value' column)
+				while($row = $om->db->fetchArray($result)) {
+					$oid = $row['object_id'];
+					$field = $row['object_field'];
+					// do some pre-treatment if necessary (this step is symetrical to the one in store method)
 // todo : by default, we should do nothing, to maintain performance - and allow user to pickup a method among some pre-defined default conversions
-						// $value = DataAdapter::adapt('db', 'orm', $schema[$field]['type'], $row['value'], $class, $oid, $field, $lang);                        
-                        $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
+					// $value = DataAdapter::adapt('db', 'orm', $schema[$field]['type'], $row['value'], $class, $oid, $field, $lang);                        
+					$value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
+					// update the internal buffer with fetched value
+					$om->cache[$class][$oid][$field][$lang] = $value;
+				}
+				// force assignment to NULL if no result was returned by the SQL query
+				foreach($ids as $oid) {
+					foreach($fields as $field) {
+						if(!isset($om->cache[$class][$oid][$field][$lang])) $om->cache[$class][$oid][$field][$lang] = NULL;
+					}
+				}
+			},
+			'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				// get the name of the DB table associated to the object
+				$table_name = $om->getObjectTableName($class);
+				// make sure to load the 'id' field (we need it to map fetched values to their object)
+				$fields[] = 'id';
+				// get all records at once
+				$result = $om->db->getRecords(array($table_name), $fields, $ids);
+
+				// treat sql result in the same order than the ids list
+				while($row = $om->db->fetchArray($result)) {
+					// retrieve the id of the object associated with current record
+					$oid = $row['id'];
+					foreach($row as $field => $value) {
+						// do some pre-treatment if necessary (this step is symetrical to the one in store method)
+						$type = $schema[$field]['type'];
+						if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
+						
+						if(!is_null($value)) {
+							$value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
+						}
+						
 						// update the internal buffer with fetched value
 						$om->cache[$class][$oid][$field][$lang] = $value;
 					}
-					// force assignment to NULL if no result was returned by the SQL query
-					foreach($ids as $oid) {
-						foreach($fields as $field) {
-							if(!isset($om->cache[$class][$oid][$field][$lang])) $om->cache[$class][$oid][$field][$lang] = NULL;
-						}
-					}
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);                    
 				}
 			},
-			'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					// get the name of the DB table associated to the object
-					$table_name = $om->getObjectTableName($class);
-					// make sure to load the 'id' field (we need it to map fetched values to their object)
-					$fields[] = 'id';
-					// get all records at once
-					$result = $om->db->getRecords(array($table_name), $fields, $ids);
-
-					// treat sql result in the same order than the ids list
-					while($row = $om->db->fetchArray($result)) {
-						// retrieve the id of the object associated with current record
-						$oid = $row['id'];
-						foreach($row as $field => $value) {
-							// do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                            $type = $schema[$field]['type'];
-                            if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
-                            
-                            if(!is_null($value)) {
-                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
-                            }
-                            
-							// update the internal buffer with fetched value
-							$om->cache[$class][$oid][$field][$lang] = $value;
-						}
-					}
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
-				}
-			},
-			'one2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(ObjectManager::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-						$order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
-						$sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
+			'one2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($fields as $field) {
+					if(!ObjectManager::checkFieldAttributes(ObjectManager::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+					$order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
+					$sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
 // todo : handle alias fields (require subsequent schema)
-						// obtain the ids by searching inside the foreign object's table
-						$result = $om->db->getRecords(	
-							$om->getObjectTableName($schema[$field]['foreign_object']), 
-							array('id', $schema[$field]['foreign_field'], $order), 
-							NULL, 
-							array(array(
-									array($schema[$field]['foreign_field'], 'in', $ids),
-									array('state', '<>', 'draft'),
-									array('deleted', '=', '0'),																						
-								)
-							), 
-							'id',
-							[$order => $sort]
-						);
-						$lists = array();
-						while ($row = $om->db->fetchArray($result)) {
-							$oid = $row[$schema[$field]['foreign_field']];
-							$lists[$oid][] = $row['id'];
-						}
-						foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = (isset($lists[$oid]))?$lists[$oid]:[];                        
+					// obtain the ids by searching inside the foreign object's table
+					$result = $om->db->getRecords(	
+						$om->getObjectTableName($schema[$field]['foreign_object']), 
+						array('id', $schema[$field]['foreign_field'], $order), 
+						NULL, 
+						array(array(
+								array($schema[$field]['foreign_field'], 'in', $ids),
+								array('state', '<>', 'draft'),
+								array('deleted', '=', '0'),																						
+							)
+						), 
+						'id',
+						[$order => $sort]
+					);
+					$lists = array();
+					while ($row = $om->db->fetchArray($result)) {
+						$oid = $row[$schema[$field]['foreign_field']];
+						$lists[$oid][] = $row['id'];
 					}
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
+					foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = (isset($lists[$oid]))?$lists[$oid]:[];                        
 				}
 			},
-			'many2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-						// obtain the ids by searching inside relation table
-						$result = $om->db->getRecords(	
-							array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']), 
-							array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']), 
-							NULL, 
-							array(array(
-									// note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
-									array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
-									array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
-									array('t0.state', '<>', 'draft'),
-									array('t0.deleted', '=', '0'),																						
-								)
-							), 
-							't0.id'
-						);
-						$lists = array();
-						while ($row = $om->db->fetchArray($result)) {
-							$oid = $row[$schema[$field]['rel_local_key']];
-							$lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
-						}
-						foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = (isset($lists[$oid]))?$lists[$oid]:[];                        
+			'many2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($fields as $field) {
+					if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+					// obtain the ids by searching inside relation table
+					$result = $om->db->getRecords(	
+						array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']), 
+						array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']), 
+						NULL, 
+						array(array(
+								// note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
+								array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
+								array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
+								array('t0.state', '<>', 'draft'),
+								array('t0.deleted', '=', '0'),																						
+							)
+						), 
+						't0.id'
+					);
+					$lists = array();
+					while ($row = $om->db->fetchArray($result)) {
+						$oid = $row[$schema[$field]['rel_local_key']];
+						$lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
 					}
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
+					foreach($ids as $oid) $om->cache[$class][$oid][$field][$lang] = (isset($lists[$oid]))?$lists[$oid]:[];                        
 				}
 			},
-			'computed'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($fields as $field) {
-						if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-						if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
-						$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
-						foreach($ids as $oid) {
-                            if(isset($res[$oid])) {
-                                $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
-                            }
-                            else {
-                                $value = null;
-                            }
-                            $om->cache[$class][$oid][$field][$lang] = $value;
-                        }
+			'computed'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($fields as $field) {
+					if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+					if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
+					$res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
+					foreach($ids as $oid) {
+						if(isset($res[$oid])) {
+							$value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+						}
+						else {
+							$value = null;
+						}
+						$om->cache[$class][$oid][$field][$lang] = $value;
 					}
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
 				}
 			}		
 			);
@@ -608,129 +583,110 @@ class ObjectManager extends Service {
 			// array holding functions to store each type of fields
 			$store_fields = array(
 			// 'multilang' is a particular case of simple field)
-			'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					$om->db->deleteRecords(
-                        'core_translation', 
-                        $ids, 
-                        array(
-                            array(
-                                array('language', '=', $lang), 
-                                array('object_class', '=', $class), 
-                                array('object_field', 'in', $fields)
-                            )
-                        ), 
-                        'object_id'
-                    );
-                    $values_array = [];
-					foreach($ids as $oid) {
-						foreach($fields as $field) {
-                            $values_array[] = [
-                                $lang, $class, $field, $oid, 
-                                $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
-                            ];
-                        }
-                    }
-                    $om->db->addRecords(
-                        'core_translation', 
-                        array('language', 'object_class', 'object_field', 'object_id', 'value'), 
-                        $values_array
-                    );                    
-				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
-				}
-			},
-			'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($ids as $oid) {
-						$fields_values = array();
-						foreach($fields as $field) {                            
-                            // $fields_values[$field] = DataAdapter::adapt('orm', 'db', $schema[$field]['type'], $om->cache[$class][$oid][$field][$lang], $class, $oid, $field, $lang);
-                            $fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang);
-                        }
-						$om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
+			'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				$om->db->deleteRecords(
+					'core_translation', 
+					$ids, 
+					array(
+						array(
+							array('language', '=', $lang), 
+							array('object_class', '=', $class), 
+							array('object_field', 'in', $fields)
+						)
+					), 
+					'object_id'
+				);
+				$values_array = [];
+				foreach($ids as $oid) {
+					foreach($fields as $field) {
+						$values_array[] = [
+							$lang, $class, $field, $oid, 
+							$this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
+						];
 					}
 				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
+				$om->db->addRecords(
+					'core_translation', 
+					array('language', 'object_class', 'object_field', 'object_id', 'value'), 
+					$values_array
+				);                    
+
+			},
+			'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($ids as $oid) {
+					$fields_values = array();
+					foreach($fields as $field) {                            
+						// $fields_values[$field] = DataAdapter::adapt('orm', 'db', $schema[$field]['type'], $om->cache[$class][$oid][$field][$lang], $class, $oid, $field, $lang);
+						$fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang);
+					}
+					$om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
 				}
 			},
-			'one2many' 	=>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($ids as $oid) {
-						foreach($fields as $field) {
-							$value = $om->cache[$class][$oid][$field][$lang];
-							if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
-							$ids_to_remove = array();
-							$ids_to_add = array();
-							foreach($value as $id) {
-								$id = intval($id);
-								if($id < 0) $ids_to_remove[] = abs($id);
-								if($id > 0) $ids_to_add[] = $id;
-							}
-							$foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
-							// remove relation by setting pointing id to 0
-							if(count($ids_to_remove)) $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
-							// add relation by setting the pointing id (overwrite previous value if any)
-							if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
-							// invalidate cache (field partially loaded)
-							unset($om->cache[$class][$oid][$field][$lang]);
+			'one2many' 	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($ids as $oid) {
+					foreach($fields as $field) {
+						$value = $om->cache[$class][$oid][$field][$lang];
+						if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
+						$ids_to_remove = array();
+						$ids_to_add = array();
+						foreach($value as $id) {
+							$id = intval($id);
+							if($id < 0) $ids_to_remove[] = abs($id);
+							if($id > 0) $ids_to_add[] = $id;
 						}
+						$foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
+						// remove relation by setting pointing id to 0
+						if(count($ids_to_remove)) $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+						// add relation by setting the pointing id (overwrite previous value if any)
+						if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
+						// invalidate cache (field partially loaded)
+						unset($om->cache[$class][$oid][$field][$lang]);
 					}
 				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
-				}
 			},
-			'many2many' =>	function($om, $ids, $fields) use ($schema, $class, $lang){
-				try {
-					foreach($ids as $oid) {
-						foreach($fields as $field) {
-							$value = $om->cache[$class][$oid][$field][$lang];
-							if(!is_array($value)) {
-                                trigger_error("wrong value for field '$field' of class '$class', should be an array", E_USER_ERROR);                               
-                                continue;
-                            }
-							$ids_to_remove = array();
-							$values_array = array();
-							foreach($value as $id) {
-								$id = intval($id);
-								if($id < 0) $ids_to_remove[] = abs($id);
-								if($id > 0) $values_array[] = array($oid, $id);
-							}
-							// delete relations of ids having a '-'(minus) prefix
-							if(count($ids_to_remove)) {
-                                $om->db->deleteRecords(
-                                    $schema[$field]['rel_table'], 
-                                    array($oid), 
-                                    array(
-                                        array(
-                                            array($schema[$field]['rel_foreign_key'], 'in', $ids_to_remove)
-                                        )
-                                    ), 
-                                    $schema[$field]['rel_local_key']
-                                );
-                            }
-							// create relations for other ids
-							$om->db->addRecords(
-                                $schema[$field]['rel_table'], 
-                                array(
-                                    $schema[$field]['rel_local_key'], 
-                                    $schema[$field]['rel_foreign_key']
-                                ), 
-                                $values_array
-                            );
-							// invalidate cache (field partially loaded)
-							unset($om->cache[$class][$oid][$field][$lang]);													
+			'many2many' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				foreach($ids as $oid) {
+					foreach($fields as $field) {
+						$value = $om->cache[$class][$oid][$field][$lang];
+						if(!is_array($value)) {
+							trigger_error("wrong value for field '$field' of class '$class', should be an array", E_USER_ERROR);                               
+							continue;
 						}
+						$ids_to_remove = array();
+						$values_array = array();
+						foreach($value as $id) {
+							$id = intval($id);
+							if($id < 0) $ids_to_remove[] = abs($id);
+							if($id > 0) $values_array[] = array($oid, $id);
+						}
+						// delete relations of ids having a '-'(minus) prefix
+						if(count($ids_to_remove)) {
+							$om->db->deleteRecords(
+								$schema[$field]['rel_table'], 
+								array($oid), 
+								array(
+									array(
+										array($schema[$field]['rel_foreign_key'], 'in', $ids_to_remove)
+									)
+								), 
+								$schema[$field]['rel_local_key']
+							);
+						}
+						// create relations for other ids
+						$om->db->addRecords(
+							$schema[$field]['rel_table'], 
+							array(
+								$schema[$field]['rel_local_key'], 
+								$schema[$field]['rel_foreign_key']
+							), 
+							$values_array
+						);
+						// invalidate cache (field partially loaded)
+						unset($om->cache[$class][$oid][$field][$lang]);													
 					}
 				}
-				catch(Exception $e) {
-                    trigger_error($e->getMessage(), E_USER_ERROR);
-				}
 			},
-			'computed' =>	function($om, $ids, $fields) use ($schema, $class, $lang){
+			'computed' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
 				// nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
 			});
 
@@ -764,6 +720,7 @@ class ObjectManager extends Service {
 		}
 		catch (Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
+			throw new Exception('unable to store object fields', $e->getCode());
 		}
 	}
 
@@ -833,9 +790,11 @@ class ObjectManager extends Service {
         }
         
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
+
             $uniques = $model->getUnique();
 
             foreach($uniques as $unique) {
+				$ids = [];
                 $domain = [];
                 foreach($unique as $field) {
                     // map unique fields with the given values
@@ -843,10 +802,11 @@ class ObjectManager extends Service {
                         $domain[] = [$field, '=', $values[$field]];
                     }
                 }
-                $ids = [];
+
                 // search for objects already set with unique values
                 if(count($domain)) {
                     $domain[] = ['state', '=', 'instance'];
+					$domain[] = ['deleted', 'in', ['0', '1']];
                     $ids = $this->search($class, $domain);
                 }
                 // there is a violation : stop and fetch info about it
@@ -864,13 +824,14 @@ class ObjectManager extends Service {
                 }
             }
         }
-
 		return (count($res))?[$error_code => $res]:[];
 	}
 
 
 	/**
-     * if $fields is empty, a draft object is created 
+	 * Create a new instance of given class.
+	 * 
+     * if $fields is empty, a draft object is created with fields set to default values defined by the class Model.
      * if $field contains some values, object is created and its state is set to 'instance' (@see write method)
 	 * 
      * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised
@@ -905,26 +866,12 @@ class ObjectManager extends Service {
 			}
 
 			// create a new record with the found value, or let the autoincrement do the job
-			$db->addRecords($object_table, array_keys($creation_array), array(array_values($creation_array)));
+			$db->addRecords($object_table, array_keys($creation_array), [array_values($creation_array)]);
 			if($oid <= 0) $oid = $db->getLastId();
             // in any case, we return the object id
 			$res = $oid;
             
-            // update new object with given fiels values
-            
-			// check $fields arg validity			
-			$allowed_fields = array_diff($object->getFields(), ['id']);
-
-            foreach($fields as $field => $values) {
-                // handle 'dot' notation (ignore '.' and following chars)
-                $field = explode('.', $field)[0];
-                // remove fields not defined in related schema
-                if(!in_array($field, $allowed_fields)) {
-                    unset($fields[$field]);
-                    trigger_error('unknown field ('.$field.') in $fields arg', E_USER_WARNING);
-                }
-            }
-            
+            // update new object with given fiels values, if any                      
             if(!empty($fields)) {
                 $res_w = $this->write($class, $oid, $fields, $lang);
                 // if write method generated an error, return error code instead of object id
@@ -938,13 +885,17 @@ class ObjectManager extends Service {
 		return $res;
 	}
 	
-	/*
-todo: signature differs from other methods	(returned value)
-		Updates specifield fields of seleced objects
-		and stores changes into database
-	*/
+	/** 
+	 * Updates specifield fields of seleced objects and stores changes into database
+	 * 
+	 * @param string	$class	class of the objects to retrieve
+	 * @param mixed	$ids	identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
+	 * @param mixed	$fields	name(s) of the field(s) to retrieve (accepted types: array, string)
+	 * @param string $lang	language under which return fields values (only relevant for multilang fields)
+	 * @return mixed (int or array) error code OR array of updated ids
+	 */
 	public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
-		$res = true;
+		$res = [];
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
         
@@ -960,6 +911,9 @@ todo: signature differs from other methods	(returned value)
 			$object = &$this->getStaticInstance($class);
 			// check validity of objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
+			$res = $ids;
+
+			if(!count($ids)) return $res;
 
    			// 2) check $fields arg validity
             
@@ -969,8 +923,6 @@ todo: signature differs from other methods	(returned value)
 			if(isset($fields['id'])) unset($fields['id']);
 
             foreach($fields as $field => $values) {
-                // handle 'dot' notation (ignore '.' and following chars)
-                $field = explode('.', $field)[0];
                 // remove fields not defined in related schema
                 if(!in_array($field, $allowed_fields)) {
                     unset($fields[$field]);
@@ -1019,18 +971,17 @@ todo: signature differs from other methods	(returned value)
 	}
 
 	/**
-	* Returns either an error code or an associative array containing, for each requested object id, 
-    * an array maping each selected field to its value.
-	* Note : The process maintains $ids and $fields order.
-	*
-	* @param string	$class	class of the objects to retrieve
-	* @param mixed	$ids	identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
-	* @param mixed	$fields	name(s) of the field(s) to retrieve (accepted types: array, string)
-	* @param string $lang	language under which return fields values (only relevant for multilang fields)
-	* @return mixed (int or array) error code OR resulting associative array
-	*/
+	 * Returns either an error code or an associative array containing, for each requested object id, 
+     * an array maping each selected field to its value.
+	 * Note : The process maintains $ids and $fields order.
+	 *
+	 * @param string	$class	class of the objects to retrieve
+	 * @param mixed	$ids	identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
+	 * @param mixed	$fields	name(s) of the field(s) to retrieve (accepted types: array, string)
+	 * @param string $lang	language under which return fields values (only relevant for multilang fields)
+	 * @return mixed (int or array) error code OR resulting associative array
+	 */
 	public function read($class, $ids=null, $fields=null, $lang=DEFAULT_LANG) {
-
 		$res = array();
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
@@ -1053,7 +1004,8 @@ todo: signature differs from other methods	(returned value)
 			$object = &$this->getStaticInstance($class);
 			// checks validity of objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
-            // if no ids were specified, the result is an empty list (array)
+            
+			// if no ids were specified, the result is an empty list (array)
 			if(empty($ids)) return $res;
 
             // 2) check $fields arg validity
@@ -1134,14 +1086,14 @@ todo: signature differs from other methods	(returned value)
 
 
 	/**
-	* Deletes an object permanently or puts it in the "trash bin" (ie setting the 'deleted' flag to 1).
-	* The returned structure is an associative array containing ids of the objects actually deleted.
-	*
-	* @param string $object_class object class
-	* @param array $ids ids of the objects to remove
-	* @param boolean $permanent
-	* @return mixed (integer or array)
-	*/
+	 * Deletes an object permanently or puts it in the "trash bin" (ie setting the 'deleted' flag to 1).
+	 * The returned structure is an associative array containing ids of the objects actually deleted.
+	 *
+	 * @param string $object_class object class
+	 * @param array $ids ids of the objects to remove
+	 * @param boolean $permanent
+	 * @return mixed (integer or array)
+	 */
 	public function remove($object_class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
@@ -1149,7 +1101,7 @@ todo: signature differs from other methods	(returned value)
         
 		try {
             // cast ids to an array (passing a single id is accepted)
-			if(!is_array($ids)) $ids = [$ids];            
+			if(!is_array($ids)) $ids = [$ids];
             // ensure ids are numerical values
             foreach($ids as $key => $oid) {      
                  if(!is_numeric($oid)) unset($ids[$key]);
@@ -1164,6 +1116,8 @@ todo: signature differs from other methods	(returned value)
             $ids = $this->filterValidIdentifiers($object_class, $ids);
             $result = $ids;
             
+			if(!count($ids)) return $result;
+
 			// 2) remove object from DB
 			$table_name = $this->getObjectTableName($object_class);
 			if (!$permanent) {
@@ -1215,8 +1169,7 @@ todo: signature differs from other methods	(returned value)
                                     }
                                 }
 
-                            }
-                            
+                            }                            
                             break;
                         case 'many2many':
                             // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
@@ -1226,10 +1179,10 @@ todo: signature differs from other methods	(returned value)
                                 null, 
                                 $schema[$field]['rel_local_key']
                             );                        
-                            break;                    
+                            break;
                         }
                     }
-                }                
+                }
 			}
 		}
 		catch(Exception $e) {

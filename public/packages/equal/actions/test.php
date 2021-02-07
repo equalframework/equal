@@ -1,7 +1,10 @@
 <?php
 
-use equal\identity\Contact;
+use qinoa\http\HttpRequest;
 
-Contact::search([]);
 
-echo 'ok';
+
+$request = new HttpRequest("PUT http://localhost/test", ['Content-Type' => 'application/json'], '{"id":1, "content": "test"}');
+
+$request->send();
+

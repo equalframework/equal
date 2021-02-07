@@ -146,9 +146,10 @@ namespace config {
     /**
     * Logging
     */
+    define('LOGGING_ENABLED', true);
     // note : keep in mind that enabling logging makes I/O operations a little bit longer
-    define('LOGGING_MODE', QN_R_CREATE | QN_R_WRITE | QN_R_DELETE);
-    //define('LOGGING_MODE', false);
+    // define('LOGGING_MODE', QN_R_CREATE | QN_R_WRITE | QN_R_DELETE);
+
 
 
     /**

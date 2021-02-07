@@ -23,7 +23,7 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'orm'] 
 ]);
@@ -31,13 +31,10 @@ list($params, $providers) = announce([
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 
-// die($params['entity']);
-$package = $orm->getObjectPackageName($params['entity']);
-$class = $orm->getObjectName($params['entity']);
+$parts = explode('\\', $params['entity']);
+$package = array_shift($parts);
 
-$class_dir = str_replace('\\', '/', $class);
-
-
+$class_dir = implode('/', $parts);
 $file = QN_BASEDIR."/public/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
 

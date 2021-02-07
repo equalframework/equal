@@ -322,6 +322,7 @@ namespace config {
                 'adapt'     => 'qinoa\data\DataAdapter',
                 'orm'       => 'qinoa\orm\ObjectManager',
                 'route'     => 'qinoa\route\Router',
+                'log'       => 'qinoa\log\Logger',
                 'spool'     => 'qinoa\email\EmailSpooler'
             ]);
 

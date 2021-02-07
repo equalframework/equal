@@ -11,7 +11,7 @@ namespace qinoa\orm;
 class Collection implements \Iterator {
 
     /* ObjectManager */
-    private $om;
+    private $orm;
     
     /* AccessController */
     private $ac;
@@ -20,7 +20,11 @@ class Collection implements \Iterator {
     private $am;
 
     /* DataAdapter */
-    private $da;
+    private $adapter;
+
+    /* Logger */
+    private $logger;
+
     
     /* target class */
     private $class;
@@ -42,22 +46,23 @@ class Collection implements \Iterator {
      */
     public static function __callStatic($name, $arguments) {}       
     
-    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter) {
+    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
         // init objects map
         $this->objects = [];
         $this->cursor = 0;
         // assign private members 
         $this->class = $class;        
-        $this->om = $objectManager;
+        $this->orm = $objectManager;
         $this->ac = $accessController;
         $this->am = $authenticationManager;
-        $this->da = $dataAdapter;        
+        $this->adapter = $dataAdapter;
+        $this->logger = $logger;        
         // check mandatory services
-        if(!$this->om || !$this->ac) {
+        if(!$this->orm || !$this->ac) {
             throw new \Exception(__CLASS__, QN_ERROR_UNKNOWN);
         }                
         // retrieve static instance for target class
-        $this->instance = $this->om->getStatic($class);
+        $this->instance = $this->orm->getStatic($class);
         if($this->instance === false) {
             throw new \Exception($class, QN_ERROR_UNKNOWN_OBJECT);
         }
@@ -265,7 +270,7 @@ class Collection implements \Iterator {
                     $value->adapt($to);
                 }
                 else {
-                    $this->objects[$id][$field] = $this->da->adapt($value, $schema[$field]['type'], $to, 'php');
+                    $this->objects[$id][$field] = $this->adapter->adapt($value, $schema[$field]['type'], $to, 'php');
                 }
             }            
         }
@@ -278,7 +283,7 @@ class Collection implements \Iterator {
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
     private function validate(array $fields, $check_unique=false) {
-        $validation = $this->om->validate($this->class, $fields, $check_unique);
+        $validation = $this->orm->validate($this->class, $fields, $check_unique);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
                 throw new \Exception(implode(',', array_keys($error_descr)), $error_code);
@@ -331,7 +336,7 @@ class Collection implements \Iterator {
         }
 		
         // 3) perform search
-        $ids = $this->om->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $params['lang']);
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $params['lang']);
         // $ids is an error code
         if($ids < 0) {           
             throw new \Exception(Domain::toString($domain), $ids);
@@ -358,28 +363,38 @@ class Collection implements \Iterator {
      *
      */
     public function create(array $values=null, $lang=DEFAULT_LANG) {
-        // 1) silently drop invalid fields
+        
+        // 1) sanitize and retrieve necessary values
+        $user_id = $this->am->userId();
+        // silently drop invalid fields
         $values = $this->filter($values);
         // retrieve targeted fields names
         $fields = array_keys($values);        
+
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
             throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
         }
+
         // 3) validate and check unique keys
-        $this->validate($values, true);        
+        $this->validate($values, true);
         // set current user as creator
-        $values = array_merge($values, ['creator' => $this->am->userId()]);
+        $values = array_merge($values, ['creator' => $user_id]);
+
         // 4) create the new object
-        $oid = $this->om->create($this->class, $values, $lang);        
+        $oid = $this->orm->create($this->class, $values, $lang);        
         if($oid <= 0) {
             throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
         }
+        // log action (if enabled)
+        $this->logger->log($user_id, 'create', $this->class, $oid);
+        
+        // store new object in current collection
         if(!in_array('id', $fields)) {
             $values['id'] = $oid;
         }
-        // store new object in current collection
         $this->objects[$oid] = $values;
+
         return $this;
     }
     
@@ -444,7 +459,7 @@ class Collection implements \Iterator {
             }
             
             // 3) read values
-            $res = $this->om->read($this->class, $ids, $requested_fields, $lang);
+            $res = $this->orm->read($this->class, $ids, $requested_fields, $lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
@@ -489,8 +504,11 @@ class Collection implements \Iterator {
      *
      */
     public function update(array $values, $lang=DEFAULT_LANG) {
-        if(count($this->objects)) {        
-            // 1) silently drop invalid fields
+        if(count($this->objects)) {
+            
+            // 1) sanitize and retrieve necessary values
+            $user_id = $this->am->userId();
+            // silently drop invalid fields
             $values = $this->filter($values);
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
@@ -499,21 +517,26 @@ class Collection implements \Iterator {
             
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
-                throw new \Exception($this->am->userId().';WRITE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
             
             // 3) validate
             $this->validate($values);            
-            
-            
+                        
             // 4) write
             // set current user as modifier
-            $values = array_merge($values, ['modifier' => $this->am->userId()]);            
-            $res = $this->om->write($this->class, $ids, $values, $lang);
+            $values = array_merge($values, ['modifier' => $user_id]);            
+            $res = $this->orm->write($this->class, $ids, $values, $lang);
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
-            }            
+            }
+            else {
+                $ids = $res;
+            }
+
             foreach($ids as $oid) {
+                // log action (if enabled)
+                $this->logger->log($user_id, 'update', $this->class, $oid);
                 // store updated objects in current collection
                 $this->objects[$oid] = array_merge(['id' => $oid], $values);
             }
@@ -522,18 +545,29 @@ class Collection implements \Iterator {
     }
     
     public function delete($permanent=false) {
-        if(count($this->objects)) {                
+        if(count($this->objects)) {
+            
+            // 1) sanitize and retrieve necessary values
+            $user_id = $this->am->userId();
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
-            // 1) check that current user has enough privilege to perform WRITE operation
+
+            // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
-                throw new \Exception('DELETE,'.$this->class.',['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+                throw new \Exception($user_id.';DELETE,'.$this->class.',['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
-            // 2) delete
-            $res = $this->om->remove($this->class, $ids, $permanent);
+
+            // 3) delete
+            $res = $this->orm->remove($this->class, $ids, $permanent);
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $ids), $res);
             }
+
+            foreach($ids as $oid) {            
+                // log action (if enabled)
+                $this->logger->log($user_id, 'delete', $this->class, $oid);
+            }
+
             // 3) update current collection (remove all objects)
             $this->objects = [];
         }

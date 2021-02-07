@@ -31,10 +31,12 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-$package = $orm->getObjectPackageName($params['entity']);
-$class = $orm->getObjectName($params['entity']);
 
-$class_dir = str_replace('\\', '/', $class);
+
+$parts = explode('\\', $params['entity']);
+$package = array_shift($parts);
+
+$class_dir = implode('/', $parts);
 
 $file = QN_BASEDIR."/public/packages/{$package}/views/{$class_dir}.{$params['view_id']}.json";
 

@@ -9,7 +9,7 @@ class DataValidator extends Service {
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      * the value will be returned unchanged if:
-     * - a conversion is not explicitely    fined
+     * - a conversion is not explicitely defined
      * - a conversion cannot be made
      */
     protected function __construct(/* no dependency */) {
