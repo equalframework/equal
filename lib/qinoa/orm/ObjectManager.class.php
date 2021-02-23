@@ -865,12 +865,19 @@ class ObjectManager extends Service {
 			// create object with default values
 			$creation_array = array_merge( ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
 
-			if(!empty($fields) && isset($fields['id']) && is_numeric($fields['id'])) {
-				$creation_array['id'] = (int) $fields['id'];
+			// use given id field as identifier, if any and valid
+			if(!empty($fields) && isset($fields['id'])) {
+				if(is_numeric($fields['id'])) {
+					$creation_array['id'] = (int) $fields['id'];
+				}
+				else {
+					unset($fields['id']);
+				}				
 			}
 
+			// garbage collect: check for expired draft object
 			if(!isset($creation_array['id'])) {
-				// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
+				// list ids of records having creation date older than DRAFT_VALIDITY
 				$ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
 				// use the oldest expired draft, if any            
 				if(!count($ids)) {
@@ -887,7 +894,7 @@ class ObjectManager extends Service {
 				}				
 			}
 
-			// create a new record with the found value, or let the autoincrement do the job
+			// create a new record with the found value, (if no id is given, the autoincrement will assign a value)
 			$db->addRecords($object_table, array_keys($creation_array), [array_values($creation_array)]);
 			if($oid <= 0) $oid = $db->getLastId();
             // in any case, we return the object id
