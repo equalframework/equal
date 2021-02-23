@@ -122,7 +122,7 @@ foreach($classes as $class) {
     if(method_exists($model, 'getUnique')) {
         $list = $model::getUnique();
         foreach($list as $fields) {
-            $result[] = ",\nUNIQUE KEY `{$fields[0]}` (`".implode('`,`', $fields)."`)";
+            $result[] = ",\nUNIQUE KEY `".implode('_', $fields)."` (`".implode('`,`', $fields)."`)";
         }
     
     }

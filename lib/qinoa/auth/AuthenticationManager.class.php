@@ -38,6 +38,10 @@ class AuthenticationManager extends Service {
         return $token;
     }
     
+    public function decode($jwt, $verify = false, $key = null) {
+        return JWT::decode($jwt, $verify, $key);
+    }
+
     public function userId() {
         // return user_id member, if already resolved
         if($this->user_id > 0) return $this->user_id;
@@ -68,7 +72,8 @@ class AuthenticationManager extends Service {
         // decode token, if found
         if($jwt) {
             try {
-                $data = (array) JWT::decode($jwt, AUTH_SECRET_KEY);
+                $decoded = JWT::decode($jwt, true, AUTH_SECRET_KEY);
+                $data = $decoded['payload'];
                 if(isset($data['id']) && $data['id'] > 0) {
                     $this->user_id = $data['id'];
                 }

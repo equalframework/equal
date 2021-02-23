@@ -95,6 +95,8 @@ function get_line($entry) {
     list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
     list($type, $icon, $class) = get_error_class($errcode);
 
+    $msg = urldecode($msg);
+
     $in = (strlen($origin))?"<b>in</b> <code class=\"$class\">$origin</code>":'';
     return "<div style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> $datetime $type</a> <b>@</b> [<code class=\"$class\">{$file}:{$line}</code>] $in: $msg</div>".PHP_EOL;
 }

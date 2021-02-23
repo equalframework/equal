@@ -1,59 +1,50 @@
 <?php
-/**
- * JSON Web Token implementation, based on this spec:
- * http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06
- *
- * PHP version 5
- *
- * @category Authentication
- * @package  Authentication_JWT
- * @author   Neuman Vong <neuman@twilio.com>
- * @author   Anant Narayanan <anant@php.net>
- * @license  http://opensource.org/licenses/BSD-3-Clause 3-clause BSD
- * @link     https://github.com/firebase/php-jwt
- */
+
 namespace qinoa\auth;
 
-class JWT
-{
+class JWT {
 	/**
 	 * Decodes a JWT string into a PHP object.
 	 *
 	 * @param string      $jwt    The JWT
-	 * @param string|null $key    The secret key
 	 * @param bool        $verify Don't skip verification process 
+	 * @param string 	  $key    The secret key* 
 	 *
-	 * @return object      The JWT's payload as a PHP object
-	 * @throws UnexpectedValueException Provided JWT was invalid
-	 * @throws DomainException          Algorithm was not provided
+	 * @return array      A map holding JWT header and payload
+	 * @throws Exception
 	 * 
-	 * @uses jsonDecode
 	 * @uses urlsafeB64Decode
 	 */
-	public static function decode($jwt, $key = null, $verify = true) {
+	public static function decode($jwt, $verify = false, $key = null) {
+		$header  = [];
         $payload = [];
-		$tks = explode('.', $jwt);
-		if (count($tks) == 3) {
-            list($headb64, $bodyb64, $cryptob64) = $tks;
-            if (!($header = JWT::jsonDecode(JWT::urlsafeB64Decode($headb64)))) {
-                return null;
-            }
-            if (!($payload = JWT::jsonDecode(JWT::urlsafeB64Decode($bodyb64)))) {
-                return null;
-            }
-            $sig = JWT::urlsafeB64Decode($cryptob64);
+		$parts = explode('.', $jwt);
 
+		if (count($parts) != 3) {
+			throw new \Exception('JWT_malformed_token');
+		}
+		else {
+            list($headb64, $bodyb64, $cryptob64) = $parts;
+            if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
+                throw new \Exception('JWT_header_unreadable');
+            }
+            if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
+                throw new \Exception('JWT_payload_unreadable');
+            }
             if ($verify) {
-                if (empty($header->alg)) {
-                    throw new \Exception('JWT - Invalid token: empty algorithm');
+				$sig = JWT::urlsafeB64Decode($cryptob64);
+                if (empty($header['alg'])) {
+                    throw new \Exception('JWT_invalid_algorithm');
                 }
-                if ($sig != JWT::sign("$headb64.$bodyb64", $key, $header->alg)) {
-                    throw new \Exception('JWT - Signature do not match server\'s private key');
+                if ($sig != JWT::sign("$headb64.$bodyb64", $key, $header['alg'])) {
+                    throw new \Exception('JWT_invalid_signature');
                 }
             }
         }
-		return $payload;
+
+		return ['header' => $header, 'payload' => $payload];
 	}
+
 	/**
 	 * Converts and signs a PHP object or array into a JWT string.
 	 *
@@ -66,8 +57,7 @@ class JWT
 	 * @uses jsonEncode
 	 * @uses urlsafeB64Encode
 	 */
-	public static function encode($payload, $key, $algo = 'HS256')
-	{
+	public static function encode($payload, $key, $algo = 'HS256') {
 		$header = array('typ' => 'JWT', 'alg' => $algo);
 		$segments = array();
 		$segments[] = JWT::urlsafeB64Encode(JWT::jsonEncode($header));
@@ -77,6 +67,7 @@ class JWT
 		$segments[] = JWT::urlsafeB64Encode($signature);
 		return implode('.', $segments);
 	}
+
 	/**
 	 * Sign a string with a given key and algorithm.
 	 *
@@ -88,8 +79,7 @@ class JWT
 	 * @return string          An encrypted message
 	 * @throws DomainException Unsupported algorithm was specified
 	 */
-	private static function sign($msg, $key, $method = 'HS256')
-	{
+	private static function sign($msg, $key, $method = 'HS256') {
 		$methods = array(
 			'HS256' => 'sha256',
 			'HS384' => 'sha384',
@@ -100,24 +90,7 @@ class JWT
 		}
 		return hash_hmac($methods[$method], $msg, $key, true);
 	}
-	/**
-	 * Decode a JSON string into a PHP object.
-	 *
-	 * @param string $input JSON string
-	 *
-	 * @return object          Object representation of JSON string
-	 * @throws DomainException Provided string was invalid JSON
-	 */
-	public static function jsonDecode($input)
-	{
-		$obj = json_decode($input);
-		if (function_exists('json_last_error') && $errno = json_last_error()) {
-			JWT::_handleJsonError($errno);
-		} else if ($obj === null && $input !== 'null') {
-			throw new DomainException('Null result with non-null input');
-		}
-		return $obj;
-	}
+
 	/**
 	 * Encode a PHP object into a JSON string.
 	 *
@@ -126,8 +99,7 @@ class JWT
 	 * @return string          JSON representation of the PHP object or array
 	 * @throws DomainException Provided object could not be encoded to valid JSON
 	 */
-	public static function jsonEncode($input)
-	{
+	public static function jsonEncode($input) {
 		$json = json_encode($input);
 		if (function_exists('json_last_error') && $errno = json_last_error()) {
 			JWT::_handleJsonError($errno);
@@ -136,6 +108,7 @@ class JWT
 		}
 		return $json;
 	}
+
 	/**
 	 * Decode a string with URL-safe Base64.
 	 *
@@ -143,8 +116,7 @@ class JWT
 	 *
 	 * @return string A decoded string
 	 */
-	public static function urlsafeB64Decode($input)
-	{
+	public static function urlsafeB64Decode($input) {
 		$remainder = strlen($input) % 4;
 		if ($remainder) {
 			$padlen = 4 - $remainder;
@@ -152,6 +124,7 @@ class JWT
 		}
 		return base64_decode(strtr($input, '-_', '+/'));
 	}
+
 	/**
 	 * Encode a string with URL-safe Base64.
 	 *
@@ -159,10 +132,11 @@ class JWT
 	 *
 	 * @return string The base64 encode of what you passed in
 	 */
-	public static function urlsafeB64Encode($input)
-	{
+	public static function urlsafeB64Encode($input) {
 		return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
 	}
+
+
 	/**
 	 * Helper method to create a JSON error.
 	 *
@@ -170,8 +144,7 @@ class JWT
 	 *
 	 * @return void
 	 */
-	private static function _handleJsonError($errno)
-	{
+	private static function _handleJsonError($errno) {
 		$messages = array(
 			JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
 			JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',

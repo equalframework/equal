@@ -159,6 +159,7 @@ namespace config {
     define('DRAFT_VALIDITY', 0);
     // define('DRAFT_VALIDITY', 10);
 
+    define('VERSIONING_ENABLED', true);
 
     /**
     * Date formatting

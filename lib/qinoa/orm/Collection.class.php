@@ -562,7 +562,10 @@ class Collection implements \Iterator {
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $ids), $res);
             }
-
+            else {
+                $ids = $res;
+            }
+            
             foreach($ids as $oid) {            
                 // log action (if enabled)
                 $this->logger->log($user_id, 'delete', $this->class, $oid);

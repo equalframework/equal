@@ -148,7 +148,7 @@ class Reporter extends Service {
             // $utime = microtime(true);
             // $time_parts = explode(".",$utime);
             $time_parts = explode(" ", microtime());
-            $error =  $this->getThreadId().';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.nl2br($msg).PHP_EOL;
+            $error =  $this->getThreadId().';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.urlencode($msg).PHP_EOL;
             
             // append backtrace if required (fatal errors)
             

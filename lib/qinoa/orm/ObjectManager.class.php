@@ -74,7 +74,7 @@ class ObjectManager extends Service {
 			'many2one'		=> array('description', 'type', 'visible', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
 			'one2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
 			'many2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-			'computed'		=> array('description', 'type', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
+			'computed'		=> array('description', 'type', 'visible', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
 	);
 
 	public static $mandatory_attributes = array(
@@ -109,7 +109,7 @@ class ObjectManager extends Service {
             'file'		    => array('like', 'ilike', '='),                
             'binary'		=> array('like', 'ilike', '='),
             // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
-            'many2one'		=> array('is', 'in', '=', '<>', 'contains'),
+            'many2one'		=> array('is', 'in', 'not in', '=', '<>', 'contains'),
             'one2many'		=> array('contains'),
             'many2many'		=> array('contains'),
     );
@@ -231,13 +231,24 @@ class ObjectManager extends Service {
                 $filename = '../public/'.$filename;
                 if(!is_file($filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
             }
-            preg_match('/\bextends\b(.*)\{/iU', file_get_contents($filename), $matches);
-            if(!isset($matches[1])) throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
-            else $parent_class = trim($matches[1]);
-			if(!(include_once $filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+			$parts = explode('\\', $class);
+			$class_name = array_pop($parts);
+			$file_content = file_get_contents($filename);
+			preg_match('/class(\s*)'.$class_name.'(\s.*)\{/iU', $file_content, $matches);
+			if(!isset($matches[1])) {
+				throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
+			}
+            preg_match('/\bextends\b(.*)\{/iU', $file_content, $matches);
+            if(!isset($matches[1])) {
+				throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
+			}
+            $parent_class = trim($matches[1]);
+			if(!(include_once $filename)) {
+				throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+			}
 			if(!class_exists($class)) {				
 				throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
-			}			
+			}
         }
         if(!isset($this->instances[$class])) {
 			$this->instances[$class] = new $class();
@@ -616,8 +627,12 @@ class ObjectManager extends Service {
 				foreach($ids as $oid) {
 					$fields_values = array();
 					foreach($fields as $field) {                            
-						// $fields_values[$field] = DataAdapter::adapt('orm', 'db', $schema[$field]['type'], $om->cache[$class][$oid][$field][$lang], $class, $oid, $field, $lang);
-						$fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang);
+                        $type = $schema[$field]['type'];
+                        // support computed fields (handled as simple fields)
+                        if($type == 'function' || $type == 'computed') {
+                            $type = $schema[$field]['result_type'];
+                        }
+                        $fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $type, 'sql', 'php', $class, $oid, $field, $lang);
 					}
 					$om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
 				}
@@ -752,7 +767,7 @@ class ObjectManager extends Service {
 	 * This is done using the class validation method.
 	 * Returns an associative array containing invalid fields with their associated error_message_id 
      * (an empty array means all fields are valid)
-
+	 *
 	 * @param string $class object class
 	 * @param array $values
 	 * @param boolean $check_unique
@@ -761,6 +776,7 @@ class ObjectManager extends Service {
 	public function validate($class, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
 // todo : support for 'usage' attribute
+// todo : check relational fields consistency (that targeted object(s) actually exist)
 // todo : support partial object check (individual field validation) and complete object check (with support for the 'required' attribute)
 		$res = [];
 
@@ -848,21 +864,27 @@ class ObjectManager extends Service {
 
 			// create object with default values
 			$creation_array = array_merge( ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
-            
-			// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
-            $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
-			// use the oldest expired draft, if any            
-			if(!count($ids)) {
-				$oid = 0;
+
+			if(!empty($fields) && isset($fields['id']) && is_numeric($fields['id'])) {
+				$creation_array['id'] = (int) $fields['id'];
 			}
-            else {
-				$oid = $ids[0];
-			}            
-			if($oid > 0) {
-				// store the id to reuse
-				$creation_array['id'] = $oid;
-				// and delete the associated record (which might contain obsolete data)
-				$db->deleteRecords($object_table, array($oid));
+
+			if(!isset($creation_array['id'])) {
+				// garbage collect: list ids of records having creation date older than DRAFT_VALIDITY
+				$ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
+				// use the oldest expired draft, if any            
+				if(!count($ids)) {
+					$oid = 0;
+				}
+				else {
+					$oid = $ids[0];
+				}
+				if($oid > 0) {
+					// store the id to reuse
+					$creation_array['id'] = $oid;
+					// and delete the associated record (which might contain obsolete data)
+					$db->deleteRecords($object_table, array($oid));
+				}				
 			}
 
 			// create a new record with the found value, or let the autoincrement do the job
@@ -943,7 +965,7 @@ class ObjectManager extends Service {
                     $this->cache[$class][$oid][$field][$lang] = $value;
 				}
 			}
-
+						
 			
 			// 4) write selected fields to DB
 			$this->store($class, $ids, array_keys($fields), $lang);

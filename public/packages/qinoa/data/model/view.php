@@ -14,9 +14,9 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'view_id' =>  [
-            'description'   => 'The identifier of the view (list.default, form.kanban).',
+            'description'   => 'The identifier of the view <type.name>.',
             'type'          => 'string', 
-            'required'      => true
+            'default'       => 'list'
         ],
         
     ],
@@ -29,23 +29,20 @@ list($params, $providers) = announce([
 ]);
 
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+list($context, $orm) = [$providers['context'], $providers['orm']];
 
+$package = $orm->getObjectPackageName($params['entity']);
+$class = $orm->getObjectName($params['entity']);
 
-
-$parts = explode('\\', $params['entity']);
-$package = array_shift($parts);
-
-$class_dir = implode('/', $parts);
-
-$file = QN_BASEDIR."/public/packages/{$package}/views/{$class_dir}.{$params['view_id']}.json";
+$file = QN_BASEDIR."/public/packages/{$package}/views/{$class}.{$params['view_id']}.json";
 
 if(!file_exists($file)) {
-    throw new Exception("unknown_view", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
 }
 
+
 if( ($view = json_decode(@file_get_contents($file), true)) === null) {
-    throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
 }
 
 $context->httpResponse()

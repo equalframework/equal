@@ -7,20 +7,15 @@
 
 list($params, $providers) = announce([
     'description'	=>	"Returns values map of the specified fields for object matching given class and identifier.",
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
-        'accept-origin' => '*'
-    ],    
     'params' 		=>	[
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'type'          => 'string', 
             'required'      => true
         ],
-        'id' =>  [
-            'description'   => 'Unique identifier of the object to browse.',
-            'type'          => 'integer',
+        'ids' =>  [
+            'description'   => 'List of unique identifierd of the object to read.',
+            'type'          => 'array',
             'required'      => true
         ],
         'fields' =>  [
@@ -33,29 +28,23 @@ list($params, $providers) = announce([
             'type'          => 'string', 
             'default'       => DEFAULT_LANG
         ]
-    ],    
-    'providers'     => ['context', 'orm']     
-/*
-    Access control is handled inside the qinoa\orm\Collection class
-    Default Access controller and Authentication manager can be overriden this way:
-    'providers' => [
-        'auth'      => custom\AuthenticationManeger, 
-        'access'    => custom\AccessController
-    ]         
-*/    
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => [ 'context' ]  
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+list($context, $orm) = [ $providers['context'] ];
 
 
 if(!class_exists($params['entity'])) {
-    throw new Exception("unknown class '{$params['entity']}'", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$object = $params['entity']::id($params['id'])
-                               ->read($params['fields'], $params['lang'])
-                               ->adapt('txt')
-                               ->first();
+$object = $params['entity']::id($params['ids'])->read($params['fields'], $params['lang'])->adapt('txt')->first();
 
 $context->httpResponse()
         ->body($object)
