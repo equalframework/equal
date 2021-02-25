@@ -106,6 +106,16 @@ class Collection implements \Iterator {
         return $res;
     }
 
+    public function from($offset) {
+        if($offset < count($this->objects)) {
+            $this->objects = array_slice($this->objects, $offset, null, true);
+        }
+        else {
+            $this->objects = [];
+        }
+        return $this;
+    }
+
     /**
      *  Pop out the n last objects of the collection (and set internal limit value)
      *
@@ -121,7 +131,7 @@ class Collection implements \Iterator {
                 $this->objects = array_slice($this->objects, 0, $this->limit, true);
             }
         }
-        return $this;            
+        return $this;
     }
     
     /**
@@ -129,11 +139,16 @@ class Collection implements \Iterator {
      *
      */
     public function shift($offset) {
-        if($offset && $offset < count($this->objects)) {
-            $this->objects = array_slice($this->objects, $offset, null, true);
+        if($offset) {
+            if($offset < count($this->objects)) {
+                $this->objects = array_slice($this->objects, $offset, null, true);
+            }
+            else {
+                $this->objects = [];
+            }
         }
         return $this;            
-    }
+    } 
     
     /**
      *  Return the first object of the collection
@@ -286,6 +301,7 @@ class Collection implements \Iterator {
         $validation = $this->orm->validate($this->class, $fields, $check_unique);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
+// todo : harmonize error codes                
                 throw new \Exception(implode(',', array_keys($error_descr)), $error_code);
             }
         }
@@ -305,10 +321,7 @@ class Collection implements \Iterator {
     
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         $defaults = [
-            'sort'  => ['id' => 'asc'],
-            'start' => 0,
-            'limit' => $this->limit,
-            'lang'  => $lang
+            'sort'  => ['id' => 'asc']
         ];
 
         if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
@@ -336,7 +349,8 @@ class Collection implements \Iterator {
         }
 		
         // 3) perform search
-        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $params['lang']);
+        // we don't use the start and limit arguments here because the final result set depends on permissions
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], 0, 0, $lang);
         // $ids is an error code
         if($ids < 0) {           
             throw new \Exception(Domain::toString($domain), $ids);
@@ -345,11 +359,10 @@ class Collection implements \Iterator {
             // init keys of 'objects' member (so far, it is an empty array)
             // filter results using access controller... (reduce resulting ids based on access rights)            
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
-
             $this->ids($ids);
         }
         else {
-            // reset objects map if not empty
+            // reset objects map (empty result)
             $this->objects = [];
         }
         return $this;
