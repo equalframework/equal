@@ -156,15 +156,41 @@ foreach($m2m_tables as $table => $columns) {
     $query .= '('.implode(',', array_fill(0, count($columns), 0)).");\n";
     $queries[] = $query;
 }        
-        
 
 
-// 4) populate tables with demo data
-$data_sql = "packages/{$params['package']}/init/data.sql";
-if(file_exists($data_sql)) {
+
+// 4) populate tables with demo data (accepting SQL and/or JSON)
+$path = "packages/{$params['package']}/init/";
+foreach (glob($path."*.sql") as $data_sql) {
     $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 }
-
+foreach (glob($path."*.json") as $data_json) {
+    $json_queries = [];
+    $data = file_get_contents($data_json);
+    $json = json_decode($data, true);
+    foreach($json as $tables){
+        $json_table = $tables['name'];
+        foreach($tables['data'] as $table_data){
+            $json_data_keys = [];
+            $json_data_values = [];
+            foreach($table_data as $key => $value){
+                $json_data_keys[] = "`{$key}`";
+                if(is_null($value)) {
+                    $json_data_values[] = "NULL";
+                }
+                else if(is_numeric($value)) {
+                    $json_data_values[] = $value;
+                } else {
+                    $json_data_values[] = "'{$value}'";
+                }
+            }
+            // convert json values to sql queries
+            $json_query = "INSERT IGNORE INTO `{$json_table}` (".implode(',', $json_data_keys).") VALUES (".implode(',', $json_data_values).")";
+            $json_queries[] = $json_query;
+        }
+    }
+    $queries = array_merge($queries, $json_queries);
+}
 // send each query to the DBMS
 foreach($queries as $query) {
     if(strlen($query)) {
