@@ -51,8 +51,12 @@ if( empty($params['ids']) ) {
     $params['ids'][] = $params['id'];
 }
 
+$model = $orm->getModel($params['entity']);
+if(!$model) {
+    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+}
 // adapt received values for parameter 'fields' (which are still text formated)
-$schema = $orm->getModel($params['entity'])->getSchema();
+$schema = $model->getSchema();
 foreach($params['fields'] as $field => $value) {
     // drop empty fields
     if(is_null($value)) {

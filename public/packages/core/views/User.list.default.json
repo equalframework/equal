@@ -25,7 +25,9 @@
             {
                 "type": "field",
                 "value": "login",
-                "widget": "link",
+                "widget": {
+                    "type": "link"
+                },
                 "width": "10%",
                 "sortable": true
             },

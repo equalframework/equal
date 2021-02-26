@@ -33,7 +33,7 @@ list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $provid
 
 $validation = $om->validate('core\User', $params);
 if($validation < 0 || count($validation)) {
-    throw new Exception('invalid credentials: '.implode(',', $validation), QN_ERROR_INVALID_PARAM);
+    throw new Exception('invalid_credentials', QN_ERROR_INVALID_PARAM);
 }
 
 $auth->authenticate($params['login'], $params['password']);

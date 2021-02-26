@@ -61,7 +61,9 @@ $error_message_ids = array();
 $validation = validate('core\User', $params);
 
 // if something went wrong during the validation, abort the login process
-if($validation === false) $result = UNKNOWN_ERROR;
+if($validation === false) {
+	$result = UNKNOWN_ERROR;
+}
 else {
 	if(count($validation)) {
 		// one or more fields have invalid value

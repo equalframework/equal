@@ -1,7 +1,7 @@
 {
     "name": "User",
     "description": "Simple form for displaying User",
-    "form": {
+    "layout": {
         "groups": [
             {
                 "label": "",
@@ -16,20 +16,50 @@
                                         "align": "left",
                                         "items": [
                                             {
+                                                "type": "field",
+                                                "value": "id",
+                                                "width": "50%",
+                                                "label": "User Identifier",
+                                                "readonly": true
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "login",
+                                                "width": "50%",
+                                                "label": "Username"
+                                            },                                            
+                                            {
+                                                "type": "field",
+                                                "value": "created",
+                                                "width": "50%",
+                                                "label": "Creation date"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "firstname",
+                                                "width": "50%",
+                                                "label": "User given name"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "lastname",
+                                                "width": "50%",
+                                                "label": "User family name"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "language",
+                                                "width": "50%",
+                                                "widget": {
+                                                    "type": "select",
+                                                    "values": ["fr", "en", "nl"]
+                                                }
+                                            },
+                                            {
                                                 "type": "label",
                                                 "id": "id.details",
                                                 "value": "Contact details",
                                                 "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "id",
-                                                "width": "50%",
-                                                "widget": {
-                                                    "type": "",
-                                                    "view": "",
-                                                    "domain": ""
-                                                }
                                             },
                                             {
                                                 "type": "button",

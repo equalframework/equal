@@ -48,9 +48,10 @@ list($params, $providers) = announce([
 
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
-// fields and values have been received as a raw array : some additional treatment might be required
-$schema = $orm->getModel($params['entity'])->getSchema();
 
+
+// fields and values have been received as a raw array : we need to adapt received values according to schema
+$schema = $orm->getModel($params['entity'])->getSchema();
 foreach($params['fields'] as $field => $value) {
     // drop empty and unknown fields
     if(is_null($value) || !isset($schema[$field])) {
@@ -60,9 +61,10 @@ foreach($params['fields'] as $field => $value) {
     $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
 }
 
+// if no values has been given in the fields param, a draft object with default values is created
 $instance = $params['entity']::create($params['fields'], $params['lang'])->adapt('txt')->first();
 
-$result = ['entity'  => $params['entity'], 'id' => $instance['id']];
+$result = ['entity' => $params['entity'], 'id' => $instance['id']];
 
 $context->httpResponse()
         ->status(201)

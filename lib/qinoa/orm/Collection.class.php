@@ -399,13 +399,14 @@ class Collection implements \Iterator {
         if($oid <= 0) {
             throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
         }
+
         // log action (if enabled)
         $this->logger->log($user_id, 'create', $this->class, $oid);
         
+        // make sure the assigned id is present in the loaded object        
+        $values['id'] = $oid;
+
         // store new object in current collection
-        if(!in_array('id', $fields)) {
-            $values['id'] = $oid;
-        }
         $this->objects[$oid] = $values;
 
         return $this;

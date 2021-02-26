@@ -46,7 +46,7 @@ list($params, $providers) = announce([
         'limit' => [
             'description'   => 'The maximum number of results.',
             'type'          => 'integer',
-            'min'           => 5,
+            'min'           => 1,
             'max'           => 100,
             'default'       => 25
         ]

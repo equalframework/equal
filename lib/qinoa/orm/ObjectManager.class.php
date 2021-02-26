@@ -778,6 +778,8 @@ class ObjectManager extends Service {
 // todo : support for 'usage' attribute
 // todo : check relational fields consistency (that targeted object(s) actually exist)
 // todo : support partial object check (individual field validation) and complete object check (with support for the 'required' attribute)
+
+// todo : this method should return a map of fields with related error_id messages
 		$res = [];
 
         $model = &$this->getStaticInstance($class);
@@ -792,10 +794,10 @@ class ObjectManager extends Service {
                     $validation_func = $constraint['function'];
                     if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
                         if(!isset($constraint['error_message_id'])) {
-                            $constraint['error_message_id'] = 'invalid_'.$field;
+                            $constraint['error_message_id'] = 'invalid_field';
                         }
                         if(!isset($constraint['error_message'])) {
-                            $constraint['error_message'] = $field.' is invalid';
+                            $constraint['error_message'] = 'invalid_field';
                         }
                         trigger_error("field {$field} violates constraint : {$constraint['error_message']}", E_USER_WARNING);                                    
                         $error_code = QN_ERROR_INVALID_PARAM;
@@ -824,6 +826,7 @@ class ObjectManager extends Service {
                     $domain[] = ['state', '=', 'instance'];
 					$domain[] = ['deleted', 'in', ['0', '1']];
                     $ids = $this->search($class, $domain);
+// todo: add value match criteria here					
                 }
                 // there is a violation : stop and fetch info about it
                 if(count($ids)) {
@@ -833,7 +836,7 @@ class ObjectManager extends Service {
                             if($value == $values[$field]) {
                                 trigger_error("field {$field} violates unique constraint with object {$oid}", E_USER_WARNING);                                    
                                 $error_code = QN_ERROR_CONFLICT_OBJECT;
-                                $res[$field] = "duplicate_{$field}";
+                                $res[$field] = "duplicate_index";
                             }
                         }
                     }                
@@ -846,9 +849,11 @@ class ObjectManager extends Service {
 
 	/**
 	 * Create a new instance of given class.
+	 * Upon creation, the objecft remains in 'draft' state until it has been written:
 	 * 
-     * if $fields is empty, a draft object is created with fields set to default values defined by the class Model.
-     * if $field contains some values, object is created and its state is set to 'instance' (@see write method)
+     * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model.
+     * - if $field contains some values, object is created and its state is set to 'instance' (@see write method)
+	 *
 	 * 
      * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised
 	 */
@@ -865,14 +870,22 @@ class ObjectManager extends Service {
 			// create object with default values
 			$creation_array = array_merge( ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
 
-			// use given id field as identifier, if any and valid
-			if(!empty($fields) && isset($fields['id'])) {
-				if(is_numeric($fields['id'])) {
-					$creation_array['id'] = (int) $fields['id'];
-				}
-				else {
+			// fields `id` and `creator` can be set to force resulting object
+			if(!empty($fields)) {
+				// use given id field as identifier, if any and valid
+				if(isset($fields['id'])) {
+					if(is_numeric($fields['id'])) {
+						$creation_array['id'] = (int) $fields['id'];
+					}
 					unset($fields['id']);
-				}				
+				}
+				// use given creator id, if any and valid
+				if(isset($fields['creator'])) {
+					if(is_numeric($fields['id'])) {
+						$creation_array['creator'] = (int) $fields['creator'];
+					}
+					unset($fields['creator']);
+				}
 			}
 
 			// garbage collect: check for expired draft object
@@ -891,7 +904,7 @@ class ObjectManager extends Service {
 					$creation_array['id'] = $oid;
 					// and delete the associated record (which might contain obsolete data)
 					$db->deleteRecords($object_table, array($oid));
-				}				
+				}
 			}
 
 			// create a new record with the found value, (if no id is given, the autoincrement will assign a value)
@@ -948,7 +961,7 @@ class ObjectManager extends Service {
             
             // remove unknown fields
 			$allowed_fields = $object->getFields();
-			// prevent updating id field
+			// prevent updating id field (reserved)
 			if(isset($fields['id'])) unset($fields['id']);
 
             foreach($fields as $field => $values) {
@@ -1002,7 +1015,7 @@ class ObjectManager extends Service {
 	/**
 	 * Returns either an error code or an associative array containing, for each requested object id, 
      * an array maping each selected field to its value.
-	 * Note : The process maintains $ids and $fields order.
+	 * Note : The process maintains order inside $ids and $fields arrays.
 	 *
 	 * @param string	$class	class of the objects to retrieve
 	 * @param mixed	$ids	identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
