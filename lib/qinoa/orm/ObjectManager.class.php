@@ -703,6 +703,9 @@ class ObjectManager extends Service {
 			},
 			'computed' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
 				// nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
+			},
+			'alias' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+				// nothing to store for virtual fields 
 			});
 
 			// build an associative array ordering given fields by their type
@@ -776,8 +779,8 @@ class ObjectManager extends Service {
 	public function validate($class, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
 // todo : support for 'usage' attribute
-// todo : check relational fields consistency (that targeted object(s) actually exist)
-// todo : support partial object check (individual field validation) and complete object check (with support for the 'required' attribute)
+// todo : check relational fields consistency (make sure that targeted object(s) actually exist)
+// todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
 
 // todo : this method should return a map of fields with related error_id messages
 		$res = [];
@@ -788,22 +791,24 @@ class ObjectManager extends Service {
             $constraints = $model->getConstraints();
             //(unexisting fields are ignored by write method)
             foreach($values as $field => $value) {
-                if(isset($constraints[$field]) 
-                && isset($constraints[$field]['function']) ) {
-                    $constraint = $constraints[$field];
-                    $validation_func = $constraint['function'];
-                    if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
-                        if(!isset($constraint['error_message_id'])) {
-                            $constraint['error_message_id'] = 'invalid_field';
-                        }
-                        if(!isset($constraint['error_message'])) {
-                            $constraint['error_message'] = 'invalid_field';
-                        }
-                        trigger_error("field {$field} violates constraint : {$constraint['error_message']}", E_USER_WARNING);                                    
-                        $error_code = QN_ERROR_INVALID_PARAM;
-                        $res[$field] = $constraint['error_message_id'];
-                    }
-                }
+                if(isset($constraints[$field])) {
+					foreach($constraints[$field] as $error_id => $constraint) {
+						if(isset($constraint['function']) ) {
+							$validation_func = $constraint['function'];
+							if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
+								if(!isset($constraint['message'])) {
+									$constraint['message'] = 'invalid field';
+								}
+								trigger_error("field {$field} violates constraint : {$constraint['message']}", E_USER_WARNING);                                    
+								$error_code = QN_ERROR_INVALID_PARAM;
+								if(!isset($res[$field])) {
+									$res[$field] = [];
+								}
+								$res[$field][$error_id] = $constraint['message'];
+							}
+						}
+					}
+				}
             }
         }
         

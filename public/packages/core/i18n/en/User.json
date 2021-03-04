@@ -1,7 +1,15 @@
 {
+	"name": "User",
+	"plural": "Users",
+	"description": "Users can log in, joing groups and be granted specific persmissions.",
 	"model": {
-		"login":{"label":"Username", "help":"Your username is your email address."},
-		"password":{"label":"Password"}
+		"login":{
+			"label":"Username", 
+			"help":"Your username is your email address."
+		},
+		"password":{"label":"Password"},
+		"firstname":{"label":"Given name"},
+		"lastname":{"label":"Family name"}
 	},
 	"view": {
 		"identification":{"label":"Identification"},

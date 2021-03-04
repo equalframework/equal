@@ -302,7 +302,7 @@ class Collection implements \Iterator {
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
 // todo : harmonize error codes                
-                throw new \Exception(implode(',', array_keys($error_descr)), $error_code);
+                throw new \Exception(serialize($error_descr), $error_code);
             }
         }
     }
@@ -412,6 +412,12 @@ class Collection implements \Iterator {
         return $this;
     }
     
+    /**
+     * When $field argument is empty, only `id` and `name` fields are loaded.
+     * 
+     * @param $fields
+     * @param $lang
+     */
     public function read($fields, $lang=DEFAULT_LANG) {
 
         if(count($this->objects)) {
@@ -423,9 +429,13 @@ class Collection implements \Iterator {
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
             // build a list of direct field to load (i.e. "object attributes") 
-            // we might access an object directly by giving its ID, as some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set
-            $requested_fields = ['id', 'deleted'];
-            
+            // we might access an object directly by giving its ID, and we always request the name, as a convention
+            // as some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not
+            $requested_fields = ['id', 'deleted', 'name'];
+
+            // remeber relational fields requiring additional loading
+            $relational_fields = [];
+
             foreach($fields as $key => $val ) {
                 // handle array notation                
                 $field = (!is_numeric($key))?$key:$val;
@@ -438,24 +448,12 @@ class Collection implements \Iterator {
                     $target = $this->instance->field($field);
                     // remember only requested relational sub-fields
                     // if(is_numeric($key) || !in_array($schema[$field]['type'], ['one2many', 'many2one', 'many2many'])) {
-                    if(is_numeric($key) || !in_array($target['type'], ['one2many', 'many2one', 'many2many'])) {
-                        unset($fields[$key]);
+                    if(!is_numeric($key) && in_array($target['type'], ['one2many', 'many2one', 'many2many'])) {
+                        $relational_fields[$key] = $val;
                     }
                 }
             }            
-            /*
-                When $field argument is empty, nothing is loaded.
-                Alternate strategies for empty $fields situation:
-                
-                * load all simple fields
-                ```
-                $requested_fields = array_keys(array_filter($schema, function($field) { return in_array($field['type'], ObjectManager::$simple_types);}));
-                ```
-                * load all fields
-                ```
-                $requested_fields = array_keys($schema);            
-                ```
-            */
+
             // retrieve targeted identifiers (remove null entries)
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
 
@@ -479,10 +477,12 @@ class Collection implements \Iterator {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
             }            
 
-            // 4) remove any deleted items (to handle ::ids()->read()), if `deleted` field was not explicitely requested
-            if(!in_array('deleted', $fields)) {            
+            // 4) remove deleted items (to handle ::ids()->read()), if `deleted` field was not explicitely requested
+            if(!in_array('deleted', $fields)) {
                 foreach($res as $oid => $odata) {
                     if($odata['deleted']) {
+                        // remove the object from the result set
+                        // when read operation is performed after a search, this situation should not occur
                         unset($res[$oid]);
                     }
                     else {
@@ -491,9 +491,9 @@ class Collection implements \Iterator {
                 }
             }
 
-            // 5) load sub-fields (recusion), if any
+            // 5) recursively load sub-fields, if any
             $this->objects = $res;            
-            foreach($fields as $field => $subfields) {
+            foreach($relational_fields as $field => $subfields) {
                 // load batches of sub-objects grouped by field
                 $ids = [];
                 foreach($this->objects as $object) {

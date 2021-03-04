@@ -26,8 +26,8 @@ class Contact extends \qinoa\orm\Model {
     public static function getConstraints() {
         return [
             'email'			=>  [
-                                'error_message_id'  => 'invalid_email',
-                                'error_message'     => 'email must be a valid email address',
+                                'error_id'          => 'invalid_email',
+                                'error_message'     => 'Email must be a valid email address.',
                                 'function'          => function ($login) {
                                         // valid email address
                                         if($login == 'admin') return true;
@@ -35,15 +35,15 @@ class Contact extends \qinoa\orm\Model {
                                     }
                                 ],
             'mobile'		=>  [
-                                'error_message_id'  => 'invalid_mobile',
-                                'error_message'     => 'mobile must be a phone number',
+                                'error_id'          => 'invalid_mobile',
+                                'error_message'     => 'Mobile must be a phone number.',
                                 'function'          => function ($phone) {
 										return (bool) (preg_match('/^\+?[0-9]{4,14}$/', $phone, $matches));
 									}
                                 ],
             'landline'		=>  [
-                                'error_message_id'  => 'invalid_landline',
-                                'error_message'     => 'mobile must be a phone number',
+                                'error_id'          => 'invalid_landline',
+                                'error_message'     => 'Landline must be a phone number.',
                                 'function'          => function ($phone) {
                                         return (bool) (preg_match('/^\+?[0-9]{4,14}$/', $phone, $matches));
                                     }

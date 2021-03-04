@@ -136,7 +136,7 @@ class Model {
 	 * @return array
 	 */
 	public static function getName() {
-		return 'Base Model';
+		return 'Model';
 	}
 
 

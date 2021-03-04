@@ -50,7 +50,7 @@ list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $pro
 
 
 
-// fields and values have been received as a raw array : we need to adapt received values according to schema
+// fields and values have been received as a raw array : adapt received values according to schema
 $schema = $orm->getModel($params['entity'])->getSchema();
 foreach($params['fields'] as $field => $value) {
     // drop empty and unknown fields

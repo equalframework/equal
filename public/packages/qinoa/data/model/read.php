@@ -44,7 +44,11 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$object = $params['entity']::id($params['ids'])->read($params['fields'], $params['lang'])->adapt('txt')->first();
+$object = $params['entity']::ids($params['ids'])
+            ->read($params['fields'], $params['lang'])
+            ->adapt('txt')
+            // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
+            ->get(true);
 
 $context->httpResponse()
         ->body($object)

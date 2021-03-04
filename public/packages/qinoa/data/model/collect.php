@@ -4,6 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2018, Yegen
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+use qinoa\orm\Domain;
 
 list($params, $providers) = announce([
     'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
@@ -65,7 +66,14 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$collection = $params['entity']::search($params['domain'], [ 'sort' => [ $params['order'] => $params['sort']] ]);
+$domain = $params['domain'];
+
+// if `deleted` field is requested, we need to force searching amongst deleted objects as well
+if(in_array('deleted', $params['fields'])) {
+    $domain = Domain::conditionAdd($domain, ['deleted', 'in', [0, 1]]);
+}
+
+$collection = $params['entity']::search($domain, [ 'sort' => [ $params['order'] => $params['sort']] ]);
 
 $total = count($collection->ids());
 
@@ -75,6 +83,7 @@ $result = $collection
           ->limit($params['limit'])
           ->read($params['fields'])
           ->adapt('txt')
+          // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
           ->get(true);
 
 

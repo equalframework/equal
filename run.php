@@ -155,7 +155,13 @@ catch(Exception $e) {
         if(defined('HTTP_REDIRECT_'.$http_status)) {
             header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
             exit();
-        }        
+        }
+        $msg = $e->getMessage();
+        // handle serialized objects as message
+        $data = @unserialize($msg);
+        if ($data !== false) {
+            $msg = $data;
+        }
         // retrieve current HTTP response
         $response = $context->httpResponse();
         // adapt response and send it
@@ -165,7 +171,7 @@ catch(Exception $e) {
         // explicitely tell we're returning JSON
         ->header('Content-Type', 'application/json')
         // append an 'error' section to response body
-        ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ])
+        ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $msg ] ])
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         // send HTTP response

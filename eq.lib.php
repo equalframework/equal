@@ -672,6 +672,12 @@ namespace config {
                 catch(\Exception $e) {
                     // an exception with code 0 is an explicit process halt with no error
                     if($e->getCode() != 0) {
+                        $msg = $e->getMessage();
+                        // handle serialized objects as message
+                        $data = @unserialize($msg);
+                        if ($data !== false) {
+                            $msg = $data;
+                        }
                         // retrieve current HTTP response
                         $response = $context->httpResponse();
                         // build response with error details
@@ -679,7 +685,7 @@ namespace config {
                         // set status and body according to raised exception
                         ->status(qn_error_http($e->getCode()))
                         ->header('Content-Type', 'application/json')
-                        ->extendBody( [ 'errors' => [ qn_error_name($e->getCode()) => $e->getMessage() ] ] )
+                        ->extendBody( [ 'errors' => [ qn_error_name($e->getCode()) => $msg ] ] )
                         // send HTTP response
                         ->send();
                     }
@@ -829,8 +835,8 @@ namespace config {
 namespace {
     
     /**
-    * inject standalone functions into global scope (to relieve the user from the scope resolution notation)
-    */
+     * inject standalone functions into global scope (to allow using methods without scope resolution notation)
+     */
     function run(string $type, string $operation, array $body=[], $root=false) {
         return config\eQual::run($type, $operation, $body, $root);
     }
@@ -842,5 +848,12 @@ namespace {
     function inject(array $providers) {
         return config\eQual::inject($providers);
     }
+
+    // expose static methods
+    class eQual {                
+        public static function __callStatic($name, $arguments) {            
+            return call_user_func_array('config\eQual::'.$name, $arguments);
+        }        
+    }      
     
 }

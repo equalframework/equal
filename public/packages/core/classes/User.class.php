@@ -5,10 +5,19 @@ use qinoa\orm\Model;
 
 class User extends Model {
 
+    public static function getName() {
+        return 'User';
+    }
+
     public static function getColumns() {
         return [
+            'name' => [
+                'type'              => 'alias',
+                'alias'             => 'login'
+            ],
             'login' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'required'          => true
             ],
             'password' => [
                 'type'              => 'string'
@@ -21,7 +30,8 @@ class User extends Model {
             ],
             'language' => [
                 'type'              => 'string', 
-                'usage'             => 'language/iso-639:2'
+                'usage'             => 'language/iso-639:2',
+                'required'          => true                
             ],
             'validated' => [
                 'type'              => 'boolean'
@@ -47,15 +57,30 @@ class User extends Model {
     public static function getConstraints() {
         return [
             'login' =>  [
-                'error_message_id'  => 'invalid_login',
-                'error_message'     => 'login must be a valid email address',
-                'function'          => function ($login) {
-                    // valid email address
-                    // ... with an exception for admin
-                    if($login == 'admin') return true;
-                    return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login, $matches));
-                }
+                'invalid_email' => [
+                    'message'       => 'Login must be a valid email address.',
+                    'function'      => function ($login) {
+                        // an exception for admin
+                        if($login == 'admin') return true;
+                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
+                    }    
+                ]
+            ],
+            'firstname' =>  [
+                'too_short' => [
+                    'message'       => 'Firstname must be 2 chars long at minimum.',
+                    'function'      => function ($firstname) {
+                        return (bool) (strlen($firstname) >= 2);
+                    }
+                ],
+                'invalid_chars' => [
+                    'message'       => 'Firstname must contain only naming glyphs.',
+                    'function'      => function ($firstname) {
+                        return (bool) (preg_match('/^[\w\'\-,.][^0-9_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]{1,}$/u', $firstname));                        
+                    }
+                ]
             ]
+
         ];
     }
     

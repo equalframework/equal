@@ -67,6 +67,12 @@ foreach($params['fields'] as $field => $value) {
         $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
 }
+
+// todo : handle draft edition
+// when a user has been modifying a draft object, we need to check the status before saving
+// if it has changed to instance (which means it has been modified by another user in the meanwhile), then we need to create a new object
+
+
                            // retrieve objects
 $result = $params['entity']::ids($params['ids'])
                            // update with received values

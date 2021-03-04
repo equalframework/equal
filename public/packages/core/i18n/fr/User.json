@@ -1,30 +1,30 @@
 {
+	"name": "Utilisateur",
+	"plural": "Utilisateurs",
+	"description": "Les utilisateurs peuvent se connecter, être assignés à des groupes et recevoir des permissions spécifiques.",
 	"model": {
 		"login":{
 			"label":"Identifiant", 
-			"help":"Votre adresse e-mail.",
-			"errors": {
-				"malformed_login": "Format email non-reconnu."
-			}
+			"help":"Les identifiants sont des adresses e-mail."
 		},
-		"password":{
-			"label":"Mot de passe",
-			"errors": {
-				"malformed_password": "Insuffisamment sécurisé ou caractères invalides."
-			}
-		},
+		"password":{"label":"Mot de passe"},
 		"firstname":{"label":"Prénom"},
-		"lastname":{"label":"Nom"}
+		"lastname":{"label":"Nom"},
+		"created":{"label":"Date de création", "help": "Date de création du compte"}
 	},
 	"view": {
+		"group.user": {"label": "Infos de l'utilisateur"},
+		"label.details":{"label":"Détails de contact"},
+		"section.user_details": {"label": "Section des détails"},
 		"identification":{"label":"Identification"},
 		"ok":{"label":"Ok"},
 		"cancel":{"label":"Annuler"},
-		"subscribe":{"label":"S'inscrire"}
-	},
-	"error": {
+		"subscribe":{"label":"S'inscrire"},
 		"error_identification":{"label":"Erreur lors de l'identification"},
 		"error_login":{"label":"Format d'identifiant incorrect: n'est pas une adresse e-mail valide"},
-		"error_password":{"label":"Format de mot de passe incorrect: n'est pas une valeur md5"}
+		"error_password":{"label":"Format de mot de passe incorrect: n'est pas une valeur md5"}			
+	},
+	"errors": {
+
 	}
 }
