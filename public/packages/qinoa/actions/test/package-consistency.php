@@ -41,6 +41,9 @@ $params['package'] = strtolower($params['package']);
 
 TODO : check config and json files syntax.
 
+translation files constraints: 
+	* model helpers : max 45 chars
+	* error messages length : max 45 chars
 */
 
 
