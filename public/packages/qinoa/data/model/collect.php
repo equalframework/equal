@@ -62,8 +62,25 @@ list($params, $providers) = announce([
 
 list($context) = [ $providers['context'] ];
 
+
 if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+}
+
+// adapt received fields names
+$fields = [];
+foreach($params['fields'] as $field) {
+    // handle dot notation
+    if(strpos($field, '.')) {
+        $parts = explode('.', $field);
+        if(!isset($fields[$parts[0]])) {
+            $fields[$parts[0]] = [];
+        }
+        $fields[$parts[0]][] = $parts[1];
+    }
+    else {
+        $fields[] = $field;
+    }
 }
 
 $domain = $params['domain'];
@@ -81,7 +98,7 @@ $total = count($collection->ids());
 $result = $collection
           ->shift($params['start'])
           ->limit($params['limit'])
-          ->read($params['fields'])
+          ->read($fields)
           ->adapt('txt')
           // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
           ->get(true);
