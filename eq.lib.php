@@ -61,7 +61,8 @@ namespace {
     define('QN_DEBUG_PHP',          1);
     define('QN_DEBUG_SQL',          2);
     define('QN_DEBUG_ORM',          4);
-    define('QN_DEBUG_APP',          8);
+    define('QN_DEBUG_API',          8);
+    define('QN_DEBUG_APP',          16);
 
 
     define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
@@ -589,6 +590,8 @@ namespace config {
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
 
+            $reporter->debug("params: ".json_encode($result));
+            
             // 5) check for requested providers
 
             if(isset($announcement['providers']) && count($announcement['providers'])) {
@@ -781,6 +784,7 @@ namespace config {
                         file_put_contents('../cache/'.$cache_id, serialize([$headers, $result]));
                     }
                 }
+                trigger_error("QN_DEBUG_ORM::result - $result", QN_REPORT_DEBUG);
             }
 
             // restore context
