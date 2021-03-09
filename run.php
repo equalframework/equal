@@ -1,7 +1,7 @@
 <?php
 /**
 *    This file is part of the eQual framework.
-*    https://github.com/cedricfrancoys/equal-framework
+*    https://github.com/cedricfrancoys/equal
 *
 *    Some Rights Reserved, Cedric Francoys, 2010-2019
 *    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>

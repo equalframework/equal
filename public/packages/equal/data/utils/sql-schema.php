@@ -6,7 +6,7 @@
 */
 
 // get listing of existing packages
-$json = run('get', 'qinoa_config_packages');
+$json = run('get', 'config_packages');
 $packages = json_decode($json, true);
 
 
@@ -34,7 +34,7 @@ $params['package'] = strtolower($params['package']);
 $result = array();
 
 // get classes listing
-$json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
+$json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
     
 

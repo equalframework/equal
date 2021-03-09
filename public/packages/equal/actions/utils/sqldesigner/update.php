@@ -1,10 +1,9 @@
 <?php
 /*
-    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
-    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-
 list($params, $providers) = announce([
     'description'   => "Returns the schema of given class (model)",
     'params'        => [
@@ -32,7 +31,7 @@ list($context) = [$providers['context']];
 
 // retrieve related cache-id
 $uri = $context->httpRequest()->uri();
-$url = $uri->getScheme().'://'.$uri->getAuthority().$uri->getPath().'?get=qinoa_utils_sqldesigner_schema&package='.$params['package'];
+$url = $uri->getScheme().'://'.$uri->getAuthority().$uri->getPath().'?get=utils_sqldesigner_schema&package='.$params['package'];
 $cache_id = md5($url);
 
 // update cached response, if any

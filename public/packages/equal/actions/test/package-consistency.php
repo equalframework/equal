@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
-    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use qinoa\db\DBConnection;
@@ -53,7 +53,7 @@ $result = [];
 $is_error = false;
 
 // get classes listing
-$json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
+$json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
 
 // relay error if any

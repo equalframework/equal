@@ -1,13 +1,13 @@
 <?php
 /*
-    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
-    Some Rights Reserved, Cedric Francoys, 2018, Yegen
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use qinoa\db\DBConnection;
 
 // get listing of existing packages
-$json = run('get', 'qinoa_config_packages');
+$json = run('get', 'config_packages');
 $packages = json_decode($json, true);
 
 list($params, $providers) = announce([
@@ -45,7 +45,7 @@ $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
 // PASS-ONE : execute schema SQL
 
 // 1) retrieve schema for given package
-$json = run('get', 'qinoa_utils_sql-schema', ['package'=>$params['package']]);
+$json = run('get', 'utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array
 $data = json_decode($json, true);
 // join all lines
@@ -65,7 +65,7 @@ foreach($queries as $query) {
 $queries = [];
 
 // 2) retrieve classes listing
-$json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
+$json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
 
 $types_associations = array(
