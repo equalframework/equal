@@ -28,7 +28,7 @@ namespace {
      */
 
     /**
-     * Current version of Qinoa
+     * Current version of eQual
      */
     define('QN_VERSION', '1.0.0');
 
@@ -340,7 +340,7 @@ namespace config {
                     ],
                     JSON_PRETTY_PRINT);
                 // and raise an exception (will be output in PHP error log)
-                throw new \Exception("Qinoa init: a mandatory dependency is missing or cannot be instanciated", QN_REPORT_FATAL);
+                throw new \Exception("eQual init: a mandatory dependency is missing or cannot be instanciated", QN_REPORT_FATAL);
             }
             // register ORM classes autoloader
             try {
@@ -752,10 +752,10 @@ namespace config {
                 // set current dir according to visibility (i.e. 'public' or 'private')
                 chdir(QN_BASEDIR.'/'.$resolved['visibility']);
                 if(!is_file($filename)) {
-                    // always try to fallback to qinoa package (for short syntax calls)
-                    $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    // always try to fallback to equal package (for short syntax calls)
+                    $filename = 'packages/equal/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        $filename = 'packages/qinoa/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        $filename = 'packages/equal/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
                             throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
                         }
@@ -806,7 +806,7 @@ namespace config {
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
          * 
-         * @example load_class('qinoa/db/DBConnection');
+         * @example load_class('qinoa\db\DBConnection');
          */
         public static function load_class($class_name) {
             $result = false;

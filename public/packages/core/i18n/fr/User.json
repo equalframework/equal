@@ -17,14 +17,16 @@
 		"label.details":{"label":"Détails de contact"},
 		"section.user_details": {"label": "Section des détails"},
 		"identification":{"label":"Identification"},
-		"ok":{"label":"Ok"},
 		"cancel":{"label":"Annuler"},
-		"subscribe":{"label":"S'inscrire"},
-		"error_identification":{"label":"Erreur lors de l'identification"},
-		"error_login":{"label":"Format d'identifiant incorrect: n'est pas une adresse e-mail valide"},
-		"error_password":{"label":"Format de mot de passe incorrect: n'est pas une valeur md5"}			
+		"subscribe":{"label":"S'inscrire"}
 	},
-	"errors": {
-
+	"error": {
+		"login": {
+			"invalid_email": "Doit être un email valide."
+		},
+		"firstname": {
+			"too_short": "Doit avoir min. 2 caractères.",
+			"invalid_chars": "Ne doit contenir que des car. non-symboliques."
+		}
 	}
 }

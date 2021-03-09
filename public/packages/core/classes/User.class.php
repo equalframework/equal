@@ -36,12 +36,12 @@ class User extends Model {
             'validated' => [
                 'type'              => 'boolean'
             ],
-            'groups_ids' => [                
-                'type'              => 'many2many', 
-                'foreign_object'    => 'core\Group', 
-                'foreign_field'     => 'users_ids', 
-                'rel_table'         => 'core_rel_group_user', 
-                'rel_foreign_key'   => 'group_id', 
+            'groups_ids' => [
+                'type'              => 'many2many',
+                'foreign_object'    => 'core\Group',
+                'foreign_field'     => 'users_ids',
+                'rel_table'         => 'core_rel_group_user',
+                'rel_foreign_key'   => 'group_id',
                 'rel_local_key'     => 'user_id'
             ]
         ];

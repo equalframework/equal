@@ -53,7 +53,8 @@
                                                 "type": "field",
                                                 "value": "created",
                                                 "width": "50%",
-                                                "label": "Creation date"
+                                                "label": "Creation date",
+                                                "help": "Creation date"
                                             },
                                             {
                                                 "type": "field",
@@ -70,7 +71,8 @@
                                                 "type": "field",
                                                 "value": "firstname",
                                                 "width": "50%",
-                                                "label": "User given name"
+                                                "label": "User given name",
+                                                "help": "Forename of the user."
                                             },
                                             {
                                                 "type": "field",
@@ -95,21 +97,19 @@
                         ]
                     },
                     {
-                        "label": "Main pane",
-                        "id": "section.user_details",
+                        "label": "Groups",
+                        "id": "section.groups",
                         "rows": [
                             {
                                 "columns": [
                                     {
-                                        "width": "33%",
+                                        "width": "100%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "name",
-                                                "width": "50%",
-                                                "label": "User name",
-                                                "readonly": true
+                                                "value": "groups_ids",
+                                                "label": "Groups"
                                             }
                                         ]
                                     }

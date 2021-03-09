@@ -163,9 +163,19 @@ class DataAdapter extends Service {
             'many2many' => [
                 'txt' => [
                     'php' =>    function($value) {
+                                    // we got a string: convert to array
                                     if(is_string($value)) {
-                                        $value = array_filter(explode(',', $value), function ($a) { return is_numeric($a); });
+                                        $value = explode(',', $value);
                                     }
+                                    else if(!is_array($value)) {
+                                        $value = (array) $value;
+                                    }
+                                    // check for recursion
+                                    if(is_array($value[0])) {
+                                        $value = array_map(function($a) { return isset($a['id'])?$a['id']:'?'; }, $value);
+                                    }
+                                    // make sure array contains only numbers or numeric strings
+                                    $value = array_filter($value, function ($a) { return is_numeric($a); });
                                     return $value;
                                 }
                 ]

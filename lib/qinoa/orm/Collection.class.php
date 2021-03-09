@@ -125,7 +125,7 @@ class Collection implements \Iterator {
         if(count($args) < 1) {
             return $this->limit;
         }        
-        else {
+        else if($args[0] > 0) {
             $this->limit = $args[0];
             if($this->limit && $this->limit < count($this->objects)) {
                 $this->objects = array_slice($this->objects, 0, $this->limit, true);
