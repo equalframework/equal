@@ -9,5 +9,6 @@ spool/*
 !spool/.gitkeep
 bin/*
 !bin/.gitkeep
+public/packages/symbiose/*
 composer.phar
 composer.lock
