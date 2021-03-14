@@ -3,12 +3,12 @@
 *    This file is part of the eQual framework.
 *    https://github.com/cedricfrancoys/equal
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2020
+*    Some Rights Reserved, Cedric Francoys, 2010-2021
 *    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU Lesser General Public License as published
-*    by the Free Software Foundation, either version 3 of the License, or
+*    it under the terms of the GNU Lesser General Public License as published by
+*    the Free Software Foundation, either version 3 of the License, or
 *    (at your option) any later version.
 *
 *    This program is distributed in the hope that it will be useful,
