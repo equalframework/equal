@@ -3,11 +3,11 @@
 *    This file is part of the eQual framework.
 *    https://github.com/cedricfrancoys/equal
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2019
-*    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*    Some Rights Reserved, Cedric Francoys, 2010-2021
+*    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
+*    it under the terms of the GNU Lesser General Public License as published by
 *    the Free Software Foundation, either version 3 of the License, or
 *    (at your option) any later version.
 *
@@ -16,7 +16,7 @@
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU General Public License for more details.
 *
-*    You should have received a copy of the GNU General Public License
+*    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /**
@@ -29,11 +29,11 @@
 *  Usage examples:
 *
 *    CLI
-*            php run.php --get=public:test_hello
+*            equal.run --get=public:test_hello
 *    HTTP
-*            /index.php?get=resiway_tests&id=1&test=2
+*            /?get=resiway_tests&id=1&test=2
 *    PHP
-*            run('get', 'qinoa_utils_sql-schema', ['package'=>'core']);
+*            run('get', 'utils_sql-schema', ['package'=>'core']);
 *
 */
 use qinoa\php\Context;
@@ -42,7 +42,7 @@ use qinoa\route\Router;
 
 /*
  Load bootstrap library: system constants and functions definitions
- (QN library allows to include required files and classes)
+ (eQual library allows to include required files and classes)
 */
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
 if( (include($bootstrap)) === false ) die('qinoa lib is missing');
