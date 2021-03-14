@@ -1,10 +1,9 @@
 <?php
 /*
-    This file is part of the qinoa framework <http://www.github.com/cedricfrancoys/qinoa>
-    Some Rights Reserved, Cedric Francoys, 2018, Yegen
-    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 list($params, $providers) = announce([
     'description'   => 'Returns existing routes for a given API, along with their description and expected parameters',
     'params'        => [
