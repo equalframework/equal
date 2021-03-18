@@ -776,7 +776,7 @@ class ObjectManager extends Service {
 	 * @param boolean $check_unique
 	 * @return array resulting associative array (empty if no error found)
 	 */
-	public function validate($class, $values, $check_unique=false) {
+	public function validate($class, $ids, $values, $check_unique=false) {
 // todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
 // todo : support for 'usage' attribute
 // todo : check relational fields consistency (make sure that targeted object(s) actually exist)
@@ -817,7 +817,7 @@ class ObjectManager extends Service {
             $uniques = $model->getUnique();
 
             foreach($uniques as $unique) {
-				$ids = [];
+				$conflict_ids = [];
                 $domain = [];
                 foreach($unique as $field) {
                     // map unique fields with the given values
@@ -830,12 +830,12 @@ class ObjectManager extends Service {
                 if(count($domain)) {
                     $domain[] = ['state', '=', 'instance'];
 					$domain[] = ['deleted', 'in', ['0', '1']];
-                    $ids = $this->search($class, $domain);
-// todo: add value match criteria here					
+					$domain[] = ['id', 'not in', $ids];
+                    $conflict_ids = $this->search($class, $domain);
                 }
                 // there is a violation : stop and fetch info about it
-                if(count($ids)) {
-                    $objects = $this->read($class, $ids, $unique);                
+                if(count($conflict_ids)) {
+                    $objects = $this->read($class, $conflict_ids, $unique);                
                     foreach($objects as $oid => $odata) {
                         foreach($odata as $field => $value) {
                             if($value == $values[$field]) {
