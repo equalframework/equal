@@ -297,8 +297,8 @@ class Collection implements \Iterator {
      * @param $fields   array   associative array holding values and their related fields as keys 
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
-    private function validate(array $fields, $check_unique=false) {
-        $validation = $this->orm->validate($this->class, $fields, $check_unique);
+    private function validate(array $fields, $ids=[], $check_unique=false) {
+        $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
 // todo : harmonize error codes                
@@ -390,7 +390,7 @@ class Collection implements \Iterator {
         }
 
         // 3) validate and check unique keys
-        $this->validate($values, true);
+        $this->validate($values, [], true);
         // set current user as creator
         $values = array_merge($values, ['creator' => $user_id]);
 
@@ -428,10 +428,14 @@ class Collection implements \Iterator {
             
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
+
             // build a list of direct field to load (i.e. "object attributes") 
-            // we might access an object directly by giving its ID, and we always request the name, as a convention
-            // as some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not
-            $requested_fields = ['id', 'deleted', 'name'];
+            // 'id': we might access an object directly by giving its `id`
+            // 'name': as a convention the name is always provided
+            // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice)
+            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not
+            // 'modified': the last update timestamp is always provided, at update, if modified is provided, it is compared to the current timestamp to detect concurrent changes
+            $requested_fields = ['id', 'name', 'state', 'deleted', 'modified'];
 
             // remeber relational fields requiring additional loading
             $relational_fields = [];
@@ -460,14 +464,6 @@ class Collection implements \Iterator {
 			// 2) check that current user has enough privilege to perform READ operation
 			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
                 throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
-                
-                /*
-				if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {	
-				    throw new \Exception('READ,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
-				}
-				// user might have created some objects: limit search to those, if any
-				$domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);            
-                */
             }
             
             // 3) read values
@@ -477,7 +473,7 @@ class Collection implements \Iterator {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
             }            
 
-            // 4) remove deleted items (to handle ::ids()->read()), if `deleted` field was not explicitely requested
+            // 4) remove deleted items, if `deleted` field was not explicitely requested
             if(!in_array('deleted', $fields)) {
                 foreach($res as $oid => $odata) {
                     if($odata['deleted']) {
@@ -534,8 +530,8 @@ class Collection implements \Iterator {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
             
-            // 3) validate
-            $this->validate($values);            
+            // 3) validate and check unique keys
+            $this->validate($values, $ids, true);            
                         
             // 4) write
             // set current user as modifier
