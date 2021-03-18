@@ -88,9 +88,9 @@ class AuthenticationManager extends Service {
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');
         
-        $errors = $orm->validate('core\User', ['login' => $login]);
+        $errors = $orm->validate('core\User', [], ['login' => $login]);
         if(count($errors)) {
-            throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
+            throw new \Exception('invalid_credential', QN_ERROR_INVALID_PARAM);
         }
         
         $ids = $orm->search('core\User', ['login', '=', $login]);
