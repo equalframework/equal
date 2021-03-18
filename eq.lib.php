@@ -48,7 +48,7 @@ namespace {
     define('QN_ERROR_UNKNOWN_OBJECT',     -16);        // unknown resource (class, object, view, ...)
     define('QN_ERROR_NOT_ALLOWED',        -32);        // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
     define('QN_ERROR_LOCKED_OBJECT',      -64);
-    define('QN_ERROR_CONFLICT_OBJECT',   -128);
+    define('QN_ERROR_CONFLICT_OBJECT',   -128);        // version conflict 
     define('QN_ERROR_INVALID_USER',      -256);        // auth failure
     define('QN_ERROR_UNKNOWN_SERVICE',   -512);        // server errror : missing service
     define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
