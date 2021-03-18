@@ -192,7 +192,7 @@ class DBManipulatorMySQL extends DBManipulator {
 					$cond[1] = 'LIKE';
 				}
 	            // format the value operand
-				if(is_array($cond[2])) $value = '('.implode(',', array_map(__NAMESPACE__.'\DBManipulatorMySQL::escapeString', $cond[2])).')';
+				if(is_array($cond[2])) $value = '('.implode(',', array_map( [$this, 'escapeString'], $cond[2] )).')';
 				else $value = DBManipulatorMySQL::escapeString($cond[2]);
 				// concatenate query string with current condition
 				$sql .= $cond[0].' '.$cond[1].' '.$value;
