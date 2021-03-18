@@ -31,7 +31,7 @@ list($params, $providers) = announce([
 
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
 
-$validation = $om->validate('core\User', $params);
+$validation = $om->validate('core\User', [], $params);
 if($validation < 0 || count($validation)) {
     throw new Exception('invalid_credentials', QN_ERROR_INVALID_PARAM);
 }
