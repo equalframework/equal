@@ -1,12 +1,12 @@
 Options -Indexes
-DirectoryIndex index.php
+DirectoryIndex index.php index.html
 
 <IfModule mod_rewrite.c>
 
     RewriteEngine On
     RewriteBase /
     
-    # RewriteRule ^(index|console)\.php(\??.*)$ - [L]
+    RewriteRule ^(index|console)\.php(\??.*)$ - [L]
 
     RewriteCond %{REQUEST_FILENAME} ^(.*)\.php$ [OR]
     RewriteCond %{REQUEST_FILENAME} !-f
