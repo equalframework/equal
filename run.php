@@ -29,7 +29,7 @@
 *  Usage examples:
 *
 *    CLI
-*            equal.run --get=public:test_hello
+*            equal.run --get=test_hello
 *    HTTP
 *            /?get=resiway_tests&id=1&test=2
 *    PHP

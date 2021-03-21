@@ -90,19 +90,19 @@ class AuthenticationManager extends Service {
         
         $errors = $orm->validate('core\User', [], ['login' => $login]);
         if(count($errors)) {
-            throw new \Exception('invalid_credential', QN_ERROR_INVALID_PARAM);
+            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_PARAM);
         }
         
         $ids = $orm->search('core\User', ['login', '=', $login]);
         if(!count($ids)) {
-            throw new \Exception($login, QN_ERROR_INVALID_USER);
+            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
         }
 
         $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
         $user = array_shift($list);
 
         if(!password_verify($password, $user['password'])) {
-            throw new \Exception("$login:$password", QN_ERROR_INVALID_USER);
+            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
         }
         
         // remember current user identifier

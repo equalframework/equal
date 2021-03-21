@@ -5,7 +5,8 @@ DirectoryIndex index.php
 
     RewriteEngine On
     RewriteBase /
-    RewriteRule ^(index|console)\.php(\??.*)$ - [L]
+    
+    # RewriteRule ^(index|console)\.php(\??.*)$ - [L]
 
     RewriteCond %{REQUEST_FILENAME} ^(.*)\.php$ [OR]
     RewriteCond %{REQUEST_FILENAME} !-f

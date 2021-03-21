@@ -413,7 +413,7 @@ namespace config {
                     foreach($announcement['response']['accept-origin'] as $origin) {
                         // todo: use a compare method to handle explicit/implicit port notation                        
                         if(in_array($origin, ['*', $request_origin])) {
-                            $response->header('Access-Control-Allow-Origin', $origin);
+                            $response->header('Access-Control-Allow-Origin', $request_origin);
                             break;
                         }
                     }
@@ -635,7 +635,7 @@ namespace config {
          * @param $body
          * @param $root
          *
-         * @example run('get', 'public:resiway_tests', ['test'=> 1])
+         * @example run('get', 'resiway_tests', ['test'=> 1])
          */
         public static function run($type, $operation, $body=[], $root=false) {
             trigger_error("QN_DEBUG_ORM::calling run method for $type:$operation", QN_REPORT_DEBUG);
@@ -749,8 +749,8 @@ namespace config {
                 // if no app is specified, use the default app (if any)
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) $resolved['script'] = config('DEFAULT_APP').'.php';
                 $filename = 'packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
-                // set current dir according to visibility (i.e. 'public' or 'private')
-                chdir(QN_BASEDIR.'/'.$resolved['visibility']);
+                // set current dir according to 'base' directory
+                chdir(QN_BASEDIR.'/');
                 if(!is_file($filename)) {
                     // always try to fallback to equal package (for short syntax calls)
                     $filename = 'packages/equal/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];

@@ -196,20 +196,15 @@ class ObjectManager extends Service {
     public function getPackages() {
         if(!$this->packages) {
 			$this->packages = [];
-			$package_directories = [
-				'../public/packages',
-				'../private/packages'
-			];
-			foreach($package_directories as $package_directory) {
-				if(is_dir($package_directory) && ($list = scandir($package_directory))) {
-					foreach($list as $node) {
-						if(is_dir($package_directory.'/'.$node) 
-						&& !in_array($node, array('.', '..'))
-						&& !in_array($node, $this->packages)) {
-							$this->packages[] = $node;
-						}
+			$package_directory = QN_BASEDIR.'/packages';
+			if(is_dir($package_directory) && ($list = scandir($package_directory))) {
+				foreach($list as $node) {
+					if(is_dir($package_directory.'/'.$node) 
+					&& !in_array($node, array('.', '..'))
+					&& !in_array($node, $this->packages)) {
+						$this->packages[] = $node;
 					}
-				}	
+				}
 			}
         }
         return $this->packages;
@@ -225,11 +220,9 @@ class ObjectManager extends Service {
         // if class is unknown, load the file containing the class declaration of the requested object
         if(!class_exists($class)) {
             // first, read the file to see if the class extends from another (which could not be loaded yet)
-            $filename = 'packages/'.self::getObjectPackageName($class).'/classes/'.self::getObjectClassFileName($class);
+            $filename = QN_BASEDIR.'/packages/'.self::getObjectPackageName($class).'/classes/'.self::getObjectClassFileName($class);
             if(!is_file($filename)) {
-                // we might find ourselves in the 'private' directory (where classes definition is not mandatory)
-                $filename = '../public/'.$filename;
-                if(!is_file($filename)) throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
             }
 			$parts = explode('\\', $class);
 			$class_name = array_pop($parts);

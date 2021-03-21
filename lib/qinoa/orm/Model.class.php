@@ -129,7 +129,7 @@ class Model {
     }
 
 	/**
-	 * Gets Model readable name
+	 * Gets Model readable name.
 	 * This method is meant to be overridden by children classes.
 	 * 
 	 * @access public
@@ -139,6 +139,17 @@ class Model {
 		return 'Model';
 	}
 
+
+	/**
+	 * Gets Model description.
+	 * This method is meant to be overridden by children classes.
+	 * 
+	 * @access public
+	 * @return array
+	 */
+	public static function getDescription() {
+		return 'Interface for model defintion classes.';
+	}
 
 	/**
 	 * Gets object schema
