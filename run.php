@@ -19,6 +19,8 @@
 *    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+use qinoa\php\Context;
+use qinoa\route\Router;
 /**
 *
 *  This is the root entry point and acts as dispatcher.
@@ -36,9 +38,6 @@
 *            run('get', 'utils_sql-schema', ['package'=>'core']);
 *
 */
-use qinoa\php\Context;
-use qinoa\route\Router;
-
 
 /*
  Load bootstrap library: system constants and functions definitions

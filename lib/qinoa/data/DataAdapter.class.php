@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace qinoa\data;
 
 use qinoa\organic\Service;
@@ -110,7 +115,7 @@ class DataAdapter extends Service {
                     'sql' =>    function ($value) {
                                     return date('Y-m-d', $value);
                                 },
-                    // easyObject do not have a specific way to handle dates (deal with them as strings)
+// todo : deprecate
                     'orm' =>    function ($value) {
                                     return date('Y-m-d', $value);
                                 }                                      
@@ -122,6 +127,7 @@ class DataAdapter extends Service {
                                     return mktime(0, 0, 0, $month, $day, $year);
                                 }
                 ],
+// todo : deprecate                
                 'orm' => [
                     'php' =>    function ($value) {
                                     // return date as a timestamp
