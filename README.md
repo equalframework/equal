@@ -17,8 +17,10 @@ eQual is a versatile, language-agnostic and web-oriented framework, aiming to el
 ```
 <?php
 // Tired of steep learning curves?
-echo "This is a valid Contoller!"
+echo "This is a valid Contoller!";
 ```
+
+`$ equal.run --get=test_first`
 
 
 
