@@ -24,7 +24,8 @@ before_script:
   - mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('test');"
   # install apache2
   - chmod +x .travis/*.sh
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then .travis/init-php7.3.sh; else .travis/init-php.sh; fi
+  # - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then .travis/init-php7.3.sh; else .travis/init-php.sh; fi
+  - .travis/init-php.sh; fi
 
   
   

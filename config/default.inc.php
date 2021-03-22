@@ -101,9 +101,8 @@ namespace {
      * - 'MS' ('master-slave'): 2 servers; write operations are performed on both servers, read operations are performed on the master only
      * - 'MM' ('multi-master'): any number of servers; write operations are performed on all servers, read operations can be performed on any server
      */
-    define('DB_REPLICATION', 'NO'); 
-    
-    
+    define('DB_REPLICATION', 'MS'); 
+        
     define('DB_DBMS',       'MYSQL');       
     define('DB_CHARSET',    'UTF8');        // 'UTF8' in most cases
 
