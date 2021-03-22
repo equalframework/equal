@@ -80,37 +80,31 @@ class DBManipulatorMySQL extends DBManipulator {
 	function sendQuery($query) {
         // debug
 	    trigger_error("QN_DEBUG_SQL::$query", E_USER_NOTICE);
-		$this->setLastQuery($query);
+
 
 		if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
             throw new Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', QN_ERROR_SQL);
         }
-		// if everything went well, preform additional operations (replication & info about query result)
+		// everything went well: perform additional operations (replication & info about query result)
 		else {
-			$query_operation = strtolower((explode(' ', $query, 2))[0]);
-			// for WRITE operations, relay query to replicate members
-			if(in_array($query_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
-				foreach($this->members as $member) {
-					$member->sendQuery($query);
-				}
-			}			
-			// a) for 'select' queries
-			if($query_operation == 'select') {
-				if(($res = mysqli_query($this->dbms_handler, "SELECT FOUND_ROWS();")) === false) {
-                    throw new Exception(__METHOD__.' : query failure, '.mysqli_error($this->dbms_handler), QN_ERROR_SQL);
-                }
-				$row = mysqli_fetch_row($res);
-				$this->setAffectedRows($row[0]);
-			}
-			// b) for 'show' queries
-			else if($query_operation =='show') {
+			// update $affected_rows, $last_query, $last_id (depending on the performed operation)
+			$sql_operation = strtolower((explode(' ', $query, 2))[0]);
+			$this->setLastQuery($query);
+			if($sql_operation == 'select' || $sql_operation == 'show') {
                 $this->setAffectedRows(mysqli_num_rows($result));
             }
-			// c) for other queries (insert, update, replace, delete)
 			else {
-                $this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
-            }
-			$this->setLastId(mysqli_insert_id($this->dbms_handler));
+				// for WRITE operations, relay query to members of the replica
+				if(in_array($sql_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
+					foreach($this->members as $member) {
+						$member->sendQuery($query);
+					}
+				}
+				if($sql_operation =='insert') {
+					$this->setLastId(mysqli_insert_id($this->dbms_handler));
+				}
+				$this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
+			}
 		}
 		return $result;
 	}
