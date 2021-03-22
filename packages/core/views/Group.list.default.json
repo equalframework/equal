@@ -1,0 +1,34 @@
+{
+    "name": "Groups list",
+    "description": "This view is intended for displaying basic listing of existing groups",
+    "layout": {
+        "items": [
+            {
+                "type": "field",            
+                "value": "id",
+                "width": "5%"
+            },
+            {
+                "type": "field",            
+                "value": "created",
+                "width": "10%"
+            },    
+            {
+                "type": "field",            
+                "value": "name",
+                "label": "Name",
+                "link": true,
+                "width": "10%"
+            },
+            {
+                "type": "field",            
+                "value": "users_ids",
+                "label": "Users",
+                "width": "35%",
+                "widget": {
+                    "type": "one2many"
+                }
+            }        
+        ]
+    }
+}

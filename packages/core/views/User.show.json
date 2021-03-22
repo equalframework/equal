@@ -1,0 +1,22 @@
+[
+    {
+        "field":  "id"
+    },
+    {
+        "field": "created"
+    },
+    {
+        "field": "login",
+        "label": "Email"
+    },    
+    {
+        "field": "firstname"
+    },
+    {
+        "field": "lastname"
+    },    
+    {
+        "field": "validated",
+        "readonly": true
+    }
+]

@@ -1,0 +1,40 @@
+{
+    "name": "Group",
+    "description": "Simple form for displaying Group",
+    "layout": {
+        "groups": [
+            {
+                "sections": [                    
+                    {
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "id",
+                                                "width": "50%",
+                                                "label": "Group Identifier",
+                                                "readonly": true
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "name",
+                                                "width": "50%",
+                                                "label": "Group name",
+                                                "help": "Unique name of the group."
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }            
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "Groups selection",
+    "description": "Intended for picking up one or more group(s).",
+    "layout": {
+        "items": [
+            {
+                "type": "field",            
+                "value": "name",
+                "label": "Name"
+            }
+        ]
+    }
+}

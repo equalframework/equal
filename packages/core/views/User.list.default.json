@@ -1,0 +1,72 @@
+{
+    "name": "Users list",
+    "description": "This view is intended for displaying basic listing of existing users",
+    "filters": [
+        {
+            "id": "lang.french",
+            "label": "français",
+            "description": "Utilisateurs parlant français",
+            "clause": ["language", "=", "fr"] 
+        }
+    ],
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "5%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "created",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "validated",
+                "width": "5%"
+            },    
+            {
+                "type": "field",
+                "value": "login",
+                "widget": {
+                    "type": "link"
+                },
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type" : "field",
+                "value": "firstname", 
+                "label": "This is the firstname",
+                "width": "10%"
+            },
+            {
+                "type" : "field",
+                "value": "lastname",
+                "label": "Nom de famille",
+                "width": "15%"            
+            },
+            {
+                "type": "field",
+                "value": "language",
+                "width": "10%",
+                "widget": {
+                    "type": "select",
+                    "values": ["fr", "en", "nl"]
+                }
+            },
+            {
+                "type": "field",
+                "value": "groups_ids",
+                "label": "Groups",
+                "width": "0%",
+                "visible": false,
+                "widget": {
+                    "type": "one2many"
+                }
+            }        
+        ]
+    }
+}

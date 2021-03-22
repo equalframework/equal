@@ -26,10 +26,10 @@ namespace {
     
     
     /**
-    * Binary type storage mode
-    *
-    * Possible values are: 'DB' (database) and 'FS' (filesystem)
-    */
+     * Binary type storage mode
+     *
+     * Possible values: 'DB' (database) and 'FS' (filesystem)
+     */
     define('FILE_STORAGE_MODE', 'FS');
 
 
@@ -86,18 +86,50 @@ namespace {
     */
     // Note: ensure http service has read/write permissions on this directory
     define('EMAIL_SPOOL_DIR', QN_BASEDIR.'/spool');
-        
+
+    
     /**
     * Database parameters
     * note: most utilities need these parameters. 
     */
-    define('DB_DBMS',       'MYSQL');       // only MySQL is supported so far
-    define('DB_HOST',       '127.0.0.1');   // the full qualified domain name (ex.: www.example.com)
+
+    /**
+     * Database replication strategy
+     *
+     * Possible values: 
+     * - 'NO': no replication
+     * - 'MS' ('master-slave'): 2 servers; write operations are performed on both servers, read operations are performed on the master only
+     * - 'MM' ('multi-master'): any number of servers; write operations are performed on all servers, read operations can be performed on any server
+     */
+    define('DB_REPLICATION', 'NO'); 
+    
+    
+    define('DB_DBMS',       'MYSQL');       
+    define('DB_CHARSET',    'UTF8');        // 'UTF8' in most cases
+
+    define('DB_HOST',       '127.0.0.1');   // IP or fully qualified domain name (ex.: www.example.com)
     define('DB_PORT',       '3306');        // this is the default port for MySQL
     define('DB_USER',       'root');        // this should be changed for security reasons
     define('DB_PASSWORD',   'test');        // this should be changed for security reasons
     define('DB_NAME',       'qinoa');       // specify the name of the DB that you have created or you plan to use
-    define('DB_CHARSET',    'UTF8');        // unless you are really sure of what you're doing, leave this constant to 'UTF8'
+
+    // additional DB server(s) can be configured as below
+    /* 
+    define('DB1_HOST',       '127.0.0.1');  
+    define('DB1_PORT',       '3306');       
+    define('DB1_USER',       'root');       
+    define('DB1_PASSWORD',   'test');       
+    define('DB1_NAME',       'qinoa');      
+
+    define('DB2_HOST',       '127.0.0.1');  
+    define('DB2_PORT',       '3306');       
+    define('DB2_USER',       'root');       
+    define('DB2_PASSWORD',   'test');       
+    define('DB2_NAME',       'qinoa');      
+
+    [...]
+    */
+
 
     /**
     * Default Package

@@ -1,0 +1,9 @@
+[
+    {
+        "field": "name"
+    },
+    {
+        "field": "users_ids",
+		"label": "Users"		
+    }
+]

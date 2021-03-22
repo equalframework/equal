@@ -1,0 +1,127 @@
+{
+    "name": "User",
+    "description": "Simple form for displaying User",
+    "layout": {
+        "groups": [
+            {
+
+                "id": "group.user",
+                "sections": [                    
+                    {
+                        "label": "Second pane",
+                        "id": "user_details",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "id",
+                                                "width": "50%",
+                                                "label": "User Identifier",
+                                                "readonly": true
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "login",
+                                                "width": "50%",
+                                                "label": "Username",
+                                                "help": "Email address of the user"
+                                            },                                            
+                                            {
+                                                "type": "label",
+                                                "id": "id.details",
+                                                "value": "Contact details",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "button",
+                                                "value": "custom action",
+                                                "width": "50%",
+                                                "action": ""
+                                            }
+                                        ]
+                                    },
+                                    {                                            
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "created",
+                                                "width": "50%",
+                                                "label": "Creation date",
+                                                "help": "Creation date"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "modifier",
+                                                "width": "50%",
+                                                "label": "Modifier",
+                                                "widget": {
+                                                    "type": "many2one",
+                                                    "domain": ["name", "like", "object.firstname"]
+                                                }
+                                            },
+
+                                            {
+                                                "type": "field",
+                                                "value": "firstname",
+                                                "width": "50%",
+                                                "label": "User given name",
+                                                "help": "Forename of the user."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "lastname",
+                                                "width": "50%",
+                                                "label": "User family name",
+                                                "visible": [ ["firstname", "<>", "root"], ["language", "=", "en"] ]
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "language",
+                                                "width": "50%",
+                                                "widget": {
+                                                    "type": "select",
+                                                    "values": ["fr", "en", "nl"]
+                                                }
+                                            }
+                                        ]
+                                    }    
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "label": "Groups",
+                        "id": "section.groups",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "groups_ids",
+                                                "label": "Groups",
+                                                "widget": {
+                                                    "view": "selection"
+                                                }                                                
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }                    
+                ]
+            }
+        ]
+    }
+}

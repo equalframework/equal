@@ -1,0 +1,22 @@
+[
+    {
+        "field": "login",
+        "label": "Email"
+    },
+    {
+        "field": "firstname"
+    },
+    {
+        "field": "lastname"
+    },    
+    {
+        "field": "language"
+    },
+    {
+        "field": "start"
+    },
+    {
+        "field": "groups_ids",
+		"label": "Groups"
+    }	
+]

@@ -1,0 +1,19 @@
+<form>
+<div width="100%">
+	<fieldset title="identification">
+		<span width="100%">
+			<label for="login"></label><var id="login" required="true"></var>
+			<br />
+			<label for="password"></label>
+			<var id="password" 
+				 required="true" 
+				 type="password" 
+				 onchange="" 
+				 onsubmit="$('#password', $form).val(lock(user_key(), $('#password', $form).val()))">
+			</var>
+		</span>
+	</fieldset>
+</div>
+<div><button name="subscribe" type="button" onclick="window.location.href='?show=core_user_subscribe'"></button></div>
+<div align="right"><button name="ok" type="button" action="core_user_login"></button></div>
+</form>

@@ -716,7 +716,7 @@ namespace config {
             }
 
 
-            // if package has a custom configuration file, load it
+            // load package custom configuration, if any
             if(!is_null($resolved['package']) && is_file('packages/'.$resolved['package'].'/config.inc.php')) {
                 include('packages/'.$resolved['package'].'/config.inc.php');
             }
