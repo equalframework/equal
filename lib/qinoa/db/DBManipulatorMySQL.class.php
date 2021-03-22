@@ -21,8 +21,8 @@ class DBManipulatorMySQL extends DBManipulator {
     
 	/**
 	 * Open the DBMS connection
-	 *
-	 * @return   integer   The status of the connect function call
+	 * @param	 $auto_select	boolean		Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
+	 * @return   integer   		The status of the connect function call
 	 * @access   public
 	 */
 	public function connect($auto_select=true) {
@@ -41,6 +41,12 @@ class DBManipulatorMySQL extends DBManipulator {
                     $result = true;
                 }                
             }
+			foreach($this->members as $member) {
+				if($member->connect($auto_select) === false) {
+					$result = false;
+					break;
+				}
+			}
 		}
         if(!$result) return false;
 		return $this;
@@ -48,37 +54,48 @@ class DBManipulatorMySQL extends DBManipulator {
 
 
 	/**
-	* Close the DBMS connection
-	*
-	* @return   integer   Status of the close function call
-	* @access   public
-	*/
+	 * Close the DBMS connection
+	 *
+	 * @return   integer   Status of the close function call
+	 * @access   public
+	 */
 	public function disconnect() {
         if(isset($this->dbms_handler)) {
 			mysqli_close($this->dbms_handler);
 			$this->dbms_handler = null;
+			foreach($this->members as $member) {
+				$member->disconnect();
+			}
 		}
 		return true;
 	}
 
 	/**
-	* Send a SQL query.
-	*
-	* @param string The query to send to the DBMS.
-    *
-	* @return resource Returns a resource identifier or -1 if the query was not executed correctly.
-	*/
+	 * Send a SQL query.
+	 *
+	 * @param string The query to send to the DBMS.
+     *
+	 * @return resource Returns a resource identifier or -1 if the query was not executed correctly.
+	 */
 	function sendQuery($query) {
         // debug
 	    trigger_error("QN_DEBUG_SQL::$query", E_USER_NOTICE);
 		$this->setLastQuery($query);
+
 		if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
             throw new Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', QN_ERROR_SQL);
         }
+		// if everything went well, preform additional operations (replication & info about query result)
 		else {
-			// if everything went well, fetch some additional info
+			$query_operation = strtolower((explode(' ', $query, 2))[0]);
+			// for WRITE operations, relay query to replicate members
+			if(in_array($query_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
+				foreach($this->members as $member) {
+					$member->sendQuery($query);
+				}
+			}			
 			// a) for 'select' queries
-			if(stristr(substr($query, 0, 6), 'select')) {
+			if($query_operation == 'select') {
 				if(($res = mysqli_query($this->dbms_handler, "SELECT FOUND_ROWS();")) === false) {
                     throw new Exception(__METHOD__.' : query failure, '.mysqli_error($this->dbms_handler), QN_ERROR_SQL);
                 }
@@ -86,7 +103,7 @@ class DBManipulatorMySQL extends DBManipulator {
 				$this->setAffectedRows($row[0]);
 			}
 			// b) for 'show' queries
-			else if(stristr(substr($query, 0, 4), 'show')) {
+			else if($query_operation =='show') {
                 $this->setAffectedRows(mysqli_num_rows($result));
             }
 			// c) for other queries (insert, update, replace, delete)
@@ -107,22 +124,22 @@ class DBManipulatorMySQL extends DBManipulator {
 	}
 
 	/**
-	* Escapes a string containing the name of an object's field to match the SQL notation : `table`.`field` or `field`
-	*
-	* @param string $field_name
-	* @return string
-	*/
+	 * Escapes a string containing the name of an object's field to match the SQL notation : `table`.`field` or `field`
+	 *
+	 * @param string $field_name
+	 * @return string
+	 */
 	private static function escapeFieldName($field_name) {
 		$parts = explode('.', str_replace('`', '', $field_name));
 		return (count($parts) > 1)?"`{$parts[0]}`.`{$parts[1]}`":"`{$parts[0]}`";
 	}
 
 	/**
-	* Escapes a string for safe SQL insertion
-	*
-	* @param string $value
-	* @return string
-	*/
+	 * Escapes a string for safe SQL insertion
+	 *
+	 * @param string $value
+	 * @return string
+	 */
 	private function escapeString($value) {
 		$result = '';
         if(gettype($value) == 'string' && strlen($value) == 0) $result = "''";
@@ -141,16 +158,16 @@ class DBManipulatorMySQL extends DBManipulator {
 	}
 
 	/**
-	* Gets the mysql WHERE clause
-	*
-	* @param string $id_field
-	* @param array $ids
-	* @param array $conditions
-	*
-	* array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
-	* array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
-	* i.e.: (clause[, AND clause [, AND ...]) OR (clause[, AND clause [, AND ...])
-	*/
+	 * Gets the mysql WHERE clause
+	 *
+	 * @param string $id_field
+	 * @param array $ids
+	 * @param array $conditions
+	 *
+	 * array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
+	 * array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
+	 * i.e.: (clause[, AND clause [, AND ...]) OR (clause[, AND clause [, AND ...])
+	 */
 	private function getConditionClause($id_field, $ids, $conditions) {
 		$sql = '';
 		if(empty($conditions)) $conditions = array(array(array()));

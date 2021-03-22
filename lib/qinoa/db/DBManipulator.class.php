@@ -78,6 +78,14 @@ class DBManipulator {
 
 	protected $dbms_handler;
 
+	/**
+	 * Array of DBManipulator objects to secondary DBMS / members of the replica, if any
+	 *
+	 * @var		array
+	 * @access	protected
+	 */
+	protected $members;
+
 
 	/**
 	 * Class constructor
@@ -98,6 +106,8 @@ class DBManipulator {
 		$this->user_name    = $user;
 		$this->password     = $pass;
         $this->dbms_handler = null;
+
+		$this->members = [];
 	}
 
 
@@ -105,6 +115,12 @@ class DBManipulator {
 		$this->disconnect();
 	}
 
+	/**
+	 * Add a replica member
+	 */
+	public function addMember(DBManipulator $member) {
+		$this->members[] = $member;
+	}
 
 	/**
 	 * Open the DBMS connection
