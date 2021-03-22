@@ -8,7 +8,7 @@ use qinoa\db\DBConnection;
 use qinoa\orm\ObjectManager;
 
 // get listing of existing packages
-$json = run('get', 'qinoa_config_packages');
+$json = run('get', 'config_packages');
 $packages = json_decode($json, true);
 
 
@@ -145,11 +145,11 @@ foreach($classes as $class) {
 // todo : 2) check presence of class definition files to which some field may be related to
 
 
-    // 3) check if default views are present (form.default.html and list.default.html)
-    if(!is_file("$view_dir/$class.form.default.html"))
-		$result[] = "WARN - UI - Class $class: missing default form view (/views/$class.form.default.html)";
-    if(!is_file("$view_dir/$class.list.default.html"))
-		$result[] = "WARN - UI - Class $class: missing default list view (/views/$class.list.default.html)";
+    // 3) check if default views are present (form.default.json and list.default.json)
+    if(!is_file("$view_dir/$class.form.default.json"))
+		$result[] = "WARN - UI - Class $class: missing default form view (/views/$class.form.default.json)";
+    if(!is_file("$view_dir/$class.list.default.json"))
+		$result[] = "WARN - UI - Class $class: missing default list view (/views/$class.list.default.json)";
 
     // 4) check if translation file are present (.json)
     foreach($lang_list as $lang) {
@@ -158,7 +158,7 @@ foreach($classes as $class) {
          }
     }
 
-// todo : 5) check view files consistency (.html)
+// todo : 5) check view files consistency (.json)
 // todo : 6) check translation file consistency (.json)
 	
 // todo : 7) check apps / data / actions  files consistency (.php) 

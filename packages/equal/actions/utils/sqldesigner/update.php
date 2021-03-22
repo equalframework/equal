@@ -23,19 +23,17 @@ list($params, $providers) = announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context', 'auth'] 
 ]);
 
 
-list($context) = [$providers['context']];
+list($context, $auth) = [ $providers['context'], $providers['auth'] ];
 
 // retrieve related cache-id
-$uri = $context->httpRequest()->uri();
-$url = $uri->getScheme().'://'.$uri->getAuthority().$uri->getPath().'?get=utils_sqldesigner_schema&package='.$params['package'];
-$cache_id = md5($url);
+$cache_id = md5($auth->userId().'::'.'get'.'::'.'utils_sqldesigner_schema');
 
 // update cached response, if any
-$cache_filename = '../cache/'.$cache_id;
+$cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
 if(file_exists($cache_filename)) {
     // retrieve headers
     list($headers, $result) = unserialize(file_get_contents($cache_filename));

@@ -9,30 +9,32 @@
 	<title>WWW SQL Designer</title>
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1" />
  	<meta charset="utf-8" />
-	<link rel="stylesheet" href="/packages/qinoa/apps/model/sqldesigner/styles/style.css" media="all" />     
+    <base href="/sqldesigner/">
+    
+	<link rel="stylesheet" href="styles/style.css" media="all" />     
 	<!--[if IE 6]><link rel="stylesheet" type="text/css" href="styles/ie6.css" /><![endif]-->
 	<!--[if IE 7]><link rel="stylesheet" type="text/css" href="styles/ie7.css" /><![endif]-->
-	<link rel="stylesheet" href="/packages/qinoa/apps/model/sqldesigner/styles/print.css" type="text/css" media="print" />
+	<link rel="stylesheet" href="styles/print.css" type="text/css" media="print" />
 	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.2/dropbox.min.js"></script>
 
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/oz.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/config.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/globals.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/visual.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/row.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/table.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/relation.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/key.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/rubberband.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/map.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/toggle.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/io.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/tablemanager.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/rowmanager.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/keymanager.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/window.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/options.js"></script>
-	<script src="/packages/qinoa/apps/model/sqldesigner/js/wwwsqldesigner.js"></script>
+	<script src="js/oz.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/globals.js"></script>
+	<script src="js/visual.js"></script>
+	<script src="js/row.js"></script>
+	<script src="js/table.js"></script>
+	<script src="js/relation.js"></script>
+	<script src="js/key.js"></script>
+	<script src="js/rubberband.js"></script>
+	<script src="js/map.js"></script>
+	<script src="js/toggle.js"></script>
+	<script src="js/io.js"></script>
+	<script src="js/tablemanager.js"></script>
+	<script src="js/rowmanager.js"></script>
+	<script src="js/keymanager.js"></script>
+	<script src="js/window.js"></script>
+	<script src="js/options.js"></script>
+	<script src="js/wwwsqldesigner.js"></script>
     
     
 <script>
@@ -66,7 +68,7 @@ function load() {
             }
         }
     };
-    request.open('GET', '/index.php?get=qinoa_utils_sqldesigner_schema&package='+selected_package, true);
+    request.open('GET', '/?get=utils_sqldesigner_schema&package='+selected_package, true);
     request.send();    
 }
 
@@ -90,7 +92,7 @@ function save() {
             }
         }
     };
-    request.open('POST', '/index.php?do=qinoa_utils_sqldesigner_update&package='+selected_package, true);
+    request.open('POST', '/?do=utils_sqldesigner_update&package='+selected_package, true);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");    
     request.send('xml='+escape(xml));        
 }
@@ -159,7 +161,7 @@ function save() {
 		<div id="background"></div>
 	
 		<div id="window">
-			<div id="windowtitle"><img id="throbber" src="/packages/qinoa/apps/model/sqldesigner/images/throbber.gif" alt="" title=""/></div>
+			<div id="windowtitle"><img id="throbber" src="images/throbber.gif" alt="" title=""/></div>
 			<div id="windowcontent"></div>
 			<input type="button" id="windowok" />
 			<input type="button" id="windowcancel" />

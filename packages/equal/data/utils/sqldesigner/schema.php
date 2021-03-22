@@ -11,7 +11,6 @@ list($params, $providers) = announce([
                             'description'   => 'Name of the package for which the schema is requested',
                             'type'          => 'string',
                             'required'      => true
-
                         ]
     ],
     'response'      => [
@@ -27,7 +26,7 @@ list($params, $providers) = announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 
-$json = run('get', 'qinoa_config_classes', ['package' => $params['package']]);
+$json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
 
     

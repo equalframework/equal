@@ -394,6 +394,11 @@ namespace config {
             $method = $request->method();
 
             if(isset($announcement['response'])) {
+                if(isset($announcement['response']['location']) && !isset($body['announce'])) {
+                    header('Location: '.$announcement['response']['location']);
+                    exit;                    
+                }
+
                 $response = $context->httpResponse();
                 if(isset($announcement['response']['content-type'])) {
                     $response->headers()->setContentType($announcement['response']['content-type']);
@@ -441,9 +446,12 @@ namespace config {
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
                     // compute the cache ID
-                    $cache_id = md5($auth->userId().'::'.$request->header('origin').'::'.$request->uri());
+                    // $cache_id = md5($auth->userId().'::'.$request->header('origin').'::'.$request->uri());
+                    $operation = $context->get('operation');
+                    $cache_id = md5($auth->userId().'::'.$operation['type'].'::'.$operation['operation']);
+
                     // and related filename
-                    $cache_filename = '../cache/'.$cache_id;
+                    $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
                     $context->set('cache-id', $cache_id);
@@ -499,7 +507,6 @@ namespace config {
             }
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            // if(    count(array_intersect($mandatory_params, array_keys($body))) != count($mandatory_params)
             if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS') {
                 // no feedback about services
                 if(isset($announcement['providers'])) unset($announcement['providers']);
@@ -745,7 +752,7 @@ namespace config {
                     $request->del($resolved['type']);
                 }
                 // store current operation into context
-                $context->set('operation', $resolved['operation']);
+                $context->set('operation', $resolved);
                 // if no app is specified, use the default app (if any)
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) $resolved['script'] = config('DEFAULT_APP').'.php';
                 $filename = 'packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
@@ -781,7 +788,7 @@ namespace config {
                         }
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
-                        file_put_contents('../cache/'.$cache_id, serialize([$headers, $result]));
+                        file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
                     }
                 }
                 trigger_error("QN_DEBUG_ORM::result - $result", QN_REPORT_DEBUG);
