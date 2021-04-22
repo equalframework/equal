@@ -1,5 +1,4 @@
 <?php
-
 namespace qinoa\auth;
 
 class JWT {
@@ -7,42 +6,38 @@ class JWT {
 	 * Decodes a JWT string into a PHP object.
 	 *
 	 * @param string      $jwt    The JWT
-	 * @param bool        $verify Don't skip verification process 
-	 * @param string 	  $key    The secret key* 
 	 *
-	 * @return array      A map holding JWT header and payload
+	 * @return array      A map holding JWT header, payload, and signature
 	 * @throws Exception
 	 * 
 	 * @uses urlsafeB64Decode
 	 */
-	public static function decode($jwt, $verify = false, $key = null) {
-		$header  = [];
-        $payload = [];
+	public static function decode($jwt) {
+		$header  	= [];
+        $payload 	= [];
+		$signature 	= '';
+
 		$parts = explode('.', $jwt);
 
 		if (count($parts) != 3) {
 			throw new \Exception('JWT_malformed_token');
 		}
-		else {
-            list($headb64, $bodyb64, $cryptob64) = $parts;
-            if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
-                throw new \Exception('JWT_header_unreadable');
-            }
-            if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
-                throw new \Exception('JWT_payload_unreadable');
-            }
-            if ($verify) {
-				$sig = JWT::urlsafeB64Decode($cryptob64);
-                if (empty($header['alg'])) {
-                    throw new \Exception('JWT_invalid_algorithm');
-                }
-                if ($sig != JWT::sign("$headb64.$bodyb64", $key, $header['alg'])) {
-                    throw new \Exception('JWT_invalid_signature');
-                }
-            }
-        }
 
-		return ['header' => $header, 'payload' => $payload];
+		list($headb64, $bodyb64, $sigb64) = $parts;
+
+		if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
+			throw new \Exception('JWT_header_unreadable');
+		}
+		if ( !isset($header['alg']) ) {		
+			throw new \Exception('JWT_header_missing_algorithm');
+		}
+		if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
+			throw new \Exception('JWT_payload_unreadable');
+		}
+		if ( !($signature = JWT::urlsafeB64Decode($sigb64)) ) {
+			throw new \Exception('JWT_signature_unreadable');
+		}
+		return ['header' => $header, 'payload' => $payload, 'signature' => $signature];
 	}
 
 	/**
@@ -60,12 +55,41 @@ class JWT {
 	public static function encode($payload, $key, $algo = 'HS256') {
 		$header = array('typ' => 'JWT', 'alg' => $algo);
 		$segments = array();
-		$segments[] = JWT::urlsafeB64Encode(JWT::jsonEncode($header));
-		$segments[] = JWT::urlsafeB64Encode(JWT::jsonEncode($payload));
+		$segments[] = JWT::urlsafeB64Encode(json_encode($header));
+		$segments[] = JWT::urlsafeB64Encode(json_encode($payload));
 		$signing_input = implode('.', $segments);
 		$signature = JWT::sign($signing_input, $key, $algo);
 		$segments[] = JWT::urlsafeB64Encode($signature);
 		return implode('.', $segments);
+	}
+
+
+	public static function verify($msg, $sig, $key, $alg) {
+		$res = 0;
+		// for algo to support, @see https://tools.ietf.org/html/rfc7518#section-3
+		if( in_array($alg, ['HS256', 'HS384', 'HS512']) ) {
+			if ($sig == JWT::sign($msg, $key, $alg)) {
+				$res = 1;
+			}
+		}		
+		else if( in_array($alg, ['RS256', 'RS384', 'RS512']) ){
+			$alg_map = [
+				'RS256' => OPENSSL_ALGO_SHA256,
+				'RS384' => OPENSSL_ALGO_SHA384,
+				'RS512' => OPENSSL_ALGO_SHA512
+			];
+			$res = openssl_verify( 
+				$msg,  	      	// base64 encoded header.payload
+				$sig,           // binary value of token signature
+				$key,           // PEM formatted public key
+				$alg_map[$alg]  // OPENSSL algo to use
+			);	
+		}
+		else {
+			throw new \Exception("JWT_non_supported_alg");
+		}
+
+		return $res;
 	}
 
 	/**
@@ -83,7 +107,7 @@ class JWT {
 		$methods = array(
 			'HS256' => 'sha256',
 			'HS384' => 'sha384',
-			'HS512' => 'sha512',
+			'HS512' => 'sha512'
 		);
 		if (!in_array($method, array_keys($methods))) {
 			throw new DomainException('Algorithm not supported');
@@ -91,23 +115,54 @@ class JWT {
 		return hash_hmac($methods[$method], $msg, $key, true);
 	}
 
+
+	private static function encodeLength($length) {
+        if ($length <= 0x7F) {
+            return chr($length);
+        }
+
+        $temp = ltrim(pack('N', $length), chr(0));
+        return pack('Ca*', 0x80 | strlen($temp), $temp);
+    }
+
 	/**
-	 * Encode a PHP object into a JSON string.
-	 *
-	 * @param object|array $input A PHP object or array
-	 *
-	 * @return string          JSON representation of the PHP object or array
-	 * @throws DomainException Provided object could not be encoded to valid JSON
+	 * Generates a PEM formatted public key from a modulus and an exponent
 	 */
-	public static function jsonEncode($input) {
-		$json = json_encode($input);
-		if (function_exists('json_last_error') && $errno = json_last_error()) {
-			JWT::_handleJsonError($errno);
-		} else if ($json === 'null' && $input !== null) {
-			throw new DomainException('Null result with non-null input');
-		}
-		return $json;
-	}
+	public static function rsaToPem($n, $e) {
+        $modulus = JWT::urlsafeB64Decode($n);
+        $publicExponent = JWT::urlsafeB64Decode($e);
+
+        $components = [
+            'modulus' => pack('Ca*a*', 2, JWT::encodeLength(strlen($modulus)), $modulus),
+            'publicExponent' => pack('Ca*a*', 2, JWT::encodeLength(strlen($publicExponent)), $publicExponent)
+		];
+
+        $RSAPublicKey = pack(
+            'Ca*a*a*',
+            48,
+            JWT::encodeLength(strlen($components['modulus']) + strlen($components['publicExponent'])),
+            $components['modulus'],
+            $components['publicExponent']
+        );
+
+
+        // sequence for rsaEncryption: oid(1.2.840.113549.1.1.1), null
+		
+		// hex version of MA0GCSqGSIb3DQEBAQUA
+        $rsaOID = pack('H*', '300d06092a864886f70d0101010500'); 
+        $RSAPublicKey = chr(0) . $RSAPublicKey;
+        $RSAPublicKey = chr(3) . JWT::encodeLength(strlen($RSAPublicKey)) . $RSAPublicKey;
+
+        $RSAPublicKey = pack(
+            'Ca*a*',
+            48,
+            JWT::encodeLength(strlen($rsaOID . $RSAPublicKey)),
+            $rsaOID . $RSAPublicKey
+        );
+
+        return "-----BEGIN PUBLIC KEY-----\r\n" . chunk_split(base64_encode($RSAPublicKey), 64) . '-----END PUBLIC KEY-----';
+    }
+
 
 	/**
 	 * Decode a string with URL-safe Base64.
@@ -136,24 +191,4 @@ class JWT {
 		return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
 	}
 
-
-	/**
-	 * Helper method to create a JSON error.
-	 *
-	 * @param int $errno An error number from json_last_error()
-	 *
-	 * @return void
-	 */
-	private static function _handleJsonError($errno) {
-		$messages = array(
-			JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
-			JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
-			JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON'
-		);
-		throw new DomainException(
-			isset($messages[$errno])
-			? $messages[$errno]
-			: 'Unknown JSON error: ' . $errno
-		);
-	}
 }
