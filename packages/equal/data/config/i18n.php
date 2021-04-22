@@ -34,7 +34,7 @@ $parts = explode('\\', $params['entity']);
 $package = array_shift($parts);
 
 $class_dir = implode('/', $parts);
-$file = QN_BASEDIR."/public/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
+$file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
 
 if(!file_exists($file)) {

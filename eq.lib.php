@@ -586,6 +586,10 @@ namespace config {
                     else $invalid_params[] = $param;
                 }
             }
+            
+            // report received parameters
+            $reporter->debug("params: ".json_encode($result));
+
             if(count($invalid_params)) {
                 // no feedback about services
                 if(isset($announcement['providers'])) unset($announcement['providers']);
@@ -596,8 +600,6 @@ namespace config {
                 // raise an exception with error details
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
-
-            $reporter->debug("params: ".json_encode($result));
             
             // 5) check for requested providers
 

@@ -19,14 +19,19 @@ class ProductModel extends \symbiose\sale\product\ProductModel {
 
             'rental_unit_assignement' => [
                 'type'              => 'string',
-                'description'       => 'The way the product is assigned to a rental unit (a specific unit, or a category).',
-                'selection'         => ['unit', 'category'],
+                'description'       => 'The way the product is assigned to a rental unit (a specific unit, a specific category, or based on capacity match).',
+                'selection'         => ['unit', 'category', 'capacity'],
                 'visible'           => [ ['qty_accounting_method', '=', 'accomodation'] ]
+            ],
+
+            'has_duration' => [
+                'type'              => 'boolean',
+                'description'       => 'Does the product have a specific duration.'
             ],
 
             'duration' => [
                 'type'              => 'integer',
-                'description'       => 'Additional information about the duration of the service (used for planning purpose).',
+                'description'       => 'Additional information about the duration of the service (in days), used for planning purpose.',
                 'visible'           => [ ['qty_accounting_method', '=', 'person'] ]
             ],
 

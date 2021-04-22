@@ -33,7 +33,7 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $package = $orm->getObjectPackageName($params['entity']);
 $class = $orm->getObjectName($params['entity']);
 
-$file = QN_BASEDIR."/public/packages/{$package}/views/{$class}.{$params['view_id']}.json";
+$file = QN_BASEDIR."/packages/{$package}/views/{$class}.{$params['view_id']}.json";
 
 if(!file_exists($file)) {
     throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);

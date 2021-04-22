@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Returns the list of classes defined in specified package',
+    'description'   => 'Returns schema of available types and related possible attributes.',
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
