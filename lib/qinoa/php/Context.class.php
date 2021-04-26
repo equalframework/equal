@@ -66,7 +66,9 @@ class Context extends Service {
     public function getHttpRequest() {
         if(is_null($this->httpRequest)) {
             // retrieve current request 
-            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$this->getHttpUri().' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders(), $this->getHttpBody());
+            $body = $this->getHttpBody();
+            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$this->getHttpUri().' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders());
+            $this->httpRequest->setBody($body);
         }
         return $this->httpRequest;
     }
