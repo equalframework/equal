@@ -14,7 +14,8 @@ class ProductModel extends \symbiose\sale\product\ProductModel {
             'qty_accounting_method' => [
                 'type'              => 'string',
                 'description'       => 'The way the product quantity has to be computed (per unit [default], per person, or per accomodation [resource]).',
-                'selection'         => ['person', 'accomodation', 'unit']
+                'selection'         => ['person', 'accomodation', 'unit'],
+                'default'           => 'unit'
             ],
 
             'rental_unit_assignement' => [
@@ -63,10 +64,4 @@ class ProductModel extends \symbiose\sale\product\ProductModel {
         ];
     }
 
-
-    public static function getDefaults() {
-        return [
-            'qty_accounting_method'    => function() { return 'unit'; }
-        ];
-    }    
 }

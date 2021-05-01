@@ -31,10 +31,11 @@ class User extends Model {
             'language' => [
                 'type'              => 'string', 
                 'usage'             => 'language/iso-639:2',
-                'required'          => true                
+                'default'           => 'en'
             ],
             'validated' => [
-                'type'              => 'boolean'
+                'type'              => 'boolean',
+                'default'           => false
             ],
             'groups_ids' => [
                 'type'              => 'many2many',
@@ -47,12 +48,6 @@ class User extends Model {
         ];
     }
 
-    public static function getDefaults() {
-        return [
-            'validated'    => function() { return false; },
-            'language'     => function() { return 'en'; }
-        ];
-    }
 
     public static function getConstraints() {
         return [

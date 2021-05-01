@@ -4,6 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+use qinoa\orm\ObjectManager;
+
 
 // get listing of existing packages
 $json = run('get', 'config_packages');
@@ -37,28 +39,6 @@ $result = array();
 $json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
     
-
-$types_associations = [
-	'boolean' 		=> 'tinyint(4)',
-	'integer' 		=> 'int(11)',
-	'float' 		=> 'decimal(10,2)',	
-	'string' 		=> 'varchar(255)',
-	'text' 			=> 'mediumtext',
-	'html' 			=> 'mediumtext',    
-	'date' 			=> 'date',
-	'time' 			=> 'time',
-	'datetime' 		=> 'datetime',
-	'timestamp' 	=> 'timestamp',
-	'file' 		    => 'mediumblob',    
-	'binary' 		=> 'mediumblob',
-	'many2one' 		=> 'int(11)'
-];
-
-$usages_associations = [
-	'coordinate/decimal'	=> 'decimal(9,6)',
-	'language/iso-639:2'	=> 'char(2)',
-	'amount/money'			=> 'decimal(15,2)'
-];
 
 $m2m_tables = array();
 
@@ -98,11 +78,12 @@ foreach($classes as $class) {
 	$result[] = "CREATE TABLE IF NOT EXISTS `{$table_name}` (";
 	
 	foreach($schema as $field => $description) {
-		if(in_array($description['type'], array_keys($types_associations))) {
-			$type = $types_associations[$description['type']];
+		if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
+			$type = ObjectManager::$types_associations[$description['type']];
 
-			if( isset($description['usage']) && isset($usages_associations[$description['usage']]) ) {
-				$type = $usages_associations[$description['usage']];
+			// if a SQL type is associated to field 'usage', it prevails over the type association
+			if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+				$type = ObjectManager::$usages_associations[$description['usage']];
 			}
 
 			if($field == 'id') $result[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
@@ -110,7 +91,7 @@ foreach($classes as $class) {
 			else $result[] = "`{$field}` {$type},";
 		}
 		else if($description['type'] == 'function' && isset($description['store']) && $description['store']) {
-			$type = $types_associations[$description['result_type']];
+			$type = ObjectManager::$types_associations[$description['result_type']];
 			$result[] = "`{$field}` {$type} DEFAULT NULL,";
 		}
 		else if($description['type'] == 'many2many') {

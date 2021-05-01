@@ -44,63 +44,89 @@ class ObjectManager extends Service {
 	public static $complex_types = array('one2many', 'many2many', 'computed');
 
 	public static $valid_attributes = array(
-			'alias'		    => array('description', 'type', 'visible', 'usage', 'alias', 'required'),    
-			'boolean'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-			'integer'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'unique'),
-			'float'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'precision'),
-			'string'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-			'text'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
+		'alias'		    => array('description', 'type', 'visible', 'usage', 'alias', 'required'),    
+		'boolean'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+		'integer'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'unique'),
+		'float'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'precision'),
+		'string'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+		'text'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
 // todo : html should be handled as `'usage': 'text/html'`	
-			'html'			=> array('description', 'type', 'visible', 'required', 'onchange', 'multilang'),            
-			'date'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-			'time'			=> array('description', 'type', 'visible', 'required', 'onchange'),
-			'datetime'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-			'file'  		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),           
-			'binary'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
-			'many2one'		=> array('description', 'type', 'visible', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
-			'one2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
-			'many2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-			'computed'		=> array('description', 'type', 'visible', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
+		'html'			=> array('description', 'type', 'visible', 'required', 'onchange', 'multilang'),            
+		'date'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+		'time'			=> array('description', 'type', 'visible', 'required', 'onchange'),
+		'datetime'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
+		'file'  		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),           
+		'binary'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
+		'many2one'		=> array('description', 'type', 'visible', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
+		'one2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
+		'many2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
+		'computed'		=> array('description', 'type', 'visible', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
 	);
 
 	public static $mandatory_attributes = array(
-			'alias'		    => array('type', 'alias'),
-            'boolean'		=> array('type'),
-			'integer'		=> array('type'),
-			'float'			=> array('type'),
-			'string'		=> array('type'),
-			'text'			=> array('type'),
-			'html'			=> array('type'),            
-			'date'			=> array('type'),
-			'time'			=> array('type'),
-			'datetime'		=> array('type'),
-			'binary'		=> array('type'),
-			'file'		    => array('type'),            
-			'many2one'		=> array('type', 'foreign_object'),
-			'one2many'		=> array('type', 'foreign_object', 'foreign_field'),
-			'many2many'		=> array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
-			'computed'		=> array('type', 'result_type', 'function')			
+		'alias'		    => array('type', 'alias'),
+		'boolean'		=> array('type'),
+		'integer'		=> array('type'),
+		'float'			=> array('type'),
+		'string'		=> array('type'),
+		'text'			=> array('type'),
+		'html'			=> array('type'),            
+		'date'			=> array('type'),
+		'time'			=> array('type'),
+		'datetime'		=> array('type'),
+		'binary'		=> array('type'),
+		'file'		    => array('type'),            
+		'many2one'		=> array('type', 'foreign_object'),
+		'one2many'		=> array('type', 'foreign_object', 'foreign_field'),
+		'many2many'		=> array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
+		'computed'		=> array('type', 'result_type', 'function')			
 	);
 
-    public static $valid_operators = array(
-            'boolean'		=> array('=', '<>', '<', '>', 'in'),
-            'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
-            'float'			=> array('=', '<>', '<', '>', '<=', '>='),
-            'string'		=> array('like', 'ilike', 'in', '=', '<>'),
-            'text'			=> array('like', 'ilike', '='),
-            'html'			=> array('like', 'ilike', '='),                
-            'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like'),
-            'time'			=> array('=', '<>', '<', '>', '<=', '>='),
-            'datetime'		=> array('=', '<>', '<', '>', '<=', '>='),
-            'file'		    => array('like', 'ilike', '='),                
-            'binary'		=> array('like', 'ilike', '='),
-            // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
-            'many2one'		=> array('is', 'in', 'not in', '=', '<>', 'contains'),
-            'one2many'		=> array('contains'),
-            'many2many'		=> array('contains'),
-    );
+    public static $valid_operators = [
+		'boolean'		=> array('=', '<>', '<', '>', 'in'),
+		'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
+		'float'			=> array('=', '<>', '<', '>', '<=', '>='),
+		'string'		=> array('like', 'ilike', 'in', '=', '<>'),
+		'text'			=> array('like', 'ilike', '='),
+		'html'			=> array('like', 'ilike', '='),                
+		'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like'),
+		'time'			=> array('=', '<>', '<', '>', '<=', '>='),
+		'datetime'		=> array('=', '<>', '<', '>', '<=', '>='),
+		'file'		    => array('like', 'ilike', '='),                
+		'binary'		=> array('like', 'ilike', '='),
+		// for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
+		'many2one'		=> array('is', 'in', 'not in', '=', '<>', 'contains'),
+		'one2many'		=> array('contains'),
+		'many2many'		=> array('contains'),
+	];
 
 
+
+	public static $types_associations = [
+		'boolean' 		=> 'tinyint(4)',
+		'integer' 		=> 'int(11)',
+		'float' 		=> 'decimal(10,2)',
+		'string' 		=> 'varchar(255)',
+		'text' 			=> 'text',
+		'html' 			=> 'mediumtext',
+		'date' 			=> 'date',
+		'time' 			=> 'time',
+		'datetime' 		=> 'datetime',
+		'timestamp' 	=> 'timestamp',
+		'file' 		    => 'mediumblob',
+		'binary' 		=> 'mediumblob',
+		'many2one' 		=> 'int(11)'
+	];	
+
+
+	public static $usages_associations = [
+		'coordinate'			=> 'decimal(9,6)',
+		'language/iso-639:2'	=> 'char(2)',
+		'amount/money'			=> 'decimal(15,2)',
+		'currency/iso-4217'		=> 'char(3)',
+		'url/mailto'			=> 'varchar(255)',
+		'markup/html'			=> 'mediumtext'
+	];
 
 	protected function __construct(DBConnection $db) {
 // todo : declare required constants instead        
@@ -433,7 +459,7 @@ class ObjectManager extends Service {
 			},
 			'one2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
 				foreach($fields as $field) {
-					if(!ObjectManager::checkFieldAttributes(ObjectManager::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+					if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 					$order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
 					$sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
 // todo : handle alias fields (require subsequent schema)
@@ -756,7 +782,7 @@ class ObjectManager extends Service {
 	 * @return array resulting associative array (empty if no error found)
 	 */
 	public function validate($class, $ids, $values, $check_unique=false) {
-// todo : based on types, check that given value is not bigger than storage capacity (DBMS type)
+
 // todo : support for 'usage' attribute
 // todo : check relational fields consistency (make sure that targeted object(s) actually exist)
 // todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
@@ -766,31 +792,85 @@ class ObjectManager extends Service {
 
         $model = &$this->getStaticInstance($class);
         
-        if(method_exists($model, 'getConstraints')) {
-            $constraints = $model->getConstraints();
-            //(unexisting fields are ignored by write method)
-            foreach($values as $field => $value) {
-                if(isset($constraints[$field])) {
-					foreach($constraints[$field] as $error_id => $constraint) {
-						if(isset($constraint['function']) ) {
-							$validation_func = $constraint['function'];
-							if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
-								if(!isset($constraint['message'])) {
-									$constraint['message'] = 'invalid field';
-								}
-								trigger_error("field {$field} violates constraint : {$constraint['message']}", E_USER_WARNING);                                    
-								$error_code = QN_ERROR_INVALID_PARAM;
-								if(!isset($res[$field])) {
-									$res[$field] = [];
-								}
-								$res[$field][$error_id] = $constraint['message'];
+		$constraints = $model->getConstraints();
+		//(unexisting fields are ignored by write method)
+		foreach($values as $field => $value) {
+
+			
+			$schema = $model->getSchema();
+
+			// add constraints based on field type : check that given value is not bigger than storage capacity (DBMS type)
+			if(isset($schema[$field]['type'])) {
+				switch($schema[$field]['type']) {
+					case 'string':
+						$constraints[$field]['size_overflow'] = [
+							'message' 	=> 'String length must be maximum 255 chars.',
+							'function'	=> function($val) {return (strlen($val) <= 255);}
+						];
+						break;
+					case 'text':
+						$constraints[$field]['size_overflow'] = [
+							'message' 	=> 'String length must be maximum 65,535 chars.',
+							'function'	=> function($val) {return (strlen($val) <= 65535);}
+						];
+						break;
+					case 'file':
+					case 'binary':
+						$constraints[$field]['size_overflow'] = [
+							'message' 	=> 'String length must be maximum 16,777,215 chars.',
+							'function'	=> function($val) {return (strlen($val) <= 16777215);}
+						];
+						break;	
+				}
+			}
+			// add constraints based on field usage
+			if(isset($schema[$field]['usage'])) {
+				switch($schema[$field]['usage']) {
+					case 'url/mailto':
+						$constraints[$field]['invalid_email'] = [
+							'message' 	=> 'Value does not match email pattern.',
+							'function'	=> function($val) {return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $val));}
+						];
+						break;
+					case 'language/iso-639:2':
+						$constraints[$field]['invalid_code'] = [
+							'message' 	=> 'Value is not an iso-639 code.',
+							'function'	=> function($val) {return (bool) (preg_match('/^[a-z]{2}$/', $val));}
+						];
+						break;
+
+					case 'currency/iso-4217':
+						$constraints[$field]['invalid_code'] = [
+							'message' 	=> 'Value is not an iso-4217 code.',
+							'function'	=> function($val) {return (bool) (preg_match('/^[0-9]{3}$/', $val));}
+						];
+						break;
+	
+				}
+			}
+
+			if(isset($constraints[$field])) {
+				foreach($constraints[$field] as $error_id => $constraint) {
+					if(isset($constraint['function']) ) {
+						$validation_func = $constraint['function'];
+						if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
+							if(!isset($constraint['message'])) {
+								$constraint['message'] = 'invalid field';
 							}
+							trigger_error("field {$field} violates constraint : {$constraint['message']}", E_USER_WARNING);                                    
+							$error_code = QN_ERROR_INVALID_PARAM;
+							if(!isset($res[$field])) {
+								$res[$field] = [];
+							}
+							$res[$field][$error_id] = $constraint['message'];
 						}
 					}
 				}
-            }
-        }
+			}
+		}
+
         
+		// UNIQUE constraint check
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
 
             $uniques = $model->getUnique();

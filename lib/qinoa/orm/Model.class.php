@@ -60,28 +60,28 @@ class Model {
 
 	private final function setDefaults() {
         $this->values = [];
-		if(method_exists($this, 'getDefaults')) {
-			$defaults = $this->getDefaults();
-			// get default values, set fields for default language, and mark fields as modified
-			foreach($defaults as $field => $default) {
-                if(isset($this->schema[$field])) {
-                    if(is_callable($default)) {
-                        $this->values[$field] = call_user_func($default);
-                    }
-                    else {
-                        $this->values[$field] = $default;
-                    }
-                }
-            }
-    	}
+
+		$defaults = $this->getDefaults();
+		// get default values, set fields for default language, and mark fields as modified
+		foreach($defaults as $field => $default) {
+			if(isset($this->schema[$field])) {
+				if(is_callable($default)) {
+					$this->values[$field] = call_user_func($default);
+				}
+				else {
+					$this->values[$field] = $default;
+				}
+			}
+		}
+
 	}
 
+	// note: 'name' field is set in constructor if not defined in getColumns method
 	public final static function getSpecialColumns() {
 		static $special_columns = [
 			'id' => [				
 				'type'				=> 'integer'
-			],
-            // 'name' field is set in constructor if not defined in getColumns method
+			],            
             'creator' => [
                 'type'              => 'many2one',
 				'foreign_object'    => 'core\User'
@@ -178,14 +178,37 @@ class Model {
 	}	
     
 	/**
-	* Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
-	* This method must be overridden by children classes.
-	*
-	* @access public
-	*/
+ 	 * Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
+	 * This method must be overridden by children classes.
+	 *
+	 * @access public
+	 */
 	public static function getColumns() {
 		return [];
 	}
+
+	/**
+ 	 * Returns a map of constraints associating fields with validation functions.
+	 * This method is meant to be overridden by children classes.
+	 *
+	 * @access public
+	 */
+	public static function getConstraints() {
+		return [];
+	}
+
+
+	public function getDefaults() {
+		$defaults = [];
+		foreach($this->schema as $field => $definition) {
+			if(isset($definition['default'])) {
+				$defaults[$field] = $definition['default'];
+			}
+		}
+		return $defaults;
+	}
+
+
 
 	/**
 	* Returns the name of the database table related to this object

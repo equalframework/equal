@@ -33,15 +33,25 @@ class AuthenticationManager extends Service {
      */
     public function token($user_id=null) {
         // generate access token (valid for 1 year)
-        $token = JWT::encode([
-                'id'    => ($user_id)?$user_id:$this->user_id,
-                'exp'   => time()+60*60*24*365
-            ], 
-            AUTH_SECRET_KEY
-        );
-        return $token;
+        $payload = [
+            'id'    => ($user_id)?$user_id:$this->user_id,
+            'exp'   => time()+60*60*24*365
+        ];
+        return $this->encode($payload);
     }
+
+    /**
+     * Encode an array to a JWT token
+     *
+     * @param  $payload array representation of the object to be encoded
+     * 
+     * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
+     */
     
+    public function encode(array $payload) {
+        return JWT::encode($payload, AUTH_SECRET_KEY);
+    }
+
     public function decodeToken($jwt) {
         $decoded = '';
         if(isset($this->tokens[$jwt])) {
@@ -55,8 +65,16 @@ class AuthenticationManager extends Service {
     }
 
     public function verifyToken($jwt, $key) {
-        list($headb64, $bodyb64, $sig64) = explode('.', $jwt);
+        $parts = explode('.', $jwt, 3);
+        if(count($parts) < 3) return false;
+
+        list($headb64, $bodyb64, $sig64) = $parts;
+
         $token = $this->decodeToken($jwt);
+        if(!is_array($token) || !isset($token['signature']) || !isset($token['signature']) || !isset($token['header']['alg'])) {
+            return false;
+        }
+
         return JWT::verify("$headb64.$bodyb64", $token['signature'], $key, $token['header']['alg']);
     }
 
