@@ -42,7 +42,7 @@ if(method_exists($model, 'getUnique')) {
 }
 
 if(method_exists($model, 'getDefaults')) {
-    $defaults = $model::getDefaults();
+    $defaults = $model->getDefaults();
     $data['defaults'] = [];
     foreach($defaults as $field => $default) {
         if(is_callable($defaults[$field])) {

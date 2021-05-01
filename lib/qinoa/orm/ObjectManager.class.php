@@ -770,36 +770,36 @@ class ObjectManager extends Service {
     }
 
 	/**
-	 * Checks whether the values of given object fields are valid or not.
-	 * Checks if the given array contains valid values for related fields.
+	 * Checks whether the values of given object fields are valid.
 	 * This is done using the class validation method.
-	 * Returns an associative array containing invalid fields with their associated error_message_id 
-     * (an empty array means all fields are valid)
+	 * 
+	 * Ex.:
+     *	       "INVALID_PARAM": {
+     *             "login": {
+     *                 "invalid_email": "Login must be a valid email address."
+     *               }
+	 *			}
 	 *
 	 * @param string $class object class
 	 * @param array $values
 	 * @param boolean $check_unique
-	 * @return array resulting associative array (empty if no error found)
+	 * @return array Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
 	 */
 	public function validate($class, $ids, $values, $check_unique=false) {
 
-// todo : support for 'usage' attribute
 // todo : check relational fields consistency (make sure that targeted object(s) actually exist)
 // todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
 
-// todo : this method should return a map of fields with related error_id messages
 		$res = [];
 
         $model = &$this->getStaticInstance($class);
         
+		// get constraints defined in the model (schema)
 		$constraints = $model->getConstraints();
-		//(unexisting fields are ignored by write method)
+		$schema = $model->getSchema();
+
 		foreach($values as $field => $value) {
-
-			
-			$schema = $model->getSchema();
-
-			// add constraints based on field type : check that given value is not bigger than storage capacity (DBMS type)
+			// add constraints based on field type : check that given value is not bigger than related DBMS column capacity
 			if(isset($schema[$field]['type'])) {
 				switch($schema[$field]['type']) {
 					case 'string':
@@ -823,32 +823,15 @@ class ObjectManager extends Service {
 						break;	
 				}
 			}
-			// add constraints based on field usage
+			// add constraints based on `usage` attribute
 			if(isset($schema[$field]['usage'])) {
-				switch($schema[$field]['usage']) {
-					case 'url/mailto':
-						$constraints[$field]['invalid_email'] = [
-							'message' 	=> 'Value does not match email pattern.',
-							'function'	=> function($val) {return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $val));}
-						];
-						break;
-					case 'language/iso-639:2':
-						$constraints[$field]['invalid_code'] = [
-							'message' 	=> 'Value is not an iso-639 code.',
-							'function'	=> function($val) {return (bool) (preg_match('/^[a-z]{2}$/', $val));}
-						];
-						break;
-
-					case 'currency/iso-4217':
-						$constraints[$field]['invalid_code'] = [
-							'message' 	=> 'Value is not an iso-4217 code.',
-							'function'	=> function($val) {return (bool) (preg_match('/^[0-9]{3}$/', $val));}
-						];
-						break;
-	
-				}
+				$constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
+				$constraints[$field]['type_misuse'] = [
+					'message' 	=> 'Value does not comply with usage '.$schema[$field]['usage'],
+					'function'	=> $constraint['rule']
+				];
 			}
-
+			// check constraints 
 			if(isset($constraints[$field])) {
 				foreach($constraints[$field] as $error_id => $constraint) {
 					if(isset($constraint['function']) ) {
@@ -868,7 +851,6 @@ class ObjectManager extends Service {
 				}
 			}
 		}
-
         
 		// UNIQUE constraint check
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
@@ -900,7 +882,8 @@ class ObjectManager extends Service {
                             if($value == $values[$field]) {
                                 trigger_error("field {$field} violates unique constraint with object {$oid}", E_USER_WARNING);                                    
                                 $error_code = QN_ERROR_CONFLICT_OBJECT;
-                                $res[$field] = "duplicate_index";
+                                $res[$field] = ['duplicate_index' => 'unique constraint violation'];
+								break 2;
                             }
                         }
                     }                
