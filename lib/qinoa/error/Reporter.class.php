@@ -40,7 +40,7 @@ class Reporter extends Service {
             // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)            
             $operation = $this->context->get('operation');
             $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].(($operation)?" ($operation)":''));
-            $thread_id = substr($data, 0, 6);
+            $thread_id = substr($data, 0, 8);
         }
         return $thread_id;
     }
@@ -165,8 +165,19 @@ class Reporter extends Service {
                     }
                 }
             }
+
+            $filepath = QN_LOG_STORAGE_DIR.'/qn_error.log';
+
+            // log rotator
+            $maxsize = 5242880;            
+            if( rand(1, 20) == 1    // set throttle to 5% (to reduce fs stat calls)
+                && file_exists($filepath) && filesize($filepath) > $maxsize ){
+                for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
+                rename($filepath, $filepath.'.'.$i);
+            }
+
             // append error message to log file
-            file_put_contents(QN_LOG_STORAGE_DIR.'/qn_error.log', $error, FILE_APPEND);                        
+            file_put_contents($filepath, $error, FILE_APPEND);                        
         }
     }
     
