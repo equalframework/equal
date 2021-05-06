@@ -66,9 +66,9 @@ class Context extends Service {
     public function getHttpRequest() {
         if(is_null($this->httpRequest)) {
             // retrieve current request 
-            $body = $this->getHttpBody();
-            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$this->getHttpUri().' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders());
-            $this->httpRequest->setBody($body);
+            $uri  = $this->getHttpUri();            
+            $body = $this->getHttpBody($uri);
+            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$uri.' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders(), $body);
         }
         return $this->httpRequest;
     }
@@ -321,10 +321,8 @@ class Context extends Service {
                     }                    
                 }
             }
-            // mimic PHP behaviour: inject query string args to the body (if not already set)
-            $_REQUEST = array_merge_recursive($_REQUEST, $args); 
             $uri .= '?'.http_build_query($args);
-        }            
+        }
         return $scheme."://".$auth."$host:$port{$uri}";
     }
 
@@ -366,7 +364,7 @@ class Context extends Service {
         return min(to_bytes(ini_get('upload_max_filesize')), to_bytes(ini_get('post_max_size')));
     }
 
-    private function getHttpBody() {
+    private function getHttpBody($uri='') {
         // in case script was invoked by CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
             // Windows does not support non-bloking reading from STDIN
@@ -401,12 +399,21 @@ class Context extends Service {
             || strlen($body) < 3) { // we could have received a formatted empty body (e.g.: {})
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
             // we allow this only when there's nothing from php://input
-
             if(isset($_FILES) && !empty($_FILES)) {
                 $body = array_merge_recursive($_REQUEST, self::normalizeFiles());
             }
             else {
-                $body = $_REQUEST;
+                $body = $_REQUEST;                
+            }
+            // mimic PHP behaviour: inject query string args to the body (only for args not already present in the body)
+            if(strlen($uri)) {
+                $parts = parse_url($uri);
+                parse_str($parts['query'], $params);    
+                foreach($params as $param => $value) {
+                    if(!isset($body[$param])) {
+                        $body[$param] = $value;
+                    }
+                }
             }
             // we should have set content-type accordingly while retrieving headers (@see getHttpRequestHeaders())
         }

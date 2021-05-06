@@ -18,10 +18,26 @@
                                         "align": "left",
                                         "items": [
                                             {
+                                                "type": "label",
+                                                "id": "id.details",
+                                                "value": "Contact details",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "columns": [
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
                                                 "type": "field",
                                                 "value": "id",
                                                 "width": "50%",
-                                                "label": "User Identifier",
+                                                "label": "User ID",
                                                 "readonly": true
                                             },
                                             {
@@ -32,16 +48,18 @@
                                                 "help": "Email address of the user"
                                             },                                            
                                             {
-                                                "type": "label",
-                                                "id": "id.details",
-                                                "value": "Contact details",
-                                                "width": "50%"
-                                            },
-                                            {
                                                 "type": "button",
-                                                "value": "custom action",
+                                                "value": "validate",
                                                 "width": "50%",
-                                                "action": ""
+                                                "confirm": {
+                                                    "question": "You are about to manually validate a newly created account. Are your sure?",
+                                                    "yes": "Validate",
+                                                    "no": "Abandon"
+                                                },
+                                                "action": {
+                                                    "type": "",
+                                                    "operation": ""
+                                                }
                                             }
                                         ]
                                     },

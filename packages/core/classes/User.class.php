@@ -17,7 +17,8 @@ class User extends Model {
             ],
             'login' => [
                 'type'              => 'string',
-                'required'          => true
+                'required'          => true,
+                'unique'            => true                
             ],
             'password' => [
                 'type'              => 'string'
@@ -79,9 +80,4 @@ class User extends Model {
         ];
     }
     
-    public static function getUnique() {
-        return array(
-            ['login']
-        );
-    }    
 }

@@ -38,7 +38,7 @@ $data['parent'] = get_parent_class($model);
 $data['fields'] = $schema;
 
 if(method_exists($model, 'getUnique')) {
-    $data['unique'] = $model::getUnique();
+    $data['unique'] = $model->getUnique();
 }
 
 if(method_exists($model, 'getDefaults')) {

@@ -208,6 +208,19 @@ class Model {
 		return $defaults;
 	}
 
+	/**
+	 * This method can be overriden to define a more precise set of unique constraints (i.e when keys are formed of several fields)
+	 */
+	public function getUnique() {
+		$uniques = [];
+		foreach($this->schema as $field => $definition) {
+			if(isset($definition['unique']) && $definition['unique']) {
+				$uniques[] = [$field];
+			}
+		}
+		return $uniques;
+	}
+
 
 
 	/**

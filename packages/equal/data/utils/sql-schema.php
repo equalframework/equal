@@ -101,7 +101,7 @@ foreach($classes as $class) {
 	$result[] = "PRIMARY KEY (`id`)";
 
     if(method_exists($model, 'getUnique')) {
-        $list = $model::getUnique();
+        $list = $model->getUnique();
         foreach($list as $fields) {
             $result[] = ",\nUNIQUE KEY `".implode('_', $fields)."` (`".implode('`,`', $fields)."`)";
         }
