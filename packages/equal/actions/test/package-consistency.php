@@ -5,7 +5,6 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use qinoa\db\DBConnection;
-use qinoa\orm\ObjectManager;
 
 // get listing of existing packages
 $json = run('get', 'config_packages');
@@ -122,13 +121,13 @@ foreach($classes as $class) {
 			continue;
         }
 		if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-			$result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', ObjectManager::$mandatory_attributes[$description['type']]);	
+			$result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']]);	
 			$is_error = true;
 			continue;
 		}
 		foreach($description as $attribute => $value) {
 			if(!in_array($attribute, $orm::$valid_attributes[$description['type']])) {
-				$result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', ObjectManager::$valid_attributes[$description['type']]);
+				$result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$description['type']]);
 				$is_error = true;
 			}
 			if(in_array($attribute, array('store', 'multilang', 'search')) && $value !== true && $value !== false) {
@@ -193,8 +192,15 @@ if(!$db->connected()) {
         die('FATAL - Unable to connect to database');
     }
 }
-                
-$allowed_associations = array(
+
+// load database tables
+$tables = array();
+$res = $db->sendQuery("show tables;");
+while($row = $db->fetchRow($res)) {
+	$tables[$row[0]] = true;
+}
+
+$allowed_types_associations = [
 	'boolean' 		=> array('bool', 'tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
 	'integer' 		=> array('tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
 	'float' 		=> array('float', 'decimal'),	
@@ -209,15 +215,7 @@ $allowed_associations = array(
 	'file'  		=> array('blob', 'mediumblob', 'longblob'),    
 	'binary' 		=> array('blob', 'mediumblob', 'longblob'),
 	'many2one' 		=> array('int')
-);
-
-// load database tables
-$tables = array();
-$res = $db->sendQuery("show tables;");
-while($row = $db->fetchRow($res)) {
-	$tables[$row[0]] = true;
-}
-
+];
 
 foreach($classes as $class) {
 	// get the full class name
@@ -269,7 +267,7 @@ foreach($classes as $class) {
 		// 3) verify types compatibility
 			$type = $schema[$field]['type'];
 			if(in_array($type, array('function', 'related'))) $type = $schema[$field]['result_type'];
-			if(!in_array($db_schema[$field]['type'], $allowed_associations[$type])) {
+			if(!in_array($db_schema[$field]['type'], $allowed_types_associations[$type])) {
 				$result[] = "ERROR - DB - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']})";
 				$is_error = true;
 			}

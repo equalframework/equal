@@ -44,23 +44,23 @@ class ObjectManager extends Service {
 	public static $complex_types = array('one2many', 'many2many', 'computed');
 
 	public static $valid_attributes = array(
-		'alias'		    => array('description', 'type', 'visible', 'usage', 'alias', 'required'),    
-		'boolean'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-		'integer'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'unique'),
-		'float'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'selection', 'precision'),
-		'string'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-		'text'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
+		'alias'		    => array('description', 'type', 'visible', 'default', 'usage', 'alias', 'required'),    
+		'boolean'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+		'integer'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'unique'),
+		'float'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'precision'),
+		'string'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+		'text'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
 // todo : html should be handled as `'usage': 'text/html'`	
-		'html'			=> array('description', 'type', 'visible', 'required', 'onchange', 'multilang'),            
-		'date'			=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-		'time'			=> array('description', 'type', 'visible', 'required', 'onchange'),
-		'datetime'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange'),
-		'file'  		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),           
-		'binary'		=> array('description', 'type', 'visible', 'usage', 'required', 'onchange', 'multilang'),
-		'many2one'		=> array('description', 'type', 'visible', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
-		'one2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
-		'many2many'		=> array('description', 'type', 'visible', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
-		'computed'		=> array('description', 'type', 'visible', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
+		'html'			=> array('description', 'type', 'visible', 'default', 'required', 'onchange', 'multilang'),            
+		'date'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+		'time'			=> array('description', 'type', 'visible', 'default', 'required', 'onchange'),
+		'datetime'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+		'file'  		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),           
+		'binary'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
+		'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
+		'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
+		'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
+		'computed'		=> array('description', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
 	);
 
 	public static $mandatory_attributes = array(
