@@ -7,8 +7,8 @@
 namespace qinoa\orm;
 
 use qinoa\organic\Service;
-
 use qinoa\db\DBConnection;
+use qinoa\data\DataValidator;
 
 use \Exception as Exception;
 
@@ -1101,10 +1101,15 @@ class ObjectManager extends Service {
 
             $schema = $object->getSchema();            
             $requested_fields = [];
+            $dot_fields = [];			
             // check fields validity
             foreach($fields as $key => $field) {
+				// handle fields with 'dot' notation
+				if(strpos($field, '.') > 0) {
+					$dot_fields[] = $field;
+				}
                 // invalid field
-                if(!isset($schema[$field])) {
+                else if(!isset($schema[$field])) {
                     // drop invalid fields
                     unset($fields[$key]);
                     trigger_error("unknown field '$field' for class : '$class'", E_USER_WARNING);
@@ -1126,7 +1131,9 @@ class ObjectManager extends Service {
               
 			// 3) check among requested fields wich ones are not yet present in the internal buffer
 			// if internal buffer is empty, query the DB to load all fields from requested objects 
-			if(empty($this->cache) || !isset($this->cache[$class])) $this->load($class, $ids, $requested_fields, $lang);			
+			if(empty($this->cache) || !isset($this->cache[$class])) {
+				$this->load($class, $ids, $requested_fields, $lang);			
+			}
             // check if all objects are fully loaded            
 			else {
                 // build the missing fields array by increment 
@@ -1144,7 +1151,7 @@ class ObjectManager extends Service {
                     $this->load($class, $ids, $fields_missing, $lang);
                 }
             }
-
+			
 			// 4) build result by reading from internal buffer
 			foreach($ids as $oid) {
                 if(!isset($this->cache[$class][$oid]) || empty($this->cache[$class][$oid])) {
@@ -1165,6 +1172,48 @@ class ObjectManager extends Service {
                     }
                 }
 			}
+
+			// 5) handle dot fields
+			foreach($dot_fields as $field) {
+				// init result set (values will be used as keys for assigning the loaded values)
+				foreach($ids as $oid) {
+					$res[$oid][$field] = $oid;
+				}
+				// class of the object at the current position (of the 'path' variable), start with the class given as parameter
+				$path_class = $class;
+				// list of the parent objects ids, start with the objects ids given as parameter
+				$path_prev_ids = $ids;
+				// schema of the object at the current position, start with the schema of the class given as parameter
+				$path_schema = $schema;
+				$path_fields = explode('.', $field);
+				$n = count($path_fields);
+				$i = 0;
+				// 2) walk through the path variable (containing the fields hierarchy)
+				foreach($path_fields as $path_field) {
+					// fetch all ids for every parent object (whose ids are stored in $path_prev_ids)
+					// #caution there might be a recursion here
+					$path_values = $om->read($path_class, $path_prev_ids, array($path_field), $lang);
+					// assign result set with loaded values for current level
+					foreach($ids as $oid) {
+						$res[$oid][$field] = $path_values[$res[$oid][$field]][$path_field];
+					}
+					// if target field is a relational type, keep on processing the path
+					if(isset($path_schema[$path_field]['foreign_object']) && $i < ($n-1) ) {
+						// obtain the next object name (given the name of the current field, $path_field, and the schema of the current object, $path_schema)
+						$path_class = $path_schema[$path_field]['foreign_object'];
+						// targeted values is a list of ids for the object at the current position of the path
+						$path_prev_ids = array_map(function ($odata) use($path_field) { return $odata[$path_field]; }, $path_values);
+						$object = &$this->getStaticInstance($path_class);
+						$path_schema = $object->getSchema();
+					}
+					else {
+						// do not follow a malformed path
+						break;
+					}
+					++$i;
+				}
+			}
+
 		}
 		catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
