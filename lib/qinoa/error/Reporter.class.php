@@ -123,10 +123,10 @@ class Reporter extends Service {
                 $source = '1';
                 $parts = explode('::', $msg, 2);
                 if(count($parts) > 1) {
-                    $source = $parts[0];
+                    $source = (strlen($parts[0]))?$parts[0]:$source;
                     $msg = $parts[1];
                 }
-                if(!is_numeric($source)) {
+                if(!is_numeric($source) && constant($source)) {
                     $mask = constant($source);
                 }
                 else {
