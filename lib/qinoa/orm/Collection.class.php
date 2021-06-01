@@ -575,9 +575,9 @@ class Collection implements \Iterator {
             else {
                 $ids = $res;
             }
-            
-            foreach($ids as $oid) {            
-                // log action (if enabled)
+
+            // log action (if enabled)
+            foreach($ids as $oid) {
                 $this->logger->log($user_id, 'delete', $this->class, $oid);
             }
 
