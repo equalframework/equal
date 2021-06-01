@@ -392,6 +392,7 @@ namespace config {
             $request = $context->httpRequest();
             $body = (array) $request->body();
             $method = $request->method();
+            $response = $context->httpResponse();
 
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
@@ -399,7 +400,6 @@ namespace config {
                     exit;                    
                 }
 
-                $response = $context->httpResponse();
                 if(isset($announcement['response']['content-type'])) {
                     $response->headers()->setContentType($announcement['response']['content-type']);
                 }
@@ -473,7 +473,7 @@ namespace config {
                         // handle client cache expiry (no change)
                         if($request->header('If-None-Match') == $cache_id) {
                             // send "304 Not Modified"
-                            $context->httpResponse()
+                            $response
                             ->status(304)
                             ->send();
                             throw new \Exception('', 0);
@@ -481,7 +481,6 @@ namespace config {
                         $reporter->debug("serving from cache");
                         list($headers, $result) = unserialize(file_get_contents($cache_filename));
                         // build response with cached headers
-                        $response = $context->httpResponse();
                         foreach($headers as $header => $value) {
                             $response->header($header, $value);
                         }
@@ -513,10 +512,10 @@ namespace config {
                 // no feedback about constants
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
-                $context->httpResponse()->body(['announcement' => $announcement]);
+                $response->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     // user asked for the announcement or browser requested fingerprint
-                    $context->httpResponse()
+                    $response
                     ->status(200)
                     // allow browser to cache the response for 1 year
                     ->header('Cache-Control', 'max-age=31536000')
@@ -596,7 +595,7 @@ namespace config {
                 // no feedback about constants
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
-                $context->httpResponse()->body(['announcement' => $announcement]);                
+                $response->body(['announcement' => $announcement]);                
                 // raise an exception with error details
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
