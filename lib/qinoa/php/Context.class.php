@@ -408,11 +408,13 @@ class Context extends Service {
             // mimic PHP behaviour: inject query string args to the body (only for args not already present in the body)
             if(strlen($uri)) {
                 $parts = parse_url($uri);
-                parse_str($parts['query'], $params);    
-                foreach($params as $param => $value) {
-                    if(!isset($body[$param])) {
-                        $body[$param] = $value;
-                    }
+                if($parts != false && isset($parts['query'])) {
+                    parse_str($parts['query'], $params);    
+                    foreach($params as $param => $value) {
+                        if(!isset($body[$param])) {
+                            $body[$param] = $value;
+                        }
+                    }    
                 }
             }
             // we should have set content-type accordingly while retrieving headers (@see getHttpRequestHeaders())
