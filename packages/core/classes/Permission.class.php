@@ -1,6 +1,6 @@
 <?php
 namespace core;
-use qinoa\orm\Model;
+use equal\orm\Model;
 
 class Permission extends Model {
 

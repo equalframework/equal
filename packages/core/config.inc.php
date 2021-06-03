@@ -1,6 +1,8 @@
 <?php
 namespace config;
 
+define('DEFAULT_APP', 'workbench');
+
 /** 
 * Constants defined in this section are mandatory but can be modified/re-defined in customs config.inc.php (i.e.: packages/[package_name]/config.inc.php)
 *
@@ -41,7 +43,7 @@ date_default_timezone_set('Europe/Brussels');
 /**
 * Logging
 */
-// note : keep in mind that enabling logging makes I/O operations a little bit longer
+// note : keep in mind that enabling logging increases I/O operations
 define('LOGGING_MODE', QN_R_CREATE | QN_R_WRITE | QN_R_DELETE);
 //define('LOGGING_MODE', false);
 

@@ -1,18 +1,17 @@
 <?php
-/**
-*    This file is part of the Qinoa project <http://www.cedricfrancoys.be/qinoa>
-*
-*    Copyright (C) Cedric Francoys, 2015, Yegen
-*    Some Rights Reserved, GNU GPL 3 license <http://www.gnu.org/licenses/>
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use qinoa\orm\ObjectManager;
+use equal\orm\ObjectManager;
 
 
 use core\User;
 use core\Group;
 
 list($params, $providers) = announce([
-    'description'   => 'Test unit for Qinoa and Core packages. This unit assumes that a DB connection is available and config vars are set accordingly.',
+    'description'   => 'Test unit for Core package. This unit assumes that a DB connection is available and config vars are set accordingly.',
     'params'        => [],
     'providers'     => ['context', 'orm', 'auth', 'access']
 ]);
@@ -34,10 +33,10 @@ $tests = [
                     'expected'          =>  true,
                     'test'              =>  function (){
                                                 list($params, $providers) = announce([
-                                                    'providers' => ['qinoa\auth\AuthenticationManager']
+                                                    'providers' => ['equal\auth\AuthenticationManager']
                                                 ]);
-                                                $auth = $providers['qinoa\auth\AuthenticationManager'];
-                                                return ( is_object($auth) && ($auth instanceof qinoa\auth\AuthenticationManager) );
+                                                $auth = $providers['equal\auth\AuthenticationManager'];
+                                                return ( is_object($auth) && ($auth instanceof equal\auth\AuthenticationManager) );
                                             },
 
                     ),
@@ -47,10 +46,10 @@ $tests = [
                     'expected'          =>  true,
                     'test'              =>  function (){
                                                 list($params, $providers) = announce([
-                                                    'providers' => ['@@testAuth' => 'qinoa\auth\AuthenticationManager']
+                                                    'providers' => ['@@testAuth' => 'equal\auth\AuthenticationManager']
                                                 ]);
                                                 $auth = $providers['@@testAuth'];
-                                                return ( is_object($auth) && ($auth instanceof qinoa\auth\AuthenticationManager));
+                                                return ( is_object($auth) && ($auth instanceof equal\auth\AuthenticationManager));
                                             },
 
                     ),
@@ -62,7 +61,7 @@ $tests = [
                     'expected'          => true,
                     'test'              => function (){
                                                 $om = &ObjectManager::getInstance();
-                                                return (is_object($om) && ($om instanceof qinoa\orm\ObjectManager));
+                                                return (is_object($om) && ($om instanceof equal\orm\ObjectManager));
                                             },
                     ),
 

@@ -129,7 +129,7 @@
                                                 "value": "groups_ids",
                                                 "label": "Groups",
                                                 "widget": {
-                                                    "view": "selection"
+                                                    "view": "list.selection"
                                                 }                                                
                                             }
                                         ]

@@ -2,7 +2,7 @@
 namespace core;
 
 
-class Contact extends \qinoa\orm\Model {
+class Contact extends \equal\orm\Model {
     public static function getColumns() {
         return [
 			'firstname' => [

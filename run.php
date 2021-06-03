@@ -19,8 +19,8 @@
 *    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-use qinoa\php\Context;
-use qinoa\route\Router;
+use equal\php\Context;
+use equal\route\Router;
 /**
 *
 *  This is the root entry point and acts as dispatcher.
@@ -44,7 +44,7 @@ use qinoa\route\Router;
  (eQual library allows to include required files and classes)
 */
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
-if( (include($bootstrap)) === false ) die('qinoa lib is missing');
+if( (include($bootstrap)) === false ) die('eQual lib is missing');
 
 try {    
     // 1) retrieve current HTTP context
@@ -55,7 +55,7 @@ try {
     $request = $context->getHttpRequest();
     // get HTTP method of current request    
     $method = $request->getMethod();
-    // get HttpUri object (@see qinoa\HttpUri class for URI structure)
+    // get HttpUri object (@see equal\http\HttpUri class for URI structure)
     $uri = $request->getUri();
     // retrieve additional info from URI 
     list($path, $route) = [

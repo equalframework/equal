@@ -1,7 +1,7 @@
 <?php
 namespace core;
 
-use qinoa\orm\Model;
+use equal\orm\Model;
 
 class Log extends Model {
 
@@ -9,7 +9,7 @@ class Log extends Model {
         return [
             'action' => [
                 'type'              => 'string',
-                'description'       => 'The name of the action performed on tergeted object (might be one of the rights `EQ_R_x`, or any custom value)',
+                'description'       => 'The name of the action performed on targeted object (create, update, delete, or any custom value)',
                 'required'          => true
             ],
             'object_class' => [

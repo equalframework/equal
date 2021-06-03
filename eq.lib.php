@@ -222,7 +222,7 @@ namespace {
 */
 }
 namespace config {
-    use qinoa\services\Container;
+    use equal\services\Container;
 
 
 
@@ -306,8 +306,8 @@ namespace config {
             spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
 
             // check service container availability
-            if(!is_callable('qinoa\services\Container::getInstance')) {
-                throw new \Exception('Qinoa init: mandatory Container service is missing or cannot be instanciated', QN_REPORT_FATAL);
+            if(!is_callable('equal\services\Container::getInstance')) {
+                throw new \Exception('eQual init: mandatory Container service is missing or cannot be instanciated', QN_REPORT_FATAL);
             }
             // instanciate service container
             $container = Container::getInstance();
@@ -315,16 +315,16 @@ namespace config {
             // register names for common services and assign default classes
             // (these can be overriden in the `config.inc.php` of invoked package)
             $container->register([
-                'report'    => 'qinoa\error\Reporter',
-                'auth'      => 'qinoa\auth\AuthenticationManager',
-                'access'    => 'qinoa\access\AccessController',
-                'context'   => 'qinoa\php\Context',
-                'validate'  => 'qinoa\data\DataValidator',
-                'adapt'     => 'qinoa\data\DataAdapter',
-                'orm'       => 'qinoa\orm\ObjectManager',
-                'route'     => 'qinoa\route\Router',
-                'log'       => 'qinoa\log\Logger',
-                'spool'     => 'qinoa\email\EmailSpooler'
+                'report'    => 'equal\error\Reporter',
+                'auth'      => 'equal\auth\AuthenticationManager',
+                'access'    => 'equal\access\AccessController',
+                'context'   => 'equal\php\Context',
+                'validate'  => 'equal\data\DataValidator',
+                'adapt'     => 'equal\data\DataAdapter',
+                'orm'       => 'equal\orm\ObjectManager',
+                'route'     => 'equal\route\Router',
+                'log'       => 'equal\log\Logger',
+                'spool'     => 'equal\email\EmailSpooler'
             ]);
 
             // make sure mandatory dependencies are available (reporter requires context)
@@ -346,7 +346,7 @@ namespace config {
             try {
                 $om = $container->get('orm');
                 // init collections provider
-                $collect = $container->get('qinoa\orm\Collections');
+                $collect = $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getStatic']);
             }
             catch(\Exception $e) {}
@@ -760,10 +760,10 @@ namespace config {
                 // set current dir according to 'base' directory
                 chdir(QN_BASEDIR.'/');
                 if(!is_file($filename)) {
-                    // always try to fallback to equal package (for short syntax calls)
-                    $filename = 'packages/equal/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    // always try to fallback to core package (for short syntax calls)
+                    $filename = 'packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        $filename = 'packages/equal/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        $filename = 'packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
                             throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
                         }
@@ -814,7 +814,7 @@ namespace config {
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
          * 
-         * @example load_class('qinoa\db\DBConnection');
+         * @example load_class('equal\db\DBConnection');
          */
         public static function load_class($class_name) {
             $result = false;
@@ -826,7 +826,7 @@ namespace config {
                 // mark class as being loaded
                 $GLOBALS['eQual_loading_classes'][$class_name] = true;
                 $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
-                // use Qinoa class extention
+                // use 'class.php' extention
                 if(file_exists($file_path.'.class.php')) $result = include_once $file_path.'.class.php';
                 // Fallback to simple php extension
                 else if(file_exists($file_path.'.php')) $result = include_once $file_path.'.php';

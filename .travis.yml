@@ -39,4 +39,4 @@ script:
   # initialise database with demo data
   - php run.php --do=init_package --package=core
   # run test units
-  - php run.php --do=test_package --package=qinoa
+  - php run.php --do=test_package --package=core

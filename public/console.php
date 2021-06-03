@@ -273,7 +273,6 @@ if(file_exists(PHP_LOG_FILE)) {
         $line = $php_lines[$php_len-$l];
         $match = [];
 
-        //[31-Jan-2018 21:21:36 Europe/Brussels] PHP Fatal error:  Class 'qinoa\services\Service' not found in C:\DEV\wamp64\www\resiway\vendor\qinoa\services\Container.class.php on line 6        
         if(preg_match("/\[([^\s]*) ([^\s]*) ([^\s]*)\] ([^\s]*) (.*): ((.*):)? (.*) in ([^\s]*) on line ([0-9]+)/", $line, $match)) {
             $timestamp = strtotime($match[1].' '.$match[2]);
             $datetime = date("m-d-Y H:i:s", $timestamp);
