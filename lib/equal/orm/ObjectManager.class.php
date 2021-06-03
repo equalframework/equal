@@ -871,7 +871,9 @@ class ObjectManager extends Service {
                 if(count($domain)) {
                     $domain[] = ['state', '=', 'instance'];
 					$domain[] = ['deleted', 'in', ['0', '1']];
-					$domain[] = ['id', 'not in', $ids];
+					if(count($ids)) {
+						$domain[] = ['id', 'not in', $ids];
+					}					
                     $conflict_ids = $this->search($class, $domain);
                 }
                 // there is a violation : stop and fetch info about it
