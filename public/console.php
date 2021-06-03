@@ -136,7 +136,7 @@ function get_header($thread_id, $selected_thread_id, $previous_thread=null, $nex
     list($type, $icon, $class) = get_error_class($errcode);
     
     // return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;    
-    return "<div id=\"$thread_pid\" class=\"$active\" style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> </a> <div style=\"display: inline-block; width: 120px;\"> <a target=\"details\" title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\" onclick=\"document.querySelector('div.active').className='';document.getElementById('$thread_pid').className='active';\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;        
+    return "<div id=\"$thread_pid\" class=\"$active\" style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> </a> <div style=\"display: inline-block; width: 150px;\"> <a target=\"details\" title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\" onclick=\"document.querySelector('div.active').className='';document.getElementById('$thread_pid').className='active';\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;        
 }
 
 $history = [];
@@ -333,8 +333,8 @@ if(substr($thread_id, 0, 3) != 'PHP') {
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="packages/qinoa/assets/css/bootstrap.css" />
-<link rel="stylesheet" type="text/css" href="packages/qinoa/assets/css/font-awesome.css" />
+<link rel="stylesheet" type="text/css" href="assets/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="assets/css/font-awesome.css" />
 <style>
 html,body {
     padding:0;
