@@ -142,7 +142,7 @@ namespace {
     * Default Package
     */
     // Package we'll try to access if nothing is specified in the url (typically while accessing root folder)
-    define('DEFAULT_PACKAGE', 'equal');
+    define('DEFAULT_PACKAGE', 'core');
 }
 namespace config {
     /** 

@@ -212,7 +212,7 @@ class DataAdapter extends Service {
                             ]
                         */                        
                         if(!is_array($value)) {
-                            // @see RFC2397 
+                            // @see RFC2397 (data:[<mediatype>][;base64],<data>)
                             $value = str_replace(' ', '+', substr($value, strpos($value,',')+1) );
                             $res = base64_decode($value);
                         }
@@ -224,7 +224,7 @@ class DataAdapter extends Service {
                             }
                             else {
                                 if(isset($value['error']) && $value['error'] == 2 || isset($value['size']) && $value['size'] > UPLOAD_MAX_FILE_SIZE) {
-                                    throw new \Exception("file exceed maximum allowed size (".floor(UPLOAD_MAX_FILE_SIZE/1024)." ko)", QN_ERROR_NOT_ALLOWED);
+                                    throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                                 }
                                 $res = file_get_contents($value['tmp_name']);
                             }
@@ -235,14 +235,20 @@ class DataAdapter extends Service {
                 ],
                 'sql'  => [
                     'php' => function($value) {
-                        // FILE_STORAGE_MODE == 'FS'
-                        $filename = $value;                        
-                        if(strlen($filename) && file_exists(FILE_STORAGE_DIR.'/'.$filename)) {
-                            $res = file_get_contents(FILE_STORAGE_DIR.'/'.$filename);
+                        // convert hexadecimal string read from DB to a binary value
+                        if(FILE_STORAGE_MODE == 'DB') {
+                            $res = hex2bin($value);
                         }
-                        else {
-                            throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
-                        }                        
+                        // read the content from filestore, filename is the received value
+                        else if(FILE_STORAGE_MODE == 'FS') {
+                            $filename = $value;
+                            if(strlen($filename) && file_exists(FILE_STORAGE_DIR.'/'.$filename)) {
+                                $res = file_get_contents(FILE_STORAGE_DIR.'/'.$filename);
+                            }
+                            else {
+                                throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
+                            }
+                        }
                         return $res;
                     }
                 ],
@@ -251,30 +257,40 @@ class DataAdapter extends Service {
                         if(func_num_args() < 5) {
                             throw new \Exception("missing argument in method call (php -> sql)", QN_ERROR_UNKNOWN);                    
                         }
-                        
-                        list($value, $class, $oid, $field, $lang) = func_get_args();                        
-                        // store binary data to file which name is based on given details (class, field)
-                        // FILE_STORAGE_MODE == 'FS'
-                        // build a unique name  (package/class/field/oid.lang)
-                        $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                        $file = sprintf("%011d.%s", $oid, $lang);                       
-                                                
-                        $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+                        list($value, $class, $oid, $field, $lang) = func_get_args();
 
-                        if (!is_dir($storage_location)) {
-                            // make missing directories
-                            FSManipulator::assertPath($storage_location);
+                        if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
+                            throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                         }
-                        
-                        if (!is_dir($storage_location)) {
-                            throw new \Exception("unable to store file (check FS permissions)", QN_ERROR_INVALID_CONFIG);
-                        }
-                        
-                        // note : if a file by that name already exists it will be overwritten
-                        file_put_contents($storage_location.'/'.$file, $value);
 
-                        // return filename as result
-                        return $path.'/'.$file;                        
+                        // store binary data to database as an hexadecimal string
+                        if(FILE_STORAGE_MODE == 'DB') {
+                            $res = bin2hex($value);
+                        }
+                        // store binary data to a file which name is based on object details, and store filename to database
+                        else if(FILE_STORAGE_MODE == 'FS') {
+                            // build a unique name  `package/class/field/oid.lang`
+                            $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
+                            $file = sprintf("%011d.%s", $oid, $lang);                       
+                                                    
+                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+    
+                            if (!is_dir($storage_location)) {
+                                // make missing directories
+                                FSManipulator::assertPath($storage_location);
+                            }
+                            
+                            if (!is_dir($storage_location)) {
+                                throw new \Exception("unable to store file (check FS permissions)", QN_ERROR_INVALID_CONFIG);
+                            }
+                            
+                            // note: existing file will be overwritten
+                            file_put_contents($storage_location.'/'.$file, $value);
+    
+                            // return filename as result
+                            $res = $path.'/'.$file;    
+                        }
+                        return $res;
                     },
                     'txt' => function($value) {
                         return base64_encode($value);
