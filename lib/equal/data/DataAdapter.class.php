@@ -246,7 +246,7 @@ class DataAdapter extends Service {
                                 $res = file_get_contents(FILE_STORAGE_DIR.'/'.$filename);
                             }
                             else {
-                                throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
+                                throw new \Exception("binary_data_not_received", QN_ERROR_UNKNOWN);
                             }
                         }
                         return $res;
@@ -255,7 +255,7 @@ class DataAdapter extends Service {
                 'php' => [
                     'sql' => function() {
                         if(func_num_args() < 5) {
-                            throw new \Exception("missing argument in method call (php -> sql)", QN_ERROR_UNKNOWN);                    
+                            throw new \Exception("object_details_missing", QN_ERROR_MISSING_PARAM);                    
                         }
                         list($value, $class, $oid, $field, $lang) = func_get_args();
 
