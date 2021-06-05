@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 use equal\orm\ObjectManager;
 use equal\http\HttpRequest;
 use core\User;
