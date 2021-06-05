@@ -4,11 +4,10 @@
     "layout": {
         "groups": [
             {
-
                 "id": "group.user",
-                "sections": [                    
+                "sections": [
                     {
-                        "label": "Second pane",
+                        "label": "User details",
                         "id": "user_details",
                         "rows": [
                             {
@@ -45,7 +44,14 @@
                                                 "value": "login",
                                                 "width": "50%",
                                                 "label": "Username",
-                                                "help": "Email address of the user"
+                                                "help": "Email address of the user."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "validated",
+                                                "width": "50%",
+                                                "label": "Validated",
+                                                "help": "Status of validation of this account."
                                             },                                            
                                             {
                                                 "type": "button",
@@ -111,7 +117,34 @@
                                         ]
                                     }    
                                 ]
-                            }
+                            }                            
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "group.sections",
+                "sections": [
+                    {
+                        "label": "Preferences",
+                        "id": "section.preferences",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "label",
+                                                "id": "id.details",
+                                                "value": "Contact details",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }                            
                         ]
                     },
                     {
