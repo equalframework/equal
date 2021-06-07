@@ -57,8 +57,8 @@ class ObjectManager extends Service {
 		'datetime'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
 		'file'  		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),           
 		'binary'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-		'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'onchange', 'ondelete', 'multilang'),
-		'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'onchange', 'order', 'sort'),
+		'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
+		'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'order', 'sort'),
 		'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
 		'computed'		=> array('description', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')			
 	);
@@ -462,18 +462,20 @@ class ObjectManager extends Service {
 					if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 					$order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
 					$sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
-// todo : handle alias fields (require subsequent schema)
+// #todo : handle alias fields (require subsequent schema)
+// #todo : add support for domain, when present (merge with conditions below)
 					// obtain the ids by searching inside the foreign object's table
 					$result = $om->db->getRecords(	
 						$om->getObjectTableName($schema[$field]['foreign_object']), 
 						array('id', $schema[$field]['foreign_field'], $order), 
 						NULL, 
-						array(array(
-								array($schema[$field]['foreign_field'], 'in', $ids),
-								array('state', '<>', 'draft'),
-								array('deleted', '=', '0'),																						
-							)
-						), 
+						 [
+							[
+								[$schema[$field]['foreign_field'], 'in', $ids],
+								['state', '<>', 'draft'],
+								['deleted', '=', '0'],
+							]
+						], 
 						'id',
 						[$order => $sort]
 					);
@@ -805,20 +807,20 @@ class ObjectManager extends Service {
 					case 'string':
 						$constraints[$field]['size_overflow'] = [
 							'message' 	=> 'String length must be maximum 255 chars.',
-							'function'	=> function($val) {return (strlen($val) <= 255);}
+							'function'	=> function($val, $obj) {return (strlen($val) <= 255);}
 						];
 						break;
 					case 'text':
 						$constraints[$field]['size_overflow'] = [
 							'message' 	=> 'String length must be maximum 65,535 chars.',
-							'function'	=> function($val) {return (strlen($val) <= 65535);}
+							'function'	=> function($val, $obj) {return (strlen($val) <= 65535);}
 						];
 						break;
 					case 'file':
 					case 'binary':
 						$constraints[$field]['size_overflow'] = [
 							'message' 	=> 'String length must be maximum 16,777,215 chars.',
-							'function'	=> function($val) {return (strlen($val) <= 16777215);}
+							'function'	=> function($val, $obj) {return (strlen($val) <= 16777215);}
 						];
 						break;	
 				}
@@ -836,7 +838,7 @@ class ObjectManager extends Service {
 				foreach($constraints[$field] as $error_id => $constraint) {
 					if(isset($constraint['function']) ) {
 						$validation_func = $constraint['function'];
-						if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
+						if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
 							if(!isset($constraint['message'])) {
 								$constraint['message'] = 'invalid field';
 							}

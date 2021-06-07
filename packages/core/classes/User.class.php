@@ -60,7 +60,7 @@ class User extends Model {
             'login' =>  [
                 'invalid_email' => [
                     'message'       => 'Login must be a valid email address.',
-                    'function'      => function ($login) {
+                    'function'      => function ($login, $values) {
                         // an exception for admin
                         if($login == 'admin') return true;
                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
@@ -70,13 +70,13 @@ class User extends Model {
             'firstname' =>  [
                 'too_short' => [
                     'message'       => 'Firstname must be 2 chars long at minimum.',
-                    'function'      => function ($firstname) {
+                    'function'      => function ($firstname, $values) {
                         return (bool) (strlen($firstname) >= 2);
                     }
                 ],
                 'invalid_chars' => [
                     'message'       => 'Firstname must contain only naming glyphs.',
-                    'function'      => function ($firstname) {
+                    'function'      => function ($firstname, $values) {
                         return (bool) (preg_match('/^[\w\'\-,.][^0-9_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]{1,}$/u', $firstname));                        
                     }
                 ]
