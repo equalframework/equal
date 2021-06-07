@@ -96,7 +96,7 @@ foreach($classes as $class) {
     if(!preg_match('!No syntax errors detected!', $output)) {
         throw new Exception("FATAL - syntax error found in '{$class_name}' class definition file: {$output} ", QN_ERROR_UNKNOWN);
     }
-
+// #todo : an Exception may still arise while loading a class dependency (of the same package)
 	$model = $orm->getModel($class_name);
 	
     if(!$model || !is_object($model)) {
