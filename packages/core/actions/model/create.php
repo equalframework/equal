@@ -30,7 +30,7 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'fields' =>  [
-            'description'   => 'Associative map of fields to be updated, with their related values.',
+            'description'   => 'Associative array mapping fields to be updated with their related values.',
             'type'          => 'array', 
             'default'       => []
         ],
@@ -43,10 +43,7 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
-
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
-
-
 
 // fields and values have been received as a raw array : adapt received values according to schema
 $schema = $orm->getModel($params['entity'])->getSchema();
@@ -59,10 +56,15 @@ foreach($params['fields'] as $field => $value) {
     $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
 }
 
-// if no values has been given in the fields param, a draft object with default values is created
-$instance = $params['entity']::create($params['fields'], $params['lang'])->adapt('txt')->first();
+// fields for which no value has been given are set to default value (set in Model)
+$instance = $params['entity']::create($params['fields'], $params['lang'])
+            ->adapt('txt')
+            ->first();
 
-$result = ['entity' => $params['entity'], 'id' => $instance['id']];
+$result = [
+    'entity'    => $params['entity'], 
+    'id'        => $instance['id']
+];
 
 $context->httpResponse()
         ->status(201)
