@@ -11,11 +11,20 @@ use equal\orm\Model;
 class Version extends Model {
 
     public static function getColumns() {
-        return array(
-            'state'				=> array('type' => 'string', 'selection' => array('draft', 'version')),
-            'object_class'		=> array('type' => 'string'),
-            'object_id'			=> array('type' => 'integer'),
-            'serialized_value'	=> array('type' => 'text'),
-        );
+        return [
+            'state' => [
+                'type'              => 'string', 
+                'selection'         => ['draft', 'version']
+            ],
+            'object_class' => [
+                'type'              => 'string'
+            ],
+            'object_id' => [
+                'type'              => 'integer'
+            ],
+            'serialized_value' => [
+                'type'              => 'text'
+            ]
+        ];
     }
 }
