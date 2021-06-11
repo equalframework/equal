@@ -114,7 +114,16 @@ class Domain {
         $domain = self::normalize($domain);
         foreach($domain as $i => $clause) {
             foreach($clause as $j => $condition) {
-                $clause[$j] = "['".implode("','", $condition)."']";
+                $operand = "{$condition[0]}";
+                $operator = "{$condition[1]}";
+                $value = $condition[2];
+                if(is_array($value)) {
+                    $value = "['".implode("','", $value)."']";
+                }
+                else {
+                    $value = "'$value'";
+                }
+                $clause[$j] = "[{$operand},{$operator},{$value}]";
             }
             $domain[$i] = '['.implode(',', $clause).']';
         }
