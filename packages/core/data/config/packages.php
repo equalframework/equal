@@ -25,7 +25,7 @@ if(!is_dir($packages_dir) || !($list = scandir($packages_dir))) {
 }
     
 foreach($list as $node) {
-    if(is_dir($packages_dir.'/'.$node) && !in_array($node, array('.', '..'))) {
+    if(is_dir($packages_dir.'/'.$node) && !in_array($node, array('.', '..')) && $node[0] != '.') {
         $data[] = $node;
     }
 }    
