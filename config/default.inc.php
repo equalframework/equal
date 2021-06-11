@@ -75,7 +75,7 @@ namespace {
     * EMAIL related parameters
     */
     define('EMAIL_SMTP_HOST',               'SSL0.PROVIDER.NET');
-    define('EMAIL_SMTP_PORT',               '465');
+    define('EMAIL_SMTP_PORT',               '587');
     define('EMAIL_SMTP_ACCOUNT_DISPLAYNAME','Full Name');    
     define('EMAIL_SMTP_ACCOUNT_USERNAME',   'email.as.username@provider.com');
     define('EMAIL_SMTP_ACCOUNT_PASSWORD',   'password');
