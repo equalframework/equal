@@ -8,7 +8,13 @@ use equal\db\DBConnection;
 
 // get listing of existing packages
 $json = run('get', 'config_packages');
-$packages = json_decode($json, true);
+$data = json_decode($json, true);
+if(isset($data['errors'])) {
+    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
+}
+else {
+    $packages = $data;
+}
 
 list($params, $providers) = announce([
     'description'   => 'Initialise database for given package. If no package is given, initialize core package.',
@@ -18,8 +24,7 @@ list($params, $providers) = announce([
             'type'          => 'string', 
             'in'            => array_values($packages),
             'default'       => 'core'
-        ]
-    
+        ]    
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm'],
@@ -28,18 +33,14 @@ list($params, $providers) = announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $json = run('do', 'test_db-access');
-
 if(strlen($json)) {
     // relay result
     print($json);
     // return an error code
     exit(1);
 }
-
-
 // retrieve connection object
 $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
-
 
 
 // PASS-ONE : execute schema SQL
@@ -48,6 +49,9 @@ $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
 $json = run('get', 'utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array
 $data = json_decode($json, true);
+if(isset($data['errors'])) {
+    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
+}
 // join all lines
 $schema = str_replace(["\r","\n"], "", $data['result']);
 // push each line/query into an array
@@ -66,7 +70,13 @@ $queries = [];
 
 // 2) retrieve classes listing
 $json = run('get', 'config_classes', ['package' => $params['package']]);
-$classes = json_decode($json, true);
+$data = json_decode($json, true);
+if(isset($data['errors'])) {
+    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
+}
+else {
+    $classes = $data;
+}
 
 $types_associations = array(
     'boolean' 		=> 'tinyint(4)',
@@ -155,9 +165,7 @@ foreach($m2m_tables as $table => $columns) {
     $query = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
     $query .= '('.implode(',', array_fill(0, count($columns), 0)).");\n";
     $queries[] = $query;
-}        
-
-
+}
 
 // 4) populate tables with demo data (accepting SQL and/or JSON)
 $path = "packages/{$params['package']}/init/";
@@ -197,7 +205,6 @@ foreach($queries as $query) {
         $db->sendQuery($query.';');
     }
 }
-
 
 // 5) if a `bin` folder exists, copy its content to /bin/<package>/
 $bin_folder = "packages/{$params['package']}/init/bin";
