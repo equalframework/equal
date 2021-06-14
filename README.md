@@ -20,7 +20,7 @@ eQual is a versatile, language-agnostic and web-oriented framework, aiming to el
 echo "This is a valid Contoller!";
 ```
 
-`$ equal.run --get=test_first`
+`$ ./equal.run --get=test_first`
 
 
 
