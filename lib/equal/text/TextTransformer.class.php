@@ -28,12 +28,12 @@ class TextTransformer {
             'ú'=>'u', 'ù'=>'u', 'û'=>'u', 'ü'=>'u', 'ũ'=>'u', 'ū'=>'u', 'ű'=>'u',
             'ý'=>'y', 'ỳ'=>'y', 'ŷ'=>'y', 'ÿ'=>'y', 'ỹ'=>'y', 'ȳ'=>'y',
             'æ'=>'a', 'þ'=>'b', 'ç'=>'c', 'ƒ'=>'f', 'ñ'=>'n', 'ń'=>'n', 'ð'=>'o', 'ø'=>'o', 'š'=>'s', 'ș'=>'s', 'ț'=>'t', 'ž'=>'z'
-        );        
+        );
         $value = str_replace(array_keys($ascii), array_values($ascii), $value);
         // remove all non-[quote-space-alphanum-dash] chars
         $value = preg_replace('/[^\'\s-a-z0-9]/i', '', $value);
         // replace spaces, dashes, pluses and quotes with spaces
-        $value = preg_replace('/[\s-\']+/', ' ', $value);           
+        $value = preg_replace('/[\s-\']+/', ' ', $value);
         // trim the end of the string
         $value = trim($value, ' .-_');
         return strtolower($value); 
@@ -106,8 +106,12 @@ class TextTransformer {
     
     public static function is_relevant($word, $locale='fr') {
         static $locales = [
-        'fr' => ["un", "une", "le", "la", "les", "l", "d", "de", "du", "des", "ce", "ca", "ces", "c", "s", "que", "qui", "quoi", "qu", "a", "au", "ou", "il", "elle", "pour", "donc", "dont"]
+        'en' => ["a", "one", "the", "of", "it", "its", "is", "has", "have", "when", "with", "what", "that", "from", "there", "for", "thus"],
+        'fr' => ["un", "une", "le", "la", "les", "l", "d", "de", "du", "des", "ce", "ca", "ces", "c", "s", "que", "qui", "quoi", "qu", "est", "es", "a", "au", "ou", "il", "elle", "pour", "donc", "dont"]
         ];
+        if(!isset( $locales[$locale])) {
+            return (strlen($word) >= 3 );
+        }
         $items = $locales[$locale];
         return !(strlen($word) < 3 || in_array($word, $items));
     }
