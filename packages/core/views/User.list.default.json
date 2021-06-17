@@ -1,7 +1,7 @@
 {
     "name": "Users list",
     "description": "This view is intended for displaying basic listing of existing users.",
-    "domain": ["id", ">", "3"],
+    "domain": [],
     "filters": [
         {
             "id": "lang.french",

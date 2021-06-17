@@ -38,13 +38,17 @@ if($validation < 0 || count($validation)) {
 
 $auth->authenticate($params['login'], $params['password']);
 
-$instance = User::id($auth->userId())
+$user_id = $auth->userId();
+$user = User::id($user_id)
                 ->read(['id', 'login', 'firstname', 'lastname', 'language'])
                 ->adapt('txt')
                 ->first();
-                
-$instance['access_token'] = $auth->token();
+
+// access token has to be renewed every 2 hours
+$user['access_token'] = $auth->token($user_id, 2);
+// refresh token is valid during 1 year
+$user['refresh_token'] = $auth->token($user_id, 24*365);
 
 $context->httpResponse()
-        ->body($instance)
+        ->body($user)
         ->send();

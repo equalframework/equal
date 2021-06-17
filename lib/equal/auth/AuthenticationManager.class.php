@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace equal\auth;
 
 use equal\organic\Service;
@@ -27,15 +32,16 @@ class AuthenticationManager extends Service {
     }
     
     /**
-     * Provide a JWT token based on `::user_id` and `AUTH_SECRET_KEY`
-     *
-     * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
+     * Provide a JWT token based on current user id and `AUTH_SECRET_KEY`
+     * 
+     * @param   $user_id    identifier of the user for who a token is requested
+     * @param   $validity   validity duration in hours 
+     * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token($user_id=null) {
-        // generate access token (valid for 1 year)
+    public function token($user_id=0, $validity=1) {
         $payload = [
-            'id'    => ($user_id)?$user_id:$this->user_id,
-            'exp'   => time()+60*60*24*365
+            'id'    => ($user_id > 0)?$user_id:$this->user_id,
+            'exp'   => time()+60*60*$validity
         ];
         return $this->encode($payload);
     }
@@ -114,6 +120,7 @@ class AuthenticationManager extends Service {
 
         // decode and verify token, if found
         if($jwt) {
+            $payload = null;
             try {
 
                 if( !$this->verifyToken($jwt, AUTH_SECRET_KEY) ){
@@ -122,13 +129,20 @@ class AuthenticationManager extends Service {
                 
                 $decoded = $this->decodeToken($jwt);
 
-                if(isset($decoded['payload']['id']) && $decoded['payload']['id'] > 0) {
-                    $this->user_id = $decoded['payload']['id'];
+                if(!isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
+                    throw new \Exception('JWT_invalid_payload');
                 }
+                $payload = $decoded['payload'];
             }
             catch(\Exception $e) {
                 trigger_error("Unable to decode token: ".$e->getMessage(), QN_REPORT_ERROR);
             }
+            if($payload) {
+                if($payload['exp'] < time()) {
+                    throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
+                }
+                $this->user_id = $payload['id'];
+            }            
         }
         return $this->user_id;
     }
@@ -138,19 +152,19 @@ class AuthenticationManager extends Service {
         
         $errors = $orm->validate('core\User', [], ['login' => $login]);
         if(count($errors)) {
-            throw new \Exception('login, password', QN_ERROR_INVALID_PARAM);
+            throw new \Exception('invalid_username', QN_ERROR_INVALID_PARAM);
         }
         
         $ids = $orm->search('core\User', ['login', '=', $login]);
         if(!count($ids)) {
-            throw new \Exception($login, QN_ERROR_INVALID_USER);
+            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
         }
 
         $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
         $user = array_shift($list);
 
         if(!password_verify($password, $user['password'])) {
-            throw new \Exception("$login:$password", QN_ERROR_INVALID_USER);
+            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
         }
         
         // remember current user identifier

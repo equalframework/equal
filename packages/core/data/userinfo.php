@@ -33,6 +33,7 @@ $user = User::ids($ids)
             ->read(['id', 'login', 'firstname', 'lastname', 'language'])
             ->adapt('txt')
             ->first();
+            
 // send back basic info of the User object   
 $context->httpResponse()
         ->body($user)

@@ -17,6 +17,12 @@ class Log extends Model {
                 'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or a custom value).',
                 'required'          => true
             ],
+            'user_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\User',
+                'domain'            => ['id', '<', 3],                
+                'required'          => true
+            ],
             'object_class' => [
                 'type'              => 'string',
                 'description'       => "Class of entity this entry is related to."
@@ -24,12 +30,7 @@ class Log extends Model {
             'object_id' => [
                 'type'              => 'integer',
                 'description'       => "Identifier of the targeted object (of given class)."
-            ],
-            'user_id' => [
-                'type'              => 'many2one',
-                'foreign_object'    => 'core\User',
-                'required'          => true
-            ],
+            ]
         ];
     }
 }

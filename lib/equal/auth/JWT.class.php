@@ -1,14 +1,19 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace equal\auth;
 
 class JWT {
 	/**
 	 * Decodes a JWT string into a PHP object.
 	 *
-	 * @param string      $jwt    The JWT
+	 * @param 	string      $jwt    The JSON Web Token
 	 *
-	 * @return array      A map holding JWT header, payload, and signature
-	 * @throws Exception
+	 * @return 	array      			A map holding JWT header, payload, and signature
+	 * @throws 	Exception
 	 * 
 	 * @uses urlsafeB64Decode
 	 */
