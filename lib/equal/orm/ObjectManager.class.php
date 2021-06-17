@@ -100,8 +100,6 @@ class ObjectManager extends Service {
         'many2many'		=> array('contains'),
     ];
 
-
-
     public static $types_associations = [
         'boolean' 		=> 'tinyint(4)',
         'integer' 		=> 'int(11)',
@@ -118,7 +116,6 @@ class ObjectManager extends Service {
         'many2one' 		=> 'int(11)'
     ];
 
-
     public static $usages_associations = [
         'coordinate'			=> 'decimal(9,6)',
         'language/iso-639:2'	=> 'char(2)',
@@ -129,7 +126,7 @@ class ObjectManager extends Service {
     ];
 
     protected function __construct(DBConnection $db) {
-// todo : declare required constants instead
+// #todo : declare required constants instead through constants() method
         // make sure mandatory constants are defined
         if(!defined('EXPORT_FLAG')) {
             if(!function_exists('\config\export_config')) die('mandatory config namespace or function export_config is missing');
@@ -153,36 +150,11 @@ class ObjectManager extends Service {
         return [];
     }
 
-    /**
-    * Returns the instance of the Manager.
-    * The instance is stored in the $GLOBALS array and is created at first call to this method.
-    *
-    * @return object
-    */
-/*
-    public static function &getInstance()	{
-        if (!isset($GLOBALS['ObjectManager_instance'])) $GLOBALS['ObjectManager_instance'] = new ObjectManager();
-        return $GLOBALS['ObjectManager_instance'];
-    }
-    */
-
     public function getDB() {
         return $this->db;
     }
 
     private function getDBHandler() {
-/*
-        if(!$this->db) {
-            if(!defined('DB_HOST') || !defined('DB_PORT') || !defined('DB_NAME') || !defined('DB_USER') || !defined('DB_PASSWORD') || !defined('DB_DBMS')) {
-                // fatal error
-                trigger_error(	'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
-                                'unable to establish connection to database: check config connection parameters '.
-                                '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
-                                E_USER_ERROR);
-            }
-            $this->db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
-        }
-*/
         // open DB connection
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
@@ -195,8 +167,6 @@ class ObjectManager extends Service {
         }
         return $this->db;
     }
-
-
 
     public function __toString() {
         return "ObjectManager instance";
@@ -343,7 +313,7 @@ class ObjectManager extends Service {
     /**
      * Filter given identifiers and return only valid ones.
      * Ids that do not match an object in the database are removed from the list.
-     *
+     * Ids of soft-deleted object are considered valid.
      */
     private function filterValidIdentifiers($class, $ids) {
         $valid_ids = [];
@@ -1321,26 +1291,25 @@ class ObjectManager extends Service {
 
 
     /**
-    * Search for the objects corresponding to the domain criteria.
-    * This method essentially generates an SQL query and returns an array of matching objects ids.
-    *
-    * 	The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
-    * 	Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
-    * 	i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
-    *
-    * 	accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
-    * 	example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
-    *
-    *
-    * @param integer    $user_id
-    * @param string     $object_class
-    * @param array      $domain
-    * @param array      $sort           array of fields which result have to be sorted on, possibly precedded by sign (+ for 'asc', - for 'desc')
-    * @param integer    $start
-    * @param string     $limit
-    * @return mixed (integer or array)
-    */
-    public function search($object_class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=DEFAULT_LANG) {
+     * Search for the objects corresponding to the domain criteria.
+     * This method essentially generates an SQL query and returns an array of matching objects ids.
+     *
+     * 	The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
+     * 	Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
+     * 	i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
+     *
+     * 	accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
+     * 	example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
+     *
+     *
+     * @param   string     $class
+     * @param   array      $domain
+     * @param   array      $sort           array of fields which result have to be sorted on, possibly precedded by sign (+ for 'asc', - for 'desc')
+     * @param   integer    $start
+     * @param   string     $limit
+     * @return  mixed      (integer or array)
+     */
+    public function search($class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=DEFAULT_LANG) {
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
 
@@ -1371,8 +1340,8 @@ class ObjectManager extends Service {
                 return $table_alias;
             };
 
-            $schema = $this->getObjectSchema($object_class);
-            $table_alias = $add_table($this->getObjectTableName($object_class));
+            $schema = $this->getObjectSchema($class);
+            $table_alias = $add_table($this->getObjectTableName($class));
 
             // first pass : build conditions and the tables names arrays
             if(!empty($domain) && !empty($domain[0]) && !empty($domain[0][0])) { // domain structure is correct and contains at least one condition
@@ -1392,18 +1361,18 @@ class ObjectManager extends Service {
                         $operator	= strtolower($domain[$j][$i][1]);
 
                         // check field validity
-                        if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$object_class'", QN_ERROR_INVALID_PARAM);
+                        if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         // get final target field
                         if($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
-                            if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$object_class'", QN_ERROR_INVALID_PARAM);
+                            if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // get final type
                         $type = $schema[$field]['type'];
                         if($type == 'function' || $type == 'computed') $type = $schema[$field]['result_type'];
                         // check the validity of the field name and the operator
-                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$object_class'", QN_ERROR_INVALID_PARAM);
-                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$object_class'", QN_ERROR_INVALID_PARAM);
+                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
                         if(isset($special_fields[$field])) unset($special_fields[$field]);
@@ -1430,7 +1399,7 @@ class ObjectManager extends Service {
                                 // add related table to sql query
                                 $rel_table_alias = $add_table($schema[$field]['rel_table']);
                                 // if the relation points out to objects of the same class
-                                if($schema[$field]['foreign_object'] == $object_class) {
+                                if($schema[$field]['foreign_object'] == $class) {
                                     // add the join condition on 'rel_foreign_key'
                                     $join_conditions[] = array($table_alias.'.id', '=', '`'.$rel_table_alias.'`.`'.$schema[$field]['rel_foreign_key'].'`');
                                     // use 'rel_local_key' column as comparison field
@@ -1451,7 +1420,7 @@ class ObjectManager extends Service {
                                     $translation_table_alias = $add_table('core_translation');
                                     // add join conditions
                                     $conditions[$j][] = array($table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`');
-                                    $conditions[$j][] = array($translation_table_alias.'.object_class', '=', $object_class);
+                                    $conditions[$j][] = array($translation_table_alias.'.object_class', '=', $class);
                                     $conditions[$j][] = array($translation_table_alias.'.object_field', '=', $field);
                                     $field = $translation_table_alias.'.value';
                                 }
@@ -1504,7 +1473,7 @@ class ObjectManager extends Service {
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
                 if(!isset($schema[$sort_field]) || ( ($schema[$sort_field]['type'] == 'function' || $schema[$sort_field]['type'] == 'computed') && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
-                    trigger_error("invalid order field '$sort_field' for class '$object_class'", E_USER_WARNING);
+                    trigger_error("invalid order field '$sort_field' for class '$class'", E_USER_WARNING);
                     // $order = 'id';
                     $sort_field = 'id';
                     $sort_order = 'asc';
@@ -1539,7 +1508,7 @@ class ObjectManager extends Service {
             $res_list = array_unique($res_list);
             // mark resulting identifiers as safe (matching existing objets)
             foreach($res_list as $object_id) {
-                $this->identifiers[$object_class][$object_id] = true;
+                $this->identifiers[$class][$object_id] = true;
             }
         }
         catch(Exception $e) {
