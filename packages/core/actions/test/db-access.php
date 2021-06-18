@@ -32,7 +32,7 @@ if(!$db->connected()) {
 // 3) try to select specified DB
 if(!$db->select(DB_NAME)) {
     $db->disconnect();
-    throw new Exception('Unable to access database (not found)', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('Unable to access specified database (DB \''.DB_NAME.'\' not found)', QN_ERROR_INVALID_CONFIG);
 }
 // 3) everything went well: disconnect
 $db->disconnect();
