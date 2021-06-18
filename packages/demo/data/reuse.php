@@ -1,2 +1,2 @@
 <?php
-echo run('get', 'test_simple');
+echo run('get', 'demo_simple');
