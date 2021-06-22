@@ -50,8 +50,6 @@ class ObjectManager extends Service {
         'float'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'precision'),
         'string'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
         'text'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-// todo : html should be handled as `'usage': 'text/html'`
-        'html'			=> array('description', 'type', 'visible', 'default', 'required', 'onchange', 'multilang'),
         'date'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
         'time'			=> array('description', 'type', 'visible', 'default', 'required', 'onchange'),
         'datetime'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
