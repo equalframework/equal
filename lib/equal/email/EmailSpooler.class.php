@@ -7,7 +7,7 @@
 namespace equal\email;
 
 if(! @include_once(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-    throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
+    throw new \Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
 }
 use \Swift_SmtpTransport as Swift_SmtpTransport;
 use \Swift_Message as Swift_Message;
@@ -18,7 +18,7 @@ use equal\services\Container;
 
 class EmailSpooler extends Service {
 
-    const MESSAGE_FOLDER = '../spool';
+    const MESSAGE_FOLDER = QN_BASEDIR.'/spool';
 
     private $spool;
 
@@ -30,7 +30,7 @@ class EmailSpooler extends Service {
     }
 
     public static function constants() {
-        return ['EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD', 'EMAIL_SMTP_ACCOUNT_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'];
+        return ['QN_BASEDIR', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD', 'EMAIL_SMTP_ACCOUNT_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'];
     }
 
     /** 
@@ -54,7 +54,7 @@ class EmailSpooler extends Service {
     }
 
     /**
-     * Clean the spool (delete all pending messages)
+     * Clean the spool (delete all pending messages without sending them)
      */
     public function flush() {
         $files = scandir(self::MESSAGE_FOLDER);
