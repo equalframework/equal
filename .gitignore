@@ -1,6 +1,4 @@
-node_modules/
 vendor/
-bin/
 log/*
 !log/.gitkeep 
 cache/*
@@ -9,7 +7,6 @@ spool/*
 !spool/.gitkeep
 bin/*
 !bin/.gitkeep
-packages/symbiose
-packages/symbiose/*
+config/config.inc.php
 composer.phar
 composer.lock

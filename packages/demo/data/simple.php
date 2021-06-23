@@ -1,2 +1,3 @@
 <?php
-echo 'This is a valid controller!';
+// Tired of steep learning curves?
+echo "This is a valid Contoller!";
