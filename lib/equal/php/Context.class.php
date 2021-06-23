@@ -282,7 +282,6 @@ class Context extends Service {
             // will be parsed using parse_str
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        print_r($headers);
         return $headers;
     }
     
