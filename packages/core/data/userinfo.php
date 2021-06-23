@@ -16,11 +16,13 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
-list($context, $om, $am) = [$providers['context'], $providers['orm'], $providers['auth']];
+list($context, $om, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
+
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
-$user_id = $am->userId();
+$user_id = $auth->userId();
+// make sure user is authenticated
 if($user_id <= 0) {
-    throw new Exception('user_unknown', QN_ERROR_INVALID_USER);    
+    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);    
 }
 // request directly the mapper to bypass permission check on User class 
 $ids = $om->search('core\User', ['id', '=', $user_id]);
@@ -34,7 +36,7 @@ $user = User::ids($ids)
             ->adapt('txt')
             ->first();
             
-// send back basic info of the User object   
+// send back basic info of the User object
 $context->httpResponse()
         ->body($user)
         ->send();
