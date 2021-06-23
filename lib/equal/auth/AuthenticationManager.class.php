@@ -89,6 +89,11 @@ class AuthenticationManager extends Service {
     }
 
     public function userId() {
+        // grant all rights when using CLI
+        if(php_sapi_name() === 'cli') {
+            $this->user_id = ROOT_USER_ID;
+        }
+
         // return user_id member, if already resolved
         if($this->user_id > 0) return $this->user_id;
 
@@ -107,15 +112,14 @@ class AuthenticationManager extends Service {
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
                 $this->authenticate($username, $password);
-                // $jwt = $this->token();
             }
             else if(strpos($auth_header, 'Digest ') !== false) {
-                // todo
+                // #todo
             }            
         }
-        // no Authorization header : fallback to cookie, if any
+        // no Authorization header : fallback to cookie
         else {
-            $jwt = $request->cookie('access_token');
+            $jwt = $request->cookie('access_token');        
         }
 
         // decode and verify token, if found
@@ -124,13 +128,13 @@ class AuthenticationManager extends Service {
             try {
 
                 if( !$this->verifyToken($jwt, AUTH_SECRET_KEY) ){
-                    throw new \Exception('JWT_invalid_signature');
+                    throw new \Exception('jwt_invalid_signature');
                 }
                 
                 $decoded = $this->decodeToken($jwt);
 
                 if(!isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
-                    throw new \Exception('JWT_invalid_payload');
+                    throw new \Exception('jwt_invalid_payload');
                 }
                 $payload = $decoded['payload'];
             }
@@ -147,6 +151,9 @@ class AuthenticationManager extends Service {
         return $this->user_id;
     }
     
+    /**
+     * @throws Exception    Raises an excetpion in case the credentials are not related to a user.
+     */
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');
         
