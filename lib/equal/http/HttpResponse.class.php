@@ -58,15 +58,18 @@ class HttpResponse extends HttpMessage {
         }
         
         // set cookies, if any
-        foreach($this->headers()->getCookies() as $cookie => $value) {            
-            $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
-            $host_parts = explode('.', $host);
-            $tld = array_pop($host_parts);
-            $domain = array_pop($host_parts);
-            // default validity to 1 year (according to cookies legislation - as of 2018)
-            setcookie($cookie, $value, time()+60*60*24*365, '/', $domain.'.'.$tld);
-            // equivalent to 
-            // header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
+        foreach($this->headers()->getCookies() as $cookie => $value) {
+            $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
+            $params = $this->headers()->getCookieParams($cookie);
+            $expires = (isset($params['expires']))?$params['expires']:time()+60*60*24*365;
+            $path = (isset($params['path']))?$params['path']:'/';
+            $domain = (isset($params['domain']))?$params['domain']:$hostname;
+            $secure = (isset($params['secure']))?$params['secure']:false;
+            $httponly = (isset($params['httponly']))?$params['httponly']:false;
+// #todo handle samesite (as of PHP 7.3)            
+            $samesite = (isset($params['samesite']))?$params['samesite']:false;
+            setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
+            // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
         }
         // retrieve body
         $body = $this->body();
