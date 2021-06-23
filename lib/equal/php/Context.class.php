@@ -222,7 +222,20 @@ class Context extends Service {
                     }
                 }              
             }
-            // 2) normalize headers            
+
+            // 2) normalize headers
+            // handle origin header
+            if (!isset($headers['Origin'])) {
+                if(isset($headers['Host'])) {
+                    $headers['Origin'] = $headers['Host'];
+                }
+                else if(isset($headers['Referer'])) {
+                    if ( $parts = parse_url( $headers['Referer'] ) ) {
+                        $headers['Origin'] = $parts[ "host" ];
+                    }
+                }
+            }
+            // handle Authorization header
             if (!isset($headers['Authorization'])) {
                 if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
                     $headers['Authorization'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
@@ -245,7 +258,7 @@ class Context extends Service {
                 }
             }
             // handle client's IP address : we make sure that 'X-Forwarded-For' is always set with the most probable client IP
-            // fallback to localhost (using CLI, REMOTE_ADDR is not set), i.e. '127.0.0.1'
+            // fallback to localhost (using CLI, REMOTE_ADDR is not set), so we default to '127.0.0.1'
             $client_ip = '127.0.0.1';
             if(isset($_SERVER['REMOTE_ADDR'])) {
                 $client_ip = $_SERVER['REMOTE_ADDR'];
@@ -269,6 +282,7 @@ class Context extends Service {
             // will be parsed using parse_str
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
+        print_r($headers);
         return $headers;
     }
     
