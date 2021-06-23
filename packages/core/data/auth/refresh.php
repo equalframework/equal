@@ -8,50 +8,29 @@ use core\User;
 
 // announce script and fetch parameters values
 list($params, $providers) = announce([
-    'description'	=>	"Attempts to renew the access token based on a refresh token.",
-    'params' 		=>	[
-        'refresh_token'		=>	[
-            'description'   => "refresh token for requesting a new access token",
-            'type'          => 'string',
-            'required'      => true
-        ]
-    ],
+    'description'	=>	"Attempts to renew an access token that is about to expire (but still valid).",
+    'constants'     => ['AUTH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],    
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],    
+    ],
     'providers'     => ['context', 'auth', 'orm']
 ]);
 
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
 
-if( !$auth->verifyToken($params['refresh_token'], AUTH_SECRET_KEY) ) {
-    throw new \Exception('JWT_invalid_signature');
+// retrieve current User identifier (HTTP headers lookup through Authentication Manager)
+$user_id = $auth->userId();
+// make sure user is authenticated
+if($user_id <= 0) {
+    throw new Exception('unknown_user', QN_ERROR_NOT_ALLOWED);    
 }
-
-$decoded = $auth->decodeToken($params['refresh_token']);
-
-if(!isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
-    throw new \Exception('JWT_invalid_payload');
-}
-
-$payload = $decoded['payload'];
-
-if($payload['exp'] < time()) {
-    throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
-}
-
-$user_id = $payload['id'];
-
-// generate a new pair of tokens
-$response = [
-    // access token has to be renewed every 2 hours    
-    'access_token'  => $auth->token($user_id, 2),
-    // refresh token is valid during 1 year    
-    'refresh_token' => $auth->token($user_id, 24*365)
-];
+// generate a new JWT access token
+$expires = time() + AUTH_TOKEN_VALIDITY;
+$token = $auth->token($user_id, $expires);
 
 $context->httpResponse()
-        ->body($response)
+        ->cookie('access_token', $token, ['expires' => $expires, 'httponly' => true, 'secure' => AUTH_TOKEN_HTTPS])
+        ->status(204)
         ->send();
