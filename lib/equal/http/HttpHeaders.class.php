@@ -24,10 +24,14 @@ class HttpHeaders {
         'MIME_JPEG'  => ['image/jpeg']
     ];
     
+    // map of headers
     private $headers;
+    // map for cookies extra data (for HttpResponse)
+    private $cookies_params;
     
     public function __construct($headers) {
         $this->setHeaders($headers);
+        $this->cookies_params = [];
     }
     
     public function toArray() {
@@ -48,11 +52,14 @@ class HttpHeaders {
         return $this;
     }
     
-    public function setCookie($cookie, $value) {
+    public function setCookie($cookie, $value, $params=null) {
         $cookies = $this->getCookies();
-        $cookies[$cookie] = $value;        
+        $cookies[$cookie] = $value;
         $rawcookie_parts = array_map(function ($cookie, $value) { return "$cookie=$value"; }, array_keys($cookies), $cookies);
-        $this->set('Cookie', implode('; ', $rawcookie_parts));        
+        $this->set('Cookie', implode('; ', $rawcookie_parts));
+        if($params) {
+            $this->cookies_params[$cookie] = $params;
+        }
         return $this;
     }    
 
@@ -116,6 +123,14 @@ class HttpHeaders {
             }
         }
         return $cookies;
+    }
+
+    public function getCookieParams($cookie) {
+        $result = null;
+        if(isset($this->cookies_params[$cookie])) {
+            $result = $this->cookies_params[$cookie];
+        }
+        return $result;
     }
 
     public function getCookie($cookie, $default=null)  {
