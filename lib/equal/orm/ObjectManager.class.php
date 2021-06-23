@@ -1073,6 +1073,8 @@ class ObjectManager extends Service {
                 // handle fields with 'dot' notation
                 if(strpos($field, '.') > 0) {
                     $dot_fields[] = $field;
+                    // drop dot fields (they will be handled later on)
+                    unset($fields[$key]);
                 }
                 // invalid field
                 else if(!isset($schema[$field])) {
@@ -1140,6 +1142,7 @@ class ObjectManager extends Service {
             }
 
             // 5) handle dot fields
+            
             foreach($dot_fields as $field) {
                 // init result set (values will be used as keys for assigning the loaded values)
                 foreach($ids as $oid) {
@@ -1158,10 +1161,15 @@ class ObjectManager extends Service {
                 foreach($path_fields as $path_field) {
                     // fetch all ids for every parent object (whose ids are stored in $path_prev_ids)
                     // #caution there might be a recursion here
-                    $path_values = $om->read($path_class, $path_prev_ids, array($path_field), $lang);
+                    $path_values = $this->read($path_class, $path_prev_ids, array($path_field), $lang);
                     // assign result set with loaded values for current level
                     foreach($ids as $oid) {
-                        $res[$oid][$field] = $path_values[$res[$oid][$field]][$path_field];
+                        if($res[$oid][$field] && isset($path_values[$res[$oid][$field]])) {
+                            $res[$oid][$field] = $path_values[$res[$oid][$field]][$path_field];
+                        }
+                        else {
+                            $res[$oid][$field] = null;
+                        }
                     }
                     // if target field is a relational type, keep on processing the path
                     if(isset($path_schema[$path_field]['foreign_object']) && $i < ($n-1) ) {
