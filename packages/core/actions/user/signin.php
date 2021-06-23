@@ -21,6 +21,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
+    'constants'     => ['AUTH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -39,16 +40,12 @@ if($validation < 0 || count($validation)) {
 $auth->authenticate($params['login'], $params['password']);
 
 $user_id = $auth->userId();
-$user = User::id($user_id)
-                ->read(['id', 'login', 'firstname', 'lastname', 'language'])
-                ->adapt('txt')
-                ->first();
 
-// access token has to be renewed every 2 hours
-$user['access_token'] = $auth->token($user_id, 2);
-// refresh token is valid during 1 year
-$user['refresh_token'] = $auth->token($user_id, 24*365);
+// generate a JWT access token
+$expires = time() + AUTH_TOKEN_VALIDITY;
+$token = $auth->token($user_id, $expires);
 
 $context->httpResponse()
-        ->body($user)
+        ->cookie('access_token', $token, ['expires' => $expires, 'httponly' => true, 'secure' => AUTH_TOKEN_HTTPS])
+        ->status(204)
         ->send();
