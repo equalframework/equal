@@ -227,11 +227,12 @@ class Context extends Service {
             // handle origin header
             if (!isset($headers['Origin'])) {
                 if(isset($headers['Host'])) {
-                    $headers['Origin'] = $headers['Host'];
+                    $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
+                    $headers['Origin'] = $scheme.'://'.$headers['Host'];
                 }
                 else if(isset($headers['Referer'])) {
                     if ( $parts = parse_url( $headers['Referer'] ) ) {
-                        $headers['Origin'] = $parts[ "host" ];
+                        $headers['Origin'] = $parts[ "scheme" ].'://'.$parts[ "host" ];
                     }
                 }
             }
