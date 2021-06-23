@@ -416,20 +416,23 @@ namespace config {
                     // `Access-Control-Allow-Origin` must be a single URI (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
                     // so we check for a list of allowed URI
                     foreach($announcement['response']['accept-origin'] as $origin) {
-                        // todo: use a compare method to handle explicit/implicit port notation                        
+                        // #todo use a compare method to handle explicit/implicit port notation                        
                         if(in_array($origin, ['*', $request_origin])) {
                             $response->header('Access-Control-Allow-Origin', $request_origin);
                             break;
                         }
                     }
-                    /*
+                    // prevent requests from non-allowed origins (for non-https requests, this can be bypassed by manually setting requests header)
                     if($origin != '*' && $origin != $request_origin) {
-                        // prevent requests from non-allowed origins (can be bypassed by manually setting requests header)
+                        // raise an exception with error details                        
+                        throw new \Exception('origin_not_allowed', QN_ERROR_NOT_ALLOWED);
                     }
-                    */
+                    // set headers accordingly to response definition
+                    // #todo allow to customize these values                    
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');
+                    $response->header('Access-Control-Allow-Credentials', 'true');
                     $response->header('Allow', '*');
                 }
                 if(isset($announcement['response']['content-disposition'])) {
