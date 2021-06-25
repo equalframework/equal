@@ -60,7 +60,7 @@ namespace {
     */
     // By default, the control is done at the class level. It means that a user will be granted the same rights for every objects of a given class.
     // However, sometimes we must take the object id under account (for instance, if pages of a web site can have their own permissions)
-    define('CONTROL_LEVEL', 'class');	// allowed values are 'class' or ' object'
+    define('CONTROL_LEVEL', 'class');	// allowed values are 'class' or 'object'
     
     
     /**
@@ -225,4 +225,11 @@ namespace config {
     
 // todo : generate a random key during install process
     define('AUTH_SECRET_KEY', 'my_secret_key');
+
+    // validity duration of the access token, in seconds
+    define('AUTH_TOKEN_VALIDITY', 3600*24*90);      // set token validity to 90 days
+
+    // limit sending of auth token to HTTPS
+    define('AUTH_TOKEN_HTTPS', false);
+    // define('AUTH_TOKEN_HTTPS', true);
 }
