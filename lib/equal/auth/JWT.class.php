@@ -106,7 +106,7 @@ class JWT {
 	 *                       algorithms are 'HS256', 'HS384' and 'HS512'
 	 *
 	 * @return string          An encrypted message
-	 * @throws DomainException Unsupported algorithm was specified
+	 * @throws Exception Unsupported algorithm was specified
 	 */
 	private static function sign($msg, $key, $method = 'HS256') {
 		$methods = array(
@@ -115,7 +115,7 @@ class JWT {
 			'HS512' => 'sha512'
 		);
 		if (!in_array($method, array_keys($methods))) {
-			throw new DomainException('Algorithm not supported');
+			throw new \Exception('algorithm_not_supported');
 		}
 		return hash_hmac($methods[$method], $msg, $key, true);
 	}
