@@ -59,10 +59,11 @@ $model = $orm->getModel($params['entity']);
 if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
+
 // adapt received values for parameter 'fields' (which are still text formated)
 $schema = $model->getSchema();
 foreach($params['fields'] as $field => $value) {
-    // drop empty fields
+    // drop empty fields, ignore status
     if(is_null($value)) {
         unset($params['fields'][$field]);
     }
@@ -95,6 +96,9 @@ if( count($params['ids']) == 1) {
     }
 }
 
+// by convention, this controller always sets an object as an instance
+$params['fields']['state'] = 'instance';
+
 $result = $params['entity']::ids($params['ids'])
                            // update with received values
                            ->update($params['fields'], $params['lang'])
@@ -105,4 +109,5 @@ $result = $params['entity']::ids($params['ids'])
 
 $context->httpResponse()
         ->status(202)
+        ->body([])
         ->send();

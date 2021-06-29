@@ -39,5 +39,5 @@ $params['entity']::id($params['id'])->delete($params['permanent']);
                                
 $context->httpResponse()
         ->status(204)
-        ->body('')
+        ->body([])
         ->send();

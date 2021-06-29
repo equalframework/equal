@@ -30,7 +30,7 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'fields' =>  [
-            'description'   => 'Associative array mapping fields to be updated with their related values.',
+            'description'   => 'Associative array mapping fields to their related values.',
             'type'          => 'array', 
             'default'       => []
         ],
