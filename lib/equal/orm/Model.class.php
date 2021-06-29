@@ -78,7 +78,7 @@ class Model {
 
 	// note: 'name' field is set in constructor if not defined in getColumns method
 	public final static function getSpecialColumns() {
-		static $special_columns = [
+		$special_columns = [
 			'id' => [				
 				'type'				=> 'integer'
 			],            
@@ -87,20 +87,24 @@ class Model {
 				'foreign_object'    => 'core\User'
 			],
 			'created' => [
-				'type' 				=> 'datetime'
+				'type' 				=> 'datetime',
+				'default'			=> time()
 			],
 			'modifier' => [
                 'type'              => 'many2one',
 				'foreign_object'    => 'core\User'
 			],
 			'modified' => [
-				'type' 				=> 'datetime'
+				'type' 				=> 'datetime',
+				'default'			=> time()				
 			],
 			'deleted' => [
-				'type' 				=> 'boolean'
+				'type' 				=> 'boolean',
+				'default'			=> false
 			],
 			'state' => [
-				'type' 				=> 'string'
+				'type' 				=> 'string',
+				'default'			=> 'instance'
 			]
 		];
 		return $special_columns;

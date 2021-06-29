@@ -40,7 +40,7 @@ class ObjectManager extends Service {
     private $db;
 
     public static $virtual_types = array('alias');
-    public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'html', 'array', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
+    public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
     public static $valid_attributes = array(
@@ -83,10 +83,9 @@ class ObjectManager extends Service {
     public static $valid_operators = [
         'boolean'		=> array('=', '<>', '<', '>', 'in'),
         'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
-        'float'			=> array('=', '<>', '<', '>', '<=', '>='),
-        'string'		=> array('like', 'ilike', 'in', '=', '<>'),
+        'float'			=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
+        'string'		=> array('like', 'ilike', 'in', 'not in', '=', '<>'),
         'text'			=> array('like', 'ilike', '='),
-        'html'			=> array('like', 'ilike', '='),
         'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like'),
         'time'			=> array('=', '<>', '<', '>', '<=', '>='),
         'datetime'		=> array('=', '<>', '<', '>', '<=', '>='),
@@ -104,7 +103,6 @@ class ObjectManager extends Service {
         'float' 		=> 'decimal(10,2)',
         'string' 		=> 'varchar(255)',
         'text' 			=> 'text',
-        'html' 			=> 'mediumtext',
         'date' 			=> 'date',
         'time' 			=> 'time',
         'datetime' 		=> 'datetime',
@@ -394,7 +392,7 @@ class ObjectManager extends Service {
                     $oid = $row['object_id'];
                     $field = $row['object_field'];
                     // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-// todo : by default, we should do nothing, to maintain performance - and allow user to pickup a method among some pre-defined default conversions
+// #todo : by default, we should do nothing, to maintain performance - and allow user to pickup a method among some pre-defined default conversions
                     // $value = DataAdapter::adapt('db', 'orm', $schema[$field]['type'], $row['value'], $class, $oid, $field, $lang);
                     $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
                     // update the internal buffer with fetched value
@@ -517,7 +515,7 @@ class ObjectManager extends Service {
                 // retrieve field type
                 $type = $schema[$field]['type'];
                 // computed fields are handled following their resulting type
-                if( ($type == 'function' || $type == 'computed')
+                if( ($type == 'computed')
                     && isset($schema[$field]['store'])
                     && $schema[$field]['store']
                 ) {
@@ -612,7 +610,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $type = $schema[$field]['type'];
                         // support computed fields (handled as simple fields)
-                        if($type == 'function' || $type == 'computed') {
+                        if($type == 'computed') {
                             $type = $schema[$field]['result_type'];
                         }
                         $fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$field][$lang], $type, 'sql', 'php', $class, $oid, $field, $lang);
@@ -699,7 +697,7 @@ class ObjectManager extends Service {
                 // retrieve field type
                 $type = $schema[$field]['type'];
                 // stored computed fields are handled following their resulting type
-                if( ($type == 'function' || $type == 'computed')
+                if( ($type == 'computed')
                     && isset($schema[$field]['store'])
                     && $schema[$field]['store']
                 ) {
@@ -882,7 +880,7 @@ class ObjectManager extends Service {
      * - if $field contains some values, object is created and its state is set to 'instance' (@see write method)
      *
      *
-     * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised
+     * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised (by convention, error codes are negative integers)
      */
     public function create($class, $fields=NULL, $lang=DEFAULT_LANG) {
         $res = 0;
@@ -895,23 +893,21 @@ class ObjectManager extends Service {
             $object_table = $this->getObjectTableName($class);
 
             // create object with default values
-            $creation_array = array_merge( ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => 'draft'], $object->getValues() );
+            $creation_array = ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => (isset($fields['state']))?$fields['state']:'instance'];
 
-            // fields `id` and `creator` can be set to force resulting object
+            // set creation array according to received fields: `id` and `creator` can be set to force resulting object
             if(!empty($fields)) {
                 // use given id field as identifier, if any and valid
                 if(isset($fields['id'])) {
                     if(is_numeric($fields['id'])) {
                         $creation_array['id'] = (int) $fields['id'];
                     }
-                    unset($fields['id']);
                 }
                 // use given creator id, if any and valid
                 if(isset($fields['creator'])) {
-                    if(is_numeric($fields['id'])) {
+                    if(is_numeric($fields['creator'])) {
                         $creation_array['creator'] = (int) $fields['creator'];
                     }
-                    unset($fields['creator']);
                 }
             }
 
@@ -933,19 +929,25 @@ class ObjectManager extends Service {
                     $db->deleteRecords($object_table, array($oid));
                 }
             }
+            else {
+                $ids = $this->filterValidIdentifiers($class, [$creation_array['id']]);
+                if(!empty($ids)) throw new Exception('duplicate_object_id', QN_ERROR_INVALID_PARAM);
+                $oid = (int) $creation_array['id'];
+            }
 
             // create a new record with the found value, (if no id is given, the autoincrement will assign a value)
-            $db->addRecords($object_table, array_keys($creation_array), [array_values($creation_array)]);
+            $db->addRecords($object_table, array_keys($creation_array), [ array_values($creation_array) ]);
+
             if($oid <= 0) $oid = $db->getLastId();
             // in any case, we return the object id
             $res = $oid;
 
+            // update creation array with actual object values (fields described as PHP values - not SQL)
+            $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             // update new object with given fiels values, if any
-            if(!empty($fields)) {
-                $res_w = $this->write($class, $oid, $fields, $lang);
-                // if write method generated an error, return error code instead of object id
-                if($res_w < 0) $res = $res_w;
-            }
+            $res_w = $this->write($class, $oid, $creation_array, $lang);
+            // if write method generated an error, return error code instead of object id
+            if($res_w < 0) $res = $res_w;
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -957,10 +959,10 @@ class ObjectManager extends Service {
     /**
      * Updates specifield fields of seleced objects and stores changes into database
      *
-     * @param   string    $class	     class of the objects to retrieve
-     * @param   mixed	  $ids	         identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
-     * @param   mixed	  $fields	     name(s) of the field(s) to retrieve (accepted types: array, string)
-     * @param   string    $lang	         language under which return fields values (only relevant for multilang fields)
+     * @param   string    $class	     class of the objects to write
+     * @param   mixed	  $ids	         identifier(s) of the object(s) to update (accepted types: array, integer, numeric string)
+     * @param   mixed	  $fields	     array mapping fields names with the value (PHP) to which they must be set
+     * @param   string    $lang	         language under which fields have to be stored (only relevant for multilang fields)
      * @return  mixed    (int or array)  error code OR array of updated ids
      */
     public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
@@ -996,7 +998,9 @@ class ObjectManager extends Service {
                     trigger_error('unknown field ('.$field.') in $fields arg', E_USER_WARNING);
                 }
             }
-            $fields = array_merge($fields, ['state' => 'instance', 'modified' => time()]);
+            // writing an object do not change its state, unless when explicitely set in $fields
+            // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
+            $fields['modified'] = time();
 
             // 3) update internal buffer with given values
             $schema = $object->getSchema();
@@ -1005,11 +1009,9 @@ class ObjectManager extends Service {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onchange event
                     if(isset($schema[$field]['onchange'])) $onchange_fields[] = $field;
-                    // $this->cache[$class][$oid][$field][$lang] = DataAdapter::adapt('ui', 'orm', $schema[$field]['type'], $value, $class, $oid, $field, $lang);
                     $this->cache[$class][$oid][$field][$lang] = $value;
                 }
             }
-
 
             // 4) write selected fields to DB
             $this->store($class, $ids, array_keys($fields), $lang);
@@ -1084,13 +1086,10 @@ class ObjectManager extends Service {
                 }
                 else {
                     // handle aliases
-                    if($schema[$field]['type'] == 'alias') {
-                        // assign fields array with target field
-                        $requested_fields[] = $schema[$field]['alias'];
+                    while($schema[$field]['type'] == 'alias') {
+                        $field = $schema[$field]['alias'];
                     }
-                    else {
-                        $requested_fields[] = $field;
-                    }
+                    $requested_fields[] = $field;
                 }
             }
 
@@ -1131,13 +1130,12 @@ class ObjectManager extends Service {
                 // first pass : retrieve fields values
                 foreach($fields as $key => $field) {
                     // handle aliases
-                    if($schema[$field]['type'] == 'alias') {
-                        $res[$oid][$field] = $this->cache[$class][$oid][$schema[$field]['alias']][$lang];
+                    $target_field = $field;
+                    while($schema[$target_field]['type'] == 'alias') {
+                        $target_field = $schema[$target_field]['alias'];
                     }
-                    else {
-                        // use final notation
-                        $res[$oid][$field] = $this->cache[$class][$oid][$field][$lang];
-                    }
+                    // use final notation
+                    $res[$oid][$field] = $this->cache[$class][$oid][$target_field][$lang];
                 }
             }
 
@@ -1369,19 +1367,22 @@ class ObjectManager extends Service {
                         // check field validity
                         if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         // get final target field
-                        if($schema[$field]['type'] == 'alias') {
+                        while($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
-                            if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            if(!in_array($field, array_keys($schema))) throw new Exception("invalid schema, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // get final type
                         $type = $schema[$field]['type'];
-                        if($type == 'function' || $type == 'computed') $type = $schema[$field]['result_type'];
+                        if($type == 'computed') {
+                            if(!isset($schema[$field]['result_type'])) throw new Exception("invalid schema, missing result_type for field '$field' of object '$class'", QN_ERROR_INVALID_PARAM);
+                            $type = $schema[$field]['result_type'];
+                        }
                         // check the validity of the field name and the operator
                         if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
-                        if(isset($special_fields[$field])) unset($special_fields[$field]);
+                        if(isset($special_fields[$field])) unset($special_fields[$field]);                        
 
                         // note: we don't test user permissions on foreign objects here
                         switch($type) {
@@ -1421,6 +1422,12 @@ class ObjectManager extends Service {
                                 if($operator == 'contains') $operator = 'in';
                                 break;
                             default:
+                                // adapt value
+                                // escape wildcard char
+                                $value = str_replace('%', '__', $value);
+                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
+                                $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
+                                $value = str_replace('__', '%', $value);
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
                                 if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                                     $translation_table_alias = $add_table('core_translation');
@@ -1478,13 +1485,13 @@ class ObjectManager extends Service {
 
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
-                if(!isset($schema[$sort_field]) || ( ($schema[$sort_field]['type'] == 'function' || $schema[$sort_field]['type'] == 'computed') && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
+                if(!isset($schema[$sort_field]) || ( $schema[$sort_field]['type'] == 'computed' && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
                     trigger_error("invalid order field '$sort_field' for class '$class'", E_USER_WARNING);
                     // $order = 'id';
                     $sort_field = 'id';
                     $sort_order = 'asc';
                 }
-                if($schema[$sort_field]['type'] == 'alias') {
+                while($schema[$sort_field]['type'] == 'alias') {
                     $sort_field = $schema[$sort_field]['alias'];
                 }
                 // we might need to request more than the id field (for example, for sorting purpose)

@@ -53,13 +53,18 @@ class Domain {
         }
         // we need to have access to class definition to fully check conditions
         if(!empty($schema)) {
+            $field = $condition[0];
             // first operand (field) must be a valid field
-            if(!in_array($condition[0], array_keys($schema))) {
+            if(!in_array($field, array_keys($schema))) {
                 return false;
             }
-            $target_type = $schema[$condition[0]]['type'];
-            if($target_type == 'function') {
-                $target_type = $schema[$condition[0]]['result_type'];
+            // handle 'alias'
+            while($schema[$field]['type'] == 'alias') {
+                $field = $schema[$field]['alias'];
+            }
+            $target_type = $schema[$field]['type'];
+            if($target_type == 'computed') {
+                $target_type = $schema[$field]['result_type'];
             }
             // operator must be amongst valid operators for specified field
             if(!in_array($condition[1], ObjectManager::$valid_operators[$target_type])) {
