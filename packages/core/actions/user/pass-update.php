@@ -57,4 +57,5 @@ $instance = User::id($params['id'])
 
 $context->httpResponse()
         ->status(204)
+        ->body([])
         ->send();
