@@ -374,11 +374,12 @@ class Context extends Service {
                 case 'k': return intval($val) * 1024;
             }
             return intval($val);
-        }        
+        }
         return min(to_bytes(ini_get('upload_max_filesize')), to_bytes(ini_get('post_max_size')));
     }
 
     private function getHttpBody($uri='') {
+        $body = '';
         // in case script was invoked by CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
             // Windows does not support non-bloking reading from STDIN
@@ -400,17 +401,20 @@ class Context extends Service {
             }
         }
         else {
-            // load raw content from input stream (HttpMessage class is in charge of turning it into an associative array)
+            // load raw content from input stream
             // careful here: in case raw data exceed `upload_max_filesize` or `post_max_size`, stream `php://input` might contain more data than available memory
             $max = self::getMaxMemory() - memory_get_usage() - 1;
-            $body = file_get_contents('php://input', false, null, 0, $max+1);
-            if(strlen($body) > $max) {
-                throw new \Exception("received data exceed maximum available size", QN_ERROR_NOT_ALLOWED);
+            if($max > 0) {
+                $raw = file_get_contents('php://input', false, null, 0, $max+1);
+                if(strlen($raw) > $max) {
+                    throw new \Exception("received data exceed maximum available size", QN_ERROR_NOT_ALLOWED);
+                }
+                // #memo : this function is impacted by ini_get('max_input_vars')
+                parse_str($raw, $body);    
             }
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
-        if(empty($body) 
-            || strlen($body) < 3) { // we could have received a formatted empty body (e.g.: {})
+        if(empty($body) || (is_string($body) && strlen($body) < 3) ) { // we could have received a formatted empty body (e.g.: {})
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
             // we allow this only when there's nothing from php://input
             if(isset($_FILES) && !empty($_FILES)) {
