@@ -1423,11 +1423,8 @@ class ObjectManager extends Service {
                                 break;
                             default:
                                 // adapt value
-                                // escape wildcard char
-                                $value = str_replace('%', '__', $value);
                                 $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
                                 $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
-                                $value = str_replace('__', '%', $value);
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
                                 if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                                     $translation_table_alias = $add_table('core_translation');
