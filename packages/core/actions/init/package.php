@@ -135,7 +135,7 @@ foreach($classes as $class) {
 
                 $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
             }
-            else if($description['type'] == 'function' && isset($description['store']) && $description['store']) {
+            else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
                 $type = $types_associations[$description['result_type']];
                 $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN  `{$field}` {$type} DEFAULT NULL";
             }

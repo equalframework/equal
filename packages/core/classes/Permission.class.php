@@ -27,7 +27,7 @@ class Permission extends Model {
                 'foreign_object'    => 'core\User'],
             'rights' => [
                 'type' 	            => 'integer',
-                'onchange'          => 'core\Permission::onchange_rights'
+                'onchange'          => 'core\Permission::onchangeRights'
             ],
             // virtual fields, used in list views
             'rights_txt' => [
@@ -39,10 +39,12 @@ class Permission extends Model {
         ];
     }
 
-    public static function onchange_rights($om, $ids, $lang) {
+    public static function onchangeRights($om, $ids, $lang) {
         // note : we are in the core namespace, so we don't need to specify it when referring to this class
         $rights = Permission::getRightsTxt($om, $ids, $lang);
-        foreach($ids as $oid) $om->write('core\Permission', $oid, array('rights_txt' => $rights[$oid]), $lang);
+        foreach($ids as $oid) {
+            $om->write(__CLASS__, $oid, array('rights_txt' => $rights[$oid]), $lang);
+        } 
     }
 
     public static function getRightsTxt($om, $ids, $lang) {

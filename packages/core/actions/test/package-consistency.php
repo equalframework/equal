@@ -251,7 +251,7 @@ foreach($classes as $class) {
 	foreach($schema as $field => $description) {
 		if(in_array($description['type'], $orm::$simple_types)) $simple_fields[] = $field;
 		// handle the 'store' attrbute
-		else if(in_array($description['type'], array('function', 'related'))) {
+		else if(in_array($description['type'], array('computed', 'related'))) {
 			if(isset($description['store']) && $description['store']) $simple_fields[] = $field;
 		}
 		else if($description['type'] == 'many2many') $m2m_fields[] = $field;
@@ -266,7 +266,7 @@ foreach($classes as $class) {
 		else {
 		// 3) verify types compatibility
 			$type = $schema[$field]['type'];
-			if(in_array($type, array('function', 'related'))) $type = $schema[$field]['result_type'];
+			if(in_array($type, array('computed', 'related'))) $type = $schema[$field]['result_type'];
 			if(!in_array($db_schema[$field]['type'], $allowed_types_associations[$type])) {
 				$result[] = "ERROR - DB - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']})";
 				$is_error = true;

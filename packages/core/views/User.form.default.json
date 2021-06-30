@@ -84,11 +84,7 @@
                                                 "type": "field",
                                                 "value": "modifier",
                                                 "width": "50%",
-                                                "label": "Modifier",
-                                                "widget": {
-                                                    "type": "many2one",
-                                                    "domain": ["name", "like", "object.firstname"]
-                                                }
+                                                "label": "Modifier"
                                             },
 
                                             {

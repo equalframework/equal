@@ -30,7 +30,7 @@ class User extends Model {
                 'type'              => 'string',
                 'usage'             => 'password'
             ],
-// #todo : deprecate firstname and lastname fields (only use login to refer to a user)            
+// #todo : deprecate firstname and lastname fields (use only `login` to refer to a user)            
             'firstname' => [
                 'type'              => 'string'
             ],

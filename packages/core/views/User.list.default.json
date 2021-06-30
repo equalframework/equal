@@ -1,7 +1,6 @@
 {
     "name": "Users list",
     "description": "This view is intended for displaying basic listing of existing users.",
-    "domain": [],
     "filters": [
         {
             "id": "lang.french",
@@ -16,7 +15,8 @@
                 "type": "field",
                 "value": "id",
                 "width": "5%",
-                "sortable": true
+                "sortable": true,
+                "readonly": true
             },
             {
                 "type": "field",
@@ -33,7 +33,7 @@
                 "type": "field",
                 "value": "login",
                 "widget": {
-                    "type": "link"
+                    "link": true
                 },
                 "width": "10%",
                 "sortable": true

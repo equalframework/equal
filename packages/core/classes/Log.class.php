@@ -20,7 +20,6 @@ class Log extends Model {
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'domain'            => ['id', '<', 3],                
                 'required'          => true
             ],
             'object_class' => [

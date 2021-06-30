@@ -15,17 +15,20 @@
                                         "items": [
                                             {
                                                 "type": "field",
+                                                "value": "name",
+                                                "width": "100%",
+                                                "label": "Group name",
+                                                "help": "Unique name of the group.",
+                                                "widget": {
+                                                    "header": true
+                                                }
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "id",
                                                 "width": "50%",
                                                 "label": "Group Identifier",
                                                 "readonly": true
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "name",
-                                                "width": "50%",
-                                                "label": "Group name",
-                                                "help": "Unique name of the group."
                                             }
                                         ]
                                     }
