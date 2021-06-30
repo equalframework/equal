@@ -1,0 +1,30 @@
+{
+    "name": "Logs list",
+    "description": "This view is intended for displaying basic logs",
+    "layout": {
+        "items": [
+            {
+                "type": "field",            
+                "value": "id",
+                "width": "5%"
+            },
+            {
+                "type": "field",            
+                "value": "user_id",
+                "label": "User",                
+                "width": "10%"
+            },    
+            {
+                "type": "field",            
+                "value": "object_class",
+                "link": true,
+                "width": "35%"
+            },
+            {
+                "type": "field",            
+                "value": "object_id",
+                "width": "35%"
+            }        
+        ]
+    }
+}
