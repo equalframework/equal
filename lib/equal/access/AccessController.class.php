@@ -90,7 +90,7 @@ class AccessController extends Service {
                 else {
 					$orm = $this->container->get('orm');
                     // extract package from class name (for wildcard notation)
-                    $object_package = $orm->getObjectPackageName($object_class);
+                    $object_package = $orm->getObjectPackage($object_class);
                     $domains = [
                         [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
                     ];
