@@ -146,10 +146,11 @@ try {
 }
 // something went wrong: send an HTTP response with code related to the raised exception
 catch(Exception $e) {
+    $error_code = $e->getCode();
     // an exception with code 0 is an explicit process halt with no errror
-    if($e->getCode() != 0) {
+    if($error_code != 0) {
         // get HTTP status code according to raised exception
-        $http_status = qn_error_http($e->getCode());
+        $http_status = qn_error_http($error_code);
         // redirect to custom location defined for this code, if any
         if(defined('HTTP_REDIRECT_'.$http_status)) {
             header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
@@ -173,11 +174,12 @@ catch(Exception $e) {
         // explicitely tell we're returning JSON
         ->header('Content-Type', 'application/json')
         // append an 'error' section to response body
-        ->extendBody([ 'errors' => [ qn_error_name($e->getCode()) => $msg ] ])
+        ->extendBody([ 'errors' => [ qn_error_name($error_code) => $msg ] ])
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         // send HTTP response
         ->send();
+        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - $msg", QN_REPORT_DEBUG);
         exit(1);
     }
 }
