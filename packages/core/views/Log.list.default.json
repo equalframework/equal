@@ -4,27 +4,37 @@
     "layout": {
         "items": [
             {
-                "type": "field",            
+                "type": "field",
                 "value": "id",
                 "width": "5%"
             },
             {
-                "type": "field",            
-                "value": "user_id",
-                "label": "User",                
+                "type": "field",
+                "value": "created",
                 "width": "10%"
-            },    
+            },
             {
-                "type": "field",            
+                "type": "field",
+                "value": "user_id",
+                "label": "User",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "action",
+                "width": "20%"
+            },
+            {
+                "type": "field",
                 "value": "object_class",
                 "link": true,
                 "width": "35%"
             },
             {
-                "type": "field",            
+                "type": "field",
                 "value": "object_id",
                 "width": "35%"
-            }        
+            }
         ]
     }
 }
