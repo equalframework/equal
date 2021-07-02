@@ -141,7 +141,7 @@ foreach($classes as $class) {
 		}
 	}
 
-// todo : 2) check presence of class definition files to which some field may be related to
+// todo : 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
 
 
     // 3) check if default views are present (form.default.json and list.default.json)
@@ -161,7 +161,6 @@ foreach($classes as $class) {
 // todo : 6) check translation file consistency (.json)
 	
 // todo : 7) check apps / data / actions  files consistency (.php) 
-    // - presence of " defined('__QN_LIB') or die "
     // - presence of " = announce( "
 	
 }
