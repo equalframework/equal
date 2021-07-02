@@ -33,11 +33,12 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $entity = $params['entity'];
 
 // retrieve existing view meant for entity or it
-while(true) {
-    $class = $orm->getObjectName($entity);
-    $package = $orm->getObjectPackageName($entity);    
+while(true) {    
+    $parts = explode('\\', $entity);    
+    $package = array_shift($parts);
+    $class_path = implode('/', $parts);
     $parent = get_parent_class($entity);
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class}.{$params['view_id']}.json";
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.json";
     if(file_exists($file)) break;
     if(!$parent || $parent == 'equal\orm\Model') break;
     $entity = $parent;
