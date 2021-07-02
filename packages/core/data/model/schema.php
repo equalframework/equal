@@ -16,13 +16,13 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm', 'adapt'] 
 ]);
 
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $adapt) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 
 $data = array();
@@ -43,14 +43,13 @@ if(method_exists($model, 'getUnique')) {
 
 if(method_exists($model, 'getDefaults')) {
     $defaults = $model->getDefaults();
-    $data['defaults'] = [];
     foreach($defaults as $field => $default) {
         if(is_callable($defaults[$field])) {
-            $data['defaults'][$field] = call_user_func($defaults[$field]);
+            $default = call_user_func($defaults[$field]);
         }
-        else {
-            $data['defaults'][$field] = $default;
-        }
+        $type = $schema[$field]['type'];
+        $adapted = $adapt->adapt($default, $type, 'txt', 'php');
+        $data['fields'][$field]['default'] = $adapted;
     }
 }
 
