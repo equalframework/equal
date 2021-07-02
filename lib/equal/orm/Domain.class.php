@@ -45,10 +45,12 @@ class Domain {
     private static function conditionCheck($condition, $schema=[]) {
         // condition must be an array
         if(!is_array($condition)) {
+            trigger_error("QN_DEBUG_ORM::condition is not an array", QN_REPORT_DEBUG);
             return false;
         }
         // condition must be composed of 3 elements (field, operator, operand)
         if(count($condition) != 3) {
+            trigger_error("QN_DEBUG_ORM::missing condition in domain", QN_REPORT_DEBUG);
             return false;        
         }
         // we need to have access to class definition to fully check conditions
@@ -56,6 +58,7 @@ class Domain {
             $field = $condition[0];
             // first operand (field) must be a valid field
             if(!in_array($field, array_keys($schema))) {
+                trigger_error("QN_DEBUG_ORM::unknown field '{$field}' in domain", QN_REPORT_DEBUG);
                 return false;
             }
             // handle 'alias'
@@ -68,6 +71,7 @@ class Domain {
             }
             // operator must be amongst valid operators for specified field
             if(!in_array($condition[1], ObjectManager::$valid_operators[$target_type])) {
+                trigger_error("QN_DEBUG_ORM::invalid operator '{$condition[1]}' in domain", QN_REPORT_DEBUG);
                 return false;
             }
         }
