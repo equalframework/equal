@@ -198,7 +198,7 @@ class ObjectManager extends Service {
         // if class is unknown, load the file containing the class declaration of the requested object
         if(!class_exists($class)) {
             // first, read the file to see if the class extends from another (which could not be loaded yet)
-            $filename = QN_BASEDIR.'/packages/'.self::getObjectPackageName($class).'/classes/'.self::getObjectClassFileName($class);
+            $filename = QN_BASEDIR.'/packages/'.self::getObjectPackage($class).'/classes/'.self::getObjectClassFile($class);
             if(!is_file($filename)) {
                 throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
             }
@@ -242,7 +242,7 @@ class ObjectManager extends Service {
             trigger_error($e->getMessage(), E_USER_ERROR);
             return $e->getCode();
         }
-        return $object->getTable();
+        return strtolower($object->getTable());
     }
 
     /**
@@ -251,41 +251,31 @@ class ObjectManager extends Service {
     * @param string $object_class
     * @return string
     */
-    public static function getObjectClassFileName($object_class) {
+    public static function getObjectClassFile($object_class) {
         $parts = explode('\\', $object_class);
         array_shift($parts);
         return implode('/', $parts).'.class.php';
     }
 
     /**
-    * Gets the package in which is defined the class of an object (required to convert namespace notation).
-    *
-    * @param string $object_class
-    * @return string
-    */
-    public static function getObjectPackageName($object_class) {
+     * Retrieve the package in which is defined the class of an object (required to convert namespace notation).
+     *
+     * @param string $object_class
+     * @return string
+     */
+    public static function getObjectPackage($object_class) {
         $parts = explode('\\', $object_class);
         return array_shift($parts);
     }
 
-       /**
-    * Gets the name of the object (equivalent to its class without namespace / package).
-    *
-    * @param string $object_class
-    * @return string
-    */
-    public static function getObjectName($object_class) {
-        return substr($object_class, strrpos($object_class, '\\')+1);
-    }
-
     /**
-    * Gets the complete schema of an object (including special fields).
-    * note: this method is not set as static since we need to load class file in order to retrieve the schema
-    * (and this is only done in the getStaticInstance method)
-    *
-    * @param string $object_class
-    * @return string
-    */
+     * Retrieve the complete schema of an object (including special fields).
+     *  note: this method is not set as static since we need to load class file in order to retrieve the schema
+     * (and this is only done in the getStaticInstance method)
+     *
+     * @param string $object_class
+     * @return string
+     */
     public function getObjectSchema($object_class) {
         $object = &$this->getStaticInstance($object_class);
         return $object->getSchema();
@@ -727,7 +717,7 @@ class ObjectManager extends Service {
     public function getStatic($object_class) {
         $instance = false;
         $packages = $this->getPackages();
-        $package = self::getObjectPackageName($object_class);
+        $package = self::getObjectPackage($object_class);
         if(in_array($package, $packages)) {
             try {
                 $instance = $this->getStaticInstance($object_class);
