@@ -97,8 +97,9 @@ foreach($classes as $class) {
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
     
     // fetch existing column 
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
     $res = $db->sendQuery($query);
+
     $columns = [];
     while ($row = $db->fetchArray($res)) {
         $columns[] = $row['COLUMN_NAME'];

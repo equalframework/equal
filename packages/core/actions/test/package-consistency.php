@@ -21,6 +21,12 @@ list($params, $providers) = announce([
             'type'          => 'string',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
+		],
+        'level'	=>  [
+            'description'   => 'Level of notification to limit the output to.',
+            'type'          => 'string',
+            'selection'     => ['*', 'warn', 'error'],
+            'default'       => '*'
         ]
     ],
     'response'      => [
@@ -283,9 +289,20 @@ foreach($classes as $class) {
 		}
 	}
 }
+// filter result
+foreach($result as $index => $line) {
+	if(strpos($line, 'ERROR') === 0 && !in_array($params['level'], ['*', 'error'])) {
+		unset($result[$index]);
+		continue;
+	}
+	if(strpos($line, 'WARN') === 0 && !in_array($params['level'], ['*', 'warn'])) {
+		unset($result[$index]);
+		continue;
+	}
+}
+$result = array_values($result);
 
-
-if(!count($result)) $result[] = "INFO - No errors found.";
+if(!count($result)) $result[] = "INFO - Nothing to report.";
 
 // send json result
 $context->httpResponse()

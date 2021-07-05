@@ -5,7 +5,7 @@
             "operation": "?get=core_model_collect&entity=core\\User"
         }
     },
-    "/user/:id": {
+    "/user/:ids": {
         "GET": {
             "description": "Retrieve fields values related to a given user",
             "operation": "?get=core_model_read&entity=core\\User"
@@ -28,7 +28,33 @@
     "/me": {
         "GET": {
             "description": "Return authentified user, if any",
-            "operation": "?get=core_me"
+            "operation": "?get=core_userinfo"
         }
-    }        
+    },
+    "/groups": {
+        "GET": {
+            "description": "Retrieve all groups matching given criteria",
+            "operation": "?get=core_model_collect&entity=core\\Group"
+        }
+    },
+    "/group": {
+        "POST": {
+            "description": "Create a new group",
+            "operation": "?do=core_model_create&entity=core\\Group"
+        }
+    },
+    "/group/:ids": {
+        "GET": {
+            "description": "Retrieve fields values related to a given group",
+            "operation": "?get=core_model_read&entity=core\\Group"
+        },
+        "PUT": {
+            "description": "Update a group",
+            "operation": "?do=core_model_update&entity=core\\Group"
+        },
+        "DELETE": {
+            "description": "Delete a group",
+            "operation": "?do=core_model_delete&entity=core\\Group"
+        }
+    }    
 }

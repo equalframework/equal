@@ -110,7 +110,7 @@ foreach($classes as $class) {
 
     if(basename(get_parent_class($model)) == 'Model') {
         $table_name = $orm->getObjectTableName($entity);	
-        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
         $res = $db->sendQuery($query);
         $columns = [];
         while ($row = $db->fetchArray($res)) {
