@@ -2,7 +2,7 @@ dist: xenial
 language: php
 php: 
   # - '5.6'
-  - '7.1'
+  # - '7.1'
   - '7.2'
   - '7.3'
   - '7.4'
@@ -16,7 +16,7 @@ env:
   # bash: `$SITE_FOLDER` 
   # PHP : `getenv('SITE_FOLDER');` 
   global:
-    - DB_NAME="qinoa"
+    - DB_NAME="equal"
     
 before_script:
   # travis DB user is `root`, password is empty and host is `127.0.0.1`

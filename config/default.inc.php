@@ -110,7 +110,7 @@ namespace {
     define('DB_PORT',       '3306');        // this is the default port for MySQL
     define('DB_USER',       'root');        // this should be changed for security reasons
     define('DB_PASSWORD',   'test');        // this should be changed for security reasons
-    define('DB_NAME',       'qinoa');       // the name of the DB that you've created or plan to use
+    define('DB_NAME',       'equal');       // the name of the DB that you've created or plan to use
 
     /*
     define('DB_1_HOST',       '127.0.0.1');  

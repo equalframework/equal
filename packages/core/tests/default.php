@@ -154,7 +154,7 @@ $tests = [
     '2110' => array(
                     'description'       =>  "Call ObjectManager::read with missing \$ids parameters",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  QN_ERROR_MISSING_PARAM,
+                    'expected'          =>  [],
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
                                                 return $om->read('core\User');
@@ -308,16 +308,16 @@ $tests = [
 
     // calls related to authentication
     '2610' => array(
-                    'description'       =>  "Authenticate: return the identifier of a given user.",
+                    'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return ROOT_USER_ID.",
                     'return'            =>  array('integer'),
-                    'expected'          =>  2,
+                    'expected'          =>  ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('cedric@equal.run', 'secure_password');                                                    
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : QN_ERROR_INVALID_PARAM, QN_ERROR_INVALID_USER
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -345,39 +345,17 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result[1])) == 0
-                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[2])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result['1'])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result['2'])) == 0
                                                 );
                                             }
                     ),
-
-    '2630' => array(
-        'description'       =>  "Create a new group",
-        'return'            =>  array('integer', 'array'),
-        'expected'          =>  ['id' => 3, 'name' => 'test', 'creator' => 1],
-        'arrange'           =>  function() use($providers) {
-                                    $providers['auth']->su();
-                                    return ($providers['auth']->userId() == 1);
-                                },
-        'test'              =>  function () use($providers) {
-                                    try {
-                                        $group = Group::create(['name' => 'test'])->first();
-                                        return $group;
-                                    }
-                                    catch(Exception $e) {
-                                        // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
-                                        $values = $e->getCode();
-                                    }
-                                    return $values;
-                                }
-    ),    
+ 
     '2631' => array(
                     'description'       =>  "Add a user to a given group",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array( 2 => ['id' => 2, 'login' => 'cedric@equal.run'] ),
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
                                                     // grant READ operation on all classes
                                                     $providers['access']->addGroup(3);
 
@@ -390,7 +368,12 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
-                                            }
+                                            },
+                    'assert'            =>  function($result) {
+                                                return (
+                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result['1'])) == 0
+                                                );
+                                            }                                            
                     ),
 
     // 3xxx methods : related to Collections calls
@@ -450,7 +433,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[1])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[0])) == 0
                                                 );
                                             }
                     ),
@@ -461,7 +444,7 @@ $tests = [
                     'arrange'           =>  function() use($providers) {
                                                 try {
                                                     $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
-                                                    $values = User::create(['login' => 'test@equal.run', 'password' => md5('test'), 'firstname', 'lastname'])->ids();
+                                                    $values = User::create(['login' => 'test@equal.run', 'password' => 'test', 'firstname', 'lastname'])->ids();
                                                 }
                                                 catch(\Exception $e) {
                                                     // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
@@ -479,7 +462,7 @@ $tests = [
                                                 try {
                                                     $values = User::search(['login', '=', 'test@equal.run'])
                                                               ->read(['login'])
-                                                              ->get(true);
+                                                              ->first();
                                                 }
                                                 catch(\Exception $e) {
                                                     // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
@@ -487,23 +470,12 @@ $tests = [
                                                 }
                                                 return $values;
                                             },
-                    'assert'            =>  function($result) {
-                                                return (
-                                                    count(array_diff(['id' => 4, 'login' => 'test@equal.run'], $result[1])) == 0
-                                                );
-                                            }                                            
+                    'expected'          =>  ['id' => 4, 'login' => 'test@equal.run']                                          
                     ),
-/*
+
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  [
-                                                "id"        => 2,
-                                                "login"     => "cedric@equal.run",
-                                                "firstname" => "Cédric",
-                                                "lastname"  => "FRANÇOYS",
-                                                "language"  => "fr"
-                                            ],
                     'test'              =>  function () {
                                                 try {
                                                     $request = new HttpRequest("http://localhost/me");                                              
@@ -517,8 +489,8 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
-                                            }
+                                            },
+                        'expected'      =>  ['id' => 2, 'login' => 'cedric@equal.run', 'firstname' => 'Cédric', 'lastname' => 'FRANÇOYS', 'language' => 'fr']
                     ),
-*/
                     
 ];

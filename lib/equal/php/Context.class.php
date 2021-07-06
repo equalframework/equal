@@ -363,19 +363,20 @@ class Context extends Service {
         return $normalized_files;        
     }
 
-    private static function getMaxMemory() {
-        function to_bytes($val) {
-            $val = strtolower(trim($val));
-            $chars = str_split($val);
-            $suffix = array_pop($chars);
-            switch($suffix) {
-                case 'g': return intval($val) * 1024 * 1024 * 1024;
-                case 'm': return intval($val) * 1024 * 1024;
-                case 'k': return intval($val) * 1024;
-            }
-            return intval($val);
+    private static function to_bytes($val) {
+        $val = strtolower(trim($val));
+        $chars = str_split($val);
+        $suffix = array_pop($chars);
+        switch($suffix) {
+            case 'g': return intval($val) * 1024 * 1024 * 1024;
+            case 'm': return intval($val) * 1024 * 1024;
+            case 'k': return intval($val) * 1024;
         }
-        return min(to_bytes(ini_get('upload_max_filesize')), to_bytes(ini_get('post_max_size')));
+        return intval($val);
+    }
+
+    private static function getMaxMemory() {
+        return min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
     }
 
     private function getHttpBody($uri='') {

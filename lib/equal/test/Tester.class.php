@@ -37,9 +37,12 @@ class Tester {
     
     private static function array_equals($array1, $array2) {
         $res = true;
+// #todo allow to make this optional (strict flag)        
+        /*
         if(count($array1) != count($array2)) {
             return false;
         }
+        */
         foreach($array1 as $key => $value) {
             if(!isset($array2[$key]) || gettype($value) != gettype($array2[$key])) {
                 $res = false;
@@ -78,7 +81,7 @@ class Tester {
                 if(isset($test['expected'])) {
                     if(gettype($result) == gettype($test['expected'])) {
                         if(gettype($result) == "array") {
-                            if(!self::array_equals($result, $test['expected'])) {
+                            if(!self::array_equals($test['expected'], $result)) {
                                 $success = false;
                             }
                         }
@@ -121,7 +124,7 @@ class Tester {
                 $this->results[$id]['arrange'] = $precondition;
             }
         }
-        
+
         return $this;
     }
 }
