@@ -142,7 +142,7 @@ class DBManipulatorMySQL extends DBManipulator {
         else {
             $value = (string) $value;
             // value is a field name
-            if(strlen($value) && $value{0} == '`') $result = DBManipulatorMySQL::escapeFieldName($value);
+            if(strlen($value) && substr($value, 0, 1) == '`') $result = DBManipulatorMySQL::escapeFieldName($value);
              // value represents NULL SQL value
             else if($value == 'null' || $value == 'NULL') $result = 'NULL';
             // value is any other kind of string
