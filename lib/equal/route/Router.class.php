@@ -102,7 +102,7 @@ class Router  extends Service {
         $result = [];
         $routes = $this->loadRoute($path, $resolver);
         foreach($routes as $route) {
-            if($route['operation']{0} == '/') {
+            if(substr($route['operation'], 0, 1) == '/') {
                 $route['redirect'] = $route['operation'];
                 unset($route['operation']);                
             }
@@ -164,7 +164,7 @@ class Router  extends Service {
             // review each path component
             for($i = 0; $i < $n; ++$i) {
                 // part is a parameter
-                if(strlen($canvas['parts'][$i]) && $canvas['parts'][$i]{0} == ':') {                    
+                if(strlen($canvas['parts'][$i]) && substr($canvas['parts'][$i], 0, 1) == ':') {                    
                     $is_mandatory = !(substr($canvas['parts'][$i], -1) == '?');
                     // we exceeded the number of parts in path
                     if($i >= $m) {
@@ -215,7 +215,7 @@ class Router  extends Service {
                     if(($params = $this->match($path, $res[$method])) !== false) {
                         if(is_array($params)) {
                             $res[$method]['params'] = $params;
-                            if($res[$method]['operation']{0} == '/') {
+                            if(substr($res[$method]['operation'], 0, 1) == '/') {
                                 $res[$method]['redirect'] = $res[$method]['operation'];
                                 unset($res[$method]['operation']);                
                             }
