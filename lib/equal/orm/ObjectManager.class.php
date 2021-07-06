@@ -232,7 +232,7 @@ class ObjectManager extends Service {
     * Gets the name of the table associated to the specified class (required to convert namespace notation).
     *
     * @param string $object_class
-    * @return string
+    * @return mixed string|integer Returns the name of the table related to the Class or an error code.
     */
     public function getObjectTableName($object_class) {
         try {
@@ -1047,16 +1047,19 @@ class ObjectManager extends Service {
         try {
             
             // 1) do some pre-treatment
+
+            // get static instance (check that given class exists)
+            $object = &$this->getStaticInstance($class);
             // cast fields to an array (passing a single field is accepted)
-            if(!is_array($fields))	$fields = (array) $fields;
+            // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
+            if(!is_array($fields)) $fields = (array) $fields;
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
-            // get static instance (checks that given class exists)
-            $object = &$this->getStaticInstance($class);
 
             // 2) check $fields arg validity
+
             $schema = $object->getSchema();
             $requested_fields = [];
             $dot_fields = [];
@@ -1083,10 +1086,8 @@ class ObjectManager extends Service {
                 }
             }
 
-            // remove duplicate fields, if any
-            // #removed - this is not an issue, since the value will be loaded once and returned as many times as requested
-
             // 3) check among requested fields wich ones are not yet present in the internal buffer
+
             // if internal buffer is empty, query the DB to load all fields from requested objects
             if(empty($this->cache) || !isset($this->cache[$class])) {
                 $this->load($class, $ids, $requested_fields, $lang);

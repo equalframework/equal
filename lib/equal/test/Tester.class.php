@@ -57,11 +57,14 @@ class Tester {
         return $res;
     }
     
-    public function test() {
+    public function test($test_id=0) {
         
         foreach($this->tests as $id => $test) {
         // todo : throw new Exception("invalid test structure", QN_ERROR_INVALID_PARAM);
         // use a dedicated controller to check test unit structure validity
+
+            // if a specific test ID was given, ignore other tests
+            if($test_id && $id != $test_id) continue;
 
             if(isset($test['arrange']) && is_callable($test['arrange'])) {
                 $precondition = $test['arrange']();
@@ -118,6 +121,7 @@ class Tester {
                 $this->results[$id]['arrange'] = $precondition;
             }
         }
+        
         return $this;
     }
 }

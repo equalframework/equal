@@ -18,6 +18,11 @@ list($params, $providers) = announce([
             'type'          =>  'string',
             'default'       =>  '*'
         ],
+        'test_id'   => [
+            'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
+            'type'          =>  'integer',
+            'default'       =>  0
+        ],
         'logs'      => [
             'description'   =>  "Embed logs in result",
             'type'          =>  'boolean',
@@ -38,7 +43,7 @@ if(is_dir($tests_path)) {
     foreach (glob($tests_path."/*.php") as $filename) {
         include($filename);
         $tester = new Tester($tests);
-        $body = $tester->test()->toArray();
+        $body = $tester->test($params['test_id'])->toArray();
         if(isset($body['failed'])) {
             $failed = true;
         }

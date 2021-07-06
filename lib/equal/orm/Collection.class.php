@@ -430,11 +430,11 @@ class Collection implements \Iterator {
             $allowed_fields = array_keys($schema);
 
             // build a list of direct field to load (i.e. "object attributes") 
-            // 'id': we might access an object directly by giving its `id`
-            // 'name': as a convention the name is always provided
-            // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice)
-            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not
-            // 'modified': the last update timestamp is always provided, at update, if modified is provided, it is compared to the current timestamp to detect concurrent changes
+            // 'id': we might access an object directly by giving its `id`.
+            // 'name': as a convention the name is always provided.
+            // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
+            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not.
+            // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
             $requested_fields = ['id', 'name', 'state', 'deleted', 'modified'];
 
             // remeber relational fields requiring additional loading

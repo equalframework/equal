@@ -11,6 +11,8 @@ use core\Group;
 
 $providers = inject(['context', 'orm', 'auth', 'access']);
 
+// todo : convert to AAA logic : Arrange, Act, Assert (, Restore)
+
 $tests = [
     //0xxx : calls related to QN methods
     '0101' => array(
@@ -325,7 +327,6 @@ $tests = [
     '2620' => array(
                     'description'       =>  "Search for some object : clause 'contains' on many2many field",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(1 => ['id' => 1, 'login' => 'admin'], 2 => ['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
@@ -341,10 +342,36 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
+                                            },
+                    'assert'            =>  function($result) {
+                                                return (
+                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result[1])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[2])) == 0
+                                                );
                                             }
                     ),
 
     '2630' => array(
+        'description'       =>  "Create a new group",
+        'return'            =>  array('integer', 'array'),
+        'expected'          =>  ['id' => 3, 'name' => 'test', 'creator' => 1],
+        'arrange'           =>  function() use($providers) {
+                                    $providers['auth']->su();
+                                    return ($providers['auth']->userId() == 1);
+                                },
+        'test'              =>  function () use($providers) {
+                                    try {
+                                        $group = Group::create(['name' => 'test'])->first();
+                                        return $group;
+                                    }
+                                    catch(Exception $e) {
+                                        // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                        $values = $e->getCode();
+                                    }
+                                    return $values;
+                                }
+    ),    
+    '2631' => array(
                     'description'       =>  "Add a user to a given group",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array( 2 => ['id' => 2, 'login' => 'cedric@equal.run'] ),
@@ -387,7 +414,6 @@ $tests = [
     '3101' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as map)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('2' => ['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
 
@@ -400,12 +426,16 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
+                                            },
+                    'assert'            =>  function($result) {
+                                                return (
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[1])) == 0
+                                                );
                                             }
                     ),
     '3102' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['id' => 2, 'login' => 'cedric@equal.run']),
                     'test'              =>  function () {
                                                 try {
                                                     $values = User::search(['login', '=', 'cedric@equal.run'])
@@ -417,13 +447,17 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
+                                            },
+                    'assert'            =>  function($result) {
+                                                return (
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[1])) == 0
+                                                );
                                             }
                     ),
 
     '3103' => array(
                     'description'       =>  "Search for a new user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(['id' => 4, 'login' => 'test@equal.run']),
                     'arrange'           =>  function() use($providers) {
                                                 try {
                                                     $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
@@ -452,7 +486,12 @@ $tests = [
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
-                                            }
+                                            },
+                    'assert'            =>  function($result) {
+                                                return (
+                                                    count(array_diff(['id' => 4, 'login' => 'test@equal.run'], $result[1])) == 0
+                                                );
+                                            }                                            
                     ),
 /*
     '4101' => array(
