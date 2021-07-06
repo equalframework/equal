@@ -472,13 +472,13 @@ $tests = [
                                             },
                     'expected'          =>  ['id' => 4, 'login' => 'test@equal.run']                                          
                     ),
-
+/*
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
                     'test'              =>  function () {
                                                 try {
-                                                    $request = new HttpRequest("http://localhost/me");                                              
+                                                    $request = new HttpRequest("http://localhost/me");
                                                     $response = $request
                                                                 ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
                                                                 ->send();
@@ -492,5 +492,5 @@ $tests = [
                                             },
                         'expected'      =>  ['id' => 2, 'login' => 'cedric@equal.run', 'firstname' => 'Cédric', 'lastname' => 'FRANÇOYS', 'language' => 'fr']
                     ),
-                    
+*/                    
 ];
