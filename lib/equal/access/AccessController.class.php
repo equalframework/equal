@@ -216,7 +216,7 @@ class AccessController extends Service {
         $auth = $this->container->get('auth');
         $orm = $this->container->get('orm');
         $user_id = $auth->userId();
-        return $orm->update('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
+        return $orm->write('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
     }
 
     public function addGroup($group_id) {
