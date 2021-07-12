@@ -20,7 +20,7 @@ eQual is a versatile, language-agnostic and web-oriented framework, aiming to el
 echo "This is a valid Contoller!";
 ```
 
-`$ ./equal.run --get=test_first`
+`$ ./equal.run --get=demo_first`
 
 
 
@@ -28,18 +28,19 @@ echo "This is a valid Contoller!";
 
 eQual requires the following environment:
 
-* **PHP 7.1+** with following extensions : mysqli (mandatory) + gd opcache zip tidy (optional)
+* **PHP 7+** with following extensions : mysqli (mandatory) + gd opcache zip tidy (optional)
 * **Apache 2+** or **Nginx**
 * **MySQL 5+** compatible DBMS (up to MySQL 5.7 and MariaDB 10.3)
 
 ## Install
 
 Download code as ZIP:
+```
 wget https://github.com/cedricfrancoys/equal/archive/master.zip
-
-OR
-
-Clone with Git :
+```
+or clone with Git :
+```
 git clone https://github.com/cedricfrancoys/equal.git
+```
 
 For more info, see : [http://doc.equal.run/getting-started/installation](http://doc.equal.run/getting-started/installation/)

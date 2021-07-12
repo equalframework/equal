@@ -93,7 +93,7 @@ if(isset($data['errors'])) {
 // we received an array describing a User object
 $user = $data;
 // generate access_token
-$access_token = $auth->token($user['id']);
+$access_token = $auth->token($user['id'], AUTH_ACCESS_TOKEN_VALIDITY);
 
     
 if($send_confirm) {
@@ -109,25 +109,26 @@ if($send_confirm) {
         throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
     }
     $template = new HtmlTemplate($html, [
-                                'subject'		=>	function ($params, $attributes) use (&$subject) {
-                                                        $subject = $attributes['title'];
-                                                        return '';
-                                                    },
-                                'username'		=>	function ($params, $attributes) {
-                                                        return $params['firstname'];
-                                                    },
-                                'confirm_url'	=>	function ($params, $attributes) use($context) {
-                                                        $code = base64_encode($params['login'].':'.$params['password']);
-                                                        $uri = $context->getHttpRequest()->getUri();
-                                                        $url = $uri->getScheme().'://'.$uri->getAuthority();
-                                                        $url = $url."/?do=user_confirm&code={$code}";
-                                                        return "<a href=\"$url\">{$attributes['title']}</a>";
-                                                    },
-                                'origin'        =>  function ($params, $attributes) {
-                                                        return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
-                                                    }
-                                ], 
-                                $user);
+        'subject'		=>	function ($params, $attributes) use (&$subject) {
+                                $subject = $attributes['title'];
+                                return '';
+                            },
+        'username'		=>	function ($params, $attributes) {
+                                return $params['firstname'];
+                            },
+        'confirm_url'	=>	function ($params, $attributes) use($context) {
+                                $code = base64_encode($params['login'].':'.$params['password']);
+                                $uri = $context->getHttpRequest()->getUri();
+                                $url = $uri->getScheme().'://'.$uri->getAuthority();
+                                $url = $url."/?do=user_confirm&code={$code}";
+                                return "<a href=\"$url\">{$attributes['title']}</a>";
+                            },
+        'origin'        =>  function ($params, $attributes) {
+                                return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
+                            }
+    ], 
+    $user);
+
     // parse template as html
     $body = $template->getHtml();
 

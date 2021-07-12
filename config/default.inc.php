@@ -227,9 +227,12 @@ namespace config {
     define('AUTH_SECRET_KEY', 'my_secret_key');
 
     // validity duration of the access token, in seconds
-    define('AUTH_TOKEN_VALIDITY', 3600*24*90);      // set token validity to 90 days
+    define('AUTH_ACCESS_TOKEN_VALIDITY', 3600*1);       // set access token validity to 1 hour
+    define('AUTH_REFRESH_TOKEN_VALIDITY', 3600*24*90);  // set refresh token validity to 90 days
 
     // limit sending of auth token to HTTPS
     define('AUTH_TOKEN_HTTPS', false);
     // define('AUTH_TOKEN_HTTPS', true);
+    
+    define('ROOT_APP_URL', 'http://localhost');
 }

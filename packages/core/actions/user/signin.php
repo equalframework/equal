@@ -21,13 +21,13 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
-    'constants'     => ['AUTH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],    
-    'providers'     => ['context', 'auth', 'orm']
+    'providers'     => ['context', 'auth', 'orm'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']    
 ]);
 
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
@@ -41,11 +41,25 @@ $auth->authenticate($params['login'], $params['password']);
 
 $user_id = $auth->userId();
 
+if(!$user_id) {
+    // this is a fallback exception, but we should never reach this code, since user has been found  by authenticate method
+    throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);    
+}
+
 // generate a JWT access token
-$expires = time() + AUTH_TOKEN_VALIDITY;
-$token = $auth->token($user_id, $expires);
+$access_token  = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+$refresh_token = $auth->token($user_id, AUTH_REFRESH_TOKEN_VALIDITY);
 
 $context->httpResponse()
-        ->cookie('access_token', $token, ['expires' => $expires, 'httponly' => true, 'secure' => AUTH_TOKEN_HTTPS])
+        ->cookie('access_token',  $access_token, [
+            'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
+            'httponly'  => true, 
+            'secure'    => AUTH_TOKEN_HTTPS
+        ])
+        ->cookie('refresh_token', $refresh_token, [
+            'expires'   => time() + AUTH_REFRESH_TOKEN_VALIDITY, 
+            'httponly'  => true, 
+            'secure'    => AUTH_TOKEN_HTTPS
+        ])
         ->status(204)
         ->send();

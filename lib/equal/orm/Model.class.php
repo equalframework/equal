@@ -104,6 +104,7 @@ class Model {
             ],
             'state' => [
                 'type' 				=> 'string',
+                'selection'         => ['draft', 'instance', 'archive'],
                 'default'			=> 'instance'
             ]
         ];

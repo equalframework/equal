@@ -30,7 +30,7 @@ class DataValidator extends Service {
                     }
                 ];
             case 'email':
-            case 'url:mailto':                
+            case 'url/mailto':
             case 'uri/url:mailto':
                 return [
                     'kind'  => 'function', 

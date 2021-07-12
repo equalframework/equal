@@ -141,7 +141,7 @@ $om->write('core\User', $user_id, [
 ]);        
 
 // generate access_token
-$access_token = $auth->token($user_id);
+$access_token = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
                  
 $context->httpResponse()
         // store token in cookie

@@ -751,7 +751,7 @@ class ObjectManager extends Service {
      * @param boolean $check_unique
      * @return array Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
      */
-    public function validate($class, $ids, $values, $check_unique=false) {
+    public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
 
 // todo : check relational fields consistency (make sure that targeted object(s) actually exist)
 // todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
@@ -793,10 +793,17 @@ class ObjectManager extends Service {
             if(isset($schema[$field]['usage'])) {
                 $constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
                 $constraints[$field]['type_misuse'] = [
-                    'message' 	=> 'Value does not comply with usage '.$schema[$field]['usage'],
+                    'message' 	=> 'Value does not comply with usage \''.$schema[$field]['usage'].'\'.',
                     'function'	=> $constraint['rule']
                 ];
             }
+            // add constraints based on `required` attribute
+            if(isset($schema[$field]['required']) && $schema[$field]['required']) {
+                $constraints[$field]['missing_mandatory'] = [
+                    'message' 	=> 'Missing mandatory value.',
+                    'function'	=> function($a) { return (isset($a) && !empty($a)); }
+                ];
+            }            
             // check constraints
             if(isset($constraints[$field])) {
                 foreach($constraints[$field] as $error_id => $constraint) {
@@ -818,6 +825,16 @@ class ObjectManager extends Service {
             }
         }
 
+        // REQUIRED constraint check
+        if($check_required) {
+            foreach($schema as $field => $def) {
+                if(isset($def['required']) && $def['required'] && !isset($values[$field])) {
+                    $error_code = QN_ERROR_INVALID_PARAM;
+                    $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
+                    trigger_error("mandatory field {$field} is missing", E_USER_WARNING);
+                }
+            }
+        }
         // UNIQUE constraint check
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
 
@@ -835,9 +852,12 @@ class ObjectManager extends Service {
 
                 // search for objects already set with unique values
                 if(count($domain)) {
-                    $domain[] = ['state', '=', 'instance'];
+                    // overload default 'state' condition (set in search method): no restriction on state
+                    $domain[] = ['state', 'like', '%%'];
+                    // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
                     $domain[] = ['deleted', 'in', ['0', '1']];
                     if(count($ids)) {
+                        // ids are always unique
                         $domain[] = ['id', 'not in', $ids];
                     }
                     $conflict_ids = $this->search($class, $domain);
@@ -988,7 +1008,7 @@ class ObjectManager extends Service {
                     trigger_error('unknown field ('.$field.') in $fields arg', E_USER_WARNING);
                 }
             }
-            // writing an object do not change its state, unless when explicitely set in $fields
+            // #memo - writing an object do not change its state, unless when explicitely set in $fields
             // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
             $fields['modified'] = time();
 

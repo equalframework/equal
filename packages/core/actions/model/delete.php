@@ -34,6 +34,9 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
+if(!class_exists($params['entity'])) {
+    throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+}
 
 $params['entity']::id($params['id'])->delete($params['permanent']);
                                

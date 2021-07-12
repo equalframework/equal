@@ -233,7 +233,7 @@ class HttpMessage {
         return $this;
     }
 
-    public function setCookie($cookie, $value, $params) {
+    public function setCookie($cookie, $value, $params=null) {
         $this->headers->setCookie($cookie, $value, $params);
         return $this;
     }
@@ -622,8 +622,7 @@ class HttpMessage {
             return $this->getCookie($cookie);
         }
         else {
-            list($cookie, $value, $params) = $args;
-            return $this->setCookie($cookie, $value, $params);
+            return $this->setCookie(...$args);
         }
     }    
 

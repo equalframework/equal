@@ -62,8 +62,8 @@ $instance = $params['entity']::create($params['fields'], $params['lang'])
             ->first();
 
 $result = [
-    'entity'    => $params['entity'], 
-    'id'        => $instance['id']
+    'entity' => $params['entity'], 
+    'id'     => $instance['id']
 ];
 
 $context->httpResponse()

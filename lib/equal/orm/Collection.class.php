@@ -297,8 +297,8 @@ class Collection implements \Iterator {
      * @param $fields   array   associative array holding values and their related fields as keys 
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
-    private function validate(array $fields, $ids=[], $check_unique=false) {
-        $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique);
+    private function validate(array $fields, $ids=[], $check_unique=false, $check_required=false) {
+        $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
 // todo : harmonize error codes                
@@ -389,8 +389,11 @@ class Collection implements \Iterator {
             throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
         }
 
-        // 3) validate and check unique keys
-        $this->validate($values, [], true);
+        // if state is forced to draft, do not check required fields (to allow creation of emtpy objects)
+        $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
+
+        // 3) validate : check unique keys and required fields
+        $this->validate($values, [], true, $check_required);
         // set current user as creator
         $values = array_merge($values, ['creator' => $user_id]);
 
@@ -529,9 +532,12 @@ class Collection implements \Iterator {
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
+
+            // if object is not yet an instance, check required fields
+            $check_required = (isset($values['state']) && $values['state'] == 'draft')?true:false;
             
-            // 3) validate and check unique keys
-            $this->validate($values, $ids, true);            
+            // 3) validate : check unique keys and required fields
+            $this->validate($values, $ids, true, $check_required);
                         
             // 4) write
             // set current user as modifier

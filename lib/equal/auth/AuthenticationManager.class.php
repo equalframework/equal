@@ -8,6 +8,7 @@ namespace equal\auth;
 
 use equal\organic\Service;
 use equal\services\Container;
+use equal\auth\JWT;
 
 
 class AuthenticationManager extends Service {
@@ -35,13 +36,13 @@ class AuthenticationManager extends Service {
      * Provide a JWT token based on current user id and `AUTH_SECRET_KEY`
      * 
      * @param   $user_id    identifier of the user for who a token is requested
-     * @param   $validity   validity duration in hours 
+     * @param   $validity   validity duration in seconds 
      * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token($user_id=0, $validity=1) {
+    public function token($user_id=0, $validity=0) {
         $payload = [
             'id'    => ($user_id > 0)?$user_id:$this->user_id,
-            'exp'   => time()+60*60*$validity
+            'exp'   => time()+$validity
         ];
         return $this->encode($payload);
     }
@@ -88,6 +89,9 @@ class AuthenticationManager extends Service {
         return JWT::rsaToPem($n, $e);
     }
 
+    /**
+     * @throws Exception ['auth_expired_token', QN_ERROR_INVALID_USER]
+     */
     public function userId() {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') {
@@ -111,15 +115,17 @@ class AuthenticationManager extends Service {
             else if(strpos($auth_header, 'Basic ') !== false) {
                 list($token) = sscanf($auth_header, 'Basic %s');
                 list($username, $password) = explode(':', base64_decode($token));
+                // leave $jwt unset and authenticate (sets $user_id)
                 $this->authenticate($username, $password);
             }
             else if(strpos($auth_header, 'Digest ') !== false) {
                 // #todo
             }            
         }
-        // no Authorization header : fallback to cookie
-        else {
-            $jwt = $request->cookie('access_token');        
+
+        // no token in Authorization header: fallback to cookie
+        if(!$jwt) {
+            $jwt = $request->cookie('access_token');
         }
 
         // decode and verify token, if found
@@ -147,6 +153,10 @@ class AuthenticationManager extends Service {
                 }
                 $this->user_id = $payload['id'];
             }            
+        }
+        // no access token provided, but refresh token found (which means that the access token has expired)
+        else if($request->cookie('refresh_token')) {
+            throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
         }
         return $this->user_id;
     }

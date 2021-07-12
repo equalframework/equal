@@ -25,22 +25,22 @@ class JWT {
 		$parts = explode('.', $jwt);
 
 		if (count($parts) != 3) {
-			throw new \Exception('JWT_malformed_token');
+			throw new \Exception('jwt_malformed_token');
 		}
 
 		list($headb64, $bodyb64, $sigb64) = $parts;
 
 		if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
-			throw new \Exception('JWT_header_unreadable');
+			throw new \Exception('jwt_header_unreadable');
 		}
 		if ( !isset($header['alg']) ) {		
-			throw new \Exception('JWT_header_missing_algorithm');
+			throw new \Exception('jwt_header_missing_algorithm');
 		}
 		if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
-			throw new \Exception('JWT_payload_unreadable');
+			throw new \Exception('jwt_payload_unreadable');
 		}
 		if ( !($signature = JWT::urlsafeB64Decode($sigb64)) ) {
-			throw new \Exception('JWT_signature_unreadable');
+			throw new \Exception('jwt_signature_unreadable');
 		}
 		return ['header' => $header, 'payload' => $payload, 'signature' => $signature];
 	}
@@ -60,11 +60,11 @@ class JWT {
 	public static function encode($payload, $key, $algo = 'HS256') {
 		$header = array('typ' => 'JWT', 'alg' => $algo);
 		$segments = array();
-		$segments[] = JWT::urlsafeB64Encode(json_encode($header));
-		$segments[] = JWT::urlsafeB64Encode(json_encode($payload));
+		$segments[] = self::urlsafeB64Encode(json_encode($header));
+		$segments[] = self::urlsafeB64Encode(json_encode($payload));
 		$signing_input = implode('.', $segments);
-		$signature = JWT::sign($signing_input, $key, $algo);
-		$segments[] = JWT::urlsafeB64Encode($signature);
+		$signature = self::sign($signing_input, $key, $algo);
+		$segments[] = self::urlsafeB64Encode($signature);
 		return implode('.', $segments);
 	}
 
@@ -73,7 +73,7 @@ class JWT {
 		$res = 0;
 		// for algo to support, @see https://tools.ietf.org/html/rfc7518#section-3
 		if( in_array($alg, ['HS256', 'HS384', 'HS512']) ) {
-			if ($sig == JWT::sign($msg, $key, $alg)) {
+			if ($sig == self::sign($msg, $key, $alg)) {
 				$res = 1;
 			}
 		}		
@@ -134,18 +134,18 @@ class JWT {
 	 * Generates a PEM formatted public key from a modulus and an exponent
 	 */
 	public static function rsaToPem($n, $e) {
-        $modulus = JWT::urlsafeB64Decode($n);
-        $publicExponent = JWT::urlsafeB64Decode($e);
+        $modulus = self::urlsafeB64Decode($n);
+        $publicExponent = self::urlsafeB64Decode($e);
 
         $components = [
-            'modulus' => pack('Ca*a*', 2, JWT::encodeLength(strlen($modulus)), $modulus),
-            'publicExponent' => pack('Ca*a*', 2, JWT::encodeLength(strlen($publicExponent)), $publicExponent)
+            'modulus' => pack('Ca*a*', 2, self::encodeLength(strlen($modulus)), $modulus),
+            'publicExponent' => pack('Ca*a*', 2, self::encodeLength(strlen($publicExponent)), $publicExponent)
 		];
 
         $RSAPublicKey = pack(
             'Ca*a*a*',
             48,
-            JWT::encodeLength(strlen($components['modulus']) + strlen($components['publicExponent'])),
+            self::encodeLength(strlen($components['modulus']) + strlen($components['publicExponent'])),
             $components['modulus'],
             $components['publicExponent']
         );
@@ -156,16 +156,16 @@ class JWT {
 		// hex version of MA0GCSqGSIb3DQEBAQUA
         $rsaOID = pack('H*', '300d06092a864886f70d0101010500'); 
         $RSAPublicKey = chr(0) . $RSAPublicKey;
-        $RSAPublicKey = chr(3) . JWT::encodeLength(strlen($RSAPublicKey)) . $RSAPublicKey;
+        $RSAPublicKey = chr(3) . self::encodeLength(strlen($RSAPublicKey)) . $RSAPublicKey;
 
         $RSAPublicKey = pack(
             'Ca*a*',
             48,
-            JWT::encodeLength(strlen($rsaOID . $RSAPublicKey)),
+            self::encodeLength(strlen($rsaOID . $RSAPublicKey)),
             $rsaOID . $RSAPublicKey
         );
 
-        return "-----BEGIN PUBLIC KEY-----\r\n" . chunk_split(base64_encode($RSAPublicKey), 64) . '-----END PUBLIC KEY-----';
+        return "-----BEGIN PUBLIC KEY-----\r\n".chunk_split(base64_encode($RSAPublicKey), 64).'-----END PUBLIC KEY-----';
     }
 
 
