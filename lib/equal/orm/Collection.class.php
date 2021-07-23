@@ -176,8 +176,6 @@ class Collection implements \Iterator {
      * Provide the whole collection as a map of [id => value, ...] (default) or as an array
      *
      * @param   $to_array   boolean    Flag to ask conversion to single array (instead of a map)
-     * @param   $to         string     Expected format of the returned values (txt, php, sql, orm)
-     *
      * @return  array       Associative array mapping objects identifiers with their related maps of fields/values
      *
      */    

@@ -753,8 +753,8 @@ class ObjectManager extends Service {
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
 
-// todo : check relational fields consistency (make sure that targeted object(s) actually exist)
-// todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
+// #todo : check relational fields consistency (make sure that targeted object(s) actually exist)
+// #todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
 
         $res = [];
 
@@ -840,43 +840,67 @@ class ObjectManager extends Service {
 
             $uniques = $model->getUnique();
 
+            // load all fields impacted by 'unique' constraints
+            $unique_fields = [];
             foreach($uniques as $unique) {
-                $conflict_ids = [];
-                $domain = [];
                 foreach($unique as $field) {
-                    // map unique fields with the given values
-                    if(isset($values[$field])) {
-                        $domain[] = [$field, '=', $values[$field]];
+                    $unique_fields[] = $field;
+                }
+            }
+            $extra_values = [];            
+            $extra_fields = array_diff(array_unique($unique_fields), array_keys($values));            
+            if(count($extra_fields)) {
+                $extra_values = $this->read($class, $ids, $extra_fields);
+            }
+            
+            foreach($ids as $id) {
+                foreach($uniques as $unique) {
+                    $conflict_ids = [];
+                    $domain = [];
+                    foreach($unique as $field) {
+                        // map unique fields with the given values
+                        if(!isset($values[$field])) {
+                            $domain[] = [ $field, '=', $extra_values[$id][$field] ];
+                        }
+                        else {
+                            // map unique fields with the given values
+                            $domain[] = [$field, '=', $values[$field]];
+                        }
+                    }
+
+                    // search for objects already set with unique values
+                    if(count($domain)) {
+                        // overload default 'state' condition (set in search method): no restriction on state
+                        $domain[] = ['state', 'like', '%%'];
+                        // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
+                        $domain[] = ['deleted', 'in', ['0', '1']];
+                        if(count($ids)) {
+                            // ids are always unique
+                            $domain[] = ['id', 'not in', $ids];
+                        }
+                        $conflict_ids = $this->search($class, $domain);
+                    }
+                    // there is a violation : stop and fetch info about it
+                    if(count($conflict_ids)) {
+                        $objects = $this->read($class, $conflict_ids, $unique);
+                        foreach($objects as $oid => $odata) {
+                            foreach($odata as $field => $value) {
+                                $original = isset($values[$field])?$values[$field]:$extra_values[$id][$field];
+                                if($value == $original) {
+                                    trigger_error("field {$field} violates unique constraint with object {$oid}", E_USER_WARNING);
+                                    $error_code = QN_ERROR_CONFLICT_OBJECT;
+                                    $res[$field] = ['duplicate_index' => 'unique constraint violation'];
+                                }
+                            }
+                        }
+                        break 2;
                     }
                 }
 
-                // search for objects already set with unique values
-                if(count($domain)) {
-                    // overload default 'state' condition (set in search method): no restriction on state
-                    $domain[] = ['state', 'like', '%%'];
-                    // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
-                    $domain[] = ['deleted', 'in', ['0', '1']];
-                    if(count($ids)) {
-                        // ids are always unique
-                        $domain[] = ['id', 'not in', $ids];
-                    }
-                    $conflict_ids = $this->search($class, $domain);
-                }
-                // there is a violation : stop and fetch info about it
-                if(count($conflict_ids)) {
-                    $objects = $this->read($class, $conflict_ids, $unique);
-                    foreach($objects as $oid => $odata) {
-                        foreach($odata as $field => $value) {
-                            if($value == $values[$field]) {
-                                trigger_error("field {$field} violates unique constraint with object {$oid}", E_USER_WARNING);
-                                $error_code = QN_ERROR_CONFLICT_OBJECT;
-                                $res[$field] = ['duplicate_index' => 'unique constraint violation'];
-                                break 2;
-                            }
-                        }
-                    }
-                }
+                // loop only if some field impacted by the 'unique' constraint are not present in the received $values
+                if(count($extra_fields) <= 0) break;
             }
+
         }
         return (count($res))?[$error_code => $res]:[];
     }
@@ -1434,8 +1458,10 @@ class ObjectManager extends Service {
                                 break;
                             default:
                                 // adapt value
-                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
-                                $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
+                                if(!is_array($value)) {
+                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
+                                    $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');    
+                                }
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
                                 if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                                     $translation_table_alias = $add_table('core_translation');
