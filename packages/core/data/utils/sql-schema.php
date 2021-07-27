@@ -20,7 +20,12 @@ list($params, $providers) = announce([
             'type'          => 'string', 
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
-        ]
+        ],
+        'full'	=> [
+            'description'   => 'Force the output to complete schema (i.e. with tables already present in DB).',
+            'type'          => 'boolean',
+            'default'       => false
+        ]        
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -107,7 +112,7 @@ foreach($classes as $class) {
 
     // if some columns already exist (we are enriching a table related to a class from which the current class inherits),
     // then we append only the columns that do not exit yet
-    if(!empty($columns)) {
+    if(!empty($columns) && !$params['full']) {
         $columns_diff = array_diff(array_keys($schema), $columns);
         foreach($columns_diff as $field) {
             $description = $schema[$field];
@@ -161,10 +166,18 @@ foreach($classes as $class) {
     
         if(method_exists($model, 'getUnique')) {
             $list = $model->getUnique();
-            foreach($list as $fields) {
-                $result[] = ",UNIQUE KEY `".implode('_', $fields)."` (`".implode('`,`', $fields)."`)";
-            }
-        
+            foreach($list as $unique) {
+                $parts = [];
+                foreach($unique as $field) {
+                    $part = "`{$field}`";
+                    // limit index size to 20 bytes for strings
+                    if(in_array($schema[$field]['type'], ['string', 'text'])) {                        
+                        $part .= "(25)";
+                    }
+                    $parts[] = $part;
+                }
+                $result[] = ",UNIQUE KEY `".implode('_', $unique)."` (".implode(',', $parts).")";
+            }        
         }
         
         $result[] = ") DEFAULT CHARSET=utf8;\n";    

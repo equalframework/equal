@@ -13,7 +13,7 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'ids' =>  [
-            'description'   => 'List of unique identifierd of the object to read.',
+            'description'   => 'List of unique identifiers of the objects to read.',
             'type'          => 'array',
             'required'      => true
         ],

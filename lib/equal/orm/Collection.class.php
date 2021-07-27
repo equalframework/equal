@@ -365,10 +365,90 @@ class Collection implements \Iterator {
         }
         return $this;
     }
-    
+
+    /**
+     * Creates new instances by copying exiting ones
+     *
+     * @return  object  current Collection
+     * @example $newObject = MyClass::create();
+     *
+     */
+    public function clone($lang=DEFAULT_LANG) {
+        
+        // 1) sanitize and retrieve necessary values
+        $user_id = $this->am->userId();
+
+        $schema = $this->instance->getSchema();
+            
+        // get full list of available fields
+        $fields = array_keys($schema);
+
+        // 2) check that current user has enough privilege to perform CREATE operation
+        if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
+            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+        }
+
+        $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
+        $uniques = $this->instance->getUnique();
+
+        $res = $this->orm->read($this->class, $ids, $fields, $lang);
+
+        // 3) duplicate each object of the collection
+        foreach($res as $id => $original) {
+
+            // make unique fields complying with related constraints
+            foreach($uniques as $unique) {
+                $domain = [];        
+                foreach($unique as $field) {
+                    if(!isset($original[$field])) {
+                        continue 2;
+                    }
+                    $domain[] = [$field, '=',  $original[$field]];
+                }
+                $duplicate_ids = $this->orm->search($this->class, $domain);
+
+                if(count($duplicate_ids)) {
+                    foreach($unique as $field) {
+// #todo - when renaming, we should favor name field if defined                        
+                        if(in_array($schema[$field]['type'], ['string', 'text'])) {
+                            $original[$field] = 'copy - '.$original[$field];
+                        }
+                        else {
+                            // remove latest field to prevent duplicate issue
+                            unset($original[$field]);
+                        }
+                        break;
+                    }                    
+                }
+            }
+
+            // set current user as creator
+            $original = array_merge($original, ['creator' => $user_id]);
+
+            // validate : check unique keys
+            $this->validate($original, [], true);
+
+            // create the clone
+            $oid = $this->orm->clone($this->class, $id, $original, $lang);        
+            if($oid <= 0) {
+                throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
+            }
+
+            // log action (if enabled)
+            $this->logger->log($user_id, 'create', $this->class, $oid);
+            // store new object in current collection
+            $this->objects[$oid] = ['id' => $oid];
+        }
+
+        return $this;
+    }
+
     /**
      * Creates a new instance
      *
+     * @param $values   array   list mapping fields and values
+     * @param $lang     string  language for multilang fields
+     * 
      * @return  object  current Collection
      * @example $newObject = MyClass::create();
      *
@@ -522,7 +602,7 @@ class Collection implements \Iterator {
             // silently drop invalid fields
             $values = $this->filter($values);
             // retrieve targeted identifiers
-            $ids = array_keys($this->objects);
+            $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
             // retrieve targeted fields names
             $fields = array_keys($values);
             

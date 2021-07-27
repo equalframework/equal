@@ -12,6 +12,7 @@ class Version extends Model {
 
     public static function getColumns() {
         return [
+            /* override state field */
             'state' => [
                 'type'              => 'string', 
                 'selection'         => ['draft', 'version']
@@ -24,6 +25,9 @@ class Version extends Model {
             ],
             'serialized_value' => [
                 'type'              => 'text'
+            ],
+            'lang' => [
+                'type'              => 'string'
             ]
         ];
     }

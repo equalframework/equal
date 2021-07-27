@@ -21,13 +21,13 @@
             {
                 "type": "field",
                 "value": "created",
-                "width": "10%",
+                "width": "15%",
                 "sortable": true                
             },
             {
                 "type": "field",
                 "value": "validated",
-                "width": "5%"
+                "width": "10%"
             },    
             {
                 "type": "field",
@@ -35,20 +35,20 @@
                 "widget": {
                     "link": true
                 },
-                "width": "10%",
+                "width": "25%",
                 "sortable": true
             },
             {
                 "type" : "field",
                 "value": "firstname", 
                 "label": "This is the firstname",
-                "width": "10%"
+                "width": "20%"
             },
             {
                 "type" : "field",
                 "value": "lastname",
                 "label": "Nom de famille",
-                "width": "15%"            
+                "width": "20%"            
             },
             {
                 "type": "field",

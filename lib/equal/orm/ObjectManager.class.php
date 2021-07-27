@@ -914,7 +914,7 @@ class ObjectManager extends Service {
      * - if $field contains some values, object is created and its state is set to 'instance' (@see write method)
      *
      *
-     * @return integer    identfier of the newly created used or, in case of error, the code of the error that was raised (by convention, error codes are negative integers)
+     * @return integer    identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
     public function create($class, $fields=NULL, $lang=DEFAULT_LANG) {
         $res = 0;
@@ -1270,14 +1270,15 @@ class ObjectManager extends Service {
                     if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
                         switch($def['type']) {
                         case 'file':
-                            // FILE_STORAGE_MODE == 'FS'
-                            // build a unique name  (package/class/field/oid.lang)
-                            $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+                            if(FILE_STORAGE_MODE == 'FS') {
+                                // build a unique name  (package/class/field/oid.lang)
+                                $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
+                                $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
 
-                            foreach($ids as $oid) {
-                                foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
-                                    unlink($filename);
+                                foreach($ids as $oid) {
+                                    foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
+                                        unlink($filename);
+                                    }
                                 }
                             }
                             break;
@@ -1285,27 +1286,28 @@ class ObjectManager extends Service {
                             $res = $this->read($class, $ids, $field);
                             $rel_ids = [];
                             array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $res);
-
-                            // foregin field is many2one
-                            $rel_schema = $this->getObjectSchema($def['foreign_object']);
-                            // call ondelete method when defined (to allow cascade deletion)
-                            if(isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                $ondelete = $rel_schema[$def['foreign_field']]['ondelete'];
-                                if(is_callable($ondelete)) {
-                                    call_user_func($ondelete, $this, $rel_ids);
-                                }
-                                else {
-                                    switch($ondelete) {
-                                        case 'cascade':
-                                            $this->remove($def['foreign_object'], $rel_ids, $permanent);
-                                            break;
-                                        case 'null':
-                                            $this->write($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
-                                            break;
-                                        default:
+                            if(isset($def['foreign_object'])) {
+                                // foreign field is many2one
+                                $rel_schema = $this->getObjectSchema($def['foreign_object']);
+                                // call ondelete method when defined (to allow cascade deletion)
+                                if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
+                                    $ondelete = $rel_schema[$def['foreign_field']]['ondelete'];
+                                    if(is_callable($ondelete)) {
+                                        call_user_func($ondelete, $this, $rel_ids);
+                                    }
+                                    else {
+                                        switch($ondelete) {
+                                            case 'cascade':
+                                                $this->remove($def['foreign_object'], $rel_ids, $permanent);
+                                                break;
+                                            case 'null':                                                
+                                            default:                                                
+                                                $this->write($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
+                                                break;
+                                        }
                                     }
                                 }
-                            }
+                            }                            
                             break;
                         case 'many2many':
                             // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
@@ -1328,6 +1330,73 @@ class ObjectManager extends Service {
         return $res;
     }
 
+    /**
+     * @param $class    string
+     * @param $id       integer
+     * @param $values   array           Map of fields to override orinal object values.
+     * 
+     * @param   string  $lang	        Language under which return fields values (only relevant for multilang fields).
+     * @return  mixed   (int or array)  Error code OR resulting associative array.
+     */
+    public function clone($class, $id, $values=[], $lang=DEFAULT_LANG) {
+        $res = 0;
+
+        try {
+            $object = &$this->getStaticInstance($class);
+            $schema = $object->getSchema();
+
+            $res_r = $this->read($class, $id, array_keys($schema), $lang);
+
+            // if write method generated an error, return error code instead of object id
+            if($res_r < 0) {
+                throw new Exception('object_not_found', $res_r);
+            }
+
+            $original = $res_r[$id];
+            $original = array_merge($original, $values);
+            unset($original['id']);
+
+            // create new object based on original
+            $res_c = $this->create($class, $original, $lang);
+            if($res_c < 0) {
+                throw new Exception('creation_aborted', $res_c);
+            }
+
+            // assign result to returned ID
+            $res = $res_c;
+
+            // handle cascade cloning
+            foreach($schema as $field => $def) {
+                if($def['type'] == 'one2many' && isset($def['foreign_object'])) {
+                    $rel_schema = $this->getObjectSchema($def['foreign_object']);
+                    $rel_ids = $original[$field];
+                    $new_rel_ids = [];
+                    foreach($rel_ids as $oid) {
+                        // perform cascade cloning (clone target objects)
+                        if(isset($rel_schema[$def['foreign_field']]) ) {
+                            $res_c = $this->clone($def['foreign_object'], $oid, $lang);
+                            if($res_c > 0) {
+                                $new_rel_ids[] = $res_c;
+                            }
+                        }
+                    }
+                    // set current clone as target for the relation
+                    if(isset($rel_schema[$def['foreign_field']]) ) {
+                        $rel_values = [ $rel_schema[$def['foreign_field']] => $res ];
+                        if(isset($values['creator'])) {
+                            $rel_values['creator'] = $values['creator'];
+                        }
+                        $this->write($def['foreign_object'], $new_rel_ids, $rel_values, $lang);
+                    }
+                }
+            }
+        }
+        catch(Exception $e) {
+            trigger_error($e->getMessage(), E_USER_ERROR);
+            $res = $e->getCode();
+        }            
+        return $res;
+    }
 
     /**
      * Search for the objects corresponding to the domain criteria.
