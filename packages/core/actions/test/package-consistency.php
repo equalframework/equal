@@ -270,12 +270,12 @@ foreach($classes as $class) {
                             }
 
                             if($property == 'label') {
-                                if(substr($data['model'][$field][$property], -1) == '.') {
+                                if( substr($data['model'][$field][$property], -1) == '.' ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'help') {
-                                if(substr($data['model'][$field][$property], -1) != '.') {
+                                if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
