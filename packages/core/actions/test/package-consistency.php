@@ -49,6 +49,12 @@ TODO : check config and json files syntax.
 translation files constraints: 
     * model helpers : max 45 chars
     * error messages length : max 45 chars
+
+
+* pour chaque vue, vérifier que chaque champ est renseigné zéro ou une seule fois
+* pour chaque vue, vérifier que les id ont une correspondance dans le fichier de traduction
+* pour chaque classe, vérifier que tous les champs sont définis au moins dans une view
+
 */
 
 
@@ -248,8 +254,7 @@ foreach($classes as $class) {
                 // check that the referenced fields are valid (defined in the schema)
                 foreach($fields as $field) {
                     if(!isset($schema[$field])) {
-                        $result[] = "ERROR - I18N - Unknown field '$field' referenced in file $i18n_file";
-                        $is_error = true;
+                        $result[] = "WARN - I18N - Unknown field '$field' referenced in file $i18n_file";
                     }
                 }
                 // check that the transaltion description is complete for each field
@@ -274,6 +279,12 @@ foreach($classes as $class) {
                                     $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
+                        }
+                    }
+                    // check for 'selection' property
+                    if($schema[$field]['type'] == 'string' && isset($schema[$field]['selection'])) {
+                        if(!isset($data['model'][$field]['selection'])) {
+                            $result[] = "WARN - I18N - Missing property 'selection' for field '$field' referenced in file $i18n_file";
                         }
                     }
                 }
@@ -429,6 +440,13 @@ if($is_error) {
     exit(1);
 }
 
+
+
+
+
+/**
+ * Utility functions (hoisted)
+ */
 
 
 
