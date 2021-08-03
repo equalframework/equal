@@ -13,11 +13,10 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'lang' =>  [
-            'description'   => 'Language for which values are requested (iso639 code expected)..',
+            'description'   => 'Language for which values are requested (iso639 code expected).',
             'type'          => 'string', 
 			'default' 		=> DEFAULT_LANG
-        ],
-        
+        ]        
     ],
     'response'      => [
         'content-type'  => 'application/json',

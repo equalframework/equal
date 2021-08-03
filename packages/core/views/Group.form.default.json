@@ -18,24 +18,92 @@
                                                 "value": "name",
                                                 "width": "100%",
                                                 "label": "Group name",
-                                                "help": "Unique name of the group.",
+                                                "help": "Unique ID of the group.",
                                                 "widget": {
                                                     "header": true
                                                 }
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "id",
-                                                "width": "50%",
-                                                "label": "Group Identifier",
-                                                "readonly": true
                                             }
                                         ]
                                     }
                                 ]
                             }
                         ]
-                    }            
+                    }
+                ]
+            },
+            {
+                "sections": [                    
+                    {
+                        "label":"Details",
+                        "id": "section.details",
+                        "rows": [                            
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "display_name",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "description",
+                                                "width": "100%",
+                                                "widget": {
+                                                    "type": "text"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "label":"Permissions",
+                        "id": "section.permissions",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "permissions_ids",
+                                                "width": "100%",
+                                                "label": "Permissions"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "label":"Members",
+                        "id": "section.users",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "users_ids",
+                                                "width": "100%",
+                                                "label": "Users"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }                                        
                 ]
             }
         ]
