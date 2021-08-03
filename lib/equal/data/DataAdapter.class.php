@@ -137,18 +137,33 @@ class DataAdapter extends Service {
                                 }
                 ]
             
-            ],            
+            ],
+            // 'array' is a type only used in announce() method
             'array' => [
                 'txt'   => [
                     'php' =>    function ($value) {
                                     if(!is_array($value)) {
-                                        if(empty($value)) $value = array();
-                                        // adapt raw CSV
-                                        else $value = explode(',', $value);
+                                        $value = trim($value, '[]');
+                                        if(empty($value)) $value = array();                                        
+                                        else {
+                                            // adapt raw JSON
+                                            $value = explode(',', $value);
+                                            foreach($value as $key => $item) {
+                                                $value[$key] = trim($item, '"');
+                                            }
+                                        }
                                     }
                                     return $value;
                                 }
-                ]                
+                ],
+                'php'   => [
+                    'txt' =>    function ($value) {
+                                    if(is_array($value)) {
+                                        $value = '['.implode(',', $value).']';
+                                    }
+                                    return $value;
+                                }
+                ]
             ],
             'many2one'  => [
                 'sql' => [
@@ -165,7 +180,15 @@ class DataAdapter extends Service {
                                     }
                                     return $value;                        
                                 }
-                ]
+                ],
+                'php'   => [
+                    'txt' =>    function ($value) {
+                                    if(is_array($value)) {
+                                        $value = '['.implode(',', $value).']';
+                                    }
+                                    return $value;
+                                }
+                ]                            
             ],
             'many2many' => [
                 'txt' => [
@@ -185,7 +208,15 @@ class DataAdapter extends Service {
                                     $value = array_filter($value, function ($a) { return is_numeric($a); });
                                     return $value;
                                 }
-                ]
+                ],
+                'php'   => [
+                    'txt' =>    function ($value) {
+                                    if(is_array($value)) {
+                                        $value = '['.implode(',', $value).']';
+                                    }
+                                    return $value;
+                                }
+                ]                              
             ],
             'html' => [
                 'txt' => [
