@@ -29,7 +29,7 @@ class AuthenticationManager extends Service {
     }
     
     public static function constants() {
-        return ['AUTH_SECRET_KEY', 'ROOT_USER_ID'];
+        return ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'ROOT_USER_ID'];
     }
     
     /**
@@ -105,7 +105,9 @@ class AuthenticationManager extends Service {
         $jwt = null;
 
         // check the request headers for a JWT
-        $request = $this->container->get('context')->httpRequest();     
+        $context = $this->container->get('context');
+        $request = $context->httpRequest();
+
         $auth_header = $request->header('Authorization');
         if(!is_null($auth_header)) {
             if(strpos($auth_header, 'Bearer ') !== false) {
@@ -126,13 +128,16 @@ class AuthenticationManager extends Service {
         // no token in Authorization header: fallback to cookie
         if(!$jwt) {
             $jwt = $request->cookie('access_token');
+            // no access token provided, but refresh token found (which means that the access token has expired)
+            if(!$jwt && $request->cookie('refresh_token')) {
+                $jwt = $request->cookie('refresh_token');
+            }
         }
 
         // decode and verify token, if found
         if($jwt) {
             $payload = null;
             try {
-
                 if( !$this->verifyToken($jwt, AUTH_SECRET_KEY) ){
                     throw new \Exception('jwt_invalid_signature');
                 }
@@ -152,12 +157,19 @@ class AuthenticationManager extends Service {
                     throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
                 }
                 $this->user_id = $payload['id'];
+                // if access token was refreshed, send back a new access token
+                if(!$request->cookie('access_token')) {
+                    $token = $this->token($this->user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+                    $context->httpResponse()
+                    ->cookie('access_token', $token, [
+                        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
+                        'httponly'  => true, 
+                        'secure'    => AUTH_TOKEN_HTTPS
+                    ]);
+                }
             }            
         }
-        // no access token provided, but refresh token found (which means that the access token has expired)
-        else if($request->cookie('refresh_token')) {
-            throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
-        }
+        
         return $this->user_id;
     }
     
