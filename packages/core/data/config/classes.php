@@ -56,10 +56,9 @@ if(!function_exists('get_classes')) {
 	function get_classes($package) {
 		$data = [];
 		$package_dir = 'packages/'.$package.'/classes';
-		if(!is_dir($package_dir) || !($list = scandir($package_dir))) {
-			throw new Exception("No classes found for package '{$package}'", QN_ERROR_INVALID_PARAM);        
-		}
-		$data = get_files($package_dir);
+		if(is_dir($package_dir) && ($list = scandir($package_dir))) {
+            $data = get_files($package_dir);
+		}		
 		return $data;
 	}
 }
