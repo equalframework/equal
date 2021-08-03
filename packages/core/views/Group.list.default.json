@@ -4,21 +4,14 @@
     "layout": {
         "items": [
             {
-                "type": "field",            
-                "value": "id",
-                "width": "5%"
+                "type": "field",
+                "value": "name",
+                "width": "25%"
             },
             {
-                "type": "field",            
-                "value": "created",
-                "width": "10%"
-            },    
-            {
-                "type": "field",            
-                "value": "name",
-                "label": "Name",
-                "link": true,
-                "width": "10%"
+                "type": "field",
+                "value": "description",
+                "width": "35%"
             },
             {
                 "type": "field",            

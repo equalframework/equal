@@ -10,7 +10,9 @@
 		"password":{"label":"Mot de passe"},
 		"firstname":{"label":"Prénom"},
 		"lastname":{"label":"Nom"},
-		"created":{"label":"Date de création", "help": "Date de création du compte"}
+		"created":{"label":"Date de création", "help": "Date de création du compte."},
+		"validated":{"label":"Validé", "help": "Le compte utilisateur a-t-il été validé?"},
+		"language":{"label":"Langue", "help": "La langue de préférence de l'utilisateur."}
 	},
 	"view": {
 		"group.user": {"label": "Infos de l'utilisateur"},

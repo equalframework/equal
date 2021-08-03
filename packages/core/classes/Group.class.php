@@ -13,7 +13,8 @@ class Group extends Model {
     public static function getColumns() {
         return [
             'name' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'unique'            => true
             ],
             'display_name' => [
                 'type'              => 'string',

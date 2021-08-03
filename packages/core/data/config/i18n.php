@@ -28,22 +28,43 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
+$entity = $params['entity'];
+$parents = [];
 
-$parts = explode('\\', $params['entity']);
-$package = array_shift($parts);
+// retrieve parents cascade
+while(true) {    
+    $parent = get_parent_class($entity);
+    if(!$parent || $parent == 'equal\orm\Model') break;
+    $parents[] = $parent;
+    $entity = $parent;
+}
 
-$class_dir = implode('/', $parts);
-$file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
+$parents[] = $params['entity'];
 
+//init resulting lang schema
+$lang = [];
 
-if(!file_exists($file)) {
+foreach(array_reverse($parents) as $entity) {
+    $parts = explode('\\', $entity);
+    $package = array_shift($parts);
+    
+    $class_dir = implode('/', $parts);
+    $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
+        
+    if(!file_exists($file)) {
+        continue;
+    }
+    
+    if( ($schema = json_decode(@file_get_contents($file), true)) === null) {
+        throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+    }
+
+    $lang = array_replace_recursive($lang, $schema);
+}
+
+if(empty($lang)) {    
     throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
-
-if( ($lang = json_decode(@file_get_contents($file), true)) === null) {
-    throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
-}
-
 
 $context->httpResponse()
         ->body($lang)
