@@ -98,7 +98,7 @@ $total = count($collection->ids());
 $result = $collection
           ->shift($params['start'])
           ->limit($params['limit'])
-          ->read($fields)
+          ->read($fields, $params['lang'])
           ->adapt('txt')
           // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
           ->get(true);
