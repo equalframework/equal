@@ -1,0 +1,60 @@
+{
+    "name": "Setting",
+    "description": "Default form for Setting",
+    "layout": {
+        "groups": [
+            {
+                "sections": [                    
+                    {
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "name",
+                                                "width": "100%",
+                                                "widget": {
+                                                    "header": true
+                                                }
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "package_id",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "section_id",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "description",
+                                                "width": "100%"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "type",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }                                    
+                                ]
+                            }
+                        ]
+                    }            
+                ]
+            }
+        ]
+    }
+}

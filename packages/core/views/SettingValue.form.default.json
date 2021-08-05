@@ -1,0 +1,47 @@
+{
+    "name": "Setting value",
+    "description": "Default form for Setting",
+    "layout": {
+        "groups": [
+            {
+                "sections": [                    
+                    {
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_id",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "user_id",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "50%",
+                                        "align": "right",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "value",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }                                    
+                                ]
+                            }
+                        ]
+                    }            
+                ]
+            }
+        ]
+    }
+}

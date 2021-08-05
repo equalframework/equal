@@ -1,0 +1,27 @@
+{
+    "name": "Config params values",
+    "description": "Default listing of configuration values.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "setting_id",
+                "label": "Setting",
+                "width": "30%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "user_id",
+                "label": "User",
+                "width": "30%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "value",
+                "width": "30%"
+            }
+        ]
+    }
+}

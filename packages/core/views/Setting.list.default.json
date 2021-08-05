@@ -1,0 +1,39 @@
+{
+    "name": "Config params list",
+    "description": "Default listing of configuration parameters.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "15%",
+                "sortable": true,
+                "readonly": true
+            },
+            {
+                "type": "field",
+                "value": "package_id",
+                "label": "Package",
+                "width": "15%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "section_id",
+                "label": "Section",
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "type",
+                "width": "10%"
+            }
+        ]
+    }
+}
