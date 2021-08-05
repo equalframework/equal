@@ -61,7 +61,7 @@ class Logger extends Service {
         ];
 
 		// logs are system objects (no permissions must be applied)
-		$this->orm->create('core\Log', $values);
+		$this->orm->create('core\Log', $values, DEFAULT_LANG, false);
 	}    
     
 }
