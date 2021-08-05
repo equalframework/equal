@@ -965,7 +965,7 @@ class ObjectManager extends Service {
             }
             else {
                 $ids = $this->filterValidIdentifiers($class, [$creation_array['id']]);
-                if(!empty($ids)) throw new Exception('duplicate_object_id', QN_ERROR_INVALID_PARAM);
+                if(!empty($ids)) throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
                 $oid = (int) $creation_array['id'];
             }
 
