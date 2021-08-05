@@ -1032,7 +1032,7 @@ class ObjectManager extends Service {
                     trigger_error('unknown field ('.$field.') in $fields arg', E_USER_WARNING);
                 }
             }
-            // #memo - writing an object do not change its state, unless when explicitely set in $fields
+            // #memo - writing an object does not change its state, unless when explicitely set in $fields
             // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
             $fields['modified'] = time();
 

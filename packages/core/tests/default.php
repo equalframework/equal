@@ -313,7 +313,7 @@ $tests = [
                     'expected'          =>  ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');                                                    
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');                                                    
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
@@ -329,7 +329,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'secure_password');
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
                                                     // grant READ operation on all classes
                                                     $providers['access']->grant(QN_R_READ);
 
@@ -345,7 +345,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result['1'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], $result['1'])) == 0
                                                  && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result['2'])) == 0
                                                 );
                                             }
@@ -371,7 +371,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'admin'], $result['1'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], $result['1'])) == 0
                                                 );
                                             }                                            
                     ),
@@ -480,7 +480,7 @@ $tests = [
                                                 try {
                                                     $request = new HttpRequest("http://localhost/me");
                                                     $response = $request
-                                                                ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:secure_password"))
+                                                                ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:safe_pass"))
                                                                 ->send();
                                                     return $response->body();
                                                 }

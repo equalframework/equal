@@ -47,13 +47,12 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-
-// @memo - User class defines its own Unique constraint on `login` field
-
 // Encrypt password
-$params['password'] = password_hash($params['password'], PASSWORD_DEFAULT);
+// #memo - User::onchangePassword method makes sure `password` is hashed 
+$params['password'] = password_hash($params['password'], PASSWORD_BCRYPT);
 
-// Resulting Collection will check for current user privilege; validate the received values; and check the `Unique` constraints
+// Create user: resulting Collection will check for current user privilege; validate the received values; and check the `Unique` constraints
+// #memo - User class defines its own Unique constraint on `login` field
 $instance = User::create($params)
             ->read(['id', 'login', 'firstname', 'lastname', 'language'])
             ->adapt('txt')

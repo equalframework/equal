@@ -45,15 +45,15 @@ class Permission extends Model {
 
     public static function onchangeRights($om, $ids, $lang) {
         // note : we are in the core namespace, so we don't need to specify it when referring to this class
-        $rights = Permission::getRightsTxt($om, $ids, $lang);
+        $rights = self::getRightsTxt($om, $ids, $lang);
         foreach($ids as $oid) {
-            $om->write(__CLASS__, $oid, array('rights_txt' => $rights[$oid]), $lang);
+            $om->write(__CLASS__, $oid, ['rights_txt' => $rights[$oid]], $lang);
         } 
     }
 
     public static function getRightsTxt($om, $ids, $lang) {
         $res = array();
-        $values = $om->read('core\Permission', $ids, array('rights'), $lang);
+        $values = $om->read(__CLASS__, $ids, ['rights'], $lang);
         foreach($ids as $oid) {
             $rights_txt = array();
             $rights = $values[$oid]['rights'];

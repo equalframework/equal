@@ -28,8 +28,10 @@ class User extends Model {
             ],
             'password' => [
                 'type'              => 'string',
-                'usage'             => 'password'
+                'usage'             => 'password',
+                'onchange'          => 'core\User::onchangePassword'
             ],
+
 // #todo : deprecate firstname and lastname fields (use only `login` to refer to a user)            
             'firstname' => [
                 'type'              => 'string'
@@ -57,6 +59,18 @@ class User extends Model {
         ];
     }
 
+    /**
+     * Make sure password is crypted when stored to DB.
+     * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     */
+    public static function onchangePassword($om, $ids, $lang) {
+        $values = $om->read(__CLASS__, $ids, ['password'], $lang);
+        foreach($values as $oid => $odata) {
+            if(substr($odata['password'], 0, 4) != '$2y$') {
+                $om->write(__CLASS__, $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)], $lang);
+            }            
+        }
+    }
 
     public static function getConstraints() {
         return [
