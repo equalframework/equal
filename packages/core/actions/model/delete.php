@@ -15,10 +15,15 @@ list($params, $providers) = announce([
         'id' =>  [
             'description'   => 'Unique identifier of the object to remove.',
             'type'          => 'integer',
-            'required'      => true
+            'default'       => 0
         ],
+        'ids' =>  [
+            'description'   => 'List of Unique identifiers of the objects to update.',
+            'type'          => 'array',
+            'default'       => []
+        ],        
         'permanent' => [
-            'description '  => 'Flag telling if deletion has to be permanent (not in recycle bin).',
+            'description '  => 'Flag for choosing either soft deletion (recycle bin) or hard deletion (removed from DB).',
             'type'          => 'boolean', 
             'default'       => false
         ]
@@ -34,11 +39,18 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
+if( empty($params['ids']) ) {
+    if( !isset($params['id']) || $params['id'] <= 0 ) {
+        throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
+    }
+    $params['ids'][] = $params['id'];
+}
+
 if(!class_exists($params['entity'])) {
     throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
 }
 
-$params['entity']::id($params['id'])->delete($params['permanent']);
+$params['entity']::ids($params['ids'])->delete($params['permanent']);
                                
 $context->httpResponse()
         ->status(204)
