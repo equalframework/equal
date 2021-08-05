@@ -192,7 +192,12 @@ foreach (glob($path."*.json") as $json_file) {
         $entity = $class['name'];
         $lang = $class['lang'];
         foreach($class['data'] as $odata){            
-            $orm->create($entity, $odata, $lang);
+            $res = $orm->create($entity, $odata, $lang);
+            if($res == QN_ERROR_CONFLICT_OBJECT) {
+                $id = $odata['id'];
+                // object already exist, but either values or languag might be different
+                $res = $orm->write($entity, $id, $odata, $lang);
+            }
         }
     }
 }
