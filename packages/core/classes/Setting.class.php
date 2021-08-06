@@ -60,7 +60,7 @@ class Setting extends Model {
 
     public function getUnique() {
         return [
-            ['section_id', 'name']
+            ['section', 'name']
         ];
     }    
 }
