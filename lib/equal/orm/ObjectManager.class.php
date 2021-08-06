@@ -790,7 +790,7 @@ class ObjectManager extends Service {
                 }
             }
             // add constraints based on `usage` attribute
-            if(isset($schema[$field]['usage'])) {
+            if(isset($schema[$field]['usage']) && !empty($value)) {
                 $constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
                 $constraints[$field]['type_misuse'] = [
                     'message' 	=> 'Value does not comply with usage \''.$schema[$field]['usage'].'\'.',
