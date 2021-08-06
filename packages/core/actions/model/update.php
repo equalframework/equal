@@ -98,13 +98,7 @@ if( count($params['ids']) == 1) {
 
 $result = $params['entity']::ids($params['ids'])
                            // update with received values (with validation - submit `state` if received)
-                           ->update($params['fields'], $params['lang'])
-                           // by convention, this controller always sets an object as an instance
-                           ->update(['state' => 'instance'])
-                           // convert to text
-                           ->adapt('txt')
-                           // return collection as an array
-                           ->get(true);
+                           ->update($params['fields'], $params['lang']);
 
 $context->httpResponse()
         ->status(202)

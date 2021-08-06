@@ -611,15 +611,15 @@ class Collection implements \Iterator {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
 
-            // if object is not yet an instance, check required fields
+            // if object is not yet an instance, check required fields (otherwise, we allow partial update)
             $check_required = (isset($values['state']) && $values['state'] == 'draft')?true:false;
             
             // 3) validate : check unique keys and required fields
             $this->validate($values, $ids, true, $check_required);
                         
             // 4) write
-            // set current user as modifier
-            $values = array_merge($values, ['modifier' => $user_id]);            
+            // by convention, update operation always sets object state as 'instance' and modifier as current user
+            $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
             $res = $this->orm->write($this->class, $ids, $values, $lang);
             if($res <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);

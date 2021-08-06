@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => "Deletes the given object(s).",
+    'description'   => "mark the given object(s) as archived.",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
@@ -21,11 +21,6 @@ list($params, $providers) = announce([
             'description'   => 'List of Unique identifiers of the objects to update.',
             'type'          => 'array',
             'default'       => []
-        ],        
-        'permanent' => [
-            'description '  => 'Flag for choosing either soft deletion (recycle bin) or hard deletion (removed from DB).',
-            'type'          => 'boolean', 
-            'default'       => false
         ]
     ],
     'response'      => [
@@ -33,11 +28,11 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm', 'access'] 
 ]);
 
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $ac) = [$providers['context'], $providers['orm'], $providers['access']];
 
 if( empty($params['ids']) ) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
@@ -50,8 +45,15 @@ if(!class_exists($params['entity'])) {
     throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
 }
 
-$params['entity']::ids($params['ids'])->delete($params['permanent']);
-                               
+if(!$ac->isAllowed(QN_R_WRITE, $params['entity'], ['state'], $params['ids'])) {
+    throw new Exception('UPDATE;'.$params['entity'].';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+}
+
+$res = $orm->write($params['entity'], $params['ids'], ['state' => 'archived']);
+if($res <= 0) {
+    throw new Exception($params['entity'].'::state', $res);
+}
+
 $context->httpResponse()
         ->status(204)
         ->body([])
