@@ -25,12 +25,12 @@ class Setting extends Model {
                 'description'       => 'Unique name of the parameter.'
             ],
 
-            'package_id' => [
+            'package' => [
                 'type'              => 'string', 
                 'description'       => 'Package which the param refers to, if any.'
             ],      
 
-            'section_id' => [
+            'section' => [
                 'type'              => 'string',
                 'description'       => 'Section to ease param retrieval.',
                 'required'          => true
@@ -46,8 +46,14 @@ class Setting extends Model {
                 'type'              => 'string',
                 'selection'         => ['boolean', 'integer', 'float', 'string', 'selection'],
                 'description'       => 'The format of data stored by the param.'
-            ]
+            ],
 
+            'setting_values_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\SettingValue',
+                'foreign_field'     => 'setting_id',
+                'description'       => 'List of values related to the setting.'
+            ]
 
         ];
     }

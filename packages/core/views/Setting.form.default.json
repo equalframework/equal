@@ -23,12 +23,12 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "package_id",
+                                                "value": "package",
                                                 "width": "50%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "section_id",
+                                                "value": "section",
                                                 "width": "50%"
                                             },
                                             {
