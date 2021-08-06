@@ -436,7 +436,7 @@ class ObjectManager extends Service {
                          [
                             [
                                 [$schema[$field]['foreign_field'], 'in', $ids],
-                                ['state', '<>', 'draft'],
+                                ['state', '=', 'instance'],
                                 ['deleted', '=', '0'],
                             ]
                         ],
@@ -463,7 +463,7 @@ class ObjectManager extends Service {
                                 // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
                                 array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
                                 array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
-                                array('t0.state', '<>', 'draft'),
+                                array('t0.state', '=', 'instance'),
                                 array('t0.deleted', '=', '0'),
                             )
                         ),
@@ -1565,7 +1565,7 @@ class ObjectManager extends Service {
                     }
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
-                    if(isset($special_fields['state']))	    $conditions[$j][] = array($table_alias.'.state', '<>', 'draft');
+                    if(isset($special_fields['state']))	    $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
                     if(isset($special_fields['deleted']))	$conditions[$j][] = array($table_alias.'.deleted', '=', '0');
                     // add join conditions to current clause
                     foreach($join_conditions as $join_condition) {
@@ -1585,7 +1585,7 @@ class ObjectManager extends Service {
             }
             else { // no domain is specified
                 // search only amongst non-draft and non-deleted records
-                $conditions[0][] = array($table_alias.'.state', '<>', 'draft');
+                $conditions[0][] = array($table_alias.'.state', '=', 'instance');
                 $conditions[0][] = array($table_alias.'.deleted', '=', '0');
             }
 
