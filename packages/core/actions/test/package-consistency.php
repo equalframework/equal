@@ -152,6 +152,16 @@ foreach($classes as $class) {
         }
     }
 
+    $uniques = $model->getUnique();
+    foreach($uniques as $unique_fields) {
+        foreach($unique_fields as $ufield) {
+            if(!isset($schema[$ufield])) {
+                $result[] = "ERROR - ORM - Class $class: Non-existing field '{$ufield}' given in unique constraints";
+                $is_error = true;
+            }
+        }
+    }
+
 // #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
 
 
@@ -170,7 +180,7 @@ foreach($classes as $class) {
          }
     }
 
-    // #todo - 5) check view files consistency (.json)
+    // 5) check view files consistency (.json)
     $view_files = glob("$view_dir/$class.*.json");
     
     foreach($view_files as $view_file) {
