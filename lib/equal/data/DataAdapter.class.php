@@ -12,14 +12,14 @@ use equal\html\HTMLPurifier;
 use equal\html\HTMLPurifier_Config;
 
 class DataAdapter extends Service {
-    
+
     private $config;
 
     protected function __construct(/* no dependency */) {
         // initial configuration
         $this->config = null;
     }
-    
+
     private function init() {
         $this->config = [
             'boolean' => [
@@ -37,12 +37,12 @@ class DataAdapter extends Service {
                 ],
                 'php' => [
                     'txt' =>    function ($value) {
-                                    //return ($value)?'true':'false';                                                                        
+                                    //return ($value)?'true':'false';
                                     return (bool) $value;
                                 },
                     'sql' =>    function ($value) {
-                                    return ($value)?'1':'0';                                                                        
-                                }                                
+                                    return ($value)?'1':'0';
+                                }
                 ]
             ],
             'integer' => [
@@ -64,8 +64,8 @@ class DataAdapter extends Service {
 // todo : handle arbitrary length numbers (> 10 digits)
                                     return intval($value);
                                 }
-                ]                
-            ],            
+                ]
+            ],
             'double' => [
                 'txt'   => [
                     'php' =>    function ($value) {
@@ -80,8 +80,8 @@ class DataAdapter extends Service {
                     'php' =>    function ($value) {
                                     return floatval($value);
                                 }
-                ]                
-                
+                ]
+
             ],
             'string' => [
                 'txt'   => [
@@ -119,7 +119,7 @@ class DataAdapter extends Service {
 // todo : deprecate
                     'orm' =>    function ($value) {
                                     return date('Y-m-d', $value);
-                                }                                      
+                                }
                 ],
                 'sql'   => [
                     'php' =>    function ($value) {
@@ -128,32 +128,70 @@ class DataAdapter extends Service {
                                     return mktime(0, 0, 0, $month, $day, $year);
                                 }
                 ],
-// todo : deprecate                
+// todo : deprecate
                 'orm' => [
                     'php' =>    function ($value) {
                                     // return date as a timestamp
                                     list($year, $month, $day) = sscanf($value, "%d-%d-%d");
-                                    return mktime(0, 0, 0, $month, $day, $year);                                    
+                                    return mktime(0, 0, 0, $month, $day, $year);
                                 }
                 ]
-            
+
             ],
             // 'array' is a type only used in announce() method
             'array' => [
                 'txt'   => [
                     'php' =>    function ($value) {
-                                    if(!is_array($value)) {
-                                        $value = trim($value, '[]');
-                                        if(empty($value)) $value = array();                                        
-                                        else {
-                                            // adapt raw JSON
-                                            $value = explode(',', $value);
-                                            foreach($value as $key => $item) {
-                                                $value[$key] = trim($item, '"');
+                                    $to_array = function ($value) use(&$to_array) {
+                                        $result = [];
+                                        $current = "";
+
+                                        $find_closing_bracket = function ($value, $offset) {
+                                            $count = 0;
+                                            for($i = $offset, $n = strlen($value); $i < $n; ++$i) {
+                                                $c = substr($value, $i, 1);
+                                                if($c == '[') {
+                                                    ++$count;
+                                                }
+                                                else if($c == ']') {
+                                                    --$count;
+                                                    if($count <= 0) {
+                                                        return $i;
+                                                    }
+                                                }
                                             }
+                                            return false;
+                                        };
+
+                                        for($i = 0, $n = strlen($value); $i < $n; ++$i) {
+                                            $c = substr($value, $i, 1);
+                                            if($c == '[') {
+                                                $pos = $find_closing_bracket($value, $i);
+                                                if($pos === false ) {
+                                                    // malformed array
+                                                    return array($value);
+                                                }
+                                                $sub = substr($value, $i+1, $pos-$i-1);
+                                                $current = $to_array($sub);
+                                                $i = $pos;
+                                                continue;
+                                            }
+                                            if($c == ',') {
+                                                $result[] = $current;
+                                                $current = '';
+                                                continue;
+                                            }
+                                            if($c == '"') {
+                                                continue;
+                                            }
+                                            $current .= $c;
                                         }
-                                    }
-                                    return $value;
+                                        if( (is_array($current) && count($current)) || strlen($current)) {
+                                            $result[] = $current;
+                                        }
+                                        return (count($result) == 1)?$result[0]:$result;
+                                    };
+                                    return is_array($value)?$value:$to_array($value);
                                 }
                 ],
                 'php'   => [
@@ -167,18 +205,18 @@ class DataAdapter extends Service {
             ],
             'many2one'  => [
                 'sql' => [
-                    'php' =>    function ($value) {                                    
-                                    return (int) $value;                        
+                    'php' =>    function ($value) {
+                                    return (int) $value;
                                 }
                 ]
-            ],            
+            ],
             'one2many'  => [
                 'txt' => [
                     'php' =>    function ($value) {
                                     if(is_string($value)) {
                                         $value = array_filter(explode(',', $value), function ($a) { return is_numeric($a); });
                                     }
-                                    return $value;                        
+                                    return $value;
                                 }
                 ],
                 'php'   => [
@@ -188,7 +226,7 @@ class DataAdapter extends Service {
                                     }
                                     return $value;
                                 }
-                ]                            
+                ]
             ],
             'many2many' => [
                 'txt' => [
@@ -216,25 +254,25 @@ class DataAdapter extends Service {
                                     }
                                     return $value;
                                 }
-                ]                              
+                ]
             ],
             'html' => [
                 'txt' => [
                     'php' => function ($value) {
                         // clean HTML input html
-                        // standard cleaning: remove non-standard tags and attributes    
-                        $purifier = new HTMLPurifier(HTMLPurifier_Config::createDefault());    
-                        return $purifier->purify($value);                        
+                        // standard cleaning: remove non-standard tags and attributes
+                        $purifier = new HTMLPurifier(HTMLPurifier_Config::createDefault());
+                        return $purifier->purify($value);
                     }
                 ]
             ],
             'file' => [
                 'txt' => [
-                    'php' => function($value) {                       
-                        /* 
-                         $value is expected to be either a base64 string 
+                    'php' => function($value) {
+                        /*
+                         $value is expected to be either a base64 string
                          or an array holding data from the $_FILES array (multipart/form-data) having the following keys set:
-                         
+
                             [
                                 'name'      string  filename provided by client
                                 'type'      string  MIME type / content-type
@@ -242,7 +280,7 @@ class DataAdapter extends Service {
                                 'tmp_name'  string  current path of temp file holding binary data
                                 'error'     int     error code
                             ]
-                        */                        
+                        */
                         if(!is_array($value)) {
                             // @see RFC2397 (data:[<mediatype>][;base64],<data>)
                             $value = str_replace(' ', '+', substr($value, strpos($value,',')+1) );
@@ -250,8 +288,8 @@ class DataAdapter extends Service {
                         }
                         else {
                             if(!isset($value['tmp_name'])) {
-                                // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);                    
-                                // todo: issue a warning                                
+                                // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
+                                // todo: issue a warning
                                 $res = '';
                             }
                             else {
@@ -261,7 +299,7 @@ class DataAdapter extends Service {
                                 $res = file_get_contents($value['tmp_name']);
                             }
                         }
-                        
+
                         return $res;
                     }
                 ],
@@ -287,7 +325,7 @@ class DataAdapter extends Service {
                 'php' => [
                     'sql' => function() {
                         if(func_num_args() < 5) {
-                            throw new \Exception("object_details_missing", QN_ERROR_MISSING_PARAM);                    
+                            throw new \Exception("object_details_missing", QN_ERROR_MISSING_PARAM);
                         }
                         list($value, $class, $oid, $field, $lang) = func_get_args();
 
@@ -303,31 +341,31 @@ class DataAdapter extends Service {
                         else if(FILE_STORAGE_MODE == 'FS') {
                             // build a unique name  `package/class/field/oid.lang`
                             $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                            $file = sprintf("%011d.%s", $oid, $lang);                       
-                                                    
+                            $file = sprintf("%011d.%s", $oid, $lang);
+
                             $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
-    
+
                             if (!is_dir($storage_location)) {
                                 // make missing directories
                                 FSManipulator::assertPath($storage_location);
                             }
-                            
+
                             if (!is_dir($storage_location)) {
                                 throw new \Exception("unable to store file (check FS permissions)", QN_ERROR_INVALID_CONFIG);
                             }
-                            
+
                             // note: existing file will be overwritten
                             file_put_contents($storage_location.'/'.$file, $value);
-    
+
                             // return filename as result
-                            $res = $path.'/'.$file;    
+                            $res = $path.'/'.$file;
                         }
                         return $res;
                     },
                     'txt' => function($value) {
                         return base64_encode($value);
                     }
-                 ]            
+                 ]
             ],
             // dates are handled as unix timestamp
             'datetime' => [
@@ -361,19 +399,19 @@ class DataAdapter extends Service {
                                     return mktime($hour, $minute, $second, $month, $day, $year);
                                 }
                 ]
-            ]                
-         
-        ];        
+            ]
+
+        ];
     }
-    
-	private function &getMethod($from, $to, $type) {        
+
+	private function &getMethod($from, $to, $type) {
         if( !isset($this->config[$type][$from][$to]) ) {
             $this->config[$type][$from][$to] = function ($value) { return $value; };
         }
 		return $this->config[$type][$from][$to];
 	}
-    
-    /** 
+
+    /**
      *
      * configuration might be update by external scripts or providers
      *
@@ -390,12 +428,12 @@ class DataAdapter extends Service {
             }
             if(!isset($this->config[$type][$from])) {
                 $this->config[$type][$from] = [];
-            }        
+            }
             $this->config[$type][$from][$to] = $method;
         }
         return $this;
 	}
-    
+
 
 	public function adapt($value, $type, $to='php', $from='txt', ...$extra) {
         if($type == 'float') $type = 'double';
@@ -410,7 +448,7 @@ class DataAdapter extends Service {
             // in case of unknown destination, fallback to PHP
             $to = 'php';
             // todo: issue a warning
-        }        
+        }
 
 
         if( !is_null($this->config) && isset($this->config[$type][$from][$to]) ) {
@@ -423,5 +461,5 @@ class DataAdapter extends Service {
 
         return call_user_func_array( $method , array_merge([$value], $extra) );
 	}
-    
+
 }
