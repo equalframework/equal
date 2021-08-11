@@ -98,9 +98,12 @@ if( count($params['ids']) == 1) {
 
 $result = $params['entity']::ids($params['ids'])
                            // update with received values (with validation - submit `state` if received)
-                           ->update($params['fields'], $params['lang']);
+                           ->update($params['fields'], $params['lang'])
+                           ->read(['id', 'state', 'modified'])
+                           ->adapt('txt')
+                           ->get(true);
 
 $context->httpResponse()
-        ->status(202)
-        ->body([])
+        ->status(200)
+        ->body($result)
         ->send();
