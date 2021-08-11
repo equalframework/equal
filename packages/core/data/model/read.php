@@ -36,19 +36,19 @@ list($params, $providers) = announce([
     'providers'     => [ 'context' ]  
 ]);
 
-list($context, $orm) = [ $providers['context'] ];
+list($context) = [ $providers['context'] ];
 
 
 if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-$object = $params['entity']::ids($params['ids'])
+$result = $params['entity']::ids($params['ids'])
             ->read($params['fields'], $params['lang'])
             ->adapt('txt')
             // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
             ->get(true);
 
 $context->httpResponse()
-        ->body($object)
+        ->body($result)
         ->send();
