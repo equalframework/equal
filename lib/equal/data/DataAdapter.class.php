@@ -145,15 +145,15 @@ class DataAdapter extends Service {
                                     $to_array = function ($value) use(&$to_array) {
                                         $result = [];
                                         $current = "";
-
-                                        $find_closing_bracket = function ($value, $offset) {
+                                        $current_key = '';
+                                        $find_closing_bracket = function ($value, $offset, $open_bracket='[', $close_bracket=']') {
                                             $count = 0;
                                             for($i = $offset, $n = strlen($value); $i < $n; ++$i) {
                                                 $c = substr($value, $i, 1);
-                                                if($c == '[') {
+                                                if($c == $open_bracket) {
                                                     ++$count;
                                                 }
-                                                else if($c == ']') {
+                                                else if($c == $close_bracket) {
                                                     --$count;
                                                     if($count <= 0) {
                                                         return $i;
@@ -172,26 +172,69 @@ class DataAdapter extends Service {
                                                     return array($value);
                                                 }
                                                 $sub = substr($value, $i+1, $pos-$i-1);
-                                                $current = $to_array($sub);
+                                                $current = '';
+                                                $res = $to_array($sub);
+                                                $result[] = $res;
                                                 $i = $pos;
                                                 continue;
                                             }
-                                            if($c == ',') {
-                                                $result[] = $current;
+                                            if($c == '{') {
+                                                $pos = $find_closing_bracket($value, $i, '{', '}');
+                                                if($pos === false ) {
+                                                    // malformed array
+                                                    return array($value);
+                                                }
+                                                $sub = substr($value, $i+1, $pos-$i-1);
+                                                $current = '';
+                                                $res = $to_array($sub);
+                                                if(strlen($current_key)){
+                                                    $result[$current_key] = $res;
+                                                }
+                                                else {
+                                                    $result[] = $res;
+                                                }
+                                                $current_key = '';
+                                                $i = $pos;
+                                                continue;
+                                            }
+                                            if($c == ':') {
+                                                $current_key = $current;
                                                 $current = '';
                                                 continue;
                                             }
-                                            if($c == '"') {
+                                            if($c == ',') {
+                                                if(strlen($current)) {
+                                                    if(strlen($current_key)) {
+                                                        $result[$current_key] = $current;
+                                                    }
+                                                    else {
+                                                        $result[] = $current;    
+                                                    }
+                                                }
+                                                $current_key = '';
+                                                $current = '';
+                                                continue;
+                                            }
+                                            if($c == '"' || $c == ' ') {
                                                 continue;
                                             }
                                             $current .= $c;
                                         }
-                                        if( (is_array($current) && count($current)) || strlen($current)) {
-                                            $result[] = $current;
+                                        if( strlen($current)) {
+                                            if(strlen($current_key)) {
+                                            $result[$current_key] = $current;
+                                            }
+                                            else {
+                                                $result[] = $current;
+                                            }
                                         }
-                                        return (count($result) == 1)?$result[0]:$result;
+                                        return $result;
                                     };
-                                    return is_array($value)?$value:$to_array($value);
+                                    if(!is_array($value)) {
+                                        $res = $to_array($value);
+                                        $value = array_pop($res);
+                                    }
+                                    return (array) $value;
                                 }
                 ],
                 'php'   => [
