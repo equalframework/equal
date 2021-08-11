@@ -316,7 +316,7 @@ class Context extends Service {
             // follow getopt long options specs (http://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html)
             for($i = 1; $i < $_SERVER['argc']; ++$i) {
                 if(strpos($_SERVER['argv'][$i], '--') === 0) {
-                    $parts = explode('=', substr($_SERVER['argv'][$i], 2));
+                    $parts = explode('=', substr($_SERVER['argv'][$i], 2), 2);
                     $param = $parts[0];
                     $value = (isset($parts[1]))?$parts[1]:null;
                     // handle array notation (a name followed by brackets)
