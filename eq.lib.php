@@ -394,6 +394,8 @@ namespace config {
             $method = $request->method();
             $response = $context->httpResponse();
 
+            $reporter->debug("method $method");
+
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
                     header('Location: '.$announcement['response']['location']);
@@ -428,12 +430,11 @@ namespace config {
                         throw new \Exception('origin_not_allowed', QN_ERROR_NOT_ALLOWED);
                     }
                     // set headers accordingly to response definition
-                    // #todo allow to customize these values                    
+                    // #todo allow to customize (override) these values
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
                     $response->header('Access-Control-Expose-Headers', '*');
                     $response->header('Access-Control-Allow-Credentials', 'true');
-                    $response->header('Allow', '*');
                 }
                 if(isset($announcement['response']['content-disposition'])) {
                     $response->header('Content-Disposition', $announcement['response']['content-disposition']);
@@ -445,7 +446,7 @@ namespace config {
                     and offers support at URL level only (params in body are not considered).
                     This mechanism should not be used for requests whose response depend on current user.
                 */
-                if( $request->method() == 'GET'
+                if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
                     // compute the cache ID
@@ -518,12 +519,17 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     // user asked for the announcement or browser requested fingerprint
-                    $response
-                    ->status(200)
+                    ob_start();
+                    $response->status(200)
                     // allow browser to cache the response for 1 year
                     ->header('Cache-Control', 'max-age=31536000')
+                    // CORS strict compliance
                     ->header('Content-Type', 'application/json')
+                    ->header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Access-Control-Request-Method, Access-Control-Request-Headers, X-Requested-With, Referrer-Policy, Referer, Cookie')
                     ->send();
+                    $result = ob_get_clean();
+                    $reporter->debug("result: $result");
+                    print($result);
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
