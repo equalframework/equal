@@ -342,6 +342,7 @@ class HttpMessage {
                 // hence no break !
             case 'application/x-www-form-urlencoded':
                 $params = [];
+                // #memo : this function is impacted by ini_get('max_input_vars')
                 parse_str($body, $params);
                 $body = (array) $params;
                 break;
