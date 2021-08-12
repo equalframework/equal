@@ -410,8 +410,8 @@ class Context extends Service {
                 if(strlen($raw) > $max) {
                     throw new \Exception("received data exceed maximum available size", QN_ERROR_NOT_ALLOWED);
                 }
-                // #memo : this function is impacted by ini_get('max_input_vars')
-                parse_str($raw, $body);    
+                // further processing is handled in HttpMessage::setBody, according to the Content-Type
+                $body = $raw;
             }
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
