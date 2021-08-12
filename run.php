@@ -170,6 +170,7 @@ catch(Exception $e) {
         ->header('Access-Control-Allow-Origin', $request->header('origin'))
         // explicitely tell we're returning JSON
         ->header('Content-Type', 'application/json')
+        ->header('Allow', '*')
         // append an 'error' section to response body
         ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:$msg ] ])
         // for debug purpose
