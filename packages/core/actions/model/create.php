@@ -8,11 +8,17 @@
 /*
 Usage examples :  
 
-PHP 
- Group::create(['name' +> 'test group'])->first();
+## PHP
+```php 
+<?php
+use core\Group;
+$group = Group::create(['name' => 'test group'])->first();
+```
 
-CLI
-  equal.run --do=model_create --entity=core\group --fields[name]="test group"
+## CLI
+```bash
+equal.run --do=model_create --entity=core\group --fields[name]="test group"
+```
 
 */
 

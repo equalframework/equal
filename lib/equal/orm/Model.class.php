@@ -244,13 +244,16 @@ class Model {
      * 
      */
     public function getTable() {
-        // by default, use the parent class to obtain the targeted table (inheritance)
-        $class_name = get_parent_class($this);
+        $parent = get_parent_class($this);
+        $entity = get_class($this);
+
         // if class directly inherits from root class (equal\orm\Model), use its own name
-        if($class_name == __CLASS__) {
-            $class_name = get_class($this);
+        while($parent != __CLASS__) {            
+            $entity = $parent;
+            $parent = get_parent_class($parent);            
         }
-        return str_replace('\\', '_', $class_name);
+
+        return str_replace('\\', '_', $entity);
     }
 
     /**

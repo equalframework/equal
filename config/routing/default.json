@@ -1,12 +1,8 @@
 {
-    "/test/:foo?": {
+    "/userinfo": {
         "GET": {
-            "description": "Retrieve test data",
-            "operation": "?get=demo_tests&test=1"
-        },
-        "POST": {
-            "description": "ADD test data",
-            "operation": "?get=demo_tests"
-        }        
+            "description": "Retrieve current User object.",
+            "operation": "?get=identity_userinfo"
+        }
     }
 }

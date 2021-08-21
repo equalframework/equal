@@ -56,7 +56,7 @@ class ObjectManager extends Service {
         'binary'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
         'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
         'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'order', 'sort'),
-        'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'onchange'),
+        'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
         'computed'		=> array('description', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
     );
 
@@ -296,7 +296,7 @@ class ObjectManager extends Service {
 
 
     /**
-     * Filter given identifiers and return only valid ones.
+     * Filter given identifiers and return only valid ones (whatever the status of the objects).
      * Ids that do not match an object in the database are removed from the list.
      * Ids of soft-deleted object are considered valid.
      * 
@@ -1167,7 +1167,7 @@ class ObjectManager extends Service {
             // 4) build result by reading from internal buffer
             foreach($ids as $oid) {
                 if(!isset($this->cache[$class][$oid]) || empty($this->cache[$class][$oid])) {
-                    trigger_error("unknown object #'$oid' for class : '$class'", E_USER_WARNING);
+                    trigger_error("unknown or empty object $class($oid)", E_USER_WARNING);
                     continue;
                 }
                 // init result for given id, if missing

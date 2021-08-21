@@ -43,8 +43,25 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
+// adapt received fields names for dot notation support
+$fields = [];
+foreach($params['fields'] as $field) {
+    // dot notation
+    if(strpos($field, '.')) {
+        $parts = explode('.', $field);
+        if(!isset($fields[$parts[0]])) {
+            $fields[$parts[0]] = [];
+        }
+        $fields[$parts[0]][] = $parts[1];
+    }
+    // regular field name
+    else {
+        $fields[] = $field;
+    }
+}
+
 $result = $params['entity']::ids($params['ids'])
-            ->read($params['fields'], $params['lang'])
+            ->read($fields, $params['lang'])
             ->adapt('txt')
             // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
             ->get(true);

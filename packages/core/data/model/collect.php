@@ -67,10 +67,10 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-// adapt received fields names
+// adapt received fields names for dot notation support
 $fields = [];
 foreach($params['fields'] as $field) {
-    // handle dot notation
+    // dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
         if(!isset($fields[$parts[0]])) {
@@ -78,6 +78,7 @@ foreach($params['fields'] as $field) {
         }
         $fields[$parts[0]][] = $parts[1];
     }
+    // regular field name
     else {
         $fields[] = $field;
     }
@@ -102,7 +103,6 @@ $result = $collection
           ->adapt('txt')
           // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
           ->get(true);
-
 
 $context->httpResponse()
         ->header('X-Total-Count', $total)

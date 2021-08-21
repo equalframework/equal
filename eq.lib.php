@@ -433,7 +433,9 @@ namespace config {
                     // #todo allow to customize (override) these values
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
-                    $response->header('Access-Control-Expose-Headers', '*');
+                    // expose headers specific to eQual 
+                    // (CORS defaults are: Cache-Control, Content-Language, Content-Length, Content-Type, Expires, Last-Modified, Pragma.)
+                    $response->header('Access-Control-Expose-Headers', 'X-Total-Count');
                     $response->header('Access-Control-Allow-Credentials', 'true');
                 }
                 if(isset($announcement['response']['content-disposition'])) {
@@ -525,7 +527,8 @@ namespace config {
                     ->header('Cache-Control', 'max-age=31536000')
                     // CORS strict compliance
                     ->header('Content-Type', 'application/json')
-                    ->header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Access-Control-Request-Method, Access-Control-Request-Headers, X-Requested-With, Referrer-Policy, Referer, Cookie')
+                    // mandatory headers for CORS validation
+                    ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
                     ->send();
                     $result = ob_get_clean();
                     $reporter->debug("result: $result");
@@ -741,7 +744,7 @@ namespace config {
             if(is_null($resolved['type'])) {
                 if(is_null($resolved['package'])) {
                     // send 404 HTTP response
-                    throw new Exception("no default package", QN_ERROR_UNKNOWN_OBJECT);
+                    throw new Exception("no_default_package", QN_ERROR_UNKNOWN_OBJECT);
                 }
                 if(defined('DEFAULT_APP')) {
                     $resolved['type'] = 'show';

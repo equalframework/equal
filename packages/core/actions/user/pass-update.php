@@ -37,17 +37,12 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-// todo : handle `usage` limitations
-
 if(strcmp($params['password'], $params['confirmation']) != 0) {
     throw new Exception('password_confirmation_mismatch', QN_ERROR_INVALID_PARAM);
 }
 
-// Encrypt password
-$params['password'] = password_hash($params['password'], PASSWORD_DEFAULT);
-
-
 // update user instance (user has write access on its own object)
+// #memo - User::onchangePassword method makes sure `password` is hashed 
 $instance = User::id($params['id'])
     ->update([
         'password' => $params['password']

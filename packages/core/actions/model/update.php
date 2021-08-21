@@ -81,6 +81,7 @@ if( count($params['ids']) == 1) {
         $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
         // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
         if($object['state'] != 'draft') {
+// #todo - if object has some 'required' fields, we need to clone these to avoid a missing_mandatory error
             unset($params['fields']['id']);
             $instance = $params['entity']::create($params['fields'], $params['lang'])->read(['id'])->adapt('txt')->first();
             $params['ids'] = [$instance['id']];

@@ -20,34 +20,42 @@ class User extends Model {
                 'type'              => 'alias',
                 'alias'             => 'login'
             ],
+
             'login' => [
                 'type'              => 'string',
                 'usage'             => 'email',
                 'required'          => true,
                 'unique'            => true                
             ],
+
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
-                'onchange'          => 'core\User::onchangePassword'
+                'onchange'          => 'core\User::onchangePassword',
+                'required'          => true
             ],
 
 // #todo : deprecate firstname and lastname fields (use only `login` to refer to a user)            
             'firstname' => [
                 'type'              => 'string'
             ],
+
             'lastname' => [
                 'type'              => 'string'
             ],
+
             'language' => [
                 'type'              => 'string', 
                 'usage'             => 'language/iso-639:2',
                 'default'           => 'en'
             ],
+
             'validated' => [
                 'type'              => 'boolean',
-                'default'           => false
+                'default'           => false,
+                'description'       => 'Flag telling if the User has validated its email address and can sign in.'
             ],
+
             'groups_ids' => [
                 'type'              => 'many2many',
                 'foreign_object'    => 'core\Group',
@@ -62,6 +70,7 @@ class User extends Model {
     /**
      * Make sure password is crypted when stored to DB.
      * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
      */
     public static function onchangePassword($om, $ids, $lang) {
         $values = $om->read(__CLASS__, $ids, ['password'], $lang);
@@ -84,7 +93,7 @@ class User extends Model {
                     }    
                 ]
             ]
-
+            // #memo : password constraints are set based on the 'usage' attribute
         ];
     }
     

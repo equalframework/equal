@@ -239,10 +239,7 @@ class DataAdapter extends Service {
                 ],
                 'php'   => [
                     'txt' =>    function ($value) {
-                                    if(is_array($value)) {
-                                        $value = '['.implode(',', $value).']';
-                                    }
-                                    return $value;
+                                    return (array) $value;
                                 }
                 ]
             ],
@@ -264,10 +261,7 @@ class DataAdapter extends Service {
                 ],
                 'php'   => [
                     'txt' =>    function ($value) {
-                                    if(is_array($value)) {
-                                        $value = '['.implode(',', $value).']';
-                                    }
-                                    return $value;
+                                    return (array) $value;
                                 }
                 ]
             ],
@@ -292,10 +286,7 @@ class DataAdapter extends Service {
                 ],
                 'php'   => [
                     'txt' =>    function ($value) {
-                                    if(is_array($value)) {
-                                        $value = '['.implode(',', $value).']';
-                                    }
-                                    return $value;
+                                    return (array) $value;
                                 }
                 ]
             ],

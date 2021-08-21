@@ -165,12 +165,14 @@ catch(Exception $e) {
         $response
         // set HTTP status code
         ->status($http_status)
+        // explicitely tell we're returning JSON
+        ->header('Content-Type', 'application/json')
         // force allow-origin to actual origin, to make sure to go through CORS policy 
         // (response is defined in announce() and has been unstacked because of an exception)
         ->header('Access-Control-Allow-Origin', $request->header('origin'))
-        // explicitely tell we're returning JSON
-        ->header('Content-Type', 'application/json')
-        ->header('Allow', '*')
+        ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
+        ->header('Access-Control-Allow-Headers', '*')
+        ->header('Access-Control-Allow-Credentials', 'true')
         // append an 'error' section to response body
         ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:$msg ] ])
         // for debug purpose

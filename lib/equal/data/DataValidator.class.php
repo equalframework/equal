@@ -44,6 +44,20 @@ class DataValidator extends Service {
                         return (in_array($a, ['ADF','ADP','AED','AFA','AFN','ALL','AMD','ANG','AOA','AOK','AON','AOR','ARP','ARS','ATS','AUD','AWG','AZM','AZN','BAM','BBD','BDT','BEF','BGL','BGN','BHD','BIF','BMD','BND','BOB','BOP','BOV','BRL','BRR','BSD','BTN','BWP','BYB','BYR','BYN','BZD','CAD','CDF','CHE','CHF','CHW','CLF','CLP','CNY','COP','COU','CRC','CSD','CSK','CUC','CUP','CVE','CYP','CZK','DEM','DJF','DKK','DOP','DZD','ECS','ECV','EEK','EGP','ERN','ESP','ETB','EUR','FIM','FJD','FKP','FRF','GBP','GEL','GHS','GIP','GMD','GNF','GRD','GTQ','GWP','GYD','HKD','HNL','HRK','HTG','HUF','IDR','IEP','ILS','INR','IQD','IRR','ISK','ITL','JMD','JOD','JPY','KES','KGS','KHR','KMF','KPW','KRW','KZT','KWD','KYD','LAK','LBP','LKR','LRD','LSL','LTL','LUF','LVL','LVR','LYD','MAD','MDL','MGA','MGF','MKD','MMK','MNT','MOP','MRO','MRU','MTL','MUR','MVR','MWK','MXN','MXV','MYR','MZE','MZM','MZN','NAD','NGN','NHF','NIC','NIO','NLG','NOK','NPR','NZD','OMR','PAB','PEN','PES','PGK','PHP','PKR','PLN','PLZ','PTE','PYG','QAR','ROL','RON','RSD','RUB','RWF','SAR','SBD','SCR','SDD','SDG','SDP','SEK','SGD','SHP','SIT','SKK','SLL','SML','SOS','SRD','SSP','STD','SUB','SUR','SVC','SYP','SZL','THB','TJS','TMM','TMT','TND','TOP','TPE','TRL','TRY','TTD','TWD','TZS','UAH','UGX','USD','USN','USS','UYU','UYW','UZS','VAL','VEB','VEF','VES','VND','VUV','WST','XAF','XAG','XAU','XBA','XBB','XBC','XBD','XCD','XDR','XEU','XFO','XFU','XOF','XPD','XPF','XPT','XSU','XUA','YER','YUD','YUM','ZAR','ZMK','ZWD','ZWL','ZWR']));
                     }
                 ];
+            case 'password':
+                return [
+                    'description' => 'Password having a length of 8 chars minimum.',
+                    'kind'  => 'function',
+                    'rule'  => function($a, $o) {
+                        return strlen($a) >= 8;
+                    }
+                ];
+            case 'password/NIST':
+                return [
+                    'description' => 'NIST compliant password (min. 8 chars, 1 of @#$, 1 numeric digit, 1 uppercase, 1 lowercase).',
+                    'kind'  => 'function', 
+                    'rule'  => function($a, $o) {return (bool) (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#])[A-Za-z\d@$#]{8,}$/', $a));}
+                ];                
         }
         return [
             'kind'  => 'function', 

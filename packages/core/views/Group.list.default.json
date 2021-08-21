@@ -17,15 +17,6 @@
                 "type": "field",
                 "value": "description",
                 "width": "35%"
-            },
-            {
-                "type": "field",            
-                "value": "users_ids",
-                "label": "Users",
-                "width": "15%",
-                "widget": {
-                    "type": "one2many"
-                }
             }        
         ]
     }
