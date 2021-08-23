@@ -444,7 +444,7 @@ $tests = [
                     'arrange'           =>  function() use($providers) {
                                                 try {
                                                     $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
-                                                    $values = User::create(['login' => 'test@equal.run', 'password' => 'test', 'firstname', 'lastname'])->ids();
+                                                    $values = User::create(['login' => 'test@equal.run', 'password' => 'test1234', 'firstname', 'lastname'])->ids();
                                                 }
                                                 catch(\Exception $e) {
                                                     // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
