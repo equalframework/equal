@@ -6,30 +6,87 @@
 */
 namespace equal\orm;
 
+/**
+ * 
+ *     $domain = [                                        // domain
+ *        [                                               // clause 
+ *            [                                           
+ *                '{operand}', '{operator}', '{value}'    // condition
+ *            ],         
+ *            [                                           
+ *                '{operand}', '{operator}', '{value}'    // another contition (AND)
+ *            ]
+ *        ],
+ *        [		                                          // another clause (OR)
+ *            [	
+ *				'{operand}', '{operator}', '{value}'      // condition
+ *			],
+ *            [   
+ *                '{operand}', '{operator}', '{value}'    // another contition (AND)
+ *            ] 	
+ *        ]
+ *    ];
+ *
+ */
+
 
 class Domain {
-    /*
-    $domain = [                                         // domain
-        [                                               // clause 
-            [                                           
-                '{operand}', '{operator}', '{value}'    // condition
-            ],         
-            [                                           
-                '{operand}', '{operator}', '{value}'    // another contition (AND)
-            ]
-        ],
-        [		                                        // another clause (OR)
-            [	
-				'{operand}', '{operator}', '{value}'    // condition
-			],
-            [   
-                '{operand}', '{operator}', '{value}'    // another contition (AND)
-            ] 	
-        ]
-    ];
-*/  
     
-    
+    private $clauses;
+
+    public function __construct($domain=[]) {
+        $this->fromArray($domain);
+    }
+
+    public function fromArray($domain=[]) {
+        // reset clauses
+        $this->clauses = [];
+        /*
+            supported formats :
+            1) empty  domain : []
+            2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
+            3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
+            4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
+        */
+        $normalized = self::normalize($domain);
+
+        foreach($normalized as $d_clause) {
+            $clause = new DomainClause();
+            foreach($d_clause as $d_condition) {
+                $clause->addCondition(new DomainCondition($d_condition[0], $d_condition[1], $d_condition[2]));
+            }
+            $this->addClause($clause);
+        }
+    }
+
+    public function toArray() {
+        $domain = [];
+        foreach($this->clauses as $clause) {
+            $domain[] = $clause->toArray();
+        }
+        return $domain;
+    }    
+
+    public function getClauses() {
+        return $this->clauses;
+    }
+
+    /**
+     * Add a clause at the Domain level : the clause is appened to the Domain
+     */
+    public function addClause($clause) {
+        $this->clauses[] = $clause;
+    }
+
+    /**
+     * Add a condition at the Domain level : the condition is added to each clause of the Domain
+     */
+    public function addCondition($condition) {
+        foreach($this->clauses as $clause) {
+            $clause->addCondition($condition);
+        }
+    }
+
     /*
     * domain checks and operations
     * a domain should always be composed of a serie of clauses against which a OR test is made
@@ -99,13 +156,18 @@ class Domain {
     }
 
     public static function normalize($domain) {
-        if(!is_array($domain) || empty($domain) ) return [[]];
+        if(!is_array($domain) || empty($domain) ) {
+            return [];
+        }
+
         if(!is_array($domain[0])) {
             // single condition
             $domain = [[$domain]];
         }
         else {
-            if(empty($domain[0])) return [[[]]];
+            if(empty($domain[0])) {
+                return [];
+            }
             if(!is_array($domain[0][0])) {
                 // single clause
                 $domain = [$domain];
@@ -175,6 +237,69 @@ class Domain {
 
         $domain[] = $clause;
         return $domain;
+    }
+
+}
+
+
+class DomainClause {
+    public $conditions;
+
+    public function __construct($conditions = []) {
+        if(!is_array($conditions) || count($conditions) == 0) {
+            $this->conditions = [];
+        }
+        else {
+            $this->conditions = $conditions;
+        }
+    }
+
+    public function addCondition($condition) {
+        $this->conditions[] = $condition;
+    }
+
+    public function getConditions() {
+        return $this->conditions;
+    }
+
+    public function toArray() {
+        $clause = [];
+        foreach($this->conditions as $condition) {
+            $clause[] = $condition->toArray();
+        }
+        return $clause;
+    }
+}
+
+class DomainCondition {
+    public $operand;
+    public $operator;
+    public $value;
+
+    public function __construct($operand, $operator, $value) {
+        $this->operand = $operand;
+        $this->operator = $operator;
+        $this->value = $value;
+    }
+
+    public function toArray() {
+        $condition = [];
+        $condition[] = $this->operand;
+        $condition[] = $this->operator;
+        $condition[] = $this->value;
+        return $condition;
+    }
+
+    public function getOperand() {
+        return $this->operand;
+    }
+
+    public function getOperator() {
+        return $this->operator;
+    }
+
+    public function getValue() {
+        return $this->value;
     }
 
 }
