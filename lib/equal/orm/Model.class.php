@@ -54,11 +54,11 @@ class Model {
         // set array holding fields names
         $this->fields = array_keys($this->schema);
         
-        // set fields to default values, if any
-        $this->setDefaults();
+        // set fields to default values
+        $this->setDefaults($orm);
     }
 
-    private final function setDefaults() {
+    private final function setDefaults($orm) {
         $this->values = [];
 
         $defaults = $this->getDefaults();
