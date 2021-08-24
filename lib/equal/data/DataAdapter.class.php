@@ -26,8 +26,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     if(in_array($value, ['TRUE', 'true', '1', 1, true], true)) return true;
-                                    else if(in_array($value, ['FALSE', 'false', '0', '', 0, false], true)) return false;
-                                    return $value;
+                                    return false;
                                 }
                 ],
                 'sql' => [
@@ -55,6 +54,9 @@ class DataAdapter extends Service {
                                     // arg represents a numeric value (numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = intval($value);
+                                    }
+                                    else {
+                                        $value = 0;
                                     }
                                     return $value;
                                 }
