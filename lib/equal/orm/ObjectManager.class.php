@@ -221,7 +221,7 @@ class ObjectManager extends Service {
             }
         }
         if(!isset($this->instances[$class])) {
-            $this->instances[$class] = new $class();
+            $this->instances[$class] = new $class($this);
         }
         return $this->instances[$class];
     }
@@ -1247,7 +1247,7 @@ class ObjectManager extends Service {
      * @param   string  $class              object class
      * @param   array   $ids                ids of the objects to remove
      * @param   boolean $permanent          flag for soft (marked as deleted) or hard deletion (removed from DB)
-     * @return  mixed   (integer or array)  error code OR resulting associative array
+     * @return  mixed   (integer or array)  error code OR array of ids of deleted objects
      */
     public function remove($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
@@ -1293,9 +1293,9 @@ class ObjectManager extends Service {
                             }
                             break;
                         case 'one2many':
-                            $res = $this->read($class, $ids, $field);
+                            $rel_res = $this->read($class, $ids, $field);
                             $rel_ids = [];
-                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $res);
+                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
                             if(isset($def['foreign_object'])) {
                                 // foreign field is many2one
                                 $rel_schema = $this->getObjectSchema($def['foreign_object']);

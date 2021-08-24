@@ -31,7 +31,7 @@ class Model {
      *
      * @access public
      */
-    public final function __construct() {
+    public final function __construct($orm) {
         // schema is the concatenation of spcecial-columns and custom-defined columns
         $this->schema = self::getSpecialColumns();
         
@@ -66,7 +66,7 @@ class Model {
         foreach($defaults as $field => $default) {
             if(isset($this->schema[$field])) {
                 if(is_callable($default)) {
-                    $this->values[$field] = call_user_func($default);
+                    $this->values[$field] = call_user_func($default, $orm);
                 }
                 else {
                     $this->values[$field] = $default;
