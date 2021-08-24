@@ -26,6 +26,16 @@ list($params, $providers) = announce([
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string', 
             'default'       => DEFAULT_LANG
+        ],
+        'order' => [
+            'description'   => 'Column to use for sorting results.',
+            'type'          => 'string',
+            'default'       => 'id'
+        ],
+        'sort' => [
+            'description'   => 'The direction  (i.e. \'asc\' or \'desc\').',
+            'type'          => 'string',
+            'default'       => 'asc'
         ]
     ],
     'response'      => [
@@ -60,11 +70,14 @@ foreach($params['fields'] as $field) {
     }
 }
 
-$result = $params['entity']::ids($params['ids'])
-            ->read($fields, $params['lang'])
-            ->adapt('txt')
-            // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
-            ->get(true);
+// get the sorted collection
+$collection = $params['entity']::search(['id', 'in', $params['ids']], [ 'sort' => [ $params['order'] => $params['sort'] ] ]);
+
+$result = $collection
+          ->read($fields, $params['lang'])
+          ->adapt('txt')
+          // return result as an array (JSON objects handled by ES2015+ might have their keys order altered)
+          ->get(true);
 
 $context->httpResponse()
         ->body($result)
