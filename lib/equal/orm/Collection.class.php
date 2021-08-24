@@ -12,7 +12,7 @@ class Collection implements \Iterator {
 
     /* ObjectManager */
     private $orm;
-    
+
     /* AccessController */
     private $ac;
 
@@ -25,18 +25,18 @@ class Collection implements \Iterator {
     /* Logger */
     private $logger;
 
-    
+
     /* target class */
     private $class;
-    
+
     private $instance;
-  
-    /* map associating objects with their values with identifiers as keys */  
+
+    /* map associating objects with their values with identifiers as keys */
     private $objects;
-    
-    
+
+
     private $cursor;
-    
+
     /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit)*/
     private $limit;
 
@@ -44,23 +44,23 @@ class Collection implements \Iterator {
      *
      * This method makes valid 'is_callable' tests on any static method name (i.e. 'entry' calls, e.g. ::search, ::ids, ::id, ...)
      */
-    public static function __callStatic($name, $arguments) {}       
-    
+    public static function __callStatic($name, $arguments) {}
+
     public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
         // init objects map
         $this->objects = [];
         $this->cursor = 0;
-        // assign private members 
-        $this->class = $class;        
+        // assign private members
+        $this->class = $class;
         $this->orm = $objectManager;
         $this->ac = $accessController;
         $this->am = $authenticationManager;
         $this->adapter = $dataAdapter;
-        $this->logger = $logger;        
+        $this->logger = $logger;
         // check mandatory services
         if(!$this->orm || !$this->ac) {
             throw new \Exception(__CLASS__, QN_ERROR_UNKNOWN);
-        }                
+        }
         // retrieve static instance for target class
         $this->instance = $this->orm->getStatic($class);
         if($this->instance === false) {
@@ -69,7 +69,7 @@ class Collection implements \Iterator {
         // default to unlimited page size
         $this->limit(0);
     }
-    
+
     public function extend($column, $description) {
         $this->instance->setColumn($column, $description);
     }
@@ -77,32 +77,32 @@ class Collection implements \Iterator {
     public function set($fields) {
         $fields = (array) $fields;
         foreach($this->objects as $id => $object) {
-            foreach($fields as $field => $value) {            
+            foreach($fields as $field => $value) {
                 $this->objects[$id][$field] = $value;
             }
         }
         return $this;
     }
-    
+
     public function rewind() {
         reset($this->objects);
     }
-  
+
     public function current() {
         return current($this->objects);
     }
-  
+
     public function key() {
         return key($this->objects);
     }
-  
+
     public function next() {
         return next($this->objects);
     }
-  
+
     public function valid() {
         $key = key($this->objects);
-        $res = ($key !== NULL && $key !== FALSE);        
+        $res = ($key !== NULL && $key !== FALSE);
         return $res;
     }
 
@@ -124,7 +124,7 @@ class Collection implements \Iterator {
         $args = func_get_args();
         if(count($args) < 1) {
             return $this->limit;
-        }        
+        }
         else if($args[0] > 0) {
             $this->limit = $args[0];
             if($this->limit && $this->limit < count($this->objects)) {
@@ -133,7 +133,7 @@ class Collection implements \Iterator {
         }
         return $this;
     }
-    
+
     /**
      *  Shift out the n first objects of the collection
      *
@@ -147,38 +147,38 @@ class Collection implements \Iterator {
                 $this->objects = [];
             }
         }
-        return $this;            
-    } 
-    
+        return $this;
+    }
+
     /**
      *  Return the first object of the collection
      *
-     */    
+     */
     public function first() {
         $this->objects = array_slice($this->objects, 0, 1, true);
         $res = $this->toArray();
         return count($res)?$res[0]:null;
         // return reset($this->objects);
     }
-    
+
     /**
      *  Return the last object of the collection
      *
-     */    
+     */
     public function last() {
         $this->objects = array_slice($this->objects, -1, 1, true);
         $res = $this->toArray();
-        return $res[0];        
+        return $res[0];
         //  return end($this->objects);
     }
-    
+
     /**
      * Provide the whole collection as a map of [id => value, ...] (default) or as an array
      *
      * @param   $to_array   boolean    Flag to ask conversion to single array (instead of a map)
      * @return  array       Associative array mapping objects identifiers with their related maps of fields/values
      *
-     */    
+     */
     public function get($to_array=false) {
         // retrieve current objects map
         $result = [];
@@ -198,16 +198,16 @@ class Collection implements \Iterator {
                     $result[$id][$field] = $value;
                 }
             }
-        }        
+        }
         // if user requested an array of objects instead of a map
         if($to_array) {
             // create an array out of the values, ignoring keys
             $result = array_values($result);
-        }        
+        }
         return $result;
     }
-    
-    
+
+
     public function toArray() {
         return $this->get(true);
     }
@@ -218,7 +218,7 @@ class Collection implements \Iterator {
     public function id($id) {
         return $this->ids([$id]);
     }
-    
+
     /**
      * @param array optional if given, sets current objects array, if not returns current ids
      *
@@ -229,22 +229,22 @@ class Collection implements \Iterator {
             return array_keys($this->objects);
         }
         else {
-            $ids = array_unique((array) $args[0]);            
-            // filter resulting ids based on current user permissions 
-            // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)            
-/*            
+            $ids = array_unique((array) $args[0]);
+            // filter resulting ids based on current user permissions
+            // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)
+/*
             foreach($ids as $i => $id) {
                 if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
                     unset($ids[$i]);
                 }
             }
-*/            
+*/
             // init keys of 'objects' member (resulting in a map with keys but no values)
             $this->objects = array_fill_keys($ids, []);
         }
         return $this;
     }
-    
+
     /**
      * Filters a map of fields-values entries or an array of fields names and disguard those unknonwn to the current class
      *
@@ -256,7 +256,7 @@ class Collection implements \Iterator {
         if(count($fields)) {
             // retreve valid fields
             $allowed_fields = $this->instance->getFields();
-            // filter $fields argument based on its structure 
+            // filter $fields argument based on its structure
             // (either a list of fields to read, or a map of fields and their values for writing)
             if(!is_numeric(key($fields))) {
                 $result = array_intersect_key($fields, array_flip($allowed_fields));
@@ -272,8 +272,8 @@ class Collection implements \Iterator {
      * Convert values to specified context (txt, php, sql, orm) based on their type
      *
      * @param $to       string  might be a map associating fields with their values, or a map association ids with objects
-     *     
-     * @return object   current instance  
+     *
+     * @return object   current instance
      */
     public function adapt($to='txt') {
         $schema = $this->instance->getSchema();
@@ -285,26 +285,26 @@ class Collection implements \Iterator {
                 else {
                     $this->objects[$id][$field] = $this->adapter->adapt($value, $schema[$field]['type'], $to, 'php');
                 }
-            }            
+            }
         }
         return $this;
     }
-    
+
     /**
      *
-     * @param $fields   array   associative array holding values and their related fields as keys 
+     * @param $fields   array   associative array holding values and their related fields as keys
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
     private function validate(array $fields, $ids=[], $check_unique=false, $check_required=false) {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
-// todo : harmonize error codes                
+// todo : harmonize error codes
                 throw new \Exception(serialize($error_descr), $error_code);
             }
         }
     }
-    
+
     public function grant($users_ids, $operation, $fields=[]) {
         // retrieve targeted identifiers
         $ids = array_keys($this->objects);
@@ -314,9 +314,9 @@ class Collection implements \Iterator {
             throw new \Exception('MANAGE,'.$this->class, QN_ERROR_NOT_ALLOWED);
         }
         $this->ac->grantUsers($users_ids, $operation, $this->class, $fields, $ids);
-        return $this;        
+        return $this;
     }
-    
+
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         $defaults = [
             'sort'  => ['id' => 'asc']
@@ -327,35 +327,36 @@ class Collection implements \Iterator {
         // 1) sanitize and validate given domain
         if(!empty($domain)) {
             $domain = Domain::normalize($domain);
-            if(!Domain::validate($domain, $this->instance->getSchema())) {
-                throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);            
-            }    
+            $schema = $this->instance->getSchema();
+            if(!Domain::validate($domain, $schema)) {
+                throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);
+            }
         }
 
         // 2) check that current user has enough privilege to perform READ operation on given class
-// toto : extract fields names from domain, and make sure user has R_READ access on those        
+// #todo : extract fields names from domain, and make sure user has R_READ access on those
         if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
             // user has always READ access to its own objects
-			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {		
+			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {
                 // no READ nor CREATE permission: deny request
 				throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
 			}
             else {
                 // user has CREATE access and might have created some objects: limit search to those, if any
-                $domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);                
+                $domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);
             }
         }
-		
+
         // 3) perform search
         // we don't use the start and limit arguments here because the final result set depends on permissions
         $ids = $this->orm->search($this->class, $domain, $params['sort'], 0, 0, $lang);
         // $ids is an error code
-        if($ids < 0) {           
+        if($ids < 0) {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
             // init keys of 'objects' member (so far, it is an empty array)
-            // filter results using access controller... (reduce resulting ids based on access rights)            
+            // filter results using access controller... (reduce resulting ids based on access rights)
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
             $this->ids($ids);
         }
@@ -374,12 +375,12 @@ class Collection implements \Iterator {
      *
      */
     public function clone($lang=DEFAULT_LANG) {
-        
+
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
 
         $schema = $this->instance->getSchema();
-            
+
         // get full list of available fields
         $fields = array_keys($schema);
 
@@ -398,7 +399,7 @@ class Collection implements \Iterator {
 
             // make unique fields complying with related constraints
             foreach($uniques as $unique) {
-                $domain = [];        
+                $domain = [];
                 foreach($unique as $field) {
                     if(!isset($original[$field])) {
                         continue 2;
@@ -409,7 +410,7 @@ class Collection implements \Iterator {
 
                 if(count($duplicate_ids)) {
                     foreach($unique as $field) {
-// #todo - when renaming, we should favor name field if defined                        
+// #todo - when renaming, we should favor name field if defined
                         if(in_array($schema[$field]['type'], ['string', 'text'])) {
                             $original[$field] = 'copy - '.$original[$field];
                         }
@@ -418,7 +419,7 @@ class Collection implements \Iterator {
                             unset($original[$field]);
                         }
                         break;
-                    }                    
+                    }
                 }
             }
 
@@ -429,7 +430,7 @@ class Collection implements \Iterator {
             $this->validate($original, [], true);
 
             // create the clone
-            $oid = $this->orm->clone($this->class, $id, $original, $lang);        
+            $oid = $this->orm->clone($this->class, $id, $original, $lang);
             if($oid <= 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
             }
@@ -448,19 +449,19 @@ class Collection implements \Iterator {
      *
      * @param $values   array   list mapping fields and values
      * @param $lang     string  language for multilang fields
-     * 
+     *
      * @return  object  current Collection
      * @example $newObject = MyClass::create();
      *
      */
     public function create(array $values=null, $lang=DEFAULT_LANG) {
-        
+
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
         // silently drop invalid fields
         $values = $this->filter($values);
         // retrieve targeted fields names
-        $fields = array_keys($values);        
+        $fields = array_keys($values);
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
@@ -476,15 +477,15 @@ class Collection implements \Iterator {
         $values = array_merge($values, ['creator' => $user_id]);
 
         // 4) create the new object
-        $oid = $this->orm->create($this->class, $values, $lang);        
+        $oid = $this->orm->create($this->class, $values, $lang);
         if($oid <= 0) {
             throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
         }
 
         // log action (if enabled)
         $this->logger->log($user_id, 'create', $this->class, $oid);
-        
-        // make sure the assigned id is present in the loaded object        
+
+        // make sure the assigned id is present in the loaded object
         $values['id'] = $oid;
 
         // store new object in current collection
@@ -492,10 +493,10 @@ class Collection implements \Iterator {
 
         return $this;
     }
-    
+
     /**
      * When $field argument is empty, only `id` and `name` fields are loaded.
-     * 
+     *
      * @param $fields
      * @param $lang
      */
@@ -503,14 +504,14 @@ class Collection implements \Iterator {
 
         if(count($this->objects)) {
             // force argument into an array (single field name is accepted, empty array is accepted: load all fields)
-            $fields = (array) $fields;            
+            $fields = (array) $fields;
 
             $schema = $this->instance->getSchema();
-            
+
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
 
-            // build a list of direct field to load (i.e. "object attributes") 
+            // build a list of direct field to load (i.e. "object attributes")
             // 'id': we might access an object directly by giving its `id`.
             // 'name': as a convention the name is always provided.
             // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
@@ -522,7 +523,7 @@ class Collection implements \Iterator {
             $relational_fields = [];
 
             foreach($fields as $key => $val ) {
-                // handle array notation                
+                // handle array notation
                 $field = (!is_numeric($key))?$key:$val;
                 // check fields validity (and silently drop invalid fields)
                 if(!in_array($field, $allowed_fields)) {
@@ -537,7 +538,7 @@ class Collection implements \Iterator {
                         $relational_fields[$key] = $val;
                     }
                 }
-            }            
+            }
 
             // retrieve targeted identifiers (remove null entries)
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
@@ -546,13 +547,13 @@ class Collection implements \Iterator {
 			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
                 throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
             }
-            
+
             // 3) read values
             $res = $this->orm->read($this->class, $ids, $requested_fields, $lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
-            }            
+            }
 
             // 4) remove deleted items, if `deleted` field was not explicitely requested
             if(!in_array('deleted', $fields)) {
@@ -569,7 +570,7 @@ class Collection implements \Iterator {
             }
 
             // 5) recursively load sub-fields, if any
-            $this->objects = $res;            
+            $this->objects = $res;
             foreach($relational_fields as $field => $subfields) {
                 // load batches of sub-objects grouped by field
                 $ids = [];
@@ -580,14 +581,14 @@ class Collection implements \Iterator {
                 $objects = $target['foreign_object']::ids($ids)->read($subfields, $lang)->get();
                 // assign retrieved values to the objects they're related to
                 foreach($this->objects as $id => $object) {
-                    $this->objects[$id][$field] = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);                    
+                    $this->objects[$id][$field] = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
                 }
             }
-            
+
         }
         return $this;
     }
-    
+
     /**
      *
      * @return  Collection  returns the current instance (allowing calls chaining)
@@ -596,7 +597,7 @@ class Collection implements \Iterator {
      */
     public function update(array $values, $lang=DEFAULT_LANG) {
         if(count($this->objects)) {
-            
+
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
@@ -605,7 +606,7 @@ class Collection implements \Iterator {
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
             // retrieve targeted fields names
             $fields = array_keys($values);
-            
+
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
@@ -613,10 +614,10 @@ class Collection implements \Iterator {
 
             // if object is not yet an instance, check required fields (otherwise, we allow partial update)
             $check_required = (isset($values['state']) && $values['state'] == 'draft')?true:false;
-            
+
             // 3) validate : check unique keys and required fields
             $this->validate($values, $ids, true, $check_required);
-                        
+
             // 4) write
             // by convention, update operation always sets object state as 'instance' and modifier as current user
             $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
@@ -637,10 +638,10 @@ class Collection implements \Iterator {
         }
         return $this;
     }
-    
+
     public function delete($permanent=false) {
         if(count($this->objects)) {
-            
+
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // retrieve targeted identifiers
