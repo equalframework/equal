@@ -190,7 +190,7 @@ class DataAdapter extends Service {
                                                 $current = '';
                                                 $res = $to_array($sub);
                                                 if(strlen($current_key)){
-                                                    $result[$current_key] = $res;
+                                                    $result[trim($current_key)] = $res;
                                                 }
                                                 else {
                                                     $result[] = $res;
@@ -207,7 +207,7 @@ class DataAdapter extends Service {
                                             if($c == ',') {
                                                 if(strlen($current)) {
                                                     if(strlen($current_key)) {
-                                                        $result[$current_key] = $current;
+                                                        $result[trim($current_key)] = $current;
                                                     }
                                                     else {
                                                         $result[] = $current;    
@@ -217,14 +217,14 @@ class DataAdapter extends Service {
                                                 $current = '';
                                                 continue;
                                             }
-                                            if($c == '"' || $c == ' ') {
+                                            if($c == '"') {
                                                 continue;
                                             }
                                             $current .= $c;
                                         }
                                         if( strlen($current)) {
                                             if(strlen($current_key)) {
-                                            $result[$current_key] = $current;
+                                                $result[trim($current_key)] = $current;
                                             }
                                             else {
                                                 $result[] = $current;
