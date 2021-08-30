@@ -31,7 +31,7 @@ class Model {
      *
      * @access public
      */
-    public final function __construct($orm) {
+    public final function __construct($orm, $values=[]) {
         // schema is the concatenation of spcecial-columns and custom-defined columns
         $this->schema = self::getSpecialColumns();
         
@@ -55,10 +55,10 @@ class Model {
         $this->fields = array_keys($this->schema);
         
         // set fields to default values
-        $this->setDefaults($orm);
+        $this->setDefaults($orm, $values);
     }
 
-    private final function setDefaults($orm) {
+    private final function setDefaults($orm, $values=[]) {
         $this->values = [];
 
         $defaults = $this->getDefaults();
@@ -66,7 +66,7 @@ class Model {
         foreach($defaults as $field => $default) {
             if(isset($this->schema[$field])) {
                 if(is_callable($default)) {
-                    $this->values[$field] = call_user_func($default, $orm);
+                    $this->values[$field] = call_user_func($default, $orm, $values);
                 }
                 else {
                     $this->values[$field] = $default;

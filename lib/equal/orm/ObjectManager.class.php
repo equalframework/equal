@@ -193,7 +193,7 @@ class ObjectManager extends Service {
      * @param string $class
      * @throws Exception
      */
-    private function &getStaticInstance($class) {
+    private function &getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
         if(!class_exists($class)) {
             // first, read the file to see if the class extends from another (which could not be loaded yet)
@@ -221,7 +221,7 @@ class ObjectManager extends Service {
             }
         }
         if(!isset($this->instances[$class])) {
-            $this->instances[$class] = new $class($this);
+            $this->instances[$class] = new $class($this, $fields);
         }
         return $this->instances[$class];
     }
@@ -926,7 +926,7 @@ class ObjectManager extends Service {
         $db = $this->getDBHandler();
 
         try {
-            $object = &$this->getStaticInstance($class);
+            $object = &$this->getStaticInstance($class, $fields);
 
             $object_table = $this->getObjectTableName($class);
 
@@ -1093,7 +1093,7 @@ class ObjectManager extends Service {
      * @param   string  $lang	        language under which return fields values (only relevant for multilang fields)
      * @return  mixed   (int or array)  error code OR resulting associative array
      */
-    public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
+    public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {        
         $res = [];
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
@@ -1141,46 +1141,47 @@ class ObjectManager extends Service {
             }
 
             // 3) check among requested fields wich ones are not yet present in the internal buffer
-
-            // if internal buffer is empty, query the DB to load all fields from requested objects
-            if(empty($this->cache) || !isset($this->cache[$class])) {
-                $this->load($class, $ids, $requested_fields, $lang);
-            }
-            // check if all objects are fully loaded
-            else {
-                // build the missing fields array by increment
-                // we need the 'broadest' fields array to be loaded to minimize # of SQL queries
-                $fields_missing = array();
-                foreach($requested_fields as $key => $field) {
-                    foreach($ids as $oid) {
-                        if(!isset($this->cache[$class][$oid][$lang][$field])) {
-                            $fields_missing[] = $field;
-                            break;
+            if(count($requested_fields)) {
+                // if internal buffer is empty, query the DB to load all fields from requested objects
+                if(empty($this->cache) || !isset($this->cache[$class])) {
+                    $this->load($class, $ids, $requested_fields, $lang);
+                }
+                // check if all objects are fully loaded
+                else {
+                    // build the missing fields array by increment
+                    // we need the 'broadest' fields array to be loaded to minimize # of SQL queries
+                    $fields_missing = array();
+                    foreach($requested_fields as $key => $field) {
+                        foreach($ids as $oid) {
+                            if(!isset($this->cache[$class][$oid][$lang][$field])) {
+                                $fields_missing[] = $field;
+                                break;
+                            }
                         }
                     }
-                }
-                if(!empty($fields_missing)) {
-                    $this->load($class, $ids, $fields_missing, $lang);
-                }
-            }
-
-            // 4) build result by reading from internal buffer
-            foreach($ids as $oid) {
-                if(!isset($this->cache[$class][$oid]) || empty($this->cache[$class][$oid])) {
-                    trigger_error("unknown or empty object $class($oid)", E_USER_WARNING);
-                    continue;
-                }
-                // init result for given id, if missing
-                if(!isset($res[$oid])) $res[$oid] = array();
-                // first pass : retrieve fields values
-                foreach($fields as $key => $field) {
-                    // handle aliases
-                    $target_field = $field;
-                    while($schema[$target_field]['type'] == 'alias') {
-                        $target_field = $schema[$target_field]['alias'];
+                    if(!empty($fields_missing)) {
+                        $this->load($class, $ids, $fields_missing, $lang);
                     }
-                    // use final notation
-                    $res[$oid][$field] = $this->cache[$class][$oid][$lang][$target_field];
+                }
+
+                // 4) build result by reading from internal buffer
+                foreach($ids as $oid) {
+                    if(!isset($this->cache[$class][$oid]) || empty($this->cache[$class][$oid])) {
+                        trigger_error("unknown or empty object $class($oid)", E_USER_WARNING);
+                        continue;
+                    }
+                    // init result for given id, if missing
+                    if(!isset($res[$oid])) $res[$oid] = array();
+                    // first pass : retrieve fields values
+                    foreach($fields as $key => $field) {
+                        // handle aliases
+                        $target_field = $field;
+                        while($schema[$target_field]['type'] == 'alias') {
+                            $target_field = $schema[$target_field]['alias'];
+                        }
+                        // use final notation
+                        $res[$oid][$field] = $this->cache[$class][$oid][$lang][$target_field];
+                    }
                 }
             }
 
