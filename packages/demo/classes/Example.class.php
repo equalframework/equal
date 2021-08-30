@@ -20,7 +20,7 @@ class Example extends Model {
             ],
             'date_1' => [
                 'type'          => 'date',
-                'default'       => function() { return date("Y-m-d"); }
+                'default'       => function($orm, $values) { return date("Y-m-d"); }
             ],
             'date_2' => [
                 'type'          => 'date',
