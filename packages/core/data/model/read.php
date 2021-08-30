@@ -59,10 +59,15 @@ foreach($params['fields'] as $field) {
     // dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
-        if(!isset($fields[$parts[0]])) {
-            $fields[$parts[0]] = [];
+        $target = &$fields;        
+        while(count($parts) > 1) {
+            $field = array_shift($parts);
+            if(!isset($target[$field])) {
+                $target[$field] = [];
+            }
+            $target = &$target[$field];
         }
-        $fields[$parts[0]][] = $parts[1];
+        $target[] = array_shift($parts);
     }
     // regular field name
     else {
