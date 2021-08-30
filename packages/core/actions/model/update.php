@@ -47,6 +47,7 @@ list($params, $providers) = announce([
 ]);
 
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+$result = [];
 
 if( empty($params['ids']) ) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
@@ -62,47 +63,53 @@ if(!$model) {
 
 // adapt received values for parameter 'fields' (which are still text formated)
 $schema = $model->getSchema();
-foreach($params['fields'] as $field => $value) {
+// remove unknown fields
+$fields = array_filter($params['fields'], function($field) use ($schema){
+    return isset($schema[$field]);
+}, ARRAY_FILTER_USE_KEY);
+
+foreach($fields as $field => $value) {
     // drop empty fields, ignore status
     if(is_null($value)) {
-        unset($params['fields'][$field]);
+        unset($fields[$field]);
     }
     else {
         // adapt received values based on their type (as defined in schema)
-        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
+        $fields[$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
 }
 
+if(count($fields)) {
+    // if we're updating a single object, enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
+    if( count($params['ids']) == 1) {
+        // handle draft edition
+        if(isset($fields['state']) && $fields['state'] == 'draft') {
+            $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
+            // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
+            if($object['state'] != 'draft') {
+    // #todo - if object has some 'required' fields, we need to clone these to avoid a missing_mandatory error
+                unset($fields['id']);
+                $instance = $params['entity']::create($fields, $params['lang'])->read(['id'])->adapt('txt')->first();
+                $params['ids'] = [$instance['id']];
+            }
+        }
+        // handle instances edition
+        else if(isset($fields['modified']) ) {
+            $object = $params['entity']::ids($params['ids'])->read(['modified'])->first();
+            // a changed occured in the meantime
+            if($object['modified'] != $fields['modified'] && !$params['force']) {
+                throw new Exception("concurrent_change", QN_ERROR_CONFLICT_OBJECT);
+            }
+        }
+    }
 
-// if we're updating a single object, enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
-if( count($params['ids']) == 1) {
-    // handle draft edition
-    if(isset($params['fields']['state']) && $params['fields']['state'] == 'draft') {
-        $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
-        // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
-        if($object['state'] != 'draft') {
-// #todo - if object has some 'required' fields, we need to clone these to avoid a missing_mandatory error
-            unset($params['fields']['id']);
-            $instance = $params['entity']::create($params['fields'], $params['lang'])->read(['id'])->adapt('txt')->first();
-            $params['ids'] = [$instance['id']];
-        }
-    }
-    // handle instances edition
-    else if(isset($params['fields']['modified']) ) {
-        $object = $params['entity']::ids($params['ids'])->read(['modified'])->first();
-        // a changed occured in the meantime
-        if($object['modified'] != $params['fields']['modified'] && !$params['force']) {
-            throw new Exception("concurrent_change", QN_ERROR_CONFLICT_OBJECT);
-        }
-    }
+    $result = $params['entity']::ids($params['ids'])
+                            // update with received values (with validation - submit `state` if received)
+                            ->update($fields, $params['lang'])
+                            ->read(['id', 'state', 'modified'])
+                            ->adapt('txt')
+                            ->get(true);
 }
-
-$result = $params['entity']::ids($params['ids'])
-                           // update with received values (with validation - submit `state` if received)
-                           ->update($params['fields'], $params['lang'])
-                           ->read(['id', 'state', 'modified'])
-                           ->adapt('txt')
-                           ->get(true);
 
 $context->httpResponse()
         ->status(200)
