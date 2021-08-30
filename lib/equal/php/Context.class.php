@@ -408,7 +408,7 @@ class Context extends Service {
             if($max > 0) {
                 $raw = file_get_contents('php://input', false, null, 0, $max+1);
                 if(strlen($raw) > $max) {
-                    throw new \Exception("received data exceed maximum available size", QN_ERROR_NOT_ALLOWED);
+                    throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
                 }
                 // further processing is handled in HttpMessage::setBody, according to the Content-Type
                 $body = $raw;
