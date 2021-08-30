@@ -167,6 +167,7 @@ class DataAdapter extends Service {
 
                                         for($i = 0, $n = strlen($value); $i < $n; ++$i) {
                                             $c = substr($value, $i, 1);
+                                            // handle array notation
                                             if($c == '[') {
                                                 $pos = $find_closing_bracket($value, $i);
                                                 if($pos === false ) {
@@ -180,6 +181,7 @@ class DataAdapter extends Service {
                                                 $i = $pos;
                                                 continue;
                                             }
+                                            // handle sub-object notation
                                             if($c == '{') {
                                                 $pos = $find_closing_bracket($value, $i, '{', '}');
                                                 if($pos === false ) {
@@ -199,11 +201,13 @@ class DataAdapter extends Service {
                                                 $i = $pos;
                                                 continue;
                                             }
+                                            // handle map attribute assignment
                                             if($c == ':') {
                                                 $current_key = $current;
                                                 $current = '';
                                                 continue;
                                             }
+                                            // handle separator (next value or next attribute)
                                             if($c == ',') {
                                                 if(strlen($current)) {
                                                     if(strlen($current_key)) {
@@ -217,12 +221,17 @@ class DataAdapter extends Service {
                                                 $current = '';
                                                 continue;
                                             }
+                                            // handle double quote notation: keys and values delimited by double-quotes
                                             if($c == '"') {
+                                                $pos = strpos($value, '"', $i+1);
+                                                $sub = substr($value, $i+1, $pos-$i-1);
+                                                $current .= $sub;
+                                                $i = $pos;
                                                 continue;
                                             }
                                             $current .= $c;
                                         }
-                                        if( strlen($current)) {
+                                        if(strlen($current)) {
                                             if(strlen($current_key)) {
                                                 $result[trim($current_key)] = $current;
                                             }
@@ -319,7 +328,7 @@ class DataAdapter extends Service {
                         */
                         if(!is_array($value)) {
                             // @see RFC2397 (data:[<mediatype>][;base64],<data>)
-                            $value = str_replace(' ', '+', substr($value, strpos($value,',')+1) );
+                            $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1) );
                             $res = base64_decode($value);
                         }
                         else {
@@ -365,7 +374,7 @@ class DataAdapter extends Service {
                         }
                         list($value, $class, $oid, $field, $lang) = func_get_args();
 
-                        if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
+                        if(strlen($value) > UPLOAD_MAX_FILE_SIZE) {
                             throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                         }
 
@@ -387,9 +396,8 @@ class DataAdapter extends Service {
                             }
 
                             if (!is_dir($storage_location)) {
-                                throw new \Exception("unable to store file (check FS permissions)", QN_ERROR_INVALID_CONFIG);
+                                throw new \Exception("fs_dir_create_error", QN_ERROR_INVALID_CONFIG);
                             }
-
                             // note: existing file will be overwritten
                             file_put_contents($storage_location.'/'.$file, $value);
 
@@ -495,7 +503,7 @@ class DataAdapter extends Service {
             $method = &self::getMethod($from, $to, $type);
         }
 
-        return call_user_func_array( $method , array_merge([$value], $extra) );
+        return call_user_func_array( $method, array_merge([$value], $extra) );
 	}
 
 }
