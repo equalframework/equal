@@ -1111,6 +1111,8 @@ class ObjectManager extends Service {
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
+            // init resulting array
+            foreach($ids as $oid) $res[$oid] = [];
 
             // 2) check $fields arg validity
 
