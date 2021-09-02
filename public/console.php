@@ -151,6 +151,8 @@ if(!file_exists(QN_LOG_FILE)) die('no log found');
 $log = file_get_contents(QN_LOG_FILE);
 // extract content to an array or rows
 $lines = explode(PHP_EOL, $log);
+// workaround to make sure threads ids are in a sequence (which is not the cas with concurrent processes)
+sort($lines);
 // count lines
 $len = count($lines);
 //get the last line
