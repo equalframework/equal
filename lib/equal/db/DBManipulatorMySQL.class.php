@@ -137,7 +137,8 @@ class DBManipulatorMySQL extends DBManipulator {
 	private function escapeString($value) {
 		$result = '';
         if(gettype($value) == 'string' && strlen($value) == 0) $result = "''";
-        else if(gettype($value) == 'integer') $result = $value;
+        else if(in_array(gettype($value), ['integer', 'double'])) $result = $value;
+		else if(gettype($value) == 'boolean') $result = ($value)?'1':'0';
         else if(is_null($value)) $result = 'NULL';
         else {
             $value = (string) $value;
