@@ -55,7 +55,7 @@ class ObjectManager extends Service {
         'file'  		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
         'binary'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
         'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
-        'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'order', 'sort'),
+        'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
         'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
         'computed'		=> array('description', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
     );
@@ -426,20 +426,26 @@ class ObjectManager extends Service {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
                     $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
+                    $domain = [
+                        [
+                            [$schema[$field]['foreign_field'], 'in', $ids],
+                            ['state', '=', 'instance'],
+                            ['deleted', '=', '0'],
+                        ]
+                    ];
 // #todo : handle alias fields (require subsequent schema)
-// #todo : add support for domain, when present (merge with conditions below)
+                    // merge domain with additional domain clauses, if any
+                    if(isset($schema[$field]['domain'])) {
+                        $domain_tmp = new Domain($domain);
+                        $domain_tmp->merge(new Domain($schema[$field]['domain']));
+                        $domain = $domain_tmp->toArray();
+                    }
                     // obtain the ids by searching inside the foreign object's table
                     $result = $om->db->getRecords(
                         $om->getObjectTableName($schema[$field]['foreign_object']),
                         array('id', $schema[$field]['foreign_field'], $order),
                         NULL,
-                         [
-                            [
-                                [$schema[$field]['foreign_field'], 'in', $ids],
-                                ['state', '=', 'instance'],
-                                ['deleted', '=', '0'],
-                            ]
-                        ],
+                        $domain,
                         'id',
                         [$order => $sort]
                     );
@@ -599,11 +605,16 @@ class ObjectManager extends Service {
                     $fields_values = array();
                     foreach($fields as $field) {
                         $type = $schema[$field]['type'];
-                        // support computed fields (handled as simple fields)
-                        if($type == 'computed') {
-                            $type = $schema[$field]['result_type'];
+                        $value = $om->cache[$class][$oid][$lang][$field];
+                        // adapt values except for NULL of computed fields (marked as to be re-computed)
+                        if(!is_null($om->cache[$class][$oid][$lang][$field]) || $type != 'computed') {
+                            // support computed fields (handled as simple fields according to result type)
+                            if($type == 'computed') {
+                                $type = $schema[$field]['result_type'];
+                            }    
+                           $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
                         }
-                        $fields_values[$field] = $this->container->get('adapt')->adapt($om->cache[$class][$oid][$lang][$field], $type, 'sql', 'php', $class, $oid, $field, $lang);
+                        $fields_values[$field] = $value;
                     }
                     $om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
                 }
@@ -622,7 +633,28 @@ class ObjectManager extends Service {
                         }
                         $foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
                         // remove relation by setting pointing id to 0
-                        if(count($ids_to_remove)) $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+                        if(count($ids_to_remove)) {
+                            if(isset($schema[$field]['ondetach'])) {
+                                $ondetach = $schema[$field]['ondetach'];
+                                if(is_callable($ondetach)) {
+                                    call_user_func($ondetach, $this, $ids);
+                                }
+                                else {
+                                    switch($ondetach) {
+                                        case 'delete':
+                                            $this->remove($schema[$field]['foreign_object'], $ids_to_remove, true);
+                                            break;
+                                        case 'null':
+                                        default:                                            
+                                            $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+                                            break;
+                                    }
+                                }
+                            }
+                            else {
+                                $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+                            }
+                        }                        
                         // add relation by setting the pointing id (overwrite previous value if any)
                         if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
                         // invalidate cache (field partially loaded)
@@ -1029,11 +1061,10 @@ class ObjectManager extends Service {
 
             // 2) check $fields arg validity
 
-            // remove unknown fields
-            $allowed_fields = $object->getFields();
             // prevent updating id field (reserved)
             if(isset($fields['id'])) unset($fields['id']);
-
+            // remove unknown fields
+            $allowed_fields = $object->getFields();
             foreach($fields as $field => $values) {
                 // remove fields not defined in related schema
                 if(!in_array($field, $allowed_fields)) {
