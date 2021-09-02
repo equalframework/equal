@@ -57,6 +57,7 @@ class Domain {
             }
             $this->addClause($clause);
         }
+        return $this;
     }
 
     public function toArray() {
@@ -175,7 +176,28 @@ class Domain {
         }
         return $domain;
     }
-        
+
+    public function merge($domain) {
+        $res_domain = [];
+        $domain_a = $domain->toArray();
+        $domain_b = $this->toArray();
+
+        if(count($domain_a) <= 0) {
+            $res_domain = $domain_b;
+        }
+        else if(count($domain_b) <= 0) {
+            $res_domain = $domain_a;
+        }
+        else {
+            foreach($domain_a as $clause_a) {
+                foreach($domain_b as $clause_b) {
+                    $res_domain[] = array_merge($clause_a, $clause_b);
+                }
+            }
+        }
+        return $this->fromArray($res_domain);
+    }
+
     public static function validate($domain, $schema=[]) {
         $domain = self::normalize($domain);
         return self::domainCheck($domain, $schema);
