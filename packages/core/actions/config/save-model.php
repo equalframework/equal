@@ -74,7 +74,6 @@ if($parent != 'equal\orm\Model') {
 
 
 $filename = QN_BASEDIR.'/public/packages/'.$params['package'].'/classes/'.$params['entity'].'.class.php';
-echo $filename;
 
 $schema = var_export($fields, true);
 
