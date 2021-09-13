@@ -74,8 +74,12 @@ foreach($fields as $field => $value) {
         unset($fields[$field]);
     }
     else {
+        $type = $schema[$field]['type'];
+        if($type == 'computed') {
+            $type = $schema[$field]['result_type'];
+        }
         // adapt received values based on their type (as defined in schema)
-        $fields[$field] = $adapter->adapt($value, $schema[$field]['type']);
+        $fields[$field] = $adapter->adapt($value, $type);
     }
 }
 
