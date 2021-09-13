@@ -273,7 +273,7 @@ class ObjectManager extends Service {
      * (and this is only done in the getStaticInstance method)
      *
      * @param string $object_class
-     * @return string
+     * @return array
      */
     public function getObjectSchema($object_class) {
         $object = &$this->getStaticInstance($object_class);
@@ -486,11 +486,19 @@ class ObjectManager extends Service {
             'computed'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                    if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called");
+                    if(strpos($schema[$field]['function'], '::')) {
+                        list($class, $method) = explode('::', $schema[$field]['function']);
+                        if(!method_exists($class, $method)) {
+                            throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_PARAM);
+                        }
+                    }
+                    if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called", QN_ERROR_INVALID_PARAM);                    
                     $res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
                     foreach($ids as $oid) {
                         if(isset($res[$oid])) {
-                            $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            // should not be adapted : we're dealing with PHP not SQL                        
+                            // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                            $value = $res[$oid];
                         }
                         else {
                             $value = null;
@@ -1094,7 +1102,7 @@ class ObjectManager extends Service {
             // 5) second pass : handle onchange events, if any
             // #memo this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
-                // remember which methods have been invoked (to trigger each only once)
+                // remember which methods have been invoked (to trigger them only once)
                 $onchange_methods = [];
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
