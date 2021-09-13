@@ -48,7 +48,7 @@ list($params, $providers) = announce([
             'description'   => 'The maximum number of results.',
             'type'          => 'integer',
             'min'           => 1,
-            'max'           => 100,
+            'max'           => 500,
             'default'       => 25
         ]
     ],
@@ -96,7 +96,17 @@ if(in_array('deleted', $params['fields'])) {
     $domain = Domain::conditionAdd($domain, ['deleted', 'in', [0, 1]]);
 }
 
-$collection = $params['entity']::search($domain, [ 'sort' => [ $params['order'] => $params['sort']] ]);
+// convert sorting comma notation to a map ([order_field => sort_direction, ...])
+$sort = [];
+$sort_parts  = explode(',', str_replace(' ', '', $params['sort']));
+$order_parts = explode(',', str_replace(' ', '', $params['order']));
+
+foreach($order_parts as $index => $order) {
+    $order_sort = (count($sort_parts) > $index)? $sort_parts[$index] : $sort_parts[count($sort_parts)-1];
+    $sort[$order] = $order_sort;
+}
+
+$collection = $params['entity']::search($domain, [ 'sort' => $sort ]);
 
 $total = count($collection->ids());
 
