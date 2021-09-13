@@ -14,5 +14,10 @@ class Service extends Singleton {
      * @returns array
      */
     public static function constants() { return []; }
+
+
+    public function getContainer() {
+        return $this->container;
+    }
         
 }
