@@ -165,8 +165,9 @@ namespace config {
     // So it will not be effective if set higher than those.
     // ('upload_max_filesize' and 'post_max_size' are PHP_INI_PERDIR directives and must be defined in php.ini)
 
-    define('UPLOAD_MAX_FILE_SIZE', 64*1024*1024);		// set upload limit to 64Mo
+    define('UPLOAD_MAX_FILE_SIZE', 64*1024*1024);		// set upload limit to 64MB
 
+    // if FILE_STORE_MODE is set to 'DB', MySQL config requires a consistent max_allowed_packet (ex. max_allowed_packet = 64M)
 
     /**
     * Locale parameters
