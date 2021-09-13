@@ -262,10 +262,10 @@ class DataAdapter extends Service {
                                             if($c == ',') {
                                                 if(strlen($current)) {
                                                     if(strlen($current_key)) {
-                                                        $result[trim($current_key)] = $current;
+                                                        $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
                                                     }
                                                     else {
-                                                        $result[] = $current;    
+                                                        $result[] = json_decode("[\"$current\"]")[0];
                                                     }
                                                 }
                                                 $current_key = '';
@@ -284,10 +284,10 @@ class DataAdapter extends Service {
                                         }
                                         if(strlen($current)) {
                                             if(strlen($current_key)) {
-                                                $result[trim($current_key)] = $current;
+                                                $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
                                             }
                                             else {
-                                                $result[] = $current;
+                                                $result[] = json_decode("[\"$current\"]")[0];
                                             }
                                         }
                                         return $result;
