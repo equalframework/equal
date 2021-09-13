@@ -153,6 +153,7 @@ class Collection implements \Iterator {
     /**
      *  Return the first object of the collection
      *
+     * @return array|null  If current queue is not empty, returns the first object as an array, otherwise returns null.
      */
     public function first() {
         $this->objects = array_slice($this->objects, 0, 1, true);
@@ -177,7 +178,6 @@ class Collection implements \Iterator {
      *
      * @param   $to_array   boolean    Flag to ask conversion to single array (instead of a map)
      * @return  array       Associative array mapping objects identifiers with their related maps of fields/values
-     *
      */
     public function get($to_array=false) {
         // retrieve current objects map
@@ -283,7 +283,11 @@ class Collection implements \Iterator {
                     $value->adapt($to);
                 }
                 else {
-                    $this->objects[$id][$field] = $this->adapter->adapt($value, $schema[$field]['type'], $to, 'php');
+                    $type = $schema[$field]['type'];
+                    if($type == 'computed' && isset($schema[$field]['result_type'])) {
+                        $type = $schema[$field]['result_type'];
+                    }
+                    $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
                 }
             }
         }
@@ -324,6 +328,7 @@ class Collection implements \Iterator {
 
         if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
         $params = array_merge($defaults, $params);
+        
         // 1) sanitize and validate given domain
         if(!empty($domain)) {
             $domain = Domain::normalize($domain);
@@ -452,7 +457,6 @@ class Collection implements \Iterator {
      *
      * @return  object  current Collection
      * @example $newObject = MyClass::create();
-     *
      */
     public function create(array $values=null, $lang=DEFAULT_LANG) {
 
