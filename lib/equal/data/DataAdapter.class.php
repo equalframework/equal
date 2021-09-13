@@ -92,8 +92,38 @@ class DataAdapter extends Service {
                                     return $value;
                                 }
                 ]
-            ],
-            // dates are handled as unix timestamp
+            ],            
+            'time' => [
+                // string times are expected to be ISO 8601 formatted times (hh:mm:ss)
+                'txt'   => [
+                    'php' =>    function ($value) { 
+                                    list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+                                    return ($hour * 3600) + ($minute * 60) + $second;
+                                }
+
+                ],
+                // internally, times are handled as relative timestamps (number of seconds since the beginning of the day) 
+                'php'   => [
+                    'txt' =>    function($value)  {
+                                    $hours = (int) ($value / (60*60));
+                                    $minutes = (int) (($value % (60*60)) / 60);
+                                    $seconds = $value % (60);                                    
+                                    return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
+                                },
+                    'sql' =>    function($value)  {
+                                    $hours = (int) ($value / (60*60));
+                                    $minutes = (int) (($value % (60*60)) / 60);
+                                    $seconds = $value % (60);                                    
+                                    return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
+                                }
+                ],
+                'sql' => [
+                    'php' =>    function($value) {
+                                    list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+                                    return ($hour * 3600) + ($minute * 60) + $second;
+                                }
+                ]
+            ],        
             'date' => [
                 // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
                 'txt'   => [
@@ -117,10 +147,6 @@ class DataAdapter extends Service {
                                 },
                     'sql' =>    function ($value) {
                                     return date('Y-m-d', $value);
-                                },
-// todo : deprecate
-                    'orm' =>    function ($value) {
-                                    return date('Y-m-d', $value);
                                 }
                 ],
                 'sql'   => [
@@ -129,17 +155,42 @@ class DataAdapter extends Service {
                                     list($year, $month, $day) = sscanf($value, "%d-%d-%d");
                                     return mktime(0, 0, 0, $month, $day, $year);
                                 }
-                ],
-// todo : deprecate
-                'orm' => [
+                ]
+            ],
+            'datetime' => [
+                // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
+                'txt'   => [
                     'php' =>    function ($value) {
-                                    // return date as a timestamp
-                                    list($year, $month, $day) = sscanf($value, "%d-%d-%d");
-                                    return mktime(0, 0, 0, $month, $day, $year);
+                                    if(is_numeric($value)) {
+                                        // value is a timestamp, keep it
+                                        $value = intval($value);
+                                    }
+                                    else {
+                                        // convert ISO 8601 to timestamp
+                                        $value = strtotime($value);
+                                    }
+                                    return $value;
+                                }
+                ],
+                // internally, we handle dates as timestamps
+                'php'   => [
+                    'txt' =>    function ($value) {
+                                    // return date as a ISO 8601 formatted string
+                                    return date("c", $value);
+                                },
+                    'sql' =>    function ($value) {
+                                    return date('Y-m-d H:i:s', $value);
+                                }
+                ],
+                'sql'   => [
+                    'php' =>    function ($value) {
+                                    // return SQL date as a timestamp
+                                    list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
+                                    return mktime($hour, $minute, $second, $month, $day, $year);
                                 }
                 ]
-
             ],
+
             // 'array' is a type only used in announce() method
             'array' => [
                 'txt'   => [
@@ -410,39 +461,6 @@ class DataAdapter extends Service {
                         return base64_encode($value);
                     }
                  ]
-            ],
-            // dates are handled as unix timestamp
-            'datetime' => [
-                // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
-                'txt'   => [
-                    'php' =>    function ($value) {
-                                    if(is_numeric($value)) {
-                                        // value is a timestamp, keep it
-                                        $value = intval($value);
-                                    }
-                                    else {
-                                        // convert ISO 8601 to timestamp
-                                        $value = strtotime($value);
-                                    }
-                                    return $value;
-                                }
-                ],
-                'php'   => [
-                    'txt' =>    function ($value) {
-                                    // return date as a ISO 8601 formatted string
-                                    return date("c", $value);
-                                },
-                    'sql' =>    function ($value) {
-                                    return date('Y-m-d H:i:s', $value);
-                                }
-                ],
-                'sql'   => [
-                    'php' =>    function ($value) {
-                                    // return SQL date as a timestamp
-                                    list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
-                                    return mktime($hour, $minute, $second, $month, $day, $year);
-                                }
-                ]
             ]
 
         ];
