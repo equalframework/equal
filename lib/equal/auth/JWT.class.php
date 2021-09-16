@@ -53,7 +53,7 @@ class JWT {
 	 * @param string       $algo    The signing algorithm. Supported
 	 *                              algorithms are 'HS256', 'HS384' and 'HS512'
 	 *
-	 * @return string      A signed JWT
+	 * @return string      A signed JSON web token (JWT are URL-safe base64 encoded).
 	 * @uses jsonEncode
 	 * @uses urlsafeB64Encode
 	 */
