@@ -80,6 +80,7 @@ namespace {
     define('EMAIL_SMTP_ACCOUNT_USERNAME',   'email.as.username@provider.com');
     define('EMAIL_SMTP_ACCOUNT_PASSWORD',   'password');
     define('EMAIL_SMTP_ACCOUNT_EMAIL',	    'email.to.send.from@provider.com');
+    define('EMAIL_SMTP_ABUSE_EMAIL',	    'abuse@example.com');
 
     /**
     * Email spooler directory
