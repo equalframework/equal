@@ -744,7 +744,7 @@ namespace config {
             if(is_null($resolved['type'])) {
                 if(is_null($resolved['package'])) {
                     // send 404 HTTP response
-                    throw new Exception("no_default_package", QN_ERROR_UNKNOWN_OBJECT);
+                    throw new \Exception("no_default_package", QN_ERROR_UNKNOWN_OBJECT);
                 }
                 if(defined('DEFAULT_APP')) {
                     $resolved['type'] = 'show';
