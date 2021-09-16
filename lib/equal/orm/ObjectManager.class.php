@@ -43,21 +43,21 @@ class ObjectManager extends Service {
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
     public static $valid_attributes = array(
-        'alias'		    => array('description', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'integer'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'unique'),
-        'float'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'precision'),
-        'string'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-        'text'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'date'			=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'time'			=> array('description', 'type', 'visible', 'default', 'required', 'onchange'),
-        'datetime'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'file'  		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'binary'		=> array('description', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'many2one'		=> array('description', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
-        'one2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
-        'many2many'		=> array('description', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'		=> array('description', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
+        'alias'		    => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
+        'boolean'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+        'integer'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'unique'),
+        'float'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'precision'),
+        'string'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+        'text'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
+        'date'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+        'time'			=> array('description', 'help', 'type', 'visible', 'default', 'required', 'onchange'),
+        'datetime'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
+        'file'  		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
+        'binary'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
+        'many2one'		=> array('description', 'help', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
+        'one2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
+        'many2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
+        'computed'		=> array('description', 'help', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
     );
 
     public static $mandatory_attributes = array(
@@ -487,8 +487,8 @@ class ObjectManager extends Service {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     if(strpos($schema[$field]['function'], '::')) {
-                        list($class, $method) = explode('::', $schema[$field]['function']);
-                        if(!method_exists($class, $method)) {
+                        list($called_class, $called_method) = explode('::', $schema[$field]['function']);
+                        if(!method_exists($called_class, $called_method)) {
                             throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_PARAM);
                         }
                     }
