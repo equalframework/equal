@@ -14,43 +14,82 @@ list($params, $providers) = announce([
         'accept-origin' => '*'
     ],    
     'params'        => [
-        'id' =>  [
-            'description'   => 'Identifier of the user to update.',
+        'user_id' =>  [
+            'description'   => 'Identifier of the user to update (when not current user).',
             'type'          => 'integer',
-            'required'      => true
+            'default'       => 0
+        ],
+        'token' => [
+            'type'          => 'string',
+            'description'   => 'access token in case of password recovery with email',
+            'default'      => ''
         ],
         'password' =>  [
             'description'   => 'New password.',
             'type'          => 'string',
-            'usage'         => 'password/NIST',
+            'usage'         => 'password',
             'required'      => true
         ],
-        'confirmation' =>  [
+        'confirm' =>  [
             'description'   => 'Confirmation of the password.',
             'type'          => 'string',
-            'usage'         => 'password/NIST',
+            'usage'         => 'password',
             'required'      => true
         ]
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+list($context, $orm, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
 
-if(strcmp($params['password'], $params['confirmation']) != 0) {
-    throw new Exception('password_confirmation_mismatch', QN_ERROR_INVALID_PARAM);
+if(strcmp($params['password'], $params['confirm']) != 0) {
+    throw new Exception('password_confirm_mismatch', QN_ERROR_INVALID_PARAM);
 }
 
-// update user instance (user has write access on its own object)
+if(strlen($params['token'])) {
+    // use received token to authenticate
+    $user_id = $auth->userId($params['token']);
+}
+else {
+    $user_id = $auth->userId();
+}
+
+if(!$user_id) {
+    throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);    
+}
+
+$target_user_id = $params['user_id'];
+if($target_user_id <= 0) {
+    $target_user_id = $user_id;
+}
+
+// update user instance (user always has write access on its own object)
 // #memo - User::onchangePassword method makes sure `password` is hashed 
-$instance = User::id($params['id'])
+$instance = User::id($target_user_id)
     ->update([
         'password' => $params['password']
     ])
     ->adapt('txt')
     ->first();
 
-$context->httpResponse()
-        ->status(204)
-        ->body([])
-        ->send();
+$response = $context->httpResponse();
+
+// if a token was provided, reply with new access tokens
+if(strlen($params['token'])) {
+    // generate a JWT access token
+    $access_token  = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+    $refresh_token = $auth->token($user_id, AUTH_REFRESH_TOKEN_VALIDITY);
+    $response->cookie('access_token',  $access_token, [
+        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
+        'httponly'  => true, 
+        'secure'    => AUTH_TOKEN_HTTPS
+    ])
+    ->cookie('refresh_token', $refresh_token, [
+        'expires'   => time() + AUTH_REFRESH_TOKEN_VALIDITY, 
+        'httponly'  => true, 
+        'secure'    => AUTH_TOKEN_HTTPS
+    ]);
+}
+
+$response->status(204)
+         ->send();
