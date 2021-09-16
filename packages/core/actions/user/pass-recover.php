@@ -33,7 +33,7 @@ try {
     $ids = User::search(['login', '=', $params['email']])->ids();
 
     if(!count($ids)) { 
-        throw new \Exception("user_not_found", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("user_not_found", QN_ERROR_UNKNOWN_OBJECT);
     }
 
     $user_id = array_shift($ids);
@@ -43,7 +43,7 @@ try {
             ->read(['id', 'login', 'firstname', 'language'])
             ->first();
 
-    // generate a token that will be valid for 15 minutes
+    // generate a token that will be valid for 15 minutes 
     $token = $auth->token($user_id, 60*15);
 
 
@@ -65,11 +65,14 @@ try {
                                 return $params['user']['firstname'];
                             },
         'recovery_url'	=>	function ($params, $attributes) {
-                                $url = ROOT_APP_URL."/recover/update?c={$params['token']}";
+                                $url = ROOT_APP_URL."/auth/#!/reset/{$params['token']}";
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {
                                 return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
+                            },
+        'abuse'         =>  function($params, $attributes) {
+                                return "<a href=\"mailto:".EMAIL_SMTP_ABUSE_EMAIL."\">".EMAIL_SMTP_ABUSE_EMAIL."</a>";            
                             }
         ],
         [
@@ -86,6 +89,7 @@ try {
 }
 catch(Exception $e) {
     // for security reasons, in case of error no details are relayed to client
+    trigger_error("QN_DEBUG_ORM::{$e->getMessage()}", QN_REPORT_ERROR);
 }
 
 $context->httpResponse()
