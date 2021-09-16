@@ -42,7 +42,7 @@ $auth->authenticate($params['login'], $params['password']);
 $user_id = $auth->userId();
 
 if(!$user_id) {
-    // this is a fallback exception, but we should never reach this code, since user has been found  by authenticate method
+    // this is a fallback exception, but we should never reach this code, since user has been found by authenticate method
     throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);    
 }
 
