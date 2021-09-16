@@ -92,7 +92,7 @@ class AuthenticationManager extends Service {
     /**
      * @throws Exception ['auth_expired_token', QN_ERROR_INVALID_USER]
      */
-    public function userId() {
+    public function userId($token=null) {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') {
             $this->user_id = ROOT_USER_ID;
@@ -102,30 +102,33 @@ class AuthenticationManager extends Service {
         if($this->user_id > 0) return $this->user_id;
 
         // init JWT
-        $jwt = null;
+        $jwt = $token;
 
         // check the request headers for a JWT
         $context = $this->container->get('context');
         $request = $context->httpRequest();
 
-        $auth_header = $request->header('Authorization');
-        if(!is_null($auth_header)) {
-            if(strpos($auth_header, 'Bearer ') !== false) {
-                // retrieve JWT token    
-                list($jwt) = sscanf($auth_header, 'Bearer %s');
-            }
-            else if(strpos($auth_header, 'Basic ') !== false) {
-                list($token) = sscanf($auth_header, 'Basic %s');
-                list($username, $password) = explode(':', base64_decode($token));
-                // leave $jwt unset and authenticate (sets $user_id)
-                $this->authenticate($username, $password);
-            }
-            else if(strpos($auth_header, 'Digest ') !== false) {
-                // #todo
-            }            
+        // no token received as param : look in HTTP request headers
+        if(!$jwt) {
+            $auth_header = $request->header('Authorization');
+            if(!is_null($auth_header)) {
+                if(strpos($auth_header, 'Bearer ') !== false) {
+                    // retrieve JWT token    
+                    list($jwt) = sscanf($auth_header, 'Bearer %s');
+                }
+                else if(strpos($auth_header, 'Basic ') !== false) {
+                    list($token) = sscanf($auth_header, 'Basic %s');
+                    list($username, $password) = explode(':', base64_decode($token));
+                    // leave $jwt unset and authenticate (sets $user_id)
+                    $this->authenticate($username, $password);
+                }
+                else if(strpos($auth_header, 'Digest ') !== false) {
+                    // #todo
+                }            
+            }    
         }
 
-        // no token in Authorization header: fallback to cookie
+        // no token found : fallback to cookie
         if(!$jwt) {
             $jwt = $request->cookie('access_token');
             // no access token provided, but refresh token found (which means that the access token has expired)
