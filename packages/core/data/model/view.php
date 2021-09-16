@@ -32,6 +32,12 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $entity = $params['entity'];
 
+$model = $orm->getModel($entity);
+
+if(!$model) {
+    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+}
+
 // retrieve existing view meant for entity or it
 while(true) {    
     $parts = explode('\\', $entity);    
