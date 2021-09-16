@@ -2,7 +2,7 @@
     "/userinfo": {
         "GET": {
             "description": "Retrieve current User object.",
-            "operation": "?get=identity_userinfo"
+            "operation": "?get=lodging_userinfo"
         }
     }
 }

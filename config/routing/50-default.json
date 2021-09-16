@@ -17,14 +17,14 @@
         "DELETE": {
             "description": "Delete a user",
             "operation": "?do=core_model_delete&entity=core\\User"
-        }           
+        }
     },
     "/user": {
         "POST": {
             "description": "Create a new user",
             "operation": "?do=core_user_create"
         }
-    },    
+    },
     "/me": {
         "GET": {
             "description": "Return authentified user, if any",
@@ -56,5 +56,11 @@
             "description": "Delete a group",
             "operation": "?do=core_model_delete&entity=core\\Group"
         }
-    }    
+    },
+    "/userinfo": {
+        "GET": {
+            "description": "Retrieve current User object.",
+            "operation": "?get=identity_userinfo"
+        }
+    }
 }
