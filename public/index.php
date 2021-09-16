@@ -12,22 +12,6 @@ if(isset($_REQUEST['_escaped_fragment_'])) {
     exit();
 }
 
-// handle cached response : GET requests might be cached (@see announce() and response/cacheable property)
-if( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
-    $url = 'http'.(isset($_SERVER['HTTPS'])?'s':'').'://'."{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-    $cache_id = md5($url);
-    $cache_filename = '../cache/'.$cache_id;
-    if(file_exists($cache_filename)) {
-        list($headers, $result) = unserialize(file_get_contents($cache_filename));
-        foreach($headers as $header => $value) {
-            header("$header: $value");
-        }
-        print_r($result);
-        exit();
-    }
-}
-
-
 function getAppOutput() {
     ob_start();	
     include('../run.php'); 
