@@ -269,7 +269,7 @@ foreach($classes as $class) {
                 }
                 // check that the transaltion description is complete for each field
                 foreach($fields as $field) {
-                    $mandatory_properties = ['label', 'help'];
+                    $mandatory_properties = ['label', 'help', 'description'];
                     foreach($mandatory_properties as $property) {
                         if(!isset($data['model'][$field][$property])) {
                             $result[] = "WARN - I18N - Missing property '$property' for field '$field' referenced in file $i18n_file";
@@ -285,6 +285,11 @@ foreach($classes as $class) {
                                 }
                             }
                             else if($property == 'help') {
+                                if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
+                                    $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                }
+                            }
+                            else if($property == 'description') {
                                 if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
