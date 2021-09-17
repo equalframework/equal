@@ -40,8 +40,12 @@ try {
 
     // we need the user credentials to generate confirmation code in the email
     $user = User::id($user_id)
-            ->read(['id', 'login', 'firstname', 'language'])
+            ->read(['id', 'login', 'validated', 'firstname', 'language'])
             ->first();
+
+    if(!$user || !$user['validated']) {
+        throw new Exception("not_allowed", QN_ERROR_NOT_ALLOWED);
+    }
 
     // generate a token that will be valid for 15 minutes 
     $token = $auth->token($user_id, 60*15);
