@@ -170,7 +170,7 @@ foreach($m2m_tables as $table => $columns) {
 
 
 
-// 4) populate tables with demo data 
+// 4) populate tables with predefined data 
 
 // handle SQL files
 $path = "packages/{$params['package']}/init/";
