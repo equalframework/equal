@@ -27,7 +27,8 @@ class Setting extends Model {
 
             'package' => [
                 'type'              => 'string', 
-                'description'       => 'Package which the param refers to, if any.'
+                'description'       => 'Package which the param refers to, if any.',
+                'default'           => ''
             ],      
 
             'section' => [
@@ -45,7 +46,8 @@ class Setting extends Model {
             'type' => [
                 'type'              => 'string',
                 'selection'         => ['boolean', 'integer', 'float', 'string', 'selection'],
-                'description'       => 'The format of data stored by the param.'
+                'description'       => 'The format of data stored by the param.',
+                'required'          => true
             ],
 
             'setting_values_ids' => [

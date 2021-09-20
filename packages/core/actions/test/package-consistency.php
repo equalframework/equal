@@ -275,22 +275,22 @@ foreach($classes as $class) {
                             $result[] = "WARN - I18N - Missing property '$property' for field '$field' referenced in file $i18n_file";
                         }
                         else {
-                            if(!ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
+                            if(strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
                                 $result[] = "WARN - I18N - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
                             }
 
                             if($property == 'label') {
-                                if( substr($data['model'][$field][$property], -1) == '.' ) {
+                                if( strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'help') {
-                                if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
+                                if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'description') {
-                                if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
+                                if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
@@ -470,12 +470,12 @@ function view_test($data, $structure) {
     if(!is_numeric($sub_keys[0])) {
         $data = [$data];
     }    
-    foreach($data as $elem) {            
+    foreach($data as $index => $elem) {            
         foreach($structure as $item => $def) {
             $key = is_numeric($item)?$def:$item;
             if(is_numeric($item)) {
                 if(!isset($elem[$key])) {
-                    return "missing mandatory property '$key'";
+                    return "missing mandatory property '$key' for item $index";
                 }
             }
             else {                
