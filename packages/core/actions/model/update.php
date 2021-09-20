@@ -110,7 +110,7 @@ if(count($fields)) {
     $result = $params['entity']::ids($params['ids'])
                             // update with received values (with validation - submit `state` if received)
                             ->update($fields, $params['lang'])
-                            ->read(['id', 'state', 'modified'])
+                            ->read(['id', 'state', 'name', 'modified'])
                             ->adapt('txt')
                             ->get(true);
 }
