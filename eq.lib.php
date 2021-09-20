@@ -36,8 +36,7 @@ namespace {
      * Root directory of current install
      */
     define('QN_BASEDIR', realpath(dirname(__FILE__)));
-    chdir(QN_BASEDIR.'/');
-    
+
     /**
      * Error codes
      * we use negative values to make it possible to distinguish error codes from object ids
@@ -298,6 +297,8 @@ namespace config {
          * @static
          */
         public static function init() {
+            chdir(QN_BASEDIR.'/');
+            
             // allow inclusion and autoloading of external classes
             if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
                 include_once(QN_BASEDIR.'/vendor/autoload.php');
