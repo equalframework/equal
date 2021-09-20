@@ -36,7 +36,8 @@ namespace {
      * Root directory of current install
      */
     define('QN_BASEDIR', realpath(dirname(__FILE__)));
-
+    chdir(QN_BASEDIR.'/');
+    
     /**
      * Error codes
      * we use negative values to make it possible to distinguish error codes from object ids
