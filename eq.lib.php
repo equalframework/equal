@@ -737,8 +737,8 @@ namespace config {
 
 
             // load package custom configuration, if any
-            if(!is_null($resolved['package']) && is_file('packages/'.$resolved['package'].'/config.inc.php')) {
-                include('packages/'.$resolved['package'].'/config.inc.php');
+            if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.inc.php')) {
+                include(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.inc.php');
             }
             // if no request is specified, if possible set DEFAULT_PACKAGE/DEFAULT_APP as requested script
             if(is_null($resolved['type'])) {
@@ -768,14 +768,12 @@ namespace config {
                 $context->set('operation', $resolved);
                 // if no app is specified, use the default app (if any)
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) $resolved['script'] = config('DEFAULT_APP').'.php';
-                $filename = 'packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
-                // set current dir according to 'base' directory
-                chdir(QN_BASEDIR.'/');
+                $filename = QN_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
                 if(!is_file($filename)) {
                     // always try to fallback to core package (for short syntax calls)
-                    $filename = 'packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        $filename = 'packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
                             throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
                         }
