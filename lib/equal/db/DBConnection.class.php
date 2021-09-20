@@ -10,6 +10,9 @@ use equal\organic\Service;
 
 class DBConnection extends Service {
 
+	/**
+	 * @var DBManipulator
+	 */
 	private $dbConnection;
 
 	protected function __construct() {

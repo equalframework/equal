@@ -27,7 +27,7 @@ class DBManipulatorMySQL extends DBManipulator {
 	 */
 	public function connect($auto_select=true) {
 		$result = false;
-		if(self::canConnect($this->host, $this->port)) {
+		if($this->canConnect($this->host, $this->port)) {
             if($auto_select) {
                 if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
                     if($result = $this->select($this->db_name)) {
@@ -271,8 +271,8 @@ class DBManipulatorMySQL extends DBManipulator {
 
 	public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
         // test values and types
-		if(empty($table)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'table' empty.", QN_ERROR_SQL);
-		if(empty($fields)) throw new Exception(__METHOD__." : unable to build sql query ($sql), parameter 'fields' empty.", QN_ERROR_SQL);
+		if(empty($table)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'table' empty.", QN_ERROR_SQL);
+		if(empty($fields)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'fields' empty.", QN_ERROR_SQL);
 
 		// update clause
 		$sql = 'UPDATE `'.$table.'`';

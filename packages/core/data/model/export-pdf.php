@@ -160,8 +160,8 @@ $dompdf->setPaper('A4', 'portrait');
 $dompdf->loadHtml((string) $html);
 $dompdf->render();
 
-$canvas = $dompdf->get_canvas();
-$font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+$canvas = $dompdf->getCanvas();
+$font = $dompdf->getFontMetrics()->getFont("helvetica", "regular");
 $canvas->page_text(560, $canvas->get_height() - 35, "{PAGE_NUM} / {PAGE_COUNT}", $font, 9, array(0,0,0));
 $canvas->page_text(40, $canvas->get_height() - 35, "Export", $font, 9, array(0,0,0));
 

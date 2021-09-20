@@ -108,7 +108,7 @@ foreach($classes as $class) {
     $entity = $params['package'].'\\'.$class;
     $model = $orm->getModel($entity);
 
-    if(basename(get_parent_class($model)) == 'Model') {
+//    if(basename(get_parent_class($model)) == 'Model') {
         $table_name = $orm->getObjectTableName($entity);	
         $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
         $res = $db->sendQuery($query);
@@ -146,7 +146,7 @@ foreach($classes as $class) {
         if(count($result)) {
             $queries = array_merge($queries, $result);
         }
-    }
+//    }
 }
 
 // 3) add missing relation tables, if any

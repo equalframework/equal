@@ -489,7 +489,7 @@ class ObjectManager extends Service {
                     if(strpos($schema[$field]['function'], '::')) {
                         list($called_class, $called_method) = explode('::', $schema[$field]['function']);
                         if(!method_exists($called_class, $called_method)) {
-                            throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_PARAM);
+                            throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_CONFIG);
                         }
                     }
                     if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called", QN_ERROR_INVALID_PARAM);                    
@@ -1107,7 +1107,15 @@ class ObjectManager extends Service {
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
                     if(!isset($onchange_methods[$schema[$field]['onchange']])) {
-                        if(is_callable($schema[$field]['onchange'])) call_user_func($schema[$field]['onchange'], $this, $ids, $lang);
+                        if(strpos($schema[$field]['onchange'], '::')) {
+                            list($called_class, $called_method) = explode('::', $schema[$field]['onchange']);
+                            if(!method_exists($called_class, $called_method)) {
+                                throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_CONFIG);
+                            }
+                        }
+                        if(is_callable($schema[$field]['onchange'])) {
+                            call_user_func($schema[$field]['onchange'], $this, $ids, $lang);
+                        }
                         $onchange_methods[$schema[$field]['onchange']] = true;
                     }
                 }
