@@ -342,7 +342,7 @@ namespace config {
                     ],
                     JSON_PRETTY_PRINT);
                 // and raise an exception (will be output in PHP error log)
-                throw new \Exception("eQual init: a mandatory dependency is missing or cannot be instanciated", QN_REPORT_FATAL);
+                throw new \Exception("mandatory_dependency_missing", QN_REPORT_FATAL);
             }
             // register ORM classes autoloader
             try {
@@ -351,7 +351,9 @@ namespace config {
                 $collect = $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getStatic']);
             }
-            catch(\Exception $e) {}
+            catch(\Exception $e) {                
+                throw new \Exception("init_failed", QN_REPORT_FATAL);
+            }
 
         }
 
