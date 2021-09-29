@@ -60,7 +60,7 @@ class DBConnection extends Service {
 			default:
 				break;
 		}
-		if($member) {
+		if($member && $this->dbConnection) {
 			$this->dbConnection->addMember($member);
 		}
 	}
