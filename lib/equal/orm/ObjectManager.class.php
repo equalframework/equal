@@ -193,7 +193,7 @@ class ObjectManager extends Service {
      * @param string $class
      * @throws Exception
      */
-    private function &getStaticInstance($class, $fields=[]) {
+    private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
         if(!class_exists($class)) {
             // first, read the file to see if the class extends from another (which could not be loaded yet)
@@ -221,7 +221,10 @@ class ObjectManager extends Service {
             }
         }
         if(!isset($this->instances[$class])) {
-            $this->instances[$class] = new $class($this, $fields);
+            $this->instances[$class] = new $class($this);
+        }
+        if(count($fields)) {
+            return new $class($this, $fields);
         }
         return $this->instances[$class];
     }
@@ -235,7 +238,7 @@ class ObjectManager extends Service {
      */
     public function getObjectTableName($object_class) {
         try {
-            $object = &$this->getStaticInstance($object_class);
+            $object = $this->getStaticInstance($object_class);
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -276,7 +279,7 @@ class ObjectManager extends Service {
      * @return array
      */
     public function getObjectSchema($object_class) {
-        $object = &$this->getStaticInstance($object_class);
+        $object = $this->getStaticInstance($object_class);
         return $object->getSchema();
     }
 
@@ -353,7 +356,7 @@ class ObjectManager extends Service {
      */
     private function load($class, $ids, $fields, $lang) {
         // get the object instance
-        $object = &$this->getStaticInstance($class);
+        $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
         $schema = $object->getSchema();
         // get DB handler (init DB connection if necessary)
@@ -569,7 +572,7 @@ class ObjectManager extends Service {
      */
     private function store($class, $ids, $fields, $lang) {
         // get the object instance
-        $object = &$this->getStaticInstance($class);
+        $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
         $schema = $object->getSchema();
         // get DB handler (init DB connection if necessary)
@@ -798,7 +801,7 @@ class ObjectManager extends Service {
 
         $res = [];
 
-        $model = &$this->getStaticInstance($class);
+        $model = $this->getStaticInstance($class);
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
@@ -841,7 +844,7 @@ class ObjectManager extends Service {
             if(isset($schema[$field]['required']) && $schema[$field]['required']) {
                 $constraints[$field]['missing_mandatory'] = [
                     'message' 	=> 'Missing mandatory value.',
-                    'function'	=> function($a) { return (isset($a) && !empty($a)); }
+                    'function'	=> function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
                 ];
             }            
             // check constraints
@@ -966,7 +969,7 @@ class ObjectManager extends Service {
         $db = $this->getDBHandler();
 
         try {
-            $object = &$this->getStaticInstance($class, $fields);
+            $object = $this->getStaticInstance($class, $fields);
 
             $object_table = $this->getObjectTableName($class);
 
@@ -1065,7 +1068,7 @@ class ObjectManager extends Service {
             // ids that are left are the ones of the objects that will be writen
             $res = $ids;
             // get stattic instance (checks that given class exists)
-            $object = &$this->getStaticInstance($class);
+            $object = $this->getStaticInstance($class);
 
             // 2) check $fields arg validity
 
@@ -1150,7 +1153,7 @@ class ObjectManager extends Service {
             // 1) do some pre-treatment
 
             // get static instance (check that given class exists)
-            $object = &$this->getStaticInstance($class);
+            $object = $this->getStaticInstance($class);
             // cast fields to an array (passing a single field is accepted)
             // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
             if(!is_array($fields)) $fields = (array) $fields;
@@ -1270,7 +1273,7 @@ class ObjectManager extends Service {
                         $path_class = $path_schema[$path_field]['foreign_object'];
                         // targeted values is a list of ids for the object at the current position of the path
                         $path_prev_ids = array_map(function ($odata) use($path_field) { return $odata[$path_field]; }, $path_values);
-                        $object = &$this->getStaticInstance($path_class);
+                        $object = $this->getStaticInstance($path_class);
                         $path_schema = $object->getSchema();
                     }
                     else {
@@ -1315,7 +1318,7 @@ class ObjectManager extends Service {
             $res = $ids;
 
             // 2) remove object
-            $object = &$this->getStaticInstance($class);
+            $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
             if (!$permanent) {
@@ -1402,7 +1405,7 @@ class ObjectManager extends Service {
         $res = 0;
 
         try {
-            $object = &$this->getStaticInstance($class);
+            $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
 
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
