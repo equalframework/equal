@@ -147,7 +147,7 @@ try {
 // something went wrong: send an HTTP response with code related to the raised exception
 catch(Exception $e) {
     $error_code = $e->getCode();
-    // an exception with code 0 is an explicit process halt with no errror
+    // an exception with code 0 is an explicit process halt with no error
     if($error_code != 0) {
         // get HTTP status code according to raised exception
         $http_status = qn_error_http($error_code);
@@ -174,12 +174,11 @@ catch(Exception $e) {
         ->header('Access-Control-Allow-Headers', '*')
         ->header('Access-Control-Allow-Credentials', 'true')
         // append an 'error' section to response body
-        ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:$msg ] ])
+        ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?utf8_encode($data):utf8_encode($msg) ] ])
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
-        // send HTTP response
         ->send();
-        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_DEBUG);
+        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_ERROR);
         exit(1);
     }
 }
