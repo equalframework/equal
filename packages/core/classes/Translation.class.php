@@ -12,11 +12,22 @@ class Translation extends Model {
 
     public static function getColumns() {
         return [
-            'language'			=> array('type' => 'string'),
-            'object_class'		=> array('type' => 'string'),
-            'object_field'		=> array('type' => 'string'),
-            'object_id'			=> array('type' => 'integer'),
-            'value'				=> array('type' => 'binary'),
+            'language' => [
+                'type'              => 'string',
+                'usage'             => 'language/iso-639:2'
+            ],
+            'object_class' => [
+                'type'              => 'string'
+            ],
+            'object_field' => [
+                'type'              => 'string'
+            ],
+            'object_id' => [
+                'type'              => 'integer'
+            ],
+            'value' => [
+                'type'              => 'binary'
+            ]
         ];
     }
 }
