@@ -45,7 +45,7 @@ if(method_exists($model, 'getDefaults')) {
     $defaults = $model->getDefaults();
     foreach($defaults as $field => $default) {
         if(is_callable($defaults[$field])) {
-            $default = call_user_func($defaults[$field]);
+            $default = call_user_func($defaults[$field], $orm);
         }
         $type = $schema[$field]['type'];
         $adapted = $adapt->adapt($default, $type, 'txt', 'php');
