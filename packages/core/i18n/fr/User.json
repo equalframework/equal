@@ -1,34 +1,61 @@
 {
-	"name": "Utilisateur",
-	"plural": "Utilisateurs",
-	"description": "Les utilisateurs peuvent se connecter, être assignés à des groupes et recevoir des permissions spécifiques.",
-	"model": {
-		"login":{
-			"label":"Identifiant", 
-			"help":"Les identifiants sont des adresses e-mail."
-		},
-		"password":{"label":"Mot de passe"},
-		"firstname":{"label":"Prénom"},
-		"lastname":{"label":"Nom"},
-		"created":{"label":"Date de création", "help": "Date de création du compte."},
-		"validated":{"label":"Validé", "help": "Le compte utilisateur a-t-il été validé?"},
-		"language":{"label":"Langue", "help": "La langue de préférence de l'utilisateur."}
-	},
-	"view": {
-		"group.user": {"label": "Infos de l'utilisateur"},
-		"label.details":{"label":"Détails de contact"},
-		"section.user_details": {"label": "Section des détails"},
-		"identification":{"label":"Identification"},
-		"cancel":{"label":"Annuler"},
-		"subscribe":{"label":"S'inscrire"}
-	},
-	"error": {
-		"login": {
-			"invalid_email": "Doit être un email valide."
-		},
-		"firstname": {
-			"too_short": "Doit avoir min. 2 caractères.",
-			"invalid_chars": "Ne doit contenir que des car. non-symboliques."
-		}
-	}
+    "name": "Utilisateur",
+    "plural": "Utilisateurs",
+    "description": "Les utilisateurs peuvent se connecter, être assignés à des groupes et recevoir des permissions spécifiques.",
+    "model": {
+        "login":{
+            "label":"Identifiant",
+            "help":"Les identifiants sont des adresses e-mail."
+        },
+        "password":{
+            "label":"Mot de passe"
+        },
+        "firstname":{
+            "label":"Prénom"
+        },
+        "lastname":{
+            "label":"Nom"
+        },
+        "created":{
+            "label":"Date de création", 
+            "help": "Date de création du compte."
+        },
+        "validated":{
+            "label":"Validé", 
+            "help": "Le compte utilisateur a-t-il été validé?"
+        },
+        "language":{
+            "label":"Langue", 
+            "help": "La langue de préférence de l'utilisateur."
+        }
+    },
+    "view": {
+        "group.user": {
+            "label": "Infos de l'utilisateur"
+        },
+        "label.details":{
+            "label":"Détails de contact"
+        },
+        "section.user_details": {
+            "label": "Section des détails"
+        },
+        "identification":{
+            "label":"Identification"
+        },
+        "cancel":{
+            "label":"Annuler"
+        },
+        "subscribe":{
+            "label":"S'inscrire"
+        }
+    },
+    "error": {
+        "login": {
+            "invalid_email": "Doit être un email valide."
+        },
+        "firstname": {
+            "too_short": "Doit avoir min. 2 caractères.",
+            "invalid_chars": "Ne doit contenir que des car. non-symboliques."
+        }
+    }
 }

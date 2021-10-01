@@ -55,7 +55,7 @@ class Example extends Model {
     public static function getTotalFloat($om, $oid, $lang) {
         $total = 0.0;
         $float_fields = array('float_1', 'float_2', 'float_3');
-        $res = $om->read('test\Example', array($oid), $costs_fields, $lang);
+        $res = $om->read('test\Example', array($oid), $float_fields, $lang);
         foreach($float_fields as $float_field) $total += $res[$oid][$float_field];
         return $total;
     }
