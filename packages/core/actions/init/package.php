@@ -27,10 +27,10 @@ list($params, $providers) = announce([
         ]    
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm'],
+    'providers'     => ['context', 'orm', 'adapt'],
 ]);
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 $json = run('do', 'test_db-access');
 if(strlen($json)) {
@@ -189,13 +189,19 @@ foreach (glob($path."*.json") as $json_file) {
     $data = file_get_contents($json_file);
     $classes = json_decode($data, true);
     foreach($classes as $class){
-        $entity = $class['name'];
+        $entity = $class['name'];        
         $lang = $class['lang'];
-        foreach($class['data'] as $odata){            
+        $model = $orm->getModel($entity);
+        $schema = $model->getSchema();
+    
+        foreach($class['data'] as $odata) { 
+            foreach($odata as $field => $value) {
+                $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
+            }
             $res = $orm->create($entity, $odata, $lang);
             if($res == QN_ERROR_CONFLICT_OBJECT) {
                 $id = $odata['id'];
-                // object already exist, but either values or languag might be different
+                // object already exist, but either values or language might be different
                 $res = $orm->write($entity, $id, $odata, $lang);
             }
         }
