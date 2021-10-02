@@ -178,7 +178,7 @@ catch(Exception $e) {
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         ->send();
-        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_ERROR);
+        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         exit(1);
     }
 }
