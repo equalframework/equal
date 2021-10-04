@@ -332,6 +332,7 @@ class DataAdapter extends Service {
                     'php' =>    function($value) {
                                     // we got a string: convert to array
                                     if(is_string($value)) {
+                                        $value = trim($value, "[]");
                                         $value = explode(',', $value);
                                     }
                                     else if(!is_array($value)) {
