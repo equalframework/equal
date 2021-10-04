@@ -174,11 +174,11 @@ catch(Exception $e) {
         ->header('Access-Control-Allow-Headers', '*')
         ->header('Access-Control-Allow-Credentials', 'true')
         // append an 'error' section to response body
-        ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?utf8_encode($data):utf8_encode($msg) ] ])
+        ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         ->send();
-        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_ERROR);
+        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         exit(1);
     }
 }
