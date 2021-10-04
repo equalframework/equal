@@ -58,8 +58,12 @@ foreach(array_reverse($parents) as $entity) {
     if( ($schema = json_decode(@file_get_contents($file), true)) === null) {
         throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
     }
-
-    $lang = array_replace_recursive($lang, $schema);
+    if(empty($lang)) {
+        $lang = $schema;
+    }
+    else {
+        $lang = array_replace_recursive($schema, $lang);
+    }
 }
 
 if(empty($lang)) {
