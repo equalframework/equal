@@ -30,6 +30,7 @@ class HttpUri {
  */
 
  
+    /** @var string $parts stores the parts of current URI */
     private $parts = null;
 
     public static $standard_ports = [
@@ -170,7 +171,7 @@ class HttpUri {
         return $this;
     }
 
-    public function setFragment($fragement) {
+    public function setFragment($fragment) {
         $this->parts['fragment'] = $fragment;
         return $this;
     }
