@@ -203,9 +203,13 @@ class Reporter extends Service {
                 $trace['file'] = $backtrace[$n-1]['file'];
                 $trace['line'] = $backtrace[$n-1]['line'];
             }
-            else if(!isset($trace['file'])) {
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
+            else if(!isset($trace['file']) && $n > 0) {
+                if(isset($backtrace[$n-1]['file'])) {
+                    $trace['file'] = $backtrace[$n-1]['file'];
+                }
+                if(isset($backtrace[$n-1]['line'])) {
+                    $trace['line'] = $backtrace[$n-1]['line'];
+                }
             }        
         } 
 /*        
