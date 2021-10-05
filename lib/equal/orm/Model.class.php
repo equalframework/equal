@@ -65,7 +65,7 @@ class Model {
         // get default values, set fields for default language, and mark fields as modified
         foreach($defaults as $field => $default) {
             if(isset($this->schema[$field])) {
-                if(is_callable($default)) {
+                if(is_callable($default) && (!isset($this->schema[$field]['selection']) || !in_array($default, $this->schema[$field]['selection']))) {
                     $this->values[$field] = call_user_func($default, $orm, $values);
                 }
                 else {

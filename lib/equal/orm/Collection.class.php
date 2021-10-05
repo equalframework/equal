@@ -428,6 +428,12 @@ class Collection implements \Iterator {
                 }
             }
 
+            if(!count($uniques)) {
+                if($schema['name']['type'] == 'string') {
+                    $original['name'] = $original['name'].' - copy';
+                }
+            }
+
             // set current user as creator
             $original = array_merge($original, ['creator' => $user_id]);
 

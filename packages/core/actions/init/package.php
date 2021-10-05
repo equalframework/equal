@@ -194,6 +194,8 @@ foreach (glob($path."*.json") as $json_file) {
         $model = $orm->getModel($entity);
         $schema = $model->getSchema();
     
+        $objects_ids = [];
+
         foreach($class['data'] as $odata) { 
             foreach($odata as $field => $value) {
                 $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
@@ -203,8 +205,21 @@ foreach (glob($path."*.json") as $json_file) {
                 $id = $odata['id'];
                 // object already exist, but either values or language might be different
                 $res = $orm->write($entity, $id, $odata, $lang);
+                $objects_ids[] = $id;
+            }
+            else {
+                $objects_ids[] = $res;
             }
         }
+
+        // force a first computation of computed fields, if any
+        $computed_fields = [];
+        foreach($schema as $field => $def) {
+            if($def['type'] == 'computed') {
+                $computed_fields[] = $field;
+            }
+        }
+        $orm->read($entity, $objects_ids, $computed_fields, $lang);
     }
 }
 

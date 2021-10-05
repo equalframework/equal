@@ -1416,11 +1416,18 @@ class ObjectManager extends Service {
             }
 
             $original = $res_r[$id];
-            $original = array_merge($original, $values);
-            unset($original['id']);
+
+            $new_values = array_merge($original, $values);
+            unset($new_values['id']);
+
+            foreach($schema as $field => $def) {
+                if(in_array($def['type'], ['one2many', 'many2many'])) {
+                    unset($new_values[$field]);
+                }
+            }
 
             // create new object based on original
-            $res_c = $this->create($class, $original, $lang);
+            $res_c = $this->create($class, $new_values, $lang);
             if($res_c < 0) {
                 throw new Exception('creation_aborted', $res_c);
             }
@@ -1434,18 +1441,17 @@ class ObjectManager extends Service {
                     $rel_schema = $this->getObjectSchema($def['foreign_object']);
                     $rel_ids = $original[$field];
                     $new_rel_ids = [];
-                    foreach($rel_ids as $oid) {
-                        // perform cascade cloning (clone target objects)
-                        if(isset($rel_schema[$def['foreign_field']]) ) {
-                            $res_c = $this->clone($def['foreign_object'], $oid, $lang);
+
+                    if(isset($rel_schema[$def['foreign_field']]) ) {
+                        foreach($rel_ids as $oid) {
+                            // perform cascade cloning (clone target objects)
+                            $res_c = $this->clone($def['foreign_object'], $oid, [], $lang);
                             if($res_c > 0) {
                                 $new_rel_ids[] = $res_c;
                             }
                         }
-                    }
-                    // set current clone as target for the relation
-                    if(isset($rel_schema[$def['foreign_field']]) ) {
-                        $rel_values = [ $rel_schema[$def['foreign_field']] => $res ];
+                        // set current clone as target for the relation
+                        $rel_values = [ $def['foreign_field'] => $res ];
                         if(isset($values['creator'])) {
                             $rel_values['creator'] = $values['creator'];
                         }
