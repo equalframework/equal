@@ -519,7 +519,7 @@ class DataAdapter extends Service {
         }
         else {
             if(is_null($this->config)) $this->init();
-            $method = &self::getMethod($from, $to, $type);
+            $method = &$this->getMethod($from, $to, $type);
         }
 
         return call_user_func_array( $method, array_merge([$value], $extra) );
