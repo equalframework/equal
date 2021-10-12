@@ -24,7 +24,7 @@ list($params, $providers) = announce([
             'default'       => 'list.default'
         ],
         'domain' =>  [
-            'description'   => 'List of unique identifiers of the objects to read.',
+            'description'   => 'Domain for filtering objects to include in the export.',
             'type'          => 'array',
             'default'       => []
         ],
@@ -98,7 +98,7 @@ $user = User::id($auth->userId())->read(['id', 'login'])->first();
 $doc->getProperties()
       ->setCreator($user['login'])
       ->setTitle('Export')
-      ->setDescription('Exported with equal lib');
+      ->setDescription('Exported with eQual library');
 
 $doc->setActiveSheetIndex(0);
 
