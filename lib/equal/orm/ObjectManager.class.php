@@ -499,7 +499,7 @@ class ObjectManager extends Service {
                     $res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
                     foreach($ids as $oid) {
                         if(isset($res[$oid])) {
-                            // should not be adapted : we're dealing with PHP not SQL                        
+                            // #memo - should not be adapted : we're dealing with PHP not SQL                        
                             // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
                             $value = $res[$oid];
                         }

@@ -79,7 +79,6 @@ foreach($classes as $class) {
     // get the SQL table name
     $table_name = $orm->getObjectTableName($class_name);	
     $direct_name = strtolower(str_replace('\\', '_', $class_name));    
-      
     // handle inherited classes
     if($table_name != $direct_name) {
         // table name is the table of an ancestor

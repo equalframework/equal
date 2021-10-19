@@ -203,7 +203,7 @@ foreach (glob($path."*.json") as $json_file) {
             $res = $orm->create($entity, $odata, $lang);
             if($res == QN_ERROR_CONFLICT_OBJECT) {
                 $id = $odata['id'];
-                // object already exist, but either values or language might be different
+                // object already exist, but either values or language differs
                 $res = $orm->write($entity, $id, $odata, $lang);
                 $objects_ids[] = $id;
             }

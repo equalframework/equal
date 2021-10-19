@@ -13,26 +13,33 @@ class Permission extends Model {
     public static function getColumns() {
         return [
             'class_name' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'description'       => 'Full name of the entity to which the permission rule applies.'
             ],
+
             'domain' => [
                 'type'              => 'string',
                 'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])"
             ],
+
             'group_id' => [
                 'type'              => 'many2one', 
                 'foreign_object'    => 'core\Group',
                 'description'       => "Targeted group, if permission applies to a group."
             ],
+
             'user_id' => [
                 'type'              => 'many2one', 
                 'foreign_object'    => 'core\User',
                 'description'       => "Targeted user, if permission applies to a single user."
             ],
+
             'rights' => [
                 'type' 	            => 'integer',
-                'onchange'          => 'core\Permission::onchangeRights'
+                'onchange'          => 'core\Permission::onchangeRights',
+                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)"
             ],
+
             // virtual field, used in list views
             'rights_txt' => [
                 'type'              => 'computed', 

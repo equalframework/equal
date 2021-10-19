@@ -1,19 +1,22 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace test;
 
-
 class User extends \core\User {
+
     public static function getColumns() {
-        return array (
-  'new_field' => 
-  array (
-    'type' => 'html',
-    'multilang' => NULL,
-  ),
-  'myfile' => 
-  array (
-    'type' => 'file',
-  ),
-);
-	}
+        return [
+            'new_field' => [
+                'type'      => 'string',
+                'multilang' => true
+            ],
+            'myfile' => [
+                'type'      => 'file'
+            ]
+      ];
+  }
 }
