@@ -367,7 +367,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' => function($value) {
                         /*
-                         $value is expected to be either a base64 string
+                         $value is expected to be either a base64 string,
                          or an array holding data from the $_FILES array (multipart/form-data) having the following keys set:
 
                             [
@@ -382,6 +382,9 @@ class DataAdapter extends Service {
                             // @see RFC2397 (data:[<mediatype>][;base64],<data>)
                             $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1) );
                             $res = base64_decode($value);
+                            if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
+                                throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
+                            }
                         }
                         else {
                             if(!isset($value['tmp_name'])) {
