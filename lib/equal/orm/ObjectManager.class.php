@@ -302,7 +302,7 @@ class ObjectManager extends Service {
      * Filter given identifiers and return only valid ones (whatever the status of the objects).
      * Ids that do not match an object in the database are removed from the list.
      * Ids of soft-deleted object are considered valid.
-     * 
+     *
      * @param $class
      * @param $ids
      */
@@ -495,11 +495,11 @@ class ObjectManager extends Service {
                             throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_CONFIG);
                         }
                     }
-                    if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called", QN_ERROR_INVALID_PARAM);                    
+                    if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called", QN_ERROR_INVALID_PARAM);
                     $res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
                     foreach($ids as $oid) {
                         if(isset($res[$oid])) {
-                            // #memo - should not be adapted : we're dealing with PHP not SQL                        
+                            // #memo - should not be adapted : we're dealing with PHP not SQL
                             // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
                             $value = $res[$oid];
                         }
@@ -622,7 +622,7 @@ class ObjectManager extends Service {
                             // support computed fields (handled as simple fields according to result type)
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
-                            }    
+                            }
                            $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
                         }
                         $fields_values[$field] = $value;
@@ -656,7 +656,7 @@ class ObjectManager extends Service {
                                             $this->remove($schema[$field]['foreign_object'], $ids_to_remove, true);
                                             break;
                                         case 'null':
-                                        default:                                            
+                                        default:
                                             $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
                                             break;
                                     }
@@ -665,7 +665,7 @@ class ObjectManager extends Service {
                             else {
                                 $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
                             }
-                        }                        
+                        }
                         // add relation by setting the pointing id (overwrite previous value if any)
                         if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
                         // invalidate cache (field partially loaded)
@@ -846,7 +846,7 @@ class ObjectManager extends Service {
                     'message' 	=> 'Missing mandatory value.',
                     'function'	=> function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
                 ];
-            }            
+            }
             // check constraints
             if(isset($constraints[$field])) {
                 foreach($constraints[$field] as $error_id => $constraint) {
@@ -890,12 +890,12 @@ class ObjectManager extends Service {
                     $unique_fields[] = $field;
                 }
             }
-            $extra_values = [];            
-            $extra_fields = array_diff(array_unique($unique_fields), array_keys($values));            
+            $extra_values = [];
+            $extra_fields = array_diff(array_unique($unique_fields), array_keys($values));
             if(count($extra_fields)) {
                 $extra_values = $this->read($class, $ids, $extra_fields);
             }
-            
+
             foreach($ids as $id) {
                 foreach($uniques as $unique) {
                     $conflict_ids = [];
@@ -1000,7 +1000,7 @@ class ObjectManager extends Service {
             if(!isset($creation_array['id'])) {
                 if($use_draft) {
                     // list ids of records having creation date older than DRAFT_VALIDITY
-                    $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);                    
+                    $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
                     if(count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];
@@ -1143,13 +1143,13 @@ class ObjectManager extends Service {
      * @param   string  $lang	        language under which return fields values (only relevant for multilang fields)
      * @return  mixed   (int or array)  error code OR resulting associative array
      */
-    public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {        
+    public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
         $res = [];
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
 
         try {
-            
+
             // 1) do some pre-treatment
 
             // get static instance (check that given class exists)
@@ -1238,7 +1238,7 @@ class ObjectManager extends Service {
             }
 
             // 5) handle dot fields
-            
+
             foreach($dot_fields as $field) {
                 // init result set (values will be used as keys for assigning the loaded values)
                 foreach($ids as $oid) {
@@ -1321,13 +1321,12 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
+            // soft deletion
             if (!$permanent) {
-                // soft deletion
                 $db->setRecords($table_name, $ids, ['deleted' => 1]);
             }
+            // hard deletion
             else {
-                // hard deletion
-                $db->deleteRecords($table_name, $ids);
                 // 3) cascade deletions / relations updates
                 foreach($schema as $field => $def) {
                     if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
@@ -1337,8 +1336,8 @@ class ObjectManager extends Service {
                                 // build a unique name  (package/class/field/oid.lang)
                                 $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
                                 $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
-
                                 foreach($ids as $oid) {
+                                    // remove binary for all langs
                                     foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
                                         unlink($filename);
                                     }
@@ -1363,14 +1362,14 @@ class ObjectManager extends Service {
                                             case 'cascade':
                                                 $this->remove($def['foreign_object'], $rel_ids, $permanent);
                                                 break;
-                                            case 'null':                                                
-                                            default:                                                
+                                            case 'null':
+                                            default:
                                                 $this->write($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
                                                 break;
                                         }
                                     }
                                 }
-                            }                            
+                            }
                             break;
                         case 'many2many':
                             // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
@@ -1384,6 +1383,8 @@ class ObjectManager extends Service {
                         }
                     }
                 }
+                // delete targeted objects
+                $db->deleteRecords($table_name, $ids);
             }
         }
         catch(Exception $e) {
@@ -1397,7 +1398,7 @@ class ObjectManager extends Service {
      * @param $class    string
      * @param $id       integer
      * @param $values   array           Map of fields to override orinal object values.
-     * 
+     *
      * @param   string  $lang	        Language under which return fields values (only relevant for multilang fields).
      * @return  mixed   (int or array)  Error code OR resulting associative array.
      */
@@ -1463,7 +1464,7 @@ class ObjectManager extends Service {
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
             $res = $e->getCode();
-        }            
+        }
         return $res;
     }
 
@@ -1555,7 +1556,7 @@ class ObjectManager extends Service {
                         if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
-                        if(isset($special_fields[$field])) unset($special_fields[$field]);                        
+                        if(isset($special_fields[$field])) unset($special_fields[$field]);
 
                         // note: we don't test user permissions on foreign objects here
                         switch($type) {
@@ -1598,7 +1599,7 @@ class ObjectManager extends Service {
                                 // adapt value
                                 if(!is_array($value)) {
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
-                                    $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');    
+                                    $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
                                 if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
