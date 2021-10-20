@@ -157,8 +157,8 @@ class Collection implements \Iterator {
      */
     public function first() {
         $this->objects = array_slice($this->objects, 0, 1, true);
-        $res = $this->toArray();
-        return count($res)?$res[0]:null;
+        $res = $this->get();
+        return count($res)?array_pop($res):null;
         // return reset($this->objects);
     }
 
@@ -216,7 +216,7 @@ class Collection implements \Iterator {
      * create an empty object based on a given id
      */
     public function id($id) {
-        return $this->ids([$id]);
+        return $this->ids((array) $id);
     }
 
     /**
@@ -230,15 +230,15 @@ class Collection implements \Iterator {
         }
         else {
             $ids = array_unique((array) $args[0]);
-            // filter resulting ids based on current user permissions
-            // (filling the list with non-readable objects would raise a NOT_ALLOWED exception)
-/*
+            // #memo - filling the list with non-readable objects would raise a NOT_ALLOWED exception
+            /*
+            // #removed - filter resulting ids based on current user permissions
             foreach($ids as $i => $id) {
                 if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
                     unset($ids[$i]);
                 }
             }
-*/
+            */
             // init keys of 'objects' member (resulting in a map with keys but no values)
             $this->objects = array_fill_keys($ids, []);
         }
