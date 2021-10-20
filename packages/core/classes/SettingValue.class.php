@@ -21,6 +21,15 @@ class SettingValue extends Model {
     public static function getColumns() {
         return [
 
+            'name' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'description'       => "Code to serve as reference (might not be unique).",
+                'function'          => 'core\SettingValue::getDisplayName',
+                'store'             => true,
+                'readonly'          => true
+            ],
+
             'setting_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Setting',
@@ -42,6 +51,18 @@ class SettingValue extends Model {
 
         ];
     }
+
+    public static function getDisplayName($om, $oids, $lang) {
+        $result = [];
+
+        $settingValues = $om->read(__CLASS__, $oids, ['setting_id.name'], $lang);
+
+        foreach($settingValues as $oid => $odata) {
+            $result[$oid] = $odata['setting_id.name'];
+        }
+        
+        return $result;              
+    }    
 
     public function getUnique() {
         return [
