@@ -46,3 +46,5 @@
 ./equal.run --get=model_export-all-json --entity=sale\\season\\SeasonCategory > sale_season_SeasonCategory.json
 ./equal.run --get=model_export-all-json --entity=sale\\season\\SeasonPeriod > sale_season_SeasonPeriod.json
 ./equal.run --get=model_export-all-json --entity=sale\\season\\SeasonType > sale_season_SeasonType.json
+./equal.run --get=model_export-all-json --entity=sale\\pay\\PaymentPlan > sale_pay_PaymentPlan.json
+./equal.run --get=model_export-all-json --entity=sale\\pay\\PaymentDeadline > sale_pay_PaymentDeadline.json
