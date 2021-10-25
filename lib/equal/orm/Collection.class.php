@@ -443,6 +443,7 @@ class Collection implements \Iterator {
             // create the clone
             $oid = $this->orm->clone($this->class, $id, $original, $lang);
             if($oid <= 0) {
+                // error at creation (possibly duplicate_index)
                 throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
             }
 
