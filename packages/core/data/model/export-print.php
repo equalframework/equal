@@ -27,11 +27,6 @@ list($params, $providers) = announce([
             'type'          => 'string', 
             'default'       => 'print.default'
         ],
-        'domain' =>  [
-            'description'   => 'List of unique identifiers of the objects to read.',
-            'type'          => 'array',
-            'default'       => []
-        ],
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string', 
@@ -39,7 +34,7 @@ list($params, $providers) = announce([
         ]        
     ],
     'response'      => [
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'orm'] 
 ]);
@@ -49,6 +44,10 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $entity = $params['entity'];
 
+
+/*
+    Retrieve the requested template
+*/
 
 // #todo - improve this
 $parts = explode('\\', $entity);    
@@ -68,10 +67,14 @@ $twig = new TwigEnvironment($loader);
 
 $template = $twig->load("{$class_path}.{$params['view_id']}.html");
 
+// #todo - retrieve simple fields
+$fields = [];
+$values = $params['entity']::id($params['id'])->read($fields)->adapt('txt')->first();
 
-$values = $params['entity']::search($params['domain'])->read($fields)->adapt('txt')->get();
-
-$html = $template->render([]);
+/* 
+    Inject all values into the template 
+*/
+$html = $template->render($values);
 
 
 
