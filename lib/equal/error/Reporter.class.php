@@ -168,16 +168,21 @@ class Reporter extends Service {
 // #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the webservice to access it)
             $filepath = QN_LOG_STORAGE_DIR.'/qn_error.log';
 
+            // by default, append content at the end of the log file
+            $flags = FILE_APPEND;
+
             // log rotator
-            $maxsize = 5242880;            
+            $maxsize = 5242880;     // max size for log file 
             if( rand(1, 20) == 1    // set throttle to 5% (to reduce fs stat calls)
                 && file_exists($filepath) && filesize($filepath) > $maxsize ){
                 for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
-                rename($filepath, $filepath.'.'.$i);
+                copy($filepath, $filepath.'.'.$i);
+                // st flag to force next call to `file_put_contents()` to overwrite existing data
+                $flags = 0;
             }
 
-            // append error message to log file
-            file_put_contents($filepath, $error, FILE_APPEND);                        
+            // write error message to log file
+            file_put_contents($filepath, $error, $flags);                        
         }
     }
     
