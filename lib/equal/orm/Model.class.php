@@ -196,7 +196,7 @@ class Model {
     }
 
     /**
-      * Returns a map of constraints associating fields with validation functions.
+     * Returns a map of constraints associating fields with validation functions.
      * This method is meant to be overridden by children classes.
      *
      * @access public
