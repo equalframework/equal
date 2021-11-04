@@ -566,8 +566,7 @@ class Collection implements \Iterator {
 			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
                 throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
             }
-echo "collection".PHP_EOL;
-print_r($requested_fields);
+
             // 3) read values
             $res = $this->orm->read($this->class, $ids, $requested_fields, $lang);
             // $res is an error code, something prevented to fetch requested fields

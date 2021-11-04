@@ -3898,7 +3898,7 @@ var Layout = /*#__PURE__*/function () {
             } finally {
               _iterator6.f();
             }
-          } // update tabs visibility
+          } // update tabs visibility, if any
 
 
           var $tabs = _this4.$layout.find('.mdc-tab.sb-view-form-section-tab');
@@ -9674,9 +9674,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             }
 
             var tmpDomain = new _Domain.default(domainArray);
-            tmpDomain.merge(new _Domain.default(domain)); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+            tmpDomain.merge(new _Domain.default(domain)); // fetch first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
 
-            _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, _this.config.lang).then(function (response) {
+            var limit = _this.config.limit ? _this.config.limit : 5;
+
+            _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, limit, _this.config.lang).then(function (response) {
               objects = response;
               $menu_list.empty();
 
