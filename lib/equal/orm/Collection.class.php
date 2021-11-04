@@ -523,12 +523,14 @@ class Collection implements \Iterator {
             $allowed_fields = array_keys($schema);
 
             // build a list of direct field to load (i.e. "object attributes")
+            $requested_fields = [];
+
             // 'id': we might access an object directly by giving its `id`.
             // 'name': as a convention the name is always provided.
             // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
             // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not.
             // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
-            $requested_fields = ['id', 'name', 'state', 'deleted', 'modified'];
+            $mandatory_fields = ['id', 'name', 'state', 'deleted', 'modified'];
 
             // remeber relational fields requiring additional loading
             $relational_fields = [];
@@ -551,6 +553,12 @@ class Collection implements \Iterator {
                 }
             }
 
+            foreach($mandatory_fields as $field) {
+                if(!in_array($field, $requested_fields)) {
+                    $requested_fields[] = $field;
+                }
+            }
+
             // retrieve targeted identifiers (remove null entries)
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
 
@@ -558,7 +566,8 @@ class Collection implements \Iterator {
 			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
                 throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
             }
-
+echo "collection".PHP_EOL;
+print_r($requested_fields);
             // 3) read values
             $res = $this->orm->read($this->class, $ids, $requested_fields, $lang);
             // $res is an error code, something prevented to fetch requested fields
