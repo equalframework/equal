@@ -1013,9 +1013,19 @@ var Context = /*#__PURE__*/function () {
       return this.view.name;
     }
   }, {
+    key: "getDomain",
+    value: function getDomain() {
+      return this.view.domain;
+    }
+  }, {
     key: "getPurpose",
     value: function getPurpose() {
       return this.view.purpose;
+    }
+  }, {
+    key: "getLang",
+    value: function getLang() {
+      return this.view.lang;
     }
   }, {
     key: "getContainer",
@@ -1413,6 +1423,12 @@ var Domain = /*#__PURE__*/function () {
                 }
 
                 cc_res = value.indexOf(operand) > -1;
+              } else if (operator == 'not in') {
+                if (!Array.isArray(value)) {
+                  continue;
+                }
+
+                cc_res = value.indexOf(operand) == -1;
               } else {
                 var c_condition = "( '" + operand + "' " + operator + " '" + value + "')";
                 cc_res = eval(c_condition);
@@ -1597,6 +1613,12 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 __webpack_require__(/*! ../css/material-basics.css */ "./css/material-basics.css");
 
 __webpack_require__(/*! ../css/equal.css */ "./css/equal.css"); // This project uses MDC library (material design components)
@@ -1618,11 +1640,12 @@ var EqualEventsListener = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$sbEvents", void 0);
     (0, _defineProperty2.default)(this, "frames", void 0);
     (0, _defineProperty2.default)(this, "user", void 0);
+    (0, _defineProperty2.default)(this, "subscribers", {});
     this.frames = {}; // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
     // if no name was given, use the default one
 
     if (domListenerId.length == 0) {
-      domListenerId = 'eq-events';
+      domListenerId = 'eq-listener';
     }
 
     this.$sbEvents = (0, _jqueryLib.$)('#' + domListenerId); // if DOM element by given name cannot be found, create it
@@ -1638,27 +1661,52 @@ var EqualEventsListener = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(EqualEventsListener, [{
+    key: "addSubscriber",
+    value: function addSubscriber(events, callback) {
+      console.log('##### adding subscriber', events);
+
+      var _iterator = _createForOfIteratorHelper(events),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var event = _step.value;
+          if (!['open', 'close'].includes(event)) continue;
+
+          if (!this.subscribers.hasOwnProperty(event)) {
+            this.subscribers[event] = [];
+          }
+
+          this.subscribers[event].push(callback);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }, {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
         var _this = this;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee2$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                _context2.prev = 0;
-                _context2.next = 3;
+                _context3.prev = 0;
+                _context3.next = 3;
                 return _equalServices.ApiService.getUser();
 
               case 3:
-                this.user = _context2.sent;
-                _context2.next = 9;
+                this.user = _context3.sent;
+                _context3.next = 9;
                 break;
 
               case 6:
-                _context2.prev = 6;
-                _context2.t0 = _context2["catch"](0);
+                _context3.prev = 6;
+                _context3.t0 = _context3["catch"](0);
                 console.warn('unable to retrieve user info');
 
               case 9:
@@ -1667,6 +1715,7 @@ var EqualEventsListener = /*#__PURE__*/function () {
                 // can be used :
                 // - by emitters to request a context change
                 // - by listeners to be notified about any context change (whatever the frame)
+                // #todo - deprecate no longer necessary : open() directly invokes _openContext
 
 
                 this.$sbEvents.on('click', function (event, context) {
@@ -1708,7 +1757,11 @@ var EqualEventsListener = /*#__PURE__*/function () {
                 this.$sbEvents.on('_openContext', /*#__PURE__*/function () {
                   var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event, config) {
                     var reset,
+                        _iterator2,
+                        _step2,
+                        callback,
                         _args = arguments;
+
                     return _regenerator.default.wrap(function _callee$(_context) {
                       while (1) {
                         switch (_context.prev = _context.next) {
@@ -1745,6 +1798,26 @@ var EqualEventsListener = /*#__PURE__*/function () {
                             return _this.frames[config.target]._openContext(config);
 
                           case 7:
+                            // run callback of subscribers
+                            if (_this.subscribers.hasOwnProperty('open') && _this.subscribers['open'].length) {
+                              _iterator2 = _createForOfIteratorHelper(_this.subscribers['open']);
+
+                              try {
+                                for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                                  callback = _step2.value;
+
+                                  if ({}.toString.call(callback) === '[object Function]') {
+                                    callback(config);
+                                  }
+                                }
+                              } catch (err) {
+                                _iterator2.e(err);
+                              } finally {
+                                _iterator2.f();
+                              }
+                            }
+
+                          case 8:
                           case "end":
                             return _context.stop();
                         }
@@ -1767,11 +1840,44 @@ var EqualEventsListener = /*#__PURE__*/function () {
                   // close context non-silently with relayed data
                   params = _objectSpread(_objectSpread({}, {
                     target: '#sb-container',
-                    data: {}
+                    data: {},
+                    silent: false
                   }), params);
 
                   if (_this.frames.hasOwnProperty(params.target)) {
-                    _this.frames[params.target].closeContext(params.data);
+                    var frame = _this.frames[params.target];
+
+                    frame._closeContext(params.data, params.silent); // run callback of subscribers
+
+
+                    if (_this.subscribers.hasOwnProperty('close') && _this.subscribers['close'].length) {
+                      var _iterator3 = _createForOfIteratorHelper(_this.subscribers['close']),
+                          _step3;
+
+                      try {
+                        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                          var callback = _step3.value;
+
+                          if ({}.toString.call(callback) === '[object Function]') {
+                            var _context2 = frame.getContext();
+
+                            callback({
+                              entity: _context2.getEntity(),
+                              type: _context2.getType(),
+                              name: _context2.getName(),
+                              domain: _context2.getDomain(),
+                              mode: _context2.getMode(),
+                              purpose: _context2.getPurpose(),
+                              lang: _context2.getLang()
+                            });
+                          }
+                        }
+                      } catch (err) {
+                        _iterator3.e(err);
+                      } finally {
+                        _iterator3.f();
+                      }
+                    }
                   }
                 });
                 this.$sbEvents.on('_closeAll', function (event) {
@@ -1787,20 +1893,20 @@ var EqualEventsListener = /*#__PURE__*/function () {
                   */
                   if (params && params.hasOwnProperty('target')) {
                     if (_this.frames.hasOwnProperty(params.target)) {
-                      _this.frames[params.target].closeContext(params.silent);
+                      _this.frames[params.target]._closeContext(null, params.silent);
                     }
                   } else {
                     for (var _i = 0, _Object$keys = Object.keys(_this.frames); _i < _Object$keys.length; _i++) {
                       var target = _Object$keys[_i];
 
-                      _this.frames[target].closeContext(true);
+                      _this.frames[target]._closeContext(null, true);
                     }
                   }
                 });
 
               case 14:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
         }, _callee2, this, [[0, 6]]);
@@ -1817,6 +1923,11 @@ var EqualEventsListener = /*#__PURE__*/function () {
     value: function closeAll() {
       console.log('eQ:received closeAll');
       this.$sbEvents.trigger('_closeAll');
+    }
+  }, {
+    key: "close",
+    value: function close(params) {
+      this.$sbEvents.trigger('_closeContext', [params]);
     }
     /**
      * Interface method for integration with external tools.
@@ -1839,11 +1950,20 @@ var EqualEventsListener = /*#__PURE__*/function () {
         // view, select, add
         lang: _environment.environment.lang,
         callback: null,
-        target: '#sb-container'
-      }), context); // make context available to the outside
+        target: '#sb-container',
+        reset: false
+      }), context); // this.$sbEvents.trigger('click', [context, context.hasOwnProperty('reset') && context.reset]);
 
-      window.context = context;
-      this.$sbEvents.trigger('click', [context, context.hasOwnProperty('reset') && context.reset]);
+      if (context.hasOwnProperty('view')) {
+        var parts = context.view.split('.');
+        if (parts.length) context.type = parts.shift();
+        if (parts.length) context.name = parts.shift();
+      } // make context available to the outside
+
+
+      window.context = context; // ContextService uses 'window' global object to store the arguments (context parameters)
+
+      this.$sbEvents.trigger('_openContext', [context, context.reset]);
     }
   }, {
     key: "getUser",
@@ -2002,6 +2122,11 @@ var Frame = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(Frame, [{
+    key: "getContext",
+    value: function getContext() {
+      return this.context;
+    }
+  }, {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
@@ -2329,13 +2454,13 @@ var Frame = /*#__PURE__*/function () {
                                     return _context4.abrupt("return");
 
                                   case 6:
-                                    _this2.closeContext(true);
+                                    _this2.closeContext(null, true);
 
                                     _context4.next = 10;
                                     break;
 
                                   case 9:
-                                    _this2.closeContext(true);
+                                    _this2.closeContext(null, true);
 
                                   case 10:
                                     --j;
@@ -2622,8 +2747,47 @@ var Frame = /*#__PURE__*/function () {
       return openContext;
     }()
     /**
+     * @param data 
+     * @param silent 
+     */
+
+  }, {
+    key: "closeContext",
+    value: function () {
+      var _closeContext2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+        var data,
+            silent,
+            _args9 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                data = _args9.length > 0 && _args9[0] !== undefined ? _args9[0] : null;
+                silent = _args9.length > 1 && _args9[1] !== undefined ? _args9[1] : false;
+                this.eq.close({
+                  target: this.domContainerSelector,
+                  data: data,
+                  silent: silent
+                });
+
+              case 3:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function closeContext() {
+        return _closeContext2.apply(this, arguments);
+      }
+
+      return closeContext;
+    }()
+    /**
      * Instanciate a new context and push it on the contexts stack.
-     * Only eQ object should call this method.
+     * 
+     * This method is meant to be called by the eventListener only (eQ object).
      * 
      * @param config 
      */
@@ -2631,13 +2795,13 @@ var Frame = /*#__PURE__*/function () {
   }, {
     key: "_openContext",
     value: function () {
-      var _openContext3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(config) {
+      var _openContext3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(config) {
         var _this3 = this;
 
         var defaults, object, context;
-        return _regenerator.default.wrap(function _callee8$(_context9) {
+        return _regenerator.default.wrap(function _callee9$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 console.log('Frame: received _openContext', config); // extend default params with received config
 
@@ -2655,21 +2819,21 @@ var Frame = /*#__PURE__*/function () {
                 }), config); // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
 
                 if (!(config.purpose == 'create')) {
-                  _context9.next = 11;
+                  _context10.next = 11;
                   break;
                 }
 
                 console.log('requesting dratf object');
-                _context9.next = 6;
+                _context10.next = 6;
                 return this.getNewObjectDefaults(config.entity, config.domain);
 
               case 6:
-                defaults = _context9.sent;
-                _context9.next = 9;
+                defaults = _context10.sent;
+                _context10.next = 9;
                 return _equalServices.ApiService.create(config.entity, defaults);
 
               case 9:
-                object = _context9.sent;
+                object = _context10.sent;
                 config.domain = [['id', '=', object.id], ['state', '=', 'draft']];
 
               case 11:
@@ -2707,10 +2871,10 @@ var Frame = /*#__PURE__*/function () {
 
               case 15:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function _openContext(_x4) {
@@ -2724,33 +2888,35 @@ var Frame = /*#__PURE__*/function () {
     value: function closeAll() {
       // close all contexts silently
       while (this.stack.length) {
-        this.closeContext(true);
+        this.closeContext(null, true);
       }
     }
   }, {
-    key: "closeContext",
+    key: "_closeContext",
     value:
     /**
      * Handler for request for closing current context (top of stack).
      * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields).
      * 
+     * This method is meant to be called by the eventListener only (eQ object).
+     * 
      * @param silent do not show the pop-ed context and do not refresh the header 
      */
     function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+      var _closeContext3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
         var data,
             silent,
             has_changed,
-            _args10 = arguments;
-        return _regenerator.default.wrap(function _callee9$(_context10) {
+            _args11 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                data = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : null;
-                silent = _args10.length > 1 && _args10[1] !== undefined ? _args10[1] : false;
+                data = _args11.length > 0 && _args11[0] !== undefined ? _args11[0] : null;
+                silent = _args11.length > 1 && _args11[1] !== undefined ? _args11[1] : false;
 
                 if (!this.stack.length) {
-                  _context10.next = 14;
+                  _context11.next = 14;
                   break;
                 }
 
@@ -2761,21 +2927,21 @@ var Frame = /*#__PURE__*/function () {
                 this.context = this.stack.pop();
 
                 if (silent) {
-                  _context10.next = 13;
+                  _context11.next = 13;
                   break;
                 }
 
                 if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
-                  _context10.next = 12;
+                  _context11.next = 12;
                   break;
                 }
 
                 if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context10.next = 11;
+                  _context11.next = 11;
                   break;
                 }
 
-                _context10.next = 11;
+                _context11.next = 11;
                 return this.context.refresh();
 
               case 11:
@@ -2793,17 +2959,17 @@ var Frame = /*#__PURE__*/function () {
 
               case 14:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
 
-      function closeContext() {
-        return _closeContext.apply(this, arguments);
+      function _closeContext() {
+        return _closeContext3.apply(this, arguments);
       }
 
-      return closeContext;
+      return _closeContext;
     }()
   }]);
   return Frame;
@@ -2863,9 +3029,9 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
-        - 1 single object : Form 
+        - 1 single object : Form
         - several objects : List (grid, kanban, graph)
-        
+
     Forms can be displayed in two modes : 'view' or 'edit'
     Lists can be editable on a Cell basis (using Widgets)
 */
@@ -2925,8 +3091,8 @@ var Layout = /*#__PURE__*/function () {
     }
     /**
      * Relay Context opening requests to parent View.
-     * 
-     * @param config 
+     *
+     * @param config
      */
 
   }, {
@@ -2936,9 +3102,9 @@ var Layout = /*#__PURE__*/function () {
       this.view.openContext(config);
     }
     /**
-     * 
-     * @param field 
-     * @param message 
+     *
+     * @param field
+     * @param message
      */
 
   }, {
@@ -2986,7 +3152,7 @@ var Layout = /*#__PURE__*/function () {
         this.model_widgets[object_id][field].setValue(value);
       }
     } // refresh layout
-    // this method is called in response to parent View `onchangeModel` method 
+    // this method is called in response to parent View `onchangeModel` method
 
   }, {
     key: "refresh",
@@ -3000,7 +3166,7 @@ var Layout = /*#__PURE__*/function () {
             switch (_context2.prev = _context2.next) {
               case 0:
                 full = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : false;
-                console.log('Layout::refresh'); // also re-generate the layout                     
+                console.log('Layout::refresh'); // also re-generate the layout
 
                 if (full) {
                   this.$layout.empty();
@@ -3089,7 +3255,7 @@ var Layout = /*#__PURE__*/function () {
     }
     /**
      * Generate a widget config based on a layout item (from View schema)
-     * @param field_name 
+     * @param field_name
      */
 
   }, {
@@ -3105,7 +3271,7 @@ var Layout = /*#__PURE__*/function () {
       }
 
       var def = model_fields[field];
-      var label = item.hasOwnProperty('label') ? item.label : field; // #todo - handle help and relay to Context        
+      var label = item.hasOwnProperty('label') ? item.label : field; // #todo - handle help and relay to Context
 
       var helper = item.hasOwnProperty('help') ? item.help : def.hasOwnProperty('help') ? def['help'] : '';
       var description = item.hasOwnProperty('description') ? item.description : def.hasOwnProperty('description') ? def['description'] : '';
@@ -3205,9 +3371,9 @@ var Layout = /*#__PURE__*/function () {
       return config;
     }
     /**
-     * 
+     *
      * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
-     * 
+     *
      */
 
   }, {
@@ -3272,6 +3438,10 @@ var Layout = /*#__PURE__*/function () {
               $group.find('#' + section_id).show();
             });
 
+            if (section.hasOwnProperty('visible')) {
+              $tab.attr('data-visible', JSON.stringify(section.visible));
+            }
+
             $tabs.find('.sb-view-form-sections').append($tab);
           }
 
@@ -3282,7 +3452,7 @@ var Layout = /*#__PURE__*/function () {
               var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
 
               if (column.hasOwnProperty('width')) {
-                $column.addClass('mdc-layout-grid__cell--span-' + Math.round(parseInt(column.width, 10) / 100 * 12));
+                $column.addClass('mdc-layout-grid__cell--span-' + Math.floor(parseInt(column.width, 10) / 100 * 12));
               }
 
               var $inner_cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
@@ -3291,7 +3461,7 @@ var Layout = /*#__PURE__*/function () {
               _jqueryLib.$.each(column.items, function (i, item) {
                 var $cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column); // compute the width (on a 12 columns grid basis), from 1 to 12
 
-                var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
+                var width = item.hasOwnProperty('width') ? Math.floor(parseInt(item.width, 10) / 100 * 12) : 12;
                 $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
                 if (item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
@@ -3687,29 +3857,25 @@ var Layout = /*#__PURE__*/function () {
                                       result = _context3.sent;
                                       console.log(result);
                                       _context3.next = 7;
-                                      return _this4.view.getModel().refresh();
+                                      return _this4.view.onchangeView();
 
                                     case 7:
-                                      _context3.next = 9;
-                                      return _this4.refresh();
-
-                                    case 9:
-                                      _context3.next = 16;
+                                      _context3.next = 14;
                                       break;
 
-                                    case 11:
-                                      _context3.prev = 11;
+                                    case 9:
+                                      _context3.prev = 9;
                                       _context3.t0 = _context3["catch"](0);
                                       console.log('error', _context3.t0);
-                                      _context3.next = 16;
+                                      _context3.next = 14;
                                       return _this4.view.displayErrorFeedback(_context3.t0);
 
-                                    case 16:
+                                    case 14:
                                     case "end":
                                       return _context3.stop();
                                   }
                                 }
-                              }, _callee3, null, [[0, 11]]);
+                              }, _callee3, null, [[0, 9]]);
                             })));
 
                           case 3:
@@ -3732,7 +3898,25 @@ var Layout = /*#__PURE__*/function () {
             } finally {
               _iterator6.f();
             }
-          }
+          } // update tabs visibility
+
+
+          var $tabs = _this4.$layout.find('.mdc-tab.sb-view-form-section-tab');
+
+          $tabs.each(function (i, elem) {
+            var $tab = (0, _jqueryLib.$)(elem);
+            var visible = $tab.attr('data-visible');
+
+            if (visible != undefined) {
+              var domain = new _Domain.Domain(JSON.parse(visible));
+
+              if (domain.evaluate(object)) {
+                $tab.show();
+              } else {
+                $tab.hide();
+              }
+            }
+          });
 
           var _iterator7 = _createForOfIteratorHelper(fields),
               _step7;
@@ -3778,7 +3962,7 @@ var Layout = /*#__PURE__*/function () {
                     object[field] = []; // force change detection (upon re-feed, the field do not change and remains an empty array)
 
                     $parent.data('value', null);
-                  } // for m2m fields, the value of the field is an array of ids 
+                  } // for m2m fields, the value of the field is an array of ids
                   // by convention, when a relation is to be removed, the id field is set to its negative value
 
 
@@ -3815,7 +3999,7 @@ var Layout = /*#__PURE__*/function () {
               })).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh (prevent storing references)
 
               $parent.data('value', JSON.stringify(value));
-              var visible = true; // handle visibility tests (domain)           
+              var visible = true; // handle visibility tests (domain)
 
               if (config.hasOwnProperty('visible')) {
                 // visible attribute is a Domain
@@ -4050,7 +4234,7 @@ var Model = /*#__PURE__*/function () {
         'datetime': ['=', '<=', '>='],
         'file': ['like', '='],
         'binary': ['like', '='],
-        'many2one': ['is', 'in', 'not in'],
+        'many2one': ['=', 'is', 'in', 'not in'],
         'one2many': ['contains'],
         'many2many': ['contains']
       };
@@ -4740,6 +4924,10 @@ var View = /*#__PURE__*/function () {
     this.entity = entity;
     this.type = type;
     this.name = name;
+    this.domain = domain;
+    this.mode = mode;
+    this.purpose = purpose;
+    this.lang = lang;
     this.is_ready_promise = _jqueryLib.$.Deferred(); // default config
 
     this.config = {
@@ -4798,22 +4986,31 @@ var View = /*#__PURE__*/function () {
                     return _this.onchangeView();
 
                   case 5:
-                    _context.next = 11;
+                    _context.next = 17;
                     break;
 
                   case 7:
                     _context.prev = 7;
                     _context.t0 = _context["catch"](0);
                     console.log('unexpected error', _context.t0);
+                    _context.prev = 10;
+                    _context.next = 13;
+                    return _this.displayErrorFeedback(_context.t0);
 
-                    _this.displayErrorFeedback(_context.t0);
+                  case 13:
+                    _context.next = 17;
+                    break;
 
-                  case 11:
+                  case 15:
+                    _context.prev = 15;
+                    _context.t1 = _context["catch"](10);
+
+                  case 17:
                   case "end":
                     return _context.stop();
                 }
               }
-            }, _callee, null, [[0, 7]]);
+            }, _callee, null, [[0, 7], [10, 15]]);
           }));
 
           function handler(_x) {
@@ -4854,21 +5051,30 @@ var View = /*#__PURE__*/function () {
                                 return _this.onchangeView();
 
                               case 5:
-                                _context2.next = 10;
+                                _context2.next = 16;
                                 break;
 
                               case 7:
                                 _context2.prev = 7;
                                 _context2.t0 = _context2["catch"](0);
+                                _context2.prev = 9;
+                                _context2.next = 12;
+                                return _this.displayErrorFeedback(_context2.t0);
 
-                                _this.displayErrorFeedback(_context2.t0);
+                              case 12:
+                                _context2.next = 16;
+                                break;
 
-                              case 10:
+                              case 14:
+                                _context2.prev = 14;
+                                _context2.t1 = _context2["catch"](9);
+
+                              case 16:
                               case "end":
                                 return _context2.stop();
                             }
                           }
-                        }, _callee2, null, [[0, 7]]);
+                        }, _callee2, null, [[0, 7], [9, 14]]);
                       }));
 
                       return function (_x3, _x4) {
@@ -4914,7 +5120,7 @@ var View = /*#__PURE__*/function () {
                             switch (_context4.prev = _context4.next) {
                               case 0:
                                 if (!result.confirm) {
-                                  _context4.next = 11;
+                                  _context4.next = 17;
                                   break;
                                 }
 
@@ -4927,21 +5133,30 @@ var View = /*#__PURE__*/function () {
                                 return _this.onchangeView();
 
                               case 6:
-                                _context4.next = 11;
+                                _context4.next = 17;
                                 break;
 
                               case 8:
                                 _context4.prev = 8;
                                 _context4.t0 = _context4["catch"](1);
+                                _context4.prev = 10;
+                                _context4.next = 13;
+                                return _this.displayErrorFeedback(_context4.t0);
 
-                                _this.displayErrorFeedback(_context4.t0);
+                              case 13:
+                                _context4.next = 17;
+                                break;
 
-                              case 11:
+                              case 15:
+                                _context4.prev = 15;
+                                _context4.t1 = _context4["catch"](10);
+
+                              case 17:
                               case "end":
                                 return _context4.stop();
                             }
                           }
-                        }, _callee4, null, [[1, 8]]);
+                        }, _callee4, null, [[1, 8], [10, 15]]);
                       }));
 
                       return function (_x6, _x7) {
@@ -4971,14 +5186,10 @@ var View = /*#__PURE__*/function () {
       this.config = _objectSpread(_objectSpread({}, this.config), config);
     }
 
-    this.mode = mode;
-    this.purpose = purpose;
-    this.domain = domain;
     this.order = this.config.hasOwnProperty('order') ? this.config.order : 'id';
     this.sort = this.config.hasOwnProperty('sort') ? this.config.sort : 'asc';
     this.start = 0;
     this.limit = 25;
-    this.lang = lang;
     this.selected_ids = [];
     this.applied_filters_ids = [];
     this.filters = {};
@@ -5566,21 +5777,30 @@ var View = /*#__PURE__*/function () {
                       });
 
                     case 6:
-                      _context8.next = 11;
+                      _context8.next = 17;
                       break;
 
                     case 8:
                       _context8.prev = 8;
                       _context8.t0 = _context8["catch"](0);
+                      _context8.prev = 10;
+                      _context8.next = 13;
+                      return _this2.displayErrorFeedback(_context8.t0);
 
-                      _this2.displayErrorFeedback(_context8.t0);
+                    case 13:
+                      _context8.next = 17;
+                      break;
 
-                    case 11:
+                    case 15:
+                      _context8.prev = 15;
+                      _context8.t1 = _context8["catch"](10);
+
+                    case 17:
                     case "end":
                       return _context8.stop();
                   }
                 }
-              }, _callee8, null, [[0, 8]]);
+              }, _callee8, null, [[0, 8], [10, 15]]);
             }))));
             break;
 
@@ -5602,21 +5822,30 @@ var View = /*#__PURE__*/function () {
                       });
 
                     case 3:
-                      _context9.next = 8;
+                      _context9.next = 14;
                       break;
 
                     case 5:
                       _context9.prev = 5;
                       _context9.t0 = _context9["catch"](0);
+                      _context9.prev = 7;
+                      _context9.next = 10;
+                      return _this2.displayErrorFeedback(_context9.t0);
 
-                      _this2.displayErrorFeedback(_context9.t0);
+                    case 10:
+                      _context9.next = 14;
+                      break;
 
-                    case 8:
+                    case 12:
+                      _context9.prev = 12;
+                      _context9.t1 = _context9["catch"](7);
+
+                    case 14:
                     case "end":
                       return _context9.stop();
                   }
                 }
-              }, _callee9, null, [[0, 5]]);
+              }, _callee9, null, [[0, 5], [7, 12]]);
             })))).prepend(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
               var objects;
               return _regenerator.default.wrap(function _callee10$(_context10) {
@@ -5661,21 +5890,30 @@ var View = /*#__PURE__*/function () {
                       });
 
                     case 3:
-                      _context11.next = 8;
+                      _context11.next = 14;
                       break;
 
                     case 5:
                       _context11.prev = 5;
                       _context11.t0 = _context11["catch"](0);
+                      _context11.prev = 7;
+                      _context11.next = 10;
+                      return _this2.displayErrorFeedback(_context11.t0);
 
-                      _this2.displayErrorFeedback(_context11.t0);
+                    case 10:
+                      _context11.next = 14;
+                      break;
 
-                    case 8:
+                    case 12:
+                      _context11.prev = 12;
+                      _context11.t1 = _context11["catch"](7);
+
+                    case 14:
                     case "end":
                       return _context11.stop();
                   }
                 }
-              }, _callee11, null, [[0, 5]]);
+              }, _callee11, null, [[0, 5], [7, 12]]);
             })))).prepend(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
               var objects;
               return _regenerator.default.wrap(function _callee12$(_context12) {
@@ -6081,7 +6319,7 @@ var View = /*#__PURE__*/function () {
 
         case 'edit':
           $std_actions.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15() {
-            var objects, object, response;
+            var objects, object, response, res;
             return _regenerator.default.wrap(function _callee15$(_context15) {
               while (1) {
                 switch (_context15.prev = _context15.next) {
@@ -6112,7 +6350,7 @@ var View = /*#__PURE__*/function () {
                     // no change : close context
                     _this4.closeContext();
 
-                    _context15.next = 23;
+                    _context15.next = 31;
                     break;
 
                   case 11:
@@ -6136,21 +6374,40 @@ var View = /*#__PURE__*/function () {
                       objects: [object]
                     });
 
-                    _context15.next = 23;
+                    _context15.next = 31;
                     break;
 
                   case 20:
                     _context15.prev = 20;
                     _context15.t0 = _context15["catch"](12);
+                    _context15.prev = 22;
+                    _context15.next = 25;
+                    return _this4.displayErrorFeedback(_context15.t0, object, false);
 
-                    _this4.displayErrorFeedback(_context15.t0, object, false);
+                  case 25:
+                    res = _context15.sent;
 
-                  case 23:
+                    if (res !== false) {
+                      // relay new object_id to parent view
+                      _this4.closeContext({
+                        selection: [object.id],
+                        objects: [object]
+                      });
+                    }
+
+                    _context15.next = 31;
+                    break;
+
+                  case 29:
+                    _context15.prev = 29;
+                    _context15.t1 = _context15["catch"](22);
+
+                  case 31:
                   case "end":
                     return _context15.stop();
                 }
               }
-            }, _callee15, null, [[12, 20]]);
+            }, _callee15, null, [[12, 20], [22, 29]]);
           })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16() {
             var validation;
             return _regenerator.default.wrap(function _callee16$(_context16) {
@@ -6688,7 +6945,7 @@ var View = /*#__PURE__*/function () {
                   $filters_set.find('#' + filter_id).remove();
 
                   if (filter_id == 'filter_search_on_name') {
-                    // reset value of search input 
+                    // reset value of search input
                     this.$headerContainer.find('.sb-view-header-list-filters-search').find('.mdc-text-field__icon').trigger('click');
                   }
 
@@ -6780,7 +7037,7 @@ var View = /*#__PURE__*/function () {
 
                                     _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
                                       var _ref14 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee25(i, tr) {
-                                        var $tr, response;
+                                        var $tr, response, res;
                                         return _regenerator.default.wrap(function _callee25$(_context25) {
                                           while (1) {
                                             switch (_context25.prev = _context25.next) {
@@ -6795,7 +7052,7 @@ var View = /*#__PURE__*/function () {
                                                 $tr.trigger('_toggle_mode', 'view');
                                                 $tr.attr('data-edit', '0');
                                                 resolve(true);
-                                                _context25.next = 28;
+                                                _context25.next = 29;
                                                 break;
 
                                               case 7:
@@ -6813,7 +7070,7 @@ var View = /*#__PURE__*/function () {
                                                 }
 
                                                 resolve(true);
-                                                _context25.next = 28;
+                                                _context25.next = 29;
                                                 break;
 
                                               case 17:
@@ -6824,21 +7081,28 @@ var View = /*#__PURE__*/function () {
                                                 return _this8.displayErrorFeedback(_context25.t0, object, true);
 
                                               case 22:
-                                                reject();
-                                                _context25.next = 28;
+                                                res = _context25.sent;
+
+                                                if (res === false) {
+                                                  reject();
+                                                } else {
+                                                  resolve(true);
+                                                }
+
+                                                _context25.next = 29;
                                                 break;
 
-                                              case 25:
-                                                _context25.prev = 25;
+                                              case 26:
+                                                _context25.prev = 26;
                                                 _context25.t1 = _context25["catch"](19);
                                                 reject();
 
-                                              case 28:
+                                              case 29:
                                               case "end":
                                                 return _context25.stop();
                                             }
                                           }
-                                        }, _callee25, null, [[7, 17], [19, 25]]);
+                                        }, _callee25, null, [[7, 17], [19, 26]]);
                                       }));
 
                                       return function (_x19, _x20) {
@@ -7037,13 +7301,13 @@ var View = /*#__PURE__*/function () {
       return actionListInlineEdit;
     }()
     /**
-     * 
+     *
      * This method can be invoked by methods from the Layout class.
-     * 
-     * @param response 
-     * @param object 
-     * @param snack 
-     * @returns 
+     *
+     * @param response
+     * @param object
+     * @param snack
+     * @returns
      */
 
   }, {
