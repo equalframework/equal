@@ -191,7 +191,7 @@ class DBManipulatorMySQL extends DBManipulator {
 				}
 	            // format the value operand
 				if(is_array($cond[2])) $value = '('.implode(',', array_map( [$this, 'escapeString'], $cond[2] )).')';
-				else $value = DBManipulatorMySQL::escapeString($cond[2]);
+				else $value = $this->escapeString($cond[2]);
 				// concatenate query string with current condition
 				$sql .= $cond[0].' '.$cond[1].' '.$value;
 			}
