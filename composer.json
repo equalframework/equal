@@ -7,6 +7,7 @@
         "twig/twig": "^2.0",
         "twig/intl-extra": "^3.3",
         "smhg/sepa-qr-data": "^1.1",
-        "endroid/qr-code": "^4.3"
+        "endroid/qr-code": "^4.3",
+        "codelicious/php-coda-parser": "^2.0"
     }
 }
