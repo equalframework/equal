@@ -810,7 +810,17 @@ class ObjectManager extends Service {
         foreach($values as $field => $value) {
             // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
             if(isset($schema[$field]['type'])) {
-                switch($schema[$field]['type']) {
+                $type = $schema[$field]['type'];
+                // adapt type based on usage
+                if(isset($schema[$field]['usage'])) {
+                    switch($schema[$field]['usage']) {
+                        // #todo - continue this list
+                        case 'markup/html': 
+                            $type = 'text';
+                            break;
+                    }
+                }
+                switch($type) {
                     case 'string':
                         $constraints[$field]['size_overflow'] = [
                             'message' 	=> 'String length must be maximum 255 chars.',
