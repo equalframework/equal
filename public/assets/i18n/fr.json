@@ -83,9 +83,11 @@
  
     "APPS_APP_BOOKING": "Réservations",
     "APPS_APP_POS": "Point de vente",
+    "APPS_APP_ACCOUNTING": "Compta",
     "APPS_APP_SALES": "Ventes",
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
+	"APPS_APP_STATS": "Statistiques",
     
         
     "DOCS_LIST_NAME": "Nom",
