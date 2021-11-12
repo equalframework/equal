@@ -1,0 +1,63 @@
+{
+    "name": "User",
+    "description": "Simple form for displaying User",
+    "layout": {
+        "groups": [
+            {
+                "sections": [
+                    {
+                        "rows": [                            
+                            {
+                                "columns": [
+                                    {
+                                        "width": "66%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "class_name",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "label",
+                                                "value": "",
+                                                "width": "50%"
+                                            },
+
+                                            {
+                                                "type": "field",
+                                                "value": "rights",
+                                                "width": "25%"
+                                            }
+                                        ]
+                                    },
+                                    {                                            
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "domain",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "group_id",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "user_id",
+                                                "width": "100%"
+                                            }
+                                        ]
+                                    }    
+                                ]
+                            }                            
+                        ]
+                    }
+                ]
+            }            
+        ]
+    }
+}
