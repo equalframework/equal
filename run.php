@@ -165,7 +165,7 @@ catch(Exception $e) {
         $response
         // set HTTP status code
         ->status($http_status)
-        // explicitely tell we're returning JSON
+        // explicitly tell we're returning JSON
         ->header('Content-Type', 'application/json')
         // force allow-origin to actual origin, to make sure to go through CORS policy 
         // (response is defined in announce() and has been unstacked because of an exception)
