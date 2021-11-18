@@ -31,6 +31,8 @@
 
     "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
 
+    "SB_ACTIONS_CONFIRM": "Confirmer l'action",
+
     "SB_ACTIONS_ARCHIVE_CONFIRM": "Confirmer l'archivage",
     "SB_ACTIONS_ARCHIVE_DIALOG_MESSAGE": "Les éléments seront archivés et vous n'y aurez peut-être plus accès. Voulez-vous continuer ?",
     
