@@ -14,7 +14,7 @@ class Log extends Model {
         return [
             'action' => [
                 'type'              => 'string',
-                'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or a custom value).',
+                'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or any custom value).',
                 'required'          => true
             ],
             'user_id' => [
