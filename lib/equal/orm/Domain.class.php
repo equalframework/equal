@@ -114,22 +114,28 @@ class Domain {
         // we need to have access to class definition to fully check conditions
         if(!empty($schema)) {
             $field = $condition[0];
+            $operator = $condition[1];
             // first operand (field) must be a valid field
             if(!in_array($field, array_keys($schema))) {
                 trigger_error("QN_DEBUG_ORM::unknown field '{$field}' in domain", QN_REPORT_DEBUG);
                 return false;
             }
             // handle 'alias'
+            $is_alias = false;
             while($schema[$field]['type'] == 'alias') {
+                $is_alias = true;
                 $field = $schema[$field]['alias'];
             }
             $target_type = $schema[$field]['type'];
             if($target_type == 'computed') {
                 $target_type = $schema[$field]['result_type'];
             }
+            if($is_alias) {
+            // #todo - adapt operator based on target type
+            }
             // operator must be amongst valid operators for specified field
-            if(!in_array($condition[1], ObjectManager::$valid_operators[$target_type])) {
-                trigger_error("QN_DEBUG_ORM::invalid operator '{$condition[1]}' in domain", QN_REPORT_DEBUG);
+            if(!in_array($operator, ObjectManager::$valid_operators[$target_type])) {
+                trigger_error("QN_DEBUG_ORM::invalid operator '{$operator}' in domain", QN_REPORT_DEBUG);
                 return false;
             }
         }
