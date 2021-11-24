@@ -815,7 +815,7 @@ class ObjectManager extends Service {
                 if(isset($schema[$field]['usage'])) {
                     switch($schema[$field]['usage']) {
                         // #todo - continue this list
-                        case 'markup/html': 
+                        case 'markup/html':
                             $type = 'text';
                             break;
                     }
@@ -1127,7 +1127,14 @@ class ObjectManager extends Service {
                             }
                         }
                         if(is_callable($schema[$field]['onchange'])) {
-                            call_user_func($schema[$field]['onchange'], $this, $ids, $lang);
+                            $updates = call_user_func($schema[$field]['onchange'], $this, $ids, $lang);
+                            // if callback returns an array, update newly assigned values
+                            if($updates && count($updates)) {
+                                foreach($updates as $oid => $update) {
+                                    $this->cache[$class][$oid][$lang][$field] = $update;
+                                }
+                                $this->store($class, array_keys($updates), (array) $field, $lang);
+                            }
                         }
                         $onchange_methods[$schema[$field]['onchange']] = true;
                     }
