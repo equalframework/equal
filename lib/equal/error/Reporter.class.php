@@ -126,7 +126,7 @@ class Reporter extends Service {
                     $source = (strlen($parts[0]))?$parts[0]:$source;
                     $msg = $parts[1];
                 }
-                if(!is_numeric($source) && constant($source)) {
+                if(!is_numeric($source) && @constant($source)) {
                     $mask = constant($source);
                 }
                 else {
