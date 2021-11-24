@@ -155,22 +155,20 @@ class Collection implements \Iterator {
      *
      * @return array|null  If current queue is not empty, returns the first object as an array, otherwise returns null.
      */
-    public function first() {
+    public function first($to_array=false) {
         $this->objects = array_slice($this->objects, 0, 1, true);
-        $res = $this->get();
+        $res = $this->get($to_array);
         return count($res)?array_pop($res):null;
-        // return reset($this->objects);
     }
 
     /**
      *  Return the last object of the collection
      *
      */
-    public function last() {
+    public function last($to_array=false) {
         $this->objects = array_slice($this->objects, -1, 1, true);
-        $res = $this->toArray();
-        return $res[0];
-        //  return end($this->objects);
+        $res = $this->get($to_array);
+        return count($res)?array_pop($res):null;
     }
 
     /**
