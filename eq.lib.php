@@ -446,30 +446,28 @@ namespace config {
                     $response->header('Content-Disposition', $announcement['response']['content-disposition']);
                 }
 
-                // handle caching options
+                // handle caching options, if any
                 /*
-                    Caching is only available for GET methods 
+                    Caching is only available for GET methods,
                     and offers support at URL level only (params in body are not considered).
-                    This mechanism should not be used for requests whose response depend on current user.
+                    // #todo export this part of the logic to a cache manager
                 */
                 if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
                     // compute the cache ID
-                    // $cache_id = md5($auth->userId().'::'.$request->header('origin').'::'.$request->uri());
-                    $operation = $context->get('operation');
-                    $cache_id = md5($auth->userId().'::'.$operation['type'].'::'.$operation['operation']);
-
-                    // and related filename
+                    $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
+                    $cache_id = md5($request_id);
+                    // obtain related filename
                     $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
                     $context->set('cache-id', $cache_id);
-                    // check if a validity expiration is defined for client-side
+                    // check if a validity expiration (in seconds) is defined for client-side
                     if(isset($announcement['response']['client-max-age'])) {
                         $context->set('client-max-age', intval($announcement['response']['client-max-age']));
                     }                    
-                    // check if a validity expiration is defined for server-side
+                    // check if a validity expiration (in seconds) is defined for server-side
                     $serve_from_cache = true;
                     if(isset($announcement['response']['expires'])) {
                         $expires = intval($announcement['response']['expires']);
