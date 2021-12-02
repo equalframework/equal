@@ -77,7 +77,11 @@ try {
     // 2) handle routing, if required (i.e. URL to operation translation)
 
     // if routing is required
-    if( strlen($path) > 1 && !in_array(basename($path), ['index.php', 'run.php']) ) {
+    if( strlen($path) > 1 && !in_array(basename($path), [
+        'index.php',                // HTTP request
+        'run.php',                  // CLI
+        'equal.php'                 // integration with another framework that already usess index.php (e.g. WP)
+        ]) ) {
 
         $router = Router::getInstance();
         // add routes providers according to current request
