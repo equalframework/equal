@@ -406,7 +406,7 @@ class Context extends Service {
             // careful here: in case raw data exceed `upload_max_filesize` or `post_max_size`, stream `php://input` might contain more data than available memory
             $max = self::getMaxMemory() - memory_get_usage() - 1;
             if($max > 0) {
-                $raw = file_get_contents('php://input', false, null, 0, $max+1);
+                $raw = file_get_contents('php://input', false, null, 0, $max);
                 if(strlen($raw) > $max) {
                     throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
                 }
