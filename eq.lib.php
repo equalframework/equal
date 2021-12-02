@@ -79,12 +79,8 @@ namespace {
     define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');
 
     // EventHandler will deal with error and debug messages depending on debug source value
-    ini_set('display_errors', 1);
-    ini_set('html_errors', false);
-    ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');
-
-    // use QN_REPORT_x, E_ERROR for fatal errors only, E_ALL for all errors
-    error_reporting(E_ALL);
+    ini_set('html_errors', false);                              // prevent HTML in logs
+    ini_set('error_log', QN_LOG_STORAGE_DIR.'/error.log');      // force PHP logs output to specific file
 
 
     /**
@@ -108,21 +104,10 @@ namespace {
     define('ROOT_GROUP_ID',       1);
     define('DEFAULT_GROUP_ID',    2);    
 
-    /**
-     * Session parameters
-     */     
-    // Disable SID and sessions
-    ini_set('session.use_cookies',      '0');
-    ini_set('session.use_only_cookies', '1');
-    // and make sure not to rewrite URL
-    ini_set('session.use_trans_sid',    '0');
-    ini_set('url_rewriter.tags',        '');
-
 
     /*
-     * Error-utility functions to the global namespace
-     */
-
+        Error-utility functions (global namespace)
+    */
 
     /**
      * Mapper from internal eror codes to string constants
