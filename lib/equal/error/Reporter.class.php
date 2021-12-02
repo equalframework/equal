@@ -11,19 +11,23 @@ use equal\php\Context;
 
 
 class Reporter extends Service {
-	
+
     // PHP context instance
     private $context;
-    
+
     /**
     * Contructor defines which methods have to be called when errors and uncaught exceptions occur
     *
     */
-	public function __construct(Context $context) {
+    public function __construct(Context $context) {
         $this->context = $context;
-		set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
-		set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
-	}
+        // ::errorHandler() will deal with error and debug messages depending on debug source value
+        ini_set('display_errors', 1);
+        // use QN_REPORT_x for reporting, E_ERROR for fatal errors only, E_ALL for all errors
+        error_reporting(E_ALL);
+        set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
+        set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
+    }
 
     /**
      * Static list of constants required by current provider
@@ -32,22 +36,22 @@ class Reporter extends Service {
     public static function constants() {
         return ['QN_LOG_STORAGE_DIR', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG'];
     }
-    
+
     public function getThreadId() {
         static $thread_id = null;
-        
+
         if(!$thread_id){
-            // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)            
+            // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)
             $operation = $this->context->get('operation');
             $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].(($operation)?" ($operation)":''));
             $thread_id = substr($data, 0, 8);
         }
         return $thread_id;
     }
-    
- 	/**
-     * Handles uncaught exceptions, which include deliberately triggered fatal-error 
-	 * In all cases, these are critical errors that cannot be recovered and need an immediate stop (fatal error)
+
+     /**
+     * Handles uncaught exceptions, which include deliberately triggered fatal-error
+     * In all cases, these are critical errors that cannot be recovered and need an immediate stop (fatal error)
      */
     public static function uncaughtExceptionHandler($exception) {
         $code = $exception->getCode();
@@ -63,24 +67,24 @@ class Reporter extends Service {
             $instance->log($code, $msg, $trace[0]);
         }
         die();
-	}
+    }
 
-	/**
+    /**
     * Main method for error handling.
     * This is invoked either in scripts using trigger_error calls or when a internal PHP error is raised.
-	*
-	* @param mixed $errno
-	* @param mixed $errmsg
-	* @param mixed $errfile
-	* @param mixed $errline
-	* @param mixed $errcontext
-	*/
-	public static function errorHandler($errno, $errmsg, $errfile, $errline, $errcontext) {      
+    *
+    * @param mixed $errno
+    * @param mixed $errmsg
+    * @param mixed $errfile
+    * @param mixed $errline
+    * @param mixed $errcontext
+    */
+    public static function errorHandler($errno, $errmsg, $errfile, $errline, $errcontext) {
         // dismiss handler if not required
         if (!(error_reporting() & $errno)) return;
         // adapt error code
         $code = $errno;
-        
+
         $depth = 1;
         switch($errno) {
             // handler was invoked using trigger_error()
@@ -112,14 +116,14 @@ class Reporter extends Service {
         // retrieve instance and log error
         $instance = self::getInstance();
         $instance->log($code, $errmsg, self::getTrace($depth));
-	}
-    
+    }
+
     private function log($code, $msg, $trace) {
-        // check reporting level 
+        // check reporting level
         if($code <= error_reporting()) {
             // handle debug messages
             if($code == QN_REPORT_DEBUG) {
-                // default to arbitrary '1' mask debug info 
+                // default to arbitrary '1' mask debug info
                 $source = '1';
                 $parts = explode('::', $msg, 2);
                 if(count($parts) > 1) {
@@ -144,24 +148,24 @@ class Reporter extends Service {
 
             $file = (isset($trace['file']))?$trace['file']:'';
             $line = (isset($trace['line']))?$trace['line']:'';
-            
+
             // $utime = microtime(true);
             // $time_parts = explode(".",$utime);
             $time_parts = explode(" ", microtime());
             $error =  $this->getThreadId().';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.urlencode($msg).PHP_EOL;
-            
+
             // append backtrace if required (fatal errors)
-            
+
             if($code == QN_REPORT_FATAL) {
                 $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
                 $n = count($backtrace);
                 if($n > 2) {
                     for($i = 2; $i < $n; ++$i) {
                         $trace = $backtrace[$i];
-                        $origin = '';                    
+                        $origin = '';
                         if(isset($trace['class'])) $origin = $trace['class'].'::'.$trace['function'].'()';
                         else if(isset($trace['function'])) $origin = $trace['function'].'()';
-                        $error .= "# $origin @ [{$trace['file']}:{$trace['line']}]".PHP_EOL;                
+                        $error .= "# $origin @ [{$trace['file']}:{$trace['line']}]".PHP_EOL;
                     }
                 }
             }
@@ -172,7 +176,7 @@ class Reporter extends Service {
             $flags = FILE_APPEND;
 
             // log rotator
-            $maxsize = 5242880;     // max size for log file 
+            $maxsize = 5242880;     // max size for log file
             if( rand(1, 20) == 1    // set throttle to 5% (to reduce fs stat calls)
                 && file_exists($filepath) && filesize($filepath) > $maxsize ){
                 for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
@@ -182,20 +186,20 @@ class Reporter extends Service {
             }
 
             // write error message to log file
-            file_put_contents($filepath, $error, $flags);                        
+            file_put_contents($filepath, $error, $flags);
         }
     }
-    
+
     private static function getTrace($increment=0) {
         // we need to go down 4 levels max
         $limit = 2+$increment;
-        
+
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $limit);
 
         $trace = [];
         // retrieve info from where the error was actually raised  ($backtrace[0] being related to current getTrace() call)
         $n = 1+$increment;
-        
+
         if(count($backtrace) > $n) {
             // get last item from backtrace
             $trace = $backtrace[$n];
@@ -215,33 +219,33 @@ class Reporter extends Service {
                 if(isset($backtrace[$n-1]['line'])) {
                     $trace['line'] = $backtrace[$n-1]['line'];
                 }
-            }        
-        } 
-/*        
+            }
+        }
+/*
         if($trace['function'] == 'trigger_error') {
                 $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];                
-            
-        }            
+                $trace['line'] = $backtrace[$n-1]['line'];
+
+        }
         if(in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
             unset($trace['function']);
             if(isset($backtrace[$n-1]['function']) && in_array($backtrace[$n-1]['function'], ['include', 'require', 'include_once', 'require_once'])) {
                 $trace['file'] = $backtrace[$n-2]['file'];
-                $trace['line'] = $backtrace[$n-2]['line'];     
+                $trace['line'] = $backtrace[$n-2]['line'];
             }
             else {
                 $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];                
+                $trace['line'] = $backtrace[$n-1]['line'];
             }
         }
         else if(!isset($trace['function'])) {
             if(isset($backtrace[$n-2]['file'])) {
                 $trace['file'] = $backtrace[$n-2]['file'];
-                $trace['line'] = $backtrace[$n-2]['line'];                
+                $trace['line'] = $backtrace[$n-2]['line'];
             }
             else {
                 $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];                                
+                $trace['line'] = $backtrace[$n-1]['line'];
             }
         }
         else if(!isset($trace['file'])) {
@@ -249,24 +253,24 @@ class Reporter extends Service {
             $trace['line'] = $backtrace[$n-1]['line'];
         }
      */
-        return $trace;        
+        return $trace;
     }
 
     public function fatal($msg) {
         $this->log(QN_REPORT_FATAL, $msg, self::getTrace());
         die();
     }
-    
+
     public function error($msg) {
-        $this->log(QN_REPORT_ERROR, $msg, self::getTrace());        
+        $this->log(QN_REPORT_ERROR, $msg, self::getTrace());
     }
-    
+
     public function warning($msg) {
-        $this->log(QN_REPORT_WARNING, $msg, self::getTrace());        
+        $this->log(QN_REPORT_WARNING, $msg, self::getTrace());
     }
-    
+
     public function debug($msg) {
         $this->log(QN_REPORT_DEBUG, $msg, self::getTrace());
-    }   
-    
+    }
+
 }
