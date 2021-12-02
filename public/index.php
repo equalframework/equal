@@ -4,6 +4,18 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+/*
+    Session config
+*/
+// Disable SID and sessions
+ini_set('session.use_cookies',      '0');
+ini_set('session.use_only_cookies', '1');
+// and make sure not to rewrite URL
+ini_set('session.use_trans_sid',    '0');
+ini_set('url_rewriter.tags',        '');
+
+
 // handle the '_escaped_fragment_' parameter in case page is requested by a crawler
 if(isset($_REQUEST['_escaped_fragment_'])) {
     $uri = $_REQUEST['_escaped_fragment_'];
@@ -13,8 +25,8 @@ if(isset($_REQUEST['_escaped_fragment_'])) {
 }
 
 function getAppOutput() {
-    ob_start();	
-    include('../run.php'); 
+    ob_start();
+    include('../run.php');
     return ob_get_clean();
 };
 
