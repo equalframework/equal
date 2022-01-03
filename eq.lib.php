@@ -385,6 +385,7 @@ namespace config {
 
             $reporter->debug("method $method");
 
+            // set response headers 
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
                     header('Location: '.$announcement['response']['location']);
@@ -488,6 +489,17 @@ namespace config {
                     }
                 }
             }
+
+            // check access
+            if(isset($announcement['access'])) {
+                if($announcement['access'] == 'private') {
+                    if(php_sapi_name() != 'cli') {
+                        // raise an exception with error details
+                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    }
+                }
+            }
+            
             // normalize $announcement array
             if(!isset($announcement['params'])) $announcement['params'] = array();
 
