@@ -52,7 +52,12 @@ list($params, $providers) = announce([
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 // fields and values have been received as a raw array : adapt received values according to schema
-$schema = $orm->getModel($params['entity'])->getSchema();
+$entity = $orm->getModel($params['entity']);
+if(!$entity) {
+    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+}
+
+$schema = $entity->getSchema();
 foreach($params['fields'] as $field => $value) {
     // drop empty and unknown fields
     if(is_null($value) || !isset($schema[$field])) {
