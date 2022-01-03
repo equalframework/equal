@@ -757,6 +757,11 @@ class ObjectManager extends Service {
     }
 
 
+    /**
+     * Retrieve the static instance of a given class (Model with default values).
+     * 
+     * @return boolean|Object   Returns the default instance of the model, or false if no Model matches the class name.
+     */
     public function getStatic($object_class) {
         $instance = false;
         $packages = $this->getPackages();
