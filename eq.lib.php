@@ -48,7 +48,7 @@ namespace {
     define('QN_ERROR_UNKNOWN_OBJECT',     -16);        // unknown resource (class, object, view, ...)
     define('QN_ERROR_NOT_ALLOWED',        -32);        // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
     define('QN_ERROR_LOCKED_OBJECT',      -64);
-    define('QN_ERROR_CONFLICT_OBJECT',   -128);        // version conflict 
+    define('QN_ERROR_CONFLICT_OBJECT',   -128);        // version conflict
     define('QN_ERROR_INVALID_USER',      -256);        // auth failure
     define('QN_ERROR_UNKNOWN_SERVICE',   -512);        // server errror : missing service
     define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
@@ -102,7 +102,7 @@ namespace {
 
     // default group (all users are members of the default group)
     define('ROOT_GROUP_ID',       1);
-    define('DEFAULT_GROUP_ID',    2);    
+    define('DEFAULT_GROUP_ID',    2);
 
 
     /*
@@ -232,7 +232,7 @@ namespace config {
 
     /**
      * Register a service by assigning an identifier (name) to a class (stored under `/lib`).
-     * 
+     *
      * This method can be invoked in local config files to register a custom service and/or to override any existing service,
      * and uses the `QN_SERVICES_POOL` global array which is used by the root container.
      *
@@ -260,7 +260,7 @@ namespace config {
 
     /**
      * Export all parameters declared with `config\define()` function, as constants.
-     * 
+     *
      * After a call to this method, these params will be accessible in global scope.
      */
     function export_config() {
@@ -275,7 +275,7 @@ namespace config {
 
         /**
          * Initialise eQual.
-         * 
+         *
          * Adds the library folder to the include path (library folder should contain the Zend framework if required).
          * This is the bootstrap method for setting everything in place.
          *
@@ -283,7 +283,7 @@ namespace config {
          */
         public static function init() {
             chdir(QN_BASEDIR.'/');
-            
+
             // allow inclusion and autoloading of external classes
             if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
                 include_once(QN_BASEDIR.'/vendor/autoload.php');
@@ -318,7 +318,7 @@ namespace config {
             try {
                 $container->get(['report', 'context']);
             }
-            catch(\Exception $e) {
+            catch(\Throwable $e) {
                 // fallback to a manual HTTP 500
                 header("HTTP/1.1 503 Service Unavailable");
                 header('Content-type: application/json; charset=UTF-8');
@@ -336,28 +336,28 @@ namespace config {
                 $collect = $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getStatic']);
             }
-            catch(\Exception $e) {                
+            catch(\Throwable $e) {
                 throw new \Exception("init_failed", QN_REPORT_FATAL);
             }
 
         }
 
-        public static function inject(array $providers) {            
+        public static function inject(array $providers) {
             $result = [];
             // retrieve service container
             $container = Container::getInstance();
-            
+
             // retrieve providers
             foreach($providers as $name) {
                 $result[$name] = $container->get($name);
             }
-            
+
             return $result;
         }
-        
+
         /**
          * Announce the definition of an operation.
-         * 
+         *
          * Retrieve, adapt and validate expected parameters from the HTTP request and provide requested dependencies.
          * Also ensures that required parameters have been transmitted and sets default values for missing optional params.
          *
@@ -385,11 +385,11 @@ namespace config {
 
             $reporter->debug("method $method");
 
-            // set response headers 
+            // set response headers
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
                     header('Location: '.$announcement['response']['location']);
-                    exit;                    
+                    exit;
                 }
 
                 if(isset($announcement['response']['content-type'])) {
@@ -401,14 +401,14 @@ namespace config {
 
                 if(isset($announcement['response']['accept-origin'])) {
                     // force param as an array
-                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)                    
+                    // elements of `accept-origin` are expected to be valid origins (@see https://tools.ietf.org/html/rfc6454#section-7)
                     $announcement['response']['accept-origin'] = (array) $announcement['response']['accept-origin'];
                     // retrieve origin from header
                     $request_origin = $request->header('origin');
                     // `Access-Control-Allow-Origin` must be a single URI (@see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)
                     // so we check for a list of allowed URI
                     foreach($announcement['response']['accept-origin'] as $origin) {
-                        // #todo use a compare method to handle explicit/implicit port notation                        
+                        // #todo use a compare method to handle explicit/implicit port notation
                         if(in_array($origin, ['*', $request_origin])) {
                             $response->header('Access-Control-Allow-Origin', $request_origin);
                             break;
@@ -416,14 +416,14 @@ namespace config {
                     }
                     // prevent requests from non-allowed origins (for non-https requests, this can be bypassed by manually setting requests header)
                     if($origin != '*' && $origin != $request_origin) {
-                        // raise an exception with error details                        
+                        // raise an exception with error details
                         throw new \Exception('origin_not_allowed', QN_ERROR_NOT_ALLOWED);
                     }
                     // set headers accordingly to response definition
                     // #todo allow to customize (override) these values
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
-                    // expose headers specific to eQual 
+                    // expose headers specific to eQual
                     // (CORS defaults are: Cache-Control, Content-Language, Content-Length, Content-Type, Expires, Last-Modified, Pragma.)
                     $response->header('Access-Control-Expose-Headers', 'X-Total-Count');
                     $response->header('Access-Control-Allow-Credentials', 'true');
@@ -452,7 +452,7 @@ namespace config {
                     // check if a validity expiration (in seconds) is defined for client-side
                     if(isset($announcement['response']['client-max-age'])) {
                         $context->set('client-max-age', intval($announcement['response']['client-max-age']));
-                    }                    
+                    }
                     // check if a validity expiration (in seconds) is defined for server-side
                     $serve_from_cache = true;
                     if(isset($announcement['response']['expires'])) {
@@ -499,7 +499,7 @@ namespace config {
                     }
                 }
             }
-            
+
             // normalize $announcement array
             if(!isset($announcement['params'])) $announcement['params'] = array();
 
@@ -584,7 +584,7 @@ namespace config {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
-                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");                            
+                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
                             $result[$param] = $config['default'];
                         }
                         else {
@@ -596,7 +596,7 @@ namespace config {
                     else $invalid_params[] = $param;
                 }
             }
-            
+
             // report received parameters
             $reporter->debug("params: ".json_encode($result));
 
@@ -606,11 +606,11 @@ namespace config {
                 // no feedback about constants
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
-                $response->body(['announcement' => $announcement]);                
+                $response->body(['announcement' => $announcement]);
                 // raise an exception with error details
                 throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
             }
-            
+
             // 5) check for requested providers
 
             if(isset($announcement['providers']) && count($announcement['providers'])) {
@@ -691,9 +691,13 @@ namespace config {
                 try {
                     include($script);
                 }
-                catch(\Exception $e) {
+                catch(\Throwable $e) {
+                    $error_code = $e->getCode();
+                    if($e instanceof \Error) {
+                        $error_code = QN_ERROR_UNKNOWN;
+                    }
                     // an exception with code 0 is an explicit process halt with no error
-                    if($e->getCode() != 0) {
+                    if($error_code != 0) {
                         $msg = $e->getMessage();
                         // handle serialized objects as message
                         $data = @unserialize($msg);
@@ -705,9 +709,9 @@ namespace config {
                         // build response with error details
                         $response
                         // set status and body according to raised exception
-                        ->status(qn_error_http($e->getCode()))
+                        ->status(qn_error_http($error_code))
                         ->header('Content-Type', 'application/json')
-                        ->extendBody( [ 'errors' => [ qn_error_name($e->getCode()) => $msg ] ] )
+                        ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
                         // send HTTP response
                         ->send();
                     }
@@ -822,7 +826,7 @@ namespace config {
          * @static
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
-         * 
+         *
          * @example load_class('equal\db\DBConnection');
          */
         public static function load_class($class_name) {
@@ -854,27 +858,27 @@ namespace config {
     eQual::init();
 }
 namespace {
-    
+
     /**
      * inject standalone functions into global scope (to allow using methods without scope resolution notation)
      */
     function run(string $type, string $operation, array $body=[], $root=false) {
         return config\eQual::run($type, $operation, $body, $root);
     }
-    
+
     function announce(array $announcement) {
-        return config\eQual::announce($announcement);        
+        return config\eQual::announce($announcement);
     }
-    
+
     function inject(array $providers) {
         return config\eQual::inject($providers);
     }
 
     // expose static methods
-    class eQual {                
-        public static function __callStatic($name, $arguments) {            
+    class eQual {
+        public static function __callStatic($name, $arguments) {
             return call_user_func_array('config\eQual::'.$name, $arguments);
-        }        
-    }      
-    
+        }
+    }
+
 }

@@ -46,20 +46,20 @@ use equal\route\Router;
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
 if( (include($bootstrap)) === false ) die('eQual lib is missing');
 
-try {    
+try {
     // 1) retrieve current HTTP context
-    
+
     // get PHP context
     $context = Context::getInstance();
     // fetch current HTTP request from context
     $request = $context->getHttpRequest();
-    // get HTTP method of current request    
+    // get HTTP method of current request
     $method = $request->getMethod();
     // get HttpUri object (@see equal\http\HttpUri class for URI structure)
     $uri = $request->getUri();
-    // retrieve additional info from URI 
+    // retrieve additional info from URI
     list($path, $route) = [
-        $uri->getPath(),       // current URI path 
+        $uri->getPath(),       // current URI path
         $uri->get('route')     // 'route' param from URI query string, if any
     ];
     // adjust path to route param, if set
@@ -88,7 +88,7 @@ try {
         if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
-        // translate preflight requests (OPTIONS) to be handled as GET, with announcement 
+        // translate preflight requests (OPTIONS) to be handled as GET, with announcement
         // (so API does not have to explicitely define OPTIONS routes)
         if($method == 'OPTIONS') {
             $params['announce'] = true;
@@ -99,13 +99,13 @@ try {
                     break;
                 }
             }
-        }                
+        }
         // if route cannot be resolved, raise a HTTP 404 exception
-        if(!($route = $router->resolve($path, $method))) {        
+        if(!($route = $router->resolve($path, $method))) {
             throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
-        }        
+        }
         // fetch resolved parameters
-        $params = $route['params']; 
+        $params = $route['params'];
         // if found URL is another location(absolute notation), redirect to it
         if(isset($route['redirect'])) {
             // resolve params in pointed location, if any
@@ -114,8 +114,8 @@ try {
             }
             // remove remaining params and trailing slash, if any
             $route['redirect'] = rtrim(preg_replace('/\/:.+\/?/', '', $route['redirect']), '/');
-            // manually set the response header to HTTP 200            
-            header($_SERVER['SERVER_PROTOCOL'].' 200 OK'); // for HTTP client            
+            // manually set the response header to HTTP 200
+            header($_SERVER['SERVER_PROTOCOL'].' 200 OK'); // for HTTP client
             header('Status: 200 OK'); // and CLI
             // redirect to resulting URL
             header('Location: '.$route['redirect']);
@@ -126,10 +126,10 @@ try {
         $request->uri()->set($route['operation']['params']);
         // in most cases, parameters from query string will be expected as body parameters
         $params = array_merge($params, $route['operation']['params']);
-        // inject resolved parameters into current HTTP request body (if a param is already set, its value is overwritten)    
+        // inject resolved parameters into current HTTP request body (if a param is already set, its value is overwritten)
         foreach($params as $key => $value) {
             $request->set($key, $value);
-        }        
+        }
         // now we can keep on processing the request
     }
     else {
@@ -142,15 +142,18 @@ try {
                 $route['operation']['name'] = DEFAULT_PACKAGE;
                 $route['operation']['type'] = 'show';
             }
-        }        
+        }
     }
-    
+
     // 3) perform requested operation
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
 }
 // something went wrong: send an HTTP response with code related to the raised exception
-catch(Exception $e) {
+catch(Throwable $e) {
     $error_code = $e->getCode();
+    if($e instanceof Error) {
+        $error_code = QN_ERROR_UNKNOWN;
+    }
     // an exception with code 0 is an explicit process halt with no error
     if($error_code != 0) {
         // get HTTP status code according to raised exception
@@ -171,7 +174,7 @@ catch(Exception $e) {
         ->status($http_status)
         // explicitly tell we're returning JSON
         ->header('Content-Type', 'application/json')
-        // force allow-origin to actual origin, to make sure to go through CORS policy 
+        // force allow-origin to actual origin, to make sure to go through CORS policy
         // (response is defined in announce() and has been unstacked because of an exception)
         ->header('Access-Control-Allow-Origin', $context->httpRequest()->header('origin'))
         ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
