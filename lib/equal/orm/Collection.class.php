@@ -84,7 +84,7 @@ class Collection implements \Iterator {
         return $this;
     }
 
-    public function rewind() {
+    public function rewind() : void {
         reset($this->objects);
     }
 
@@ -92,15 +92,15 @@ class Collection implements \Iterator {
         return current($this->objects);
     }
 
-    public function key() {
+    public function key() : mixed {
         return key($this->objects);
     }
 
-    public function next() {
-        return next($this->objects);
+    public function next() : void {
+        next($this->objects);
     }
 
-    public function valid() {
+    public function valid() : bool {
         $key = key($this->objects);
         $res = ($key !== NULL && $key !== FALSE);
         return $res;
