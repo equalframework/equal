@@ -442,6 +442,7 @@ namespace config {
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
                     // compute the cache ID
+                    // #todo : implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
                     $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
                     $cache_id = md5($request_id);
                     // obtain related filename
