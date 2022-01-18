@@ -13,12 +13,12 @@ use \Exception as Exception;
  */
 
 class DBManipulatorMySQL extends DBManipulator {
-    
-    
+
+
 	public function select($db_name) {
 		return mysqli_select_db($this->dbms_handler, $db_name);
 	}
-    
+
 	/**
 	 * Open the DBMS connection
 	 * @param	 $auto_select	boolean		Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
@@ -34,12 +34,12 @@ class DBManipulatorMySQL extends DBManipulator {
                         mysqli_query($this->dbms_handler, 'SET NAMES '.DB_CHARSET);
                         $result = true;
                     }
-                }                
+                }
             }
             else {
                 if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, '', $this->port)) {
                     $result = true;
-                }                
+                }
             }
 			foreach($this->members as $member) {
 				if($member->connect($auto_select) === false) {
@@ -147,7 +147,16 @@ class DBManipulatorMySQL extends DBManipulator {
              // value represents NULL SQL value
             else if($value == 'null' || $value == 'NULL') $result = 'NULL';
             // value is any other kind of string
-            else $result = "'".mysqli_real_escape_string($this->dbms_handler, $value)."'";
+            else {
+				if(substr($value, 0, 3) == "h0x") {
+					// hexadecimal string that must be stored as a binary value
+					$result = "UNHEX('".substr($value, 3)."')";
+				}
+				else {
+					// regular string that must be escaped
+					$result = "'".mysqli_real_escape_string($this->dbms_handler, $value)."'";
+				}
+			}
         }
 		return $result;
 	}
@@ -211,23 +220,23 @@ class DBManipulatorMySQL extends DBManipulator {
 	 * @param	mixed   $order        string holding name of the order field or maps holding field nmaes as keys and sorting as value
 	 * @param	integer $start
 	 * @param	integer $limit
-     *     
+     *
 	 * @return	resource              reference to query resource
 	 */
 	public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {
 		// cast tables to an array (passing a single table is accepted)
 		if(!is_array($tables))						$tables = (array) $tables;
-		// in case fields is not null ans is not an array, cast it to an array (passing a single field is accepted)		
+		// in case fields is not null ans is not an array, cast it to an array (passing a single field is accepted)
 		if(isset($fields) && !is_array($fields))	$fields = (array) $fields;
-		// in case ids is not null ans is not an array, cast it to an array (passing a single id is accepted)				
-		if(isset($ids) && !is_array($ids))			$ids = (array) $ids;						
+		// in case ids is not null ans is not an array, cast it to an array (passing a single id is accepted)
+		if(isset($ids) && !is_array($ids))			$ids = (array) $ids;
 
-        // test values and types        
+        // test values and types
 		if(empty($tables)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'tables' array is empty.", QN_ERROR_SQL);
 /* irrelevant
 		if(!empty($fields) && !is_array($fields)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'fields' is not an array.", QN_ERROR_SQL);
 		if(!empty($ids) && !is_array($ids)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'ids' is not an array.", QN_ERROR_SQL);
-*/		
+*/
 		if(!empty($conditions) && !is_array($conditions)) throw new Exception(__METHOD__." : unable to build sql query, parameter 'conditions' is not an array.", QN_ERROR_SQL);
 
 		// select clause
@@ -241,7 +250,7 @@ class DBManipulatorMySQL extends DBManipulator {
                 $selection[] = self::escapeFieldName($field);
             }
             $sql .= implode(',', $selection);
-		}		
+		}
 
 		// from clause
         $sql .= ' FROM ';
