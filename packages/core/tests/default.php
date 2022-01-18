@@ -234,7 +234,6 @@ $tests = [
     '2220' => array(
                     'description'       =>  "Create a group (no validation)",
                     'return'            =>  array('integer'),
-                    'expected'          =>  3,
                     'test'              =>  function () {
                                                 $om = &ObjectManager::getInstance();
                                                 $group_id = $om->create('core\Group', ['name' => 'test']);
