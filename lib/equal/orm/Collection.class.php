@@ -29,15 +29,13 @@ class Collection implements \Iterator {
     /* target class */
     private $class;
 
+    /* static instance of target class (for retrieving fields and schema) */
     private $instance;
 
     /* map associating objects with their values with identifiers as keys */
     private $objects;
 
-
-    private $cursor;
-
-    /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit)*/
+    /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit) */
     private $limit;
 
     /**
@@ -112,6 +110,7 @@ class Collection implements \Iterator {
         return $res;
     }
 
+    /*
     public function from($offset) {
         if($offset < count($this->objects)) {
             $this->objects = array_slice($this->objects, $offset, null, true);
@@ -144,7 +143,7 @@ class Collection implements \Iterator {
      *  Shift out the n first objects of the collection
      *
      */
-    public function shift($offset) {
+    public function shift($offset=1) {
         if($offset) {
             if($offset < count($this->objects)) {
                 $this->objects = array_slice($this->objects, $offset, null, true);
@@ -157,61 +156,78 @@ class Collection implements \Iterator {
     }
 
     /**
-     *  Return the first object of the collection
-     *
-     * @return array|null  If current queue is not empty, returns the first object as an array, otherwise returns null.
+     * Return the first object present in the collection.
+     * (This method does not alter the collection.)
+     * 
+     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @return array|null  If current queue is not empty, returns the first object, otherwise returns null.
      */
     public function first($to_array=false) {
-        $this->objects = array_slice($this->objects, 0, 1, true);
-        $res = $this->get($to_array);
-        return count($res)?array_pop($res):null;
+        if(!count($this->objects)) {
+            return null;
+        }
+        $object = array_pop( array_slice($this->objects, 0, 1) );
+        return $this->get_raw_object($object, $to_array);
     }
 
     /**
-     *  Return the last object of the collection
-     *
+     * Return the last object present in the collection.
+     * (This method does not alter the collection.)
+     * 
+     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @return array|null  If current queue is not empty, returns the last object, otherwise returns null.
      */
     public function last($to_array=false) {
-        $this->objects = array_slice($this->objects, -1, 1, true);
-        $res = $this->get($to_array);
-        return count($res)?array_pop($res):null;
+        if(!count($this->objects)) {
+            return null;
+        }
+        $object = array_pop( array_slice($this->objects, -1, 1) );
+        return $this->get_raw_object($object, $to_array);
     }
 
     /**
-     * Provide the whole collection as a map of [id => value, ...] (default) or as an array
+     * Provide the whole collection as a map (by default) or as an array
      *
-     * @param   $to_array   boolean    Flag to ask conversion to single array (instead of a map)
-     * @return  array       Associative array mapping objects identifiers with their related maps of fields/values
+     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @return  array       (associative) array holding objects converted to arrays (no Collection instances)
      */
     public function get($to_array=false) {
-        // retrieve current objects map
         $result = [];
-        $schema = $this->instance->getSchema();
         foreach($this->objects as $id => $object) {
-            foreach($object as $field => $value) {
-                if($value instanceof Collection) {
-                    $list = $value->get($to_array);
-                    if($schema[$field]['type'] == 'many2one' && count($list)) {
-                        $result[$id][$field] = current($list);
-                    }
-                    else {
-                        $result[$id][$field] = $list;
-                    }
-                }
-                else {
-                    $result[$id][$field] = $value;
-                }
-            }
+            $result[$id] = $this->get_raw_object($object, $to_array);
         }
-        // if user requested an array of objects instead of a map
         if($to_array) {
-            // create an array out of the values, ignoring keys
             $result = array_values($result);
         }
         return $result;
     }
 
-
+    /**
+     * Recursively generate a copy of an object from current collection,
+     * by replacing Collection instances with either a map or an array.
+     * 
+     * @param   $to_array   boolean    Flag to ask conversion of sub-objects to arrays (instead of a maps)
+     */
+    private function get_raw_object(&$object, $to_array=false) {
+        $result = [];
+        $schema = $this->instance->getSchema();
+        foreach($object as $field => $value) {
+            if($value instanceof Collection) {
+                $list = $value->get($to_array);
+                if($schema[$field]['type'] == 'many2one' && count($list)) {
+                    $result[$field] = current($list);
+                }
+                else {
+                    $result[$field] = $list;
+                }
+            }
+            else {
+                $result[$field] = $value;
+            }
+        }
+        return $result;
+    }
+    
     public function toArray() {
         return $this->get(true);
     }
