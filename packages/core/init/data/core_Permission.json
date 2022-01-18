@@ -1,0 +1,51 @@
+[
+    {
+        "name": "core\\Permission",
+        "lang": "fr",
+		"description": "assign READ on common objects",
+        "data": [
+            {
+                "class_name": "sale\\booking\\Booking",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },		
+            {
+                "class_name": "lodging\\sale\\booking\\Booking",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },
+            {
+                "class_name": "sale\\customer\\Customer",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },
+            {
+                "class_name": "identity\\Establishment",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },			
+            {                
+                "class_name": "lodging\\identity\\Center",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },
+            {
+                "class_name": "sale\\booking\\BookingType",
+                "domain": "",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            }
+        ]
+    }
+]

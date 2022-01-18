@@ -1,21 +1,5 @@
 [
     {
-        "name": "core\\Group",
-        "lang": "en",
-        "data": [
-            {
-                "id": "1",
-                "name": "root",
-                "display_name": "Administrators"
-            },
-            {
-                "id": "2",
-                "name": "default",                
-                "display_name": "Default group"
-            }
-        ]
-    },
-    {
         "name": "core\\User",
         "lang": "en",
         "data": [
