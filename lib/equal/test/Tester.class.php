@@ -73,8 +73,16 @@ class Tester {
                 $precondition = $test['arrange']();
             }
 
-            $result = $test['test']();
+            $result = null;
             $success = true;
+
+            if(isset($test['test']) && is_callable($test['test'])) {
+                $result = $test['test']();
+            }
+            elseif(isset($test['act']) && is_callable($test['act'])) {
+                $result = $test['act']();
+            }
+            
 
             if(in_array(gettype($result), (array) $test['return'])) {
 
@@ -103,7 +111,9 @@ class Tester {
                 $success = false;
             }
 
-            if(!$success) $this->failing[] = $id;
+            if(!$success) {
+                $this->failing[] = $id;
+            }
             else {
                 if(isset($test['rollback']) && is_callable($test['rollback'])) {
                     $test['rollback']();
