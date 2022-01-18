@@ -46,6 +46,12 @@ class Collection implements \Iterator {
      */
     public static function __callStatic($name, $arguments) {}
 
+    /**
+     * Collection constructor.
+     * This is called through the Collections service, which retrieves the dependencies through its container.
+     * Collections service is a factory that creates Collection instances when requested 
+     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
+     */
     public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
         // init objects map
         $this->objects = [];
