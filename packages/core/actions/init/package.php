@@ -43,7 +43,8 @@ if(strlen($json)) {
 $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
 
 
-// PASS-ONE : execute schema SQL
+// PASS-ONE : init DB with SQL schema
+
 
 // 1) retrieve schema for given package
 $json = run('get', 'utils_sql-schema', ['package'=>$params['package']]);
@@ -67,6 +68,7 @@ foreach($queries as $query) {
 // PASS-TWO: check for missing columns    
 // for classes with inheritance, we must check against non yet created fields
 $queries = [];
+
 
 // 2) retrieve classes listing
 $json = run('get', 'config_classes', ['package' => $params['package']]);
@@ -149,6 +151,7 @@ foreach($classes as $class) {
 //    }
 }
 
+
 // 3) add missing relation tables, if any
 foreach($m2m_tables as $table => $columns) {
     $query = "CREATE TABLE IF NOT EXISTS `{$table}` (";
@@ -168,60 +171,60 @@ foreach($m2m_tables as $table => $columns) {
 }
 
 
-
-
 // 4) populate tables with predefined data 
+$data_folder = "packages/{$params['package']}/init/data";
+if(file_exists($data_folder) && is_dir($data_folder)) {
+    // handle SQL files
+    foreach (glob($data_folder."/*.sql") as $data_sql) {
+        $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+    }
+    // send each query to the DBMS
+    foreach($queries as $query) {
+        if(strlen($query)) {
+            $db->sendQuery($query.';');
+        }
+    }
 
-// handle SQL files
-$path = "packages/{$params['package']}/init/";
-foreach (glob($path."*.sql") as $data_sql) {
-    $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-}
-// send each query to the DBMS
-foreach($queries as $query) {
-    if(strlen($query)) {
-        $db->sendQuery($query.';');
+    // handle JSON files
+    foreach (glob($data_folder."/*.json") as $json_file) {
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        foreach($classes as $class){
+            $entity = $class['name'];        
+            $lang = $class['lang'];
+            $model = $orm->getModel($entity);
+            $schema = $model->getSchema();
+        
+            $objects_ids = [];
+
+            foreach($class['data'] as $odata) { 
+                foreach($odata as $field => $value) {
+                    $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
+                }
+                $res = $orm->create($entity, $odata, $lang);
+                if($res == QN_ERROR_CONFLICT_OBJECT) {
+                    $id = $odata['id'];
+                    // object already exist, but either values or language differs
+                    $res = $orm->write($entity, $id, $odata, $lang);
+                    $objects_ids[] = $id;
+                }
+                else {
+                    $objects_ids[] = $res;
+                }
+            }
+
+            // force a first computation of computed fields, if any
+            $computed_fields = [];
+            foreach($schema as $field => $def) {
+                if($def['type'] == 'computed') {
+                    $computed_fields[] = $field;
+                }
+            }
+            $orm->read($entity, $objects_ids, $computed_fields, $lang);
+        }
     }
 }
 
-// handle JSON files
-foreach (glob($path."*.json") as $json_file) {
-    $data = file_get_contents($json_file);
-    $classes = json_decode($data, true);
-    foreach($classes as $class){
-        $entity = $class['name'];        
-        $lang = $class['lang'];
-        $model = $orm->getModel($entity);
-        $schema = $model->getSchema();
-    
-        $objects_ids = [];
-
-        foreach($class['data'] as $odata) { 
-            foreach($odata as $field => $value) {
-                $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
-            }
-            $res = $orm->create($entity, $odata, $lang);
-            if($res == QN_ERROR_CONFLICT_OBJECT) {
-                $id = $odata['id'];
-                // object already exist, but either values or language differs
-                $res = $orm->write($entity, $id, $odata, $lang);
-                $objects_ids[] = $id;
-            }
-            else {
-                $objects_ids[] = $res;
-            }
-        }
-
-        // force a first computation of computed fields, if any
-        $computed_fields = [];
-        foreach($schema as $field => $def) {
-            if($def['type'] == 'computed') {
-                $computed_fields[] = $field;
-            }
-        }
-        $orm->read($entity, $objects_ids, $computed_fields, $lang);
-    }
-}
 
 // 5) if a `bin` folder exists, copy its content to /bin/<package>/
 $bin_folder = "packages/{$params['package']}/init/bin";
