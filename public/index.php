@@ -15,8 +15,10 @@ ini_set('session.use_only_cookies', '1');
 ini_set('session.use_trans_sid',    '0');
 ini_set('url_rewriter.tags',        '');
 
-
-// handle the '_escaped_fragment_' parameter in case page is requested by a crawler
+/*
+    URI sanitization 
+*/
+// handle the '_escaped_fragment_' parameter to support requests made by crawlers
 if(isset($_REQUEST['_escaped_fragment_'])) {
     $uri = $_REQUEST['_escaped_fragment_'];
     header('Status: 200 OK');
@@ -24,13 +26,8 @@ if(isset($_REQUEST['_escaped_fragment_'])) {
     exit();
 }
 
-function getAppOutput() {
-    ob_start();
-    include('../run.php');
-    return ob_get_clean();
-};
-
-$content = getAppOutput();
-
-// relay result to php://stdout
-print($content);
+/*
+    Request handling
+*/
+// parse requested operation and relay result to php://stdout
+include('../run.php');
