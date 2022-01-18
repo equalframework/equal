@@ -240,8 +240,11 @@ $tests = [
                                                 $group_id = $om->create('core\Group', ['name' => 'test']);
                                                 return $group_id;
                                             },
+                    'assert'            =>  function($result) {                                                
+                                                return ($result >= 1);
+                                            }
                     ),
-    
+
 
     //23xx : calls related to the write method
 
@@ -313,7 +316,7 @@ $tests = [
                     'expected'          =>  ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');                                                    
+                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
@@ -323,7 +326,7 @@ $tests = [
                                                 return $values;
                                             }
                     ),
-    
+
     '2620' => array(
                     'description'       =>  "Search for some object : clause 'contains' on many2many field",
                     'return'            =>  array('integer', 'array'),
@@ -350,7 +353,7 @@ $tests = [
                                                 );
                                             }
                     ),
- 
+
     '2631' => array(
                     'description'       =>  "Add a user to a given group",
                     'return'            =>  array('integer', 'array'),
@@ -373,7 +376,7 @@ $tests = [
                                                 return (
                                                     count(array_diff(['id' => 1, 'login' => 'root@host.local'], $result['1'])) == 0
                                                 );
-                                            }                                            
+                                            }
                     ),
 
     // 3xxx methods : related to Collections calls
@@ -470,7 +473,7 @@ $tests = [
                                                 }
                                                 return $values;
                                             },
-                    'expected'          =>  ['id' => 4, 'login' => 'test@equal.run']                                          
+                    'expected'          =>  ['id' => 4, 'login' => 'test@equal.run']
                     ),
 /*
     '4101' => array(
@@ -492,5 +495,5 @@ $tests = [
                                             },
                         'expected'      =>  ['id' => 2, 'login' => 'cedric@equal.run', 'firstname' => 'Cédric', 'lastname' => 'FRANÇOYS', 'language' => 'fr']
                     ),
-*/                    
+*/
 ];
