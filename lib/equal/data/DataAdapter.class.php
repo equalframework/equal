@@ -63,12 +63,12 @@ class DataAdapter extends Service {
                 ],
                 'sql' => [
                     'php' =>    function ($value) {
-// todo : handle arbitrary length numbers (> 10 digits)
+                                    // todo : handle numbers of arbitrary length (> 10 digits)
                                     return intval($value);
                                 }
                 ]
             ],
-            'double' => [
+            'float' => [
                 'txt'   => [
                     'php' =>    function ($value) {
                                     // arg represents a numeric value (numeric type or string)
@@ -91,29 +91,39 @@ class DataAdapter extends Service {
                                     // #memo - urldecoding (and any pre-treatment) should not occur here
                                     return $value;
                                 }
+                ],
+                'php' => [
+                    'sql' => function($value) {
+                                    // make sure the string does not have a binary notation
+                                    if(substr($value, 0, 2) == 'h0x') {
+                                        // trim binary prefix
+                                        $value = substr($value, 3);
+                                    }
+                                    return $value;
+                                }
                 ]
-            ],            
+            ],
             'time' => [
                 // string times are expected to be ISO 8601 formatted times (hh:mm:ss)
                 'txt'   => [
-                    'php' =>    function ($value) { 
+                    'php' =>    function ($value) {
                                     list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
                                     return ($hour * 3600) + ($minute * 60) + $second;
                                 }
 
                 ],
-                // internally, times are handled as relative timestamps (number of seconds since the beginning of the day) 
+                // internally, times are handled as relative timestamps (number of seconds since the beginning of the day)
                 'php'   => [
                     'txt' =>    function($value)  {
                                     $hours = (int) ($value / (60*60));
                                     $minutes = (int) (($value % (60*60)) / 60);
-                                    $seconds = $value % (60);                                    
+                                    $seconds = $value % (60);
                                     return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
                                 },
                     'sql' =>    function($value)  {
                                     $hours = (int) ($value / (60*60));
                                     $minutes = (int) (($value % (60*60)) / 60);
-                                    $seconds = $value % (60);                                    
+                                    $seconds = $value % (60);
                                     return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
                                 }
                 ],
@@ -123,7 +133,7 @@ class DataAdapter extends Service {
                                     return ($hour * 3600) + ($minute * 60) + $second;
                                 }
                 ]
-            ],        
+            ],
             'date' => [
                 // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
                 'txt'   => [
@@ -363,7 +373,7 @@ class DataAdapter extends Service {
                     }
                 ]
             ],
-            'file' => [
+            'binary' => [
                 'txt' => [
                     'php' => function($value) {
                         /*
@@ -389,7 +399,7 @@ class DataAdapter extends Service {
                         else {
                             if(!isset($value['tmp_name'])) {
                                 // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
-                                // todo: issue a warning
+                                // #todo: issue a warning
                                 $res = '';
                             }
                             else {
@@ -405,9 +415,10 @@ class DataAdapter extends Service {
                 ],
                 'sql'  => [
                     'php' => function($value) {
-                        // convert hexadecimal string read from DB to a binary value
+                        // read from DB
                         if(FILE_STORAGE_MODE == 'DB') {
-                            $res = hex2bin($value);
+                            // fields of type file/binary are stored as binary value (MEDIUMBLOB)
+                            $res = $value;
                         }
                         // read the content from filestore, filename is the received value
                         else if(FILE_STORAGE_MODE == 'FS') {
@@ -433,9 +444,10 @@ class DataAdapter extends Service {
                             throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                         }
 
-                        // store binary data to database as an hexadecimal string
+                        // store binary data to database
                         if(FILE_STORAGE_MODE == 'DB') {
-                            $res = bin2hex($value);
+                            // convert to hexadecimal string and mark for being stored as binary
+                            $res = 'h0x'.bin2hex($value);
                         }
                         // store binary data to a file which name is based on object details, and store filename to database
                         else if(FILE_STORAGE_MODE == 'FS') {
@@ -502,20 +514,22 @@ class DataAdapter extends Service {
 
 
 	public function adapt($value, $type, $to='php', $from='txt', ...$extra) {
-        if($type == 'float') $type = 'double';
+        if($type == 'double') $type = 'float';
         else if($type == 'int') $type = 'integer';
         else if($type == 'bool') $type = 'boolean';
+        else if($type == 'file') $type = 'binary';
+
         if(!in_array($from, ['txt', 'php', 'sql'])) {
             // in case of unknown origin, fallback to raw text
             $from = 'txt';
             // todo: issue a warning
         }
+
         if(!in_array($to, ['txt', 'php', 'sql'])) {
             // in case of unknown destination, fallback to PHP
             $to = 'php';
             // todo: issue a warning
         }
-
 
         if( !is_null($this->config) && isset($this->config[$type][$from][$to]) ) {
             $method = $this->config[$type][$from][$to];
