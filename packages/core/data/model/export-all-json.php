@@ -6,23 +6,23 @@
 */
 
 list($params, $providers) = announce([
-    'description'   => "Returns a view populated with a collection of objects, and outputs it as an XLS spreadsheet.",
+    'description'   => "Retrieve the list of all objects of a given model, and output it as a JSON collection suitable for import.",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
-        ]        
+        ]
     ],
     'response'      => [
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth'] 
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 
@@ -31,6 +31,11 @@ list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $provid
 $entity = $params['entity'];
 
 $model = $orm->getModel($entity);
+
+if(!$model) {
+    throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+}
+
 $schema = $model->getSchema();
 
 
@@ -45,12 +50,11 @@ foreach($schema as $field => $descr) {
 
 $output = [];
 
-$serie = [ 
+$serie = [
     "name" => $entity,
     "lang" => $params['lang'],
     "data" => []
 ];
-
 
 $values = $params['entity']::search([])
         ->read($fields)
