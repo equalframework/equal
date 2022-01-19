@@ -9,22 +9,22 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'view_id' =>  [
             'description'   => 'The identifier of the view <type.name>.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => 'list'
         ],
-        
+
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 
@@ -39,8 +39,8 @@ if(!$model) {
 }
 
 // retrieve existing view meant for entity or it
-while(true) {    
-    $parts = explode('\\', $entity);    
+while(true) {
+    $parts = explode('\\', $entity);
     $package = array_shift($parts);
     $class_path = implode('/', $parts);
     $parent = get_parent_class($entity);
