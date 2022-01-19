@@ -213,7 +213,7 @@ class AuthenticationManager extends Service {
      * @param   $user_id    integer Identifier of an existing user account.
      */
     public function su(int $user_id = ROOT_USER_ID) {
-        if($user_id > 0) {
+        if($user_id >= 0) {
             // update current user identifier
             $this->user_id = $user_id;
         }
