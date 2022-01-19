@@ -120,6 +120,7 @@ class Collection implements \Iterator {
         }
         return $this;
     }
+    */
 
     /**
      *  Pop out the n last objects of the collection (and set internal limit value)
@@ -166,7 +167,8 @@ class Collection implements \Iterator {
         if(!count($this->objects)) {
             return null;
         }
-        $object = array_pop( array_slice($this->objects, 0, 1) );
+        $objects = array_slice($this->objects, 0, 1);
+        $object = array_pop( $objects );
         return $this->get_raw_object($object, $to_array);
     }
 
@@ -181,7 +183,8 @@ class Collection implements \Iterator {
         if(!count($this->objects)) {
             return null;
         }
-        $object = array_pop( array_slice($this->objects, -1, 1) );
+        $objects = array_slice($this->objects, -1, 1);
+        $object = array_pop( $objects );
         return $this->get_raw_object($object, $to_array);
     }
 
