@@ -67,8 +67,13 @@ class AccessController extends Service {
 * Add support for domains :
     restrict granting to a given class based on a series of conditions, with support for specific ids
 
-exemple :
+    example :
+    // limit objects visibility to the users who created them
     ['object.creator', '= ', 'user.id']
+
+
+
+    for a given object, check access by successive SQL queries 
 
 
 */
@@ -84,52 +89,49 @@ exemple :
         }
 		else {
             // root user always has full rights
-            if($user_id == ROOT_USER_ID) return QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
+            if($user_id == ROOT_USER_ID) { 
+                return QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
+            }
             else {
 
                 // get user groups
                 $groups_ids = $this->getUserGroups($user_id);
 
-                // build array of domain variants
+                // build array of ACL variants
                 if($object_class == '*') {
                     $domains = [
-                        [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ]
+                        [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['domain', 'is', null] ]
                     ];
                     if(count($groups_ids)) {
-                        $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ];
+                        $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['domain', 'is', null] ];
                     }
                 }
                 else {
 					$orm = $this->container->get('orm');
 
-                    $domains = [
-                        [ 
-                            ['class_name', '=', $object_class], 
-                            ['user_id', '=', $user_id] 
-                        ]
-                    ];
+                    $domains = [];
 
                     // extract package parts from class name (for wildcard notation)
                     $package_parts = explode('\\', $object_class);
 
                     // add disjunctions
-                    for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n;++$i) {
+                    for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n; ++$i) {
                         $level = array_slice($package_parts, 0, $i);
                         $level_wildcard = implode('\\', $level);
                         if($i < $n) {
                             $level_wildcard .= (strlen($level_wildcard))?'\*':'*';
                         }
 
-                        $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id] ];
+                        $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id], ['domain', 'is', null] ];
 
                         if($is_groups) {
-                            $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids] ];
+                            $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids], ['domain', 'is', null] ];
                         }
                     }
                 
                 }
 
-                // fetch ACLs for all domain variants
+                // fetch all ACLs variants
                 $acl_ids = $orm->search('core\Permission', $domains);
                 if(count($acl_ids)) {
                     // get the user permissions
@@ -140,7 +142,7 @@ exemple :
                 }
 
                 if(!isset($this->permissionsTable[$user_id])) $this->permissionsTable[$user_id] = array();
-                // note: first element ([0]) of the class-related array could be used to store the user permissions for the whole class
+                // #todo - first element ([0]) of the class-related array could be used to store the user permissions for the whole class
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
 		}
@@ -148,6 +150,58 @@ exemple :
 		return $user_rights;
 	}
 
+
+    protected function getUserAcls($user_id, $object_class) {
+		$acls = [];
+
+        // get user groups
+        $groups_ids = $this->getUserGroups($user_id);
+
+        // build array of ACL variants
+        if($object_class == '*') {
+            $domains = [
+                [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ]
+            ];
+            if(count($groups_ids)) {
+                $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ];
+            }
+        }
+        else {
+            $orm = $this->container->get('orm');
+
+            $domains = [];
+
+            // extract package parts from class name (for wildcard notation)
+            $package_parts = explode('\\', $object_class);
+
+            // add disjunctions
+            for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n; ++$i) {
+                $level = array_slice($package_parts, 0, $i);
+                $level_wildcard = implode('\\', $level);
+                if($i < $n) {
+                    $level_wildcard .= (strlen($level_wildcard))?'\*':'*';
+                }
+
+                $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id] ];
+
+                if($is_groups) {
+                    $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids] ];
+                }
+            }
+        
+        }
+
+        // fetch all ACLs variants
+        $acl_ids = $orm->search('core\Permission', $domains);
+        if(count($acl_ids)) {
+            // get the user permissions
+            $acls = $orm->read('core\Permission', $acl_ids, ['rights']);
+        }
+
+		return $acls;
+	}
+    
+    
     /**
      *
      * @param   $identity       string   'user' or 'group'
@@ -300,6 +354,8 @@ exemple :
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') return $object_ids;
 
+        $orm = $this->container->get('orm');
+
         // retrieve current user identifier
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
@@ -308,12 +364,14 @@ exemple :
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
         // user always has READ and WRITE rights on its own object
-        if($object_class == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+        if($orm::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
             $user_rights |= (QN_R_READ | QN_R_WRITE);
         }
 		else if($operation == QN_R_READ) {
+// this is a special case of a generic feature (we should add this in the init data)
+
             // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
-            $orm = $this->container->get('orm');
+            
             $objects = $orm->read($object_class, $object_ids, ['creator']);
             $user_ids = [];
             foreach($objects as $oid => $odata) {
@@ -324,6 +382,18 @@ exemple :
                 $user_rights |= QN_R_READ;
             }
 		}
+
+
+/*
+loop on objects_ids, for each object
+
+1) fetch regular ACL 
+2) fetch ACL with a domain
+ either user has operation granted with its one of its ACL (or one of its groups)
+ or user is granted operation on specific objects (matching ACL domain)
+
+ validate id as soon as an ACL condition is met
+*/
 
 		return ((bool)($user_rights & $operation))?$object_ids:[];
     }
