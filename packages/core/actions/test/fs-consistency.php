@@ -42,11 +42,6 @@ if(ROUTING_METHOD == 'JSON') {
     $paths[] = [
         'rights'    =>  QN_R_READ | QN_R_WRITE,
         'path'      =>  ROUTING_CONFIG_DIR
-    ];
-    
-    $paths[] = [
-        'rights'    =>  QN_R_READ | QN_R_WRITE,
-        'path'      =>  ROUTING_CONFIG_DIR.'/50-default.json'
     ];    
 }
 
