@@ -8,5 +8,7 @@ spool/*
 bin/*
 !bin/.gitkeep
 config/config.inc.php
+config/routing/*
+!config/routing/.gitkeep
 composer.phar
 composer.lock
