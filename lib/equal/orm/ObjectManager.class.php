@@ -248,15 +248,30 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Gets the filename containing the class definition of an object, including a part of its path (required to convert namespace notation).
+     * Gets the filename containing the class definition of a class, 
+     * without package name, but including namespace path (required to convert namespace notation).
      *
-     * @param string $object_class
-     * @return string
+     * @param string $object_class  The name of the class with its namespace.
+     * @return string   The path of the file holding the class definition, relative to the `<package>/class/` folder
      */
     public static function getObjectClassFile($object_class) {
         $parts = explode('\\', $object_class);
         array_shift($parts);
         return implode('/', $parts).'.class.php';
+    }
+
+    /**
+     * Retrieve the root parent class of a class.
+     * If there are several level of inheritance, the method loops up until the first class that inherits from the Model interface (`equal\orm\Model`).
+     */
+    public static function getObjectRootClass($object_class) {
+        $entity = $object_class;
+        while(true) {    
+            $parent = get_parent_class($entity);
+            if(!$parent || $parent == 'equal\orm\Model') break;
+            $entity = $parent;
+        }
+        return $entity;   
     }
 
     /**
