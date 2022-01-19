@@ -80,16 +80,16 @@ class ObjectManager extends Service {
     );
 
     public static $valid_operators = [
-        'boolean'		=> array('=', '<>', '<', '>', 'in'),
-        'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
-        'float'			=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>='),
-        'string'		=> array('like', 'ilike', 'in', 'not in', '=', '<>'),
-        'text'			=> array('like', 'ilike', '='),
-        'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like'),
-        'time'			=> array('=', '<>', '<', '>', '<=', '>='),
-        'datetime'		=> array('=', '<>', '<', '>', '<=', '>='),
-        'file'		    => array('like', 'ilike', '='),
-        'binary'		=> array('like', 'ilike', '='),
+        'boolean'		=> array('=', '<>', '<', '>', 'in', 'is'),
+        'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
+        'float'			=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
+        'string'		=> array('like', 'ilike', 'in', 'not in', '=', '<>', 'is'),
+        'text'			=> array('like', 'ilike', '=', 'is'),
+        'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like', 'is'),
+        'time'			=> array('=', '<>', '<', '>', '<=', '>=', 'is'),
+        'datetime'		=> array('=', '<>', '<', '>', '<=', '>=', 'is'),
+        'file'		    => array('like', 'ilike', '=', 'is'),
+        'binary'		=> array('like', 'ilike', '=', 'is'),
         // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
         'many2one'		=> array('is', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'		=> array('contains'),
@@ -1570,10 +1570,20 @@ class ObjectManager extends Service {
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
                         if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
-                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1]) || !isset($domain[$j][$i][2])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
+                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
                         $field		= $domain[$j][$i][0];
-                        $value		= $domain[$j][$i][2];
+                        $value		= (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
                         $operator	= strtolower($domain[$j][$i][1]);
+
+                        // force operator 'is' for null values
+                        if(is_null($value)) {
+                            $operator = 'is';
+                        }
+                        else {
+                            if($operator == 'is') {
+                                $operator = '=';
+                            }
+                        }
 
                         // check field validity
                         if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
