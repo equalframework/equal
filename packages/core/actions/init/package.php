@@ -9,22 +9,25 @@ use equal\db\DBConnection;
 // get listing of existing packages
 $json = run('get', 'config_packages');
 $data = json_decode($json, true);
-if(isset($data['errors'])) {
+if($data && isset($data['errors'])) {
     foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
 }
-else {
-    $packages = $data;
-}
+$packages = $data;
 
 list($params, $providers) = announce([
     'description'   => 'Initialise database for given package. If no package is given, initialize core package.',
     'params'        => [
-        'package'	=> [
+        'package' => [
             'description'   => 'Package for which we want SQL schema.',
             'type'          => 'string', 
             'in'            => array_values($packages),
             'default'       => 'core'
-        ]    
+        ],
+        'import' => [
+            'description'   => 'Flag to import the initial data.',
+            'type'          => 'boolean', 
+            'default'       => false
+        ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm', 'adapt'],
@@ -173,7 +176,7 @@ foreach($m2m_tables as $table => $columns) {
 
 // 4) populate tables with predefined data 
 $data_folder = "packages/{$params['package']}/init/data";
-if(file_exists($data_folder) && is_dir($data_folder)) {
+if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     // handle SQL files
     foreach (glob($data_folder."/*.sql") as $data_sql) {
         $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
@@ -229,8 +232,14 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
 // 5) if a `bin` folder exists, copy its content to /bin/<package>/
 $bin_folder = "packages/{$params['package']}/init/bin";
 if(file_exists($bin_folder) && is_dir($bin_folder)) {
-    exec("cp -r $bin_folder ../bin/{$params['package']}");
-    exec("chown www-data:www-data -R ../bin/{$params['package']}");    
+    exec("cp -r $bin_folder bin/{$params['package']}");
+    exec("chown www-data:www-data -R bin/{$params['package']}");    
+}
+
+// 6) if a `routes` folder exists, copy its content to /config/routing/
+$route_folder = "packages/{$params['package']}/init/routes";
+if(file_exists($route_folder) && is_dir($route_folder)) {
+    exec("cp -r $route_folder/* config/routing");
 }
 
 $context->httpResponse()
