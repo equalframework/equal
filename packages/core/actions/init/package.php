@@ -174,6 +174,9 @@ foreach($m2m_tables as $table => $columns) {
 }
 
 
+// #todo : make distinction between mandatory initial data and demo data
+
+
 // 4) populate tables with predefined data 
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
