@@ -95,9 +95,9 @@ class DataAdapter extends Service {
                 'php' => [
                     'sql' => function($value) {
                                     // make sure the string does not have a binary notation
-                                    if(substr($value, 0, 2) == 'h0x') {
+                                    if(substr($value, 0, 3) == 'h0x') {
                                         // trim binary prefix
-                                        $value = substr($value, 3);
+                                        $value = substr($value, 1);
                                     }
                                     return $value;
                                 }
