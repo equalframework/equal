@@ -42,7 +42,7 @@ class AccessController extends Service {
 				$this->groupsTable[$user_id] = array_unique(array_merge($this->groupsTable[$user_id], $values[$user_id]['groups_ids']));
             }
         }
-        $groups_ids = $this->groupsTable[$user_id];        
+        $groups_ids = $this->groupsTable[$user_id];
         return $groups_ids;
     }
 
@@ -52,7 +52,7 @@ class AccessController extends Service {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\Group', $group_id, ['users_ids']);
 			if($values > 0 && isset($values[$group_id])) {
-				$this->usersTable[$group_id] = $values[$group_id]['users_ids'];				
+				$this->usersTable[$group_id] = $values[$group_id]['users_ids'];
             }
             else {
                 $this->usersTable[$group_id] = [];
@@ -61,6 +61,18 @@ class AccessController extends Service {
         $users_ids = $this->usersTable[$group_id];
         return $users_ids;
     }
+
+
+/*
+* Add support for domains :
+    restrict granting to a given class based on a series of conditions, with support for specific ids
+
+exemple :
+    ['object.creator', '= ', 'user.id']
+
+
+*/
+
 
     protected function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
 		// all users are at least granted the default permissions
@@ -89,22 +101,32 @@ class AccessController extends Service {
                 }
                 else {
 					$orm = $this->container->get('orm');
-                    // extract package from class name (for wildcard notation)
-                    $object_package = $orm->getObjectPackage($object_class);
+
                     $domains = [
-                        [ ['class_name', '=', $object_class], ['user_id', '=', $user_id] ]
+                        [ 
+                            ['class_name', '=', $object_class], 
+                            ['user_id', '=', $user_id] 
+                        ]
                     ];
-                    if(count($groups_ids)) {
-                        $domains[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids] ];
+
+                    // extract package parts from class name (for wildcard notation)
+                    $package_parts = explode('\\', $object_class);
+
+                    // add disjunctions
+                    for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n;++$i) {
+                        $level = array_slice($package_parts, 0, $i);
+                        $level_wildcard = implode('\\', $level);
+                        if($i < $n) {
+                            $level_wildcard .= (strlen($level_wildcard))?'\*':'*';
+                        }
+
+                        $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id] ];
+
+                        if($is_groups) {
+                            $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids] ];
+                        }
                     }
-                    $domains[] = [ ['class_name', '=', $object_package.'\*'], ['user_id', '=', $user_id] ];
-                    if(count($groups_ids)) {
-                        $domains[] = [ ['class_name', '=', $object_package.'\*'], ['group_id', 'in', $groups_ids] ];
-                    }
-                    $domains[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id] ];
-                    if(count($groups_ids)) {
-                        $domains[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids] ];
-                    }
+                
                 }
 
                 // fetch ACLs for all domain variants
@@ -129,7 +151,7 @@ class AccessController extends Service {
     /**
      *
      * @param   $identity       string   'user' or 'group'
-     * @param   $operator       string   '+' or '-'     
+     * @param   $operator       string   '+' or '-'
      * @param   $rights         integer  binary mask of the rights to apply
      * @param   $identity_id    integer  identifier of targeted user or group
      * @param   $object_class   string   name of the class on which rights apply to : wildcards are allowed (ex. '*' or 'core\*')
@@ -176,7 +198,7 @@ class AccessController extends Service {
             $this->changeRights('group', '+', $operation, $group_id, $object_class);
         }
     }
-    
+
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         if(!is_array($users_ids)) $users_ids = (array) $users_ids;
         foreach($users_ids as $user_id) {
@@ -222,11 +244,11 @@ class AccessController extends Service {
     public function addGroup($group_id) {
         return $this->addGroups($group_id);
     }
-    
+
     /**
      *  Check if a current user (retrieved using Auth service) has rights to perform a given operation.
      *
-     *  This method is called by the Collection service, when performing CRUD 
+     *  This method is called by the Collection service, when performing CRUD
      *  Qinoa's Access Controller is trivial and only check for rights at class level.
      *  For a more complex behaviour, this class can be replaced by a custom Auth service.
      */
@@ -248,11 +270,11 @@ class AccessController extends Service {
 		if(!is_array($object_ids)) {
 			$object_ids = (array) $object_ids;
 		}
-        
-        //  permission query is for class and/or fields only (no specific objects)        
+
+        //  permission query is for class and/or fields only (no specific objects)
         if(!count($object_ids)) {
             $user_rights = $this->getUserRights($user_id, $object_class, $object_fields);
-            $allowed = (bool) ($user_rights & $operation);            
+            $allowed = (bool) ($user_rights & $operation);
         }
         // we have to check several objects
         else {
@@ -268,7 +290,7 @@ class AccessController extends Service {
 
         return $allowed;
     }
-    
+
     /**
      *  Filter a list of objects and return only ids of objects on which current user has permission for given operation.
      *  This method is called by the Collection service, when performing Search
@@ -281,7 +303,7 @@ class AccessController extends Service {
         // retrieve current user identifier
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
-        
+
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
@@ -304,5 +326,5 @@ class AccessController extends Service {
 		}
 
 		return ((bool)($user_rights & $operation))?$object_ids:[];
-    }    
+    }
 }
