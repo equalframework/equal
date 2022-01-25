@@ -44,20 +44,20 @@ class ObjectManager extends Service {
 
     public static $valid_attributes = array(
         'alias'		    => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'integer'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'unique'),
-        'float'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'selection', 'precision'),
-        'string'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-        'text'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'date'			=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'time'			=> array('description', 'help', 'type', 'visible', 'default', 'required', 'onchange'),
-        'datetime'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange'),
-        'file'  		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'binary'		=> array('description', 'help', 'type', 'visible', 'default', 'usage', 'required', 'onchange', 'multilang'),
-        'many2one'		=> array('description', 'help', 'type', 'visible', 'default', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
+        'boolean'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'integer'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'unique'),
+        'float'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'precision'),
+        'string'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+        'text'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'date'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'time'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onchange'),
+        'datetime'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'file'  		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'binary'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'many2one'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
         'one2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
         'many2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'		=> array('description', 'help', 'type', 'visible', 'default', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
+        'computed'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
     );
 
     public static $mandatory_attributes = array(
