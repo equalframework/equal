@@ -316,6 +316,15 @@ class DataAdapter extends Service {
                 ]
             ],
             'many2one'  => [
+                'txt' => [
+                    'php' =>    function ($value) {
+                                    $value = (int) $value;
+                                    if($value == 0) {
+                                        $value = null;
+                                    }
+                                    return $value;
+                                }
+                ],
                 'sql' => [
                     'php' =>    function ($value) {
                                     return (int) $value;
@@ -389,9 +398,15 @@ class DataAdapter extends Service {
                             ]
                         */
                         if(!is_array($value)) {
-                            // @see RFC2397 (data:[<mediatype>][;base64],<data>)
-                            $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1) );
-                            $res = base64_decode($value);
+                            // handle data URL notation
+                            if(substr($value, 0, 5) == 'data:') {
+                                // extract the base64 part @see RFC2397 (data:[<mediatype>][;base64],<data>)
+                                $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1) );
+                            }
+                            $res = base64_decode($value, true);
+                            if(!$res) {
+                                throw new \Exception("not_valid_base64", QN_ERROR_INVALID_PARAM);
+                            }
                             if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
                                 throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                             }
@@ -463,7 +478,7 @@ class DataAdapter extends Service {
                             }
 
                             if (!is_dir($storage_location)) {
-                                throw new \Exception("fs_dir_create_error", QN_ERROR_INVALID_CONFIG);
+                                throw new \Exception("fs_dir_missing", QN_ERROR_INVALID_CONFIG);
                             }
                             // note: existing file will be overwritten
                             file_put_contents($storage_location.'/'.$file, $value);
