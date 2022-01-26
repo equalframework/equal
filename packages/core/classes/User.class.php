@@ -47,7 +47,8 @@ class User extends Model {
             'language' => [
                 'type'              => 'string', 
                 'usage'             => 'language/iso-639:2',
-                'default'           => 'en'
+                'default'           => 'en',
+                'description'       => "Used for user interfaces.",
             ],
 
             'validated' => [
