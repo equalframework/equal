@@ -57,6 +57,13 @@ class Setting extends Model {
                 'sort'              => 'desc',
                 'order'             => 'user_id',
                 'description'       => 'List of values related to the setting.'
+            ],
+
+            'setting_choices_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\SettingChoice',
+                'foreign_field'     => 'setting_id',
+                'description'       => 'List of values related to the setting.'
             ]
 
         ];
