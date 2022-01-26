@@ -22,7 +22,7 @@ class Setting extends Model {
         return [
             'name' => [
                 'type'              => 'string', 
-                'description'       => 'Unique name of the parameter.'
+                'description'       => 'Unique code of the parameter.'
             ],
 
             'package' => [
@@ -35,6 +35,12 @@ class Setting extends Model {
                 'type'              => 'string',
                 'description'       => 'Section to ease param retrieval.',
                 'required'          => true
+            ],
+
+            'title' => [
+                'type'              => 'string', 
+                'description'       => 'Short title of the parameter.',
+                'multilang'         => true
             ],
 
             'description' => [
@@ -71,7 +77,7 @@ class Setting extends Model {
 
     public function getUnique() {
         return [
-            ['section', 'name']
+            ['package', 'section', 'name']
         ];
     }    
 }
