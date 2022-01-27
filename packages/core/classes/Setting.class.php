@@ -21,15 +21,24 @@ class Setting extends Model {
     public static function getColumns() {
         return [
             'name' => [
-                'type'              => 'string', 
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'description'       => "Full path setting code to serve as reference (unique).",
+                'function'          => 'core\Setting::getDisplayName',
+                'store'             => true,
+                'readonly'          => true
+            ],
+
+            'code' => [
+                'type'              => 'string',
                 'description'       => 'Unique code of the parameter.'
             ],
 
             'package' => [
-                'type'              => 'string', 
+                'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
                 'default'           => ''
-            ],      
+            ],
 
             'section' => [
                 'type'              => 'string',
@@ -38,7 +47,7 @@ class Setting extends Model {
             ],
 
             'title' => [
-                'type'              => 'string', 
+                'type'              => 'string',
                 'description'       => 'Short title of the parameter.',
                 'multilang'         => true
             ],
@@ -46,6 +55,13 @@ class Setting extends Model {
             'description' => [
                 'type'              => 'string',
                 'description'       => 'Short memo about the param usage.',
+                'multilang'         => true
+            ],
+
+            'help' => [
+                'type'              => 'string',
+                'usage'             => 'string/text',
+                'description'       => 'Detailed description about the setting role.',
                 'multilang'         => true
             ],
 
@@ -75,9 +91,21 @@ class Setting extends Model {
         ];
     }
 
+    public static function getDisplayName($om, $oids, $lang) {
+        $result = [];
+
+        $settings = $om->read(__CLASS__, $oids, ['package', 'section', 'code'], $lang);
+
+        foreach($settings as $oid => $odata) {
+            $result[$oid] = $odata['package'].'.'.$odata['section'].'.'.$odata['code'];
+        }
+
+        return $result;
+    }
+
     public function getUnique() {
         return [
-            ['package', 'section', 'name']
+            ['package', 'section', 'code']
         ];
-    }    
+    }
 }
