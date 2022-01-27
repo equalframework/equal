@@ -15,7 +15,7 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "name",
+                                                "value": "code",
                                                 "width": "100%",
                                                 "widget": {
                                                     "header": true

@@ -31,18 +31,21 @@ class Setting extends Model {
 
             'code' => [
                 'type'              => 'string',
-                'description'       => 'Unique code of the parameter.'
+                'description'       => 'Unique code of the parameter.',
+                'onchange'          => 'core\Setting::onchangeCode'
             ],
 
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
+                'onchange'          => 'core\Setting::onchangePackage',
                 'default'           => 'core'
             ],
 
             'section' => [
                 'type'              => 'string',
                 'description'       => 'Section to ease param retrieval.',
+                'onchange'          => 'core\Setting::onchangeSection',
                 'required'          => true
             ],
 
@@ -89,6 +92,18 @@ class Setting extends Model {
             ]
 
         ];
+    }
+
+    public static function onchangeCode($om, $ids, $lang) {
+        $om->write(__CLASS__, $ids, ['name' => null], $lang);
+    }
+
+    public static function onchangeSection($om, $ids, $lang) {
+        $om->write(__CLASS__, $ids, ['name' => null], $lang);
+    }
+
+    public static function onchangePackage($om, $ids, $lang) {
+        $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
     public static function getDisplayName($om, $oids, $lang) {
