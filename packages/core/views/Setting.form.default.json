@@ -35,6 +35,11 @@
                                                 "type": "field",
                                                 "value": "description",
                                                 "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "help",
+                                                "width": "100%"
                                             }
                                         ]
                                     },
