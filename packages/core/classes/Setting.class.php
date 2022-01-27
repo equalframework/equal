@@ -37,7 +37,7 @@ class Setting extends Model {
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
-                'default'           => ''
+                'default'           => 'core'
             ],
 
             'section' => [
