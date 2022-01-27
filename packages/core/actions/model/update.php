@@ -84,16 +84,15 @@ foreach($fields as $field => $value) {
 }
 
 if(count($fields)) {
-    // if we're updating a single object, enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
+    // we're updating a single object: enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
     if( count($params['ids']) == 1) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
             $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
             // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
             if($object['state'] != 'draft') {
-    // #todo - if object has some 'required' fields, we need to clone these to avoid a missing_mandatory error
-                unset($fields['id']);
-                $instance = $params['entity']::create($fields, $params['lang'])->read(['id'])->adapt('txt')->first();
+                // create object as draft to avoid a missing_mandatory error, and then update it
+                $instance = $params['entity']::create(['state' => 'draft'])->update($fields, $params['lang'])->read(['id'])->adapt('txt')->first();
                 $params['ids'] = [$instance['id']];
             }
         }

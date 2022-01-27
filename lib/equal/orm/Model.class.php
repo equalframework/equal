@@ -9,10 +9,10 @@ namespace equal\orm;
 
 /**
  *  Root Model for all objects.
- *	This class holds the description of an object (and not the object itself)
+ *  This class holds the description of an object (and not the object itself)
  */
 class Model {
-    
+
     /**
      * Complete object schema, containing all columns (including special ones as object id)
      *
@@ -20,12 +20,12 @@ class Model {
      * @access private
      */
     private $schema;
-    
+
     private $fields;
 
     private $values;
-    
-    
+
+
     /**
      * Constructor
      *
@@ -34,7 +34,7 @@ class Model {
     public final function __construct($orm, $values=[]) {
         // schema is the concatenation of spcecial-columns and custom-defined columns
         $this->schema = self::getSpecialColumns();
-        
+
         // piles up the getColumns methods from oldest ancestor to called class
         $parent_class = get_parent_class(get_called_class());
         $parents_classes = [get_called_class()];
@@ -44,16 +44,16 @@ class Model {
         }
         foreach($parents_classes as $class) {
             $this->schema = array_merge($this->schema, call_user_func_array([$class, 'getColumns'], []));
-        }		
-        
-        // make sure that a field 'name' is always defined 
+        }
+
+        // make sure that a field 'name' is always defined
         if( !isset($this->schema['name']) ) {
             // if no field 'name' is defined, fall back to 'id' field
             $this->schema['name'] = array( 'type' => 'alias', 'alias' => 'id' );
         }
         // set array holding fields names
         $this->fields = array_keys($this->schema);
-        
+
         // set fields to default values
         $this->setDefaults($orm, $values);
     }
@@ -79,42 +79,42 @@ class Model {
     // note: 'name' field is set in constructor if not defined in getColumns method
     public final static function getSpecialColumns() {
         $special_columns = [
-            'id' => [				
-                'type'				=> 'integer'
-            ],            
+            'id' => [
+                'type'              => 'integer'
+            ],
             'creator' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User'
             ],
             'created' => [
-                'type' 				=> 'datetime',
-                'default'			=> time()
+                'type'              => 'datetime',
+                'default'           => time()
             ],
             'modifier' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User'
             ],
             'modified' => [
-                'type' 				=> 'datetime',
-                'default'			=> time()				
+                'type'              => 'datetime',
+                'default'           => time()
             ],
             'deleted' => [
-                'type' 				=> 'boolean',
-                'default'			=> false
+                'type'              => 'boolean',
+                'default'           => false
             ],
             'state' => [
-                'type' 				=> 'string',
+                'type'              => 'string',
                 'selection'         => ['draft', 'instance', 'archive'],
-                'default'			=> 'instance'
+                'default'           => 'instance'
             ]
         ];
         return $special_columns;
     }
-    
+
     public final function setField($field, $value) {
         $this->values[$field] = $value;
     }
-    
+
     public final function setColumn($column, array $description) {
         $this->schema[$column] = $description;
     }
@@ -122,7 +122,7 @@ class Model {
     /**
      * Gets Model readable name.
      * This method is meant to be overridden by children classes.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -134,7 +134,7 @@ class Model {
     /**
      * Gets Model description.
      * This method is meant to be overridden by children classes.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -153,17 +153,17 @@ class Model {
     }
 
     /**
-    * Returns all fields names 
+    * Returns all fields names
     *
     */
     public final function getFields() {
         return $this->fields;
-    }	
+    }
 
     /**
      * Provide the final field targeted by a field (handle aliases)
      * This method should be used for type comparisons and when checking field structure validity
-     * 
+     *
      * @access public
      */
     public final function field($field) {
@@ -174,7 +174,7 @@ class Model {
         }
         return $this->schema[$field];
     }
-    
+
     /**
      * Returns values of static instance (default values)
      *
@@ -182,8 +182,8 @@ class Model {
      */
     public final function getValues() {
         return $this->values;
-    }	
-    
+    }
+
     /**
       * Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
      * This method must be overridden by children classes.
@@ -206,7 +206,7 @@ class Model {
     }
 
     /**
-     * 
+     *
      * @access public
      */
     public function getDefaults() {
@@ -221,7 +221,7 @@ class Model {
 
     /**
      * This method can be overriden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
-     * 
+     *
      * @access public
      */
     public function getUnique() {
@@ -241,16 +241,16 @@ class Model {
      * This method can be overridden by children classes to allow polymorphism at class level.
      *
      * @access public
-     * 
+     *
      */
     public function getTable() {
         $parent = get_parent_class($this);
         $entity = get_class($this);
 
         // if class directly inherits from root class (equal\orm\Model), use its own name
-        while($parent != __CLASS__) {            
+        while($parent != __CLASS__) {
             $entity = $parent;
-            $parent = get_parent_class($parent);            
+            $parent = get_parent_class($parent);
         }
 
         return str_replace('\\', '_', $entity);
@@ -258,11 +258,11 @@ class Model {
 
     /**
      * Handle virtual static methods: use classname to invoke a Collection method, if available
-     * 
+     *
      * @access public
      * @static
      */
-    public static function __callStatic($name, $arguments) {            
+    public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {
             $factory = \equal\orm\Collections::getInstance();
             $collection = $factory->create(get_called_class());
@@ -275,6 +275,6 @@ class Model {
             }
         }
         return null;
-    }   
+    }
 
 }

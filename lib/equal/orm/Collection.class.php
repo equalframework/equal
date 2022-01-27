@@ -277,8 +277,8 @@ class Collection implements \Iterator {
     private function filter(array $fields) {
         $result = [];
         if(count($fields)) {
-            // retreve valid fields
-            $allowed_fields = $this->instance->getFields();
+            // retreve valid fields, i.e. fields from schema excepted special fields (#memo - `state` is allowed for draft creation)
+            $allowed_fields = array_diff($this->instance->getFields(), ['id','creator','created','modifier','modified','deleted']);
             // filter $fields argument based on its structure
             // (either a list of fields to read, or a map of fields and their values for writing)
             if(!is_numeric(key($fields))) {
