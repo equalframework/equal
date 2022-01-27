@@ -10,7 +10,7 @@
                             {
                                 "columns": [
                                     {
-                                        "width": "33%",
+                                        "width": "50%",
                                         "align": "left",
                                         "items": [
                                             {
@@ -20,16 +20,6 @@
                                                 "widget": {
                                                     "header": true
                                                 }
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "package",
-                                                "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "section",
-                                                "width": "50%"
                                             },
                                             {
                                                 "type": "field",
@@ -44,9 +34,19 @@
                                         ]
                                     },
                                     {
-                                        "width": "33%",
+                                        "width": "50%",
                                         "align": "left",
                                         "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "package",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "section",
+                                                "width": "50%"
+                                            },
                                             {
                                                 "type": "field",
                                                 "value": "type",
