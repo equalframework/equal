@@ -23,7 +23,8 @@ class SettingChoice extends Model {
 
             'name' => [
                 'type'              => 'string',
-                'description'       => 'Name of the choice, if any.'
+                'description'       => 'Name of the choice, if any.',
+                'multilang'         => 'true'
             ],
 
             'setting_id' => [
