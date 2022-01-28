@@ -21,6 +21,11 @@ class SettingChoice extends Model {
     public static function getColumns() {
         return [
 
+            'name' => [
+                'type'              => 'string',
+                'description'       => 'Name of the choice, if any.'
+            ],
+
             'setting_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Setting',
@@ -29,7 +34,7 @@ class SettingChoice extends Model {
             ],
 
             'value' => [
-                'type'              => 'binary',
+                'type'              => 'string',
                 'description'       => 'JSON value of the parameter (type depends on the setting).'
             ]
 
