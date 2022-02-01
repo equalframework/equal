@@ -5,22 +5,28 @@
         "items": [
             {
                 "type": "field",
+                "value": "name",
+                "label": "Name",
+                "width": "25%"
+            },
+            {
+                "type": "field",
                 "value": "setting_id",
                 "label": "Setting",
-                "width": "30%",
+                "width": "25%",
                 "sortable": true
             },
             {
                 "type": "field",
                 "value": "user_id",
                 "label": "User",
-                "width": "30%",
+                "width": "25%",
                 "sortable": true
-            },
+            },  
             {
                 "type": "field",
                 "value": "value",
-                "width": "30%"
+                "width": "25%"
             }
         ]
     }

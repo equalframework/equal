@@ -32,7 +32,8 @@ class Setting extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
-                'onchange'          => 'core\Setting::onchangeCode'
+                'onchange'          => 'core\Setting::onchangeCode',
+                'required'          => true
             ],
 
             'package' => [
@@ -73,6 +74,13 @@ class Setting extends Model {
                 'selection'         => ['boolean', 'integer', 'float', 'string', 'selection'],
                 'description'       => 'The format of data stored by the param.',
                 'required'          => true
+            ],
+
+            'form' => [
+                'type'              => 'string',
+                'usage'             => 'string/text',
+                'description'       => 'Way in which the form is presented to the User',
+                'multilang'         => true
             ],
 
             'setting_values_ids' => [

@@ -23,12 +23,12 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "description",
+                                                "value": "title",
                                                 "width": "100%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "help",
+                                                "value": "description",
                                                 "width": "100%"
                                             }
                                         ]
@@ -50,7 +50,12 @@
                                             {
                                                 "type": "field",
                                                 "value": "type",
-                                                "width": "50%"
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "help",
+                                                "width": "100%"
                                             }
                                         ]
                                     }                                    

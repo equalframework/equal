@@ -1,0 +1,64 @@
+{
+    "name": "Setting",
+    "plural": "Settings",
+    "description": "The settings can be modified.",
+    "model": {
+        "name": {
+            "label": "Name",
+            "description": "Complete identifier of a setting.",
+            "help": ""
+        },
+        "code": {
+            "label": "Code",
+            "description": "Identifier of a setting.",
+            "help": ""
+        },
+        "package": {
+            "label": "Package",
+            "description": "Package to which the setting belongs.",
+            "help": ""
+        },
+        "section": {
+            "label": "Section",
+            "description": "Section to which the setting belongs.",
+            "help": ""
+        },
+        "title": {
+            "label": "Title",
+            "description": "Setting title",
+            "help": ""
+        },
+        "description": {
+            "label": "Description",
+            "description": "Setting description",
+            "help": ""
+        },
+        "help": {
+            "label": "Help",
+            "description": "Longer description of the setting and what it does.",
+            "help": ""
+        },
+        "type": {
+            "label": "Type",
+            "description": "Setting type",
+            "help": ""
+        },
+        "form": {
+            "label": "Form",
+            "description": "Telling which form is the best to display the setting.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Setting",
+            "description": "Display the setting"
+        },
+        "list.default": {
+            "name": "List of settings",
+            "description": "Displays the list of settings."
+        }
+    },
+    "error": {
+    }
+}

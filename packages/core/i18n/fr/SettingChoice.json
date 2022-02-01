@@ -1,0 +1,34 @@
+{
+    "name": "Choix du paramètre",
+    "plural": "Choix des paramètres",
+    "description": "Options disponibles pour un paramètre",
+    "model": {
+        "name": {
+            "label": "Nom",
+            "description": "Identifiant de l'option de paramètre.",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Paramètre",
+            "description": "Paramètre auquel est attaché l'option.",
+            "help": ""
+        },
+        "value": {
+            "label": "Valeur",
+            "description": "Valeur de l'option de paramètre",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Option de paramètre",
+            "description": "Affiche une option de paramètre"
+        },
+        "list.default": {
+            "name": "Liste des valeurs des options de paramètres",
+            "description": "Cette vue est destinée à afficher la liste des options des paramètres."
+        }
+    },
+    "error": {
+    }
+}

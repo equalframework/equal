@@ -1,0 +1,64 @@
+{
+    "name": "Paramètre",
+    "plural": "Paramètres",
+    "description": "Les paramètres peuvent être modifiés et donnent les valeurs utilisées par l'utilisateur",
+    "model": {
+        "name": {
+            "label": "Nom",
+            "description": "Identifiant du paramètre complet",
+            "help": ""
+        },
+        "code": {
+            "label": "Code",
+            "description": "Identifiant du paramètre",
+            "help": ""
+        },
+        "package": {
+            "label": "Package",
+            "description": "Package auquel appartient le paramètre",
+            "help": ""
+        },
+        "section": {
+            "label": "Section",
+            "description": "Section auquel appartient le paramètre",
+            "help": ""
+        },
+        "title": {
+            "label": "Title",
+            "description": "Titre du paramètre",
+            "help": ""
+        },
+        "description": {
+            "label": "Description",
+            "description": "Description du paramètre",
+            "help": ""
+        },
+        "help": {
+            "label": "Aide",
+            "description": "Description plus approfondie du paramètre",
+            "help": ""
+        },
+        "type": {
+            "label": "Type",
+            "description": "Type du paramètre",
+            "help": ""
+        },
+        "form": {
+            "label": "Formulaire",
+            "description": "Formulaire adapté à la présentation du paramètre",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Paramètre",
+            "description": "Affiche un paramètre"
+        },
+        "list.default": {
+            "name": "Liste des paramètres",
+            "description": "Cette vue est destinée à afficher la liste des paramètres."
+        }
+    },
+    "error": {
+    }
+}

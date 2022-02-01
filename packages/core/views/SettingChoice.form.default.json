@@ -1,39 +1,45 @@
 {
-    "name": "Setting value",
+    "name": "Setting",
     "description": "Default form for Setting",
     "layout": {
         "groups": [
             {
-                "sections": [                    
+                "sections": [
                     {
                         "rows": [
                             {
                                 "columns": [
                                     {
-                                        "width": "100%",
+                                        "width": "50%%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "setting_id",
-                                                "width": "33%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "user_id",
-                                                "width": "33%"
-                                            },
-                                            {
-                                                "type": "field",
                                                 "value": "value",
-                                                "width": "33%"
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "name",
+                                                "width": "50%"
                                             }
                                         ]
-                                    }                                   
+                                    },
+                                    {
+                                        "width": "50%%",
+                                        "align": "right",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_id",
+                                                "width": "100%"
+                                            }
+                                        ]
+                                    }
                                 ]
                             }
                         ]
-                    }            
+                    }
                 ]
             }
         ]

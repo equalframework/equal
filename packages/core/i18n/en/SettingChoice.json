@@ -1,0 +1,34 @@
+{
+    "name": "Choice of parameter",
+    "plural": "Choice of parameters",
+    "description": "Available choices for a parameter.",
+    "model": {
+        "name": {
+            "label": "Name",
+            "description": "Parameter name",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Parameter",
+            "description": "Parameter to which the choice belongs",
+            "help": ""
+        },
+        "value": {
+            "label": "Value",
+            "description": "Choice value.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Parameter choice",
+            "description": "Displays an option of the parameter."
+        },
+        "list.default": {
+            "name": "List of the parameter options",
+            "description": "Displays the options of the parameters."
+        }
+    },
+    "error": {
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "name": "Parameter value",
+    "plural": "Parameters value",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Name",
+            "description": "Setting identifier.",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Setting",
+            "description": "Setting value.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "User",
+            "description": "User to which the parameter belongs",
+            "help": ""
+        },
+        "value": {
+            "label": "Value",
+            "description": "Parameter Value",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Parameter Value",
+            "description": "Displays the value of a setting."
+        },
+        "list.default": {
+            "name": "List of settings.",
+            "description": "Displays the value of settings."
+        }
+    },
+    "error": {
+    }
+}

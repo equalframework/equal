@@ -1,0 +1,39 @@
+{
+    "name": "Valeur du paramètre",
+    "plural": "Valeurs des paramètres",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Nom",
+            "description": "Identifiant du paramètre.",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Paramètre",
+            "description": "Paramètre auquel est attaché la valeur.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Utilisateur",
+            "description": "Utilisateur auquel appartient le paramètre",
+            "help": ""
+        },
+        "value": {
+            "label": "Valeur",
+            "description": "Valeur du paramètre",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Valeur du paramètre",
+            "description": "Affiche une valeur de paramètre"
+        },
+        "list.default": {
+            "name": "Liste des valeurs de paramètres",
+            "description": "Cette vue est destinée à afficher la liste des valeurs des paramètres."
+        }
+    },
+    "error": {
+    }
+}
