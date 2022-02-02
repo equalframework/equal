@@ -78,6 +78,11 @@ class Setting extends Model {
 
             'form' => [
                 'type'              => 'string',
+                'selection'         => [
+                    'select',
+                    'toggle',
+                    'fill'
+                ],
                 'usage'             => 'string/text',
                 'description'       => 'Way in which the form is presented to the User',
                 'multilang'         => true
