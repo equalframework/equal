@@ -112,12 +112,19 @@ class ObjectManager extends Service {
     ];
 
     public static $usages_associations = [
-        'coordinate'			=> 'decimal(9,6)',
-        'language/iso-639:2'	=> 'char(2)',
         'amount/money'			=> 'decimal(15,2)',
+        'amount/money:2'		=> 'decimal(15,2)',
+        'amount/money:4'     	=> 'decimal(13,4)',
+        'coordinate'			=> 'decimal(9,6)',
+        'coordinate/decimal'	=> 'decimal(9,6)',
         'currency/iso-4217'		=> 'char(3)',
+        'language/iso-639'	    => 'char(2)',
+        'language/iso-639:2'	=> 'char(2)',
+        'language/iso-639:3'    => 'char(3)',
+        'language/iso-639'      => 'char(5)',               // iso-639:2 OR {iso-639:2}-{iso-366-1:2}
+        'language/iso-639:2'    => 'char(2)',
+        'markup/html'			=> 'mediumtext',
         'url/mailto'			=> 'varchar(255)',
-        'markup/html'			=> 'mediumtext'
     ];
 
     protected function __construct(DBConnection $db) {
@@ -248,7 +255,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Gets the filename containing the class definition of a class, 
+     * Gets the filename containing the class definition of a class,
      * without package name, but including namespace path (required to convert namespace notation).
      *
      * @param string $object_class  The name of the class with its namespace.
@@ -266,12 +273,12 @@ class ObjectManager extends Service {
      */
     public static function getObjectRootClass($object_class) {
         $entity = $object_class;
-        while(true) {    
+        while(true) {
             $parent = get_parent_class($entity);
             if(!$parent || $parent == 'equal\orm\Model') break;
             $entity = $parent;
         }
-        return $entity;   
+        return $entity;
     }
 
     /**
@@ -774,7 +781,7 @@ class ObjectManager extends Service {
 
     /**
      * Retrieve the static instance of a given class (Model with default values).
-     * 
+     *
      * @return boolean|Object   Returns the default instance of the model, or false if no Model matches the class name.
      */
     public function getStatic($object_class) {
