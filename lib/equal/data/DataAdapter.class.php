@@ -358,7 +358,7 @@ class DataAdapter extends Service {
                                         $value = (array) $value;
                                     }
                                     // check for recursion
-                                    if(is_array($value[0])) {
+                                    if(isset($value[0]) && is_array($value[0])) {
                                         $value = array_map(function($a) { return isset($a['id'])?$a['id']:'?'; }, $value);
                                     }
                                     // make sure array contains only numbers or numeric strings
