@@ -47,7 +47,7 @@ class Collection implements \Iterator {
     /**
      * Collection constructor.
      * This is called through the Collections service, which retrieves the dependencies through its container.
-     * Collections service is a factory that creates Collection instances when requested 
+     * Collections service is a factory that creates Collection instances when requested
      * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
      */
     public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
@@ -159,7 +159,7 @@ class Collection implements \Iterator {
     /**
      * Return the first object present in the collection.
      * (This method does not alter the collection.)
-     * 
+     *
      * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
      * @return array|null  If current queue is not empty, returns the first object, otherwise returns null.
      */
@@ -175,7 +175,7 @@ class Collection implements \Iterator {
     /**
      * Return the last object present in the collection.
      * (This method does not alter the collection.)
-     * 
+     *
      * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
      * @return array|null  If current queue is not empty, returns the last object, otherwise returns null.
      */
@@ -208,7 +208,7 @@ class Collection implements \Iterator {
     /**
      * Recursively generate a copy of an object from current collection,
      * by replacing Collection instances with either a map or an array.
-     * 
+     *
      * @param   $to_array   boolean    Flag to ask conversion of sub-objects to arrays (instead of a maps)
      */
     private function get_raw_object(&$object, $to_array=false) {
@@ -230,7 +230,7 @@ class Collection implements \Iterator {
         }
         return $result;
     }
-    
+
     public function toArray() {
         return $this->get(true);
     }
@@ -326,7 +326,7 @@ class Collection implements \Iterator {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
-// todo : harmonize error codes
+                // #todo : harmonize error codes
                 throw new \Exception(serialize($error_descr), $error_code);
             }
         }
@@ -349,9 +349,12 @@ class Collection implements \Iterator {
             'sort'  => ['id' => 'asc']
         ];
 
+        // retrieve current user id
+        $user_id = $this->am->userId();
+
         if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
         $params = array_merge($defaults, $params);
-        
+
         // 1) sanitize and validate given domain
         if(!empty($domain)) {
             $domain = Domain::normalize($domain);
@@ -362,12 +365,12 @@ class Collection implements \Iterator {
         }
 
         // 2) check that current user has enough privilege to perform READ operation on given class
-// #todo : extract fields names from domain, and make sure user has R_READ access on those
+        // #todo : extract fields names from domain, and make sure user has R_READ access on those
         if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
             // user has always READ access to its own objects
 			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {
                 // no READ nor CREATE permission: deny request
-				throw new \Exception('READ,'.$this->class, QN_ERROR_NOT_ALLOWED);
+				throw new \Exception($user_id.';READ;'.$this->class, QN_ERROR_NOT_ALLOWED);
 			}
             else {
                 // user has CREATE access and might have created some objects: limit search to those, if any
@@ -438,7 +441,7 @@ class Collection implements \Iterator {
 
                 if(count($duplicate_ids)) {
                     foreach($unique as $field) {
-// #todo - when renaming, we should favor name field if defined
+                        // #todo - when renaming, we should favor name field if defined
                         if(in_array($schema[$field]['type'], ['string', 'text'])) {
                             $original[$field] = 'copy - '.$original[$field];
                         }
@@ -537,6 +540,9 @@ class Collection implements \Iterator {
     public function read($fields, $lang=DEFAULT_LANG) {
 
         if(count($this->objects)) {
+            // retrieve current user id
+            $user_id = $this->am->userId();
+
             // force argument into an array (single field name is accepted, empty array is accepted: load all fields)
             $fields = (array) $fields;
 
@@ -587,7 +593,7 @@ class Collection implements \Iterator {
 
 			// 2) check that current user has enough privilege to perform READ operation
 			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
-                throw new \Exception('READ,'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
+                throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
             }
 
             // 3) read values
