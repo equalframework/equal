@@ -1,0 +1,26 @@
+{
+    "name": "Setting Sections",
+    "description": "Default listing for setting sections.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "25%",
+                "sortable": true,
+                "readonly": true
+            },
+            {
+                "type": "field",
+                "value": "code",
+                "width": "15%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "45%"
+            }
+        ]
+    }
+}

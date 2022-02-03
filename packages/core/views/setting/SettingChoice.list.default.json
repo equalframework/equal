@@ -1,0 +1,23 @@
+{
+    "name": "Config params list",
+    "description": "Default listing of configuration parameters.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "value",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "setting_id",
+                "width": "33%"
+            }
+        ]
+    }
+}
