@@ -1,0 +1,51 @@
+{
+    "name": "Model",
+    "plural": "Models",
+    "description": "Root interface of the objetcs.",
+    "model": {
+        "id": {
+            "label": "Identifier",
+            "description": "Unique identifier of the object.",
+            "help": ""
+        },
+        "name": {
+            "label": "Name",
+            "description": "Name of the object.",
+            "help": ""
+        },
+        "creator": {
+            "label": "Creatorr",
+            "description": "User who created the object.",
+            "help": ""
+        },
+        "created": {
+            "label": "Created",
+            "description": "Date of the object creation.",
+            "help": ""
+        },
+        "modifier": {
+            "label": "Modifier",
+            "description": "Last user to have modified the object.",
+            "help": ""
+        },
+        "modified": {
+            "label": "Modified",
+            "description": "Date of last update.",
+            "help": ""
+        },
+        "delete": {
+            "label": "Deleted",
+            "description": "Indicateur pour les objets supprimés.",
+            "help": ""
+        },
+        "state": {
+            "label": "State",
+            "description": "Status of the object (draft, instance).",
+            "help": ""
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}

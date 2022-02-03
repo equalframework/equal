@@ -1,0 +1,51 @@
+{
+    "name": "Modèle",
+    "plural": "Modèles",
+    "description": "Interface racine des objets.",
+    "model": {
+        "id": {
+            "label": "Identifiant",
+            "description": "Identifiant unique de l'objet.",
+            "help": ""
+        },
+        "name": {
+            "label": "Nom",
+            "description": "Nom de l'objet.",
+            "help": ""
+        },
+        "creator": {
+            "label": "Créateur",
+            "description": "Utilisateur ayant créé l'objet.",
+            "help": ""
+        },
+        "created": {
+            "label": "Création",
+            "description": "Date de création de l'objet.",
+            "help": ""
+        },
+        "modifier": {
+            "label": "Modificateur",
+            "description": "Dernier utilisateur a avoir modifié l'objet.",
+            "help": ""
+        },
+        "modified": {
+            "label": "Modifié",
+            "description": "Date de dernière modification.",
+            "help": ""
+        },
+        "delete": {
+            "label": "Supprimé",
+            "description": "Indicateur pour les objets supprimés.",
+            "help": ""
+        },
+        "state": {
+            "label": "Statut",
+            "description": "Etat de l'objet (brouillon, instance).",
+            "help": ""
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}
