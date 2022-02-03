@@ -34,8 +34,14 @@ $parents = [];
 // retrieve parents cascade
 while(true) {
     $parent = get_parent_class($entity);
-    if(!$parent || $parent == 'equal\orm\Model') break;
-    $parents[] = $parent;
+    if(!$parent) break;
+    if($parent == 'equal\orm\Model') {
+        // simulate Model class to be part of core package (to fallback to related translation files)
+        $parents[] = 'core\Model';
+    }
+    else {
+        $parents[] = $parent;
+    }
     $entity = $parent;
 }
 
