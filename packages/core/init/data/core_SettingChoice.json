@@ -3,246 +3,223 @@
         "name": "core\\SettingChoice",
         "lang": "fr",
         "data": [
-            { 
-                "id": 1,
+            {                
                 "setting_id":1,
-                "name":"comma",
+                "name":"virgule",
                 "value":","
             },
-            { 
-                "id": 2,
+            {                
                 "setting_id":1,
-                "name":"period",
+                "name":"point",
                 "value":"."
             },
-            { 
-                "id": 3,
+            {                
                 "setting_id":2,
-                "name":"",
+                "name":"avant",
                 "value":"before"
             },
-            { 
-                "id": 4,
+            {                
                 "setting_id":2,
-                "name":"",
+                "name":"après",
                 "value":"after"
             },
-            { 
-                "id": 5,
+            {                
                 "setting_id":3,
                 "name":"",
                 "value":"1"
             },
-            { 
-                "id": 6,
+            {                
                 "setting_id":3,
                 "name":"",
                 "value":"2"
             },
-            { 
-                "id": 7,
+            {
                 "setting_id":3,
                 "name":"",
                 "value":"3"
             },
-            { 
-                "id": 8,
+            {
                 "setting_id":4,
-                "name":"comma",
+                "name":"virgule",
                 "value":","
             },
-            { 
-                "id": 9,
+            {
                 "setting_id":4,
-                "name":"period",
+                "name":"point",
                 "value":"."
             },
-            { 
-                "id": 10,
+            {
                 "setting_id":5,
                 "name":"",
                 "value":"1"
             },
-            { 
-                "id": 11,
+            {
                 "setting_id":5,
                 "name":"",
                 "value":"2"
             },
-            { 
-                "id": 12,
+            {
                 "setting_id":5,
                 "name":"",
                 "value":"3"
             },
-            { 
-                "id": 13,
+            {
                 "setting_id":6,
                 "name":"",
                 "value":"d/m/Y"
             },
-            { 
-                "id": 14,
+            {
+                "setting_id":6,
+                "name":"",
+                "value":"Y-m-d"
+            },
+            {
+                "setting_id":6,
+                "name":"",
+                "value":"m/d/Y"
+            },
+            {
                 "setting_id":7,
                 "name":"",
                 "value":"H:i"
             },
-            { 
-                "id": 15,
+            {
                 "setting_id":8,
                 "name":"",
                 "value":"1"
             },
-            { 
-                "id": 16,
+            {
                 "setting_id":9,
-                "name":"",
+                "name":"21,59 x 27,74",
+                "value":"US"
+            },
+            {
+                "setting_id":9,
+                "name":"21 x 29,7",
                 "value":"A4"
             },
-            { 
-                "id": 17,
+            {
                 "setting_id":9,
-                "name":"",
+                "name":"29,7 x 41,99",
                 "value":"A3"
             },
-            { 
-                "id": 18,
+            {
                 "setting_id":9,
-                "name":"",
+                "name":"14,8 x 21",
                 "value":"A5"
             },
-            { 
-                "id": 19,
+            {
                 "setting_id":13,
-                "name":"DOL",
+                "name":"USD",
                 "value":"$"
             },
-            { 
-                "id": 20,
+            {
                 "setting_id":13,
                 "name":"EUR",
                 "value":"€"
             },
-            { 
-                "id": 21,
+            {
                 "setting_id":14,
-                "name":"",
+                "name":"mètre",
                 "value":"m"
             },
-            { 
-                "id": 22,
+            {
                 "setting_id":15,
-                "name":"",
+                "name":"kilogramme",
                 "value":"kg"
             },
-            { 
-                "id": 23,
+            {
                 "setting_id":16,
-                "name":"",
+                "name":"mètre cube",
                 "value":"m3"
             },
-            { 
-                "id": 24,
+            {
                 "setting_id":17,
-                "name":"",
+                "name":"mètre carré",
                 "value":"m2"
             },
-            { 
-                "id": 25,
+            {
                 "setting_id":22,
                 "name":"",
                 "value":"%4d(year)-%02d(org)-%03d(sequence)"
             },
-            { 
-                "id": 26,
+            {
                 "setting_id":23,
                 "name":"",
                 "value":"%1d{center}%05d{sequence}"
             },
-            { 
-                "id": 27,
+            {
                 "setting_id":18,
                 "name":"",
                 "value":"111"
             },
-            {   
-                "id": 28, 
+            {
+                
                 "setting_id":19,
                 "name":"",
                 "value":"111"
             },
-            {   
-                "id": 29, 
+            {
+                
                 "setting_id":20,
                 "name":"",
                 "value":"111"
             },
-            {   
-                "id": 30, 
+            {
                 "setting_id":21,
                 "name":"",
                 "value":"2021"
             },
-            {   
-                "id": 31, 
+            {
                 "setting_id":21,
                 "name":"",
                 "value":"2022"
             },
-            {   
-                "id": 32, 
+            {
                 "setting_id":24,
                 "name":"",
                 "value":"11117"
             },
-            {   
-                "id": 33, 
+            {
                 "setting_id":25,
                 "name":"",
                 "value":"11111"
             },
-            {   
-                "id": 34, 
+            {
                 "setting_id":26,
                 "name":"",
                 "value":"11111"
             },
-            {   
-                "id": 35, 
+            {
                 "setting_id":27,
                 "name":"",
                 "value":"11113"
             },
-            {   
-                "id": 36, 
+            {
                 "setting_id":28,
                 "name":"",
                 "value":"11112"
             },
-            {   
-                "id": 37, 
+            {
                 "setting_id":29,
                 "name":"",
                 "value":"11111"
             },
-            {   
-                "id": 38, 
+            {
                 "setting_id":30,
                 "name":"",
                 "value":"11111"
             },
-            {   
-                "id": 39, 
+            {
                 "setting_id":31,
                 "name":"",
                 "value":"11111"
             },
-            {   
-                "id": 40, 
+            {
                 "setting_id":32,
                 "name":"",
                 "value":"10"
-            }   
+            }          
         ]
     }
 ]

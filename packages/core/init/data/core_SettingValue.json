@@ -6,289 +6,193 @@
             {
                 "id": 1,
                 "name": "numbers.thousands_separator",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 1,
-                "user_id": 0,
                 "value": "."
             },
             {
                 "id": 2,
                 "name": "currency.symbol_position",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 2,
-                "user_id": 0,
                 "value": "after"
             },
             {
                 "id": 3,
                 "name": "currency.decimal_precision",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 3,
-                "user_id": 0,
                 "value": "2"
             },
             {
                 "id": 4,
                 "name": "numbers.decimal_separator",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 4,
-                "user_id": 0,
                 "value": "."
             },
             {
                 "id": 5,
                 "name": "numbers.decimal_precision",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 5,
-                "user_id": 0,
                 "value": "2"
             },
             {
                 "id": 6,
                 "name": "date_format",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 6,
-                "user_id": 0,
                 "value": "d\/m\/Y"
             },
             {
                 "id": 7,
                 "name": "time_format",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 7,
-                "user_id": 0,
                 "value": "H:i"
             },
             {
                 "id": 8,
                 "name": "company.id",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 8,
-                "user_id": 0,
                 "value": "1"
             },
             {
                 "id": 9,
                 "name": "formats.paper",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 9,
-                "user_id": 0,
                 "value": "A4"
             },
             {
                 "id": 10,
                 "name": "account_creation",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 10,
-                "user_id": 0,
                 "value": null
             },
             {
                 "id": 11,
                 "name": "import",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 11,
-                "user_id": 0,
                 "value": "1"
             },
             {
                 "id": 12,
                 "name": "export",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 12,
-                "user_id": 0,
                 "value": "1"
             },
             {
                 "id": 13,
                 "name": "currency",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 13,
-                "user_id": 0,
                 "value": "€"
             },
             {
                 "id": 14,
                 "name": "length",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 14,
-                "user_id": 0,
                 "value": "m"
             },
             {
                 "id": 15,
                 "name": "weight",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 15,
-                "user_id": 0,
                 "value": "kg"
             },
             {
                 "id": 16,
                 "name": "volume",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 16,
-                "user_id": 0,
                 "value": "m3"
             },
             {
                 "id": 17,
                 "name": "surface",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 17,
-                "user_id": 0,
                 "value": "m2"
             },
             {
                 "id": 18,
                 "name": "invoice.sequence_format",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 22,
-                "user_id": 0,
                 "value": "%4d(year)-%02d(org)-%03d(sequence)"
             },
             {
                 "id": 19,
                 "name": "booking.sequence_format",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 23,
-                "user_id": 0,
                 "value": "%1d{center}%05d{sequence}"
             },
             {
                 "id": 20,
                 "name": "invoice.sequence.1",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 18,
-                "user_id": 0,
                 "value": "111"
             },
             {
                 "id": 21,
                 "name": "invoice.sequence.2",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 19,
-                "user_id": 0,
                 "value": "111"
             },
             {
                 "id": 22,
                 "name": "invoice.sequence.3",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 20,
-                "user_id": 0,
                 "value": "111"
             },
             {
                 "id": 23,
                 "name": "invoice.fiscal_year",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 21,
-                "user_id": 0,
                 "value": "2021"
             },
             {
                 "id": 24,
                 "name": "booking.sequence.1",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 24,
-                "user_id": 0,
                 "value": "11117"
             },
             {
                 "id": 25,
                 "name": "booking.sequence.2",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 25,
-                "user_id": 0,
                 "value": "11111"
             },
             {
                 "id": 26,
                 "name": "booking.sequence.3",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 26,
-                "user_id": 0,
                 "value": "11111"
             },
             {
                 "id": 27,
                 "name": "booking.sequence.4",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 27,
-                "user_id": 0,
                 "value": "11113"
             },
             {
                 "id": 28,
                 "name": "booking.sequence.5",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 28,
-                "user_id": 0,
                 "value": "11112"
             },
             {
                 "id": 29,
                 "name": "booking.sequence.6",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 29,
-                "user_id": 0,
                 "value": "11111"
             },
             {
                 "id": 30,
                 "name": "booking.sequence.7",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 30,
-                "user_id": 0,
                 "value": "11111"
             },
             {
                 "id": 31,
                 "name": "booking.sequence.8",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 31,
-                "user_id": 0,
                 "value": "11111"
             },
             {
                 "id": 32,
                 "name": "option.validity",
-                "state": "instance",
-                "deleted": false,
                 "setting_id": 32,
-                "user_id": 0,
                 "value": "10"
             }
         ]

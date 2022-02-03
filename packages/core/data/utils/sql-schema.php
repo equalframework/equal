@@ -120,6 +120,10 @@ foreach($classes as $class) {
             }
             else if( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
                 $type = ObjectManager::$types_associations[$description['result_type']];
+                // if a SQL type is associated to field 'usage', it prevails over the type association
+                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+                    $type = ObjectManager::$usages_associations[$description['usage']];
+                }
                 $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} DEFAULT NULL;";
             }
             else if($description['type'] == 'many2many') {
