@@ -130,7 +130,7 @@ class ObjectManager extends Service {
     ];
 
     protected function __construct(DBConnection $db) {
-// #todo : declare required constants instead through constants() method
+        // #todo : declare required constants instead through constants() method
         // make sure mandatory constants are defined
         if(!defined('EXPORT_FLAG')) {
             if(!function_exists('\config\export_config')) die('mandatory config namespace or function export_config is missing');
@@ -390,7 +390,7 @@ class ObjectManager extends Service {
             // array holding functions to load each type of fields
             $load_fields = array(
             // 'alias'
-            'alias'    =>    function($om, $ids, $fields) {
+            'alias'        =>    function($om, $ids, $fields) {
                 // nothing to do : this type is handled in read methods
             },
             // 'multilang' is a particular case of simple field
@@ -460,7 +460,7 @@ class ObjectManager extends Service {
                             ['deleted', '=', '0'],
                         ]
                     ];
-// #todo : handle alias fields (require subsequent schema)
+                    // #todo : handle alias fields (require subsequent schema)
                     // merge domain with additional domain clauses, if any
                     if(isset($schema[$field]['domain'])) {
                         $domain_tmp = new Domain($domain);
@@ -824,9 +824,8 @@ class ObjectManager extends Service {
      * @return array Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
-
-// #todo : check relational fields consistency (make sure that targeted object(s) actually exist)
-// #todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
+        // #todo : check relational fields consistency (make sure that targeted object(s) actually exist)
+        // #todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
 
         $res = [];
 
@@ -1575,7 +1574,7 @@ class ObjectManager extends Service {
                 $special_fields = Model::getSpecialColumns();
 
                 for($j = 0, $max_j = count($domain); $j < $max_j; ++$j) {
-// #todo : join conditions should be set at clause level (but at some history point it was set at domain level) - to confirm
+                    // #todo : join conditions should be set at clause level (but at some history point it was set at domain level) - to confirm
                     $join_conditions = array();
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
@@ -1689,15 +1688,15 @@ class ObjectManager extends Service {
                         $conditions[$j][] = $join_condition;
                     }
                 }
-/*
-// #todo - confirm (see above)
+                /*
+                // #todo - confirm (see above)
                 // add joins conditions to all clauses
                 foreach($conditions as $i => $condition) {
                     foreach($join_conditions as $join_condition) {
                         $conditions[$i][] = $join_condition;
                     }
                 }
-*/
+                */
 
             }
             else { // no domain is specified
@@ -1726,7 +1725,7 @@ class ObjectManager extends Service {
                 }
                 // we might need to request more than the id field (for example, for sorting purpose)
                 if($lang != DEFAULT_LANG && isset($schema[$sort_field]['multilang']) && $schema[$sort_field]['multilang']) {
-// #todo : validate this code (we should probably add join conditions in some cases)
+                    // #todo : validate this code (we should probably add join conditions in some cases)
                     $translation_table_alias = $add_table('core_translation');
                     $select_fields[] = $translation_table_alias.'.value';
                     $order_table_alias = $translation_table_alias;
