@@ -39,94 +39,94 @@ class ObjectManager extends Service {
     private $db;
 
     public static $virtual_types = array('alias');
-    public static $simple_types	 = array('boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
+    public static $simple_types  = array('boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
     public static $valid_attributes = array(
-        'alias'		    => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'integer'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'unique'),
-        'float'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'precision'),
-        'string'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-        'text'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'date'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'time'			=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onchange'),
-        'datetime'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'file'  		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'binary'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'many2one'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
-        'one2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
-        'many2many'		=> array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'		=> array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
+        'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
+        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'unique'),
+        'float'         => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'precision'),
+        'string'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
+        'text'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'date'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'time'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onchange'),
+        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
+        'file'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
+        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
+        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
+        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
     );
 
     public static $mandatory_attributes = array(
-        'alias'		    => array('type', 'alias'),
-        'boolean'		=> array('type'),
-        'integer'		=> array('type'),
-        'float'			=> array('type'),
-        'string'		=> array('type'),
-        'text'			=> array('type'),
-        'html'			=> array('type'),
-        'date'			=> array('type'),
-        'time'			=> array('type'),
-        'datetime'		=> array('type'),
-        'binary'		=> array('type'),
-        'file'		    => array('type'),
-        'many2one'		=> array('type', 'foreign_object'),
-        'one2many'		=> array('type', 'foreign_object', 'foreign_field'),
-        'many2many'		=> array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
-        'computed'		=> array('type', 'result_type', 'function')
+        'alias'         => array('type', 'alias'),
+        'boolean'       => array('type'),
+        'integer'       => array('type'),
+        'float'         => array('type'),
+        'string'        => array('type'),
+        'text'          => array('type'),
+        'html'          => array('type'),
+        'date'          => array('type'),
+        'time'          => array('type'),
+        'datetime'      => array('type'),
+        'binary'        => array('type'),
+        'file'          => array('type'),
+        'many2one'      => array('type', 'foreign_object'),
+        'one2many'      => array('type', 'foreign_object', 'foreign_field'),
+        'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
+        'computed'      => array('type', 'result_type', 'function')
     );
 
     public static $valid_operators = [
-        'boolean'		=> array('=', '<>', '<', '>', 'in', 'is'),
-        'integer'		=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
-        'float'			=> array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
-        'string'		=> array('like', 'ilike', 'in', 'not in', '=', '<>', 'is'),
-        'text'			=> array('like', 'ilike', '=', 'is'),
-        'date'			=> array('=', '<>', '<', '>', '<=', '>=', 'like', 'is'),
-        'time'			=> array('=', '<>', '<', '>', '<=', '>=', 'is'),
-        'datetime'		=> array('=', '<>', '<', '>', '<=', '>=', 'is'),
-        'file'		    => array('like', 'ilike', '=', 'is'),
-        'binary'		=> array('like', 'ilike', '=', 'is'),
+        'boolean'       => array('=', '<>', '<', '>', 'in', 'is'),
+        'integer'       => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
+        'float'         => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
+        'string'        => array('like', 'ilike', 'in', 'not in', '=', '<>', 'is'),
+        'text'          => array('like', 'ilike', '=', 'is'),
+        'date'          => array('=', '<>', '<', '>', '<=', '>=', 'like', 'is'),
+        'time'          => array('=', '<>', '<', '>', '<=', '>=', 'is'),
+        'datetime'      => array('=', '<>', '<', '>', '<=', '>=', 'is'),
+        'file'          => array('like', 'ilike', '=', 'is'),
+        'binary'        => array('like', 'ilike', '=', 'is'),
         // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
-        'many2one'		=> array('is', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
-        'one2many'		=> array('contains'),
-        'many2many'		=> array('contains'),
+        'many2one'      => array('is', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
+        'one2many'      => array('contains'),
+        'many2many'     => array('contains'),
     ];
 
     public static $types_associations = [
-        'boolean' 		=> 'tinyint(4)',
-        'integer' 		=> 'int(11)',
-        'float' 		=> 'decimal(10,2)',
-        'string' 		=> 'varchar(255)',
-        'text' 			=> 'text',
-        'date' 			=> 'date',
-        'time' 			=> 'time',
-        'datetime' 		=> 'datetime',
-        'timestamp' 	=> 'timestamp',
-        'file' 		    => 'mediumblob',
-        'binary' 		=> 'mediumblob',
-        'many2one' 		=> 'int(11)'
+        'boolean'       => 'tinyint(4)',
+        'integer'       => 'int(11)',
+        'float'         => 'decimal(10,2)',
+        'string'        => 'varchar(255)',
+        'text'          => 'text',
+        'date'          => 'date',
+        'time'          => 'time',
+        'datetime'      => 'datetime',
+        'timestamp'     => 'timestamp',
+        'file'          => 'mediumblob',
+        'binary'        => 'mediumblob',
+        'many2one'      => 'int(11)'
     ];
 
     public static $usages_associations = [
         'amount/percent'        => 'decimal(5,4)',          // float in interval [0, 1] (vat rate, completeness, success rate)
         'amount/rate'           => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/money'			=> 'decimal(15,2)',
-        'amount/money:2'		=> 'decimal(15,2)',
-        'amount/money:4'     	=> 'decimal(13,4)',         // GAAP compliant
-        'coordinate'			=> 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
-        'coordinate/decimal'	=> 'decimal(9,6)',
-        'currency/iso-4217'		=> 'char(3)',
-        'language/iso-639'	    => 'char(2)',
-        'language/iso-639:2'	=> 'char(2)',
+        'amount/money'          => 'decimal(15,2)',
+        'amount/money:2'        => 'decimal(15,2)',
+        'amount/money:4'        => 'decimal(13,4)',         // GAAP compliant
+        'coordinate'            => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
+        'coordinate/decimal'    => 'decimal(9,6)',
+        'currency/iso-4217'     => 'char(3)',
+        'language/iso-639'      => 'char(2)',
+        'language/iso-639:2'    => 'char(2)',
         'language/iso-639:3'    => 'char(3)',
         'language/iso-639'      => 'char(5)',               // iso-639:2 OR {iso-639:2}-{iso-366-1:2}
         'language/iso-639:2'    => 'char(2)',
-        'markup/html'			=> 'mediumtext',
-        'url/mailto'			=> 'varchar(255)',
+        'markup/html'           => 'mediumtext',
+        'url/mailto'            => 'varchar(255)',
     ];
 
     protected function __construct(DBConnection $db) {
@@ -163,7 +163,7 @@ class ObjectManager extends Service {
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
                 // fatal error
-                trigger_error(	'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
+                trigger_error(  'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
                                 'unable to establish connection to database: check connection parameters '.
                                 '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
                                 E_USER_ERROR);
@@ -390,11 +390,11 @@ class ObjectManager extends Service {
             // array holding functions to load each type of fields
             $load_fields = array(
             // 'alias'
-            'alias'	=>	function($om, $ids, $fields) {
+            'alias'    =>    function($om, $ids, $fields) {
                 // nothing to do : this type is handled in read methods
             },
             // 'multilang' is a particular case of simple field
-            'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 $result = $om->db->getRecords(
                     array('core_translation'),
                     array('object_id', 'object_field', 'value'),
@@ -422,7 +422,7 @@ class ObjectManager extends Service {
                     }
                 }
             },
-            'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 // get the name of the DB table associated to the object
                 $table_name = $om->getObjectTableName($class);
                 // make sure to load the 'id' field (we need it to map fetched values to their object)
@@ -448,7 +448,7 @@ class ObjectManager extends Service {
                     }
                 }
             },
-            'one2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
@@ -484,7 +484,7 @@ class ObjectManager extends Service {
                     foreach($ids as $oid) $om->cache[$class][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
                 }
             },
-            'many2many'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     // obtain the ids by searching inside relation table
@@ -510,7 +510,7 @@ class ObjectManager extends Service {
                     foreach($ids as $oid) $om->cache[$class][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
                 }
             },
-            'computed'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     if(strpos($schema[$field]['function'], '::')) {
@@ -606,7 +606,7 @@ class ObjectManager extends Service {
             // array holding functions to store each type of fields
             $store_fields = array(
             // 'multilang' is a particular case of simple field)
-            'multilang'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 $om->db->deleteRecords(
                     'core_translation',
                     $ids,
@@ -635,7 +635,7 @@ class ObjectManager extends Service {
                 );
 
             },
-            'simple'	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
@@ -654,7 +654,7 @@ class ObjectManager extends Service {
                     $om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
                 }
             },
-            'one2many' 	=>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$class][$oid][$lang][$field];
@@ -697,7 +697,7 @@ class ObjectManager extends Service {
                     }
                 }
             },
-            'many2many' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$class][$oid][$lang][$field];
@@ -739,10 +739,10 @@ class ObjectManager extends Service {
                     }
                 }
             },
-            'computed' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'computed' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 // nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
             },
-            'alias' =>	function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'alias' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 // nothing to store for virtual fields
             });
 
@@ -812,11 +812,11 @@ class ObjectManager extends Service {
      * This is done using the class validation method.
      *
      * Ex.:
-     *	       "INVALID_PARAM": {
+     *           "INVALID_PARAM": {
      *             "login": {
      *                 "invalid_email": "Login must be a valid email address."
      *               }
-     *			}
+     *            }
      *
      * @param string $class object class
      * @param array $values
@@ -852,21 +852,21 @@ class ObjectManager extends Service {
                 switch($type) {
                     case 'string':
                         $constraints[$field]['size_overflow'] = [
-                            'message' 	=> 'String length must be maximum 255 chars.',
-                            'function'	=> function($val, $obj) {return (strlen($val) <= 255);}
+                            'message'     => 'String length must be maximum 255 chars.',
+                            'function'    => function($val, $obj) {return (strlen($val) <= 255);}
                         ];
                         break;
                     case 'text':
                         $constraints[$field]['size_overflow'] = [
-                            'message' 	=> 'String length must be maximum 65,535 chars.',
-                            'function'	=> function($val, $obj) {return (strlen($val) <= 65535);}
+                            'message'     => 'String length must be maximum 65,535 chars.',
+                            'function'    => function($val, $obj) {return (strlen($val) <= 65535);}
                         ];
                         break;
                     case 'file':
                     case 'binary':
                         $constraints[$field]['size_overflow'] = [
-                            'message' 	=> 'String length must be maximum 16,777,215 chars.',
-                            'function'	=> function($val, $obj) {return (strlen($val) <= 16777215);}
+                            'message'     => 'String length must be maximum 16,777,215 chars.',
+                            'function'    => function($val, $obj) {return (strlen($val) <= 16777215);}
                         ];
                         break;
                 }
@@ -875,15 +875,15 @@ class ObjectManager extends Service {
             if(isset($schema[$field]['usage']) && !empty($value)) {
                 $constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
                 $constraints[$field]['type_misuse'] = [
-                    'message' 	=> 'Value does not comply with usage \''.$schema[$field]['usage'].'\'.',
-                    'function'	=> $constraint['rule']
+                    'message'     => 'Value does not comply with usage \''.$schema[$field]['usage'].'\'.',
+                    'function'    => $constraint['rule']
                 ];
             }
             // add constraints based on `required` attribute
             if(isset($schema[$field]['required']) && $schema[$field]['required']) {
                 $constraints[$field]['missing_mandatory'] = [
-                    'message' 	=> 'Missing mandatory value.',
-                    'function'	=> function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
+                    'message'     => 'Missing mandatory value.',
+                    'function'    => function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
                 ];
             }
             // check constraints
@@ -1084,10 +1084,10 @@ class ObjectManager extends Service {
     /**
      * Updates specifield fields of seleced objects and stores changes into database
      *
-     * @param   string    $class	     class of the objects to write
-     * @param   mixed	  $ids	         identifier(s) of the object(s) to update (accepted types: array, integer, numeric string)
-     * @param   mixed	  $fields	     array mapping fields names with the value (PHP) to which they must be set
-     * @param   string    $lang	         language under which fields have to be stored (only relevant for multilang fields)
+     * @param   string    $class         class of the objects to write
+     * @param   mixed      $ids             identifier(s) of the object(s) to update (accepted types: array, integer, numeric string)
+     * @param   mixed      $fields         array mapping fields names with the value (PHP) to which they must be set
+     * @param   string    $lang             language under which fields have to be stored (only relevant for multilang fields)
      * @return  mixed    (int or array)  error code OR array of updated ids
      */
     public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
@@ -1099,7 +1099,7 @@ class ObjectManager extends Service {
             // 1) do some pre-treatment
 
             // cast fields to an array (passing a single field is accepted)
-            if(!is_array($fields))	$fields = (array) $fields;
+            if(!is_array($fields))    $fields = (array) $fields;
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
@@ -1184,10 +1184,10 @@ class ObjectManager extends Service {
      * an array maping each selected field to its value.
      * Note : The process maintains order inside $ids and $fields arrays.
      *
-     * @param   string	$class	        class of the objects to retrieve
-     * @param   mixed	$ids	        identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
-     * @param   mixed	$fields	        name(s) of the field(s) to retrieve (accepted types: array, string)
-     * @param   string  $lang	        language under which return fields values (only relevant for multilang fields)
+     * @param   string    $class            class of the objects to retrieve
+     * @param   mixed    $ids            identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
+     * @param   mixed    $fields            name(s) of the field(s) to retrieve (accepted types: array, string)
+     * @param   string  $lang            language under which return fields values (only relevant for multilang fields)
      * @return  mixed   (int or array)  error code OR resulting associative array
      */
     public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
@@ -1446,7 +1446,7 @@ class ObjectManager extends Service {
      * @param $id       integer
      * @param $values   array           Map of fields to override orinal object values.
      *
-     * @param   string  $lang	        Language under which return fields values (only relevant for multilang fields).
+     * @param   string  $lang            Language under which return fields values (only relevant for multilang fields).
      * @return  mixed   (int or array)  Error code OR resulting associative array.
      */
     public function clone($class, $id, $values=[], $lang=DEFAULT_LANG) {
@@ -1519,12 +1519,12 @@ class ObjectManager extends Service {
      * Search for the objects corresponding to the domain criteria.
      * This method essentially generates an SQL query and returns an array of matching objects ids.
      *
-     * 	The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
-     * 	Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
-     * 	i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
+     *     The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
+     *     Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
+     *     i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
      *
-     * 	accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
-     * 	example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
+     *     accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
+     *     example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
      *
      *
      * @param   string     $class
@@ -1581,9 +1581,9 @@ class ObjectManager extends Service {
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
                         if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
                         if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
-                        $field		= $domain[$j][$i][0];
-                        $value		= (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
-                        $operator	= strtolower($domain[$j][$i][1]);
+                        $field        = $domain[$j][$i][0];
+                        $value        = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
+                        $operator    = strtolower($domain[$j][$i][1]);
 
                         // force operator 'is' for null values
                         if(is_null($value)) {
@@ -1682,8 +1682,8 @@ class ObjectManager extends Service {
                     }
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
-                    if(isset($special_fields['state']))	    $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
-                    if(isset($special_fields['deleted']))	$conditions[$j][] = array($table_alias.'.deleted', '=', '0');
+                    if(isset($special_fields['state']))        $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
+                    if(isset($special_fields['deleted']))    $conditions[$j][] = array($table_alias.'.deleted', '=', '0');
                     // add join conditions to current clause
                     foreach($join_conditions as $join_condition) {
                         $conditions[$j][] = $join_condition;
