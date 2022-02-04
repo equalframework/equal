@@ -112,10 +112,12 @@ class ObjectManager extends Service {
     ];
 
     public static $usages_associations = [
+        'amount/percent'        => 'decimal(5,4)',          // float in interval [0, 1] (vat rate, completeness, success rate)
+        'amount/rate'           => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
         'amount/money'			=> 'decimal(15,2)',
         'amount/money:2'		=> 'decimal(15,2)',
-        'amount/money:4'     	=> 'decimal(13,4)',
-        'coordinate'			=> 'decimal(9,6)',
+        'amount/money:4'     	=> 'decimal(13,4)',         // GAAP compliant
+        'coordinate'			=> 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
         'coordinate/decimal'	=> 'decimal(9,6)',
         'currency/iso-4217'		=> 'char(3)',
         'language/iso-639'	    => 'char(2)',
@@ -211,11 +213,11 @@ class ObjectManager extends Service {
             $parts = explode('\\', $class);
             $class_name = array_pop($parts);
             $file_content = file_get_contents($filename);
-            preg_match('/class(\s*)'.$class_name.'(\s.*)\{/iU', $file_content, $matches);
+            preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
             if(!isset($matches[1])) {
                 throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
             }
-            preg_match('/\bextends\b(.*)\{/iU', $file_content, $matches);
+            preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
             if(!isset($matches[1])) {
                 throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
             }
@@ -1129,8 +1131,9 @@ class ObjectManager extends Service {
             $onchange_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers an onchange event
-                    if(isset($schema[$field]['onchange'])) $onchange_fields[] = $field;
+                    // remember fields whose modification triggers an onchange event 
+                    // (computed fields assigned to null are meant to be re-computed without triggering onchange)
+                    if(isset($schema[$field]['onchange']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) $onchange_fields[] = $field;
                     // assign cache to object values
                     $this->cache[$class][$oid][$lang][$field] = $value;
                 }
