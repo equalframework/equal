@@ -109,7 +109,7 @@ class DataValidator extends Service {
             }            
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{'.$decimals.'})$/', (string) $a));}
+                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
             ];
         }
 
@@ -122,7 +122,7 @@ class DataValidator extends Service {
             }            
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{'.$decimals.'})$/', (string) $a));}
+                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
             ];
         }
 
