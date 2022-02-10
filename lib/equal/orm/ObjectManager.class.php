@@ -15,26 +15,37 @@ use \Exception as Exception;
 
 
 class ObjectManager extends Service {
-    /* Buffer for storing objects values as they are loaded.
-    *  Structure is defined this way: `$cache[$class][$oid][$lang][$field]`
-    *  Only methods load() and write() update its values.
+    /*
+    * Buffer for storing objects values as they are loaded.
+    * Structure is defined this way: `$cache[$class][$oid][$lang][$field]`
+    * Only methods load() and write() update its values.
     */
     private $cache;
 
-    /* Array for keeeping track of identifiers matching actual objects
-    *  Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
+    /*
+    * Array for remembering which methods have been invoked during the cycle
+    */
+    private $onchange_methods = [];
+
+
+    /*
+    * Array for keeeping track of identifiers matching actual objects
+    * Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
     */
     private $identifiers;
 
-    /* Array holding static instances (i.e. one object of each class having fields set to default values)
+    /*
+    * Array holding static instances (i.e. one object of each class having fields set to default values)
     */
     private $instances;
 
-    /* Array holding names of defined packages (folders under /package directory)
+    /*
+    * Array holding names of defined packages (folders under /package directory)
     */
     private $packages;
 
-    /* Instance to a DBConnection Object
+    /*
+    * Instance to a DBConnection Object
     */
     private $db;
 
@@ -112,19 +123,20 @@ class ObjectManager extends Service {
     ];
 
     public static $usages_associations = [
-        'amount/percent'        => 'decimal(5,4)',          // float in interval [0, 1] (vat rate, completeness, success rate)
+        'amount/percent'        => 'decimal(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
         'amount/rate'           => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
         'amount/money'          => 'decimal(15,2)',
         'amount/money:2'        => 'decimal(15,2)',
         'amount/money:4'        => 'decimal(13,4)',         // GAAP compliant
         'coordinate'            => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
         'coordinate/decimal'    => 'decimal(9,6)',
+        'country/iso-3166:numeric' => '',                   // 3-digits country code (ISO 3166-1)
+        'country/iso-3166:2' => '',                         // '2-letters country code (ISO 3166-1)
+        'country/iso-3166:3' => '',                         // '2-letters country code (ISO 3166-1)
         'currency/iso-4217'     => 'char(3)',
-        'language/iso-639'      => 'char(2)',
-        'language/iso-639:2'    => 'char(2)',
-        'language/iso-639:3'    => 'char(3)',
-        'language/iso-639'      => 'char(5)',               // iso-639:2 OR {iso-639:2}-{iso-366-1:2}
-        'language/iso-639:2'    => 'char(2)',
+        'language/iso-639'      => 'char(5)',               // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
+        'language/iso-639:2'    => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
+        'language/iso-639:3'    => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
         'markup/html'           => 'mediumtext',
         'url/mailto'            => 'varchar(255)',
     ];
@@ -513,24 +525,19 @@ class ObjectManager extends Service {
             'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                    if(strpos($schema[$field]['function'], '::')) {
-                        list($called_class, $called_method) = explode('::', $schema[$field]['function']);
-                        if(!method_exists($called_class, $called_method)) {
-                            throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_CONFIG);
+
+                    if($res = $this->callObjectMethod($class, $schema[$field]['function'], $ids, $lang)) {
+                        foreach($ids as $oid) {
+                            if(isset($res[$oid])) {
+                                // #memo - do not adapt : we're dealing with PHP not SQL
+                                // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                                $value = $res[$oid];
+                            }
+                            else {
+                                $value = null;
+                            }
+                            $om->cache[$class][$oid][$lang][$field] = $value;
                         }
-                    }
-                    if(!is_callable($schema[$field]['function'])) throw new Exception("error in schema parameter for function field '$field' of class '$class' : function cannot be called", QN_ERROR_INVALID_PARAM);
-                    $res = call_user_func($schema[$field]['function'], $om, $ids, $lang);
-                    foreach($ids as $oid) {
-                        if(isset($res[$oid])) {
-                            // #memo - should not be adapted : we're dealing with PHP not SQL
-                            // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
-                            $value = $res[$oid];
-                        }
-                        else {
-                            $value = null;
-                        }
-                        $om->cache[$class][$oid][$lang][$field] = $value;
                     }
                 }
             }
@@ -670,18 +677,18 @@ class ObjectManager extends Service {
                         // remove relation by setting pointing id to 0
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
-                                $ondetach = $schema[$field]['ondetach'];
-                                if(is_callable($ondetach)) {
-                                    call_user_func($ondetach, $this, $ids);
+
+                                try {
+                                    $this->callObjectMethod($class, $schema[$field]['ondetach'], $ids);
                                 }
-                                else {
-                                    switch($ondetach) {
+                                catch(Exception $e) {
+                                    switch($schema[$field]['ondetach']) {
                                         case 'delete':
                                             $this->remove($schema[$field]['foreign_object'], $ids_to_remove, true);
                                             break;
                                         case 'null':
                                         default:
-                                            $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+                                            $om->db->setRecords($foreign_table, $ids_to_remove, [ $schema[$field]['foreign_field'] => 0 ] );
                                             break;
                                     }
                                 }
@@ -780,6 +787,29 @@ class ObjectManager extends Service {
         }
     }
 
+
+    private function callObjectMethod($class, $method, ...$args) {
+        $called_class = $class;
+        $called_method = $method;
+
+        $parts = explode('::', $method);
+        $count = count($parts);
+
+        if( $count < 1 || $count > 2 ) {
+          throw new Exception("callObjectMethod: invalid args ($method, $class)");
+        }
+
+        if( $count == 2 ) {
+          $called_class = $parts[0];
+          $called_method = $parts[1];
+        }
+
+        if(!method_exists($called_class, $called_method)) {
+          throw new Exception("callObjectMethod: unknown method ($method, $class)");
+        }
+
+        return $called_class::$called_method($this, ...$args);
+    }
 
     /**
      * Retrieve the static instance of a given class (Model with default values).
@@ -1130,7 +1160,7 @@ class ObjectManager extends Service {
             $onchange_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers an onchange event 
+                    // remember fields whose modification triggers an onchange event
                     // (computed fields assigned to null are meant to be re-computed without triggering onchange)
                     if(isset($schema[$field]['onchange']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) $onchange_fields[] = $field;
                     // assign cache to object values
@@ -1144,20 +1174,17 @@ class ObjectManager extends Service {
             // 5) second pass : handle onchange events, if any
             // #memo this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
-                // remember which methods have been invoked (to trigger them only once)
-                $onchange_methods = [];
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
-                    if(!isset($onchange_methods[$schema[$field]['onchange']])) {
-                        if(strpos($schema[$field]['onchange'], '::')) {
-                            list($called_class, $called_method) = explode('::', $schema[$field]['onchange']);
-                            if(!method_exists($called_class, $called_method)) {
-                                throw new Exception("error in schema parameter for function field '$field' of class '$class' : unknown method", QN_ERROR_INVALID_CONFIG);
-                            }
-                        }
-                        if(is_callable($schema[$field]['onchange'])) {
-                            $updates = call_user_func($schema[$field]['onchange'], $this, $ids, $lang);
-                            // if callback returns an array, update newly assigned values
+                    if(!isset($this->onchange_methods[$class])) {
+                        $this->onchange_methods[$class] = [];
+                    }
+                    if(!isset($this->onchange_methods[$class][$schema[$field]['onchange']])) {
+                        // prevent inner loops and calling same handler several times during the cycle
+                        $this->onchange_methods[$class][$schema[$field]['onchange']] = true;
+                        try {
+                            $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $ids, $lang);
+                            // if callback returned an array, update newly assigned values
                             if($updates && count($updates)) {
                                 foreach($updates as $oid => $update) {
                                     $this->cache[$class][$oid][$lang][$field] = $update;
@@ -1165,7 +1192,10 @@ class ObjectManager extends Service {
                                 $this->store($class, array_keys($updates), (array) $field, $lang);
                             }
                         }
-                        $onchange_methods[$schema[$field]['onchange']] = true;
+                        catch(Exception $e) {
+                            // invalid schema : ignore onchange callback
+                            trigger_error($e->getMessage(), E_USER_ERROR);
+                        }
                     }
                 }
             }
@@ -1399,12 +1429,11 @@ class ObjectManager extends Service {
                                 $rel_schema = $this->getObjectSchema($def['foreign_object']);
                                 // call ondelete method when defined (to allow cascade deletion)
                                 if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                    $ondelete = $rel_schema[$def['foreign_field']]['ondelete'];
-                                    if(is_callable($ondelete)) {
-                                        call_user_func($ondelete, $this, $rel_ids);
+                                    try {
+                                        $this->callObjectMethod($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
                                     }
-                                    else {
-                                        switch($ondelete) {
+                                    catch(Exception $e) {
+                                        switch($rel_schema[$def['foreign_field']]['ondelete']) {
                                             case 'cascade':
                                                 $this->remove($def['foreign_object'], $rel_ids, $permanent);
                                                 break;
