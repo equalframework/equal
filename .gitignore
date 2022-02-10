@@ -12,3 +12,7 @@ config/routing/*
 !config/routing/.gitkeep
 composer.phar
 composer.lock
+.vscode
+packages
+!packages/core
+!packages/demo
