@@ -71,10 +71,7 @@ class AccessController extends Service {
     // limit objects visibility to the users who created them
     ['object.creator', '= ', 'user.id']
 
-
-
     for a given object, check access by successive SQL queries 
-
 
 */
 
@@ -287,6 +284,11 @@ class AccessController extends Service {
         $this->revokeUsers($user_id, $operation, $object_class, $object_fields, $object_ids);
     }
 
+    /**
+     * Add current user to a list of groups.
+     * 
+     * @param $groups_ids   array   List of groups identifiers the current user must be added to.
+     */
     public function addGroups($groups_ids) {
         $groups_ids = (array) $groups_ids;
         $auth = $this->container->get('auth');
@@ -295,8 +297,34 @@ class AccessController extends Service {
         return $orm->write('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
     }
 
+    /**
+     * Alias of addGroups.
+     * 
+     * @param   $group_id   integer Identifier of the group the user must be added to.
+     */
     public function addGroup($group_id) {
         return $this->addGroups($group_id);
+    }
+
+    /**
+     * Check if current user is member of a given group.
+     * 
+     * @param $group    integer|string    The group name or identifier.
+     */
+    public function hasGroup($group) {
+        $orm = $this->container->get('orm');
+        $auth = $this->container->get('auth');
+        if( !is_numeric($group) ) {
+            // fetch all ACLs variants
+            $groups_ids = $orm->search('core\Group', ['name', '=', $group]);
+            if($groups_ids < 0 || count($groups_ids) <= 0) {
+                return false;
+            }
+            $group = $groups_ids[0];
+        }
+        $user_id = $auth->userId();
+        $groups_ids = $this->getUserGroups($user_id);
+        return in_array($group, $groups_ids);
     }
 
     /**
@@ -305,6 +333,11 @@ class AccessController extends Service {
      *  This method is called by the Collection service, when performing CRUD
      *  Qinoa's Access Controller is trivial and only check for rights at class level.
      *  For a more complex behaviour, this class can be replaced by a custom Auth service.
+     * 
+     * @param $operation        integer         Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
+     * @param $object_class     string          Class selector indicating on which classes the check must be performed.
+     * @param $object_fields    array<string>   (optional) List of fields name on which the operation must be granted.
+     * @param $object_ids       array<int>      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 
@@ -368,7 +401,7 @@ class AccessController extends Service {
             $user_rights |= (QN_R_READ | QN_R_WRITE);
         }
 		else if($operation == QN_R_READ) {
-// this is a special case of a generic feature (we should add this in the init data)
+            // this is a special case of a generic feature (we should add this in the init data)
 
             // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
             
@@ -384,16 +417,16 @@ class AccessController extends Service {
 		}
 
 
-/*
-loop on objects_ids, for each object
+        /*
+        loop on objects_ids, for each object
 
-1) fetch regular ACL 
-2) fetch ACL with a domain
- either user has operation granted with its one of its ACL (or one of its groups)
- or user is granted operation on specific objects (matching ACL domain)
+        1) fetch regular ACL 
+        2) fetch ACL with a domain
+        either user has operation granted with its one of its ACL (or one of its groups)
+        or user is granted operation on specific objects (matching ACL domain)
 
- validate id as soon as an ACL condition is met
-*/
+        validate id as soon as an ACL condition is met
+        */
 
 		return ((bool)($user_rights & $operation))?$object_ids:[];
     }
