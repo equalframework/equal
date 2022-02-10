@@ -315,7 +315,7 @@ $tests = [
                     'expected'          =>  ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
+                                                    $providers['auth']->authenticate('root@host.local', 'secure_password');
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
