@@ -35,7 +35,7 @@ class User extends Model {
                 'required'          => true
             ],
 
-// #todo : deprecate firstname and lastname fields (use only `login` to refer to a user)            
+            // #todo - deprecate firstname and lastname fields (use only `login` to refer to a user)            
             'firstname' => [
                 'type'              => 'string'
             ],
@@ -44,11 +44,12 @@ class User extends Model {
                 'type'              => 'string'
             ],
 
+            // #todo - rename to 'locale'
             'language' => [
                 'type'              => 'string', 
-                'usage'             => 'language/iso-639:2',
+                'usage'             => 'language/iso-639',
                 'default'           => 'en',
-                'description'       => "Used for user interfaces.",
+                'description'       => "Prefered locale for user interfaces.",
             ],
 
             'validated' => [
@@ -69,15 +70,20 @@ class User extends Model {
     }
 
     /**
+     * Filter method for password updates.
      * Make sure password is crypted when stored to DB.
      * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
      * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
+     * 
+     * @param   $om     Object  Instance of the ObjectManager Service
+     * @param   $ids    array   List of User objects identifiers
+     * @param   $lang   string  Language for multilang fields
      */
     public static function onchangePassword($om, $ids, $lang) {
-        $values = $om->read(__CLASS__, $ids, ['password'], $lang);
+        $values = $om->read(__CLASS__, $ids, ['password']);
         foreach($values as $oid => $odata) {
             if(substr($odata['password'], 0, 4) != '$2y$') {
-                $om->write(__CLASS__, $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)], $lang);
+                $om->write(__CLASS__, $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
             }            
         }
     }
@@ -94,7 +100,7 @@ class User extends Model {
                     }    
                 ]
             ]
-            // #memo : password constraints are set based on the 'usage' attribute
+            // #memo - password constraints are applied based on the 'usage' attribute
         ];
     }
     
