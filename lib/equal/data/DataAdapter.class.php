@@ -505,8 +505,7 @@ class DataAdapter extends Service {
 	}
 
     /**
-     *
-     * configuration might be update by external scripts or providers
+     * Override a given adaptation method.
      *
      *
      */
