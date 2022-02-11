@@ -21,8 +21,8 @@ class Lang extends Model {
 
             'code' => [
                 'type'              => 'string',
-                'usage'             => 'language/iso-639:2',
-                'description'       => "Lower case alpha-2 language code (iso-639).",
+                'usage'             => 'language/iso-639',
+                'description'       => "Language code (ISO 639).",
                 'required'          => true
             ]
         ];
