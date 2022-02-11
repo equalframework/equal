@@ -269,7 +269,7 @@ class Collection implements \Iterator {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names and disguard those unknonwn to the current class
+     * Filters a map of fields-values entries or an array of fields names and disguard those unknonwn to the current class.
      *
      * @param $fields   array   a set of fields or a map of fields-values
      * @return array    filtered array containing known fields names only
@@ -386,9 +386,9 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // init keys of 'objects' member (so far, it is an empty array)
             // filter results using access controller... (reduce resulting ids based on access rights)
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
+            // init keys of 'objects' member (so far, it is an empty array)
             $this->ids($ids);
         }
         else {
