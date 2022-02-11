@@ -73,6 +73,7 @@ class AccessController extends Service {
 
     for a given object, check access by successive SQL queries 
 
+    => performed during filter
 */
 
 
