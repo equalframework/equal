@@ -92,18 +92,24 @@
 	"APPS_APP_STATS": "Statistiques",
     
         
-    "DOCS_LIST_NAME": "Nom",
-    "DOCS_LIST_TYPE": "Type",
     "DOCS_LIST_DOCUMENT": "Documents",
-    "DOCS_LIST_ACTIONS": "Actions",
-    "DOCS_ERRORS_FAILED_UPLOAD": "Échec du téléchargement du fichier",        
+    "DOCS_LIST_IMPORT": "Importer",
+    "DOCS_ERRORS_FAILED_UPLOAD": "Échec du téléchargement du fichier",
+    "DOCS_ERROR_BAD_FORMAT": "n'est pas un format autorisé. Les formats autorisés: JPEG, JPG, PNG, GIF, DOCX, PDF, AI, XLS, PSD.",
     "DOCS_DROP_TITLE": "Choisissez ou déposez vos fichiers ici !",
-    "DOCS_LIST_ACTION_VIEWDOC": "Afficher le document",
-    "DOCS_LIST_ACTION_DELETEDOC": "Supprimer le document",
-    "DOCS_LIST_ACTION_CONFIRMATION": "Êtes-vous sûr de vouloir supprimer ce document ?",   
-    "DOCS_LIST_ACTION_BUTTON_DELETE": "Supprimer",
-    "DOCS_LIST_ACTION_BUTTON_CANCEL": "Annuler",
-    
+    "DOCS_DROP_NAME": "Nom",
+    "DOCS_DROP_TYPE": "Type",
+    "DOCS_DROP_SIZE": "Taille",
+    "DOCS_DROP_ACTION_VIEWDOC": "Afficher le document",
+    "DOCS_DROP_ACTION_DELETEDOC": "Supprimer le document",
+    "DOCS_DROP_ACTION_CONFIRMATION": "Êtes-vous sûr de vouloir supprimer ce document ?",
+    "DOCS_DROP_ACTION_RENAMEDOC": "Renommer le document",
+    "DOCS_DIALOG_CONTENT_RENAME": "Cet assistant vous permet de modifier le nom de votre document.",
+    "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Renommer",
+    "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Annuler",
+    "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
+    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de voulour supprimer le document ?",
+	
     
     "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui"
 
