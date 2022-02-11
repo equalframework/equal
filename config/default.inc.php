@@ -60,7 +60,7 @@ namespace {
     */
     // By default, the control is done at the class level. It means that a user will be granted the same rights for every objects of a given class.
     // However, sometimes we must take the object id under account (for instance, if pages of a web site can have their own permissions)
-    define('CONTROL_LEVEL', 'class');	// allowed values are 'class' or 'object'
+    define('ACCESS_CONTROL_LEVEL', 'class');	// allowed values are 'class' or 'object'
     
     
     /**
