@@ -871,14 +871,39 @@ namespace {
         return config\eQual::announce($announcement);
     }
 
+    /*
     function inject(array $providers) {
         return config\eQual::inject($providers);
     }
+    */
 
-    // expose static methods
     class eQual {
+        // expose static methods
+        /*
         public static function __callStatic($name, $arguments) {
             return call_user_func_array('config\eQual::'.$name, $arguments);
+        }
+        */
+
+        /**
+         * Call run, then returns it result or raises/relay an Exception if an error occurs.
+         * (So it can be used with the global exceptions logic or with local try/catch blocks.)
+         */
+        public static function run($type, $operation, $body=[], $root=false) {
+            $result = config\eQual::run($type, $operation, $body, $root);
+
+            $data = json_decode($result, true);
+            if($data && isset($data['errors'])) {
+                // raise an exception with first returned error code
+                foreach($data['errors'] as $name => $message) {
+                    throw new \Exception($message, qn_error_code($name));
+                }
+            }
+            return $data;
+        }
+
+        function inject(array $providers) {
+            return config\eQual::inject($providers);
         }
     }
 
