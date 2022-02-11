@@ -47,7 +47,7 @@ while(true) {
 
 $parents[] = $params['entity'];
 
-//init resulting lang schema
+// init resulting lang schema
 $lang = [];
 
 foreach(array_reverse($parents) as $entity) {

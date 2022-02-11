@@ -43,16 +43,19 @@ class Setting extends Model {
                 'default'           => 'core'
             ],
 
-            'section_id' => [
-                'type'              => 'string',
-                'description'       => 'Section to ease param retrieval.',
-                'onchange'          => 'core\setting\Setting::onchangeSection',
-                'required'          => true
+            'section' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'description'       => "Section name the setting belongs to.",
+                'function'          => 'core\setting\Setting::getSection',
+                'store'             => true,
+                'readonly'          => true
             ],
 
             'section_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\SettingSection',
+                'onchange'          => 'core\setting\Setting::onchangeSectionId',                
                 'description'       => 'Section the setting relates to.',
                 'required'          => true
             ],
@@ -78,7 +81,12 @@ class Setting extends Model {
 
             'type' => [
                 'type'              => 'string',
-                'selection'         => ['boolean', 'integer', 'float', 'string', 'selection'],
+                'selection'         => [
+                    'boolean', 
+                    'integer', 
+                    'float', 
+                    'string'
+                ],
                 'description'       => 'The format of data stored by the param.',
                 'required'          => true
             ],
@@ -119,23 +127,39 @@ class Setting extends Model {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
-    public static function onchangeSection($om, $ids, $lang) {
-        $om->write(__CLASS__, $ids, ['name' => null], $lang);
+    public static function onchangeSectionId($om, $ids, $lang) {
+        $om->write(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
     }
 
     public static function onchangePackage($om, $ids, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
+    public static function getSection($om, $oids, $lang) {
+        $result = [];
+
+        $settings = $om->read(__CLASS__, $oids, ['section_id.code'], $lang);
+
+        if($settings > 0 && count($settings)) {
+            foreach($settings as $oid => $odata) {
+                $result[$oid] = $odata['section_id.code'];
+            }    
+        }
+
+        return $result;        
+    }
+    
     public static function getDisplayName($om, $oids, $lang) {
         $result = [];
 
-        $settings = $om->read(__CLASS__, $oids, ['package', 'section_id.code', 'code'], $lang);
+        $settings = $om->read(__CLASS__, $oids, ['package', 'section', 'code'], $lang);
 
-        foreach($settings as $oid => $odata) {
-            $result[$oid] = $odata['package'].'.'.$odata['section_id.code'].'.'.$odata['code'];
+        if($settings > 0 && count($settings)) {
+            foreach($settings as $oid => $odata) {
+                $result[$oid] = $odata['package'].'.'.$odata['section'].'.'.$odata['code'];
+            }
         }
-
+        
         return $result;
     }
 

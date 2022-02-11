@@ -25,7 +25,7 @@
             },
             {
                 "type": "field",
-                "value": "section_id",
+                "value": "section",
                 "label": "Section",
                 "width": "10%",
                 "sortable": true

@@ -30,6 +30,11 @@
                                                 "type": "field",
                                                 "value": "description",
                                                 "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "help",
+                                                "width": "100%"
                                             }
                                         ]
                                     },
@@ -50,12 +55,12 @@
                                             {
                                                 "type": "field",
                                                 "value": "type",
-                                                "width": "100%"
+                                                "width": "50%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "help",
-                                                "width": "100%"
+                                                "value": "form_control",
+                                                "width": "50%"                                                
                                             }
                                         ]
                                     }                                    

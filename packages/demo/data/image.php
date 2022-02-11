@@ -5,7 +5,7 @@ use equal\http\HttpRequest;
  * HTTP native support
  *
  */
-list($params, $providers) = eQual::announce([
+list($params, $providers) = announce([
     'description'   => 'Get picture data from imgur.com using imgur API.',
     'params'        => [
         'id' => [

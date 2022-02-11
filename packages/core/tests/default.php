@@ -9,7 +9,7 @@ use equal\http\HttpRequest;
 use core\User;
 use core\Group;
 
-$providers = inject(['context', 'orm', 'auth', 'access']);
+$providers = eQual::inject(['context', 'orm', 'auth', 'access']);
 
 // todo : convert to AAA logic : Arrange, Act, Assert (, Restore)
 

@@ -176,7 +176,7 @@ foreach($classes as $class) {
             }        
         }
         
-        $result[] = ") DEFAULT CHARSET=utf8;\n";    
+        $result[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";    
     }
 
 }

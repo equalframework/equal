@@ -4,8 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\Setting;
-use core\SettingValue;
+use core\setting\Setting;
+use core\setting\SettingValue;
 
 list($params, $providers) = announce([
     'description'   => 'Retrieve configuration settings according to package and section filters (support wildcards support) and current user.',
