@@ -59,21 +59,18 @@
     "AUTH_SIGNIN_PASSWORD": "Mot de passe",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connexion",
     "AUTH_SIGNIN_ACTION_RECOVER": "mot de passe oublié ?",
-
     "AUTH_RECOVER_MESSAGE_SUBMITTED": "Si l'adresse email correspond à un compte connu, les instructions de récupération de mot de passe y ont été envoyées.",
     "AUTH_RECOVER_TITLE": "Réinitialiser le mot de passe",
     "AUTH_RECOVER_SUBTITLE": "Mot de passe oublié ?",
     "AUTH_RECOVER_EMAIL": "Adresse email",
     "AUTH_RECOVER_ACTION_RECOVER": "Réinitialiser",
-    "AUTH_RECOVER_ACTION_SIGNIN": "S'identifer",
-    
+    "AUTH_RECOVER_ACTION_SIGNIN": "S'identifer",    
     "AUTH_RESET_TITLE" : "Nouveau mot de passe",
     "AUTH_RESET_SUBTITLE": "Définir un nouveau mot de passe",
     "AUTH_RESET_PASSWORD": "Mot de passe",
     "AUTH_RESET_CONFIRM": "Confirmation",
     "AUTH_RESET_ACTION_SUBMIT": "Réinitialiser",
-    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
-    
+    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",    
     "AUTH_ERROR_MISSING_USERNAME": "Nom d'utilisateur requis",
     "AUTH_ERROR_MISSING_PASSWORD": "Mot de passe requis",
     "AUTH_ERROR_INVALID_PASSWORD": "Mot de passe invalide (min 8 car.)",
@@ -91,6 +88,10 @@
     "APPS_APP_DOCUMENTS": "Documents",
 	"APPS_APP_STATS": "Statistiques",
     
+    "SETTINGS_LIST_SETTING": "Paramètres",
+    "SETTINGS_LIST_CORE": "Général",
+    "SETTINGS_LIST_SALE": "Vente",
+    "SETTINGS_LIST_FINANCE": "Finances",
         
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Importer",

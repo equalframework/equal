@@ -82,7 +82,6 @@
     "AUTH_ERROR_SERVER_ERROR": "Une erreur s'est produite au niveau du serveur. Veuillez réessayer dans quelques minutes.",
     "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",
     
- 
     "APPS_APP_BOOKING": "Réservations",
     "APPS_APP_POS": "Point de vente",
     "APPS_APP_ACCOUNTING": "Compta",
@@ -91,6 +90,11 @@
     "APPS_APP_DOCUMENTS": "Documents",
 	"APPS_APP_STATS": "Statistiques",
     
+    "SETTINGS_LIST_SETTING": "Settings",
+    "SETTINGS_LIST_CORE": "General",
+    "SETTINGS_LIST_SALE": "Sale",
+    "SETTINGS_LIST_FINANCE": "Finance",
+	
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Import",
     "DOCS_ERRORS_FAILED_UPLOAD": "Download of the file failed",
