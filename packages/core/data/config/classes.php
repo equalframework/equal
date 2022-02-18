@@ -5,18 +5,23 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Returns the list of classes defined in specified package',
+    'description'   => 'Returns the list of classes defined in specified package.',
+    'params'        => [
+        'package' => [
+            'description'   => 'Name of the package for which the list is requested.',
+            'type'          => 'string',
+            'default'       => '*'
+        ],
+        'path' => [
+            'description'   => 'Path within the package for limiting the result to.',
+            'type'          => 'string',
+            'default'       => ''
+        ]
+    ],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'        
-    ],        
-    'params'        => [
-        'package' => [
-            'description'   => 'Name of the package for which the list is requested',
-            'type'          => 'string',
-            'default'       => '*'
-        ]
     ],
     'providers'     => ['context'] 
 ]);
@@ -53,9 +58,13 @@ if(!function_exists('get_classes')) {
         return $result;
     }
     
-	function get_classes($package) {
+	function get_classes($package, $path='') {
 		$data = [];
+        $path = trim($path, '/');
 		$package_dir = 'packages/'.$package.'/classes';
+        if(strlen($path)) {
+            $package_dir .= '/'.$path;
+        }
 		if(is_dir($package_dir) && ($list = scandir($package_dir))) {
             $data = get_files($package_dir);
 		}		
@@ -82,7 +91,7 @@ if($params['package'] == '*') {
 }
 else {
 	// if a package is specified, return an array of all related classes
-	$data = get_classes($params['package']);
+	$data = get_classes($params['package'], $params['path']);
 }
 
     
