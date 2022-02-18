@@ -92,7 +92,11 @@ if(count($fields)) {
             // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
             if($object['state'] != 'draft') {
                 // create object as draft to avoid a missing_mandatory error, and then update it
-                $instance = $params['entity']::create(['state' => 'draft'])->update($fields, $params['lang'])->read(['id'])->adapt('txt')->first();
+                $instance = $params['entity']::create(['state' => 'draft'])
+                                             ->update($fields, $params['lang'])
+                                             ->read(['id'])
+                                             ->adapt('txt')
+                                             ->first();
                 $params['ids'] = [$instance['id']];
             }
         }
