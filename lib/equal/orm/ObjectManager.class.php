@@ -117,8 +117,8 @@ class ObjectManager extends Service {
         'time'          => 'time',
         'datetime'      => 'datetime',
         'timestamp'     => 'timestamp',
-        'file'          => 'mediumblob',
-        'binary'        => 'mediumblob',
+        'file'          => 'longblob',
+        'binary'        => 'longblob',
         'many2one'      => 'int(11)'
     ];
 
@@ -187,9 +187,6 @@ class ObjectManager extends Service {
     public function __toString() {
         return "ObjectManager instance";
     }
-
-
-
 
     public function getPackages() {
         if(!$this->packages) {
@@ -848,14 +845,15 @@ class ObjectManager extends Service {
      *               }
      *            }
      *
-     * @param string $class object class
-     * @param array $values
-     * @param boolean $check_unique
-     * @return array Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
+     * @param   string  $class          Entity name.
+     * @param   array   $ids            Array of objects identifiers. 
+     * @param   array   $values         Map with fields names as properties, holding values to be assigned to the object(s).
+     * @param   boolean $check_unique   Request check for unicity contraints (related to getUnique method).
+     * @param   boolean $check_required Request check for required fields (and _self constraints).
+     * @return  array   Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
-        // #todo : check relational fields consistency (make sure that targeted object(s) actually exist)
-        // #todo : support partial object check (individual field validation) and full object check (with support for the 'required' attribute)
+        // #todo : check relational fields consistency (make sure that target object(s) actually exist)
 
         $res = [];
 
@@ -865,6 +863,8 @@ class ObjectManager extends Service {
         $constraints = $model->getConstraints();
         $schema = $model->getSchema();
 
+        // #todo : get previous state
+        
         foreach($values as $field => $value) {
             // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
             if(isset($schema[$field]['type'])) {
@@ -894,8 +894,8 @@ class ObjectManager extends Service {
                     case 'file':
                     case 'binary':
                         $constraints[$field]['size_overflow'] = [
-                            'message'     => 'String length must be maximum 16,777,215 chars.',
-                            'function'    => function($val, $obj) {return (strlen($val) <= 16777215);}
+                            'message'     => 'String length must be maximum '.UPLOAD_MAX_FILE_SIZE.' chars.',
+                            'function'    => function($val, $obj) {return (strlen($val) <= UPLOAD_MAX_FILE_SIZE);}
                         ];
                         break;
                 }
@@ -938,6 +938,24 @@ class ObjectManager extends Service {
 
         // REQUIRED constraint check
         if($check_required) {
+            if(isset($constraints['_self'])) {
+                $constraint = $constraints['_self'];
+                if(isset($constraint['function']) ) {
+                    $validation_func = $constraint['function'];
+                    if(is_callable($validation_func) && !call_user_func($validation_func, $values)) {
+                        if(!isset($constraint['message'])) {
+                            $constraint['message'] = 'invalid field';
+                        }
+                        trigger_error("update violates _self constraint : {$constraint['message']}", E_USER_WARNING);
+                        $error_code = QN_ERROR_INVALID_PARAM;
+                        if(!isset($res['_self'])) {
+                            $res['_self'] = [];
+                        }
+                        $res['_self'][$error_id] = $constraint['message'];
+                    }
+                }
+            }
+
             foreach($schema as $field => $def) {
                 if(isset($def['required']) && $def['required'] && !isset($values[$field])) {
                     $error_code = QN_ERROR_INVALID_PARAM;
@@ -963,6 +981,8 @@ class ObjectManager extends Service {
             if(count($extra_fields)) {
                 $extra_values = $this->read($class, $ids, $extra_fields);
             }
+
+            $ids = (array) $ids;
 
             foreach($ids as $id) {
                 foreach($uniques as $unique) {
@@ -1614,7 +1634,7 @@ class ObjectManager extends Service {
                         $operator    = strtolower($domain[$j][$i][1]);
 
                         // force operator 'is' for null values
-                        if(is_null($value)) {
+                        if(is_null($value) || $value == 'NULL') {
                             $operator = 'is';
                         }
                         else {
