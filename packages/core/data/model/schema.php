@@ -34,7 +34,20 @@ if(!is_object($model)) {
 // get the complete schema of the object (including special fields)
 $schema = $model->getSchema();
 
+// retrieve parent class
 $data['parent'] = get_parent_class($model);
+
+// retrieve root class (before Model)
+$root = $data['parent'];
+while($root != 'equal\orm\Model') {
+    $prev_parent = get_parent_class($root);
+    if($prev_parent == 'equal\orm\Model') {
+        break;
+    }
+    $root = $prev_parent;
+}
+$data['root'] = $root;
+
 $data['fields'] = $schema;
 
 if(method_exists($model, 'getUnique')) {
