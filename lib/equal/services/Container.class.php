@@ -11,9 +11,9 @@ use \ReflectionClass;
 use \ReflectionException;
 
 class Container extends Service {
-    
+
     private $instances;
-    
+
     /*
     serves as a map to assign aliases to services
     */
@@ -23,16 +23,16 @@ class Container extends Service {
         $this->instances = [];
         $this->register = &$GLOBALS['QN_SERVICES_POOL'];
     }
-    
+
     public static function constants() {
         return ['QN_ERROR_UNKNOWN_SERVICE'];
     }
-    
+
     public function register($name='', $class=null) {
         $args = func_get_args();
         if(count($args) < 1) {
             return $this->register;
-        }        
+        }
         if(is_array($name)) {
             foreach($name as $service => $class) {
                 $this->register[$service] = $class;
@@ -43,14 +43,14 @@ class Container extends Service {
         }
         return $this;
     }
-    
+
     private function resolve($name) {
         if(in_array($name, array_keys($this->register))) {
             $name = $this->register[$name];
         }
         return $name;
     }
-    
+
     // this is the only place where services are instanciated
     private function inject($dependency) {
         $instance = null;
@@ -59,16 +59,18 @@ class Container extends Service {
             // inspect target class (autoload if required)
             $dependencyClass = new ReflectionClass($dependency);
             $constructor = $dependencyClass->getConstructor();
-            $parameters = $constructor->getParameters();    
-            
+            $parameters = $constructor->getParameters();
+
             // check dependencies availability
             $dependencies_instances = [];
-            
+
             if(count($parameters)) {
                 foreach($parameters as $parameter) {
-                    $constructor_dependancy = $parameter->getClass()->getName();
-                    // todo : no cyclic dependency check is done            
-                    $res = $this->inject($constructor_dependancy);            
+                    // #deprecated
+                    // $constructor_dependancy = $parameter->getClass()->getName();
+                    $constructor_dependancy = $parameter->getType()->getName();
+                    // #todo - no cyclic dependency check is done
+                    $res = $this->inject($constructor_dependancy);
                     if(count($res[1])) {
                         $unresolved_dependencies = array_merge($unresolved_dependencies, $res[1]);
                         continue;
@@ -100,7 +102,7 @@ class Container extends Service {
                     $unresolved_dependencies[] = $dependency;
                 }
                 // if all dependencies and constants are resolved, instanciate the provider
-                if(!count($unresolved_dependencies)) {                    
+                if(!count($unresolved_dependencies)) {
                     $instance = call_user_func_array($dependency.'::getInstance', $dependencies_instances);
                     // make container available to all services instances
                     $instance->container = $this;
@@ -108,16 +110,16 @@ class Container extends Service {
             }
         }
         catch(ReflectionException $e) {
-            $unresolved_dependencies[] = $dependency;            
+            $unresolved_dependencies[] = $dependency;
             trigger_error("unable to autoload required dependency '$dependency'", E_USER_WARNING);
         }
-        return [$instance, $unresolved_dependencies];            
+        return [$instance, $unresolved_dependencies];
     }
-    
+
     /**
      *
      * @param  mixed    $name (string | array) name(s) of services to retrieve
-     * @return mixed (object | array) 
+     * @return mixed (object | array)
      * @throws Exception
      */
     public function get($name) {
@@ -141,7 +143,7 @@ class Container extends Service {
                 }
                 // some dependencies are missing
                 else {
-                    throw new \Exception($name, QN_ERROR_UNKNOWN_SERVICE);   
+                    throw new \Exception($name, QN_ERROR_UNKNOWN_SERVICE);
                 }
             }
             // push instance into result array (instance might be null)
@@ -156,12 +158,11 @@ class Container extends Service {
         }
         return $instances;
     }
-    
+
     public function set($name, $instance) {
         $name = $this->resolve($name);
         $this->instances[$name] = $instance;
         return $this;
     }
-    
 
 }
