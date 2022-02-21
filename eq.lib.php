@@ -333,11 +333,11 @@ namespace config {
             try {
                 $om = $container->get('orm');
                 // init collections provider
-                $collect = $container->get('equal\orm\Collections');
+                $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getStatic']);
             }
             catch(\Throwable $e) {
-                throw new \Exception("init_failed", QN_REPORT_FATAL);
+                throw new \Exception("autoload_register_failed", QN_REPORT_FATAL);
             }
 
         }
@@ -376,7 +376,7 @@ namespace config {
             // retrieve service container
             $container = Container::getInstance();
             // retrieve required services
-            list($context, $auth, $reporter, $dataValidator, $dataAdapter) = $container->get(['context', 'auth', 'report', 'validate', 'adapt']);
+            list($context, $reporter) = $container->get(['context', 'report']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
             $body = (array) $request->body();
@@ -441,8 +441,9 @@ namespace config {
                 if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
+                    list($auth) = $container->get(['auth']);
                     // compute the cache ID
-                    // #todo : implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
+                    // #todo - implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
                     $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
                     $cache_id = md5($request_id);
                     // obtain related filename
@@ -493,10 +494,36 @@ namespace config {
 
             // check access
             if(isset($announcement['access'])) {
-                if($announcement['access'] == 'private') {
+                list($access, $auth) = $container->get(['access', 'auth']);
+                if(isset($announcement['access']['visibility']) && $announcement['access']['visibility'] == 'private') {
                     if(php_sapi_name() != 'cli') {
                         // raise an exception with error details
                         throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    }
+                }
+                if(isset($announcement['access']['users'])) {
+                    // disjunctions on users
+                    $current_user_id = $auth->userId();
+                    // #todo - add support for checks on login
+                    $allowed = false;
+                    $users = (array) $announcement['access']['users'];
+                    foreach($users as $user_id) {
+                        if($user_id == $current_user_id) {
+                            $allowed = true;
+                            break;
+                        }
+                    }
+                    if(!$allowed) {
+                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    }
+                }
+                if(isset($announcement['access']['groups'])) {
+                    // conjunctions on groups
+                    $groups = (array) $announcement['access']['groups'];
+                    foreach($groups as $group) {
+                        if(!$access->hasGroup($group)) {
+                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                        }
                     }
                 }
             }
@@ -551,8 +578,9 @@ namespace config {
 
             // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
+            $adapter = $container->get('adapt');
             foreach($announcement['params'] as $param => $config) {
-                // note: at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data!
+                // #memo - at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
                     $body[$param] = $config['default'];
                 }
@@ -560,13 +588,14 @@ namespace config {
                 if(array_key_exists($param, $body)) {
                     // prevent type confusion while converting data from text
                     // all inputs are handled as text, conversion is made based on expected type
-                    $result[$param] = $dataAdapter->adapt($body[$param], $config['type']);
+                    $result[$param] = $adapter->adapt($body[$param], $config['type']);
                 }
             }
 
             // 4) validate values types and handle optional attributes
 
             $invalid_params = [];
+            $validator = $container->get('validate');
             foreach($result as $param => $value) {
                 $config = $announcement['params'][$param];
                 // build constraints array
@@ -581,7 +610,7 @@ namespace config {
                 }
 
                 // validate parameter's value
-                if(!$dataValidator->validate($value, $constraints)) {
+                if(!$validator->validate($value, $constraints)) {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
@@ -902,7 +931,7 @@ namespace {
             return $data;
         }
 
-        function inject(array $providers) {
+        public static function inject(array $providers) {
             return config\eQual::inject($providers);
         }
     }
