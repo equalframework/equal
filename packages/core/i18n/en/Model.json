@@ -1,16 +1,8 @@
 {
-    "name": "Model",
-    "plural": "Models",
-    "description": "Root interface of the objetcs.",
     "model": {
         "id": {
             "label": "Identifier",
             "description": "Unique identifier of the object.",
-            "help": ""
-        },
-        "name": {
-            "label": "Name",
-            "description": "Name of the object.",
             "help": ""
         },
         "creator": {

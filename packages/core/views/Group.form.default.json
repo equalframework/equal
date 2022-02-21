@@ -20,7 +20,7 @@
                                                 "label": "Group name",
                                                 "help": "Unique ID of the group.",
                                                 "widget": {
-                                                    "header": true
+                                                    "heading": true
                                                 }
                                             }
                                         ]

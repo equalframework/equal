@@ -319,6 +319,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     $value = (int) $value;
+                                    // setting to zero unsets the field
                                     if($value == 0) {
                                         $value = null;
                                     }

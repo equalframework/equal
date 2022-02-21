@@ -169,7 +169,7 @@ class Reporter extends Service {
                     }
                 }
             }
-// #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the webservice to access it)
+            // #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the webservice to access it)
             $filepath = QN_LOG_STORAGE_DIR.'/qn_error.log';
 
             // by default, append content at the end of the log file

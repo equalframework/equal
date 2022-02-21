@@ -12,12 +12,6 @@
             },
             {
                 "type": "field",
-                "value": "code",
-                "width": "15%",
-                "sortable": true
-            },
-            {
-                "type": "field",
                 "value": "package",
                 "label": "Package",
                 "width": "15%",
@@ -28,6 +22,12 @@
                 "value": "section",
                 "label": "Section",
                 "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "code",
+                "width": "15%",
                 "sortable": true
             },
             {

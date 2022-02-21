@@ -17,6 +17,9 @@
         
     "SB_ACTIONS_BUTTON_CREATE": "Créer",
     "SB_ACTIONS_BUTTON_SAVE": "Sauver",
+	"SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Sauver & fermer",
+	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Sauver & continuer",
+	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Sauver & voir",
     "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
     "SB_ACTIONS_BUTTON_EXPORT": "Exporter",        
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Éditer en ligne",

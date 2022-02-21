@@ -25,7 +25,8 @@ class Permission extends Model {
             'group_id' => [
                 'type'              => 'many2one', 
                 'foreign_object'    => 'core\Group',
-                'description'       => "Targeted group, if permission applies to a group."
+                'description'       => "Targeted group, if permission applies to a group.",
+                'default'           => DEFAULT_GROUP_ID
             ],
 
             'user_id' => [
