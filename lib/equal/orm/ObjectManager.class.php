@@ -846,7 +846,7 @@ class ObjectManager extends Service {
      *            }
      *
      * @param   string  $class          Entity name.
-     * @param   array   $ids            Array of objects identifiers. 
+     * @param   array   $ids            Array of objects identifiers.
      * @param   array   $values         Map with fields names as properties, holding values to be assigned to the object(s).
      * @param   boolean $check_unique   Request check for unicity contraints (related to getUnique method).
      * @param   boolean $check_required Request check for required fields (and _self constraints).
@@ -864,7 +864,7 @@ class ObjectManager extends Service {
         $schema = $model->getSchema();
 
         // #todo : get previous state
-        
+
         foreach($values as $field => $value) {
             // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
             if(isset($schema[$field]['type'])) {
@@ -1109,6 +1109,7 @@ class ObjectManager extends Service {
             $db->addRecords($object_table, array_keys($creation_array), [ array_values($creation_array) ]);
 
             if($oid <= 0) {
+                // id field is auto-increment: retrieve last value
                 $oid = $db->getLastId();
                 $this->cache[$class][$oid][$lang] = $creation_array;
             }
@@ -1631,15 +1632,13 @@ class ObjectManager extends Service {
                         if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
                         $field        = $domain[$j][$i][0];
                         $value        = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
-                        $operator    = strtolower($domain[$j][$i][1]);
+                        $operator     = strtolower($domain[$j][$i][1]);
+
 
                         // force operator 'is' for null values
-                        if(is_null($value) || $value == 'NULL') {
-                            $operator = 'is';
-                        }
-                        else {
-                            if($operator == 'is') {
-                                $operator = '=';
+                        if(is_null($value) || $value === 'NULL') {
+                            if( $operator == '=') {
+                                $operator = 'is';
                             }
                         }
 
