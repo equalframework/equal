@@ -25,6 +25,11 @@ class Scheduler extends Service {
 
     /**
      * Run a batch of scheduled tasks.
+     * 
+     * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
+     * For recurring tasks we update the moment field to the next time, accoring to repeat axis and repeat step.
+     * Non-recurring tasks are deleted once they've been run.
+     * 
      * #memo - Scheduler always operates as root user.
      */
     public function run() {

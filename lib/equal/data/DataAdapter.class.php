@@ -327,7 +327,7 @@ class DataAdapter extends Service {
             'many2one'  => [
                 'txt' => [
                     'php' =>    function ($value) {
-                                    if(!is_numeric($value)) {
+                                    if(!is_null($value) && !is_numeric($value)) {
                                         throw new \Exception(serialize(["not_valid_identifier" => "Format inconvertible to id (integer)."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     $value = (int) $value;
