@@ -14,7 +14,8 @@ class Permission extends Model {
         return [
             'class_name' => [
                 'type'              => 'string',
-                'description'       => 'Full name of the entity to which the permission rule applies.'
+                'description'       => 'Full name of the entity to which the permission rule applies.',
+                'required'          => true
             ],
 
             'domain' => [
