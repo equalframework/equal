@@ -16,27 +16,31 @@ class Group extends Model {
                 'type'              => 'string',
                 'unique'            => true
             ],
+
             'display_name' => [
                 'type'              => 'string',
                 'multilang'         => true
             ],
+
             'description' => [
                 'type'              => 'string',
                 'description'       => 'Short presentation of the role assigned to members of the group.',
                 'multilang'         => true
             ],
-            'users_ids' => [                
+
+            'users_ids' => [
                 'type'              => 'many2many',
-                'foreign_object'    => 'core\User', 
-                'foreign_field'     => 'groups_ids', 
-                'rel_table'         => 'core_rel_group_user', 
-                'rel_foreign_key'   => 'user_id', 
+                'foreign_object'    => 'core\User',
+                'foreign_field'     => 'groups_ids',
+                'rel_table'         => 'core_rel_group_user',
+                'rel_foreign_key'   => 'user_id',
                 'rel_local_key'     => 'group_id',
                 'description'       => 'List of users that are members of the group.'
             ],
+
             'permissions_ids' => [
-                'type'              => 'one2many', 
-                'foreign_object'    => 'core\Permission', 
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\Permission',
                 'foreign_field'     => 'group_id'
             ]
         ];
