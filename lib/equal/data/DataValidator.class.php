@@ -78,6 +78,7 @@ class DataValidator extends Service {
                         return (in_array($a, ['ABW','AFG','AGO','AIA','ALA','ALB','AND','ARE','ARG','ARM','ASM','ATA','ATF','ATG','AUS','AUT','AZE','BDI','BEL','BEN','BES','BFA','BGD','BGR','BHR','BHS','BIH','BLM','BLR','BLZ','BMU','BOL','BRA','BRB','BRN','BTN','BVT','BWA','CAF','CAN','CCK','CHE','CHL','CHN','CIV','CMR','COD','COG','COK','COL','COM','CPV','CRI','CUB','CUW','CXR','CYM','CYP','CZE','DEU','DJI','DMA','DNK','DOM','DZA','ECU','EGY','ERI','ESH','ESP','EST','ETH','FIN','FJI','FLK','FRA','FRO','FSM','GAB','GBR','GEO','GGY','GHA','GIB','GIN','GLP','GMB','GNB','GNQ','GRC','GRD','GRL','GTM','GUF','GUM','GUY','HKG','HMD','HND','HRV','HTI','HUN','IDN','IMN','IND','IOT','IRL','IRN','IRQ','ISL','ISR','ITA','JAM','JEY','JOR','JPN','KAZ','KEN','KGZ','KHM','KIR','KNA','KOR','KWT','LAO','LBN','LBR','LBY','LCA','LIE','LKA','LSO','LTU','LUX','LVA','MAC','MAF','MAR','MCO','MDA','MDG','MDV','MEX','MHL','MKD','MLI','MLT','MMR','MNE','MNG','MNP','MOZ','MRT','MSR','MTQ','MUS','MWI','MYS','MYT','NAM','NCL','NER','NFK','NGA','NIC','NIU','NLD','NOR','NPL','NRU','NZL','OMN','PAK','PAN','PCN','PER','PHL','PLW','PNG','POL','PRI','PRK','PRT','PRY','PSE','PYF','QAT','REU','ROU','RUS','RWA','SAU','SDN','SEN','SGP','SGS','SHN','SJM','SLB','SLE','SLV','SMR','SOM','SPM','SRB','SSD','STP','SUR','SVK','SVN','SWE','SWZ','SXM','SYC','SYR','TCA','TCD','TGO','THA','TJK','TKL','TKM','TLS','TON','TTO','TUN','TUR','TUV','TWN','TZA','UGA','UKR','UMI','URY','USA','UZB','VAT','VCT','VEN','VGB','VIR','VNM','VUT','WLF','WSM','YEM','ZAF','ZMB','ZWE']));
                     }
                 ];
+            case 'string/password':
             case 'password':
                 return [
                     'description' => 'Password having a length of 8 chars minimum.',
@@ -86,12 +87,25 @@ class DataValidator extends Service {
                         return strlen($a) >= 8;
                     }
                 ];
-            case 'password/NIST':
+            case 'string/password:NIST':
                 return [
                     'description' => 'NIST compliant password (min. 8 chars, 1 of @#$, 1 numeric digit, 1 uppercase, 1 lowercase).',
                     'kind'  => 'function',
                     'rule'  => function($a, $o) {return (bool) (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#])[A-Za-z\d@$#]{8,}$/', $a));}
                 ];
+        }
+
+        if(preg_match('/string\/alpha(:([0-9]{1,3}))?/', $usage, $out)) {
+            $len = 1;
+            /** @var array */
+            $res = $out;
+            if( is_array($res) && count($res) > 2) {
+                $len = $res[2];
+            }
+            return [
+                'kind'  => 'function',
+                'rule'  => function($a, $o) use($len) { return (preg_match('/^[a-zA-Z]{0,'.$len.'}$/', (string) $a));}
+            ];
         }
 
         if(preg_match('/amount\/money(:([0-9]{1,2}))?/', $usage, $out)) {
@@ -104,6 +118,19 @@ class DataValidator extends Service {
             return [
                 'kind'  => 'function',
                 'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
+            ];
+        }
+
+        if(preg_match('/numeric\/integer(:([0-9]{1,2}))?/', $usage, $out)) {
+            $len = 1;
+            /** @var array */
+            $res = $out;
+            if( is_array($res) && count($res) > 2) {
+                $len = $res[2];
+            }
+            return [
+                'kind'  => 'function',
+                'rule'  => function($a, $o) use($len) { return (preg_match('/^[0-9]{0,'.$len.'}$/', (string) $a));}
             ];
         }
 
