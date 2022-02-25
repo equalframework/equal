@@ -17,6 +17,9 @@
         
     "SB_ACTIONS_BUTTON_CREATE": "Create",
     "SB_ACTIONS_BUTTON_SAVE": "Save",
+	"SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Save & close",
+	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Save & continue",
+	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Save & see",
     "SB_ACTIONS_BUTTON_UPDATE": "Update",
     "SB_ACTIONS_BUTTON_EXPORT": "Export",        
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Inline edit",
@@ -28,7 +31,6 @@
     "SB_ACTIONS_BUTTON_SELECT": "Select",
     "SB_ACTIONS_BUTTON_ADD": "Add",
     "SB_ACTIONS_BUTTON_REMOVE": "Remove",
-
     "SB_ACTIONS_BUTTON_SELECTED": "selected",
 
     "SB_ACTIONS_CONFIRM": "Confirm action",
@@ -59,21 +61,18 @@
     "AUTH_SIGNIN_PASSWORD": "Mot de passe",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connexion",
     "AUTH_SIGNIN_ACTION_RECOVER": "mot de passe oublié ?",
-
     "AUTH_RECOVER_MESSAGE_SUBMITTED": "Si l'adresse email correspond à un compte connu, les instructions de récupération de mot de passe y ont été envoyées.",
     "AUTH_RECOVER_TITLE": "Réinitialiser le mot de passe",
     "AUTH_RECOVER_SUBTITLE": "Mot de passe oublié ?",
     "AUTH_RECOVER_EMAIL": "Adresse email",
     "AUTH_RECOVER_ACTION_RECOVER": "Réinitialiser",
-    "AUTH_RECOVER_ACTION_SIGNIN": "S'identifer",
-    
+    "AUTH_RECOVER_ACTION_SIGNIN": "S'identifer",    
     "AUTH_RESET_TITLE" : "Nouveau mot de passe",
     "AUTH_RESET_SUBTITLE": "Définir un nouveau mot de passe",
     "AUTH_RESET_PASSWORD": "Mot de passe",
     "AUTH_RESET_CONFIRM": "Confirmation",
     "AUTH_RESET_ACTION_SUBMIT": "Réinitialiser",
-    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
-    
+    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",    
     "AUTH_ERROR_MISSING_USERNAME": "Nom d'utilisateur requis",
     "AUTH_ERROR_MISSING_PASSWORD": "Mot de passe requis",
     "AUTH_ERROR_INVALID_PASSWORD": "Mot de passe invalide (min 8 car.)",
@@ -98,7 +97,7 @@
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Import",
     "DOCS_ERRORS_FAILED_UPLOAD": "Download of the file failed",
-    "DOCS_ERROR_BAD_FORMAT": "isn't an allowed format. The accepted formats are: JPEG, JPG, PNG, GIF, DOCX, PDF, AI, XLS, PSD.",
+    "DOCS_ERROR_BAD_FORMAT": "File format not allowed.",
     "DOCS_DROP_TITLE": "Choose or Drop your files here !",
     "DOCS_DROP_NAME": "Name",
     "DOCS_DROP_TYPE": "Type",
@@ -111,9 +110,11 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Rename",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Cancel",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Delete",
-    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?"
+    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?",
     
     
-    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui"
+    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
 
+
+    "empty_booking": "La réservation est vide."
 }

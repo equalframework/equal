@@ -31,7 +31,6 @@
     "SB_ACTIONS_BUTTON_SELECT": "Sélectionner",
     "SB_ACTIONS_BUTTON_ADD": "Ajouter",
     "SB_ACTIONS_BUTTON_REMOVE": "Retirer",
-
     "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
 
     "SB_ACTIONS_CONFIRM": "Confirmer l'action",
@@ -52,9 +51,9 @@
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
 
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
-    "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération.",
-	"SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",
-    "SB_ERROR_CONFLICT": "Conflit",
+    "SB_ERROR_NOT_ALLOWED": "Non permis: vous n'avez pas les droits ou l'état de l'objet ne le permet pas.",
+	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre ou section manquant(e).",
+    "SB_ERROR_CONFLICT": "Un conflit empêche cette opération.",
 
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier dans Symbiose",
@@ -80,8 +79,7 @@
     "AUTH_ERROR_CONFIRM_MISMATCH": "Confirmation différente du mot de passe",
     "AUTH_ERROR_INVALID_USERNAME_OR_PASSWORD": "Nom d'utilisateur ou mot de passe invalide.",
     "AUTH_ERROR_SERVER_ERROR": "Une erreur s'est produite au niveau du serveur. Veuillez réessayer dans quelques minutes.",
-    "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",
-    
+    "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",    
  
     "APPS_APP_BOOKING": "Réservations",
     "APPS_APP_POS": "Point de vente",
@@ -99,7 +97,7 @@
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Importer",
     "DOCS_ERRORS_FAILED_UPLOAD": "Échec du téléchargement du fichier",
-    "DOCS_ERROR_BAD_FORMAT": "n'est pas un format autorisé. Les formats autorisés: JPEG, JPG, PNG, GIF, DOCX, PDF, AI, XLS, PSD.",
+    "DOCS_ERROR_BAD_FORMAT": "Format du fichier non autorisé.",
     "DOCS_DROP_TITLE": "Choisissez ou déposez vos fichiers ici !",
     "DOCS_DROP_NAME": "Nom",
     "DOCS_DROP_TYPE": "Type",
@@ -115,6 +113,8 @@
     "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de voulour supprimer le document ?",
 	
     
-    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui"
+    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
 
+
+    "empty_booking": "La réservation est vide."
 }
