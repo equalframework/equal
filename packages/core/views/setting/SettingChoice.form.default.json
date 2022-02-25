@@ -15,7 +15,7 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "value",
+                                                "value": "setting_id",
                                                 "width": "50%"
                                             },
                                             {
@@ -31,7 +31,7 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "setting_id",
+                                                "value": "value",
                                                 "width": "100%"
                                             }
                                         ]
