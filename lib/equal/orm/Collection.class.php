@@ -326,7 +326,7 @@ class Collection implements \Iterator {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
-                // #todo : harmonize error codes
+                // this exception results in sending error in the same format as the announce method
                 throw new \Exception(serialize($error_descr), $error_code);
             }
         }
@@ -697,13 +697,13 @@ class Collection implements \Iterator {
 
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
-                throw new \Exception($user_id.';DELETE,'.$this->class.',['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+                throw new \Exception($user_id.';DELETE,'.$this->class.'['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
 
             // 3) delete
             $res = $this->orm->remove($this->class, $ids, $permanent);
             if($res <= 0) {
-                throw new \Exception($this->class.'::'.implode(',', $ids), $res);
+                throw new \Exception($this->class.'['.implode(',', $ids).']', $res);
             }
             else {
                 $ids = $res;
