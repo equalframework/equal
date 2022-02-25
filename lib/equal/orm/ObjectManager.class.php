@@ -1041,15 +1041,16 @@ class ObjectManager extends Service {
      * Create a new instance of given class.
      * Upon creation, the objecft remains in 'draft' state until it has been written:
      *
-     * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model.
-     * - if $field contains some values, object is created and its state is set to 'instance' (@see write method)
+     * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model;
+     * - if $field contains some values, object is created and its state is set to 'instance', unless `state` is explicitely set (@see write method).
      *
      *
-     * @param  $class        string
-     * @param  $fields       array
-     * @param  $lang         string
-     * @param  $use_draft    boolean    If set to false, disables the re-use of outdated drafts (objects created but not saved afterward).
-     * @return integer       The result is an identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
+     * @param  string       $class        Class of the object to create.
+     * @param  array        $fields       Map holding values assigned to each field.
+     * @param  string       $lang         Language in which to store multilang fields.
+     * @param  boolean      $use_draft    If set to false, disables the re-use of outdated drafts (objects created but not saved afterward).
+     *
+     * @return integer      The result is an identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
     public function create($class, $fields=NULL, $lang=DEFAULT_LANG, $use_draft=true) {
         $res = 0;
@@ -1134,16 +1135,18 @@ class ObjectManager extends Service {
     /**
      * Updates specifield fields of seleced objects and stores changes into database
      *
-     * @param   string    $class         class of the objects to write
-     * @param   mixed      $ids             identifier(s) of the object(s) to update (accepted types: array, integer, numeric string)
-     * @param   mixed      $fields         array mapping fields names with the value (PHP) to which they must be set
-     * @param   string    $lang             language under which fields have to be stored (only relevant for multilang fields)
-     * @return  mixed    (int or array)  error code OR array of updated ids
+     * @param   string    $class        Class of the objects to write.
+     * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
+     * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
+     * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
+     *
+     * @return  int|array Error code OR array of updated ids.
      */
     public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
+        // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
+        $this->getDBHandler();
 
         try {
             // 1) do some pre-treatment
@@ -1230,20 +1233,21 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Returns either an error code or an associative array containing, for each requested object id,
-     * an array maping each selected field to its value.
+     * Returns either an error code or an associative array containing, for each requested object id, an array maping each selected field to its value.
      * Note : The process maintains order inside $ids and $fields arrays.
      *
-     * @param   string    $class            class of the objects to retrieve
-     * @param   mixed    $ids            identifier(s) of the object(s) to retrieve (accepted types: array, integer, string)
-     * @param   mixed    $fields            name(s) of the field(s) to retrieve (accepted types: array, string)
-     * @param   string  $lang            language under which return fields values (only relevant for multilang fields)
-     * @return  mixed   (int or array)  error code OR resulting associative array
+     * @param   string     $class       Class of the objects to retrieve.
+     * @param   mixed      $ids         Identifier(s) of the object(s) to retrieve (accepted types: array, integer, string).
+     * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
+     * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
+     *
+     * @return  int|array  Error code OR resulting associative array
      */
     public function read($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
+        // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
+        $this->getDBHandler();
 
         try {
 
@@ -1337,48 +1341,43 @@ class ObjectManager extends Service {
             // 5) handle dot fields
 
             foreach($dot_fields as $field) {
-                // init result set (values will be used as keys for assigning the loaded values)
+
+                // extract sub field and remainder
+                $parts = explode('.', $field, 2);
+
+                $path_field = $parts[0];
+
+                // ignore non-relational fields
+                if(!isset($schema[$path_field]) || !in_array($schema[$path_field]['type'], ['many2one', 'one2many', 'many2many'])) continue;
+
+                // read the field values
+                $values = $this->read($class, $ids, (array) $path_field, $lang);
+
+                if($values <= 0) continue;
+
+                // recursively read sub objects
                 foreach($ids as $oid) {
-                    $res[$oid][$field] = $oid;
-                }
-                // class of the object at the current position (of the 'path' variable), start with the class given as parameter
-                $path_class = $class;
-                // list of the parent objects ids, start with the objects ids given as parameter
-                $path_prev_ids = $ids;
-                // schema of the object at the current position, start with the schema of the class given as parameter
-                $path_schema = $schema;
-                $path_fields = explode('.', $field);
-                $n = count($path_fields);
-                $i = 0;
-                // walk through the path variable (containing the fields hierarchy)
-                foreach($path_fields as $path_field) {
-                    // fetch all ids for every parent object (whose ids are stored in $path_prev_ids)
-                    // #caution there might be a recursion here
-                    $path_values = $this->read($path_class, $path_prev_ids, array($path_field), $lang);
-                    // assign result set with loaded values for current level
-                    foreach($ids as $oid) {
-                        if($res[$oid][$field] && isset($path_values[$res[$oid][$field]])) {
-                            $res[$oid][$field] = $path_values[$res[$oid][$field]][$path_field];
-                        }
-                        else {
-                            $res[$oid][$field] = null;
-                        }
-                    }
-                    // if target field is a relational type, keep on processing the path
-                    if(isset($path_schema[$path_field]['foreign_object']) && $i < ($n-1) ) {
-                        // obtain the next object name (given the name of the current field, $path_field, and the schema of the current object, $path_schema)
-                        $path_class = $path_schema[$path_field]['foreign_object'];
-                        // targeted values is a list of ids for the object at the current position of the path
-                        $path_prev_ids = array_map(function ($odata) use($path_field) { return $odata[$path_field]; }, $path_values);
-                        $object = $this->getStaticInstance($path_class);
-                        $path_schema = $object->getSchema();
+                    if(!isset($values[$oid][$path_field])) {
+                        $res[$oid][$field] = null;
                     }
                     else {
-                        // do not follow a malformed path
-                        break;
+                        $res[$oid][$field] = $values[$oid][$path_field];
+
+                        if(isset($schema[$path_field]['foreign_object'])) {
+                            $sub_class = $schema[$path_field]['foreign_object'];
+                            $sub_ids = $values[$oid][$path_field];
+                            $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
+                            if($schema[$path_field]['type'] == 'many2one') {
+                                $odata = array_shift($sub_values);
+                                $res[$oid][$field] = $odata[$parts[1]];
+                            }
+                            else {
+                                $res[$oid][$field] = $sub_values;
+                            }
+                        }
                     }
-                    ++$i;
                 }
+
             }
 
         }
@@ -1394,10 +1393,11 @@ class ObjectManager extends Service {
      * Delete an object permanently or put it in the "trash bin" (i.e. setting the 'deleted' flag to 1).
      * The returned structure is an associative array containing ids of the objects actually deleted.
      *
-     * @param   string  $class              object class
-     * @param   array   $ids                ids of the objects to remove
-     * @param   boolean $permanent          flag for soft (marked as deleted) or hard deletion (removed from DB)
-     * @return  mixed   (integer or array)  error code OR array of ids of deleted objects
+     * @param   string  $class          Class of the object to delete.
+     * @param   array   $ids            Array of ids of the objects to delete.
+     * @param   boolean $permanent      Flag for soft- (mark as deleted) or hard-deletion (remove from DB).
+     *
+     * @return  integer|array   Error code OR array of ids of deleted objects
      */
     public function remove($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
@@ -1418,6 +1418,11 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
+
+            if( !$this->callObjectMethod($class, 'ondelete', $ids) ) {
+                throw new Exception('At least one item Cannot be deleted.', QN_ERROR_NOT_ALLOWED);
+            }
+
             // soft deletion
             if (!$permanent) {
                 $db->setRecords($table_name, $ids, ['deleted' => 1]);
@@ -1491,12 +1496,13 @@ class ObjectManager extends Service {
     }
 
     /**
-     * @param $class    string
-     * @param $id       integer
-     * @param $values   array           Map of fields to override orinal object values.
      *
-     * @param   string  $lang            Language under which return fields values (only relevant for multilang fields).
-     * @return  mixed   (int or array)  Error code OR resulting associative array.
+     * @param   string    $class    Class name of the object to clone.
+     * @param   integer   $id       Unique identifier of the object to clone.
+     * @param   array     $values   Map of fields to override orinal object values.
+     * @param   string    $lang     Language under which return fields values (only relevant for multilang fields).
+     *
+     * @return  int|array  Error code OR resulting associative array.
      */
     public function clone($class, $id, $values=[], $lang=DEFAULT_LANG) {
         $res = 0;
@@ -1572,16 +1578,17 @@ class ObjectManager extends Service {
      *     Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
      *     i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
      *
-     *     accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
-     *     example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
+     *     Accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
+     *     Example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
      *
      *
      * @param   string     $class
      * @param   array      $domain
-     * @param   array      $sort           array of fields which result have to be sorted on, possibly precedded by sign (+ for 'asc', - for 'desc')
+     * @param   array      $sort        Array of fields which result have to be sorted on, possibly precedded by sign (+ for 'asc', - for 'desc').
      * @param   integer    $start
      * @param   string     $limit
-     * @return  mixed      (integer or array)
+     *
+     * @return  integer|array
      */
     public function search($class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=DEFAULT_LANG) {
         // get DB handler (init DB connection if necessary)
