@@ -1204,22 +1204,30 @@ class ObjectManager extends Service {
                         $this->onchange_methods[$class] = [];
                     }
                     if(!isset($this->onchange_methods[$class][$schema[$field]['onchange']])) {
-                        // prevent inner loops and calling same handler several times during the cycle
-                        $this->onchange_methods[$class][$schema[$field]['onchange']] = true;
-                        try {
-                            $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $ids, $lang);
-                            // if callback returned an array, update newly assigned values
-                            if($updates && count($updates)) {
-                                foreach($updates as $oid => $update) {
-                                    $this->cache[$class][$oid][$lang][$field] = $update;
-                                }
-                                $this->store($class, array_keys($updates), (array) $field, $lang);
+                        $this->onchange_methods[$class][$schema[$field]['onchange']] = [];
+                    }
+
+                    try {
+                    // prevent inner loops and calling same handler several times during the cycle
+                        $processed_ids = $this->onchange_methods[$class][$schema[$field]['onchange']];
+                        $unprocessed_ids = array_filter($ids, function ($id) use($processed_ids) {
+                            return !in_array($id, $processed_ids); 
+                        });
+
+                        $this->onchange_methods[$class][$schema[$field]['onchange']] = array_merge($processed_ids, $unprocessed_ids);
+
+                        $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $unprocessed_ids, $lang);
+                        // if callback returned an array, update newly assigned values
+                        if($updates && count($updates)) {
+                            foreach($updates as $oid => $update) {
+                                $this->cache[$class][$oid][$lang][$field] = $update;
                             }
+                            $this->store($class, array_keys($updates), (array) $field, $lang);
                         }
-                        catch(Exception $e) {
-                            // invalid schema : ignore onchange callback
-                            trigger_error($e->getMessage(), E_USER_ERROR);
-                        }
+                    }
+                    catch(Exception $e) {
+                        // invalid schema : ignore onchange callback
+                        trigger_error($e->getMessage(), E_USER_ERROR);
                     }
                 }
             }
@@ -1418,10 +1426,6 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
-
-            if( !$this->callObjectMethod($class, 'ondelete', $ids) ) {
-                throw new Exception('At least one item Cannot be deleted.', QN_ERROR_NOT_ALLOWED);
-            }
 
             // soft deletion
             if (!$permanent) {
