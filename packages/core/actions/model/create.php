@@ -6,10 +6,10 @@
 */
 
 /*
-Usage examples :  
+Usage examples :
 
 ## PHP
-```php 
+```php
 <?php
 use core\Group;
 $group = Group::create(['name' => 'test group'])->first();
@@ -17,7 +17,8 @@ $group = Group::create(['name' => 'test group'])->first();
 
 ## CLI
 ```bash
-equal.run --do=model_create --entity=core\group --fields[name]="test group"
+./equal.run --do=model_create --entity=core\\group --fields[name]="test group"
+./equal.run --do=model_create --entity=core\\User --fields="{login:'test@example.com'}"
 ```
 
 */
@@ -32,17 +33,17 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'fields' =>  [
             'description'   => 'Associative array mapping fields to their related values.',
-            'type'          => 'array', 
+            'type'          => 'array',
             'default'       => []
         ],
         'lang' => [
             'description '  => 'Specific language for multilang field.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ]
     ],
@@ -58,14 +59,27 @@ if(!$entity) {
 }
 
 $schema = $entity->getSchema();
-foreach($params['fields'] as $field => $value) {
-    // drop empty and unknown fields
-    if(is_null($value) || !isset($schema[$field])) {
-        unset($params['fields'][$field]);
-        continue;
+
+try {
+    foreach($params['fields'] as $field => $value) {
+        // drop empty and unknown fields
+        if(is_null($value) || !isset($schema[$field])) {
+            unset($params['fields'][$field]);
+            continue;
+        }
+        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
-    $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
 }
+catch(Exception $e) {
+    $msg = $e->getMessage();
+    // handle serialized objects as message
+    $data = @unserialize($msg);
+    if ($data !== false) {
+        $msg = $data;
+    }
+    throw new \Exception(serialize([$field => $msg]), $e->getCode());
+}
+
 
 // fields for which no value has been given are set to default value (set in Model)
 $instance = $params['entity']::create($params['fields'], $params['lang'])
@@ -73,7 +87,7 @@ $instance = $params['entity']::create($params['fields'], $params['lang'])
             ->first();
 
 $result = [
-    'entity' => $params['entity'], 
+    'entity' => $params['entity'],
     'id'     => $instance['id']
 ];
 
