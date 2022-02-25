@@ -150,11 +150,13 @@ try {
 }
 // something went wrong: send an HTTP response with code related to the raised exception
 catch(Throwable $e) {
-    $error_code = $e->getCode();
-    if($e instanceof Error) {
+    if( !($e instanceof Exception) ) {
         $error_code = QN_ERROR_UNKNOWN;
     }
-    // an exception with code 0 is an explicit process halt with no error
+    else {
+        $error_code = $e->getCode();
+    }
+    // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
         // get HTTP status code according to raised exception
         $http_status = qn_error_http($error_code);
