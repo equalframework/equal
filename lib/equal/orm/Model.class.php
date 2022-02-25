@@ -153,9 +153,9 @@ class Model {
     }
 
     /**
-    * Returns all fields names
-    *
-    */
+     * Returns all fields names
+     *
+     */
     public final function getFields() {
         return $this->fields;
     }
@@ -258,12 +258,27 @@ class Model {
     }
 
     /**
-     * Check wether an object can be deleted and perform some additional operations if necessary.
+     * Check wether an object can be deleted, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
      *
      * @return  boolean     Returns true if the object can be deleted, or false otherwise.
      */
     public static function ondelete($om, $oids) {
+        return true;
+    }
+
+
+    /**
+     * Check wether an object can be updated, and perform some additional operations if necessary.
+     * This method can be overriden to define a more precise set of tests.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  object   $values     Associative array holding the new values to be assigned.
+     * 
+     * @return  boolean     Returns true if the object can be updated, or false otherwise.
+     */
+    public static function onupdate($om, $oids, $values) {
         return true;
     }
 
