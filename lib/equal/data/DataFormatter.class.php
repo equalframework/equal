@@ -13,7 +13,7 @@ namespace equal\data;
  *
  */
 
- 
+
 class DataFormatter {
 
 
@@ -21,20 +21,64 @@ class DataFormatter {
     switch($usage) {
       case 'phone':
         return self::format_phone($value);
-        break;
+      case 'iban':
+        return self::format_iban($value);
+      case 'bic':
+        return self::format_bic($value);
+      case 'scor':
+        return self::format_scor($value);
     }
+    return $value;
   }
 
   /**
-   * 
-   * 
+   * SCOR is the belgian Structured Communication Reference used in bank payments.
+   *
+  */
+  private static function format_scor($ref) {
+    return '+++'.substr($ref, 0, 3).'/'.substr($ref, 3, 4).'/'.substr($ref, 7, 5).'+++';
+  }
+
+  /**
+   * BIC (Business Identifier Code) codes are 8 to 11 chars long and follow the iso norm ISO 9362:2014.
+   *
+   */
+  private static function format_bic($bic) {
+    return strtoupper(str_replace([' ', '.', '-'], '', $bic));
+  }
+
+  /**
+   * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars
+   * min. is 15 chars long, max. is 31 chars long
+   */
+  private static function format_iban($iban) {
+    $iban = strtoupper(str_replace([' ', '.', '-'], '', $iban));
+    $len = strlen($iban);
+    if($len <= 16) {
+      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12);
+    }
+    if($len <= 20) {
+      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16);
+    }
+    if($len <= 24) {
+      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20);
+    }
+    if($len <= 28) {
+      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24);
+    }
+    return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24, 4).' '.substr($iban, 28);
+  }
+
+  /**
+   *
+   *
    * +32489532419  12    +32 489 53 24 19
    * +3286434407   11    +32 86 43 44 07
    * +326736276    10    +32 673 62 76
    * +32488100      9    +32 48 81 00
    */
   private static function format_phone($phone) {
-    
+
     // phone prefixes (ITU-T E.123 & E.164)
     static $prefixes = [
       // belgium
@@ -146,7 +190,7 @@ class DataFormatter {
       98
 
       */
-            
+
     ];
 
     $phone = str_replace(' ', '', $phone);
