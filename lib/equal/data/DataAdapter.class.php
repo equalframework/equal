@@ -56,7 +56,7 @@ class DataAdapter extends Service {
                                         $value = intval($value);
                                     }
                                     else {
-                                        $value = 0;
+                                        throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
                                 }
@@ -74,6 +74,9 @@ class DataAdapter extends Service {
                                     // arg represents a numeric value (numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = floatval($value);
+                                    }
+                                    else {
+                                        throw new \Exception(serialize(["not_valid_float" => "Format inconvertible to float."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
                                 }
@@ -145,6 +148,9 @@ class DataAdapter extends Service {
                                     else {
                                         // convert ISO8601 to timestamp
                                         $value = strtotime($value);
+                                        if($value === false) {
+                                            throw new \Exception(serialize(["not_valid_date" => "Format inconvertible to date."]), QN_ERROR_INVALID_PARAM);
+                                        }
                                     }
                                     return $value;
                                 }
@@ -178,6 +184,9 @@ class DataAdapter extends Service {
                                     else {
                                         // convert ISO 8601 to timestamp
                                         $value = strtotime($value);
+                                        if($value === false) {
+                                            throw new \Exception(serialize(["not_valid_datetime" => "Format inconvertible to datetime."]), QN_ERROR_INVALID_PARAM);
+                                        }
                                     }
                                     return $value;
                                 }
@@ -318,6 +327,9 @@ class DataAdapter extends Service {
             'many2one'  => [
                 'txt' => [
                     'php' =>    function ($value) {
+                                    if(!is_numeric($value)) {
+                                        throw new \Exception(serialize(["not_valid_identifier" => "Format inconvertible to id (integer)."]), QN_ERROR_INVALID_PARAM);
+                                    }
                                     $value = (int) $value;
                                     // setting to zero unsets the field
                                     if($value == 0) {
@@ -406,7 +418,7 @@ class DataAdapter extends Service {
                             }
                             $res = base64_decode($value, true);
                             if(!$res) {
-                                throw new \Exception("not_valid_base64", QN_ERROR_INVALID_PARAM);
+                                throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), QN_ERROR_INVALID_PARAM);
                             }
                             if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
                                 throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
