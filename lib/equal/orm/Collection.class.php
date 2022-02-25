@@ -655,6 +655,10 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
+            if( !$this->class::onupdate($this->orm, $ids, $fields) ) {
+                throw new \Exception('onupdate_denied', QN_ERROR_NOT_ALLOWED);
+            }
+
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
@@ -694,6 +698,10 @@ class Collection implements \Iterator {
             $user_id = $this->am->userId();
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
+
+            if( !$this->class::ondelete($this->orm, $ids) ) {
+                throw new \Exception('ondelete_denied', QN_ERROR_NOT_ALLOWED);
+            }
 
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
