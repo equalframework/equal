@@ -177,12 +177,13 @@ class Setting extends Model {
      * @param   $package    Package to which the setting relates to.
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
+     * @param   $default    (optional) Default value to return if setting is not found.
      * @param   $user_id    (optional) Retrieve the specific value assigned to a given user.
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_value(string $package, string $section, string $code, int $user_id=0) {
-        $result = null;
+    public static function get_value(string $package, string $section, string $code, $default=null, int $user_id=0) {
+        $result = $default;
 
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
@@ -225,15 +226,15 @@ class Setting extends Model {
     /**
      * Update the value of a given setting.
      *
-     * @param   $value      The new value that has to be assigned to the setting.
      * @param   $package    Package to which the setting relates to.
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
+     * @param   $value      The new value that has to be assigned to the setting.
      * @param   $user_id    (optional) Target the specific value assigned to a given user.
      *
      * @return  void
      */
-    public static function set_value($value, string $package, string $section, string $code, int $user_id=0) {
+    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0) {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
