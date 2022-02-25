@@ -6,17 +6,17 @@
             "help": ""
         },
         "creator": {
-            "label": "Créateur",
+            "label": "Créé par",
             "description": "Utilisateur ayant créé l'objet.",
             "help": ""
         },
         "created": {
-            "label": "Création",
+            "label": "Créé",
             "description": "Date de création de l'objet.",
             "help": ""
         },
         "modifier": {
-            "label": "Modificateur",
+            "label": "Modifié par",
             "description": "Dernier utilisateur a avoir modifié l'objet.",
             "help": ""
         },
@@ -25,14 +25,14 @@
             "description": "Date de dernière modification.",
             "help": ""
         },
-        "delete": {
+        "deleted": {
             "label": "Supprimé",
             "description": "Indicateur pour les objets supprimés.",
             "help": ""
         },
         "state": {
             "label": "Statut",
-            "description": "Etat de l'objet (brouillon, instance).",
+            "description": "Etat de l'objet (brouillon, instance, archive).",
             "help": ""
         }
     },
