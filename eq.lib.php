@@ -311,7 +311,8 @@ namespace config {
                 'orm'       => 'equal\orm\ObjectManager',
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
-                'spool'     => 'equal\email\EmailSpooler'
+                'spool'     => 'equal\email\EmailSpooler',
+                'cron'      => 'equal\cron\Scheduler'
             ]);
 
             // make sure mandatory dependencies are available (reporter requires context)
@@ -679,12 +680,12 @@ namespace config {
          * This method stacks the context, sets URI and body according to arguments, and calls the targeted script.
          * In case the operation is not defined, a QN_ERROR_UNKNOWN_OBJECT error is raised (HTTP 404)
          *
-         * @param $type
-         * @param $operation
-         * @param $body
-         * @param $root
+         * @param string    $type           Type of operation to run ('do', 'get', 'show')
+         * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
+         * @param array     $body           Payload to relay to the controller (associative array).
+         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
          *
-         * @example run('get', 'resiway_tests', ['test'=> 1])
+         * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
             trigger_error("QN_DEBUG_ORM::calling run method for $type:$operation", QN_REPORT_DEBUG);
@@ -917,6 +918,14 @@ namespace {
         /**
          * Call run, then returns it result or raises/relay an Exception if an error occurs.
          * (So it can be used with the global exceptions logic or with local try/catch blocks.)
+         * 
+         * @param string    $type           Type of operation to run ('do', 'get', 'show')
+         * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
+         * @param array     $body           Payload to relay to the controller (associative array).
+         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
+         * 
+         * @return  array        Associative array holding the result of the call.
+         * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
         public static function run($type, $operation, $body=[], $root=false) {
             $result = config\eQual::run($type, $operation, $body, $root);
