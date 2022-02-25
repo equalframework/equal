@@ -220,6 +220,7 @@ class Model {
     }
 
     /**
+     * Provide the list of unique rules (array of combinations of fields).
      * This method can be overriden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
      *
      * @access public
@@ -254,6 +255,16 @@ class Model {
         }
 
         return str_replace('\\', '_', $entity);
+    }
+
+    /**
+     * Check wether an object can be deleted and perform some additional operations if necessary.
+     * This method can be overriden to define a more precise set of tests.
+     *
+     * @return  boolean     Returns true if the object can be deleted, or false otherwise.
+     */
+    public static function ondelete($om, $oids) {
+        return true;
     }
 
     /**
