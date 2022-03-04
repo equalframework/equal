@@ -655,7 +655,7 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            if( !$this->class::onupdate($this->orm, $ids, $fields) ) {
+            if( !$this->class::onupdate($this->orm, $ids, $values) ) {
                 throw new \Exception('onupdate_denied', QN_ERROR_NOT_ALLOWED);
             }
 
