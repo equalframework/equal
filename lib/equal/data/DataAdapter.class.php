@@ -8,8 +8,6 @@ namespace equal\data;
 
 use equal\organic\Service;
 use equal\fs\FSManipulator;
-use equal\html\HTMLPurifier;
-use equal\html\HTMLPurifier_Config;
 
 class DataAdapter extends Service {
 
@@ -48,7 +46,8 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     if(is_string($value)) {
-                                        if(in_array($value, ['TRUE', 'true'])) $value = 1;
+                                        if(empty($value)) $value = 0;
+                                        else if(in_array($value, ['TRUE', 'true'])) $value = 1;
                                         else if(in_array($value, ['FALSE', 'false'])) $value = 0;
                                     }
                                     // arg represents a numeric value (numeric type or string)
@@ -389,9 +388,8 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' => function ($value) {
                         // clean HTML input html
-                        // standard cleaning: remove non-standard tags and attributes
-                        $purifier = new HTMLPurifier(HTMLPurifier_Config::createDefault());
-                        return $purifier->purify($value);
+                        // strip all attributes
+                        return preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $value);
                     }
                 ]
             ],
