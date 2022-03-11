@@ -32,9 +32,9 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
-    ],    
+    ],
     'providers'     => ['context', 'orm'],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']    
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
@@ -46,7 +46,7 @@ $params['package'] = strtolower($params['package']);
 
 TODO : check config and json files syntax.
 
-translation files constraints: 
+translation files constraints:
     * model helpers : max 45 chars
     * error messages length : max 45 chars
 
@@ -88,11 +88,11 @@ if( is_dir($lang_dir) && ($list = scandir($lang_dir)) ) {
         if(is_dir($lang_dir.'/'.$node) && !in_array($node, array('.', '..'))) $lang_list[] = $node;
     }
 }
-    
+
 foreach($classes as $class) {
 // #todo - check match between namespace and package
 // #todo - check match between classname and filename
-    
+
     // get the full class name
     $class_name = $params['package'].'\\'.$class;
     // get the related filename
@@ -109,11 +109,11 @@ foreach($classes as $class) {
     }
 // #todo - an Exception may still arise while loading a class dependency (of the same package)
     $model = $orm->getModel($class_name);
-    
+
     if(!$model || !is_object($model)) {
         throw new Exception("FATAL - unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
     }
-        
+
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
@@ -132,7 +132,7 @@ foreach($classes as $class) {
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']]);	
+            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']]);
             $is_error = true;
             continue;
         }
@@ -182,7 +182,7 @@ foreach($classes as $class) {
 
     // 5) check view files consistency (.json)
     $view_files = glob("$view_dir/$class.*.json");
-    
+
     foreach($view_files as $view_file) {
         $json = file_get_contents($view_file);
         $data = @json_decode($json, true);
@@ -193,14 +193,14 @@ foreach($classes as $class) {
         }
         if(strpos($view_file, 'form.') > 0) {
             $structure = [
-                'name', 
-                'description', 
+                'name',
+                'description',
                 'layout' => [
                     'groups' => [
                         'sections' => [
                             'rows' => [
                                 'columns' => [
-                                    'width', 
+                                    'width',
                                     'items' => [
                                         'type', 'value', 'width'
                                     ]
@@ -209,12 +209,12 @@ foreach($classes as $class) {
                         ]
                     ]
                 ]
-            ];    
+            ];
         }
         else {
             $structure = [
-                'name', 
-                'description', 
+                'name',
+                'description',
                 'layout' => [
                     'items' => [
                         'type', 'value', 'width'
@@ -231,7 +231,7 @@ foreach($classes as $class) {
         // check that fields targeted in views are valid (defined in schema)
         $items = view_get_items($data, $structure);
         foreach($items as $item) {
-            if(isset($item['type']) && $item['type'] == 'field' && isset($item['value'])) {                
+            if(isset($item['type']) && $item['type'] == 'field' && isset($item['value'])) {
                 $field = $item['value'];
                 if(!isset($schema[$field])) {
                     $result[] = "ERROR - UI - Unknown field '$field' referenced in file $view_file";
@@ -241,7 +241,7 @@ foreach($classes as $class) {
         }
     }
 
-    // 6) check translation file consistency (.json)	
+    // 6) check translation file consistency (.json)
     foreach($lang_list as $lang) {
         $i18n_file = "$lang_dir/$lang/$class.json";
         if(is_file($i18n_file)) {
@@ -258,7 +258,7 @@ foreach($classes as $class) {
                     $result[] = "ERROR - I18N - Missing mandatory property '$property' in file: $i18n_file";
                     $is_error = true;
                 }
-            }            
+            }
             if(isset($data['model'])) {
                 $fields = array_keys($data['model']);
                 // check that the referenced fields are valid (defined in the schema)
@@ -271,7 +271,7 @@ foreach($classes as $class) {
                         $result[] = "WARN - I18N - Root field '$field' shouldn't be referenced in file $i18n_file";
                     }
                 }
-                // check that the transaltion description is complete for each field
+                // check that the translation description is complete for each field
                 foreach($fields as $field) {
                     $mandatory_properties = ['label', 'help', 'description'];
                     foreach($mandatory_properties as $property) {
@@ -294,8 +294,13 @@ foreach($classes as $class) {
                                 }
                             }
                             else if($property == 'description') {
-                                if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
-                                    $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                if( strlen($data['model'][$field][$property]) ) {
+                                    if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
+                                        $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                    }
+                                    if( strlen($data['model'][$field][$property]) > 60) {
+                                        $result[] = "WARN - I18N - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
+                                    }
                                 }
                             }
                         }
@@ -310,10 +315,10 @@ foreach($classes as $class) {
             }
         }
    }
-    
-// todo : 7) check apps / data / actions  files consistency (.php) 
+
+// todo : 7) check apps / data / actions  files consistency (.php)
     // - presence of " = announce( "
-    
+
 }
 
 
@@ -353,16 +358,16 @@ while($row = $db->fetchRow($res)) {
 $allowed_types_associations = [
     'boolean' 		=> array('bool', 'tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
     'integer' 		=> array('tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
-    'float' 		=> array('float', 'decimal'),	
+    'float' 		=> array('float', 'decimal'),
     'string' 		=> array('char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'blob', 'mediumblob'),
     'text' 			=> array('tinytext', 'text', 'mediumtext', 'longtext', 'blob'),
-    'html' 			=> array('tinytext', 'text', 'mediumtext', 'longtext', 'blob'),    
+    'html' 			=> array('tinytext', 'text', 'mediumtext', 'longtext', 'blob'),
     'date' 			=> array('date', 'datetime'),
     'time' 			=> array('time'),
     'datetime' 		=> array('datetime'),
     'timestamp' 	=> array('timestamp'),
     'selection' 	=> array('char', 'varchar'),
-    'file'  		=> array('blob', 'mediumblob', 'longblob'),    
+    'file'  		=> array('blob', 'mediumblob', 'longblob'),
     'binary' 		=> array('blob', 'mediumblob', 'longblob'),
     'many2one' 		=> array('int')
 ];
@@ -371,15 +376,15 @@ foreach($classes as $class) {
     // get the full class name
     $entity = $params['package'].'\\'.$class;
 
-    $model = $orm->getModel($entity);    
+    $model = $orm->getModel($entity);
     if(!is_object($model)) throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
-        
+
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
     // get the SQL table name
-    $table = $orm->getObjectTableName($entity);	
-    
+    $table = $orm->getObjectTableName($entity);
+
     // 1) verify that the DB table exists
     if(!isset($tables[$table])) {
         $result[] = "ERROR - DB - Class $class: Associated table ({$table}) does not exist in database";
@@ -405,6 +410,22 @@ foreach($classes as $class) {
             if(isset($description['store']) && $description['store']) $simple_fields[] = $field;
         }
         else if($description['type'] == 'many2many') $m2m_fields[] = $field;
+
+        if(isset($description['onchange'])) {
+            $parts = explode('::', $description['onchange']);
+            $count = count($parts);
+
+            if( $count < 1 || $count > 2 ) {
+                $result[] = "ERROR - ORM - Class $class: Field $field has invalid onchange property ({$description['onchange']})";
+            }
+            else {
+                $called_class = $parts[0];
+                $called_method = $parts[1];
+                if(!method_exists($called_class, $called_method)) {
+                    $result[] = "ERROR - ORM - Class $class: Field $field has onchange property with unknown handler '{$description['onchange']}'";
+                }
+            }
+        }
     }
     // a) check that every declared simple field is present in the associated DB table
     foreach($simple_fields as $field) {
@@ -453,8 +474,8 @@ if(!count($result)) $result[] = "INFO - Nothing to report.";
 $context->httpResponse()
         ->body(['result' => $result])
         ->send();
-    
-// in case of error(s), force exiting with an error code		
+
+// in case of error(s), force exiting with an error code
 if($is_error) {
     exit(1);
 }
@@ -473,8 +494,8 @@ function view_test($data, $structure) {
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
         $data = [$data];
-    }    
-    foreach($data as $index => $elem) {            
+    }
+    foreach($data as $index => $elem) {
         foreach($structure as $item => $def) {
             $key = is_numeric($item)?$def:$item;
             if(is_numeric($item)) {
@@ -482,7 +503,7 @@ function view_test($data, $structure) {
                     return "missing mandatory property '$key' for item $index";
                 }
             }
-            else {                
+            else {
                 $res = view_test($elem[$key], $structure[$item]);
                 if($res) {
                     return $res;
@@ -498,8 +519,8 @@ function view_get_items($data, $structure) {
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
         $data = [$data];
-    }    
-    foreach($data as $elem) {            
+    }
+    foreach($data as $elem) {
         foreach($structure as $item => $def) {
             if(!is_numeric($item)) {
                 if($item == 'items') {
