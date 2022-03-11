@@ -105,7 +105,7 @@ if($send_confirm) {
     $subject = '';
     // read template according to user prefered language
     $file = "packages/core/i18n/{$user['language']}/mail_user_confirm.html";
-    if(!($html = @file_get_contents($file, FILE_TEXT))) {
+    if(!($html = @file_get_contents($file))) {
         throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
     }
     $template = new HtmlTemplate($html, [
