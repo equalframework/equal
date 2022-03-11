@@ -7,16 +7,16 @@ use equal\http\HttpResponse;
 
 
 class Context extends Service {
-    
+
     private $params;
-    
+
     private $pid;
-    
+
     private $time;
-    
+
     private $httpRequest;
-    
-    private $httpResponse;   
+
+    private $httpResponse;
 
 
     /**
@@ -37,12 +37,12 @@ class Context extends Service {
         if($this->httpRequest)  $this->httpRequest = clone $this->httpRequest;
         if($this->httpResponse) $this->httpResponse = clone $this->httpResponse;
     }
-    
+
     public function __toString() {
         return 'This is the PHP context instance';
     }
-    
-   
+
+
     public function get($var, $default=null) {
         if(isset($this->params[$var])) {
             return $this->params[$var];
@@ -54,19 +54,19 @@ class Context extends Service {
         $this->params[$var] = $value;
         return $this;
     }
-    
+
     public function getTime() {
         return $this->time;
     }
-    
+
     public function getPid() {
         return $this->pid;
     }
-    
+
     public function getHttpRequest() {
         if(is_null($this->httpRequest)) {
-            // retrieve current request 
-            $uri  = $this->getHttpUri();            
+            // retrieve current request
+            $uri  = $this->getHttpUri();
             $body = $this->getHttpBody($uri);
             $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$uri.' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders(), $body);
         }
@@ -80,11 +80,11 @@ class Context extends Service {
         }
         return $this->httpResponse;
     }
-    
+
     public function getSessionId() {
         return 0;
     }
-    
+
     public function setHttpRequest(HttpRequest $request) {
         $this->httpRequest = $request;
         return $this;
@@ -94,13 +94,17 @@ class Context extends Service {
         $this->httpResponse = $response;
         return $this;
     }
-    
-    public function setSessionId(int $session_id) {        
+
+    public function setSessionId(int $session_id) {
         return $this;
-    }    
+    }
 
     // below are additional method using short name and get/set based on arguments
-    
+
+    public function httpRequestHeaders() {
+        return $this->getHttpRequestHeaders();
+    }
+
     public function httpRequest() {
         $args = func_get_args();
         if(count($args) < 1) {
@@ -109,7 +113,7 @@ class Context extends Service {
         else {
             $request = $args[0];
             return $this->setHttpRequest($request);
-        }        
+        }
     }
 
     public function httpResponse() {
@@ -122,10 +126,10 @@ class Context extends Service {
             return $this->setHttpResponse($response);
         }
     }
-    
+
     // private methods
-    
-    
+
+
     private function getHttpResponseHeaders() {
         $res = [];
         $headers = headers_list();
@@ -135,7 +139,7 @@ class Context extends Service {
         }
         $request_headers = $this->getHttpRequestHeaders();
         // set default content type to JSON and default charset to UTF-8
-        $res['Content-Type'] = 'application/json; charset=UTF-8';        
+        $res['Content-Type'] = 'application/json; charset=UTF-8';
         if(isset($request_headers['Accept'])) {
             // example: Accept: text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c
             $parts = explode(',', $request_headers['Accept']);
@@ -147,7 +151,7 @@ class Context extends Service {
         }
         return $res;
     }
-    
+
     /**
      *
      * HTTP message formatted protocol (i.e. HTTP/1.0 or HTTP/1.1)
@@ -162,15 +166,15 @@ class Context extends Service {
         return $protocol;
     }
 
-    /** 
+    /**
      * Retrieve the request method.
      *
      * If the X-HTTP-Method-Override header is set, and if the method is a POST,
      * then it is used to determine the "real" intended HTTP method.
      *
-     */    
+     */
     private function getHttpMethod() {
-        static $method = null;        
+        static $method = null;
         if(!$method) {
             // fallback to GET method (using CLI, REQUEST_METHOD is not set), i.e. 'GET'
             $method = 'GET';
@@ -182,27 +186,29 @@ class Context extends Service {
                     }
                 }
                 // normalize to upper case
-                $method = strtoupper($method);                
+                $method = strtoupper($method);
             }
         }
-        return $method;        
+        return $method;
     }
-    
+
     /**
      * Get all HTTP header key/values as an associative array for the current request.
      *
-     */    
+     */
     private function getHttpRequestHeaders() {
         static $headers = null;
-        
+
         if(!$headers) {
+
             // 1) retrieve headers
+
             if (function_exists('getallheaders')) {
-                $headers = (array) getallheaders();                  
+                $headers = (array) getallheaders();
             }
             else {
                 // Polyfill from https://github.com/ralouphie/getallheaders
-                // Copyright (c) 2014 Ralph Khattar - License: The MIT License (MIT)                            
+                // Copyright (c) 2014 Ralph Khattar - License: The MIT License (MIT)
                 $headers = array();
                 $copy_server = array(
                     'CONTENT_TYPE'   => 'Content-Type',
@@ -220,12 +226,14 @@ class Context extends Service {
                     } elseif (isset($copy_server[$key])) {
                         $headers[$copy_server[$key]] = $value;
                     }
-                }              
+                }
             }
 
             // 2) normalize headers
+
             // handle origin header
             if (!isset($headers['Origin'])) {
+                $headers['Origin'] = '*';
                 if(isset($headers['Host'])) {
                     $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
                     $headers['Origin'] = $scheme.'://'.$headers['Host'];
@@ -240,15 +248,15 @@ class Context extends Service {
             if (!isset($headers['Authorization'])) {
                 if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
                     $headers['Authorization'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-                } 
+                }
                 elseif (isset($_SERVER['PHP_AUTH_USER'])) {
                     $basic_pass = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
                     $headers['Authorization'] = 'Basic ' . base64_encode($_SERVER['PHP_AUTH_USER'] . ':' . $basic_pass);
-                } 
+                }
                 elseif (isset($_SERVER['PHP_AUTH_DIGEST'])) {
                     $headers['Authorization'] = $_SERVER['PHP_AUTH_DIGEST'];
                 }
-            }              
+            }
             // handle ETags
             if(!isset($headers['ETag'])) {
                 if(isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
@@ -263,7 +271,7 @@ class Context extends Service {
             $client_ip = '127.0.0.1';
             if(isset($_SERVER['REMOTE_ADDR'])) {
                 $client_ip = $_SERVER['REMOTE_ADDR'];
-            }            
+            }
             if(!isset($headers['X-Forwarded-For'])) {
                 $headers['X-Forwarded-For'] = $client_ip;
             }
@@ -285,7 +293,7 @@ class Context extends Service {
         }
         return $headers;
     }
-    
+
     private function getHttpUri() {
         $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
         $auth = '';
@@ -320,7 +328,7 @@ class Context extends Service {
                     $param = $parts[0];
                     $value = (isset($parts[1]))?$parts[1]:null;
                     // handle array notation (a name followed by brackets)
-                    if(preg_match("/(.*)\[(.*)\]/i", $param, $matches)) {                        
+                    if(preg_match("/(.*)\[(.*)\]/i", $param, $matches)) {
                         $param = $matches[1];
                         if(!isset($args[$param])) {
                             $args[$param] = [];
@@ -332,7 +340,7 @@ class Context extends Service {
                     }
                     else {
                         $args[$param] = $value;
-                    }                    
+                    }
                 }
             }
             $uri .= '?'.http_build_query($args);
@@ -341,7 +349,7 @@ class Context extends Service {
     }
 
     private static function normalizeFiles() {
-        $normalized_files = [];        
+        $normalized_files = [];
         if(count($_FILES) == 1) {
             return $_FILES;
         }
@@ -360,7 +368,7 @@ class Context extends Service {
                 ];
             }
         }
-        return $normalized_files;        
+        return $normalized_files;
     }
 
     private static function to_bytes($val) {
@@ -383,7 +391,7 @@ class Context extends Service {
         $body = '';
         // in case script was invoked by CLI
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
-            // Windows does not support non-bloking reading from STDIN
+            // Windows does not support non-blocking reading from STDIN
             $OS = strtoupper(substr(PHP_OS, 0, 3));
             $options = getopt('f::');
             // so we disable auto-feed from stdin unless there is a 'f' args (to force it)
@@ -407,7 +415,7 @@ class Context extends Service {
             $max = self::getMaxMemory() - memory_get_usage() - 1;
             if($max > 0) {
                 $raw = file_get_contents('php://input', false, null, 0, $max);
-                if(strlen($raw) > $max) {
+                if(strlen($raw) >= $max) {
                     throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
                 }
                 // further processing is handled in HttpMessage::setBody, according to the Content-Type
@@ -422,22 +430,22 @@ class Context extends Service {
                 $body = array_merge_recursive($_REQUEST, self::normalizeFiles());
             }
             else {
-                $body = $_REQUEST;                
+                $body = $_REQUEST;
             }
             // mimic PHP behaviour: inject query string args to the body (only for args not already present in the body)
             if(strlen($uri)) {
                 $parts = parse_url($uri);
                 if($parts != false && isset($parts['query'])) {
-                    parse_str($parts['query'], $params);    
+                    parse_str($parts['query'], $params);
                     foreach($params as $param => $value) {
                         if(!isset($body[$param])) {
                             $body[$param] = $value;
                         }
-                    }    
+                    }
                 }
             }
             // we should have set content-type accordingly while retrieving headers (@see getHttpRequestHeaders())
         }
         return $body;
-    }    
+    }
 }
