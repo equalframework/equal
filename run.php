@@ -170,6 +170,8 @@ catch(Throwable $e) {
         $data = @unserialize($msg);
         // retrieve current HTTP response
         $response = $context->httpResponse();
+        // retrieve original headers from HTTP request
+        $request_headers = $context->httpRequestHeaders();
         // adapt response and send it
         $response
         // set HTTP status code
@@ -178,7 +180,7 @@ catch(Throwable $e) {
         ->header('Content-Type', 'application/json')
         // force allow-origin to actual origin, to make sure to go through CORS policy
         // (response is defined in announce() and has been unstacked because of an exception)
-        ->header('Access-Control-Allow-Origin', $context->httpRequest()->header('origin'))
+        ->header('Access-Control-Allow-Origin', $request_headers['Origin'])
         ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
         ->header('Access-Control-Allow-Headers', '*')
         ->header('Access-Control-Allow-Credentials', 'true')
