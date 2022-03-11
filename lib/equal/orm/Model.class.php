@@ -88,7 +88,8 @@ class Model {
             ],
             'created' => [
                 'type'              => 'datetime',
-                'default'           => time()
+                'default'           => time(),
+                'readonly'          => true
             ],
             'modifier' => [
                 'type'              => 'many2one',
@@ -96,7 +97,8 @@ class Model {
             ],
             'modified' => [
                 'type'              => 'datetime',
-                'default'           => time()
+                'default'           => time(),
+                'readonly'          => true
             ],
             'deleted' => [
                 'type'              => 'boolean',
@@ -275,7 +277,7 @@ class Model {
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
      * @param  object   $values     Associative array holding the new values to be assigned.
-     * 
+     *
      * @return  boolean     Returns true if the object can be updated, or false otherwise.
      */
     public static function onupdate($om, $oids, $values) {
