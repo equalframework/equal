@@ -9,7 +9,7 @@ list($params, $providers) = announce([
         'email' =>  [
             'description'   => 'Email address for password recovery.',
             'type'          => 'string',
-            'usage'         => 'url/mailto',
+            'usage'         => 'email',
             'required'      => true
         ]
     ],
