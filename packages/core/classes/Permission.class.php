@@ -20,7 +20,8 @@ class Permission extends Model {
 
             'domain' => [
                 'type'              => 'string',
-                'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])"
+                'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])",
+                'default'           => NULL
             ],
 
             'group_id' => [
