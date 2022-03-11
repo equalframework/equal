@@ -131,14 +131,15 @@ class ObjectManager extends Service {
         'coordinate'            => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
         'coordinate/decimal'    => 'decimal(9,6)',
         'country/iso-3166:numeric' => '',                   // 3-digits country code (ISO 3166-1)
-        'country/iso-3166:2' => '',                         // '2-letters country code (ISO 3166-1)
-        'country/iso-3166:3' => '',                         // '2-letters country code (ISO 3166-1)
+        'country/iso-3166:2'    => '',                         // '2-letters country code (ISO 3166-1)
+        'country/iso-3166:3'    => '',                         // '2-letters country code (ISO 3166-1)
         'currency/iso-4217'     => 'char(3)',
         'language/iso-639'      => 'char(5)',               // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
         'language/iso-639:2'    => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
         'language/iso-639:3'    => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
         'markup/html'           => 'mediumtext',
-        'url/mailto'            => 'varchar(255)',
+        'email'                 => 'varchar(255)',
+        'phone'                 => 'varchar(20)'
     ];
 
     protected function __construct(DBConnection $db) {
