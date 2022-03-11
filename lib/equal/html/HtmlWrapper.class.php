@@ -141,7 +141,7 @@ class HtmlWrapper {
 		return $html;
 	}
 
-	public function setCharset($chasert) {
+	public function setCharset($charset) {
 		$this->charset = $charset;
 	}
 
