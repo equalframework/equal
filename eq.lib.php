@@ -509,7 +509,7 @@ namespace config {
                     $allowed = false;
                     $users = (array) $announcement['access']['users'];
                     foreach($users as $user_id) {
-                        if($user_id == $current_user_id) {
+                        if($user_id == $current_user_id || $current_user_id == ROOT_USER_ID) {
                             $allowed = true;
                             break;
                         }
@@ -519,11 +519,14 @@ namespace config {
                     }
                 }
                 if(isset($announcement['access']['groups'])) {
-                    // conjunctions on groups
-                    $groups = (array) $announcement['access']['groups'];
-                    foreach($groups as $group) {
-                        if(!$access->hasGroup($group)) {
-                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    $current_user_id = $auth->userId();
+                    if($current_user_id != ROOT_USER_ID) {
+                        // conjunctions on groups
+                        $groups = (array) $announcement['access']['groups'];
+                        foreach($groups as $group) {
+                            if(!$access->hasGroup($group)) {
+                                throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                            }
                         }
                     }
                 }
