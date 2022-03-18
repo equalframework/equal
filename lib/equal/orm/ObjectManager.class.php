@@ -123,23 +123,23 @@ class ObjectManager extends Service {
     ];
 
     public static $usages_associations = [
-        'amount/percent'        => 'decimal(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
-        'amount/rate'           => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/money'          => 'decimal(15,2)',
-        'amount/money:2'        => 'decimal(15,2)',
-        'amount/money:4'        => 'decimal(13,4)',         // GAAP compliant
-        'coordinate'            => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
-        'coordinate/decimal'    => 'decimal(9,6)',
-        'country/iso-3166:numeric' => '',                   // 3-digits country code (ISO 3166-1)
-        'country/iso-3166:2'    => '',                         // '2-letters country code (ISO 3166-1)
-        'country/iso-3166:3'    => '',                         // '2-letters country code (ISO 3166-1)
-        'currency/iso-4217'     => 'char(3)',
-        'language/iso-639'      => 'char(5)',               // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
-        'language/iso-639:2'    => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
-        'language/iso-639:3'    => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
-        'markup/html'           => 'mediumtext',
-        'email'                 => 'varchar(255)',
-        'phone'                 => 'varchar(20)'
+        'amount/percent'            => 'decimal(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
+        'amount/rate'               => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
+        'amount/money'              => 'decimal(15,2)',
+        'amount/money:2'            => 'decimal(15,2)',
+        'amount/money:4'            => 'decimal(13,4)',         // GAAP compliant
+        'coordinate'                => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
+        'coordinate/decimal'        => 'decimal(9,6)',
+        'country/iso-3166.numeric'  => 'int',                   // 3-digits country code (ISO 3166-1)
+        'country/iso-3166:2'        => '',                      // '2-letters country code (ISO 3166-1)
+        'country/iso-3166:3'        => '',                      // '2-letters country code (ISO 3166-1)
+        'currency/iso-4217'         => 'char(3)',
+        'language/iso-639'          => 'char(5)',               // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
+        'language/iso-639:2'        => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
+        'language/iso-639:3'        => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
+        'markup/html'               => 'mediumtext',
+        'email'                     => 'varchar(255)',
+        'phone'                     => 'varchar(20)'
     ];
 
     protected function __construct(DBConnection $db) {
@@ -347,13 +347,13 @@ class ObjectManager extends Service {
             $ids = (array) $ids;
         }
         // ensure ids are positive integer values
-        foreach($ids as $key => $oid) {
+        foreach($ids as $index => $oid) {
             $id = intval($oid);
             if(!is_numeric($oid) || $id <= 0) {
-                unset($ids[$key]);
+                unset($ids[$index]);
                 continue;
             }
-            $ids[$key] = $id;
+            $ids[$index] = $id;
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
@@ -967,10 +967,9 @@ class ObjectManager extends Service {
         }
         // UNIQUE constraint check
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
-
             $uniques = $model->getUnique();
 
-            // load all fields impacted by 'unique' constraints
+            // load all fields involved in 'unique' constraints
             $unique_fields = [];
             foreach($uniques as $unique) {
                 foreach($unique as $field) {
@@ -985,6 +984,11 @@ class ObjectManager extends Service {
 
             $ids = (array) $ids;
 
+            // $ids can be empty for validation at creation of new object
+            if(empty($ids)) {
+                // make sure we always have at least one id
+                $ids[] = 0;
+            }
             foreach($ids as $id) {
                 foreach($uniques as $unique) {
                     $conflict_ids = [];
@@ -992,14 +996,16 @@ class ObjectManager extends Service {
                     foreach($unique as $field) {
                         // map unique fields with the given values
                         if(!isset($values[$field])) {
-                            $domain[] = [ $field, '=', $extra_values[$id][$field] ];
+                            // #memo - field involved in uniqu constraint should be marked as required
+                            if(isset($extra_values[$id][$field])) {
+                                $domain[] = [ $field, '=', $extra_values[$id][$field] ];
+                            }
                         }
                         else {
                             // map unique fields with the given values
                             $domain[] = [$field, '=', $values[$field]];
                         }
                     }
-
                     // search for objects already set with unique values
                     if(count($domain)) {
                         // overload default 'state' condition (set in search method): no restriction on state
@@ -1207,17 +1213,19 @@ class ObjectManager extends Service {
                     if(!isset($this->onchange_methods[$class][$schema[$field]['onchange']])) {
                         $this->onchange_methods[$class][$schema[$field]['onchange']] = [];
                     }
-
                     try {
-                    // prevent inner loops and calling same handler several times during the cycle
+                        // prevent inner loops and calling same handler several times during the cycle
+/*
                         $processed_ids = $this->onchange_methods[$class][$schema[$field]['onchange']];
                         $unprocessed_ids = array_filter($ids, function ($id) use($processed_ids) {
-                            return !in_array($id, $processed_ids); 
+                            return !in_array($id, $processed_ids);
                         });
 
                         $this->onchange_methods[$class][$schema[$field]['onchange']] = array_merge($processed_ids, $unprocessed_ids);
 
                         $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $unprocessed_ids, $lang);
+*/
+                        $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $ids, $lang);
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
                             foreach($updates as $oid => $update) {
