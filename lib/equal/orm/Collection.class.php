@@ -269,24 +269,30 @@ class Collection implements \Iterator {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names and disguard those unknonwn to the current class.
+     * Filters a map of fields-values entries or an array of fields names and discard special fields; fields marked as readonly; and fields unknonwn to the current class.
      *
-     * @param $fields   array   a set of fields or a map of fields-values
-     * @return array    filtered array containing known fields names only
+     * @param   array   $fields             Associative array mapping field names with their values.
+     * @param   bool    $check_readonly     If set to true, readonly fields are discarded.
+     * 
+     * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields) {
+    private function filter(array $fields, bool $check_readonly=true) {
         $result = [];
         if(count($fields)) {
-            // retreve valid fields, i.e. fields from schema excepted special fields (#memo - `state` is allowed for draft creation)
-            $allowed_fields = array_diff($this->instance->getFields(), ['id','creator','created','modifier','modified','deleted']);
-            // filter $fields argument based on its structure
-            // (either a list of fields to read, or a map of fields and their values for writing)
-            if(!is_numeric(key($fields))) {
-                $result = array_intersect_key($fields, array_flip($allowed_fields));
+            $schema = $this->instance->getSchema();
+            // retreve valid fields, i.e. fields from schema 
+            $allowed_fields = $this->instance->getFields();
+            if($check_readonly) {
+                // discard readonly fields
+                $allowed_fields = array_filter($allowed_fields, function ($field) use($schema) {
+                    return (isset($schema[$field]['readonly']))?!$schema[$field]['readonly']:true; 
+                });
             }
-            else {
-                $result = array_intersect($fields, $allowed_fields);
-            }
+            // discard special fields 
+            // #memo - `state` is allowed for draft creation
+            $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
+            // filter $fields argument 
+            $result = array_intersect_key($fields, array_flip($allowed_fields));
         }
         return $result;
     }
@@ -326,7 +332,7 @@ class Collection implements \Iterator {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
-                // this exception results in sending error in the same format as the announce method
+                // send error using the same format as the announce method
                 throw new \Exception(serialize($error_descr), $error_code);
             }
         }
@@ -485,8 +491,8 @@ class Collection implements \Iterator {
     /**
      * Creates a new instance
      *
-     * @param $values   array   list mapping fields and values
-     * @param $lang     string  language for multilang fields
+     * @param   array   $values   Associative array mapping fields and values.
+     * @param   string  $lang     Language for multilang fields.
      *
      * @return  object  current Collection
      * @example $newObject = MyClass::create();
@@ -495,8 +501,8 @@ class Collection implements \Iterator {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
-        // silently drop invalid fields
-        $values = $this->filter($values);
+        // silently drop invalid fields (do not check readonly: all fields are allowed at creation)
+        $values = $this->filter($values, false);
         // retrieve targeted fields names
         $fields = array_keys($values);
 
@@ -639,9 +645,11 @@ class Collection implements \Iterator {
 
     /**
      *
+     * @param   array       $values   associative array mapping fields and values
+     * @param   string      $lang     Language for multilang fields.
+     * 
      * @return  Collection  returns the current instance (allowing calls chaining)
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
-     *
      */
     public function update(array $values, $lang=DEFAULT_LANG) {
         if(count($this->objects)) {
@@ -655,8 +663,10 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            if( !$this->class::onupdate($this->orm, $ids, $values) ) {
-                throw new \Exception('onupdate_denied', QN_ERROR_NOT_ALLOWED);
+            $onupdate = $this->class::onupdate($this->orm, $ids, $values, $lang);
+            if($onupdate) {
+                // send error using the same format as the announce method
+                throw new \Exception(serialize($onupdate), QN_ERROR_INVALID_PARAM);
             }
 
             // 2) check that current user has enough privilege to perform WRITE operation
