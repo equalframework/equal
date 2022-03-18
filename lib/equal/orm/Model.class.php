@@ -76,11 +76,12 @@ class Model {
 
     }
 
-    // note: 'name' field is set in constructor if not defined in getColumns method
+    // #memo - 'name' field is set in constructor if not defined in getColumns method
     public final static function getSpecialColumns() {
         $special_columns = [
             'id' => [
-                'type'              => 'integer'
+                'type'              => 'integer',
+                'readonly'          => true
             ],
             'creator' => [
                 'type'              => 'many2one',
@@ -164,7 +165,7 @@ class Model {
 
     /**
      * Provide the final field targeted by a field (handle aliases)
-     * This method should be used for type comparisons and when checking field structure validity
+     * This method should be used for type comparisons and when checking field structure validity.
      *
      * @access public
      */
@@ -198,9 +199,19 @@ class Model {
     }
 
     /**
-     * Returns a map of constraints associating fields with validation functions.
+     * Returns a map of constraint items associating fields with validation functions.
      * This method is meant to be overridden by children classes.
      *
+     * Items should have the following structure : 
+     *        'field_name' =>  [
+     *            'error_id' => [
+     *                'message'       => 'error message',
+     *                 'function'      => function ($field_new_value, $other_new_values) {
+     *                     return (bool) $result;
+     *                 }
+     *             ]
+     *            ]
+     * 
      * @access public
      */
     public static function getConstraints() {
@@ -262,8 +273,10 @@ class Model {
     /**
      * Check wether an object can be deleted, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
-     *
-     * @return  boolean     Returns true if the object can be deleted, or false otherwise.
+     * 
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @return boolean  Returns true if the object can be deleted, or false otherwise.
      */
     public static function ondelete($om, $oids) {
         return true;
@@ -277,11 +290,25 @@ class Model {
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
      * @param  object   $values     Associative array holding the new values to be assigned.
-     *
-     * @return  boolean     Returns true if the object can be updated, or false otherwise.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return int|array  Returns 0 if the object has been successfully processed and can be updated, otherwise returns an associative array mapping fields with their error messages.
      */
-    public static function onupdate($om, $oids, $values) {
-        return true;
+    public static function onupdate($om, $oids, $values, $lang) {
+        return 0;
+    }
+
+
+    /**
+     * Signature for single object change (intended for views)
+     * 
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array    $values     Copy of the current (partial) state of the object.
+     * @return array    Returns an associative array mapping fields with their resulting values.
+     */    
+    public static function onchange($om, $event, $values, $lang) {
+        return [];
     }
 
     /**
