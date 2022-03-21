@@ -55,7 +55,7 @@ try {
     $subject = '';
     // read template according to user requested language
     $file = "packages/core/i18n/{$user['language']}/mail_user_pass_recover.html";
-    if(!($html = @file_get_contents($file, FILE_TEXT))) {
+    if(!($html = @file_get_contents($file))) {
         throw new Exception("missing_template", QN_ERROR_INVALID_CONFIG);
     }
 
