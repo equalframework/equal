@@ -864,8 +864,6 @@ class ObjectManager extends Service {
         $constraints = $model->getConstraints();
         $schema = $model->getSchema();
 
-        // #todo : get previous state
-
         foreach($values as $field => $value) {
             // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
             if(isset($schema[$field]['type'])) {
@@ -923,7 +921,7 @@ class ObjectManager extends Service {
                         $validation_func = $constraint['function'];
                         if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
                             if(!isset($constraint['message'])) {
-                                $constraint['message'] = 'invalid field';
+                                $constraint['message'] = 'Invalid field.';
                             }
                             trigger_error("field {$field} violates constraint : {$constraint['message']}", E_USER_WARNING);
                             $error_code = QN_ERROR_INVALID_PARAM;
@@ -939,24 +937,6 @@ class ObjectManager extends Service {
 
         // REQUIRED constraint check
         if($check_required) {
-            if(isset($constraints['_self'])) {
-                $constraint = $constraints['_self'];
-                if(isset($constraint['function']) ) {
-                    $validation_func = $constraint['function'];
-                    if(is_callable($validation_func) && !call_user_func($validation_func, $values)) {
-                        if(!isset($constraint['message'])) {
-                            $constraint['message'] = 'invalid field';
-                        }
-                        trigger_error("update violates _self constraint : {$constraint['message']}", E_USER_WARNING);
-                        $error_code = QN_ERROR_INVALID_PARAM;
-                        if(!isset($res['_self'])) {
-                            $res['_self'] = [];
-                        }
-                        $res['_self'][$error_id] = $constraint['message'];
-                    }
-                }
-            }
-
             foreach($schema as $field => $def) {
                 if(isset($def['required']) && $def['required'] && !isset($values[$field])) {
                     $error_code = QN_ERROR_INVALID_PARAM;
@@ -1215,6 +1195,7 @@ class ObjectManager extends Service {
                     }
                     try {
                         // prevent inner loops and calling same handler several times during the cycle
+                        // #memo - this prevents running a same callback several times within distinct context changes occuring in a same cycle
 /*
                         $processed_ids = $this->onchange_methods[$class][$schema[$field]['onchange']];
                         $unprocessed_ids = array_filter($ids, function ($id) use($processed_ids) {
