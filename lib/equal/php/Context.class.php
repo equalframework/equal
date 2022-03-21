@@ -101,6 +101,10 @@ class Context extends Service {
 
     // below are additional method using short name and get/set based on arguments
 
+    public function httpRequestMethod() {
+        return $this->getHttpMethod();
+    }
+
     public function httpRequestHeaders() {
         return $this->getHttpRequestHeaders();
     }
