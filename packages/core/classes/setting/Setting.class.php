@@ -258,7 +258,31 @@ class Setting extends Model {
         }
     }
 
+    public static function format_number($number, $decimal_precision=null) {
+        $thousands_separator = Setting::get_value('core', 'locale', 'numbers.thousands_separator', '.');
+        $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator', ',');
 
+        if(is_null($decimal_precision)) {
+            $decimal_precision = Setting::get_value('core', 'locale', 'numbers.decimal_precision', 2);
+        }
+        return number_format($number, $decimal_precision, $decimal_separator, $thousands_separator);
+    }
+
+    public static function format_number_currency($amount) {
+        $result = '';
+        $decimal_precision = Setting::get_value('core', 'locale', 'currency.decimal_precision', 2);
+        $symbol_position = Setting::get_value('core', 'locale', 'currency.symbol_position', 'after');
+        $currency = Setting::get_value('core', 'units', 'currency', '€');
+
+        $result = self::format_number($amount, $decimal_precision);
+        if($symbol_position == 'after') {
+            $result = $result.' '.$currency;
+        }
+        else if($symbol_position == 'before') {
+            $result = $currency.' '.$result;
+        }
+        return $result;
+    }
 
     public static function parse_format($format, $map) {
         preg_match_all('/({.*})/mU', $format, $matches, PREG_OFFSET_CAPTURE, 0);
