@@ -573,10 +573,10 @@ namespace config {
             // 2) find any missing parameters
 
             $allowed_params = array_keys($announcement['params']);
-            $invalid_params = array_diff(array_keys($body), $allowed_params);
-            foreach($invalid_params as $invalid_param) {
-                $reporter->debug("dropped unexpected parameter '{$invalid_param}'");
-                unset($body[$invalid_param]);
+            $unknown_params = array_diff(array_keys($body), $allowed_params);
+            foreach($unknown_params as $unknown_param) {
+                $reporter->debug("dropped unexpected parameter '{$unknown_param}'");
+                unset($body[$unknown_param]);
             }
             $missing_params = array_diff($allowed_params, array_intersect($allowed_params, array_keys($body)));
 
@@ -607,7 +607,7 @@ namespace config {
                 // adapt type to match PHP internals
                 $constraints[] = ['kind' => 'type', 'rule' => $config['type']];
                 // append explicit constraints
-                foreach(array('min', 'max', 'in', 'not in', 'pattern') as $constraint) {
+                foreach(array('min', 'max', 'in', 'not in', 'pattern', 'selection') as $constraint) {
                     if(isset($config[$constraint])) {
                         $constraints[] = ['kind' => $constraint, 'rule' => $config[$constraint]];
                     }
@@ -627,7 +627,7 @@ namespace config {
                             unset($result[$param]);
                         }
                     }
-                    else $invalid_params[] = $param;
+                    else $invalid_params[$param] = 'broken_constraint';
                 }
             }
 
@@ -641,8 +641,10 @@ namespace config {
                 if(isset($announcement['constants'])) unset($announcement['constants']);
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
-                // raise an exception with error details
-                throw new \Exception(implode(',', $invalid_params), QN_ERROR_INVALID_PARAM);
+                foreach($invalid_params as $invalid_param => $error_id) {
+                    // raise an exception with error details
+                    throw new \Exception(serialize([$invalid_param => [$error_id => 'Invalid parameter']]), QN_ERROR_INVALID_PARAM);
+                }
             }
 
             // 5) check for requested providers
@@ -921,12 +923,12 @@ namespace {
         /**
          * Call run, then returns it result or raises/relay an Exception if an error occurs.
          * (So it can be used with the global exceptions logic or with local try/catch blocks.)
-         * 
+         *
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
          * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array).
          * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
-         * 
+         *
          * @return  array        Associative array holding the result of the call.
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
