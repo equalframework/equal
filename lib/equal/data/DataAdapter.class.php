@@ -70,7 +70,7 @@ class DataAdapter extends Service {
             'float' => [
                 'txt'   => [
                     'php' =>    function ($value) {
-                                    // arg represents a numeric value (numeric type or string)
+                                    // arg represents a numeric value (either numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = floatval($value);
                                     }
