@@ -158,8 +158,16 @@ catch(Throwable $e) {
     }
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
+        // retrieve info from HTTP request (we don't ask for $context->httpResponse() since it might have raised the current exception)
+        $request_method = $context->httpRequestMethod();
+        $request_headers = $context->httpRequestHeaders();
         // get HTTP status code according to raised exception
         $http_status = qn_error_http($error_code);
+        $http_allow_headers = '*';
+        if($request_method == 'OPTIONS') {
+            $http_status = 204;
+            $http_allow_headers = 'Content-Type';
+        }
         // redirect to custom location defined for this code, if any
         if(defined('HTTP_REDIRECT_'.$http_status)) {
             header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
@@ -170,8 +178,6 @@ catch(Throwable $e) {
         $data = @unserialize($msg);
         // retrieve current HTTP response
         $response = $context->httpResponse();
-        // retrieve original headers from HTTP request
-        $request_headers = $context->httpRequestHeaders();
         // adapt response and send it
         $response
         // set HTTP status code
@@ -182,14 +188,14 @@ catch(Throwable $e) {
         // (response is defined in announce() and has been unstacked because of an exception)
         ->header('Access-Control-Allow-Origin', $request_headers['Origin'])
         ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
-        ->header('Access-Control-Allow-Headers', '*')
+        ->header('Access-Control-Allow-Headers', $http_allow_headers)
         ->header('Access-Control-Allow-Credentials', 'true')
         // append an 'error' section to response body
         ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
         ->send();
-        trigger_error("QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
+        trigger_error("{$request_headers['Origin']} QN_DEBUG_ORM::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         exit(1);
     }
 }
