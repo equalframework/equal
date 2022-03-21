@@ -14,7 +14,7 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'id' =>  [
@@ -29,21 +29,21 @@ list($params, $providers) = announce([
         ],
         'fields' =>  [
             'description'   => 'Associative map of fields to be updated, with their related values.',
-            'type'          => 'array', 
+            'type'          => 'array',
             'default'       => []
         ],
         'force' =>  [
             'description'   => 'Flag for forcing update in case a concurrent change is detected.',
-            'type'          => 'boolean', 
+            'type'          => 'boolean',
             'default'       => false
         ],
         'lang' => [
             'description '  => 'Specific language for multilang field.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ]
     ],
-    'providers'     => ['context', 'orm', 'adapt'] 
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
@@ -61,38 +61,40 @@ if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-// adapt received values for parameter 'fields' (which are still text formated)
+// adapt received values for parameter 'fields' (which are still formated as text)
 $schema = $model->getSchema();
 // remove unknown fields
 $fields = array_filter($params['fields'], function($field) use ($schema){
     return isset($schema[$field]);
 }, ARRAY_FILTER_USE_KEY);
 
-try {
-    foreach($fields as $field => $value) {
-        // drop empty fields, ignore status
-        if(is_null($value)) {
-            unset($fields[$field]);
+
+foreach($fields as $field => $value) {
+    // drop empty fields, ignore status
+    if(is_null($value)) {
+        unset($fields[$field]);
+    }
+    else {
+        $type = $schema[$field]['type'];
+        if($type == 'computed') {
+            $type = $schema[$field]['result_type'];
         }
-        else {
-            $type = $schema[$field]['type'];
-            if($type == 'computed') {
-                $type = $schema[$field]['result_type'];
-            }
+        try {
             // adapt received values based on their type (as defined in schema)
             $fields[$field] = $adapter->adapt($value, $type);
         }
-    }    
-}
-catch(Exception $e) {
-    $msg = $e->getMessage();
-    // handle serialized objects as message
-    $data = @unserialize($msg);
-    if ($data !== false) {
-        $msg = $data;
+        catch(Exception $e) {
+            $msg = $e->getMessage();
+            // handle serialized objects as message
+            $data = @unserialize($msg);
+            if ($data !== false) {
+                $msg = $data;
+            }
+            throw new \Exception(serialize([$field => $msg]), $e->getCode());
+        }
     }
-    throw new \Exception(serialize([$field => $msg]), $e->getCode());   
 }
+
 
 if(count($fields)) {
     // we're updating a single object: enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
@@ -100,7 +102,7 @@ if(count($fields)) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
             $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
-            // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object        
+            // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object
             if($object['state'] != 'draft') {
                 // create object as draft to avoid a missing_mandatory error, and then update it
                 $instance = $params['entity']::create(['state' => 'draft'])
