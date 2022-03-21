@@ -23,7 +23,7 @@ list($params, $providers) = announce([
         'password' =>  [
             'description'   => 'the user chosen password.',
             'type'          => 'string',
-            'usage'         => 'string/password:NIST',
+            'usage'         => 'password/nist',
             'required'      => true
         ],
         'firstname' =>  [
