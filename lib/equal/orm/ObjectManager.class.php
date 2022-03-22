@@ -155,6 +155,10 @@ class ObjectManager extends Service {
         $this->instances = [];
     }
 
+    public function __clone() {
+        trigger_error("ObjectManager::__clone: instance is being copied.", E_USER_ERROR);
+    }
+
     public function __destruct() {
         // close DB connection, if open
         if($this->db && $this->db->connected()) {
@@ -357,10 +361,11 @@ class ObjectManager extends Service {
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
+        $table_name = $this->getObjectTableName($class);
         // remove already loaded objects from missing list
         $missing_ids = $ids;
         foreach($ids as $index => $id) {
-            if(isset($this->identifiers[$class][$id]) || isset($this->cache[$class][$id])) {
+            if(isset($this->identifiers[$table_name][$id]) || isset($this->cache[$table_name][$id])) {
                 $valid_ids[] = $id;
                 unset($missing_ids[$index]);
             }
@@ -369,14 +374,13 @@ class ObjectManager extends Service {
         if(!empty($missing_ids)) {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDBHandler();
-            $table_name = $this->getObjectTableName($class);
             // get all records at once
             $result = $db->getRecords($table_name, 'id', $missing_ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
                 $valid_ids[] = (int) $row['id'];
                 // remember valid identifiers
-                $this->identifiers[$class][$row['id']] = true;
+                $this->identifiers[$table_name][$row['id']] = true;
             }
         }
         return $valid_ids;
@@ -395,6 +399,8 @@ class ObjectManager extends Service {
         $schema = $object->getSchema();
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
+        // retrieve the name of the DB table associated to the class
+        $table_name = $this->getObjectTableName($class);
 
         try {
             // array holding functions to load each type of fields
@@ -404,7 +410,7 @@ class ObjectManager extends Service {
                 // nothing to do : this type is handled in read methods
             },
             // 'multilang' is a particular case of simple field
-            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 $result = $om->db->getRecords(
                     array('core_translation'),
                     array('object_id', 'object_field', 'value'),
@@ -423,22 +429,20 @@ class ObjectManager extends Service {
                     // do some pre-treatment if necessary (this step is symetrical to the one in store method)
                     $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
                     // update the internal buffer with fetched value
-                    $om->cache[$class][$oid][$lang][$field] = $value;
+                    $om->cache[$table_name][$oid][$lang][$field] = $value;
                 }
                 // force assignment to NULL if no result was returned by the SQL query
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
-                        if(!isset($om->cache[$class][$oid][$lang][$field])) $om->cache[$class][$oid][$lang][$field] = NULL;
+                        if(!isset($om->cache[$table_name][$oid][$lang][$field])) $om->cache[$table_name][$oid][$lang][$field] = NULL;
                     }
                 }
             },
-            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
-                // get the name of the DB table associated to the object
-                $table_name = $om->getObjectTableName($class);
+            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 // make sure to load the 'id' field (we need it to map fetched values to their object)
                 $fields[] = 'id';
                 // get all records at once
-                $result = $om->db->getRecords(array($table_name), $fields, $ids);
+                $result = $om->db->getRecords([$table_name], $fields, $ids);
 
                 // treat sql result in the same order than the ids list
                 while($row = $om->db->fetchArray($result)) {
@@ -454,11 +458,11 @@ class ObjectManager extends Service {
                         }
 
                         // update the internal buffer with fetched value
-                        $om->cache[$class][$oid][$lang][$field] = $value;
+                        $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
                 }
             },
-            'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
@@ -491,10 +495,12 @@ class ObjectManager extends Service {
                         $oid = $row[$schema[$field]['foreign_field']];
                         $lists[$oid][] = $row['id'];
                     }
-                    foreach($ids as $oid) $om->cache[$class][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                    foreach($ids as $oid) {
+                        $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                    }
                 }
             },
-            'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                     // obtain the ids by searching inside relation table
@@ -517,10 +523,12 @@ class ObjectManager extends Service {
                         $oid = $row[$schema[$field]['rel_local_key']];
                         $lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
                     }
-                    foreach($ids as $oid) $om->cache[$class][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                    foreach($ids as $oid) {
+                        $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                    }
                 }
             },
-            'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 
@@ -534,7 +542,7 @@ class ObjectManager extends Service {
                             else {
                                 $value = null;
                             }
-                            $om->cache[$class][$oid][$lang][$field] = $value;
+                            $om->cache[$table_name][$oid][$lang][$field] = $value;
                         }
                     }
                 }
@@ -579,9 +587,9 @@ class ObjectManager extends Service {
                 // for each computed field, build an array holding ids of incomplete objects
                 $oids = array();
                 // if store attribute is set and no result was found, we need to compute the value
-                // note : we use is_null() rather than empty() because an empty value could be the result of a calculation
+                // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
                 // (this implies that the DB schema has 'DEFAULT NULL' for columns associated to computed fields)
-                foreach($ids as $oid) if(is_null($this->cache[$class][$oid][$lang][$field])) $oids[] = $oid;
+                foreach($ids as $oid) if(is_null($this->cache[$table_name][$oid][$lang][$field])) $oids[] = $oid;
                 // compute field for incomplete objects
                 $load_fields['computed']($this, $oids, array($field));
                 // store newly computed fields to database, if required ('store' attribute set to true)
@@ -600,18 +608,21 @@ class ObjectManager extends Service {
      * Values are read from the $cache.
      */
     private function store($class, $ids, $fields, $lang) {
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::store", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
         $schema = $object->getSchema();
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
+        // retrieve the name of the DB table associated to the class
+        $table_name = $this->getObjectTableName($class);
 
         try {
             // array holding functions to store each type of fields
             $store_fields = array(
             // 'multilang' is a particular case of simple field)
-            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 $om->db->deleteRecords(
                     'core_translation',
                     $ids,
@@ -629,7 +640,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $values_array[] = [
                             $lang, $class, $field, $oid,
-                            $this->container->get('adapt')->adapt($om->cache[$class][$oid][$lang][$field], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
+                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
                         ];
                     }
                 }
@@ -640,14 +651,14 @@ class ObjectManager extends Service {
                 );
 
             },
-            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
                         $type = $schema[$field]['type'];
-                        $value = $om->cache[$class][$oid][$lang][$field];
+                        $value = $om->cache[$table_name][$oid][$lang][$field];
                         // adapt values except for NULL of computed fields (marked as to be re-computed)
-                        if(!is_null($om->cache[$class][$oid][$lang][$field]) || $type != 'computed') {
+                        if(!is_null($om->cache[$table_name][$oid][$lang][$field]) || $type != 'computed') {
                             // support computed fields (handled as simple fields according to result type)
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
@@ -659,7 +670,7 @@ class ObjectManager extends Service {
                     $om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
                 }
             },
-            'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$class][$oid][$lang][$field];
@@ -698,14 +709,14 @@ class ObjectManager extends Service {
                         // add relation by setting the pointing id (overwrite previous value if any)
                         if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
                         // invalidate cache (field partially loaded)
-                        unset($om->cache[$class][$oid][$lang][$field]);
+                        unset($om->cache[$table_name][$oid][$lang][$field]);
                     }
                 }
             },
-            'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
-                        $value = $om->cache[$class][$oid][$lang][$field];
+                        $value = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($value)) {
                             trigger_error("wrong value for field '$field' of class '$class', should be an array", E_USER_ERROR);
                             continue;
@@ -740,14 +751,14 @@ class ObjectManager extends Service {
                             $values_array
                         );
                         // invalidate cache (field partially loaded)
-                        unset($om->cache[$class][$oid][$lang][$field]);
+                        unset($om->cache[$table_name][$oid][$lang][$field]);
                     }
                 }
             },
-            'computed' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'computed' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 // nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
             },
-            'alias' =>    function($om, $ids, $fields) use ($schema, $class, $lang) {
+            'alias' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 // nothing to store for virtual fields
             });
 
@@ -787,6 +798,7 @@ class ObjectManager extends Service {
 
 
     private function callObjectMethod($class, $method, ...$args) {
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callObjectMethod {$class}::{$method}", QN_REPORT_DEBUG);
         $called_class = $class;
         $called_method = $method;
 
@@ -1050,7 +1062,7 @@ class ObjectManager extends Service {
         try {
             $object = $this->getStaticInstance($class, $fields);
 
-            $object_table = $this->getObjectTableName($class);
+            $table_name = $this->getObjectTableName($class);
 
             // 1) define default values
             $creation_array = ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => (isset($fields['state']))?$fields['state']:'instance'];
@@ -1086,7 +1098,7 @@ class ObjectManager extends Service {
                         // store the id to reuse
                         $creation_array['id'] = $oid;
                         // and delete the associated record (might contain obsolete data)
-                        $db->deleteRecords($object_table, array($oid));
+                        $db->deleteRecords($table_name, array($oid));
                     }
                 }
             }
@@ -1097,12 +1109,12 @@ class ObjectManager extends Service {
             }
 
             // 3) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
-            $db->addRecords($object_table, array_keys($creation_array), [ array_values($creation_array) ]);
+            $db->addRecords($table_name, array_keys($creation_array), [ array_values($creation_array) ]);
 
             if($oid <= 0) {
                 // id field is auto-increment: retrieve last value
                 $oid = $db->getLastId();
-                $this->cache[$class][$oid][$lang] = $creation_array;
+                $this->cache[$table_name][$oid][$lang] = $creation_array;
             }
             // in any case, we return the object id
             $res = $oid;
@@ -1151,6 +1163,8 @@ class ObjectManager extends Service {
             $res = $ids;
             // get stattic instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
+            // retrieve name of the DB table associated with the class
+            $table_name = $this->getObjectTableName($class);
 
             // 2) check $fields arg validity
 
@@ -1176,9 +1190,11 @@ class ObjectManager extends Service {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onchange event
                     // (computed fields assigned to null are meant to be re-computed without triggering onchange)
-                    if(isset($schema[$field]['onchange']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) $onchange_fields[] = $field;
+                    if(isset($schema[$field]['onchange']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
+                        $onchange_fields[] = $field;
+                    }
                     // assign cache to object values
-                    $this->cache[$class][$oid][$lang][$field] = $value;
+                    $this->cache[$table_name][$oid][$lang][$field] = $value;
                 }
             }
 
@@ -1198,22 +1214,12 @@ class ObjectManager extends Service {
                     }
                     try {
                         // prevent inner loops and calling same handler several times during the cycle
-                        // #memo - this prevents running a same callback several times within distinct context changes occuring in a same cycle
-/*
-                        $processed_ids = $this->onchange_methods[$class][$schema[$field]['onchange']];
-                        $unprocessed_ids = array_filter($ids, function ($id) use($processed_ids) {
-                            return !in_array($id, $processed_ids);
-                        });
-
-                        $this->onchange_methods[$class][$schema[$field]['onchange']] = array_merge($processed_ids, $unprocessed_ids);
-
-                        $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $unprocessed_ids, $lang);
-*/
+                        // #memo - we don't block onchange callback calls repeatition, beacause this would prevent running a same callback several times within distinct context changes occuring in a same cycle
                         $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $ids, $lang);
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
                             foreach($updates as $oid => $update) {
-                                $this->cache[$class][$oid][$lang][$field] = $update;
+                                $this->cache[$table_name][$oid][$lang][$field] = $update;
                             }
                             $this->store($class, array_keys($updates), (array) $field, $lang);
                         }
@@ -1256,6 +1262,8 @@ class ObjectManager extends Service {
 
             // get static instance (check that given class exists)
             $object = $this->getStaticInstance($class);
+            // retrieve name of the DB table associated with the class
+            $table_name = $this->getObjectTableName($class);
             // cast fields to an array (passing a single field is accepted)
             // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
             if(!is_array($fields)) $fields = (array) $fields;
@@ -1297,7 +1305,7 @@ class ObjectManager extends Service {
             // 3) check among requested fields wich ones are not yet present in the internal buffer
             if(count($requested_fields)) {
                 // if internal buffer is empty, query the DB to load all fields from requested objects
-                if(empty($this->cache) || !isset($this->cache[$class])) {
+                if(empty($this->cache) || !isset($this->cache[$table_name])) {
                     $this->load($class, $ids, $requested_fields, $lang);
                 }
                 // check if all objects are fully loaded
@@ -1307,7 +1315,9 @@ class ObjectManager extends Service {
                     $fields_missing = array();
                     foreach($requested_fields as $key => $field) {
                         foreach($ids as $oid) {
-                            if(!isset($this->cache[$class][$oid][$lang][$field])) {
+                            // prevent using cache for one2many fields : cache cannot remain consistent in case of cross updates
+                            // #todo - use the cache for m2m relations (using the rel table)
+                            if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$lang][$field])) {
                                 $fields_missing[] = $field;
                                 break;
                             }
@@ -1320,7 +1330,7 @@ class ObjectManager extends Service {
 
                 // 4) build result by reading from internal buffer
                 foreach($ids as $oid) {
-                    if(!isset($this->cache[$class][$oid]) || empty($this->cache[$class][$oid])) {
+                    if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
                         trigger_error("unknown or empty object $class($oid)", E_USER_WARNING);
                         continue;
                     }
@@ -1334,7 +1344,7 @@ class ObjectManager extends Service {
                             $target_field = $schema[$target_field]['alias'];
                         }
                         // use final notation
-                        $res[$oid][$field] = $this->cache[$class][$oid][$lang][$target_field];
+                        $res[$oid][$field] = $this->cache[$table_name][$oid][$lang][$target_field];
                     }
                 }
             }
@@ -1610,6 +1620,8 @@ class ObjectManager extends Service {
             $join_conditions = array();
             $tables = array();
 
+            $table_name = $this->getObjectTableName($class);
+
             // we use a nested closure to define a function that stores original table names and returns corresponding aliases
             $add_table = function ($table_name) use (&$tables) {
                 if(in_array($table_name, $tables)) return array_search($table_name, $tables);
@@ -1619,7 +1631,7 @@ class ObjectManager extends Service {
             };
 
             $schema = $this->getObjectSchema($class);
-            $table_alias = $add_table($this->getObjectTableName($class));
+            $table_alias = $add_table($table_name);
 
             // first pass : build conditions and the tables names arrays
             if(!empty($domain) && !empty($domain[0]) && !empty($domain[0][0])) { // domain structure is correct and contains at least one condition
@@ -1802,7 +1814,7 @@ class ObjectManager extends Service {
             $res_list = array_unique($res_list);
             // mark resulting identifiers as safe (matching existing objets)
             foreach($res_list as $object_id) {
-                $this->identifiers[$class][$object_id] = true;
+                $this->identifiers[$table_name][$object_id] = true;
             }
         }
         catch(Exception $e) {
