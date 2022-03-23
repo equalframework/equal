@@ -48,6 +48,8 @@ while($root != 'equal\orm\Model') {
 }
 $data['root'] = $root;
 
+$data['table'] = $model->getTable();
+
 $data['fields'] = $schema;
 
 if(method_exists($model, 'getUnique')) {
