@@ -664,7 +664,7 @@ class Collection implements \Iterator {
             $fields = array_keys($values);
 
             $onupdate = $this->class::onupdate($this->orm, $ids, $values, $lang);
-            if($onupdate) {
+            if(!empty($onupdate)) {
                 // send error using the same format as the announce method
                 throw new \Exception(serialize($onupdate), QN_ERROR_INVALID_PARAM);
             }

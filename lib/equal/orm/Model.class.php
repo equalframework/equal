@@ -261,13 +261,13 @@ class Model {
         $parent = get_parent_class($this);
         $entity = get_class($this);
 
-        // if class directly inherits from root class (equal\orm\Model), use its own name
+        // class uses its parent class name, unless it directly inherits from root class (equal\orm\Model)
         while($parent != __CLASS__) {
             $entity = $parent;
             $parent = get_parent_class($parent);
         }
 
-        return str_replace('\\', '_', $entity);
+        return strtolower(str_replace('\\', '_', $entity));
     }
 
     /**
@@ -291,15 +291,15 @@ class Model {
      * @param  array    $oids       List of objects identifiers.
      * @param  object   $values     Associative array holding the new values to be assigned.
      * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return int|array  Returns 0 if the object has been successfully processed and can be updated, otherwise returns an associative array mapping fields with their error messages.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
     public static function onupdate($om, $oids, $values, $lang) {
-        return 0;
+        return [];
     }
 
 
     /**
-     * Signature for single object change (intended for views)
+     * Signature for single object values change (intended for views)
      * 
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
