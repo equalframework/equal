@@ -673,7 +673,7 @@ class ObjectManager extends Service {
             'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
-                        $value = $om->cache[$class][$oid][$lang][$field];
+                        $value = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
                         $ids_to_remove = array();
                         $ids_to_add = array();
