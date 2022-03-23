@@ -24,7 +24,7 @@ class HttpResponse extends HttpMessage {
         else {
             if(isset($parts[0])) {
                 if(is_numeric($parts[0])) {
-                    $this->setStatusCode($parts[0]);
+                    $this->setStatus($parts[0]);
                 }
                 else {
                     $this->setProtocol($parts[0]);
