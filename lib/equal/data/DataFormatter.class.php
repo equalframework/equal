@@ -21,6 +21,7 @@ class DataFormatter {
     switch($usage) {
       case 'phone':
         return self::format_phone($value);
+      case 'uri/urn.iban':
       case 'iban':
         return self::format_iban($value);
       case 'bic':
