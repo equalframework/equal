@@ -392,9 +392,11 @@ namespace config {
                     header('Location: '.$announcement['response']['location']);
                     exit;
                 }
-
                 if(isset($announcement['response']['content-type'])) {
                     $response->headers()->setContentType($announcement['response']['content-type']);
+                }
+                if(isset($announcement['response']['content-disposition'])) {
+                    $response->headers()->set('content-disposition', $announcement['response']['content-disposition']);
                 }
                 if(isset($announcement['response']['charset'])) {
                     $response->headers()->setCharset($announcement['response']['charset']);
@@ -556,8 +558,9 @@ namespace config {
                     $response->status(200)
                     // allow browser to cache the response for 1 year
                     ->header('Cache-Control', 'max-age=31536000')
-                    // CORS strict compliance
+                    // default content type and disposition
                     ->header('Content-Type', 'application/json')
+                    ->header('Content-Disposition', 'inline')
                     // mandatory headers for CORS validation
                     ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
                     ->send();

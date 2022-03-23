@@ -184,6 +184,7 @@ catch(Throwable $e) {
         ->status($http_status)
         // explicitly tell we're returning JSON
         ->header('Content-Type', 'application/json')
+        ->header('Content-Disposition', 'inline')
         // force allow-origin to actual origin, to make sure to go through CORS policy
         // (response is defined in announce() and has been unstacked because of an exception)
         ->header('Access-Control-Allow-Origin', $request_headers['Origin'])
