@@ -1266,7 +1266,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.default = exports.Condition = exports.Clause = exports.Domain = void 0;
+exports.default = exports.Reference = exports.Condition = exports.Clause = exports.Domain = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
@@ -1724,6 +1724,60 @@ var Condition = /*#__PURE__*/function () {
 }();
 
 exports.Condition = Condition;
+
+var Reference = /*#__PURE__*/function () {
+  function Reference(value) {
+    (0, _classCallCheck2.default)(this, Reference);
+    (0, _defineProperty2.default)(this, "value", void 0);
+    this.value = value;
+  }
+  /**
+   * Update value by replacing any occurence of `object.` and `user.` notations with related attributes of given objects.
+   *
+   * @param any   object  An entity object to serve as reference.
+   * @param any   user    A user object to serve as reference.
+   * @returns string      The result of the parsing.
+   */
+
+
+  (0, _createClass2.default)(Reference, [{
+    key: "parse",
+    value: function parse(object) {
+      var user = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var result = this.value;
+
+      if (this.value.indexOf('object.') == 0) {
+        var target = this.value.substring('object.'.length);
+
+        if (object && object.hasOwnProperty(target)) {
+          var tmp = object[target]; // target points to an object with subfields
+
+          if (typeof tmp === 'object' && !Array.isArray(tmp)) {
+            if (tmp.hasOwnProperty('id')) {
+              result = tmp.id;
+            } else if (tmp.hasOwnProperty('name')) {
+              result = tmp.name;
+            }
+          } else {
+            result = object[target];
+          }
+        }
+      } // handle user references as `value` part
+      else if (this.value.indexOf('user.') == 0) {
+          var _target2 = this.value.substring('user.'.length);
+
+          if (user && user.hasOwnProperty(_target2)) {
+            result = user[_target2];
+          }
+        }
+
+      return result;
+    }
+  }]);
+  return Reference;
+}();
+
+exports.Reference = Reference;
 var _default = Domain;
 exports.default = _default;
 
@@ -3459,6 +3513,8 @@ exports.default = exports.Layout = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
+var _slicedToArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/slicedToArray.js"));
+
 var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
@@ -3477,15 +3533,17 @@ var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-
 
 var _Domain = __webpack_require__(/*! ./Domain */ "./build/Domain.js");
 
+var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
@@ -3693,9 +3751,9 @@ var Layout = /*#__PURE__*/function () {
       return selection;
     }
   }, {
-    key: "setSelected",
-    value: function setSelected(selection) {
-      console.log('Layout::setSelected', selection);
+    key: "setSelection",
+    value: function setSelection(selection) {
+      console.log('Layout::setSelection', selection);
       var $tbody = this.$layout.find("tbody");
       $tbody.find('input[type="checkbox"]').each(function (i, elem) {
         var data = (0, _jqueryLib.$)(elem).attr('data-id');
@@ -3712,6 +3770,56 @@ var Layout = /*#__PURE__*/function () {
             $elem.trigger('change');
           }
         }
+      });
+    }
+  }, {
+    key: "addToSelection",
+    value: function addToSelection(selection) {
+      var _this = this;
+
+      console.log('Layout::addToSelection', selection);
+      var $tbody = this.$layout.find("tbody");
+      $tbody.find('input[type="checkbox"]').each(function (i, elem) {
+        var data = (0, _jqueryLib.$)(elem).attr('data-id');
+
+        if (data != undefined) {
+          var id = parseInt(data, 10);
+          var $elem = (0, _jqueryLib.$)(elem);
+
+          if (selection.indexOf(id) >= 0) {
+            $elem.prop('checked', true);
+            $elem.trigger('change');
+          }
+        }
+      });
+      this.$layout.find('thead').find('th:first-child').find('input').trigger('refresh');
+      setTimeout(function () {
+        return _this.view.onchangeSelection(_this.getSelected());
+      });
+    }
+  }, {
+    key: "removeFromSelection",
+    value: function removeFromSelection(selection) {
+      var _this2 = this;
+
+      console.log('Layout::removeFromSelection', selection);
+      var $tbody = this.$layout.find("tbody");
+      $tbody.find('input[type="checkbox"]').each(function (i, elem) {
+        var data = (0, _jqueryLib.$)(elem).attr('data-id');
+
+        if (data != undefined) {
+          var id = parseInt(data, 10);
+          var $elem = (0, _jqueryLib.$)(elem);
+
+          if (selection.indexOf(id) >= 0) {
+            $elem.prop('checked', false);
+            $elem.trigger('change');
+          }
+        }
+      });
+      this.$layout.find('thead').find('th:first-child').find('input').trigger('refresh');
+      setTimeout(function () {
+        return _this2.view.onchangeSelection(_this2.getSelected());
       });
     }
   }, {
@@ -3759,149 +3867,6 @@ var Layout = /*#__PURE__*/function () {
       }
     }
     /**
-     * Generate a widget config based on a layout item (from View schema)
-     * @param field_name
-     */
-
-  }, {
-    key: "getWidgetConfig",
-    value: function getWidgetConfig(item) {
-      var config = {};
-      var translation = this.view.getTranslation();
-      var model_fields = this.view.getModelFields();
-      var field = item.value;
-
-      if (!model_fields || !model_fields.hasOwnProperty(field)) {
-        return null;
-      }
-
-      var def = model_fields[field];
-      var label = item.hasOwnProperty('label') ? item.label : field; // #todo - handle help and relay to Context
-
-      var helper = item.hasOwnProperty('help') ? item.help : def.hasOwnProperty('help') ? def['help'] : '';
-      var description = item.hasOwnProperty('description') ? item.description : def.hasOwnProperty('description') ? def['description'] : '';
-
-      if (def.hasOwnProperty('type')) {
-        var type = def['type'];
-
-        if (def.hasOwnProperty('result_type')) {
-          type = def['result_type'];
-        }
-
-        if (def.hasOwnProperty('usage')) {
-          switch (def.usage) {
-            // #todo - complete the list
-            case 'markup/html':
-              type = 'text';
-              break;
-
-            case 'uri/url:http':
-            case 'uri/url':
-              type = 'link';
-              break;
-
-            case 'image/gif':
-            case 'image/png':
-            case 'image/jpeg':
-              // binary alt
-              type = 'file';
-              break;
-          }
-        }
-
-        config.type = type;
-      } else {
-        // we shouldn't end up here : malformed schema
-        console.log('ERROR - malformed schema for field ' + field);
-        return config;
-      }
-
-      if (def.hasOwnProperty('usage')) {
-        config.usage = def.usage;
-      }
-
-      if (def.hasOwnProperty('foreign_object')) {
-        config.foreign_object = def.foreign_object;
-      }
-
-      if (def.hasOwnProperty('foreign_field')) {
-        config.foreign_field = def.foreign_field;
-      }
-
-      if (def.hasOwnProperty('selection')) {
-        config.selection = def.selection;
-        config.type = 'select';
-
-        var translated = _equalServices.TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
-
-        var values = translated;
-
-        if (Array.isArray(translated)) {
-          // convert array to a Map (original values as keys and translations as values)
-          values = {};
-
-          for (var i = 0, n = config.selection.length; i < n; ++i) {
-            values[config.selection[i]] = translated[i];
-          }
-        }
-
-        config.values = values;
-      } // ready property is set to true during the 'feed' phase
-
-
-      config.visible = true;
-      config.ready = false;
-      config.title = _equalServices.TranslationService.resolve(translation, 'model', [], field, label, 'label');
-      config.description = _equalServices.TranslationService.resolve(translation, 'model', [], field, description, 'description');
-      config.readonly = def.hasOwnProperty('readonly') ? def.readonly : item.hasOwnProperty('readonly') ? item['readonly'] : false;
-      config.align = item.hasOwnProperty('align') ? item.align : 'left';
-      config.sortable = item.hasOwnProperty('sortable') && item.sortable;
-      config.layout = this.view.getType();
-      config.lang = this.view.getLang();
-      config.locale = this.view.getLocale();
-
-      if (item.hasOwnProperty('widget')) {
-        // overload config with widget config, if any
-        config = _objectSpread(_objectSpread({}, config), item.widget);
-      }
-
-      if (def.hasOwnProperty('visible')) {
-        config.visible = def.visible;
-      }
-
-      if (item.hasOwnProperty('visible')) {
-        config.visible = item.visible;
-      } // convert visible property to JSON
-
-
-      config.visible = eval(config.visible); // for relational fields, we need to check if the Model has been fetched al
-
-      if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
-        // defined config for Widget's view with a custom domain according to object values
-        var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
-        var parts = view_id.split(".", 2);
-        var view_type = parts.length > 1 ? parts[0] : 'list';
-        var view_name = parts.length > 1 ? parts[1] : parts[0];
-        var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
-        var view_domain = config.hasOwnProperty('domain') ? config['domain'] : [];
-        var domain = new _Domain.Domain(def_domain);
-        domain.merge(new _Domain.Domain(view_domain)); // add join condition for limiting list to the current object
-
-        if (['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
-          domain.merge(new _Domain.Domain([def['foreign_field'], 'contains', 'object.id']));
-        }
-
-        config = _objectSpread(_objectSpread({}, config), {}, {
-          entity: def['foreign_object'],
-          view_type: view_type,
-          view_name: view_name,
-          original_domain: domain.toArray()
-        });
-      }
-
-      return config;
-    }
-    /**
      *
      * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
      *
@@ -3910,13 +3875,14 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "layoutForm",
     value: function layoutForm() {
-      var _this = this;
+      var _this3 = this;
 
       console.log('Layout::layoutForm');
       var $elem = (0, _jqueryLib.$)('<div/>').css({
         "width": "100%"
       });
       var view_schema = this.view.getViewSchema();
+      var view_fields = this.view.getViewFields();
       var model_fields = this.view.getModelFields();
       var translation = this.view.getTranslation();
       var view_config = this.view.getConfig();
@@ -3928,7 +3894,7 @@ var Layout = /*#__PURE__*/function () {
         var group_title = group.hasOwnProperty('label') ? group.label : '';
 
         if (group.hasOwnProperty('id')) {
-          group_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], group.id, group_title);
+          group_title = _equalServices.TranslationService.resolve(translation, 'view', [_this3.view.getId(), 'layout'], group.id, group_title);
         } // append the group title, if any
 
 
@@ -3961,7 +3927,7 @@ var Layout = /*#__PURE__*/function () {
             var section_title = section.hasOwnProperty('label') ? section.label : section_id;
 
             if (section.hasOwnProperty('id')) {
-              section_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], section.id, section_title);
+              section_title = _equalServices.TranslationService.resolve(translation, 'view', [_this3.view.getId(), 'layout'], section.id, section_title);
             }
 
             var $tab = _materialLib.UIHelper.createTabButton(section_id + '-tab', section_title, j == selected_section).addClass('sb-view-form-section-tab').on('click', function () {
@@ -4003,23 +3969,23 @@ var Layout = /*#__PURE__*/function () {
 
                 if (item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
                   if (item.type == 'field') {
-                    var config = _this.getWidgetConfig(item);
+                    var config = _equalWidgets.WidgetFactory.getWidgetConfig(_this3.view, item.value, translation, model_fields, view_fields);
 
                     if (config) {
-                      var widget = _equalWidgets.WidgetFactory.getWidget(_this, config.type, config.title, '', config);
+                      var widget = _equalWidgets.WidgetFactory.getWidget(_this3, config.type, config.title, '', config);
 
                       widget.setReadonly(config.readonly); // store widget in widgets Map, using field name as key
 
-                      if (typeof _this.model_widgets[0] == 'undefined') {
-                        _this.model_widgets[0] = {};
+                      if (typeof _this3.model_widgets[0] == 'undefined') {
+                        _this3.model_widgets[0] = {};
                       }
 
-                      _this.model_widgets[0][item.value] = widget;
+                      _this3.model_widgets[0][item.value] = widget;
                       $cell.append(widget.attach());
                     }
                   } else if (item.type == 'label') {
                     // #todo - create WidgetLabel, to be able to apply visibility rules on labels
-                    var label_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], item.id, item.value);
+                    var label_title = _equalServices.TranslationService.resolve(translation, 'view', [_this3.view.getId(), 'layout'], item.id, item.value);
 
                     $cell.append('<span style="font-weight: 600;">' + label_title + '</span>');
                   } else if (item.type == 'button') {
@@ -4039,7 +4005,7 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "layoutList",
     value: function layoutList() {
-      var _this2 = this;
+      var _this4 = this;
 
       // create table
       // we define a tree structure according to MDC pattern
@@ -4062,17 +4028,53 @@ var Layout = /*#__PURE__*/function () {
       if (this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
         _materialLib.UIHelper.createTableCellCheckbox(true).appendTo($hrow).find('input').on('click', function () {
           return setTimeout(function () {
-            return _this2.view.onchangeSelection(_this2.getSelected());
+            return _this4.view.onchangeSelection(_this4.getSelected());
+          });
+        });
+      }
+
+      var group_by = this.view.getGroupBy();
+
+      if (group_by.length > 0) {
+        var $fold_toggle = (0, _jqueryLib.$)('<th />').addClass('sb-group-cell folded').css({
+          'width': '44px',
+          'cursor': 'pointer'
+        }).append((0, _jqueryLib.$)('<i/>').addClass('material-icons sb-toggle-button').text('chevron_right'));
+        $hrow.append($fold_toggle);
+        $fold_toggle.on('click', function () {
+          console.log('fold click');
+
+          var $tbody = _this4.$layout.find('tbody');
+
+          var folded = $fold_toggle.hasClass('folded');
+
+          if (folded) {
+            $fold_toggle.removeClass('folded');
+          } else {
+            $fold_toggle.addClass('folded');
+          }
+
+          folded = !folded;
+          $tbody.find('.sb-group-row').each(function (index, elem) {
+            var $this = (0, _jqueryLib.$)(elem);
+            var subfolded = $this.hasClass('folded');
+
+            if (subfolded != folded) {
+              $this.trigger('click');
+            }
           });
         });
       } // create other columns, based on the col_model given in the configuration
 
 
-      var schema = this.view.getViewSchema(); // pre-processing: check columns width consistency
+      var view_schema = this.view.getViewSchema();
+      var translation = this.view.getTranslation();
+      var model_fields = this.view.getModelFields();
+      var view_fields = this.view.getViewFields(); // pre-processing: check columns width consistency
 
       var item_width_total = 0; // 1) sum total width and items with null width
 
-      var _iterator = _createForOfIteratorHelper(schema.layout.items),
+      var _iterator = _createForOfIteratorHelper(view_schema.layout.items),
           _step;
 
       try {
@@ -4102,7 +4104,7 @@ var Layout = /*#__PURE__*/function () {
       if (item_width_total != 100) {
         var ratio = 100.0 / item_width_total;
 
-        var _iterator2 = _createForOfIteratorHelper(schema.layout.items),
+        var _iterator2 = _createForOfIteratorHelper(view_schema.layout.items),
             _step2;
 
         try {
@@ -4120,13 +4122,14 @@ var Layout = /*#__PURE__*/function () {
         }
       }
 
-      var _iterator3 = _createForOfIteratorHelper(schema.layout.items),
+      var _iterator3 = _createForOfIteratorHelper(view_schema.layout.items),
           _step3;
 
       try {
         for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var _item3 = _step3.value;
-          var config = this.getWidgetConfig(_item3);
+
+          var config = _equalWidgets.WidgetFactory.getWidgetConfig(this.view, _item3.value, translation, model_fields, view_fields);
 
           if (config.visible) {
             var _width2 = Math.floor(10 * _item3.width) / 10;
@@ -4139,18 +4142,18 @@ var Layout = /*#__PURE__*/function () {
 
               if ($this.hasClass('sortable')) {
                 // unselect all lines
-                (0, _jqueryLib.$)('td:first-child', _this2.$layout.find('tbody')).each(function (i, elem) {
+                (0, _jqueryLib.$)('td:first-child', _this4.$layout.find('tbody')).each(function (i, elem) {
                   (0, _jqueryLib.$)('input[type="checkbox"]', elem).prop('checked', false).prop('indeterminate', false);
                 });
                 $thead.find('th:first-child').find('input').trigger('refresh'); // wait for handling of sort toggle (table decorator)
 
                 setTimeout(function () {
                   // change sortname and/or sortorder
-                  _this2.view.setOrder($this.attr('name'));
+                  _this4.view.setOrder($this.attr('name'));
 
-                  _this2.view.setSort($this.attr('data-sort'));
+                  _this4.view.setSort($this.attr('data-sort'));
 
-                  _this2.view.onchangeView();
+                  _this4.view.onchangeView();
                 });
               }
             });
@@ -4171,18 +4174,18 @@ var Layout = /*#__PURE__*/function () {
       $thead.append($hrow);
       this.$layout.append($elem);
 
-      if (schema.hasOwnProperty('operations')) {
+      if (view_schema.hasOwnProperty('operations')) {
         var $operations = (0, _jqueryLib.$)('<div>').addClass('table-operations');
 
-        for (var operation in schema.operations) {
-          var op_descriptor = schema.operations[operation];
+        for (var operation in view_schema.operations) {
+          var op_descriptor = view_schema.operations[operation];
           var $op_div = (0, _jqueryLib.$)('<div>').addClass('operation');
           var $title = (0, _jqueryLib.$)('<div>').addClass('operation-title').text(operation); // $op_div.append($title);
 
           var $op_row = (0, _jqueryLib.$)('<div>').addClass('operation-row').appendTo($op_div);
           var pos = 0;
 
-          var _iterator4 = _createForOfIteratorHelper(schema.layout.items),
+          var _iterator4 = _createForOfIteratorHelper(view_schema.layout.items),
               _step4;
 
           try {
@@ -4221,152 +4224,106 @@ var Layout = /*#__PURE__*/function () {
       }
 
       _materialLib.UIHelper.decorateTable($elem);
+
+      if (view_schema.hasOwnProperty('actions') && this.view.getPurpose() != 'widget') {
+        var $view_actions = this.view.getContainer().find('.sb-view-header-actions-view');
+
+        var _iterator5 = _createForOfIteratorHelper(view_schema.actions),
+            _step5;
+
+        try {
+          for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+            var action = _step5.value;
+
+            var action_title = _equalServices.TranslationService.resolve(this.view.getTranslation(), 'view', [this.view.getId(), 'actions'], action.id, action.label);
+
+            var $button = _materialLib.UIHelper.createButton('action-view-' + action.id, action_title, 'outlined');
+
+            this.decorateActionButton($button, action);
+            $view_actions.append($button);
+          }
+        } catch (err) {
+          _iterator5.e(err);
+        } finally {
+          _iterator5.f();
+        }
+      }
     }
   }, {
     key: "feedList",
     value: function feedList(objects) {
-      var _this3 = this;
-
       console.log('Layout::feedList', objects);
+      var group_by = this.view.getGroupBy();
+      var groups = {};
+
+      if (group_by.length > 0) {
+        groups = this.feedListGroupObjects(objects, group_by);
+      }
+
       var schema = this.view.getViewSchema();
       var $elem = this.$layout.find('.table-wrapper');
       var $table = $elem.find('table');
       var $tbody = (0, _jqueryLib.$)('<tbody/>');
+      var stack = group_by.length == 0 ? [objects] : [groups];
 
-      var _iterator5 = _createForOfIteratorHelper(objects),
-          _step5;
+      while (true) {
+        if (stack.length == 0) break;
+        var group = stack.pop();
 
-      try {
-        var _loop = function _loop() {
-          var object = _step5.value;
-          var $row = (0, _jqueryLib.$)('<tr/>').addClass('sb-view-layout-list-row').attr('data-id', object.id).attr('data-edit', '0') // open form view on click
-          .on('click', function (event) {
-            var $this = (0, _jqueryLib.$)(event.currentTarget); // discard click when row is being edited
+        if (Array.isArray(group)) {
+          var $previous = $tbody.children().last();
+          var parent_group_id = '';
 
-            if ($this.attr('data-edit') == '0') {
-              // #todo - allow overloading default action ('ACTIONS.UPDATE')
-              _this3.openContext({
-                entity: _this3.view.getEntity(),
-                type: 'form',
-                name: _this3.view.getName(),
-                domain: ['id', '=', object.id]
-              });
-            }
-          }) // toggle mode for all cells in row
-          .on('_toggle_mode', function (event) {
-            var mode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'view';
-            console.log('Layout - received toggle_mode', mode);
-            var $this = (0, _jqueryLib.$)(event.currentTarget);
-            $this.find('td.sb-widget-cell').each(function (index, elem) {
-              var $cell = (0, _jqueryLib.$)(elem);
-              var field = $cell.attr('data-field');
-              var widget = _this3.model_widgets[object.id][field]; // switch to given mode
-
-              if (widget.getMode() == mode) return;
-              var $widget = widget.setMode(mode).render(); // handle special situations that allow cell content to overflow
-
-              if (widget.getType() == 'boolean') {
-                $cell.addClass('allow-overflow');
-              }
-
-              $cell.empty().append($widget);
-
-              if (mode == 'edit') {
-                $widget.on('_updatedWidget', function (event) {
-                  console.log('Layout - received _updatedWidget event', widget.getValue());
-                  var value = {};
-                  value[field] = widget.getValue(); // propagate model change, without requesting a layout refresh
-
-                  _this3.view.onchangeViewModel([object.id], value, false);
-                });
-              }
-            });
-          }) // dispatch value setter
-          .on('_setValue', function (event, field, value) {
-            var widget = _this3.model_widgets[object.id][field];
-            widget.change(value);
-          }); // for lists in edit mode (excepted widgets), add a checkbox
-
-          if (_this3.view.getPurpose() != 'widget' || _this3.view.getMode() == 'edit') {
-            _materialLib.UIHelper.createTableCellCheckbox().addClass('sb-view-layout-list-row-checkbox').appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
-              // wait for widget to update and notify about change
-              setTimeout(function () {
-                return _this3.view.onchangeSelection(_this3.getSelected());
-              }); // prevent handling of click on parent `tr` element
-
-              event.stopPropagation();
-            });
-          } // for each field, create a widget, append to a cell, and append cell to row
+          if ($previous && $previous.hasClass('sb-group-row')) {
+            parent_group_id = $previous.attr('data-id');
+          } // group is an array of objects: render a row for each object
 
 
-          var _iterator8 = _createForOfIteratorHelper(schema.layout.items),
-              _step8;
+          var _iterator6 = _createForOfIteratorHelper(group),
+              _step6;
 
           try {
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-              var _item4 = _step8.value;
-
-              var config = _this3.getWidgetConfig(_item4); // unknown or invisible field
-
-
-              if (config === null || config.hasOwnProperty('visible') && !config.visible) continue;
-              var _value = object[_item4.value]; // for relational fields, we need to check if the Model has been fetched
-
-              if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
-                // if widget has a domain, parse it using current object and user
-                if (config.hasOwnProperty('original_domain')) {
-                  var user = _this3.view.getUser();
-
-                  var tmpDomain = new _Domain.Domain(config.original_domain);
-                  config.domain = tmpDomain.parse(object, user).toArray();
-                } else {
-                  config.domain = [];
-                } // by convention, `name` subfield is always loaded for relational fields
-
-
-                if (config.type == 'many2one') {
-                  _value = object[_item4.value]['name'];
-                  config.object_id = object[_item4.value]['id'];
-                } else {
-                  // Model do not load o2m and m2m fields : these are handled by sub-views
-                  // value = object[item.value].map( (o:any) => o.name).join(', ');
-                  // value = (value.length > 35)? value.substring(0, 35) + "..." : value;
-                  _value = "..."; // we need the current object id for new objects creation
-
-                  config.object_id = object.id;
-                }
-              }
-
-              var widget = _equalWidgets.WidgetFactory.getWidget(_this3, config.type, '', '', config);
-
-              widget.setValue(_value);
-              widget.setReadonly(config.readonly); // store widget in widgets Map, using widget id as key (there are several rows for each field)
-
-              if (typeof _this3.model_widgets[object.id] == 'undefined') {
-                _this3.model_widgets[object.id] = {};
-              } // store widget: use id and field as keys for storing widgets (current layout is for a single entity)
-
-
-              _this3.model_widgets[object.id][_item4.value] = widget;
-              var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').attr('data-field', _item4.value).append(widget.render());
-              $row.append($cell);
+            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+              var object = _step6.value;
+              var $row = this.feedListCreateObjectRow(object, parent_group_id);
+              $tbody.append($row);
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator6.e(err);
           } finally {
-            _iterator8.f();
+            _iterator6.f();
           }
+        } else if (group.hasOwnProperty('_is_group')) {
+          var _$row = this.feedListCreateGroupRow(group, $tbody);
 
-          $tbody.append($row);
-        };
+          $tbody.append(_$row);
+        } else {
+          var keys = Object.keys(group).sort().reverse();
 
-        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-          _loop();
+          var _iterator7 = _createForOfIteratorHelper(keys),
+              _step7;
+
+          try {
+            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+              var key = _step7.value;
+              if (['_id', '_parent_id', '_key', '_label'].indexOf(key) >= 0) continue; // add object or array
+
+              if (group[key].hasOwnProperty('_data')) {
+                stack.push(group[key]['_data']);
+              } else {
+                stack.push(group[key]);
+              }
+
+              stack.push(_objectSpread({
+                '_is_group': true
+              }, group[key]));
+            }
+          } catch (err) {
+            _iterator7.e(err);
+          } finally {
+            _iterator7.f();
+          }
         }
-      } catch (err) {
-        _iterator5.e(err);
-      } finally {
-        _iterator5.f();
       }
 
       $table.find('tbody').remove();
@@ -4376,28 +4333,28 @@ var Layout = /*#__PURE__*/function () {
         for (var operation in schema.operations) {
           var descriptor = schema.operations[operation];
 
-          var _iterator6 = _createForOfIteratorHelper(schema.layout.items),
-              _step6;
+          var _iterator8 = _createForOfIteratorHelper(schema.layout.items),
+              _step8;
 
           try {
-            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-              var item = _step6.value;
+            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+              var item = _step8.value;
 
               if (!item.hasOwnProperty('visible') || item.visible == true) {
                 if (descriptor.hasOwnProperty(item.value)) {
                   var type = descriptor[item.value].type;
                   var result = 0.0;
 
-                  var _iterator7 = _createForOfIteratorHelper(objects),
-                      _step7;
+                  var _iterator9 = _createForOfIteratorHelper(objects),
+                      _step9;
 
                   try {
-                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-                      var object = _step7.value;
+                    for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                      var _object = _step9.value;
 
                       switch (type) {
                         case 'SUM':
-                          result += object[item.value];
+                          result += _object[item.value];
                           break;
 
                         case 'COUNT':
@@ -4415,9 +4372,9 @@ var Layout = /*#__PURE__*/function () {
                       }
                     }
                   } catch (err) {
-                    _iterator7.e(err);
+                    _iterator9.e(err);
                   } finally {
-                    _iterator7.f();
+                    _iterator9.f();
                   }
 
                   var value = String((Math.round(result * 100) / 100).toFixed(2));
@@ -4426,9 +4383,9 @@ var Layout = /*#__PURE__*/function () {
               }
             }
           } catch (err) {
-            _iterator6.e(err);
+            _iterator8.e(err);
           } finally {
-            _iterator6.f();
+            _iterator8.f();
           }
         }
       }
@@ -4438,33 +4395,33 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "feedForm",
     value: function feedForm(objects) {
-      var _this4 = this;
+      var _this5 = this;
 
       console.log('Layout::feedForm', objects); // display the first object from the collection
 
       var fields = Object.keys(this.view.getViewFields());
-      var model_schema = this.view.getModelFields(); // remember which element has focus (DOM is going to be modified)
+      var model_fields = this.view.getModelFields(); // remember which element has focus (DOM is going to be modified)
 
       var focused_widget_id = (0, _jqueryLib.$)("input:focus").closest('.sb-widget').attr('id');
 
       if (objects.length > 0) {
         (function () {
-          // #todo : keep internal index of the object to display (with a prev/next navigation in the header)
+          // #todo - keep internal index of the object to display (with a prev/next navigation in the header)
           var object = objects[0]; // update actions in view header
 
-          var view_schema = _this4.view.getViewSchema();
+          var view_schema = _this5.view.getViewSchema();
 
           if (view_schema.hasOwnProperty('actions')) {
-            var $view_actions = _this4.view.getContainer().find('.sb-view-header-form-actions-view');
+            var $view_actions = _this5.view.getContainer().find('.sb-view-header-actions-view');
 
             $view_actions.empty();
 
-            var _iterator9 = _createForOfIteratorHelper(view_schema.actions),
-                _step9;
+            var _iterator10 = _createForOfIteratorHelper(view_schema.actions),
+                _step10;
 
             try {
-              var _loop2 = function _loop2() {
-                var action = _step9.value;
+              for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+                var action = _step10.value;
                 var visible = true;
 
                 if (action.hasOwnProperty('visible')) {
@@ -4478,94 +4435,24 @@ var Layout = /*#__PURE__*/function () {
                 }
 
                 if (visible) {
-                  var action_title = _equalServices.TranslationService.resolve(_this4.view.getTranslation(), 'view', [_this4.view.getId(), 'actions'], action.id, action.label);
+                  var action_title = _equalServices.TranslationService.resolve(_this5.view.getTranslation(), 'view', [_this5.view.getId(), 'actions'], action.id, action.label);
 
-                  var $button = _materialLib.UIHelper.createButton('action-view-' + action.id, action_title, 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-                    var defer, $dialog;
-                    return _regenerator.default.wrap(function _callee4$(_context4) {
-                      while (1) {
-                        switch (_context4.prev = _context4.next) {
-                          case 0:
-                            defer = _jqueryLib.$.Deferred(); // prompt for confirmation if required
+                  var $button = _materialLib.UIHelper.createButton('action-view-' + action.id, action_title, 'outlined');
 
-                            if (action.hasOwnProperty('confirm') && action.confirm) {
-                              // display confirmation dialog with checkbox for archive
-                              $dialog = _materialLib.UIHelper.createDialog('confirm_action_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
-                              $dialog.appendTo(_this4.view.getContainer()); // inject component as dialog content
-
-                              $dialog.find('.mdc-dialog__content').append((0, _jqueryLib.$)('<p />').text(_equalServices.TranslationService.resolve(_this4.view.getTranslation(), 'view', [_this4.view.getId(), 'actions'], action.id, action.description, 'description')));
-                              $dialog.on('_accept', function () {
-                                defer.resolve();
-                              }).on('_reject', function () {
-                                defer.reject();
-                              });
-                              $dialog.trigger('_open');
-                            } else {
-                              defer.resolve();
-                            }
-
-                            defer.promise().then( /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-                              var result;
-                              return _regenerator.default.wrap(function _callee3$(_context3) {
-                                while (1) {
-                                  switch (_context3.prev = _context3.next) {
-                                    case 0:
-                                      _context3.prev = 0;
-                                      _context3.next = 3;
-                                      return _equalServices.ApiService.fetch("/", {
-                                        do: action.controller,
-                                        id: object.id
-                                      });
-
-                                    case 3:
-                                      result = _context3.sent;
-                                      console.log(result);
-                                      _context3.next = 7;
-                                      return _this4.view.onchangeView();
-
-                                    case 7:
-                                      _context3.next = 14;
-                                      break;
-
-                                    case 9:
-                                      _context3.prev = 9;
-                                      _context3.t0 = _context3["catch"](0);
-                                      console.log('error', _context3.t0);
-                                      _context3.next = 14;
-                                      return _this4.view.displayErrorFeedback(_context3.t0);
-
-                                    case 14:
-                                    case "end":
-                                      return _context3.stop();
-                                  }
-                                }
-                              }, _callee3, null, [[0, 9]]);
-                            })));
-
-                          case 3:
-                          case "end":
-                            return _context4.stop();
-                        }
-                      }
-                    }, _callee4);
-                  })));
+                  _this5.decorateActionButton($button, action, object);
 
                   $view_actions.append($button);
                 }
-              };
-
-              for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                _loop2();
               }
             } catch (err) {
-              _iterator9.e(err);
+              _iterator10.e(err);
             } finally {
-              _iterator9.f();
+              _iterator10.f();
             }
           } // update tabs visibility, if any
 
 
-          var $tabs = _this4.$layout.find('.mdc-tab.sb-view-form-section-tab');
+          var $tabs = _this5.$layout.find('.mdc-tab.sb-view-form-section-tab');
 
           $tabs.each(function (i, elem) {
             var $tab = (0, _jqueryLib.$)(elem);
@@ -4573,9 +4460,10 @@ var Layout = /*#__PURE__*/function () {
 
             if (visible != undefined) {
               console.log('section visible', visible);
-              var domain = new _Domain.Domain(JSON.parse(visible));
 
-              if (domain.evaluate(object)) {
+              var _domain = new _Domain.Domain(JSON.parse(visible));
+
+              if (_domain.evaluate(object)) {
                 $tab.show();
               } else {
                 $tab.hide();
@@ -4583,19 +4471,19 @@ var Layout = /*#__PURE__*/function () {
             }
           });
 
-          var _iterator10 = _createForOfIteratorHelper(fields),
-              _step10;
+          var _iterator11 = _createForOfIteratorHelper(fields),
+              _step11;
 
           try {
-            var _loop3 = function _loop3() {
-              var field = _step10.value;
-              var widget = _this4.model_widgets[0][field]; // widget might be missing (if not visible)
+            var _loop = function _loop() {
+              var field = _step11.value;
+              var widget = _this5.model_widgets[0][field]; // widget might be missing (if not visible)
 
               if (!widget) return "continue";
 
-              var $parent = _this4.$layout.find('#' + widget.getId()).parent();
+              var $parent = _this5.$layout.find('#' + widget.getId()).parent();
 
-              var model_def = model_schema[field];
+              var model_def = model_fields[field];
               var type = model_def['type'];
 
               if (model_def.hasOwnProperty('result_type')) {
@@ -4607,14 +4495,33 @@ var Layout = /*#__PURE__*/function () {
               var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched
 
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
-                // if widget has a domain, parse it using current object and user
-                if (config.hasOwnProperty('original_domain')) {
-                  var user = _this4.view.getUser();
+                var user = _this5.view.getUser(); // if widget has a domain, parse it using current object and user
 
+
+                if (config.hasOwnProperty('original_domain')) {
                   var tmpDomain = new _Domain.Domain(config.original_domain);
                   config.domain = tmpDomain.parse(object, user).toArray();
                 } else {
                   config.domain = [];
+                } // if widget has a custom header defintion, parse subsequent domains, if any
+
+
+                if (config.hasOwnProperty('header') && config.header.hasOwnProperty('actions')) {
+                  for (var _i = 0, _Object$entries = Object.entries(config.header.actions); _i < _Object$entries.length; _i++) {
+                    var _Object$entries$_i = (0, _slicedToArray2.default)(_Object$entries[_i], 2),
+                        id = _Object$entries$_i[0],
+                        items = _Object$entries$_i[1];
+
+                    for (var index in items) {
+                      var item = items[index];
+
+                      if (item.hasOwnProperty('domain')) {
+                        var _tmpDomain = new _Domain.Domain(item.domain);
+
+                        config.header.actions[id][index].domain = _tmpDomain.parse(object, user).toArray();
+                      }
+                    }
+                  }
                 } // by convention, `name` subfield is always loaded for relational fields
 
 
@@ -4642,26 +4549,26 @@ var Layout = /*#__PURE__*/function () {
                     return -id;
                   }); // we need the current object id for new objects creation
 
-                  config.object_id = object.id; // domain is updated based on user actions: an additional clause for + (accept thos whatever the other conditions) and addtional conditions for - (prevent theses whatever the other conditions)
+                  config.object_id = object.id; // domain is updated based on user actions: an additional clause for + (accept these whatever the other conditions) and addtional conditions for - (prevent these whatever the other conditions)
 
-                  var _tmpDomain = new _Domain.Domain(config.domain);
+                  var _tmpDomain2 = new _Domain.Domain(config.domain);
 
                   if (ids_to_add.length) {
-                    _tmpDomain.addClause(new _Domain.Clause([new _Domain.Condition("id", "in", ids_to_add)]));
+                    _tmpDomain2.addClause(new _Domain.Clause([new _Domain.Condition("id", "in", ids_to_add)]));
                   }
 
                   if (ids_to_del.length) {
-                    _tmpDomain.addCondition(new _Domain.Condition("id", "not in", ids_to_del));
+                    _tmpDomain2.addCondition(new _Domain.Condition("id", "not in", ids_to_del));
                   }
 
-                  config.domain = _tmpDomain.toArray();
+                  config.domain = _tmpDomain2.toArray();
                 }
               }
 
               has_changed = !value || $parent.data('value') != JSON.stringify(value);
               widget.setConfig(_objectSpread(_objectSpread({}, config), {}, {
                 ready: true
-              })).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh (prevent storing references)
+              })).setMode(_this5.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh (prevent storing references)
 
               $parent.data('value', JSON.stringify(value) || null);
               var visible = true; // handle visibility tests (domain)
@@ -4669,8 +4576,9 @@ var Layout = /*#__PURE__*/function () {
               if (config.hasOwnProperty('visible')) {
                 // visible attribute is a Domain
                 if (Array.isArray(config.visible)) {
-                  var domain = new _Domain.Domain(config.visible);
-                  visible = domain.evaluate(object);
+                  var _domain2 = new _Domain.Domain(config.visible);
+
+                  visible = _domain2.evaluate(object);
                 } else {
                   visible = config.visible;
                 }
@@ -4683,15 +4591,67 @@ var Layout = /*#__PURE__*/function () {
               } else {
                 var $widget = widget.render(); // Handle Widget update handler
 
-                $widget.on('_updatedWidget', function (event) {
-                  var refresh = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-                  console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
+                $widget.on('_updatedWidget', /*#__PURE__*/function () {
+                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(event) {
+                    var refresh,
+                        values,
+                        result,
+                        _i2,
+                        _Object$keys,
+                        _field,
+                        _args3 = arguments;
 
-                  var value = {};
-                  value[field] = widget.getValue();
+                    return _regenerator.default.wrap(function _callee3$(_context3) {
+                      while (1) {
+                        switch (_context3.prev = _context3.next) {
+                          case 0:
+                            refresh = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : true;
+                            console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
 
-                  _this4.view.onchangeViewModel([object.id], value, refresh);
-                }); // prevent refreshing objects that haven't changed
+                            values = {};
+                            values[field] = widget.getValue(); // relay the change to back-end through onupdate
+
+                            _context3.prev = 4;
+                            _context3.next = 7;
+                            return _equalServices.ApiService.fetch("/", {
+                              do: 'model_onchange',
+                              entity: _this5.view.getEntity(),
+                              changes: _this5.view.getModel().export(values),
+                              values: _this5.view.getModel().export(object),
+                              lang: _this5.view.getLang()
+                            });
+
+                          case 7:
+                            result = _context3.sent;
+
+                            for (_i2 = 0, _Object$keys = Object.keys(result); _i2 < _Object$keys.length; _i2++) {
+                              _field = _Object$keys[_i2];
+                              // if some changes are returned from the back-end, append them to the view model update
+                              values[_field] = result[_field];
+                            }
+
+                            _context3.next = 13;
+                            break;
+
+                          case 11:
+                            _context3.prev = 11;
+                            _context3.t0 = _context3["catch"](4);
+
+                          case 13:
+                            _this5.view.onchangeViewModel([object.id], values, refresh);
+
+                          case 14:
+                          case "end":
+                            return _context3.stop();
+                        }
+                      }
+                    }, _callee3, null, [[4, 11]]);
+                  }));
+
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()); // prevent refreshing objects that haven't changed
 
                 if (has_changed) {
                   // append rendered widget
@@ -4700,22 +4660,668 @@ var Layout = /*#__PURE__*/function () {
               }
             };
 
-            for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-              var _ret = _loop3();
+            for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+              var _ret = _loop();
 
               if (_ret === "continue") continue;
             } // try to give the focus back to the previously focused widget
 
           } catch (err) {
-            _iterator10.e(err);
+            _iterator11.e(err);
           } finally {
-            _iterator10.f();
+            _iterator11.f();
           }
 
           (0, _jqueryLib.$)('#' + focused_widget_id).find('input').trigger('focus');
         })();
       }
     }
+  }, {
+    key: "feedListGroupObjects",
+    value: function feedListGroupObjects(objects, group_by) {
+      var groups = {};
+      var model_fields = this.view.getModelFields(); // group objects
+
+      var _iterator12 = _createForOfIteratorHelper(objects),
+          _step12;
+
+      try {
+        for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+          var object = _step12.value;
+          var n = group_by.length;
+          var parent = groups;
+          var parent_id = '';
+
+          for (var i = 0; i < n; ++i) {
+            var field = group_by[i];
+            var model_def = model_fields[field];
+            var key = object[field];
+            var label = key;
+
+            if (key.hasOwnProperty('name')) {
+              label = key.name;
+              key = key.name;
+            }
+
+            if (['date', 'datetime'].indexOf(model_def['type']) >= 0) {
+              label = (0, _moment.default)(key).format(_moment.default.localeData().longDateFormat('L'));
+              key = (0, _moment.default)(key).format('YYYY-MM-DD');
+            }
+
+            if (!parent.hasOwnProperty(key)) {
+              if (i < n - 1) {
+                parent[key] = {
+                  '_id': parent_id + key,
+                  '_parent_id': parent_id,
+                  '_key': key,
+                  '_label': label
+                };
+              } else {
+                parent[key] = {
+                  '_id': parent_id + key,
+                  '_parent_id': parent_id,
+                  '_key': key,
+                  '_label': label,
+                  '_data': []
+                };
+              }
+            }
+
+            parent_id = parent_id + key;
+            parent = parent[key];
+          }
+
+          if (parent.hasOwnProperty('_data') && Array.isArray(parent['_data'])) {
+            parent['_data'].push(object);
+          }
+        }
+      } catch (err) {
+        _iterator12.e(err);
+      } finally {
+        _iterator12.f();
+      }
+
+      return groups;
+    }
+  }, {
+    key: "feedListCreateObjectRow",
+    value: function feedListCreateObjectRow(object, parent_group_id) {
+      var _this6 = this;
+
+      var schema = this.view.getViewSchema();
+      var view_fields = this.view.getViewFields();
+      var model_fields = this.view.getModelFields();
+      var translation = this.view.getTranslation();
+      var group_by = this.view.getGroupBy();
+      var $row = (0, _jqueryLib.$)('<tr/>').addClass('sb-view-layout-list-row').attr('data-parent-id', parent_group_id).attr('data-id', object.id).attr('data-edit', '0') // open form view on click
+      .on('click', function (event) {
+        var $this = (0, _jqueryLib.$)(event.currentTarget); // discard click when row is being edited
+
+        if ($this.attr('data-edit') == '0') {
+          // #todo - allow overloading default action ('ACTIONS.UPDATE')
+          _this6.openContext({
+            entity: _this6.view.getEntity(),
+            type: 'form',
+            name: _this6.view.getName(),
+            domain: ['id', '=', object.id]
+          });
+        }
+      }) // toggle mode for all cells in row
+      .on('_toggle_mode', function (event) {
+        var mode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'view';
+        console.log('Layout - received toggle_mode', mode);
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
+        $this.find('td.sb-widget-cell').each(function (index, elem) {
+          var $cell = (0, _jqueryLib.$)(elem);
+          var field = $cell.attr('data-field');
+          var widget = _this6.model_widgets[object.id][field]; // switch to given mode
+
+          if (widget.getMode() == mode) return;
+          var $widget = widget.setMode(mode).render(); // handle special situations that allow cell content to overflow
+
+          if (widget.getType() == 'boolean') {
+            $cell.addClass('allow-overflow');
+          }
+
+          $cell.empty().append($widget);
+
+          if (mode == 'edit') {
+            $widget.on('_updatedWidget', function (event) {
+              console.log('Layout - received _updatedWidget event', widget.getValue());
+              var value = {};
+              value[field] = widget.getValue(); // propagate model change, without requesting a layout refresh
+
+              _this6.view.onchangeViewModel([object.id], value, false);
+            });
+          }
+        });
+      }) // dispatch value setter
+      .on('_setValue', function (event, field, value) {
+        var widget = _this6.model_widgets[object.id][field];
+        widget.change(value);
+      }); // for lists in edit mode (excepted widgets), add a checkbox
+
+      if (this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
+        _materialLib.UIHelper.createTableCellCheckbox().addClass('sb-view-layout-list-row-checkbox').appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
+          // wait for widget to update and notify about change
+          setTimeout(function () {
+            return _this6.view.onchangeSelection(_this6.getSelected());
+          }); // prevent handling of click on parent `tr` element
+
+          event.stopPropagation();
+        });
+      }
+
+      if (group_by.length > 0) {
+        // add a cell for the toggle chevron column
+        $row.append((0, _jqueryLib.$)('<td/>'));
+      } // for each field, create a widget, append to a cell, and append cell to row
+
+
+      var _iterator13 = _createForOfIteratorHelper(schema.layout.items),
+          _step13;
+
+      try {
+        for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+          var item = _step13.value;
+
+          var config = _equalWidgets.WidgetFactory.getWidgetConfig(this.view, item.value, translation, model_fields, view_fields); // unknown or invisible field
+
+
+          if (config === null || config.hasOwnProperty('visible') && !config.visible) continue;
+          var value = object[item.value]; // for relational fields, we need to check if the Model has been fetched
+
+          if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
+            // if widget has a domain, parse it using current object and user
+            if (config.hasOwnProperty('original_domain')) {
+              var user = this.view.getUser();
+              var tmpDomain = new _Domain.Domain(config.original_domain);
+              config.domain = tmpDomain.parse(object, user).toArray();
+            } else {
+              config.domain = [];
+            } // by convention, `name` subfield is always loaded for relational fields
+
+
+            if (config.type == 'many2one') {
+              value = object[item.value]['name'];
+              config.object_id = object[item.value]['id'];
+            } else {
+              // Model do not load o2m and m2m fields : these are handled by sub-views
+              // value = object[item.value].map( (o:any) => o.name).join(', ');
+              // value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+              value = "..."; // we need the current object id for new objects creation
+
+              config.object_id = object.id;
+            }
+          }
+
+          var widget = _equalWidgets.WidgetFactory.getWidget(this, config.type, '', '', config);
+
+          widget.setValue(value);
+          widget.setReadonly(config.readonly); // store widget in widgets Map, using widget id as key (there are several rows for each field)
+
+          if (typeof this.model_widgets[object.id] == 'undefined') {
+            this.model_widgets[object.id] = {};
+          } // store widget: use id and field as keys for storing widgets (current layout is for a single entity)
+
+
+          this.model_widgets[object.id][item.value] = widget;
+          var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').attr('data-field', item.value).append(widget.render());
+          $row.append($cell);
+        }
+      } catch (err) {
+        _iterator13.e(err);
+      } finally {
+        _iterator13.f();
+      }
+
+      if (parent_group_id.length) {
+        $row.hide();
+      }
+
+      return $row;
+    }
+  }, {
+    key: "feedListCreateGroupRow",
+    value: function feedListCreateGroupRow(group, $tbody) {
+      var _this7 = this;
+
+      var schema = this.view.getViewSchema();
+      var label = group['_label'];
+      var prefix = '';
+      var suffix = '';
+      var children_count = 0;
+      var parent_group_id = group['_parent_id'];
+
+      if (parent_group_id.length > 0) {
+        var $prev_td = $tbody.find("[data-id='" + parent_group_id + "']").find('.sb-group-cell-label').first();
+
+        if ($prev_td) {
+          prefix = $prev_td.attr('title') + ' › ';
+        }
+      }
+
+      if (group.hasOwnProperty('_data')) {
+        children_count = group['_data'].length;
+        suffix = '[' + children_count + ']';
+      } else {// sum children groups
+      }
+
+      var $row = (0, _jqueryLib.$)('<tr/>').addClass('sb-view-layout-list-row sb-group-row folded').attr('data-parent-id', parent_group_id).attr('data-id', group['_id']).attr('data-children-count', children_count).attr('id', _materialLib.UIHelper.getUUID());
+
+      if (this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
+        var $checkbox = _materialLib.UIHelper.createTableCellCheckbox().addClass('sb-view-layout-list-row-checkbox');
+
+        $checkbox.find('input').on('click', function (event) {
+          event.stopPropagation();
+
+          var $tbody = _this7.$layout.find('tbody');
+
+          var checked = $checkbox.find('input').prop('checked');
+          var selection = [];
+          $tbody.find("[data-parent-id='" + group['_id'] + "']").each(function (index, elem) {
+            var $this = (0, _jqueryLib.$)(elem);
+
+            if ($this.hasClass('sb-group-row')) {
+              var subchecked = $this.children().first().find('input').prop('checked');
+
+              if (checked != subchecked) {
+                $this.children().first().find('input').trigger('click');
+              }
+            } else {
+              selection.push(parseInt($this.children().first().find('input').attr('data-id'), 10));
+            }
+          });
+
+          if (checked) {
+            _this7.addToSelection(selection);
+          } else {
+            _this7.removeFromSelection(selection);
+          }
+        });
+        $row.append($checkbox);
+      }
+
+      $row.append((0, _jqueryLib.$)('<td />').addClass('sb-group-cell').append((0, _jqueryLib.$)('<i/>').addClass('material-icons sb-toggle-button').text('chevron_right')));
+      $row.append((0, _jqueryLib.$)('<td/>').attr('title', prefix + label).attr('colspan', schema.layout.items.length).addClass('sb-group-cell sb-group-cell-label').append(prefix + ' <span>' + label + '</span>' + ' ' + suffix));
+      $row.on('click', function () {
+        var $tbody = _this7.$layout.find('tbody');
+
+        var group_id = $row.attr('data-id');
+
+        if ($row.hasClass('folded')) {
+          $row.removeClass('folded');
+          $tbody.find("[data-parent-id='" + group_id + "']").each(function (index, elem) {
+            var $this = (0, _jqueryLib.$)(elem);
+
+            if ($this.hasClass('sb-group-row')) {
+              $this.trigger('show');
+            } else {
+              $this.show();
+            }
+          });
+        } else {
+          $row.addClass('folded');
+          $tbody.find("[data-parent-id='" + group_id + "']").each(function (index, elem) {
+            var $this = (0, _jqueryLib.$)(elem);
+
+            if ($this.hasClass('sb-group-row')) {
+              $this.trigger('hide');
+            } else {
+              $this.hide();
+            }
+          });
+        }
+      });
+      $row.on('show', function () {
+        var $tbody = _this7.$layout.find('tbody');
+
+        var group_id = $row.attr('data-id');
+        $row.show();
+        $tbody.find("[data-parent-id='" + group_id + "']").each(function (index, elem) {
+          var $this = (0, _jqueryLib.$)(elem);
+
+          if ($this.hasClass('sb-group-row')) {// $this.trigger('show');
+          } else if (!$row.hasClass('folded')) {
+            $this.show();
+          }
+        });
+      });
+      $row.on('hide', function () {
+        var $tbody = _this7.$layout.find('tbody');
+
+        var group_id = $row.attr('data-id');
+        $row.hide();
+        $tbody.find("[data-parent-id='" + group_id + "']").each(function (index, elem) {
+          var $this = (0, _jqueryLib.$)(elem);
+
+          if ($this.hasClass('sb-group-row')) {
+            $this.trigger('hide');
+          } else {
+            $this.hide();
+          }
+        });
+      });
+
+      if (parent_group_id.length) {
+        $row.hide();
+      }
+
+      return $row;
+    }
+  }, {
+    key: "decorateActionButton",
+    value: function () {
+      var _decorateActionButton = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6($button, action) {
+        var _this8 = this;
+
+        var object,
+            _args6 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                object = _args6.length > 2 && _args6[2] !== undefined ? _args6[2] : {};
+                $button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+                  var resulting_params, missing_params, user, _i3, _Object$keys2, param, ref, result, params, _i4, _Object$keys3, _param, translation, defer, $description, $dialog, _$dialog, _$dialog2;
+
+                  return _regenerator.default.wrap(function _callee5$(_context5) {
+                    while (1) {
+                      switch (_context5.prev = _context5.next) {
+                        case 0:
+                          console.log("click action button ", object); // mark action button as loading
+
+                          $button.addClass('mdc-button--spinner').attr('disabled', 'disabled');
+                          resulting_params = {};
+                          missing_params = {};
+                          user = _this8.view.getUser(); // 1) pre-feed with params from the action, if any
+
+                          if (!action.hasOwnProperty('params')) {
+                            action['params'] = {};
+                          } // by convention, add current object id as reference            
+
+
+                          if (object.hasOwnProperty('id') && !action.params.hasOwnProperty('id')) {
+                            action.params['id'] = 'object.id';
+                          }
+
+                          for (_i3 = 0, _Object$keys2 = Object.keys(action.params); _i3 < _Object$keys2.length; _i3++) {
+                            param = _Object$keys2[_i3];
+                            ref = new _Domain.Reference(action.params[param]);
+                            resulting_params[param] = ref.parse(object, user);
+                          } // 2) retrieve announcement from the target action controller
+
+
+                          _context5.next = 10;
+                          return _equalServices.ApiService.fetch("/", {
+                            do: action.controller,
+                            announce: true
+                          });
+
+                        case 10:
+                          result = _context5.sent;
+                          params = {};
+
+                          if (result.hasOwnProperty('announcement')) {
+                            if (result.announcement.hasOwnProperty('params')) {
+                              params = result.announcement.params;
+                            }
+
+                            for (_i4 = 0, _Object$keys3 = Object.keys(params); _i4 < _Object$keys3.length; _i4++) {
+                              _param = _Object$keys3[_i4];
+
+                              if (Object.keys(resulting_params).indexOf(_param) < 0) {
+                                missing_params[_param] = params[_param];
+                              }
+                            }
+                          } // 3) retrieve translation related to action, if any
+
+
+                          _context5.next = 15;
+                          return _equalServices.ApiService.getTranslation(action.controller.replaceAll('_', '\\'), _this8.view.getLocale());
+
+                        case 15:
+                          translation = _context5.sent;
+                          // restore action button
+                          $button.removeClass('mdc-button--spinner').removeAttr('disabled');
+                          defer = _jqueryLib.$.Deferred();
+                          $description = (0, _jqueryLib.$)('<p />').text(_equalServices.TranslationService.resolve(translation, '', [], '', action.description, 'description'));
+
+                          if (!(action.hasOwnProperty('confirm') && action.confirm)) {
+                            _context5.next = 37;
+                            break;
+                          }
+
+                          if (!Object.keys(missing_params).length) {
+                            _context5.next = 30;
+                            break;
+                          }
+
+                          $dialog = _materialLib.UIHelper.createDialog(_this8.view.getUUID() + '_' + action.id + '_custom_action_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_PROVIDE_PARAMS'), _equalServices.TranslationService.instant('SB_DIALOG_SEND'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
+                          $dialog.find('.mdc-dialog__content').append($description);
+                          _context5.next = 25;
+                          return _this8.decorateViewActionDialog($dialog, action, missing_params);
+
+                        case 25:
+                          $dialog.addClass('sb-view-dialog').appendTo(_this8.view.getContainer());
+                          $dialog.on('_accept', function () {
+                            return defer.resolve($dialog.data('result'));
+                          }).on('_reject', function () {
+                            return defer.reject();
+                          });
+                          $dialog.trigger('_open');
+                          _context5.next = 35;
+                          break;
+
+                        case 30:
+                          // display confirmation dialog with checkbox for archive
+                          _$dialog = _materialLib.UIHelper.createDialog(_this8.view.getUUID() + '_' + action.id + '_confirm-action-dialog', _equalServices.TranslationService.instant('SB_ACTIONS_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
+
+                          _$dialog.find('.mdc-dialog__content').append($description);
+
+                          _$dialog.appendTo(_this8.view.getContainer());
+
+                          _$dialog.on('_accept', function () {
+                            return defer.resolve();
+                          }).on('_reject', function () {
+                            return defer.reject();
+                          });
+
+                          _$dialog.trigger('_open');
+
+                        case 35:
+                          _context5.next = 48;
+                          break;
+
+                        case 37:
+                          if (!Object.keys(missing_params).length) {
+                            _context5.next = 47;
+                            break;
+                          }
+
+                          _$dialog2 = _materialLib.UIHelper.createDialog(_this8.view.getUUID() + '_' + action.id + '_custom_action_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_PROVIDE_PARAMS'), _equalServices.TranslationService.instant('SB_DIALOG_SEND'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
+
+                          _$dialog2.find('.mdc-dialog__content').append($description);
+
+                          _context5.next = 42;
+                          return _this8.decorateViewActionDialog(_$dialog2, action, missing_params);
+
+                        case 42:
+                          _$dialog2.addClass('sb-view-dialog').appendTo(_this8.view.getContainer());
+
+                          _$dialog2.on('_accept', function () {
+                            return defer.resolve(_$dialog2.data('result'));
+                          }).on('_reject', function () {
+                            return defer.reject();
+                          });
+
+                          _$dialog2.trigger('_open');
+
+                          _context5.next = 48;
+                          break;
+
+                        case 47:
+                          defer.resolve();
+
+                        case 48:
+                          defer.promise().then( /*#__PURE__*/function () {
+                            var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(result) {
+                              return _regenerator.default.wrap(function _callee4$(_context4) {
+                                while (1) {
+                                  switch (_context4.prev = _context4.next) {
+                                    case 0:
+                                      _this8.performViewAction(action, _objectSpread(_objectSpread({}, resulting_params), result), translation);
+
+                                    case 1:
+                                    case "end":
+                                      return _context4.stop();
+                                  }
+                                }
+                              }, _callee4);
+                            }));
+
+                            return function (_x4) {
+                              return _ref3.apply(this, arguments);
+                            };
+                          }());
+
+                        case 49:
+                        case "end":
+                          return _context5.stop();
+                      }
+                    }
+                  }, _callee5);
+                })));
+
+              case 2:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6);
+      }));
+
+      function decorateActionButton(_x2, _x3) {
+        return _decorateActionButton.apply(this, arguments);
+      }
+
+      return decorateActionButton;
+    }()
+  }, {
+    key: "decorateViewActionDialog",
+    value: function () {
+      var _decorateViewActionDialog = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7($dialog, action, params) {
+        var $elem, widgets, translation, _i5, _Object$keys4, field, def, model_fields, view_fields, config, widget, $node;
+
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                $elem = (0, _jqueryLib.$)('<div />');
+                widgets = {}; // load translation related to controller
+
+                _context7.next = 4;
+                return _equalServices.ApiService.getTranslation(action.controller.replaceAll('_', '\\'), this.view.getLocale());
+
+              case 4:
+                translation = _context7.sent;
+
+                for (_i5 = 0, _Object$keys4 = Object.keys(params); _i5 < _Object$keys4.length; _i5++) {
+                  field = _Object$keys4[_i5];
+                  def = params[field];
+                  model_fields = {};
+                  model_fields[field] = def;
+                  view_fields = {};
+                  view_fields[field] = {
+                    "type": "field",
+                    "value": field
+                  };
+                  config = _equalWidgets.WidgetFactory.getWidgetConfig(this.view, field, translation, model_fields, view_fields);
+                  widget = _equalWidgets.WidgetFactory.getWidget(this, config.type, config.title, '', config);
+                  widget.setMode('edit');
+                  widget.setReadonly(config.readonly);
+                  $node = widget.render();
+                  $node.css({
+                    'margin-bottom': '24px'
+                  });
+                  $elem.append($node);
+                  widgets[field] = widget;
+                }
+
+                $dialog.find('.mdc-dialog__content').append($elem);
+                $dialog.on('_accept', function () {
+                  var result = {}; // send payload to target controller
+                  // read result :
+                  // if no error refresh view
+                  // otherwise display error
+
+                  for (var _i6 = 0, _Object$keys5 = Object.keys(widgets); _i6 < _Object$keys5.length; _i6++) {
+                    var _field2 = _Object$keys5[_i6];
+                    var _widget = widgets[_field2];
+                    result[_field2] = _widget.getValue();
+                  }
+
+                  $dialog.data('result', result);
+                });
+
+              case 8:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function decorateViewActionDialog(_x5, _x6, _x7) {
+        return _decorateViewActionDialog.apply(this, arguments);
+      }
+
+      return decorateViewActionDialog;
+    }()
+  }, {
+    key: "performViewAction",
+    value: function () {
+      var _performViewAction = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(action, params, translation) {
+        var result;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.prev = 0;
+                _context8.next = 3;
+                return _equalServices.ApiService.fetch("/", _objectSpread({
+                  do: action.controller
+                }, params));
+
+              case 3:
+                result = _context8.sent;
+                _context8.next = 6;
+                return this.view.onchangeView();
+
+              case 6:
+                _context8.next = 12;
+                break;
+
+              case 8:
+                _context8.prev = 8;
+                _context8.t0 = _context8["catch"](0);
+                _context8.next = 12;
+                return this.view.displayErrorFeedback(translation, _context8.t0);
+
+              case 12:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this, [[0, 8]]);
+      }));
+
+      function performViewAction(_x8, _x9, _x10) {
+        return _performViewAction.apply(this, arguments);
+      }
+
+      return performViewAction;
+    }()
   }]);
   return Layout;
 }();
@@ -4891,7 +5497,7 @@ var Model = /*#__PURE__*/function () {
     value: function getOperators(type) {
       var operators = {
         'boolean': ['=', '<>'],
-        'integer': ['in', 'not in', '=', '<>', '<', '>', '<=', '>='],
+        'integer': ['=', 'in', 'not in', '<>', '<', '>', '<=', '>='],
         'float': ['=', '<>', '<', '>', '<=', '>='],
         'string': ['like', 'in', '=', '<>'],
         'text': ['like', '='],
@@ -4900,7 +5506,7 @@ var Model = /*#__PURE__*/function () {
         'datetime': ['=', '<=', '>='],
         'file': ['like', '='],
         'binary': ['like', '='],
-        'many2one': ['=', 'is', 'in', 'not in'],
+        'many2one': ['=', '<>'],
         'one2many': ['contains'],
         'many2many': ['contains']
       };
@@ -4983,7 +5589,7 @@ var Model = /*#__PURE__*/function () {
                 // append `name` subfield for relational fields, using the dot notation
                 if ('many2one' == schema[field]['type']) {
                   fields.push(field + '.name');
-                } // we do not load relational fields resulting in potentially long lists (those are handled by the Widgets)
+                } // we do not load relational fields, these can result in potentially long lists and are handled by the Widgets
                 else if (['one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
                     delete fields[i];
                   } else {
@@ -5449,7 +6055,9 @@ var _TranslationService = /*#__PURE__*/function () {
   }, {
     key: "instant",
     value: function instant(value) {
-      var translation = value;
+      var _default = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+      var translation = _default.length ? _default : value;
 
       if (this.resolved) {
         if (this.resolved.hasOwnProperty(value)) {
@@ -5462,11 +6070,12 @@ var _TranslationService = /*#__PURE__*/function () {
     /**
      * Helper method for resolution from a `translation` object (as provided by the ApiService)
      * 
-     * @param translation   Object holding the translations values (as returned by `ApiService::getTranslation()`)
-     * @param type          Kind of terms we want to perform ('model','view','error')
-     * @param id            The identifier of the item we want to translate
-     * @param value         The default value, if any, to fall back to in case translation fails 
-     * @param property      The translation section we're looking for, for the considered value ('label', 'help', ...)
+     * @param translation   Object holding the translations values (as returned by `ApiService::getTranslation()`).
+     * @param type          Kind of terms we want to perform (''<root>, 'model','view','error').
+     * @param path          An array describing the path to follow within the translation map, if any.
+     * @param id            The identifier of the item we want to translate.
+     * @param value         Default value, if any, to fall back to in case translation fails.
+     * @param property      The translation section we're looking for, for the considered value ('label', 'help', ...).
      * 
      * @returns The translated value, or the original value if translation fails.
      */
@@ -5482,32 +6091,38 @@ var _TranslationService = /*#__PURE__*/function () {
         result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
       }
 
-      if (translation.hasOwnProperty(type)) {
-        var map = translation[type];
+      if (type.length) {
+        if (translation.hasOwnProperty(type)) {
+          var map = translation[type];
 
-        var _iterator = _createForOfIteratorHelper(path),
-            _step;
+          var _iterator = _createForOfIteratorHelper(path),
+              _step;
 
-        try {
-          for (_iterator.s(); !(_step = _iterator.n()).done;) {
-            var elem = _step.value;
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var elem = _step.value;
 
-            if (map && map.hasOwnProperty(elem)) {
-              map = map[elem];
-            } else {
-              break;
+              if (map && map.hasOwnProperty(elem)) {
+                map = map[elem];
+              } else {
+                break;
+              }
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+
+          if (map && map.hasOwnProperty(id)) {
+            if (map[id].hasOwnProperty(property)) {
+              result = map[id][property];
             }
           }
-        } catch (err) {
-          _iterator.e(err);
-        } finally {
-          _iterator.f();
         }
-
-        if (map && map.hasOwnProperty(id)) {
-          if (map[id].hasOwnProperty(property)) {
-            result = map[id][property];
-          }
+      } else {
+        if (translation.hasOwnProperty(property)) {
+          result = translation[property];
         }
       }
 
@@ -5518,8 +6133,8 @@ var _TranslationService = /*#__PURE__*/function () {
 }();
 
 exports._TranslationService = _TranslationService;
-var _default = _TranslationService;
-exports.default = _default;
+var _default2 = _TranslationService;
+exports.default = _default2;
 
 /***/ }),
 
@@ -5589,7 +6204,7 @@ var View = /*#__PURE__*/function () {
    * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
    * @param type      type of the view ('list', 'form', ...)
    * @param name      name of the view (eg. 'default')
-   * @param domain
+   * @param domain    Array of conditions (disjunctions clauses of conjonctions conditions).
    * @param mode
    * @param purpose   (view, select, add, create, update, widget)
    * @param lang
@@ -5612,6 +6227,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "sort", void 0);
     (0, _defineProperty2.default)(this, "start", void 0);
     (0, _defineProperty2.default)(this, "limit", void 0);
+    (0, _defineProperty2.default)(this, "group_by", void 0);
     (0, _defineProperty2.default)(this, "lang", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
@@ -5638,7 +6254,7 @@ var View = /*#__PURE__*/function () {
     }; // generate a random guid
 
 
-    this.uuid = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+    this.uuid = _materialLib.UIHelper.getUUID();
     this.context = context;
     this.entity = entity;
     this.type = type;
@@ -5714,7 +6330,7 @@ var View = /*#__PURE__*/function () {
                     console.log('unexpected error', _context.t0);
                     _context.prev = 10;
                     _context.next = 13;
-                    return _this.displayErrorFeedback(_context.t0);
+                    return _this.displayErrorFeedback(_this.translation, _context.t0);
 
                   case 13:
                     _context.next = 17;
@@ -5751,7 +6367,7 @@ var View = /*#__PURE__*/function () {
                   case 0:
                     // display confirmation dialog with checkbox for archive
                     $dialog = _materialLib.UIHelper.createDialog('confirm_archive_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_ARCHIVE_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
-                    $dialog.appendTo(_this.$container); // inject component as dialog content
+                    $dialog.addClass('sb-view-dialog').appendTo(_this.$container); // inject component as dialog content
 
                     _this.decorateDialogArchiveConfirm($dialog);
 
@@ -5778,7 +6394,7 @@ var View = /*#__PURE__*/function () {
                                 _context2.t0 = _context2["catch"](0);
                                 _context2.prev = 9;
                                 _context2.next = 12;
-                                return _this.displayErrorFeedback(_context2.t0);
+                                return _this.displayErrorFeedback(_this.translation, _context2.t0);
 
                               case 12:
                                 _context2.next = 16;
@@ -5827,8 +6443,8 @@ var View = /*#__PURE__*/function () {
                 switch (_context5.prev = _context5.next) {
                   case 0:
                     // display confirmation dialog with checkbox for permanent deletion
-                    $dialog = _materialLib.UIHelper.createDialog('confirm_deletion_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_DELETION_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
-                    $dialog.appendTo(_this.$container); // inject component as dialog content
+                    $dialog = _materialLib.UIHelper.createDialog(_this.uuid + '_confirm-deletion-dialog', _equalServices.TranslationService.instant('SB_ACTIONS_DELETION_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
+                    $dialog.addClass('sb-view-dialog').appendTo(_this.$container); // inject component as dialog content
 
                     _this.decorateDialogDeletionConfirm($dialog);
 
@@ -5860,7 +6476,7 @@ var View = /*#__PURE__*/function () {
                                 _context4.t0 = _context4["catch"](1);
                                 _context4.prev = 10;
                                 _context4.next = 13;
-                                return _this.displayErrorFeedback(_context4.t0);
+                                return _this.displayErrorFeedback(_this.translation, _context4.t0);
 
                               case 13:
                                 _context4.next = 17;
@@ -5907,8 +6523,9 @@ var View = /*#__PURE__*/function () {
 
     this.order = this.config.hasOwnProperty('order') ? this.config.order : 'id';
     this.sort = this.config.hasOwnProperty('sort') ? this.config.sort : 'asc';
-    this.start = 0;
-    this.limit = 25;
+    this.start = this.config.hasOwnProperty('start') ? this.config.start : 0;
+    this.limit = this.config.hasOwnProperty('limit') ? this.config.limit : 25;
+    this.group_by = this.config.hasOwnProperty('group_by') ? this.config.group_by : [];
     this.selected_ids = [];
     this.applied_filters_ids = [];
     this.filters = {};
@@ -5945,7 +6562,7 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var _iterator, _step, item, _iterator2, _step2, _item, _i, _Object$entries, _Object$entries$_i, id, _item2, domain, tmpDomain;
+        var translation, model, view, _view, _iterator, _step, item, _iterator2, _step2, _item, _i, _Object$entries, _Object$entries$_i, id, _item2, _i2, _Object$entries2, _Object$entries2$_i, _id, _item3, domain, tmpDomain;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -5957,31 +6574,35 @@ var View = /*#__PURE__*/function () {
                 return _equalServices.ApiService.getTranslation(this.entity, this.getLocale());
 
               case 4:
-                this.translation = _context6.sent;
-                _context6.prev = 5;
+                translation = _context6.sent;
+                this.translation = this.deepCopy(translation);
                 _context6.next = 8;
-                return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
-
-              case 8:
-                this.view_schema = _context6.sent;
-                _context6.next = 16;
-                break;
-
-              case 11:
-                _context6.prev = 11;
-                _context6.t0 = _context6["catch"](5);
-                _context6.next = 15;
-                return _equalServices.ApiService.getView(this.entity, this.type + '.default');
-
-              case 15:
-                this.view_schema = _context6.sent;
-
-              case 16:
-                _context6.next = 18;
                 return _equalServices.ApiService.getSchema(this.entity);
 
-              case 18:
-                this.model_schema = _context6.sent;
+              case 8:
+                model = _context6.sent;
+                this.model_schema = this.deepCopy(model);
+                _context6.prev = 10;
+                _context6.next = 13;
+                return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
+
+              case 13:
+                view = _context6.sent;
+                this.view_schema = this.deepCopy(view);
+                _context6.next = 23;
+                break;
+
+              case 17:
+                _context6.prev = 17;
+                _context6.t0 = _context6["catch"](10);
+                _context6.next = 21;
+                return _equalServices.ApiService.getView(this.entity, this.type + '.default');
+
+              case 21:
+                _view = _context6.sent;
+                this.view_schema = this.deepCopy(_view);
+
+              case 23:
                 this.loadViewFields(this.view_schema);
                 this.loadModelFields(this.model_schema);
 
@@ -5991,6 +6612,14 @@ var View = /*#__PURE__*/function () {
 
                 if (this.view_schema.hasOwnProperty("sort")) {
                   this.sort = this.view_schema.sort;
+                }
+
+                if (this.view_schema.hasOwnProperty("limit")) {
+                  this.limit = +this.view_schema.limit;
+                }
+
+                if (this.view_schema.hasOwnProperty("group_by")) {
+                  this.group_by = this.view_schema.group_by;
                 }
 
                 if (this.view_schema.hasOwnProperty("filters")) {
@@ -6029,6 +6658,14 @@ var View = /*#__PURE__*/function () {
                     _Object$entries$_i = (0, _slicedToArray2.default)(_Object$entries[_i], 2), id = _Object$entries$_i[0], _item2 = _Object$entries$_i[1];
                     this.custom_actions[id] = _item2;
                   }
+                } // some custom actions might have been defined in the parent view, if so, override the view schema
+
+
+                if (this.config.hasOwnProperty("header") && this.config.header.hasOwnProperty("actions")) {
+                  for (_i2 = 0, _Object$entries2 = Object.entries(this.config.header.actions); _i2 < _Object$entries2.length; _i2++) {
+                    _Object$entries2$_i = (0, _slicedToArray2.default)(_Object$entries2[_i2], 2), _id = _Object$entries2$_i[0], _item3 = _Object$entries2$_i[1];
+                    this.custom_actions[_id] = _item3;
+                  }
                 } // if view schema specifies a domain, merge it with domain given in constructor
 
 
@@ -6052,33 +6689,33 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
-                _context6.next = 31;
+                _context6.next = 38;
                 return this.layout.init();
 
-              case 31:
-                _context6.next = 33;
+              case 38:
+                _context6.next = 40;
                 return this.model.init();
 
-              case 33:
-                _context6.next = 38;
+              case 40:
+                _context6.next = 45;
                 break;
 
-              case 35:
-                _context6.prev = 35;
+              case 42:
+                _context6.prev = 42;
                 _context6.t1 = _context6["catch"](1);
                 console.log('Unable to init view (' + this.entity + '.' + this.getId() + ')', _context6.t1);
 
-              case 38:
+              case 45:
                 this.is_ready_promise.resolve();
                 this.$container.show();
                 console.log('View::init - end');
 
-              case 41:
+              case 48:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[1, 35], [5, 11]]);
+        }, _callee6, this, [[1, 42], [10, 17]]);
       }));
 
       function init() {
@@ -6144,10 +6781,20 @@ var View = /*#__PURE__*/function () {
     value: function getUser() {
       return this.context.getUser();
     }
+    /**
+     *
+     * @returns Returns the identifier of the view (i.e. {type.name})
+     */
+
   }, {
     key: "getId",
     value: function getId() {
       return this.type + '.' + this.name;
+    }
+  }, {
+    key: "getUUID",
+    value: function getUUID() {
+      return this.uuid;
     }
   }, {
     key: "getCustomActions",
@@ -6168,10 +6815,11 @@ var View = /*#__PURE__*/function () {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                _context7.next = 2;
+                console.log('View::openContext', config);
+                _context7.next = 3;
                 return this.context.openContext(config);
 
-              case 2:
+              case 3:
               case "end":
                 return _context7.stop();
             }
@@ -6344,6 +6992,11 @@ var View = /*#__PURE__*/function () {
       return +this.limit;
     }
   }, {
+    key: "getGroupBy",
+    value: function getGroupBy() {
+      return this.group_by;
+    }
+  }, {
     key: "getLang",
     value: function getLang() {
       return this.lang;
@@ -6379,7 +7032,7 @@ var View = /*#__PURE__*/function () {
       return this.purpose;
     }
     /**
-     * Returns a Map of layout fields items mapping names with their definition
+     * Returns an associative array mapping fields names with their layout definition
      */
 
   }, {
@@ -6388,7 +7041,7 @@ var View = /*#__PURE__*/function () {
       return this.view_fields;
     }
     /**
-     * Returns a Map of model fields items mapping names with their definition
+     * Returns an associative array mapping fields names with their model definition
      */
 
   }, {
@@ -6464,6 +7117,8 @@ var View = /*#__PURE__*/function () {
           }
         }
       }
+
+      console.log(this.view_fields);
     }
     /**
      * Generates a map holding all fields in the current model schema
@@ -6489,217 +7144,253 @@ var View = /*#__PURE__*/function () {
 
       this.$headerContainer.append(' \
             <div class="sb-view-header-list"> \
-                <div class="sb-view-header-list-actions"> \
-                    <div class="sb-view-header-list-actions-set"></div> \
-                </div> \
+                <div class="sb-view-header-actions"></div> \
                 <div class="sb-view-header-list-navigation"></div> \
             </div>');
       var $elem = this.$headerContainer.find('.sb-view-header-list');
-      var $level1 = $elem.find('.sb-view-header-list-actions');
-      var $level2 = $elem.find('.sb-view-header-list-navigation');
-      var $actions_set = $level1.find('.sb-view-header-list-actions-set');
+      var $actions_set = $elem.find('.sb-view-header-actions');
+      var $level2 = $elem.find('.sb-view-header-list-navigation'); // left side : standard actions for views
+
+      var $std_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions-std').appendTo($actions_set); // right side : the actions specific to the view, and depenging on object status
+
+      var $view_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions-view').appendTo($actions_set);
+      var has_action_create = true;
+      var has_action_select = true;
+
+      if (this.custom_actions.hasOwnProperty('ACTION.SELECT')) {
+        has_action_select = this.custom_actions['ACTION.SELECT'] ? true : false;
+      }
+
+      if (this.custom_actions.hasOwnProperty('ACTION.CREATE')) {
+        has_action_create = this.custom_actions['ACTION.CREATE'] ? true : false;
+      }
 
       if (this.config.show_actions) {
         switch (this.purpose) {
           case 'view':
-            $actions_set.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
-              var view_type, view_name, custom_action_create, parts;
-              return _regenerator.default.wrap(function _callee9$(_context9) {
-                while (1) {
-                  switch (_context9.prev = _context9.next) {
-                    case 0:
-                      _context9.prev = 0;
-                      view_type = 'form';
-                      view_name = _this2.name;
+            if (has_action_create) {
+              $std_actions.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+                var view_type, view_name, domain, custom_action_create, parts, tmpDomain;
+                return _regenerator.default.wrap(function _callee9$(_context9) {
+                  while (1) {
+                    switch (_context9.prev = _context9.next) {
+                      case 0:
+                        _context9.prev = 0;
+                        view_type = 'form';
+                        view_name = _this2.name;
+                        domain = _this2.domain;
 
-                      if (_this2.custom_actions.hasOwnProperty('ACTION.CREATE')) {
-                        if (Array.isArray(_this2.custom_actions['ACTION.CREATE']) && _this2.custom_actions['ACTION.CREATE'].length) {
-                          custom_action_create = _this2.custom_actions['ACTION.CREATE'][0];
+                        if (_this2.custom_actions.hasOwnProperty('ACTION.CREATE')) {
+                          if (Array.isArray(_this2.custom_actions['ACTION.CREATE']) && _this2.custom_actions['ACTION.CREATE'].length) {
+                            custom_action_create = _this2.custom_actions['ACTION.CREATE'][0];
 
-                          if (custom_action_create.hasOwnProperty('view')) {
-                            parts = custom_action_create.view.split('.');
-                            if (parts.length) view_type = parts.shift();
-                            if (parts.length) view_name = parts.shift();
+                            if (custom_action_create.hasOwnProperty('view')) {
+                              parts = custom_action_create.view.split('.');
+                              if (parts.length) view_type = parts.shift();
+                              if (parts.length) view_name = parts.shift();
+                            }
+
+                            if (custom_action_create.hasOwnProperty('domain')) {
+                              tmpDomain = new _equalLib.Domain(domain);
+                              tmpDomain.merge(new _equalLib.Domain(custom_action_create['domain']));
+                              domain = tmpDomain.toArray();
+                            }
                           }
-                        }
-                      } // request a new Context for editing a new object
+                        } // request a new Context for editing a new object
 
 
-                      _context9.next = 6;
-                      return _this2.openContext({
-                        entity: _this2.entity,
-                        type: view_type,
-                        name: view_name,
-                        domain: _this2.domain,
-                        mode: 'edit',
-                        purpose: 'create'
-                      });
+                        _context9.next = 7;
+                        return _this2.openContext({
+                          entity: _this2.entity,
+                          type: view_type,
+                          name: view_name,
+                          domain: domain,
+                          mode: 'edit',
+                          purpose: 'create'
+                        });
 
-                    case 6:
-                      _context9.next = 17;
-                      break;
+                      case 7:
+                        _context9.next = 18;
+                        break;
 
-                    case 8:
-                      _context9.prev = 8;
-                      _context9.t0 = _context9["catch"](0);
-                      _context9.prev = 10;
-                      _context9.next = 13;
-                      return _this2.displayErrorFeedback(_context9.t0);
+                      case 9:
+                        _context9.prev = 9;
+                        _context9.t0 = _context9["catch"](0);
+                        _context9.prev = 11;
+                        _context9.next = 14;
+                        return _this2.displayErrorFeedback(_this2.translation, _context9.t0);
 
-                    case 13:
-                      _context9.next = 17;
-                      break;
+                      case 14:
+                        _context9.next = 18;
+                        break;
 
-                    case 15:
-                      _context9.prev = 15;
-                      _context9.t1 = _context9["catch"](10);
+                      case 16:
+                        _context9.prev = 16;
+                        _context9.t1 = _context9["catch"](11);
 
-                    case 17:
-                    case "end":
-                      return _context9.stop();
+                      case 18:
+                      case "end":
+                        return _context9.stop();
+                    }
                   }
-                }
-              }, _callee9, null, [[0, 8], [10, 15]]);
-            }))));
+                }, _callee9, null, [[0, 9], [11, 16]]);
+              }))));
+            }
+
             break;
 
           case 'select':
-            $actions_set.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
-              return _regenerator.default.wrap(function _callee10$(_context10) {
-                while (1) {
-                  switch (_context10.prev = _context10.next) {
-                    case 0:
-                      _context10.prev = 0;
-                      _context10.next = 3;
-                      return _this2.openContext({
-                        entity: _this2.entity,
-                        type: 'form',
-                        name: _this2.name,
-                        domain: _this2.domain,
-                        mode: 'edit',
-                        purpose: 'create'
-                      });
+            if (has_action_create) {
+              $std_actions.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
+                return _regenerator.default.wrap(function _callee10$(_context10) {
+                  while (1) {
+                    switch (_context10.prev = _context10.next) {
+                      case 0:
+                        _context10.prev = 0;
+                        _context10.next = 3;
+                        return _this2.openContext({
+                          entity: _this2.entity,
+                          type: 'form',
+                          name: _this2.name,
+                          domain: _this2.domain,
+                          mode: 'edit',
+                          purpose: 'create'
+                        });
 
-                    case 3:
-                      _context10.next = 14;
-                      break;
+                      case 3:
+                        _context10.next = 14;
+                        break;
 
-                    case 5:
-                      _context10.prev = 5;
-                      _context10.t0 = _context10["catch"](0);
-                      _context10.prev = 7;
-                      _context10.next = 10;
-                      return _this2.displayErrorFeedback(_context10.t0);
+                      case 5:
+                        _context10.prev = 5;
+                        _context10.t0 = _context10["catch"](0);
+                        _context10.prev = 7;
+                        _context10.next = 10;
+                        return _this2.displayErrorFeedback(_this2.translation, _context10.t0);
 
-                    case 10:
-                      _context10.next = 14;
-                      break;
+                      case 10:
+                        _context10.next = 14;
+                        break;
 
-                    case 12:
-                      _context10.prev = 12;
-                      _context10.t1 = _context10["catch"](7);
+                      case 12:
+                        _context10.prev = 12;
+                        _context10.t1 = _context10["catch"](7);
 
-                    case 14:
-                    case "end":
-                      return _context10.stop();
+                      case 14:
+                      case "end":
+                        return _context10.stop();
+                    }
                   }
-                }
-              }, _callee10, null, [[0, 5], [7, 12]]);
-            })))).prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
-              var objects;
-              return _regenerator.default.wrap(function _callee11$(_context11) {
-                while (1) {
-                  switch (_context11.prev = _context11.next) {
-                    case 0:
-                      _context11.next = 2;
-                      return _this2.model.get(_this2.selected_ids);
+                }, _callee10, null, [[0, 5], [7, 12]]);
+              }))));
+            }
 
-                    case 2:
-                      objects = _context11.sent;
+            if (has_action_select) {
+              $std_actions.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
+                var objects;
+                return _regenerator.default.wrap(function _callee11$(_context11) {
+                  while (1) {
+                    switch (_context11.prev = _context11.next) {
+                      case 0:
+                        _context11.next = 2;
+                        return _this2.model.get(_this2.selected_ids);
 
-                      _this2.closeContext({
-                        selection: _this2.selected_ids,
-                        objects: objects
-                      });
+                      case 2:
+                        objects = _context11.sent;
 
-                    case 4:
-                    case "end":
-                      return _context11.stop();
+                        _this2.closeContext({
+                          selection: _this2.selected_ids,
+                          objects: objects
+                        });
+
+                      case 4:
+                      case "end":
+                        return _context11.stop();
+                    }
                   }
-                }
-              }, _callee11);
-            }))));
+                }, _callee11);
+              }))));
+            }
+
             break;
 
           case 'add':
-            $actions_set.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
-              return _regenerator.default.wrap(function _callee12$(_context12) {
-                while (1) {
-                  switch (_context12.prev = _context12.next) {
-                    case 0:
-                      _context12.prev = 0;
-                      _context12.next = 3;
-                      return _this2.openContext({
-                        entity: _this2.entity,
-                        type: 'form',
-                        name: _this2.name,
-                        domain: _this2.domain,
-                        mode: 'edit',
-                        purpose: 'create'
-                      });
+            if (has_action_create) {
+              $std_actions.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
+                return _regenerator.default.wrap(function _callee12$(_context12) {
+                  while (1) {
+                    switch (_context12.prev = _context12.next) {
+                      case 0:
+                        _context12.prev = 0;
+                        _context12.next = 3;
+                        return _this2.openContext({
+                          entity: _this2.entity,
+                          type: 'form',
+                          name: _this2.name,
+                          domain: _this2.domain,
+                          mode: 'edit',
+                          purpose: 'create'
+                        });
 
-                    case 3:
-                      _context12.next = 14;
-                      break;
+                      case 3:
+                        _context12.next = 14;
+                        break;
 
-                    case 5:
-                      _context12.prev = 5;
-                      _context12.t0 = _context12["catch"](0);
-                      _context12.prev = 7;
-                      _context12.next = 10;
-                      return _this2.displayErrorFeedback(_context12.t0);
+                      case 5:
+                        _context12.prev = 5;
+                        _context12.t0 = _context12["catch"](0);
+                        _context12.prev = 7;
+                        _context12.next = 10;
+                        return _this2.displayErrorFeedback(_this2.translation, _context12.t0);
 
-                    case 10:
-                      _context12.next = 14;
-                      break;
+                      case 10:
+                        _context12.next = 14;
+                        break;
 
-                    case 12:
-                      _context12.prev = 12;
-                      _context12.t1 = _context12["catch"](7);
+                      case 12:
+                        _context12.prev = 12;
+                        _context12.t1 = _context12["catch"](7);
 
-                    case 14:
-                    case "end":
-                      return _context12.stop();
+                      case 14:
+                      case "end":
+                        return _context12.stop();
+                    }
                   }
-                }
-              }, _callee12, null, [[0, 5], [7, 12]]);
-            })))).prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13() {
-              var objects;
-              return _regenerator.default.wrap(function _callee13$(_context13) {
-                while (1) {
-                  switch (_context13.prev = _context13.next) {
-                    case 0:
-                      _context13.next = 2;
-                      return _this2.model.get(_this2.selected_ids);
+                }, _callee12, null, [[0, 5], [7, 12]]);
+              }))));
+            }
 
-                    case 2:
-                      objects = _context13.sent;
+            if (has_action_select) {
+              $std_actions.prepend(_materialLib.UIHelper.createButton(this.uuid + '_action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13() {
+                var objects;
+                return _regenerator.default.wrap(function _callee13$(_context13) {
+                  while (1) {
+                    switch (_context13.prev = _context13.next) {
+                      case 0:
+                        _context13.next = 2;
+                        return _this2.model.get(_this2.selected_ids);
 
-                      _this2.closeContext({
-                        selection: _this2.selected_ids,
-                        objects: objects
-                      });
+                      case 2:
+                        objects = _context13.sent;
 
-                    case 4:
-                    case "end":
-                      return _context13.stop();
+                        _this2.closeContext({
+                          selection: _this2.selected_ids,
+                          objects: objects
+                        });
+
+                      case 4:
+                      case "end":
+                        return _context13.stop();
+                    }
                   }
-                }
-              }, _callee13);
-            }))));
+                }, _callee13);
+              }))));
+            }
+
             break;
 
-          case 'widget':
+          case 'widget': // no buttons are displayed for widgets : these are handled at the widget level, since a callback must be set to fetch the resulting value
+
           default:
             break;
         }
@@ -6708,7 +7399,7 @@ var View = /*#__PURE__*/function () {
 
       var $bulk_assign_dialog = _materialLib.UIHelper.createDialog(this.uuid + '_bulk-assign-dialog', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_BULK_ASSIGN'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
 
-      $bulk_assign_dialog.appendTo(this.$container); // inject component as dialog content
+      $bulk_assign_dialog.addClass('sb-view-dialog').appendTo(this.$container); // inject component as dialog content
 
       this.decorateBulkAssignDialog($bulk_assign_dialog); // container for holding chips of currently applied filters
 
@@ -6718,7 +7409,7 @@ var View = /*#__PURE__*/function () {
 
       var $search_input = _materialLib.UIHelper.createInput('sb-view-header-search', _equalServices.TranslationService.instant('SB_FILTERS_SEARCH'), '', '', '', false, 'outlined', 'close').appendTo($filters_search);
 
-      $search_input.find('.mdc-text-field__icon').on('click', /*#__PURE__*/function () {
+      $search_input.addClass('dialog-select').find('.mdc-text-field__icon').on('click', /*#__PURE__*/function () {
         var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(e) {
           return _regenerator.default.wrap(function _callee14$(_context14) {
             while (1) {
@@ -6788,9 +7479,9 @@ var View = /*#__PURE__*/function () {
         _materialLib.UIHelper.createListDivider().appendTo($filters_list);
       }
 
-      var $custom_filter_dialog = _materialLib.UIHelper.createDialog('custom_filter_dialog', _equalServices.TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
+      var $custom_filter_dialog = _materialLib.UIHelper.createDialog(this.uuid + '_custom-filter-dialog', _equalServices.TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
 
-      $custom_filter_dialog.appendTo(this.$container); // inject component as dialog content
+      $custom_filter_dialog.addClass('sb-view-dialog').appendTo(this.$container); // inject component as dialog content
 
       this.decorateCustomFilterDialog($custom_filter_dialog);
 
@@ -6878,7 +7569,7 @@ var View = /*#__PURE__*/function () {
         _this2.onchangeView();
       }));
 
-      var $select = _materialLib.UIHelper.createPaginationSelect('', '', [5, 10, 25, 50, 100], 25).addClass('sb-view-header-list-pagination-limit_select');
+      var $select = _materialLib.UIHelper.createPaginationSelect('', '', [5, 10, 25, 50, 100], this.limit).addClass('sb-view-header-list-pagination-limit_select');
 
       $pagination.find('.pagination-rows-per-page').append($select);
       $select.find('input').on('change', function (event) {
@@ -6925,7 +7616,8 @@ var View = /*#__PURE__*/function () {
       this.$headerContainer.find('.sb-view-header-list-pagination-prev_page').prop('disabled', !(start > limit));
       this.$headerContainer.find('.sb-view-header-list-pagination-next_page').prop('disabled', !(start <= total - limit));
       this.$headerContainer.find('.sb-view-header-list-pagination-last_page').prop('disabled', !(start <= total - limit));
-      var $action_set = this.$headerContainer.find('.sb-view-header-list-actions-set'); // abort any pending edition
+      var $action_set = this.$headerContainer.find('.sb-view-header-actions');
+      var $std_actions = $action_set.find('.sb-view-header-actions-std'); // abort any pending edition
 
       var $actions_selected_edit = $action_set.find('.sb-view-header-list-actions-selected-edit');
 
@@ -6941,7 +7633,7 @@ var View = /*#__PURE__*/function () {
       if (['view', 'widget'].indexOf(this.purpose) > -1) {
         if (this.purpose == 'view') {
           // create export menu (always visible: no selection means "export all")
-          var $export_actions_menu_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-export mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('selection-action-' + 'SB_ACTIONS_BUTTON_EXPORT', 'export', 'icon', 'file_download')).appendTo($action_set);
+          var $export_actions_menu_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-export mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('selection-action-' + 'SB_ACTIONS_BUTTON_EXPORT', 'export', 'icon', 'file_download')).appendTo($std_actions);
 
           var $export_actions_menu = _materialLib.UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);
 
@@ -6975,7 +7667,7 @@ var View = /*#__PURE__*/function () {
 
 
         if (this.selected_ids.length > 0) {
-          var $container = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected').appendTo($action_set);
+          var $container = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected').appendTo($std_actions);
           var count = this.selected_ids.length;
           var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' ' + _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined'));
 
@@ -7043,14 +7735,15 @@ var View = /*#__PURE__*/function () {
 
       var $elem = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-form'); // container for holding chips of currently applied filters
 
-      var $actions_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-form-actions').appendTo($elem); // left side : standard actions for views
+      var $actions_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions').appendTo($elem); // left side : standard actions for views
 
-      var $std_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-form-actions-std').appendTo($actions_set); // right side : the actions specific to the view, and depenging on object status
+      var $std_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions-std').appendTo($actions_set); // right side : the actions specific to the view, and depenging on object status
 
-      var $view_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-form-actions-view').appendTo($actions_set); // possible values for header.actions
+      var $view_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions-view').appendTo($actions_set); // possible values for header.actions
 
       /*
           "ACTION.CREATE":   [],
+          "ACTION.SELECT":   [],            
           "ACTION.EDIT":     [],
           "ACTION.SAVE":     [
               {"id": "SAVE_AND_CLOSE"},       // save and go back to list [edit] or parent context [create] (default)
@@ -7091,32 +7784,43 @@ var View = /*#__PURE__*/function () {
         }
       }
 
+      var has_action_update = true;
+
+      if (this.config.hasOwnProperty('header') && this.config.header.hasOwnProperty('actions')) {
+        if (this.config.header.actions.hasOwnProperty('ACTION.EDIT')) {
+          has_action_update = this.config.header.actions['ACTION.EDIT'] ? true : false;
+        }
+      }
+
       switch (this.mode) {
         case 'view':
-          $std_actions.append(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15() {
-            return _regenerator.default.wrap(function _callee15$(_context15) {
-              while (1) {
-                switch (_context15.prev = _context15.next) {
-                  case 0:
-                    _context15.next = 2;
-                    return _this4.openContext({
-                      entity: _this4.entity,
-                      type: _this4.type,
-                      name: _this4.name,
-                      domain: _this4.domain,
-                      mode: 'edit',
-                      purpose: 'update',
-                      // for UX consistency, inject current view widget context (currently selected tabs, ...)
-                      selected_sections: _this4.layout.getSelectedSections()
-                    });
+          if (has_action_update) {
+            $std_actions.append(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15() {
+              return _regenerator.default.wrap(function _callee15$(_context15) {
+                while (1) {
+                  switch (_context15.prev = _context15.next) {
+                    case 0:
+                      _context15.next = 2;
+                      return _this4.openContext({
+                        entity: _this4.entity,
+                        type: _this4.type,
+                        name: _this4.name,
+                        domain: _this4.domain,
+                        mode: 'edit',
+                        purpose: 'update',
+                        // for UX consistency, inject current view widget context (currently selected tabs, ...)
+                        selected_sections: _this4.layout.getSelectedSections()
+                      });
 
-                  case 2:
-                  case "end":
-                    return _context15.stop();
+                    case 2:
+                    case "end":
+                      return _context15.stop();
+                  }
                 }
-              }
-            }, _callee15);
-          }))));
+              }, _callee15);
+            }))));
+          }
+
           break;
 
         case 'edit':
@@ -7177,7 +7881,7 @@ var View = /*#__PURE__*/function () {
                       _context16.t0 = _context16["catch"](12);
                       _context16.prev = 22;
                       _context16.next = 25;
-                      return _this4.displayErrorFeedback(_context16.t0, object, false);
+                      return _this4.displayErrorFeedback(_this4.translation, _context16.t0, object, true);
 
                     case 25:
                       res = _context16.sent;
@@ -7631,27 +8335,30 @@ var View = /*#__PURE__*/function () {
         _iterator11.f();
       }
 
-      $select_field = _materialLib.UIHelper.createSelect('custom_filter_select_field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
+      $select_field = _materialLib.UIHelper.createSelect(this.uuid + '_custom-filter-select-field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
 
-      $select_field.find('input').on('change', function (event) {
+      $select_field.addClass('dialog-select').find('input').on('change', function (event) {
         var $this = (0, _jqueryLib.$)(event.currentTarget);
         selected_field = $this.val();
-        $elem.find('#custom_filter_select_operator').remove();
+        $elem.find('#' + _this6.uuid + '_custom-filter-select-operator').remove();
         $elem.find('.sb-widget').remove();
 
         var field_type = _this6.model.getFinalType(selected_field);
 
         var operators = _this6.model.getOperators(field_type);
 
-        $select_operator = _materialLib.UIHelper.createSelect('custom_filter_select_operator', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_OPERATOR'), operators); // setup handler for relaying value update to parent layout
+        selected_operator = operators[0];
+        $select_operator = _materialLib.UIHelper.createSelect(_this6.uuid + '_custom-filter-select-operator', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_OPERATOR'), operators, operators[0]); // setup handler for relaying value update to parent layout
 
-        $select_operator.find('input').on('change', function (event) {
+        $select_operator.addClass('dialog-select').find('input').on('change', function (event) {
           var $this = (0, _jqueryLib.$)(event.currentTarget);
           selected_operator = $this.val();
         });
 
-        var config = _this6.getWidgetConfig(selected_field);
+        var config = _equalWidgets.WidgetFactory.getWidgetConfig(_this6, selected_field, _this6.translation, _this6.model_fields, _this6.view_fields); // form form layout
 
+
+        config.layout = 'form';
         var value = '';
 
         if (['date', 'datetime'].indexOf(config.type) >= 0) {
@@ -7725,108 +8432,6 @@ var View = /*#__PURE__*/function () {
 
         _this6.applyFilter(filter.id);
       });
-    } // #todo - move this method (and similar on in layout.ts to WidgetFactory class)
-
-    /**
-     *
-     */
-
-  }, {
-    key: "getWidgetConfig",
-    value: function getWidgetConfig(field) {
-      var config = {};
-      var translation = this.getTranslation();
-      var model_fields = this.getModelFields();
-
-      if (!model_fields || !model_fields.hasOwnProperty(field)) {
-        return null;
-      }
-
-      var def = model_fields[field];
-      var label = field;
-
-      if (def.hasOwnProperty('type')) {
-        var type = def['type'];
-
-        if (def.hasOwnProperty('result_type')) {
-          type = def['result_type'];
-        }
-
-        config.type = type;
-      } else {
-        // we shouldn't end up here : malformed schema
-        console.log('ERROR - malformed schema for field ' + field);
-        return config;
-      }
-
-      if (def.hasOwnProperty('usage')) {
-        config.usage = def.usage;
-      }
-
-      if (def.hasOwnProperty('foreign_object')) {
-        config.foreign_object = def.foreign_object;
-      }
-
-      if (def.hasOwnProperty('foreign_field')) {
-        config.foreign_field = def.foreign_field;
-      }
-
-      if (def.hasOwnProperty('selection')) {
-        config.selection = def.selection;
-        config.type = 'select';
-
-        var translated = _equalServices.TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
-
-        var values = translated;
-
-        if (Array.isArray(translated)) {
-          // convert array to a Map (original values as keys and translations as values)
-          values = {};
-
-          for (var i = 0, n = config.selection.length; i < n; ++i) {
-            values[config.selection[i]] = translated[i];
-          }
-        }
-
-        config.values = values;
-      } // ready property is set to true during the 'feed' phase
-
-
-      config.visible = true;
-      config.ready = false;
-      config.title = _equalServices.TranslationService.resolve(translation, 'model', [], field, label, 'label');
-      config.description = _equalServices.TranslationService.resolve(translation, 'model', [], field, '', 'description');
-      config.readonly = def.hasOwnProperty('readonly') ? def.readonly : false;
-      config.align = 'left';
-      config.sortable = false;
-      config.layout = this.getType();
-      config.lang = this.getLang();
-      config.locale = this.getLocale(); // for relational fields, we need to check if the Model has been fetched al
-
-      if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
-        // defined config for Widget's view with a custom domain according to object values
-        var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
-        var parts = view_id.split(".", 2);
-        var view_type = parts.length > 1 ? parts[0] : 'list';
-        var view_name = parts.length > 1 ? parts[1] : parts[0];
-        var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
-        var view_domain = config.hasOwnProperty('domain') ? config['domain'] : [];
-        var domain = new _equalLib.Domain(def_domain);
-        domain.merge(new _equalLib.Domain(view_domain)); // add join condition for limiting list to the current object
-
-        if (['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
-          domain.merge(new _equalLib.Domain([def['foreign_field'], 'contains', 'object.id']));
-        }
-
-        config = _objectSpread(_objectSpread({}, config), {}, {
-          entity: def['foreign_object'],
-          view_type: view_type,
-          view_name: view_name,
-          original_domain: domain.toArray()
-        });
-      }
-
-      return config;
     }
   }, {
     key: "decorateDialogDeletionConfirm",
@@ -8100,7 +8705,7 @@ var View = /*#__PURE__*/function () {
             switch (_context30.prev = _context30.next) {
               case 0:
                 console.log('opening bulk assign dialog');
-                this.$container.find('#bulk_assign_dialog').trigger('_open');
+                this.$container.find('#' + this.uuid + '_bulk-assign-dialog').trigger('_open');
 
               case 2:
               case "end":
@@ -8131,7 +8736,7 @@ var View = /*#__PURE__*/function () {
                 if (selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
                   this.$headerContainer.find('#' + 'SB_ACTION_ITEM-' + 'SB_ACTIONS_BUTTON_INLINE_UPDATE').hide();
                   this.$headerContainer.find('#' + 'SB_ACTION_ITEM-' + 'SB_ACTIONS_BUTTON_BULK_ASSIGN').show();
-                  $action_set = this.$container.find('.sb-view-header-list-actions-set');
+                  $action_set = this.$container.find('.sb-view-header-actions-std');
                   $action_set_selected_edit_actions = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected-edit');
                   $button_save = _materialLib.UIHelper.createButton('action-selected-edit-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised', '', 'secondary').appendTo($action_set_selected_edit_actions);
                   $button_cancel = _materialLib.UIHelper.createButton('action-selected-edit-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').appendTo($action_set_selected_edit_actions);
@@ -8202,7 +8807,7 @@ var View = /*#__PURE__*/function () {
                                                 _context31.t0 = _context31["catch"](7);
                                                 _context31.prev = 19;
                                                 _context31.next = 22;
-                                                return _this8.displayErrorFeedback(_context31.t0, object, true);
+                                                return _this8.displayErrorFeedback(_this8.translation, _context31.t0, object, true);
 
                                               case 22:
                                                 res = _context31.sent;
@@ -8280,7 +8885,7 @@ var View = /*#__PURE__*/function () {
 
                         _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
                           var _ref18 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee34(i, tr) {
-                            var $tr, original, _i2, _Object$keys, field;
+                            var $tr, original, _i3, _Object$keys, field;
 
                             return _regenerator.default.wrap(function _callee34$(_context34) {
                               while (1) {
@@ -8289,8 +8894,8 @@ var View = /*#__PURE__*/function () {
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
 
-                                    for (_i2 = 0, _Object$keys = Object.keys(original); _i2 < _Object$keys.length; _i2++) {
-                                      field = _Object$keys[_i2];
+                                    for (_i3 = 0, _Object$keys = Object.keys(original); _i3 < _Object$keys.length; _i3++) {
+                                      field = _Object$keys[_i3];
 
                                       _this8.layout.updateFieldValue(object_id, field, original[field]);
                                     }
@@ -8350,7 +8955,7 @@ var View = /*#__PURE__*/function () {
 
                     _this8.selected_ids = [];
 
-                    _this8.layout.setSelected(_this8.selected_ids);
+                    _this8.layout.setSelection(_this8.selected_ids);
 
                     return false;
                   });
@@ -8432,53 +9037,57 @@ var View = /*#__PURE__*/function () {
      *
      * This method can be invoked by methods from the Layout class.
      *
-     * @param response
-     * @param object
-     * @param snack
+     * @param translation   Associative array mapping transaltions sections with their values (@see http://doc.equal.run/usage/i18n/)
+     * @param response      HttpResponse holding the error description.
+     * @param object        Object involved in the HTTP request that returned with an error status.
+     * @param snack         Flag to request a snack showing the error message. BY default, no snack is created.
+     *
      * @returns
      */
+    // #todo injecter le fichier de traduction à la demande (translation)
 
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee37(response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee37(translation, response) {
+        var _this9 = this;
+
         var object,
             snack,
-            errors,
             delay,
+            errors,
             i,
-            count,
+            _loop9,
             field,
             error_id,
             msg,
-            title,
+            translated_msg,
+            translated_error,
             $snack,
             _msg,
             _$snack,
             _msg2,
             _$snack2,
-            _delay,
-            _i3,
-            _count,
+            _i4,
+            _loop10,
             _field,
-            _msg3,
-            _title,
-            _$snack3,
             _response,
-            _title2,
-            _msg4,
-            _$snack4,
+            title,
+            _msg3,
+            _$snack3,
             _args37 = arguments;
 
         return _regenerator.default.wrap(function _callee37$(_context37) {
           while (1) {
             switch (_context37.prev = _context37.next) {
               case 0:
-                object = _args37.length > 1 && _args37[1] !== undefined ? _args37[1] : null;
-                snack = _args37.length > 2 && _args37[2] !== undefined ? _args37[2] : true;
+                object = _args37.length > 2 && _args37[2] !== undefined ? _args37[2] : null;
+                snack = _args37.length > 3 && _args37[3] !== undefined ? _args37[3] : true;
+                console.log('displayErrorFeedback', translation, response, object, snack);
+                delay = 4000;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context37.next = 45;
+                  _context37.next = 44;
                   break;
                 }
 
@@ -8489,30 +9098,70 @@ var View = /*#__PURE__*/function () {
                   break;
                 }
 
-                delay = 4000;
-                i = 0, count = Object.keys(errors['INVALID_PARAM']).length; // stack snackbars (LIFO: decreasing timeout)
+                if (typeof errors['INVALID_PARAM'] == 'object') {
+                  i = 0; // stack snackbars (LIFO: decreasing timeout)
 
-                for (field in errors['INVALID_PARAM']) {
-                  // for each field, we handle one error at a time (the first one)
-                  error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
-                  msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+                  _loop9 = function _loop9(field) {
+                    // for each field, we handle one error at a time (the first one)
+                    var error_id = String(Object.keys(errors['INVALID_PARAM'][field])[0]);
+                    var msg = Object.values(errors['INVALID_PARAM'][field])[0];
 
-                  msg = _equalServices.TranslationService.resolve(this.translation, 'error', [], field, msg, error_id);
+                    var translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], field, msg, error_id);
 
-                  if (object) {
-                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                    if (translated_msg == msg) {
+                      var translated_error = _equalServices.TranslationService.instant('SB_ERROR_' + error_id.toUpperCase());
+
+                      if (translated_error.length) {
+                        translated_msg = translated_error;
+                      }
+                    } // update widget to provide feedback (as error hint)
+
+
+                    if (object) {
+                      _this9.layout.markFieldAsInvalid(object['id'], field, translated_msg);
+                    } // generate snack, if required
+
+
+                    if (snack) {
+                      setTimeout(function () {
+                        var title = _equalServices.TranslationService.resolve(translation, 'model', [], field, field, 'label');
+
+                        var $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + translated_msg, _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', delay);
+
+                        _this9.$container.append($snack);
+                      }, delay * i);
+                    }
+
+                    ++i;
+                  };
+
+                  for (field in errors['INVALID_PARAM']) {
+                    _loop9(field);
+                  }
+                } // errors['INVALID_PARAM'] is a string
+                else {
+                    if (snack) {
+                      error_id = String(errors['INVALID_PARAM']); // try to resolve the error message
+
+                      msg = _equalServices.TranslationService.instant('SB_ERROR_INVALID_PARAM');
+                      translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], 'errors', error_id, error_id);
+
+                      if (translated_msg == error_id) {
+                        translated_error = _equalServices.TranslationService.instant('SB_ERROR_' + error_id.toUpperCase());
+
+                        if (translated_error.length) {
+                          msg = translated_error;
+                        }
+                      } else {
+                        msg = translated_msg;
+                      }
+
+                      $snack = _materialLib.UIHelper.createSnackbar(msg, _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', 4000);
+                      this.$container.append($snack);
+                    }
                   }
 
-                  if (snack) {
-                    title = _equalServices.TranslationService.resolve(this.translation, 'model', [], field, field, 'label');
-                    $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + msg, 'Error', '', delay * (count - i));
-                    this.$container.append($snack);
-                  }
-
-                  ++i;
-                }
-
-                _context37.next = 45;
+                _context37.next = 44;
                 break;
 
               case 10:
@@ -8522,107 +9171,118 @@ var View = /*#__PURE__*/function () {
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_CONFIG_MISSING_PARAM');
-                _$snack = _materialLib.UIHelper.createSnackbar(_msg + ' ' + errors['MISSING_PARAM'], 'Error', '', 4000);
+                _$snack = _materialLib.UIHelper.createSnackbar(_msg + ' \'' + errors['MISSING_PARAM'] + '\'', _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', delay);
                 this.$container.append(_$snack);
-                _context37.next = 45;
+                _context37.next = 44;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context37.next = 22;
+                  _context37.next = 21;
                   break;
                 }
 
-                _msg2 = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED');
-                _$snack2 = _materialLib.UIHelper.createSnackbar(_msg2, 'Error', '', 4000);
-                this.$container.append(_$snack2);
-                _context37.next = 45;
+                _msg2 = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED'); // generate snack, if required
+
+                if (snack) {
+                  _$snack2 = _materialLib.UIHelper.createSnackbar(_msg2, _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', delay);
+                  this.$container.append(_$snack2);
+                }
+
+                _context37.next = 44;
                 break;
 
-              case 22:
+              case 21:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context37.next = 45;
-                  break;
-                }
-
-                if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context37.next = 29;
-                  break;
-                }
-
-                _delay = 4000;
-                _i3 = 0, _count = Object.keys(errors['CONFLICT_OBJECT']).length;
-
-                for (_field in errors['CONFLICT_OBJECT']) {
-                  _msg3 = _equalServices.TranslationService.instant('SB_ERROR_DUPLICATE_VALUE');
-
-                  if (object) {
-                    this.layout.markFieldAsInvalid(object['id'], _field, _msg3);
-                  }
-
-                  if (snack) {
-                    _title = _equalServices.TranslationService.resolve(this.translation, 'model', [], _field, _field, 'label');
-                    _$snack3 = _materialLib.UIHelper.createSnackbar(_title + ': ' + _msg3, 'Error', '', _delay * (_count - _i3));
-                    this.$container.append(_$snack3);
-                  }
-
-                  ++_i3;
-                }
-
-                _context37.next = 45;
-                break;
-
-              case 29:
-                if (!(errors['CONFLICT_OBJECT'] == 'concurrent_change')) {
                   _context37.next = 44;
                   break;
                 }
 
-                _context37.prev = 30;
-                _context37.next = 33;
+                if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
+                  _context37.next = 28;
+                  break;
+                }
+
+                _i4 = 0;
+
+                _loop10 = function _loop10(_field) {
+                  var msg = _equalServices.TranslationService.instant('SB_ERROR_DUPLICATE_VALUE');
+
+                  if (object) {
+                    _this9.layout.markFieldAsInvalid(object['id'], _field, msg);
+                  }
+
+                  if (snack) {
+                    setTimeout(function () {
+                      var title = _equalServices.TranslationService.resolve(translation, 'model', [], _field, _field, 'label');
+
+                      var $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + msg, _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', delay);
+
+                      _this9.$container.append($snack);
+                    }, delay * _i4);
+                  }
+
+                  ++_i4;
+                };
+
+                for (_field in errors['CONFLICT_OBJECT']) {
+                  _loop10(_field);
+                }
+
+                _context37.next = 44;
+                break;
+
+              case 28:
+                if (!(errors['CONFLICT_OBJECT'] == 'concurrent_change')) {
+                  _context37.next = 43;
+                  break;
+                }
+
+                _context37.prev = 29;
+                _context37.next = 32;
                 return new Promise(function (resolve, reject) {
                   var confirmed = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
                   return confirmed ? resolve(true) : reject(false);
                 });
 
-              case 33:
-                _context37.next = 35;
+              case 32:
+                _context37.next = 34;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true, this.getLang());
 
-              case 35:
+              case 34:
                 _response = _context37.sent;
                 return _context37.abrupt("return", _response);
 
-              case 39:
-                _context37.prev = 39;
-                _context37.t0 = _context37["catch"](30);
+              case 38:
+                _context37.prev = 38;
+                _context37.t0 = _context37["catch"](29);
                 throw _context37.t0;
 
-              case 42:
-                _context37.next = 45;
+              case 41:
+                _context37.next = 44;
                 break;
 
-              case 44:
+              case 43:
                 if (snack) {
-                  _title2 = _equalServices.TranslationService.instant('SB_ERROR_CONFLICT'); // try to resolve the error message
+                  title = _equalServices.TranslationService.instant('SB_ERROR_CONFLICT_OBJECT'); // try to resolve the error message
 
-                  _msg4 = _equalServices.TranslationService.resolve(this.translation, 'error', [], 'errors', errors['CONFLICT_OBJECT'], errors['CONFLICT_OBJECT']);
-                  _$snack4 = _materialLib.UIHelper.createSnackbar(_title2 + ': ' + _msg4, 'Error', '', 4000);
-                  this.$container.append(_$snack4);
+                  _msg3 = _equalServices.TranslationService.resolve(translation, 'error', [], 'errors', errors['CONFLICT_OBJECT'], errors['CONFLICT_OBJECT']);
+                  _$snack3 = _materialLib.UIHelper.createSnackbar(title + ' ' + _msg3, _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', 4000);
+                  this.$container.append(_$snack3);
                 }
 
-              case 45:
+              case 44:
                 return _context37.abrupt("return", false);
 
-              case 46:
+              case 45:
               case "end":
                 return _context37.stop();
             }
           }
-        }, _callee37, this, [[30, 39]]);
+        }, _callee37, this, [[29, 38]]);
       }));
 
-      function displayErrorFeedback(_x27) {
+      function displayErrorFeedback(_x27, _x28) {
         return _displayErrorFeedback.apply(this, arguments);
       }
 
@@ -8759,6 +9419,8 @@ Object.defineProperty(exports, "Widget", ({
 }));
 exports.WidgetFactory = void 0;
 
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
@@ -8794,6 +9456,14 @@ var _WidgetMany2One = _interopRequireDefault(__webpack_require__(/*! ./widgets/W
 var _WidgetMany2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetMany2Many */ "./build/widgets/WidgetMany2Many.js"));
 
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
+
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
+
+var _Domain = __webpack_require__(/*! ./Domain */ "./build/Domain.js");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 var WidgetFactory = /*#__PURE__*/function () {
   function WidgetFactory() {
@@ -8890,6 +9560,156 @@ var WidgetFactory = /*#__PURE__*/function () {
         default:
           return new _WidgetString.default(layout, label, value, config);
       }
+    }
+    /**
+     * Generate a widget config based on a layout item (from View schema)
+     * 
+     * @param string    field
+     * @param any       translation     View translation map.
+     * @param any       model_fields    Associative array mapping fields with their model definition.
+     * @param string    view_fields     Associative array mapping fields with their view definition.
+     * @return {}       Returns a widget configuration object.
+     */
+
+  }, {
+    key: "getWidgetConfig",
+    value: function getWidgetConfig(view, field, translation, model_fields, view_fields) {
+      var config = {};
+      var item = view_fields[field];
+
+      if (!model_fields || !model_fields.hasOwnProperty(field)) {
+        return null;
+      }
+
+      var def = model_fields[field];
+      var label = item.hasOwnProperty('label') ? item.label : field; // #todo - handle help and relay to Context
+
+      var helper = item.hasOwnProperty('help') ? item.help : def.hasOwnProperty('help') ? def['help'] : '';
+      var description = item.hasOwnProperty('description') ? item.description : def.hasOwnProperty('description') ? def['description'] : '';
+
+      if (def.hasOwnProperty('type')) {
+        var type = def['type'];
+
+        if (def.hasOwnProperty('result_type')) {
+          type = def['result_type'];
+        }
+
+        if (def.hasOwnProperty('usage')) {
+          switch (def.usage) {
+            // #todo - complete the list
+            case 'markup/html':
+              type = 'text';
+              break;
+
+            case 'uri/url:http':
+            case 'uri/url':
+              type = 'link';
+              break;
+
+            case 'image/gif':
+            case 'image/png':
+            case 'image/jpeg':
+              // binary alt
+              type = 'file';
+              break;
+          }
+        }
+
+        config.type = type;
+      } else {
+        // we shouldn't end up here : malformed schema
+        console.log('ERROR - malformed schema for field ' + field);
+        return config;
+      }
+
+      if (def.hasOwnProperty('usage')) {
+        config.usage = def.usage;
+      }
+
+      if (def.hasOwnProperty('foreign_object')) {
+        config.foreign_object = def.foreign_object;
+      }
+
+      if (def.hasOwnProperty('foreign_field')) {
+        config.foreign_field = def.foreign_field;
+      }
+
+      if (def.hasOwnProperty('selection')) {
+        config.selection = def.selection;
+        config.type = 'select';
+
+        var translated = _equalServices.TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
+
+        var values = translated;
+
+        if (Array.isArray(translated)) {
+          // convert array to a Map (original values as keys and translations as values)
+          values = {};
+
+          for (var i = 0, n = config.selection.length; i < n; ++i) {
+            values[config.selection[i]] = translated[i];
+          }
+        }
+
+        config.values = values;
+      } // ready property is set to true during the 'feed' phase
+
+
+      config.visible = true;
+      config.ready = false;
+      config.title = _equalServices.TranslationService.resolve(translation, 'model', [], field, label, 'label');
+      config.description = _equalServices.TranslationService.resolve(translation, 'model', [], field, description, 'description');
+      config.readonly = def.hasOwnProperty('readonly') ? def.readonly : item.hasOwnProperty('readonly') ? item['readonly'] : false;
+      config.align = item.hasOwnProperty('align') ? item.align : 'left';
+      config.sortable = item.hasOwnProperty('sortable') && item.sortable;
+      config.layout = view.getType();
+      config.lang = view.getLang();
+      config.locale = view.getLocale();
+
+      if (item.hasOwnProperty('widget')) {
+        // overload config with widget config, if any
+        config = _objectSpread(_objectSpread({}, config), item.widget);
+      }
+
+      if (def.hasOwnProperty('visible')) {
+        config.visible = def.visible;
+      }
+
+      if (item.hasOwnProperty('visible')) {
+        config.visible = item.visible;
+      } // convert visible property to JSON
+
+
+      config.visible = eval(config.visible); // for relational fields, we need to check if the Model has been fetched al
+
+      if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
+        // defined config for Widget's view with a custom domain according to object values
+        var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
+        var parts = view_id.split(".", 2);
+        var view_type = parts.length > 1 ? parts[0] : 'list';
+        var view_name = parts.length > 1 ? parts[1] : parts[0];
+        var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
+        var view_domain = config.hasOwnProperty('domain') ? config['domain'] : [];
+        var domain = new _Domain.Domain(def_domain);
+        domain.merge(new _Domain.Domain(view_domain)); // add join condition for limiting list to the current object
+
+        if (['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
+          if (config.type == 'one2many') {
+            domain.merge(new _Domain.Domain([def['foreign_field'], '=', 'object.id']));
+          } else {
+            domain.merge(new _Domain.Domain([def['foreign_field'], 'contains', 'object.id']));
+          }
+        }
+
+        config = _objectSpread(_objectSpread({}, config), {}, {
+          entity: def['foreign_object'],
+          view_type: view_type,
+          view_name: view_name,
+          original_domain: domain.toArray()
+        });
+      }
+
+      return config;
     }
   }]);
   return WidgetFactory;
@@ -9597,12 +10417,22 @@ var UIHelper = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(UIHelper, null, [{
-    key: "createButton",
-    value:
+    key: "getUUID",
+    value: function getUUID() {
+      var S4 = function S4() {
+        return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+      }; // generate a random guid
+
+
+      return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+    }
     /*
      Helpers for element creation
     */
-    function createButton(id, label) {
+
+  }, {
+    key: "createButton",
+    value: function createButton(id, label) {
       var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
       var icon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var variant = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
@@ -9792,7 +10622,7 @@ var UIHelper = /*#__PURE__*/function () {
     }
   }, {
     key: "createInputView",
-    value: function createInputView(id, label, value) {
+    value: function createInputView(id, label, value, helper) {
       var $elem = (0, _jqueryLib.$)('\
         <div> \
         <label class="mdc-text-field mdc-text-field--filled"> \
@@ -9800,6 +10630,9 @@ var UIHelper = /*#__PURE__*/function () {
             <input disabled class="mdc-text-field__input" type="text" value="' + value + '"> \
             <span class="mdc-line-ripple"></span>\
         </label> \
+        <div class="mdc-text-field-helper-line"> \
+            <div class="mdc-text-field-helper-text" aria-hidden="true" title="' + helper + '">' + helper + '</div> \
+        </div> \
         </div>');
       new _textfield.MDCTextField($elem[0]);
       return $elem;
@@ -10655,7 +11488,7 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
         case 'view':
         default:
           value = (0, _moment.default)(date).format('LL');
-          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
           break;
       }
 
@@ -10799,7 +11632,7 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
         case 'view':
         default:
           value = (0, _moment.default)(date).format('LLL');
-          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
           break;
       }
 
@@ -10848,6 +11681,8 @@ var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
 
 var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -10906,111 +11741,76 @@ var WidgetFile = /*#__PURE__*/function (_Widget) {
           return _ref.apply(this, arguments);
         };
       }());
-      var content_type = this.config.hasOwnProperty('usage') ? this.config.usage : 'image/jpeg';
       this.$elem = $('<div />');
 
       switch (this.mode) {
         case 'edit':
-          this.$elem.addClass('sb-dropable');
           this.$elem.css({
-            'width': '150px',
-            'height': '150px',
-            'background-image': 'url(' + 'data:' + content_type + ';base64,' + value + ')'
+            "display": "flex",
+            "align-items": "center"
           });
-          var upqueue = [];
+          var $input = $('<input type="file" />').hide();
 
-          if (window.File && window.FileReader && window.FileList && window.Blob) {
-            window.addEventListener("dragover", function (e) {
-              return e.preventDefault();
-            }); // window.addEventListener("drop", (e) => e.preventDefault() );
+          var $button = _materialLib.UIHelper.createButton(this.getId() + '_upload-button', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', '', 'primary').css({
+            "margin-left": "10px"
+          });
 
-            this.$elem.on("dragenter", function (event) {
-              event.preventDefault();
-              event.stopPropagation();
+          var $text = _materialLib.UIHelper.createInputView('', this.label, '', this.config.description);
 
-              _this.$elem.addClass("highlight");
-            });
-            this.$elem.on("dragleave", function (event) {
-              event.preventDefault();
-              event.stopPropagation();
+          $text.on('click', function () {
+            return $input.trigger('click');
+          });
+          $button.on('click', function () {
+            return $input.trigger('click');
+          });
+          $input.on('change', /*#__PURE__*/function () {
+            var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(event) {
+              var val, filename;
+              return _regenerator.default.wrap(function _callee2$(_context2) {
+                while (1) {
+                  switch (_context2.prev = _context2.next) {
+                    case 0:
+                      console.log(event);
+                      val = $input.val();
+                      _context2.next = 4;
+                      return function (blob) {
+                        var defer = $.Deferred();
+                        var reader = new FileReader();
 
-              _this.$elem.removeClass("highlight");
-            });
-            this.$elem.on("dragover", function (event) {
-              event.preventDefault();
-              event.stopPropagation();
-            });
-            this.$elem[0].addEventListener("drop", /*#__PURE__*/function () {
-              var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(event) {
-                var file, _value;
+                        reader.onload = function (e) {
+                          defer.resolve(e.target.result);
+                        };
 
-                return _regenerator.default.wrap(function _callee2$(_context2) {
-                  while (1) {
-                    switch (_context2.prev = _context2.next) {
-                      case 0:
-                        event.preventDefault();
-                        event.stopPropagation();
+                        reader.readAsDataURL(blob);
+                        return defer.promise();
+                      }($input.prop('files')[0]);
 
-                        _this.$elem.removeClass("highlight");
+                    case 4:
+                      _this.value = _context2.sent;
+                      filename = val.split('\\').pop();
+                      $text.remove();
+                      $text = _materialLib.UIHelper.createInputView('', _this.label, filename, _this.config.description);
 
-                        if (!(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length)) {
-                          _context2.next = 11;
-                          break;
-                        }
+                      _this.$elem.prepend($text);
 
-                        console.log('event datatransfer', event.dataTransfer.files); // we want to store the data inside the Model field
-
-                        file = event.dataTransfer.files[0];
-                        _context2.next = 8;
-                        return function (blob) {
-                          var defer = $.Deferred();
-                          var reader = new FileReader();
-
-                          reader.onload = function (e) {
-                            defer.resolve(e.target.result);
-                          };
-
-                          reader.readAsDataURL(blob);
-                          return defer.promise();
-                        }(file);
-
-                      case 8:
-                        _value = _context2.sent;
-                        _this.value = _value;
-
-                        _this.$elem.trigger('_updatedWidget', [false]);
-
-                      case 11:
-                      case "end":
-                        return _context2.stop();
-                    }
+                    case 9:
+                    case "end":
+                      return _context2.stop();
                   }
-                }, _callee2);
-              }));
+                }
+              }, _callee2);
+            }));
 
-              return function (_x2) {
-                return _ref2.apply(this, arguments);
-              };
-            }());
-          }
-
+            return function (_x2) {
+              return _ref2.apply(this, arguments);
+            };
+          }());
+          this.$elem.append($text).append($button).append($input);
           break;
 
         case 'view':
         default:
-          if (this.config.layout == 'list') {
-            this.$elem.addClass('sb-file-thumbnail');
-            this.$elem.css({
-              'background-image': 'url(' + 'data:' + content_type + ';base64,' + value + ')'
-            });
-          } else {
-            this.$elem.css({
-              'width': '150px',
-              'height': '150px',
-              'background-image': 'url(' + 'data:' + content_type + ';base64,' + value + ')'
-            });
-          }
-
+          this.$elem.append('binary data');
           break;
       }
 
@@ -11660,7 +12460,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
               }
             }
 
-            var $actions_set = $container.find('.sb-view-header-list-actions-set');
+            var $actions_set = $container.find('.sb-view-header-actions-std');
 
             if (has_action_select) {
               var button_label = _equalServices.TranslationService.instant(_this2.rel_type == 'many2many' ? 'SB_ACTIONS_BUTTON_ADD' : 'SB_ACTIONS_BUTTON_SELECT');
@@ -11717,16 +12517,14 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
             }
 
             if (has_action_create) {
-              // generate domain for object creation
-              var domain = new _equalLib.Domain(_this2.config.domain);
-              domain.merge(new _equalLib.Domain([_this2.config.foreign_field, '=', _this2.config.object_id]));
+              // generate domain for object creation                    
+              var domain = _this2.config.domain;
               $actions_set.append(_materialLib.UIHelper.createButton(_this2.getId() + '_action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-                var view_type, view_name, custom_actions, custom_action_create, parts;
+                var view_type, view_name, custom_actions, custom_action_create, parts, tmpDomain;
                 return _regenerator.default.wrap(function _callee2$(_context2) {
                   while (1) {
                     switch (_context2.prev = _context2.next) {
                       case 0:
-                        // retrieve view_type and view_name from parent view
                         view_type = 'form';
                         view_name = view.getName();
                         custom_actions = view.getCustomActions();
@@ -11740,6 +12538,12 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                               if (parts.length) view_type = parts.shift();
                               if (parts.length) view_name = parts.shift();
                             }
+
+                            if (custom_action_create.hasOwnProperty('domain')) {
+                              tmpDomain = new _equalLib.Domain(domain);
+                              tmpDomain.merge(new _equalLib.Domain(custom_action_create['domain']));
+                              domain = tmpDomain.toArray();
+                            }
                           }
                         } // request a new Context for selecting an existing object to add to current selection
 
@@ -11748,7 +12552,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                           entity: _this2.config.entity,
                           type: view_type,
                           name: view_name,
-                          domain: domain.toArray(),
+                          domain: domain,
                           mode: 'edit',
                           purpose: 'create',
                           callback: function callback(data) {
@@ -11820,6 +12624,8 @@ exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
 var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
@@ -11845,6 +12651,10 @@ function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -11895,6 +12705,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
           var $link = _materialLib.UIHelper.createListItem('m2o-actions-create-' + this.id, '<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
 
+          _materialLib.UIHelper.decorateMenu($menu);
+
           if (value.length) {
             $button_create.hide();
           } else {
@@ -11902,11 +12714,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           }
 
           this.$elem.append($select);
-          this.$elem.append($button_open);
-          this.$elem.append($button_create);
-
-          _materialLib.UIHelper.decorateMenu($menu); // open targeted object in new context
-
+          this.$elem.append($button_open); // open targeted object in new context
 
           $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
             return _regenerator.default.wrap(function _callee$(_context) {
@@ -11917,6 +12725,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       _this.getLayout().openContext({
                         entity: _this.config.foreign_object,
                         type: 'form',
+                        mode: 'edit',
                         name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
                         domain: ['id', '=', _this.config.object_id]
                       });
@@ -11928,7 +12737,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 }
               }
             }, _callee);
-          }))); // open creation form in new context
+          })));
+          this.$elem.append($button_create); // open creation form in new context
 
           $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
             return _regenerator.default.wrap(function _callee2$(_context2) {
@@ -11971,7 +12781,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           })));
 
           var openSelectContext = function openSelectContext() {
-            _this.getLayout().openContext({
+            _this.getLayout().openContext(_objectSpread(_objectSpread({}, _this.config), {}, {
               entity: _this.config.foreign_object,
 
               /*
@@ -11997,7 +12807,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                   _this.$elem.trigger('_updatedWidget');
                 }
               }
-            });
+            }));
           };
 
           var feedObjects = function feedObjects() {
@@ -12038,7 +12848,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 var _loop = function _loop() {
                   var object = _step2.value;
 
-                  _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
+                  _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name.replaceAll(' ', '&nbsp;')).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
                     $input.val(object.name).trigger('change');
                     $select.attr('data-selected', object.id);
                     $select.trigger('update');
@@ -12055,7 +12865,15 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               }
 
               if (objects.length) {
-                $menu_list.append(_materialLib.UIHelper.createListDivider());
+                if (objects.length == 1) {
+                  // if list is exactly 1 object long : auto-select
+                  var object = objects[0];
+                  $input.val(object.name).trigger('change');
+                  $select.attr('data-selected', object.id);
+                  $select.trigger('update');
+                } else {
+                  $menu_list.append(_materialLib.UIHelper.createListDivider());
+                }
               } // advanced search button
 
 
@@ -12066,7 +12884,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             });
           };
 
-          if (!this.readonly) {
+          if (this.config.layout == 'form' && !this.readonly) {
             var $button_reset = _materialLib.UIHelper.createButton('m2o-actions-reset-' + this.id, '', 'icon', 'close').css({
               'position': 'absolute',
               'right': '45px',
@@ -12130,7 +12948,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               }
             });
           } // #memo - do not load on init (to prevent burst requests when view is displayed in edit mode)
-          // feedObjects();                
+          // feedObjects();
 
 
           break;
@@ -12139,7 +12957,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
         default:
           this.$elem = $('<div />');
 
-          var $input = _materialLib.UIHelper.createInputView('', this.label, value.toString());
+          var $input = _materialLib.UIHelper.createInputView('', this.label, value.toString(), this.config.description);
 
           switch (this.config.layout) {
             case 'form':
@@ -12353,7 +13171,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
         case 'view':
         default:
           var val = Array.isArray(this.config.values) ? value : this.config.values[value];
-          this.$elem = _materialLib.UIHelper.createInputView('', this.label, val);
+          this.$elem = _materialLib.UIHelper.createInputView('', this.label, val, this.config.description);
           break;
       }
 
@@ -12456,7 +13274,7 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
             value = $('<div>' + value + '</div>').text();
           }
 
-          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
           break;
       }
 
@@ -30567,7 +31385,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n    \r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;  \r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 15%;\r\n    width: 80%;\r\n    height: 70%;\r\n    background-color: white;\r\n    border: solid 1px black;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n  \r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;    \r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;    \r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;    \r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    padding-top: 14px;\r\n}\r\n\r\n/* added for WP compliance */ \r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;    \r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n    \r\n        \r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n    \r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center; \r\n    justify-content: flex-start;  \r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;    \r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n    \r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;  \r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 15%;\r\n    width: 80%;\r\n    height: 70%;\r\n    background-color: white;\r\n    border: solid 1px black;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n  \r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;    \r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;    \r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;    \r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    padding-top: 14px;\r\n}\r\n\r\n/* added for WP compliance */ \r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;    \r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n    \r\n        \r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n    \r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center; \r\n    justify-content: flex-start;  \r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;    \r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n    \r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;  \r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 15%;\r\n    width: 80%;\r\n    height: 70%;\r\n    background-color: white;\r\n    border: solid 1px black;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n  \r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;    \r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;    \r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;    \r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n   \r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    padding-top: 14px;\r\n}\r\n\r\n/* added for WP compliance */ \r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg); \r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg); \r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;    \r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n    \r\n        \r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n    \r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center; \r\n    justify-content: flex-start;  \r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;    \r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n \r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n    \r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;  \r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 15%;\r\n    width: 80%;\r\n    height: 70%;\r\n    background-color: white;\r\n    border: solid 1px black;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n  \r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;    \r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;    \r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;    \r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n   \r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    padding-top: 14px;\r\n}\r\n\r\n/* added for WP compliance */ \r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg); \r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg); \r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;    \r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n    \r\n        \r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n    \r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center; \r\n    justify-content: flex-start;  \r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;    \r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n \r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

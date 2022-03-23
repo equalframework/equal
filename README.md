@@ -14,21 +14,26 @@ eQual is a versatile, language-agnostic and web-oriented framework, aiming to el
 
 **Instant APIs** Without Code Automatically generate a complete set of REST APIs with live documentation for any SQL or NoSQL database, file storage system, or external service.
 
+## Example
+
+### CLI
+`$ ./equal.run --get=demo_first`
+
+### HTTP
+GET /?get=demo_first HTTP/1.1
+
+### Source
 ```
 <?php
 // Tired of steep learning curves?
 echo "This is a valid Contoller!";
 ```
 
-`$ ./equal.run --get=demo_first`
-
-
-
 ## Requirements
 
 eQual requires the following environment:
 
-* **PHP 7+** with following extensions : mysqli (mandatory) + gd opcache zip tidy (optional)
+* **PHP 7+** with extensions mysqli (mandatory) + gd opcache zip tidy (optional)
 * **Apache 2+** or **Nginx**
 * **MySQL 5+** compatible DBMS (up to MySQL 5.7 and MariaDB 10.3)
 

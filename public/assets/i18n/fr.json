@@ -1,6 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Valider",
+	"SB_DIALOG_SEND": "Envoyer",
     "SB_DIALOG_CANCEL": "Annuler",
     
     "SB_PURPOSE_CREATE": "Création",
@@ -21,7 +22,7 @@
 	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Sauver & continuer",
 	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Sauver & voir",
     "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
-    "SB_ACTIONS_BUTTON_EXPORT": "Exporter",        
+    "SB_ACTIONS_BUTTON_EXPORT": "Exporter",
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Éditer en ligne",
     "SB_ACTIONS_BUTTON_BULK_ASSIGN": "Modification de masse",
     "SB_ACTIONS_BUTTON_ARCHIVE": "Archiver",
@@ -34,7 +35,8 @@
     "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
 
     "SB_ACTIONS_CONFIRM": "Confirmer l'action",
-
+	"SB_ACTIONS_PROVIDE_PARAMS": "Paramètres de l'action",
+	
     "SB_ACTIONS_ARCHIVE_CONFIRM": "Confirmer l'archivage",
     "SB_ACTIONS_ARCHIVE_DIALOG_MESSAGE": "Les éléments seront archivés et vous n'y aurez peut-être plus accès. Voulez-vous continuer ?",
     
@@ -50,10 +52,21 @@
     
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
 
+	"SB_ERROR_ERROR": "Erreur",
+	"SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
+	"SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
     "SB_ERROR_NOT_ALLOWED": "Non permis: vous n'avez pas les droits ou l'état de l'objet ne le permet pas.",
-	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre ou section manquant(e).",
-    "SB_ERROR_CONFLICT": "Un conflit empêche cette opération.",
+	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",
+	"SB_MISSING_MANDATORY": "Champ obligatoire.",
+	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
+	"SB_ERROR_INVALID_STATUS": "Le statut de l'objet ne permet pas sa modification.",
+	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
+	"SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
+	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde dans cet état.",
+	
+	"SB_ERROR_BOOKING_CONFLICT_OBJECT": "Cette réservation a été modifiée entretemps par un autre utilisateur.",
+	"SB_ERROR_BOOKING_INVALID_STATUS": "La réservation n'est pas modifiable. Repassez en devis pour la modifier.",
 
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier dans Symbiose",
@@ -92,6 +105,7 @@
     "SETTINGS_LIST_SETTING": "Paramètres",
     "SETTINGS_LIST_CORE": "Général",
     "SETTINGS_LIST_SALE": "Vente",
+	"SETTINGS_LIST_PERMISSIONUPDATE": "ÉDITER PERMISSION",													   
     "SETTINGS_LIST_FINANCE": "Finances",
         
     "DOCS_LIST_DOCUMENT": "Documents",
@@ -110,7 +124,7 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Renommer",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Annuler",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
-    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de voulour supprimer le document ?",
+    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?",
 	
     
     "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",

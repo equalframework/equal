@@ -16,3 +16,8 @@ composer.lock
 packages
 !packages/core
 !packages/demo
+public/*
+!public/index.php
+!public/console.php
+!public/workbench
+!public/assets
