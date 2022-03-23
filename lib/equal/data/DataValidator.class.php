@@ -169,7 +169,7 @@ class DataValidator extends Service {
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($length) { return (preg_match('/^[0-9A-F]{'.$length.'})$/', (string) $a));}
+                'rule'  => function($a, $o) use($length) { return (preg_match('/^[0-9A-F]{'.$length.'}$/', (string) $a));}
             ];
         }
 
