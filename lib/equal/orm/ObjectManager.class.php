@@ -23,10 +23,9 @@ class ObjectManager extends Service {
     private $cache;
 
     /*
-    * Array for remembering which methods have been invoked during the cycle
+    * Array for remembering which methods have been invoked during an 'upadate' cycle
     */
-    private $onchange_methods = [];
-
+    private $object_methods;
 
     /*
     * Array for keeeping track of identifiers matching actual objects
@@ -68,7 +67,7 @@ class ObjectManager extends Service {
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang', 'foreign_object')
     );
 
     public static $mandatory_attributes = array(
@@ -153,6 +152,7 @@ class ObjectManager extends Service {
         $this->packages = null;
         $this->cache = [];
         $this->instances = [];
+        $this->object_methods = [];
     }
 
     public function __clone() {
@@ -321,6 +321,27 @@ class ObjectManager extends Service {
         return $object->getSchema();
     }
 
+
+    public function getFinalType($object_class, $field) {
+        $schema = $this->getObjectSchema($object_class);
+
+        while($field && isset($schema[$field]) && isset($schema[$field]['type']) && $schema[$field]['type'] == 'alias') {
+            $field = $schema[$field]['alias'];
+        }
+
+        if(!$field || !isset($schema[$field]) || !isset($schema[$field]['type'])) {
+            return null;
+        }
+
+        $type = $schema[$field]['type'];
+
+        if(isset($schema[$field]['result_type'])) {
+            $type = $schema[$field]['result_type'];
+        }
+
+        return $type;
+    }
+
     /**
     * Checks if all the given attributes are defined in the specified schema for the given field.
     *
@@ -390,9 +411,10 @@ class ObjectManager extends Service {
      * Load given fields from specified class into the cache
      *
      * @return void
-     * @throw Exception
+     * @throws Exception
      */
     private function load($class, $ids, $fields, $lang) {
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::load", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -532,7 +554,7 @@ class ObjectManager extends Service {
                 foreach($fields as $field) {
                     if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 
-                    if($res = $this->callObjectMethod($class, $schema[$field]['function'], $ids, $lang)) {
+                    if($res = $this->call($class, $schema[$field]['function'], $ids, $lang)) {
                         foreach($ids as $oid) {
                             if(isset($res[$oid])) {
                                 // #memo - do not adapt : we're dealing with PHP not SQL
@@ -605,7 +627,11 @@ class ObjectManager extends Service {
 
     /**
      * Stores specified fields of selected objects into database.
-     * Values are read from the $cache.
+     * .
+     * @param string $class     Class name of the objects to be stored.
+     * @param array  $ids       List of identifiers of the objects to store.
+     * @param array  $fields    List of fields names to store (values are read from `$cache`).
+     * @param string $lang      Lang id (2 chars) in which to store multilang fields.
      */
     private function store($class, $ids, $fields, $lang) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::store", QN_REPORT_DEBUG);
@@ -688,7 +714,7 @@ class ObjectManager extends Service {
                             if(isset($schema[$field]['ondetach'])) {
 
                                 try {
-                                    $this->callObjectMethod($class, $schema[$field]['ondetach'], $ids);
+                                    $this->call($class, $schema[$field]['ondetach'], $ids, $lang);
                                 }
                                 catch(Exception $e) {
                                     switch($schema[$field]['ondetach']) {
@@ -758,7 +784,7 @@ class ObjectManager extends Service {
             'computed' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 // nothing to store for computed fields (ending up here means that the 'store' attribute is not set)
             },
-            'alias' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+            'alias' =>       function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 // nothing to store for virtual fields
             });
 
@@ -797,8 +823,13 @@ class ObjectManager extends Service {
     }
 
 
-    private function callObjectMethod($class, $method, ...$args) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callObjectMethod {$class}::{$method}", QN_REPORT_DEBUG);
+    /**
+     * Invoke a callback from an object Class.
+     * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
+     * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle.
+     */
+    public function call($class, $method, $ids, $lang=DEFAULT_LANG) {
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
         $called_class = $class;
         $called_method = $method;
 
@@ -806,7 +837,7 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-          throw new Exception("callObjectMethod: invalid args ($method, $class)");
+          throw new Exception("ObjectManager::call: invalid args ($method, $class)");
         }
 
         if( $count == 2 ) {
@@ -815,10 +846,23 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-          throw new Exception("callObjectMethod: unknown method ($method, $class)");
+          throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
-        return $called_class::$called_method($this, ...$args);
+        // init object_method map if necessary
+        if(!isset($this->object_methods[$called_class][$called_method])) {
+            $this->object_methods[$called_class][$called_method] = [];
+        }
+        // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
+        $processed_ids = $this->object_methods[$called_class][$called_method];
+        $unprocessed_ids = array_diff($ids, $processed_ids);
+        $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
+
+        $result = [];
+        if(count($unprocessed_ids)) {
+            $result = $called_class::$called_method($this, $unprocessed_ids, $lang);
+        }
+        return $result;
     }
 
     /**
@@ -1149,6 +1193,8 @@ class ObjectManager extends Service {
         $res = [];
         // get DB handler (init DB connection if necessary)
         $this->getDBHandler();
+        // store current state of object_methods map
+        $object_methods_state = $this->object_methods;
 
         try {
             // 1) do some pre-treatment
@@ -1206,16 +1252,8 @@ class ObjectManager extends Service {
             if(count($onchange_fields)) {
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
-                    if(!isset($this->onchange_methods[$class])) {
-                        $this->onchange_methods[$class] = [];
-                    }
-                    if(!isset($this->onchange_methods[$class][$schema[$field]['onchange']])) {
-                        $this->onchange_methods[$class][$schema[$field]['onchange']] = [];
-                    }
                     try {
-                        // prevent inner loops and calling same handler several times during the cycle
-                        // #memo - we don't block onchange callback calls repeatition, beacause this would prevent running a same callback several times within distinct context changes occuring in a same cycle
-                        $updates = $this->callObjectMethod($class, $schema[$field]['onchange'], $ids, $lang);
+                        $updates = $this->call($class, $schema[$field]['onchange'], $ids, $lang);
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
                             foreach($updates as $oid => $update) {
@@ -1236,6 +1274,10 @@ class ObjectManager extends Service {
             trigger_error($e->getMessage(), E_USER_ERROR);
             $res = $e->getCode();
         }
+
+        // restore global object_methods
+        $this->object_methods = $object_methods_state;
+
         return $res;
     }
 
@@ -1355,16 +1397,16 @@ class ObjectManager extends Service {
 
                 // extract sub field and remainder
                 $parts = explode('.', $field, 2);
-
+                // left side of the first dot
                 $path_field = $parts[0];
-
+                // retrieve final type of targeted field
+                $field_type = $this->getFinalType($class, $path_field);
                 // ignore non-relational fields
-                if(!isset($schema[$path_field]) || !in_array($schema[$path_field]['type'], ['many2one', 'one2many', 'many2many'])) continue;
-
+                if(!$field_type || !in_array($field_type, ['many2one', 'one2many', 'many2many'])) continue;
                 // read the field values
                 $values = $this->read($class, $ids, (array) $path_field, $lang);
 
-                if($values <= 0) continue;
+                if($values < 0) continue;
 
                 // recursively read sub objects
                 foreach($ids as $oid) {
@@ -1378,7 +1420,7 @@ class ObjectManager extends Service {
                             $sub_class = $schema[$path_field]['foreign_object'];
                             $sub_ids = $values[$oid][$path_field];
                             $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                            if($schema[$path_field]['type'] == 'many2one') {
+                            if($field_type == 'many2one') {
                                 $odata = array_shift($sub_values);
                                 $res[$oid][$field] = $odata[$parts[1]];
                             }
@@ -1463,7 +1505,7 @@ class ObjectManager extends Service {
                                 // call ondelete method when defined (to allow cascade deletion)
                                 if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
                                     try {
-                                        $this->callObjectMethod($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
+                                        $this->call($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
                                     }
                                     catch(Exception $e) {
                                         switch($rel_schema[$def['foreign_field']]['ondelete']) {
