@@ -17,15 +17,15 @@
             "label":"Nom"
         },
         "created":{
-            "label":"Date de création", 
+            "label":"Date de création",
             "help": "Date de création du compte."
         },
         "validated":{
-            "label":"Validé", 
-            "help": "Le compte utilisateur a-t-il été validé?"
+            "label":"Validé",
+            "help": "Compte validé ?"
         },
         "language":{
-            "label":"Langue", 
+            "label":"Langue",
             "help": "La langue de préférence de l'utilisateur."
         }
     },
