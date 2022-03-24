@@ -514,8 +514,9 @@ class Collection implements \Iterator {
         // if state is forced to draft, do not check required fields (to allow creation of emtpy objects)
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
-        // 3) validate : check unique keys and required fields
-        $this->validate($values, [], true, $check_required);
+        // 3) validate : check required fields accordingly
+        // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) and we must be able to create several draft objects
+        $this->validate($values, [], false, $check_required);
         // set current user as creator
         $values = array_merge($values, ['creator' => $user_id]);
 
