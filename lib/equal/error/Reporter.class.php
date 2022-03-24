@@ -43,7 +43,8 @@ class Reporter extends Service {
         if(!$thread_id){
             // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)
             $operation = $this->context->get('operation');
-            $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].(($operation)?" ($operation)":''));
+            $op_name = ($operation && isset($operation['operation']))?$operation['operation']:'';
+            $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].$op_name);
             $thread_id = substr($data, 0, 8);
         }
         return $thread_id;
