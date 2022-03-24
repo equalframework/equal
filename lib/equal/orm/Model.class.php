@@ -274,11 +274,11 @@ class Model {
      * Check wether an object can be deleted, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
      * 
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @return boolean  Returns true if the object can be deleted, or false otherwise.
+     * @param  Object   $om         ObjectManager instance.
+     * @param  Array    $oids       List of objects identifiers.
+     * @return Boolean  Returns true if the object can be deleted, or false otherwise.
      */
-    public static function ondelete($om, $oids) {
+    public static function ondelete($om, $oids, $lang=DEFAULT_LANG) {
         return true;
     }
 
@@ -287,13 +287,13 @@ class Model {
      * Check wether an object can be updated, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  object   $values     Associative array holding the new values to be assigned.
-     * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     * @param  Object   $om         ObjectManager instance.
+     * @param  Array    $oids       List of objects identifiers.
+     * @param  Array    $values     Associative array holding the new values to be assigned.
+     * @param  String   $lang       Language in which multilang fields are being updated.
+     * @return Array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
-    public static function onupdate($om, $oids, $values, $lang) {
+    public static function onupdate($om, $oids, $values, $lang=DEFAULT_LANG) {
         return [];
     }
 
@@ -301,13 +301,13 @@ class Model {
     /**
      * Signature for single object values change (intended for views)
      * 
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  array    $event      Associative array holding changed fields as keys, and their related new values.
-     * @param  array    $values     Copy of the current (partial) state of the object.
-     * @return array    Returns an associative array mapping fields with their resulting values.
+     * @param  Object   $om         ObjectManager instance.
+     * @param  Array    $oids       List of objects identifiers.
+     * @param  Array    $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  Array    $values     Copy of the current (partial) state of the object.
+     * @return Array    Returns an associative array mapping fields with their resulting values.
      */    
-    public static function onchange($om, $event, $values, $lang) {
+    public static function onchange($om, $event, $values, $lang=DEFAULT_LANG) {
         return [];
     }
 
