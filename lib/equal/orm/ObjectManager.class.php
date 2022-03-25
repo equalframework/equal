@@ -1165,7 +1165,7 @@ class ObjectManager extends Service {
 
             // 4) update new object with given fiels values, if any
 
-            // update creation array with actual object values (fields described as PHP values - not SQL)
+            // update creation array with actual object values (#memo - fields described as PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             $res_w = $this->write($class, $oid, $creation_array, $lang);
             // if write method generated an error, return error code instead of object id
@@ -1193,8 +1193,6 @@ class ObjectManager extends Service {
         $res = [];
         // get DB handler (init DB connection if necessary)
         $this->getDBHandler();
-        // store current state of object_methods map
-        $object_methods_state = $this->object_methods;
 
         try {
             // 1) do some pre-treatment
@@ -1248,12 +1246,19 @@ class ObjectManager extends Service {
             $this->store($class, $ids, array_keys($fields), $lang);
 
             // 5) second pass : handle onchange events, if any
-            // #memo this must be done after modifications otherwise object values might be outdated
+            // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
                     try {
+                        // store current state of object_methods map
+                        $object_methods_state = $this->object_methods;
+
                         $updates = $this->call($class, $schema[$field]['onchange'], $ids, $lang);
+
+                        // restore global object_methods
+                        $this->object_methods = $object_methods_state;
+
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
                             foreach($updates as $oid => $update) {
@@ -1274,9 +1279,6 @@ class ObjectManager extends Service {
             trigger_error($e->getMessage(), E_USER_ERROR);
             $res = $e->getCode();
         }
-
-        // restore global object_methods
-        $this->object_methods = $object_methods_state;
 
         return $res;
     }
