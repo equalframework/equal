@@ -120,6 +120,8 @@ foreach($classes as $class) {
     // 1) check fields descriptions consistency
     $valid_types = array_merge($orm::$virtual_types, $orm::$simple_types, $orm::$complex_types);
 
+    // #toto - fields involved in unique constraint should be set as required
+
     foreach($schema as $field => $description) {
         if(!isset($description['type'])) {
             $result[] = "ERROR - ORM - Class $class: Missing 'type' attribute for field $field";
