@@ -67,7 +67,7 @@ class ObjectManager extends Service {
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang', 'foreign_object')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang', 'selection', 'foreign_object')
     );
 
     public static $mandatory_attributes = array(
@@ -111,7 +111,7 @@ class ObjectManager extends Service {
         'integer'       => 'int(11)',
         'float'         => 'decimal(10,2)',
         'string'        => 'varchar(255)',
-        'text'          => 'text',
+        'text'          => 'text',                  // 64kB
         'date'          => 'date',
         'time'          => 'time',
         'datetime'      => 'datetime',
@@ -137,6 +137,7 @@ class ObjectManager extends Service {
         'language/iso-639:2'        => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
         'language/iso-639:3'        => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
         'markup/html'               => 'mediumtext',
+        'text/plain'                => 'text',
         'email'                     => 'varchar(255)',
         'phone'                     => 'varchar(20)'
     ];
@@ -213,8 +214,8 @@ class ObjectManager extends Service {
     /**
      * Returns a static instance for the specified object class (does not create a new object)
      *
-     * @param string $class
-     * @throws Exception
+     * @param   string      $class      The full name of the class with its namespace.
+     * @throws  Exception
      */
     private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
@@ -256,8 +257,8 @@ class ObjectManager extends Service {
     /**
      * Gets the name of the table associated to the specified class (required to convert namespace notation).
      *
-     * @param string $object_class
-     * @return mixed string|integer Returns the name of the table related to the Class or an error code.
+     * @param   string      $object_class   The full name of the class, with its namespace.
+     * @return  mixed(string|integer)       Returns the name of the table related to the Class or an error code.
      */
     public function getObjectTableName($object_class) {
         try {
@@ -300,8 +301,8 @@ class ObjectManager extends Service {
     /**
      * Retrieve the package in which is defined the class of an object (required to convert namespace notation).
      *
-     * @param string $object_class
-     * @return string
+     * @param   string  $object_class
+     * @return  string
      */
     public static function getObjectPackage($object_class) {
         $parts = explode('\\', $object_class);
@@ -313,8 +314,8 @@ class ObjectManager extends Service {
      *  note: this method is not set as static since we need to load class file in order to retrieve the schema
      * (and this is only done in the getStaticInstance method)
      *
-     * @param string $object_class
-     * @return array
+     * @param   string  $object_class
+     * @return  array
      */
     public function getObjectSchema($object_class) {
         $object = $this->getStaticInstance($object_class);
@@ -345,9 +346,9 @@ class ObjectManager extends Service {
     /**
     * Checks if all the given attributes are defined in the specified schema for the given field.
     *
-    * @param array $check_array
-    * @param array $schema
-    * @param string $field
+    * @param  array     $check_array
+    * @param  array     $schema
+    * @param  string    $field
     * @return bool
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
@@ -362,8 +363,8 @@ class ObjectManager extends Service {
      * Ids that do not match an object in the database are removed from the list.
      * Ids of soft-deleted object are considered valid.
      *
-     * @param $class
-     * @param $ids
+     * @param   $class
+     * @param   $ids
      */
     private function filterValidIdentifiers($class, $ids) {
         $valid_ids = [];
@@ -915,10 +916,27 @@ class ObjectManager extends Service {
         $res = [];
 
         $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+
+
+        // 1) REQUIRED constraint check
+
+        if($check_required) {
+            foreach($schema as $field => $def) {
+                // required fields must be provided and cannot be left/set to null
+                if( isset($def['required']) && $def['required'] && (!isset($values[$field]) || is_null($values[$field])) ) {
+                    $error_code = QN_ERROR_INVALID_PARAM;
+                    $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
+                    trigger_error("mandatory field {$field} is missing", E_USER_WARNING);
+                }
+            }
+        }
+
+
+        // 2) MODEL constraint check
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
-        $schema = $model->getSchema();
 
         foreach($values as $field => $value) {
             // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
@@ -991,17 +1009,8 @@ class ObjectManager extends Service {
             }
         }
 
-        // REQUIRED constraint check
-        if($check_required) {
-            foreach($schema as $field => $def) {
-                if(isset($def['required']) && $def['required'] && !isset($values[$field])) {
-                    $error_code = QN_ERROR_INVALID_PARAM;
-                    $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
-                    trigger_error("mandatory field {$field} is missing", E_USER_WARNING);
-                }
-            }
-        }
-        // UNIQUE constraint check
+        // 3) UNIQUE constraint check
+
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
             $uniques = $model->getUnique();
 
@@ -1693,7 +1702,6 @@ class ObjectManager extends Service {
                         $field        = $domain[$j][$i][0];
                         $value        = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
                         $operator     = strtolower($domain[$j][$i][1]);
-
 
                         // force operator 'is' for null values
                         if(is_null($value) || $value === 'NULL') {
