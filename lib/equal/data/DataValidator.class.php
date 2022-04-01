@@ -108,6 +108,27 @@ class DataValidator extends Service {
                 ];
         }
 
+        // with support for both bytes length and (multibytes) chars length (notation: chars_length.bytes_length)
+        // #todo - allow size notations ':medium' (16MB) and ':long' (4GB)
+        if(preg_match('/text\/plain(:([0-9]{1,5})(\.([0-9]{1,2}))?)?/', $usage, $out)) {
+            $max = 65535;
+            $chars_len = $max;
+            $bytes_len = $max;
+            /** @var array */
+            $res = $out;
+            if( is_array($res) && count($res) > 2) {
+                $chars_len = intval($res[2]);
+                $bytes_len = $chars_len;
+                if(count($res) > 4) {
+                    $bytes_len = $res[4];
+                }
+            }
+            return [
+                'kind'  => 'function',
+                'rule'  => function($a, $o) use($chars_len, $bytes_len) { return (mb_strlen($a) <= $chars_len) && (strlen($a) <= $bytes_len);}
+            ];
+        }
+
         if(preg_match('/string\/alpha(:([0-9]{1,3}))?/', $usage, $out)) {
             $len = 1;
             /** @var array */
@@ -130,12 +151,12 @@ class DataValidator extends Service {
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
+                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[+-]?[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
             ];
         }
 
         if(preg_match('/numeric\/integer(:([0-9]{1,2}))?/', $usage, $out)) {
-            $len = 1;
+            $len = 18;
             /** @var array */
             $res = $out;
             if( is_array($res) && count($res) > 2) {
@@ -143,25 +164,34 @@ class DataValidator extends Service {
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($len) { return (preg_match('/^[0-9]{0,'.$len.'}$/', (string) $a));}
+                'rule'  => function($a, $o) use($len) { return (preg_match('/^[+-]?[0-9]{0,'.$len.'}$/', (string) $a));}
             ];
         }
 
-        if(preg_match('/numeric\/decimal(:([0-9]{1,2}))?/', $usage, $out)) {
-            $decimals = 2;
+        if(preg_match('/numeric\/real(:([0-9]{1,2})(\.([0-9]{1,2}))?)?/', $usage, $out)) {
+            // support 'precision.scale' length format
+            $precision = 18;
+            $scale = 0;
             /** @var array */
             $res = $out;
-            if( is_array($res) && count($res) > 2) {
-                $decimals = $res[2];
+            if(is_array($res) && count($res) > 2) {
+                $precision = $res[2];
+                if(count($res) > 4) {
+                    $scale = $res[4];
+                }
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($decimals) { return (preg_match('/^[0-9]+(\.?[0-9]{0,'.$decimals.'})$/', (string) $a));}
+                'rule'  => function($a, $o) use($precision, $scale) { 
+                    if($scale > $precision) return false;
+                    $integers = $precision - $scale;
+                    return (preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $a));
+                }
             ];
         }
 
         if(preg_match('/numeric\/hexadecimal(:([0-9]{1,2}))?/', $usage, $out)) {
-            $length = '0,32';
+            $length = 32;
             /** @var array */
             $res = $out;
             if( is_array($res) && count($res) > 2) {
@@ -169,7 +199,7 @@ class DataValidator extends Service {
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($length) { return (preg_match('/^[0-9A-F]{'.$length.'}$/', (string) $a));}
+                'rule'  => function($a, $o) use($length) { return (preg_match('/^[0-9A-F]{0,'.$length.'}$/', (string) $a));}
             ];
         }
 
