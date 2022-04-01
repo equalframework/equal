@@ -14,22 +14,30 @@ namespace equal\orm;
 class Model {
 
     /**
-     * Complete object schema, containing all columns (including special ones as object id)
+     * Complete object schema, containing all columns (including special ones as object id).
      *
      * @var array
-     * @access private
      */
     private $schema;
 
+    /**
+     * List of all fields names (columns) defined in the model.
+     *
+     * @var array
+     */
     private $fields;
 
+    /**
+     * Associative array mapping fields with their value.
+     *
+     * @var array
+     */
     private $values;
 
 
     /**
      * Constructor
      *
-     * @access public
      */
     public final function __construct($orm, $values=[]) {
         // schema is the concatenation of spcecial-columns and custom-defined columns
@@ -65,6 +73,7 @@ class Model {
         // get default values, set fields for default language, and mark fields as modified
         foreach($defaults as $field => $default) {
             if(isset($this->schema[$field])) {
+                // #todo - add support for std functions + custom methods with namespace notation
                 if(is_callable($default) && (!isset($this->schema[$field]['selection']) || !in_array($default, $this->schema[$field]['selection']))) {
                     $this->values[$field] = call_user_func($default, $orm, $values);
                 }
@@ -212,7 +221,6 @@ class Model {
      *             ]
      *            ]
      * 
-     * @access public
      */
     public static function getConstraints() {
         return [];
@@ -220,7 +228,6 @@ class Model {
 
     /**
      *
-     * @access public
      */
     public function getDefaults() {
         $defaults = [];
@@ -236,7 +243,6 @@ class Model {
      * Provide the list of unique rules (array of combinations of fields).
      * This method can be overriden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
      *
-     * @access public
      */
     public function getUnique() {
         $uniques = [];
@@ -254,7 +260,6 @@ class Model {
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
      *
-     * @access public
      *
      */
     public function getTable() {
@@ -274,11 +279,11 @@ class Model {
      * Check wether an object can be deleted, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
      * 
-     * @param  Object   $om         ObjectManager instance.
-     * @param  Array    $oids       List of objects identifiers.
-     * @return Boolean  Returns true if the object can be deleted, or false otherwise.
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @return boolean  Returns true if the object can be deleted, or false otherwise.
      */
-    public static function ondelete($om, $oids, $lang=DEFAULT_LANG) {
+    public static function ondelete($om, $oids) {
         return true;
     }
 
@@ -287,35 +292,47 @@ class Model {
      * Check wether an object can be updated, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  Object   $om         ObjectManager instance.
-     * @param  Array    $oids       List of objects identifiers.
-     * @param  Array    $values     Associative array holding the new values to be assigned.
-     * @param  String   $lang       Language in which multilang fields are being updated.
-     * @return Array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $values     Associative array holding the new values to be assigned.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
-    public static function onupdate($om, $oids, $values, $lang=DEFAULT_LANG) {
+    public static function onupdate($om, $oids, $values, $lang) {
         return [];
     }
 
 
     /**
-     * Signature for single object values change (intended for views)
-     * 
-     * @param  Object   $om         ObjectManager instance.
-     * @param  Array    $oids       List of objects identifiers.
-     * @param  Array    $event      Associative array holding changed fields as keys, and their related new values.
-     * @param  Array    $values     Copy of the current (partial) state of the object.
-     * @return Array    Returns an associative array mapping fields with their resulting values.
-     */    
-    public static function onchange($om, $event, $values, $lang=DEFAULT_LANG) {
-        return [];
-    }
-
-    /**
-     * Handle virtual static methods: use classname to invoke a Collection method, if available
+     * Check wether an object can be created, and optionally perform additional operations.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overriden to define a more precise set of tests.
      *
-     * @access public
-     * @static
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be created.
+     */
+    public static function oncreate($om, $values, $lang) {
+        return [];
+    }
+
+    /**
+     * Signature for single object values change (intended for views).
+     * 
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array    $values     Copy of the current (partial) state of the object.
+     * @return array    Returns an associative array mapping fields with their resulting values.
+     */    
+    public static function onchange($om, $event, $values, $lang) {
+        return [];
+    }
+
+    /**
+     * Handle virtual static methods: use classname to invoke a Collection method, if available.
+     *
      */
     public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {
