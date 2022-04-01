@@ -52,20 +52,6 @@
                                                 "width": "50%",
                                                 "label": "Validated",
                                                 "help": "Status of validation of this account."
-                                            },                                            
-                                            {
-                                                "type": "button",
-                                                "value": "validate",
-                                                "width": "50%",
-                                                "confirm": {
-                                                    "question": "You are about to manually validate a newly created account. Are your sure?",
-                                                    "yes": "Validate",
-                                                    "no": "Abandon"
-                                                },
-                                                "action": {
-                                                    "type": "",
-                                                    "operation": ""
-                                                }
                                             }
                                         ]
                                     },

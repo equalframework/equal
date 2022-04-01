@@ -124,31 +124,31 @@ foreach($classes as $class) {
 
     foreach($schema as $field => $description) {
         if(!isset($description['type'])) {
-            $result[] = "ERROR - ORM - Class $class: Missing 'type' attribute for field $field";
+            $result[] = "ERROR - ORM - Class $class: Missing 'type' attribute for field $field ($class_filename)";
             $is_error = true;
             continue;
         }
         if(!in_array($description['type'], $valid_types)) {
-            $result[] = "ERROR - ORM - Class $class: Invalid type '{$description['type']}' for field $field";
+            $result[] = "ERROR - ORM - Class $class: Invalid type '{$description['type']}' for field $field ($class_filename)";
             $is_error = true;
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']]);
+            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']])." ($class_filename)";
             $is_error = true;
             continue;
         }
         foreach($description as $attribute => $value) {
             if(!in_array($attribute, $orm::$valid_attributes[$description['type']])) {
-                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$description['type']]);
+                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$description['type']])." ($class_filename)";
                 $is_error = true;
             }
             if(in_array($attribute, array('store', 'multilang', 'search')) && $value !== true && $value !== false) {
-                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)";
+                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)"." ($class_filename)";
                 $is_error = true;
             }
             if($attribute == 'foreign_object' && !class_exists($value))  {
-                $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$value}' given for attribute $attribute in field $field of type {$description['type']}";
+                $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$value}' given for attribute $attribute in field $field of type {$description['type']}"." ($class_filename)";
                 $is_error = true;
             }
         }
@@ -169,16 +169,16 @@ foreach($classes as $class) {
 
     // 3) check if default views are present (form.default.json and list.default.json)
     if(!is_file("$view_dir/$class.form.default.json")) {
-        $result[] = "ERROR - UI - Class $class: missing default form view (/views/$class.form.default.json)";
+        $result[] = "ERROR - GUI - Class $class: missing default form view (/views/$class.form.default.json)";
     }
     if(!is_file("$view_dir/$class.list.default.json")) {
-        $result[] = "ERROR - UI - Class $class: missing default list view (/views/$class.list.default.json)";
+        $result[] = "ERROR - GUI - Class $class: missing default list view (/views/$class.list.default.json)";
     }
 
     // 4) check if translation file are present (.json)
     foreach($lang_list as $lang) {
          if(!is_file("$lang_dir/$lang/$class.json")) {
-             $result[] = "WARN - I18N - Class $class: missing translation file for language $lang";
+             $result[] = "WARN - I18 - Class $class: missing translation file for language $lang";
          }
     }
 
@@ -189,7 +189,7 @@ foreach($classes as $class) {
         $json = file_get_contents($view_file);
         $data = @json_decode($json, true);
         if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-            $result[] = "ERROR - UI - Syntax error in file: $view_file";
+            $result[] = "ERROR - GUI - Syntax error in file: $view_file";
             $is_error = true;
             continue;
         }
@@ -213,7 +213,7 @@ foreach($classes as $class) {
                 ]
             ];
         }
-        else {
+        else if(strpos($view_file, 'list.') > 0) {
             $structure = [
                 'name',
                 'description',
@@ -227,7 +227,7 @@ foreach($classes as $class) {
         // check that mandatory properties are present in the view
         $res = view_test($data, $structure);
         if($res) {
-            $result[] = "ERROR - UI - ".$res." in file: $view_file";
+            $result[] = "ERROR - GUI - ".$res." in file: $view_file";
             $is_error = true;
         }
         // check that fields targeted in views are valid (defined in schema)
@@ -236,7 +236,7 @@ foreach($classes as $class) {
             if(isset($item['type']) && $item['type'] == 'field' && isset($item['value'])) {
                 $field = $item['value'];
                 if(!isset($schema[$field])) {
-                    $result[] = "ERROR - UI - Unknown field '$field' referenced in file $view_file";
+                    $result[] = "ERROR - GUI - Unknown field '$field' referenced in file $view_file";
                     $is_error = true;
                 }
             }
@@ -250,14 +250,14 @@ foreach($classes as $class) {
             $json = file_get_contents($i18n_file);
             $data = @json_decode($json, true);
             if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-                $result[] = "ERROR - I18N - Syntax error in file: $i18n_file";
+                $result[] = "ERROR - I18 - Syntax error in file: $i18n_file";
                 $is_error = true;
                 continue;
             }
             $mandatory_properties = ['name', 'plural', 'description', 'model', 'view'];
             foreach($mandatory_properties as $property) {
                 if(!isset($data[$property])) {
-                    $result[] = "ERROR - I18N - Missing mandatory property '$property' in file: $i18n_file";
+                    $result[] = "ERROR - I18 - Missing mandatory property '$property' in file: $i18n_file";
                     $is_error = true;
                 }
             }
@@ -266,11 +266,11 @@ foreach($classes as $class) {
                 // check that the referenced fields are valid (defined in the schema)
                 foreach($fields as $field) {
                     if(!isset($schema[$field])) {
-                        $result[] = "WARN - I18N - Unknown field '$field' referenced in file $i18n_file";
+                        $result[] = "WARN - I18 - Unknown field '$field' referenced in file $i18n_file";
                     }
                     // warn about renaming root fields (specifal fiels from Model interface)
                     if(in_array($field, ['id', 'creator', 'modifier', 'modified','created', 'deleted', 'state'])) {
-                        $result[] = "WARN - I18N - Root field '$field' shouldn't be referenced in file $i18n_file";
+                        $result[] = "WARN - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
                     }
                 }
                 // check that the translation description is complete for each field
@@ -278,30 +278,30 @@ foreach($classes as $class) {
                     $mandatory_properties = ['label', 'help', 'description'];
                     foreach($mandatory_properties as $property) {
                         if(!isset($data['model'][$field][$property])) {
-                            $result[] = "WARN - I18N - Missing property '$property' for field '$field' referenced in file $i18n_file";
+                            $result[] = "WARN - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
                         }
                         else {
                             if(strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
-                                $result[] = "WARN - I18N - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
+                                $result[] = "WARN - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
                             }
 
                             if($property == 'label') {
                                 if( strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
-                                    $result[] = "WARN - I18N - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
+                                    $result[] = "WARN - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'help') {
                                 if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
-                                    $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                    $result[] = "WARN - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'description') {
                                 if( strlen($data['model'][$field][$property]) ) {
                                     if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
-                                        $result[] = "WARN - I18N - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                        $result[] = "WARN - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                     }
                                     if( strlen($data['model'][$field][$property]) > 60) {
-                                        $result[] = "WARN - I18N - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
+                                        $result[] = "WARN - I18 - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
                                     }
                                 }
                             }
@@ -310,7 +310,7 @@ foreach($classes as $class) {
                     // check for 'selection' property
                     if($schema[$field]['type'] == 'string' && isset($schema[$field]['selection'])) {
                         if(!isset($data['model'][$field]['selection'])) {
-                            $result[] = "WARN - I18N - Missing property 'selection' for field '$field' referenced in file $i18n_file";
+                            $result[] = "WARN - I18 - Missing property 'selection' for field '$field' referenced in file $i18n_file";
                         }
                     }
                 }
@@ -383,13 +383,14 @@ foreach($classes as $class) {
 
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
+    $class_filename = str_replace('\\', '/', "packages/{$params['package']}/classes/{$class}".'.class.php');
 
     // get the SQL table name
     $table = $orm->getObjectTableName($entity);
 
     // 1) verify that the DB table exists
     if(!isset($tables[$table])) {
-        $result[] = "ERROR - DB - Class $class: Associated table ({$table}) does not exist in database";
+        $result[] = "ERROR - DBM - Class $class: Associated table ({$table}) does not exist in database ($class_filename)";
         $is_error = true;
         continue;
     }
@@ -433,7 +434,7 @@ foreach($classes as $class) {
     foreach($simple_fields as $field) {
         // 2) verify that the fields exists in DB
         if(!isset($db_schema[$field])) {
-            $result[] = "ERROR - DB - Class $class: Field $field ({$schema[$field]['type']}) does not exist in table {$table}";
+            $result[] = "ERROR - DBM - Class $class: Field $field ({$schema[$field]['type']}) does not exist in table {$table} ($class_filename)";
             $is_error = true;
         }
         else {
@@ -441,7 +442,7 @@ foreach($classes as $class) {
             $type = $schema[$field]['type'];
             if(in_array($type, array('computed', 'related'))) $type = $schema[$field]['result_type'];
             if(!in_array($db_schema[$field]['type'], $allowed_types_associations[$type])) {
-                $result[] = "ERROR - DB - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']})";
+                $result[] = "ERROR - DBM - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']}) ($class_filename)";
                 $is_error = true;
             }
         }
@@ -452,7 +453,7 @@ foreach($classes as $class) {
         $table_name = $schema[$field]['rel_table'];
 
         if(!isset($tables[$table_name])) {
-            $result[] = "ERROR - DB - Class $class: Relational table ($table_name) specified by field {$field} does not exist in database";
+            $result[] = "ERROR - DBM - Class $class: Relational table ($table_name) specified by field {$field} does not exist in database ($class_filename)";
             $is_error = true;
         }
     }
@@ -502,7 +503,7 @@ function view_test($data, $structure) {
             $key = is_numeric($item)?$def:$item;
             if(is_numeric($item)) {
                 if(!isset($elem[$key])) {
-                    return "missing mandatory property '$key' for item $index";
+                    return "missing property '$key' for item $index";
                 }
             }
             else {

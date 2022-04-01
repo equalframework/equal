@@ -74,7 +74,7 @@ class Setting extends Model {
 
             'help' => [
                 'type'              => 'string',
-                'usage'             => 'string/text',
+                'usage'             => 'text/plain',
                 'description'       => "Detailed description about the setting role.",
                 'multilang'         => true
             ],
@@ -99,7 +99,7 @@ class Setting extends Model {
                     'input',
                     'text'
                 ],
-                'usage'             => 'string/text',
+                'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
                 'multilang'         => true
             ],

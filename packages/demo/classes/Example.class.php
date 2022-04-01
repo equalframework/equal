@@ -15,40 +15,54 @@ class Example extends Model {
                 'type'          => 'string',
                 'multilang'     => true
             ],
+
             'short_text' =>[
-                'type'          => 'text'
+                'type'          => 'string',
+                'usage'         => 'text/plain'
             ],
+
             'date_1' => [
                 'type'          => 'date',
                 'default'       => function($orm, $values) { return date("Y-m-d"); }
             ],
+
             'date_2' => [
                 'type'          => 'date',
                 'required'      => true
             ],
-            'date_3'			=> [
-                'type' => 'date'
+
+            'date_3' => [
+                'type'          => 'date'
             ],
-            
-            'float_1'			=> array('type' => 'float', 'onchange' => 'test\Example::onchangeTotalFloat'),
-            'float_2'			=> array('type' => 'float', 'onchange' => 'test\Example::onchangeTotalFloat'),	
+
+            'float_1' => [
+                'type'          => 'float',
+                'onchange'      => 'onchangeTotalFloat'
+            ],
+
+            'float_2' => [
+                'type'          => 'float',
+                'onchange'      => 'test\Example::onchangeTotalFloat'
+            ],
+
             'float_3'			=> array('type' => 'float', 'onchange' => 'test\Example::onchangeTotalFloat'),
 
             'total_float' => [
-                'type'          => 'computed', 
-                'result_type'   => 'float', 
+                'type'          => 'computed',
+                'result_type'   => 'float',
                 'function'      => 'test\Example::getTotalFloat',
                 'store'         => true
             ],
-            
+
             'integer_1' => [
                 'type'          => 'integer',
                 'default'       => '54321'
             ],
-            'integer_2'			=> array('type' => 'integer'),	
-            'integer_3'			=> array('type' => 'function', 'result_type' => 'integer', 'store' => true, 'function' => 'test\Example::getInteger3' ),					
 
-            
+            'integer_2'			=> array('type' => 'integer'),
+
+            'integer_3'			=> array('type' => 'function', 'result_type' => 'integer', 'store' => true, 'function' => 'test\Example::getInteger3' )
+
         ];
     }
 
@@ -64,7 +78,7 @@ class Example extends Model {
         $om->update('test\Example', array($oid), [ 'total_float' => Example::getTotalFloat($om, $oid, $lang) ], $lang);
     }
 
-    
+
     public static function getInteger3($om, $oid, $lang) {
         return 12345;
     }

@@ -50,7 +50,7 @@ $parents[] = $params['entity'];
 // init resulting lang schema
 $lang = [];
 
-foreach(array_reverse($parents) as $entity) {
+foreach($parents as $entity) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
 

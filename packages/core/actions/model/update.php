@@ -70,12 +70,12 @@ $fields = array_filter($params['fields'], function($field) use ($schema){
 
 
 foreach($fields as $field => $value) {
-    // drop empty fields, ignore status
-    if(is_null($value)) {
+    $type = $schema[$field]['type'];
+    // drop empty fields (allow reset to null)
+    if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['string', 'text']) && !is_null($value) ) {
         unset($fields[$field]);
     }
     else {
-        $type = $schema[$field]['type'];
         if($type == 'computed') {
             $type = $schema[$field]['result_type'];
         }

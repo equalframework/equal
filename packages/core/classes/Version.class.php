@@ -17,15 +17,20 @@ class Version extends Model {
                 'type'              => 'string', 
                 'selection'         => ['draft', 'version']
             ],
+
             'object_class' => [
                 'type'              => 'string'
             ],
+
             'object_id' => [
                 'type'              => 'integer'
             ],
+
             'serialized_value' => [
-                'type'              => 'text'
+                'type'              => 'string',
+                'usage'             => 'text/plain',
             ],
+
             'lang' => [
                 'type'              => 'string'
             ]

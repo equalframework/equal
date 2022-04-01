@@ -7,14 +7,8 @@
                 "type": "field",
                 "value": "name",
                 "label": "Name",
-                "width": "25%"
-            },
-            {
-                "type": "field",
-                "value": "setting_id",
-                "label": "Setting",
-                "width": "25%",
-                "sortable": true
+                "width": "30%",
+                "sortable": true                
             },
             {
                 "type": "field",

@@ -84,23 +84,6 @@ else {
     $classes = $data;
 }
 
-$types_associations = array(
-    'boolean' 		=> 'tinyint(4)',
-    'integer' 		=> 'int(11)',
-    'float' 		=> 'decimal(10,2)',
-    'string' 		=> 'varchar(255)',
-    'text' 			=> 'mediumtext',
-    'html' 			=> 'mediumtext',
-    'date' 			=> 'date',
-    'time' 			=> 'time',
-    'datetime' 		=> 'datetime',
-    'timestamp' 	=> 'timestamp',
-    'file' 		    => 'mediumblob',
-    'binary' 		=> 'mediumblob',
-    'many2one' 		=> 'int(11)'
-);
-
-
 
 $m2m_tables = array();
 
@@ -128,8 +111,8 @@ foreach($classes as $class) {
         $result = [];
         foreach($diff as $field) {
             $description = $schema[$field];
-            if(in_array($description['type'], array_keys($types_associations))) {
-                $type = $types_associations[$description['type']];
+            if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
+                $type = ObjectManager::$types_associations[$description['type']];
                 // if a SQL type is associated to field 'usage', it prevails over the type association
                 if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
                     $type = ObjectManager::$usages_associations[$description['usage']];
@@ -137,7 +120,7 @@ foreach($classes as $class) {
                 $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
             }
             else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
-                $type = $types_associations[$description['result_type']];
+                $type = ObjectManager::$types_associations[$description['result_type']];
                 // if a SQL type is associated to field 'usage', it prevails over the type association
                 if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
                     $type = ObjectManager::$usages_associations[$description['usage']];
