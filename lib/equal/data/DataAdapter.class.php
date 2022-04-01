@@ -46,7 +46,8 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     if(is_string($value)) {
-                                        if(empty($value)) $value = 0;
+                                        if($value == 'null') $value = null;
+                                        else if(empty($value)) $value = 0;
                                         else if(in_array($value, ['TRUE', 'true'])) $value = 1;
                                         else if(in_array($value, ['FALSE', 'false'])) $value = 0;
                                     }
@@ -54,7 +55,7 @@ class DataAdapter extends Service {
                                     if(is_numeric($value)) {
                                         $value = intval($value);
                                     }
-                                    else {
+                                    else if(!is_null($value)) {
                                         throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
@@ -70,11 +71,14 @@ class DataAdapter extends Service {
             'float' => [
                 'txt'   => [
                     'php' =>    function ($value) {
+                                    if(is_string($value)) {
+                                        if($value == 'null') $value = null;
+                                    }
                                     // arg represents a numeric value (either numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = floatval($value);
                                     }
-                                    else {
+                                    else if(!is_null($value)) {
                                         throw new \Exception(serialize(["not_valid_float" => "Format inconvertible to float."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
