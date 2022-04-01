@@ -426,7 +426,7 @@ namespace config {
                     // #todo allow to customize (override) these values
                     $response->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
                     $response->header('Access-Control-Allow-Headers', '*');
-                    // expose headers specific to eQual
+                    // expose headers specific to eQual (#memo - mind case-match)
                     // (CORS defaults are: Cache-Control, Content-Language, Content-Length, Content-Type, Expires, Last-Modified, Pragma.)
                     $response->header('Access-Control-Expose-Headers', 'X-Total-Count');
                     $response->header('Access-Control-Allow-Credentials', 'true');
