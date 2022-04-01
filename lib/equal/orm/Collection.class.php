@@ -189,7 +189,7 @@ class Collection implements \Iterator {
     }
 
     /**
-     * Provide the whole collection as a map (by default) or as an array
+     * Provide the whole collection as a map (by default) or as an array.
      *
      * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
      * @return  array       (associative) array holding objects converted to arrays (no Collection instances)
@@ -505,6 +505,12 @@ class Collection implements \Iterator {
         $values = $this->filter($values, false);
         // retrieve targeted fields names
         $fields = array_keys($values);
+
+        $oncreate = $this->class::oncreate($this->orm, $values, $lang);
+        if(!empty($oncreate)) {
+            // send error using the same format as the announce method
+            throw new \Exception(serialize($oncreate), QN_ERROR_INVALID_PARAM);
+        }
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
