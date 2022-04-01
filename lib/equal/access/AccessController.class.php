@@ -336,10 +336,10 @@ class AccessController extends Service {
      *  Qinoa's Access Controller is trivial and only check for rights at class level.
      *  For a more complex behaviour, this class can be replaced by a custom Auth service.
      *
-     * @param $operation        integer         Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
-     * @param $object_class     string          Class selector indicating on which classes the check must be performed.
-     * @param $object_fields    array<string>   (optional) List of fields name on which the operation must be granted.
-     * @param $object_ids       array<int>      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param integer       $operation        Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
+     * @param string        $object_class     Class selector indicating on which classes the check must be performed.
+     * @param array<string> $object_fields    (optional) List of fields name on which the operation must be granted.
+     * @param array<int>    $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 
