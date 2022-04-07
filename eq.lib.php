@@ -50,7 +50,7 @@ namespace {
     define('QN_ERROR_LOCKED_OBJECT',      -64);
     define('QN_ERROR_CONFLICT_OBJECT',   -128);        // version conflict
     define('QN_ERROR_INVALID_USER',      -256);        // auth failure
-    define('QN_ERROR_UNKNOWN_SERVICE',   -512);        // server errror : missing service
+    define('QN_ERROR_UNKNOWN_SERVICE',   -512);        // server error : missing service
     define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
 
 
@@ -554,7 +554,6 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     // user asked for the announcement or browser requested fingerprint
-                    ob_start();
                     $response->status(200)
                     // allow browser to cache the response for 1 year
                     ->header('Cache-Control', 'max-age=31536000')
@@ -562,11 +561,9 @@ namespace config {
                     ->header('Content-Type', 'application/json')
                     ->header('Content-Disposition', 'inline')
                     // mandatory headers for CORS validation
-                    ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
+                    //->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
+                    ->header('Access-Control-Allow-Headers', '*')
                     ->send();
-                    $result = ob_get_clean();
-                    $reporter->debug("result: $result");
-                    print($result);
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
