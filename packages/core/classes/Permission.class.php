@@ -12,6 +12,11 @@ class Permission extends Model {
 
     public static function getColumns() {
         return [
+            'name' => [
+                'type'              => 'alias',
+                'alias'             => 'class_name'
+            ],
+
             'class_name' => [
                 'type'              => 'string',
                 'description'       => 'Full name of the entity to which the permission rule applies.',
