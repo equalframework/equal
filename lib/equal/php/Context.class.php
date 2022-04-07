@@ -4,6 +4,7 @@ namespace equal\php;
 use equal\organic\Service;
 use equal\http\HttpRequest;
 use equal\http\HttpResponse;
+use qinoa\http\HttpHeaders;
 
 
 class Context extends Service {
@@ -208,7 +209,10 @@ class Context extends Service {
             // 1) retrieve headers
 
             if (function_exists('getallheaders')) {
-                $headers = (array) getallheaders();
+                $all_headers = (array) getallheaders();
+                foreach($all_headers as $header => $value) {
+                    $headers[HttpHeaders::normalizeName($header)] = $value;
+                }
             }
             else {
                 // Polyfill from https://github.com/ralouphie/getallheaders
@@ -238,11 +242,7 @@ class Context extends Service {
             // handle origin header
             if (!isset($headers['Origin'])) {
                 $headers['Origin'] = '*';
-                if(isset($headers['Host'])) {
-                    $scheme = isset($_SERVER['HTTPS']) ? "https" : "http";
-                    $headers['Origin'] = $scheme.'://'.$headers['Host'];
-                }
-                else if(isset($headers['Referer'])) {
+                if(isset($headers['Referer'])) {
                     if ( $parts = parse_url( $headers['Referer'] ) ) {
                         $headers['Origin'] = $parts[ "scheme" ].'://'.$parts[ "host" ];
                     }
@@ -387,10 +387,6 @@ class Context extends Service {
         return intval($val);
     }
 
-    private static function getMaxMemory() {
-        return min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
-    }
-
     private function getHttpBody($uri='') {
         $body = '';
         // in case script was invoked by CLI
@@ -415,16 +411,31 @@ class Context extends Service {
         }
         else {
             // load raw content from input stream
-            // careful here: in case raw data exceed `upload_max_filesize` or `post_max_size`, stream `php://input` might contain more data than available memory
-            $max = self::getMaxMemory() - memory_get_usage() - 1;
-            if($max > 0) {
-                $raw = file_get_contents('php://input', false, null, 0, $max);
-                if(strlen($raw) >= $max) {
-                    throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
+            // #memo - careful here: stream `php://input` might contain more data than available memory
+            $max_req = min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
+            $max_mem = max(0, self::to_bytes(ini_get('memory_limit')) - memory_get_usage(true) - 64);
+            // #memo - we need to be able to continue processing (vars will be adapted/copied), so we limit the input to 30% of remaining memory
+            $max_mem = (int) ($max_mem * 0.3);
+            $body = '';
+            $size = 0;
+            try {
+                $input = fopen('php://input', 'r');
+                while (!feof($input)) {
+                    $size += 1024;
+                    if($size > $max_mem) {
+                        throw new \Exception();
+                    }
+                    $body .= fread($input, 1024);
                 }
-                // further processing is handled in HttpMessage::setBody, according to the Content-Type
-                $body = $raw;
+                fclose($input);
             }
+            catch(\Throwable $e) {
+                throw new \Exception("memory_exhausted", QN_ERROR_NOT_ALLOWED);
+            }
+            if($max_req <= 0 || $size > $max_req) {
+                throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
+            }
+            // further processing is handled in HttpMessage::setBody, according to the Content-Type
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
         if(empty($body) || (is_string($body) && strlen($body) < 3) ) { // we could have received a formatted empty body (e.g.: {})
