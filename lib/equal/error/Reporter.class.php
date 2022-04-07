@@ -120,6 +120,9 @@ class Reporter extends Service {
     }
 
     private function log($code, $msg, $trace) {
+        if(!DEBUG_MODE) {
+            return;
+        }
         // check reporting level
         if($code <= error_reporting()) {
             // handle debug messages
@@ -186,7 +189,7 @@ class Reporter extends Service {
                 $flags = 0;
             }
 
-            // write error message to log file
+            // write error message to log file (bypass if debug is disabled)
             file_put_contents($filepath, $error, $flags);
         }
     }
