@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace equal\php;
 
 use equal\organic\Service;
@@ -67,9 +72,10 @@ class Context extends Service {
     public function getHttpRequest() {
         if(is_null($this->httpRequest)) {
             // retrieve current request
+            $headers = $this->getHttpRequestHeaders();
             $uri  = $this->getHttpUri();
-            $body = $this->getHttpBody($uri);
-            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$uri.' '.$this->getHttpProtocol(), $this->getHttpRequestHeaders(), $body);
+            $body = $this->getHttpBody();
+            $this->httpRequest = new HttpRequest($this->getHttpMethod().' '.$uri.' '.$this->getHttpProtocol(), $headers, $body);
         }
         return $this->httpRequest;
     }
@@ -208,6 +214,7 @@ class Context extends Service {
 
             // 1) retrieve headers
 
+            $headers = [];
             if (function_exists('getallheaders')) {
                 $all_headers = (array) getallheaders();
                 foreach($all_headers as $header => $value) {
@@ -215,24 +222,11 @@ class Context extends Service {
                 }
             }
             else {
-                // Polyfill from https://github.com/ralouphie/getallheaders
-                // Copyright (c) 2014 Ralph Khattar - License: The MIT License (MIT)
-                $headers = array();
-                $copy_server = array(
-                    'CONTENT_TYPE'   => 'Content-Type',
-                    'CONTENT_LENGTH' => 'Content-Length',
-                    'CONTENT_MD5'    => 'Content-MD5',
-                );
-                // Convert back headers added by PHP with `HTTP_` prefix to their original name (origin, referer, host, user-agent, accept-language, accept-encoding, accept-charset)
-                foreach ($_SERVER as $key => $value) {
-                    if (substr($key, 0, 5) === 'HTTP_') {
-                        $key = substr($key, 5);
-                        if (!isset($copy_server[$key]) || !isset($_SERVER[$key])) {
-                            $key = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', $key))));
-                            $headers[$key] = $value;
-                        }
-                    } elseif (isset($copy_server[$key])) {
-                        $headers[$copy_server[$key]] = $value;
+                foreach ($_SERVER as $header => $value) {
+                    // convert back headers with `HTTP_` prefix
+                    if(substr($header, 0, 5) === 'HTTP_' || in_array($header, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'])) {
+                        $header = str_replace(['HTTP_', '_'], '', $header);
+                        $headers[HttpHeaders::normalizeName($header)] = $value;
                     }
                 }
             }
@@ -263,8 +257,8 @@ class Context extends Service {
             }
             // handle ETags
             if(!isset($headers['ETag'])) {
-                if(isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
-                    $headers['ETag'] = $_SERVER['HTTP_IF_NONE_MATCH'];
+                if(isset($headers['If-None-Match'])) {
+                    $headers['ETag'] = $headers['If-None-Match'];
                 }
                 else {
                     $headers['ETag'] = '';
@@ -387,9 +381,9 @@ class Context extends Service {
         return intval($val);
     }
 
-    private function getHttpBody($uri='') {
+    private function getHttpBody() {
         $body = '';
-        // in case script was invoked by CLI
+        // CLI: script was invoked on command line interface
         if(php_sapi_name() === 'cli' || defined('STDIN')) {
             // Windows does not support non-blocking reading from STDIN
             $OS = strtoupper(substr(PHP_OS, 0, 3));
@@ -409,36 +403,37 @@ class Context extends Service {
                 }
             }
         }
+        // HTTP request: read raw content from input stream
         else {
-            // load raw content from input stream
-            // #memo - careful here: stream `php://input` might contain more data than available memory
-            $max_req = min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
-            $max_mem = max(0, self::to_bytes(ini_get('memory_limit')) - memory_get_usage(true) - 64);
-            // #memo - we need to be able to continue processing (vars will be adapted/copied), so we limit the input to 30% of remaining memory
-            $max_mem = (int) ($max_mem * 0.3);
+            $headers = $this->getHttpRequestHeaders();
             $body = '';
-            $size = 0;
-            try {
-                $input = fopen('php://input', 'r');
-                while (!feof($input)) {
-                    $size += 1024;
-                    if($size > $max_mem) {
-                        throw new \Exception();
-                    }
-                    $body .= fread($input, 1024);
+            if(isset($headers['Content-Length'])) {
+                $length = intval($headers['Content-Length']);
+                // #memo - stream `php://input` might contain more data than available memory
+                $max_req = min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
+                $max_mem = max(0, self::to_bytes(ini_get('memory_limit')) - memory_get_usage(true));
+                // #memo - we need to be able to continue the processing (vars will be adapted/copied), so we limit the input to 40% of remaining memory
+                $max_mem = (int) ($max_mem * 0.4);
+                if($max_req <= 0 || $length > $max_req) {
+                    throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
                 }
-                fclose($input);
+                if($length > 0) {
+                    try {
+                        if($length > $max_mem) {
+                            throw new \Exception();
+                        }
+                        $body = file_get_contents('php://input', false, null, 0, $length);
+                    }
+                    catch(\Throwable $e) {
+                        throw new \Exception("memory_exhausted", QN_ERROR_NOT_ALLOWED);
+                    }
+                }
+                // further processing is handled in HttpMessage::setBody, according to the Content-Type
             }
-            catch(\Throwable $e) {
-                throw new \Exception("memory_exhausted", QN_ERROR_NOT_ALLOWED);
-            }
-            if($max_req <= 0 || $size > $max_req) {
-                throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
-            }
-            // further processing is handled in HttpMessage::setBody, according to the Content-Type
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
         if(empty($body) || (is_string($body) && strlen($body) < 3) ) { // we could have received a formatted empty body (e.g.: {})
+            $uri  = $this->getHttpUri();
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
             // we allow this only when there's nothing from php://input
             if(isset($_FILES) && !empty($_FILES)) {
@@ -459,7 +454,7 @@ class Context extends Service {
                     }
                 }
             }
-            // we should have set content-type accordingly while retrieving headers (@see getHttpRequestHeaders())
+            // content-type should have been set while retrieving headers (@see getHttpRequestHeaders())
         }
         return $body;
     }
