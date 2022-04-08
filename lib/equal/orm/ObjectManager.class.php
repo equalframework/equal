@@ -15,37 +15,44 @@ use \Exception as Exception;
 
 
 class ObjectManager extends Service {
-    /*
-    * Buffer for storing objects values as they are loaded.
-    * Structure is defined this way: `$cache[$class][$oid][$lang][$field]`
-    * Only methods load() and write() update its values.
-    */
+
+    /**
+     * Buffer for storing objects values as they are loaded.
+     * Structure is defined this way: `$cache[$class][$oid][$lang][$field]`
+     * Only methods load() and write() update its values.
+     * @var array
+     */
     private $cache;
 
-    /*
-    * Array for remembering which methods have been invoked during an 'upadate' cycle
-    */
+    /**
+     * Array for remembering which methods have been invoked during an 'upadate' cycle
+     * @var array
+     */
     private $object_methods;
 
-    /*
-    * Array for keeeping track of identifiers matching actual objects
-    * Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
-    */
+    /**
+     * Array for keeeping track of identifiers matching actual objects
+     * Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
+     * @var array    
+     */
     private $identifiers;
 
-    /*
-    * Array holding static instances (i.e. one object of each class having fields set to default values)
-    */
+    /**
+     * Array holding static instances (i.e. one object of each class having fields set to default values)
+     * @var array
+     */
     private $instances;
 
-    /*
-    * Array holding names of defined packages (folders under /package directory)
-    */
+    /**
+     * Array holding names of defined packages (folders under /package directory)
+     * @var array
+     */
     private $packages;
 
-    /*
-    * Instance to a DBConnection Object
-    */
+    /**
+     * Instance to a DBConnection Object
+     * @var DBConnection
+     */
     private $db;
 
     public static $virtual_types = array('alias');
@@ -168,7 +175,7 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-// #todo
+        // #todo
         return [];
     }
 
@@ -176,6 +183,11 @@ class ObjectManager extends Service {
         return $this->db;
     }
 
+    /** 
+     * Provide the db handler (DBoOnnection instance).
+     * If the connection hasn't been established yet, tries to connect to DBMS.
+     * @return DBConnection
+     */
     private function getDBHandler() {
         // open DB connection
         if(!$this->db->connected()) {
@@ -216,6 +228,7 @@ class ObjectManager extends Service {
      *
      * @param   string      $class      The full name of the class with its namespace.
      * @throws  Exception
+     * @return  array       Returns the array respresentation of the targeted (partial) instance 
      */
     private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
@@ -275,8 +288,8 @@ class ObjectManager extends Service {
      * Gets the filename containing the class definition of a class,
      * without package name, but including namespace path (required to convert namespace notation).
      *
-     * @param string $object_class  The name of the class with its namespace.
-     * @return string   The path of the file holding the class definition, relative to the `<package>/class/` folder
+     * @param   string  $object_class  The full name of the entity with its namespace.
+     * @return  string  The path of the file holding the class definition, relative to the `<package>/class/` folder
      */
     public static function getObjectClassFile($object_class) {
         $parts = explode('\\', $object_class);
@@ -287,6 +300,7 @@ class ObjectManager extends Service {
     /**
      * Retrieve the root parent class of a class.
      * If there are several level of inheritance, the method loops up until the first class that inherits from the Model interface (`equal\orm\Model`).
+     * @param   string  $object_class   The full name of the entity with its namespace.
      */
     public static function getObjectRootClass($object_class) {
         $entity = $object_class;
@@ -301,7 +315,7 @@ class ObjectManager extends Service {
     /**
      * Retrieve the package in which is defined the class of an object (required to convert namespace notation).
      *
-     * @param   string  $object_class
+     * @param   string  $object_class   The full name of the entity with its namespace.
      * @return  string
      */
     public static function getObjectPackage($object_class) {
@@ -314,7 +328,7 @@ class ObjectManager extends Service {
      *  note: this method is not set as static since we need to load class file in order to retrieve the schema
      * (and this is only done in the getStaticInstance method)
      *
-     * @param   string  $object_class
+     * @param   string  $object_class   The full name of the entity with its namespace.
      * @return  array
      */
     public function getObjectSchema($object_class) {
@@ -349,7 +363,7 @@ class ObjectManager extends Service {
     * @param  array     $check_array
     * @param  array     $schema
     * @param  string    $field
-    * @return bool
+    * @return bool      Returns true if all attributes in $chek_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
         if (!isset($schema) || !isset($schema[$field])) throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
@@ -487,7 +501,9 @@ class ObjectManager extends Service {
             },
             'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($fields as $field) {
-                    if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                    if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                        throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                    }
                     $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
                     $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
                     $domain = [
@@ -1634,13 +1650,12 @@ class ObjectManager extends Service {
      * Search for the objects corresponding to the domain criteria.
      * This method essentially generates an SQL query and returns an array of matching objects ids.
      *
-     *     The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
-     *     Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
-     *     i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
+     * The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
+     * Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
+     * i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
      *
-     *     Accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
-     *     Example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
-     *
+     * Accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
+     * Example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
      *
      * @param   string     $class
      * @param   array      $domain
