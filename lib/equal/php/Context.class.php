@@ -9,7 +9,7 @@ namespace equal\php;
 use equal\organic\Service;
 use equal\http\HttpRequest;
 use equal\http\HttpResponse;
-use qinoa\http\HttpHeaders;
+use equal\http\HttpHeaders;
 
 
 class Context extends Service {
