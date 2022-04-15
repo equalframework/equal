@@ -284,28 +284,61 @@ class Setting extends Model {
         return $result;
     }
 
+    /**
+     * Example:
+     *  parse_format("start{test}%2d{year}/%02d{org}/%04d{sequence}end", ['test' => 'ok', 'year'=> 2022, 'org' => 998, 'sequence' => 14]);
+     */
     public static function parse_format($format, $map) {
-        preg_match_all('/({.*})/mU', $format, $matches, PREG_OFFSET_CAPTURE, 0);
+        preg_match_all('/((%[0-9]{1,2}[ds])?({.*}))/mU', $format, $matches, PREG_OFFSET_CAPTURE, 0);
 
         $result_format = '';
         $last_offset = 0;
 
         $parts = [];
+        $formats_map = [];
 
-        if(count($matches[0])) {
-            foreach($matches[0] as $match) {
+        if(count($matches[2])) {
+            foreach($matches[2] as $match) {
+                $formats_map[] = $match[0];
+            }
+        }
+
+        if(count($matches[3])) {
+            foreach($matches[3] as $i => $match) {
                 $len = strlen($match[0]);
                 $offset = $match[1];
+
+
+                if($i == 0) {
+                    $result_format .= substr($format, 0, $offset);
+                    $last_offset = $offset;
+                }
+
+                $val_format = $formats_map[$i];
+                if(strlen($val_format) <= 0) {
+                    $result_format .= '%s';
+                }
                 $result_format .= substr($format, $last_offset, ($offset-$last_offset));
                 $last_offset = $offset+$len;
                 $parts[] = str_replace(['{', '}'], '', $match[0]);
             }
         }
 
+        $result_format .= substr($format, $last_offset);
+
         $values = [];
 
-        foreach($parts as $part) {
-            $values[] = $map[$part];
+        foreach($parts as $i => $part) {
+            $value = $map[$part];
+            $val_format = $formats_map[$i];
+            if(strlen($val_format)) {
+                $type = substr($val_format, -1);
+                if($type == 'd') {
+                    $mod = pow(10,  intval(str_replace(['%', 'd'], '', $val_format)));
+                    $value = $value % $mod;
+                }
+            }
+            $values[] = $value;
         }
 
         return vsprintf($result_format, $values);
