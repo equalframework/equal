@@ -560,9 +560,9 @@ namespace config {
                     // default content type and disposition
                     ->header('Content-Type', 'application/json')
                     ->header('Content-Disposition', 'inline')
-                    // mandatory headers for CORS validation
-                    //->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
-                    ->header('Access-Control-Allow-Headers', '*')
+                    // mandatory headers for CORS validation (OPTIONS request must have Content-Type explicitely set)
+                    ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
+                    //->header('Access-Control-Allow-Headers', '*')
                     ->send();
                     throw new \Exception('', 0);
                 }
