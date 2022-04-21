@@ -25,7 +25,7 @@ class ObjectManager extends Service {
     private $cache;
 
     /**
-     * Array for remembering which methods have been invoked during an 'upadate' cycle
+     * Array for remembering which methods have been invoked during an 'update' cycle
      * @var array
      */
     private $object_methods;
@@ -226,9 +226,9 @@ class ObjectManager extends Service {
     /**
      * Returns a static instance for the specified object class (does not create a new object)
      *
-     * @param   string      $class      The full name of the class with its namespace.
+     * @param   string       $class      The full name of the class with its namespace.
      * @throws  Exception
-     * @return  array       Returns the array respresentation of the targeted (partial) instance 
+     * @return  Object       Returns the array respresentation of the targeted (partial) instance.
      */
     private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
@@ -441,153 +441,157 @@ class ObjectManager extends Service {
 
         try {
             // array holding functions to load each type of fields
-            $load_fields = array(
-            // 'alias'
-            'alias'        =>    function($om, $ids, $fields) {
-                // nothing to do : this type is handled in read methods
-            },
-            // 'multilang' is a particular case of simple field
-            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                $result = $om->db->getRecords(
-                    array('core_translation'),
-                    array('object_id', 'object_field', 'value'),
-                    $ids,
-                    array(array(
-                            array('language','=',$lang),
-                            array('object_class','=',$class),
-                            array('object_field','in',$fields)
-                            )
-                    ),
-                    'object_id');
-                // fill in the internal buffer with returned rows (translation is stored in the 'value' column)
-                while($row = $om->db->fetchArray($result)) {
-                    $oid = $row['object_id'];
-                    $field = $row['object_field'];
-                    // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                    $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
-                    // update the internal buffer with fetched value
-                    $om->cache[$table_name][$oid][$lang][$field] = $value;
-                }
-                // force assignment to NULL if no result was returned by the SQL query
-                foreach($ids as $oid) {
-                    foreach($fields as $field) {
-                        if(!isset($om->cache[$table_name][$oid][$lang][$field])) $om->cache[$table_name][$oid][$lang][$field] = NULL;
-                    }
-                }
-            },
-            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                // make sure to load the 'id' field (we need it to map fetched values to their object)
-                $fields[] = 'id';
-                // get all records at once
-                $result = $om->db->getRecords([$table_name], $fields, $ids);
-
-                // treat sql result in the same order than the ids list
-                while($row = $om->db->fetchArray($result)) {
-                    // retrieve the id of the object associated with current record
-                    $oid = $row['id'];
-                    foreach($row as $field => $value) {
+            $load_fields = [
+                // 'alias'
+                'alias'        =>    function($om, $ids, $fields) {
+                    // nothing to do : this type is handled in read methods
+                },
+                // 'multilang' is a particular case of simple field
+                'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    $result = $om->db->getRecords(
+                        array('core_translation'),
+                        array('object_id', 'object_field', 'value'),
+                        $ids,
+                        array(array(
+                                array('language','=',$lang),
+                                array('object_class','=',$class),
+                                array('object_field','in',$fields)
+                                )
+                        ),
+                        'object_id');
+                    // fill in the internal buffer with returned rows (translation is stored in the 'value' column)
+                    while($row = $om->db->fetchArray($result)) {
+                        $oid = $row['object_id'];
+                        $field = $row['object_field'];
                         // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                        $type = $schema[$field]['type'];
-                        if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
-
-                        if(!is_null($value)) {
-                            $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
-                        }
-
+                        $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
-                }
-            },
-            'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                foreach($fields as $field) {
-                    if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
-                        throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                    }
-                    $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
-                    $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
-                    $domain = [
-                        [
-                            [$schema[$field]['foreign_field'], 'in', $ids],
-                            ['state', '=', 'instance'],
-                            ['deleted', '=', '0'],
-                        ]
-                    ];
-                    // #todo : handle alias fields (require subsequent schema)
-                    // merge domain with additional domain clauses, if any
-                    if(isset($schema[$field]['domain'])) {
-                        $domain_tmp = new Domain($domain);
-                        $domain_tmp->merge(new Domain($schema[$field]['domain']));
-                        $domain = $domain_tmp->toArray();
-                    }
-                    // obtain the ids by searching inside the foreign object's table
-                    $result = $om->db->getRecords(
-                        $om->getObjectTableName($schema[$field]['foreign_object']),
-                        array('id', $schema[$field]['foreign_field'], $order),
-                        NULL,
-                        $domain,
-                        'id',
-                        [$order => $sort]
-                    );
-                    $lists = array();
-                    while ($row = $om->db->fetchArray($result)) {
-                        $oid = $row[$schema[$field]['foreign_field']];
-                        $lists[$oid][] = $row['id'];
-                    }
+                    // force assignment to NULL if no result was returned by the SQL query
                     foreach($ids as $oid) {
-                        $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                        foreach($fields as $field) {
+                            if(!isset($om->cache[$table_name][$oid][$lang][$field])) $om->cache[$table_name][$oid][$lang][$field] = NULL;
+                        }
                     }
-                }
-            },
-            'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                foreach($fields as $field) {
-                    if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                    // obtain the ids by searching inside relation table
-                    $result = $om->db->getRecords(
-                        array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']),
-                        array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']),
-                        NULL,
-                        array(array(
-                                // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
-                                array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
-                                array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
-                                array('t0.state', '=', 'instance'),
-                                array('t0.deleted', '=', '0'),
-                            )
-                        ),
-                        't0.id'
-                    );
-                    $lists = array();
-                    while ($row = $om->db->fetchArray($result)) {
-                        $oid = $row[$schema[$field]['rel_local_key']];
-                        $lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
-                    }
-                    foreach($ids as $oid) {
-                        $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
-                    }
-                }
-            },
-            'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                foreach($fields as $field) {
-                    if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                },
+                'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    // make sure to load the 'id' field (we need it to map fetched values to their object)
+                    $fields[] = 'id';
+                    // get all records at once
+                    $result = $om->db->getRecords([$table_name], $fields, $ids);
 
-                    if($res = $this->call($class, $schema[$field]['function'], $ids, $lang)) {
-                        foreach($ids as $oid) {
-                            if(isset($res[$oid])) {
-                                // #memo - do not adapt : we're dealing with PHP not SQL
-                                // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
-                                $value = $res[$oid];
+                    // treat sql result in the same order than the ids list
+                    while($row = $om->db->fetchArray($result)) {
+                        // retrieve the id of the object associated with current record
+                        $oid = $row['id'];
+                        foreach($row as $field => $value) {
+                            // do some pre-treatment if necessary (this step is symetrical to the one in store method)
+                            $type = $schema[$field]['type'];
+                            if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
+
+                            if(!is_null($value)) {
+                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
                             }
-                            else {
-                                $value = null;
-                            }
+
+                            // update the internal buffer with fetched value
                             $om->cache[$table_name][$oid][$lang][$field] = $value;
                         }
                     }
-                }
-            }
-            );
+                },
+                'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    foreach($fields as $field) {
+                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        }
+                        $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
+                        $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
+                        $domain = [
+                            [
+                                [$schema[$field]['foreign_field'], 'in', $ids],
+                                ['state', '=', 'instance'],
+                                ['deleted', '=', '0'],
+                            ]
+                        ];
+                        // #todo : handle alias fields (require subsequent schema)
+                        // merge domain with additional domain clauses, if any
+                        if(isset($schema[$field]['domain'])) {
+                            $domain_tmp = new Domain($domain);
+                            $domain_tmp->merge(new Domain($schema[$field]['domain']));
+                            $domain = $domain_tmp->toArray();
+                        }
+                        // obtain the ids by searching inside the foreign object's table
+                        $result = $om->db->getRecords(
+                            $om->getObjectTableName($schema[$field]['foreign_object']),
+                            array('id', $schema[$field]['foreign_field'], $order),
+                            NULL,
+                            $domain,
+                            'id',
+                            [$order => $sort]
+                        );
+                        $lists = array();
+                        while ($row = $om->db->fetchArray($result)) {
+                            $oid = $row[$schema[$field]['foreign_field']];
+                            $lists[$oid][] = $row['id'];
+                        }
+                        foreach($ids as $oid) {
+                            $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                        }
+                    }
+                },
+                'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    foreach($fields as $field) {
+                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        // obtain the ids by searching inside relation table
+                        $result = $om->db->getRecords(
+                            array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']),
+                            array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']),
+                            NULL,
+                            array(array(
+                                    // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
+                                    array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
+                                    array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
+                                    array('t0.state', '=', 'instance'),
+                                    array('t0.deleted', '=', '0'),
+                                )
+                            ),
+                            't0.id'
+                        );
+                        $lists = array();
+                        while ($row = $om->db->fetchArray($result)) {
+                            $oid = $row[$schema[$field]['rel_local_key']];
+                            $lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
+                        }
+                        foreach($ids as $oid) {
+                            $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                        }
+                    }
+                },
+                'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    foreach($fields as $field) {
+                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 
+                        if($res = $this->call($class, $schema[$field]['function'], $ids, $lang)) {
+                            foreach($ids as $oid) {
+                                if(isset($res[$oid])) {
+                                    // #memo - do not adapt : we're dealing with PHP not SQL
+                                    // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
+                                    $value = $res[$oid];
+                                }
+                                else {
+                                    $value = null;
+                                }
+                                $om->cache[$table_name][$oid][$lang][$field] = $value;
+                            }
+                        }
+                    }
+                }
+            ];
+
+            if(!isset($this->cache[$table_name])) {
+                $this->cache[$table_name] = [];
+            }
+            
             // build an associative array ordering given fields by their type
             $fields_lists = array();
             // remember computed fields having store attibute set (we need this as $type will hold the $schema['result_type'] value)
