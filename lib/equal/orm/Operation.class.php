@@ -8,11 +8,24 @@ namespace equal\orm;
 
 class Operation {
 
-    /** @var array */
+    /** 
+     * Operators that take a single operand (either a single value, or a field reference [array of values])
+     * @var array 
+     */
     private static $unary_operators = ['ABS', 'AVG', 'COUNT', 'DIFF', 'MAX', 'MIN', 'SUM'];
 
-    /** @var array */
-    private static $binary_operators = ['+', '-', '*', '/', '%', 'round', 'exp', 'root'];
+    /** 
+     * Operators that take two operands (each operand can be an Operation, a single value, or a field reference [array of values])
+     * @var array 
+     */
+    private static $binary_operators = [
+        '+',            // addition
+        '-',            // subtraction
+        '*',            // multiplication
+        '/',            // division
+        '%',            // modulo
+        '^'             // exponentiation
+    ];
 
     /**
      * Operator to apply on received operands.
@@ -27,14 +40,9 @@ class Operation {
      */
     private $operands;
 
-    /**
-     * Values resulting from the computation of current operation.
-     * @var array
-     */
-    private $values;
 
     public function __construct() {
-        $this->value = [];
+
         $this->operator = '';
         $this->operands = [];
 
@@ -113,30 +121,27 @@ class Operation {
             $count = count($operand_a);
             $result = [];
             for($i = 0, $n = $count; $i < $n; ++$i) {
+                // try to use the symetrical value in operand_b,
+                // if no value is available at given index, use the first value
+                $j = (isset($operand_b[$i]))?$i:0;
                 switch($this->operator) {
                     case '+':
-                        $result[] = $operand_a[$i] + $operand_b[$i];
+                        $result[] = $operand_a[$i] + $operand_b[$j];
                         break;
                     case '-':
-                        $result[] = $operand_a[$i] - $operand_b[$i];
+                        $result[] = $operand_a[$i] - $operand_b[$j];
                         break;
                     case '*':
-                        $result[] = $operand_a[$i] * $operand_b[$i];
+                        $result[] = $operand_a[$i] * $operand_b[$j];
                         break;
                     case '/':
-                        $result[] = $operand_a[$i] / $operand_b[$i];
+                        $result[] = $operand_a[$i] / $operand_b[$j];
                         break;
                     case '%':
-                        $result[] = $operand_a[$i] % $operand_b[$i];
+                        $result[] = $operand_a[$i] % $operand_b[$j];
                         break;
-                    case 'round':
-                        $result[] = round($operand_a[$i], $operand_b[$i]);
-                        break;
-                    case 'exp':
-                        $result[] = pow($operand_a[$i], $operand_b);
-                        break;
-                    case 'root':
-                        $result[] = pow($operand_a[$i], 1 / $operand_b[$i]);
+                    case '^':
+                        $result[] = pow($operand_a[$i], $operand_b[$j]);
                         break;
                 }
             }
@@ -148,7 +153,7 @@ class Operation {
         return 0;
     }
 
-    public function compute(Collection $collection) {
+    public function compute($collection) {
         $result = false;
 
         if(in_array($this->operator, self::$unary_operators)) {
@@ -160,7 +165,7 @@ class Operation {
                 // we have to return an array of values
                 $value = [];
                 $field = substr($operand, strlen('object.'));
-                foreach($collection->get() as $item) {
+                foreach($collection as $item) {
                     $value[] = $item[$field];
                 }
             }
@@ -180,7 +185,7 @@ class Operation {
                 // we have to return an array of values
                 $value_a = [];
                 $field = substr($operand_a, strlen('object.'));
-                foreach($collection->get() as $item) {
+                foreach($collection as $item) {
                     $value_a[] = $item[$field];
                 }
             }
@@ -195,7 +200,7 @@ class Operation {
                 // we have to return an array of values
                 $value_b = [];
                 $field = substr($operand_b, strlen('object.'));
-                foreach($collection->get() as $item) {
+                foreach($collection as $item) {
                     $value_b[] = $item[$field];
                 }
             }
