@@ -20,7 +20,7 @@ namespace equal\orm;
  *        [		                                          // another clause (OR)
  *            [
  *				'{operand}', '{operator}', '{value}'      // condition
- *			],
+ *			  ],
  *            [
  *                '{operand}', '{operator}', '{value}'    // another contition (AND)
  *            ]
@@ -89,7 +89,7 @@ class Domain {
     }
 
     /*
-    * domain checks and operations
+    * Domain checks and operations.
     * a domain should always be composed of a serie of clauses against which a OR test is made
     * a clause should always be composed of a serie of conditions agaisnt which a AND test is made
     * a condition should always be composed of a property operand, an operator, and a value
