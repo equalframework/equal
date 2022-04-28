@@ -74,24 +74,28 @@ foreach($fields as $field => $value) {
     // drop empty fields (allow reset to null)
     if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['string', 'text']) && !is_null($value) ) {
         unset($fields[$field]);
+        continue;
     }
-    else {
-        if($type == 'computed') {
-            $type = $schema[$field]['result_type'];
+    //drop readonly fields
+    if(isset($schema[$field]['readonly']) && $schema[$field]['readonly']) {
+        unset($fields[$field]);
+        continue;
+    }
+    if($type == 'computed') {
+        $type = $schema[$field]['result_type'];
+    }
+    try {
+        // adapt received values based on their type (as defined in schema)
+        $fields[$field] = $adapter->adapt($value, $type);
+    }
+    catch(Exception $e) {
+        $msg = $e->getMessage();
+        // handle serialized objects as message
+        $data = @unserialize($msg);
+        if ($data !== false) {
+            $msg = $data;
         }
-        try {
-            // adapt received values based on their type (as defined in schema)
-            $fields[$field] = $adapter->adapt($value, $type);
-        }
-        catch(Exception $e) {
-            $msg = $e->getMessage();
-            // handle serialized objects as message
-            $data = @unserialize($msg);
-            if ($data !== false) {
-                $msg = $data;
-            }
-            throw new \Exception(serialize([$field => $msg]), $e->getCode());
-        }
+        throw new \Exception(serialize([$field => $msg]), $e->getCode());
     }
 }
 
