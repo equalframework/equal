@@ -1,33 +1,10 @@
 <?php
-/************************************************************************
-*                                                                       *
-* Converts HTML to formatted plain text                                 *
-* 
-*                                                                       *
-*                                                                       *
-* This script is free software; you can redistribute it and/or modify   *
-* it under the terms of the GNU General Public License as published by  *
-* the Free Software Foundation; either version 2 of the License, or     *
-* (at your option) any later version.                                   *
-*                                                                       *
-* The GNU General Public License can be found at                        *
-* http://www.gnu.org/copyleft/gpl.html.                                 *
-*                                                                       *
-* This script is distributed in the hope that it will be useful,        *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          *
-* GNU General Public License for more details.                          *
-*                                                                       *
-* Author(s): Cedric Francoys <cedricfrancoys@gmail.com>                 *
-*                                                                       *
-* Last modified: 11/01/2017                                               *
-*                                                                       *
-*************************************************************************/
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace equal\html;
-use equal\html\HTMLPurifier as HTMLPurifier;
-use equal\html\HTMLPurifier_Config as HTMLPurifier_Config;
-
-
 class HTMLToText {
 
     /**
@@ -44,12 +21,8 @@ class HTMLToText {
         // add spaces to closing tags that imply line-return (block nodes)
         $value = preg_replace(['/<br \/>/', '/<hr \/>/', '/<\/h[1-6]>/', '/<\/p>/', '/<\/ul>/', '/<\/ol>/', '/<\/li>/', '/<\/td>/', '/<\/tr>/', '/<\/table>/'], $lineseparator.'\1', $value);
         // remove all HTML (convert to text)
-        $config = HTMLPurifier_Config::createDefault();
-        $config->set('Core.Encoding', 'UTF-8');  // use UTF-8
-        $config->set('HTML.Allowed', '');        // disallow all tags
-        $purifier = new HTMLPurifier($config);
         // remove HTML tags 
-        $value = $purifier->purify($value);
+        $value = strip_tags($value);
         if($linebreaks) {
             // strip multiple horizontal whitespaces (preserve carriage returns)
             $value = preg_replace('/\h+/u', ' ', $value);
