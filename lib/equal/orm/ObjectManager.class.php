@@ -33,7 +33,7 @@ class ObjectManager extends Service {
     /**
      * Array for keeeping track of identifiers matching actual objects
      * Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
-     * @var array    
+     * @var array
      */
     private $identifiers;
 
@@ -50,7 +50,7 @@ class ObjectManager extends Service {
     private $packages;
 
     /**
-     * Instance to a DBConnection Object
+     * Instance to a DBConnection object
      * @var DBConnection
      */
     private $db;
@@ -59,7 +59,7 @@ class ObjectManager extends Service {
     public static $simple_types  = array('boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
-    public static $valid_attributes = array(
+    public static $valid_attributes = [
         'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
         'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
         'integer'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'unique'),
@@ -75,9 +75,9 @@ class ObjectManager extends Service {
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
         'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang', 'selection', 'foreign_object')
-    );
+    ];
 
-    public static $mandatory_attributes = array(
+    public static $mandatory_attributes = [
         'alias'         => array('type', 'alias'),
         'boolean'       => array('type'),
         'integer'       => array('type'),
@@ -94,7 +94,7 @@ class ObjectManager extends Service {
         'one2many'      => array('type', 'foreign_object', 'foreign_field'),
         'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
         'computed'      => array('type', 'result_type', 'function')
-    );
+    ];
 
     public static $valid_operators = [
         'boolean'       => array('=', '<>', '<', '>', 'in', 'is'),
@@ -118,7 +118,7 @@ class ObjectManager extends Service {
         'integer'       => 'int(11)',
         'float'         => 'decimal(10,2)',
         'string'        => 'varchar(255)',
-        'text'          => 'text',                  // 64kB
+        'text'          => 'text',                              // 64kB
         'date'          => 'date',
         'time'          => 'time',
         'datetime'      => 'datetime',
@@ -150,12 +150,11 @@ class ObjectManager extends Service {
     ];
 
     protected function __construct(DBConnection $db) {
-        // #todo : declare required constants instead through constants() method
         // make sure mandatory constants are defined
-        if(!defined('EXPORT_FLAG')) {
-            if(!function_exists('\config\export_config')) die('mandatory config namespace or function export_config is missing');
+        if(!defined('EXPORT_FLAG') && function_exists('\config\export_config')) {
             \config\export_config();
         }
+
         $this->db = &$db;
         $this->packages = null;
         $this->cache = [];
@@ -175,15 +174,14 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-        // #todo
-        return [];
+        return ['QN_BASEDIR', 'QN_ERROR_UNKNOWN', 'QN_ERROR_MISSING_PARAM', 'QN_ERROR_INVALID_PARAM', 'QN_ERROR_UNKNOWN_OBJECT', 'QN_ERROR_CONFLICT_OBJECT'];
     }
 
     public function getDB() {
         return $this->db;
     }
 
-    /** 
+    /**
      * Provide the db handler (DBoOnnection instance).
      * If the connection hasn't been established yet, tries to connect to DBMS.
      * @return DBConnection
@@ -591,7 +589,7 @@ class ObjectManager extends Service {
             if(!isset($this->cache[$table_name])) {
                 $this->cache[$table_name] = [];
             }
-            
+
             // build an associative array ordering given fields by their type
             $fields_lists = array();
             // remember computed fields having store attibute set (we need this as $type will hold the $schema['result_type'] value)
