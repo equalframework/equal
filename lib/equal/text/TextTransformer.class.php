@@ -10,17 +10,17 @@ class TextTransformer {
     * This method expects a UTF-8 string
     */
     public static function normalize($value) {
-        // note: remember to maintain current file charset to UTF-8 !
+        // #memo - remember to maintain current file charset to UTF-8 !
         $ascii = array(
-// lower case chars    
-            'Á'=>'A', 'À'=>'A', 'Â'=>'A', 'Ä'=>'A', 'Ã'=>'A', 'Ā'=>'A', 'Ă'=>'A', 'Å'=>'A', 
+            // lower case chars
+            'Á'=>'A', 'À'=>'A', 'Â'=>'A', 'Ä'=>'A', 'Ã'=>'A', 'Ā'=>'A', 'Ă'=>'A', 'Å'=>'A',
             'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 'Ẽ'=>'E', 'Ē'=>'E',
             'Í'=>'I', 'Ì'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ĩ'=>'I', 'Ī'=>'I',
             'Ó'=>'O', 'Ò'=>'O', 'Ô'=>'O', 'Ö'=>'O', 'Õ'=>'O', 'Ō'=>'O', 'Ő' => 'O',
             'Ú'=>'U', 'Ù'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ũ'=>'U', 'Ū'=>'U', 'Ű' => 'U',
-            'Ý'=>'Y', 'Ỳ'=>'Y', 'Ŷ'=>'Y', 'Ÿ'=>'Y', 'Ỹ'=>'Y', 'Ȳ'=>'Y',             
+            'Ý'=>'Y', 'Ỳ'=>'Y', 'Ŷ'=>'Y', 'Ÿ'=>'Y', 'Ỹ'=>'Y', 'Ȳ'=>'Y',
             'Æ'=>'A', 'Þ'=>'B', 'Ç'=>'C', 'Ð'=>'Dj','Ñ'=>'N', 'Ń'=>'N', 'Ø'=>'O', 'ß'=>'Ss', 'Š'=>'S', 'Ș'=>'S', 'Ț'=>'T', 'Ž'=>'Z',
-// upper case chars
+            // upper case chars
             'à'=>'a', 'á'=>'a', 'â'=>'a', 'ä'=>'a', 'ã'=>'a', 'ā'=>'a', 'ă'=>'a', 'å'=>'a',
             'é'=>'e', 'è'=>'e', 'ê'=>'e', 'ë'=>'e', 'ẽ'=>'e', 'ē'=>'e',
             'í'=>'i', 'ì'=>'i', 'î'=>'i', 'ï'=>'i', 'ĩ'=>'i', 'ī'=>'i',
@@ -36,10 +36,10 @@ class TextTransformer {
         $value = preg_replace('/[\s-\']+/', ' ', $value);
         // trim the end of the string
         $value = trim($value, ' .-_');
-        return strtolower($value); 
+        return strtolower($value);
     }
 
-    
+
    /**
     * Transform a string into a slug (URL-compatible words separated by dashes)
     * This method expects a UTF-8 string
@@ -53,10 +53,10 @@ class TextTransformer {
      *
      * @param string    $value
      * @param integer   $max_length
-     * @return string 
+     * @return string
      */
     public static function excerpt($value, $max_length) {
-        $res = '';        
+        $res = '';
         $len = 0;
         for($i = 0, $parts = explode(' ', $value), $j = count($parts); $i < $j; ++$i) {
             $piece = $parts[$i].' ';
@@ -66,7 +66,7 @@ class TextTransformer {
             $res .= $piece;
         } if($len == 0) $res = substr($value, 0, $max_length);
         return $res;
-    }    
+    }
 
     /**
     * Try to convert a word to its most common form (masculin singulier ou verbe)
@@ -103,7 +103,7 @@ class TextTransformer {
         }
         return $word;
     }
-    
+
     public static function is_relevant($word, $locale='fr') {
         static $locales = [
         'en' => ["a", "one", "the", "of", "it", "its", "is", "has", "have", "when", "with", "what", "that", "from", "there", "for", "thus"],
@@ -115,8 +115,8 @@ class TextTransformer {
         $items = $locales[$locale];
         return !(strlen($word) < 3 || in_array($word, $items));
     }
-    
-    
+
+
     /**
      * Generate a 64-bits integer hash from given string
      * returned value is intended to be stored in a UNISGNED BIGINT DBMS column (8 bytes/20 digits)
