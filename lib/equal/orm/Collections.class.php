@@ -5,7 +5,7 @@ use equal\organic\Service;
 use equal\services\Container;
 
 /**
- *
+ * Factory service for providing Collection instances.
  *
  *
  */
