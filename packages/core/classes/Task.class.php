@@ -23,8 +23,8 @@ class Task extends Model {
 
             'moment' => [
                 'type'              => 'datetime',
-                'required'          => true,
-                'description'       => 'Moment at which the task should be run for the next time.'
+                'description'       => 'Moment at which the task should be run for the next time.',
+                'default'           => time()
             ],
 
             'is_active'          => [
