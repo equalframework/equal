@@ -51,7 +51,7 @@ class Model {
             $parent_class = get_parent_class($parent_class);
         }
         foreach($parents_classes as $class) {
-            $this->schema = array_merge($this->schema, call_user_func_array([$class, 'getColumns'], []));
+            $this->schema = array_merge($this->schema, (array) call_user_func_array([$class, 'getColumns'], []));
         }
 
         // make sure that a field 'name' is always defined
