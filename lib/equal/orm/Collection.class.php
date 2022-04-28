@@ -254,8 +254,8 @@ class Collection implements \Iterator {
         else {
             $ids = array_unique((array) $args[0]);
             // #memo - filling the list with non-readable objects would raise a NOT_ALLOWED exception
-            /*
             // #removed - filter resulting ids based on current user permissions
+            /*
             foreach($ids as $i => $id) {
                 if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
                     unset($ids[$i]);
@@ -273,25 +273,25 @@ class Collection implements \Iterator {
      *
      * @param   array   $fields             Associative array mapping field names with their values.
      * @param   bool    $check_readonly     If set to true, readonly fields are discarded.
-     * 
+     *
      * @return  array   Filtered array containing known fields names only.
      */
     private function filter(array $fields, bool $check_readonly=true) {
         $result = [];
         if(count($fields)) {
             $schema = $this->instance->getSchema();
-            // retreve valid fields, i.e. fields from schema 
+            // retrieve valid fields, i.e. fields from schema
             $allowed_fields = $this->instance->getFields();
             if($check_readonly) {
                 // discard readonly fields
                 $allowed_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                    return (isset($schema[$field]['readonly']))?!$schema[$field]['readonly']:true; 
+                    return (isset($schema[$field]['readonly']))?!$schema[$field]['readonly']:true;
                 });
             }
-            // discard special fields 
+            // discard special fields
             // #memo - `state` is allowed for draft creation
             $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
-            // filter $fields argument 
+            // filter $fields argument
             $result = array_intersect_key($fields, array_flip($allowed_fields));
         }
         return $result;
@@ -338,6 +338,7 @@ class Collection implements \Iterator {
         }
     }
 
+    /** */
     public function grant($users_ids, $operation, $fields=[]) {
         // retrieve targeted identifiers
         $ids = array_keys($this->objects);
@@ -350,6 +351,7 @@ class Collection implements \Iterator {
         return $this;
     }
 
+    /** */
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         $defaults = [
             'sort'  => ['id' => 'asc']
@@ -371,7 +373,7 @@ class Collection implements \Iterator {
         }
 
         // 2) check that current user has enough privilege to perform READ operation on given class
-        // #todo : extract fields names from domain, and make sure user has R_READ access on those
+        // #todo - extract fields names from domain, and make sure user has R_READ access on those
         if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
             // user has always READ access to its own objects
 			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {
@@ -654,7 +656,7 @@ class Collection implements \Iterator {
      *
      * @param   array       $values   associative array mapping fields and values
      * @param   string      $lang     Language for multilang fields.
-     * 
+     *
      * @return  Collection  returns the current instance (allowing calls chaining)
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
