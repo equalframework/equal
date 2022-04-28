@@ -29,20 +29,25 @@ class Task extends Model {
 
             'is_active'          => [
                 'type'              => 'boolean',
-                'default'           => true,
-                'description'       => 'Flag to mark the task as (temporarily) active or inactive.'
+                'description'       => 'Flag to mark the task as (temporarily) active or inactive.',
+                'default'           => true
             ],
 
             'is_recurring'          => [
                 'type'              => 'boolean',
-                'default'           => false,
-                'description'       => 'Flag to mark the task as recurring (to be run more than once).'
+                'description'       => 'Flag to mark the task as recurring (to be run more than once).',
+                'default'           => true
             ],
 
             'repeat_axis' => [
                 'type'              => 'string',
                 'selection'         => [
-                    'minute', 'hour', 'day', 'week', 'month', 'year'
+                    'minute',
+                    'hour',
+                    'day',
+                    'week',
+                    'month',
+                    'year'
                 ],
                 'default'           => 'day',
                 'description'       => 'Basis for the repetition steps.',
