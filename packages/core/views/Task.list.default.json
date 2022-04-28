@@ -1,0 +1,50 @@
+{
+    "name": "Tasks",
+    "description": "All Scheduled tasks.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "25%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "moment",
+                "width": "15%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "controller",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "params",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "is_active",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "is_recurring",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "repeat_axis",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "repeat_step",
+                "width": "10%"
+            }
+        ]
+    }
+}
