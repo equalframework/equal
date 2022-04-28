@@ -418,14 +418,19 @@ foreach($classes as $class) {
             $parts = explode('::', $description['onchange']);
             $count = count($parts);
 
+            $called_class = $entity;
+            $called_method = $description['onchange'];
+
             if( $count < 1 || $count > 2 ) {
-                $result[] = "ERROR - ORM - Class $class: Field $field has invalid onchange property ({$description['onchange']})";
+                $result[] = "ERROR - ORM - Class $entity: Field $field has invalid onchange property ({$description['onchange']})";
             }
             else {
-                $called_class = $parts[0];
-                $called_method = $parts[1];
+                if( $count == 2 ) {
+                    $called_class = $parts[0];
+                    $called_method = $parts[1];
+                }
                 if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $class: Field $field has onchange property with unknown handler '{$description['onchange']}'";
+                    $result[] = "ERROR - ORM - Class $entity: Field $field has onchange property with unknown handler '{$description['onchange']}'";
                 }
             }
         }
