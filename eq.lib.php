@@ -698,7 +698,7 @@ namespace config {
             $resolved = [
                 'type'      => $type,       // 'do', 'get' or 'show'
                 'operation' => null,        // {package}_{script-path}
-                'visibility'=> 'public',    // 'public' or 'private'
+                'visibility'=> 'public',    // 'public', 'protected', or 'private'
                 'package'   => null,        // {package}
                 'script'    => null         // {path/to/script.php}
             ];
