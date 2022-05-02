@@ -1275,24 +1275,31 @@ class ObjectManager extends Service {
             // 5) second pass : handle onchange events, if any
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
+                // call each method only once for this class (several fields might trigger the same method)
+                $called_methods = [];
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
                     try {
-                        // store current state of object_methods map
-                        $object_methods_state = $this->object_methods;
+                        // #todo - not sure of this: check if correct
+                        // if(!in_array($schema[$field]['onchange'], $called_methods)) {
+                            // store current state of object_methods map (prevent recursion with the call() method)
+                            $object_methods_state = $this->object_methods;
+                            
+                            $updates = $this->call($class, $schema[$field]['onchange'], $ids, $lang);
 
-                        $updates = $this->call($class, $schema[$field]['onchange'], $ids, $lang);
+                            // restore global object_methods
+                            $this->object_methods = $object_methods_state;
 
-                        // restore global object_methods
-                        $this->object_methods = $object_methods_state;
+                            $called_methods[] = $schema[$field]['onchange'];
 
-                        // if callback returned an array, update newly assigned values
-                        if($updates && count($updates)) {
-                            foreach($updates as $oid => $update) {
-                                $this->cache[$table_name][$oid][$lang][$field] = $update;
+                            // if callback returned an array, update newly assigned values
+                            if($updates && count($updates)) {
+                                foreach($updates as $oid => $update) {
+                                    $this->cache[$table_name][$oid][$lang][$field] = $update;
+                                }
+                                $this->store($class, array_keys($updates), (array) $field, $lang);
                             }
-                            $this->store($class, array_keys($updates), (array) $field, $lang);
-                        }
+                        // }
                     }
                     catch(Exception $e) {
                         // invalid schema : ignore onchange callback
@@ -1582,13 +1589,14 @@ class ObjectManager extends Service {
      *
      * @return  int|array  Error code OR resulting associative array.
      */
-    public function clone($class, $id, $values=[], $lang=DEFAULT_LANG) {
+    public function clone($class, $id, $values=[], $lang=DEFAULT_LANG, $parent_field='') {
         $res = 0;
 
         try {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
 
+            // read full object
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
 
             // if write method generated an error, return error code instead of object id
@@ -1599,10 +1607,14 @@ class ObjectManager extends Service {
             $original = $res_r[$id];
 
             $new_values = array_merge($original, $values);
-            unset($new_values['id']);
 
             foreach($schema as $field => $def) {
                 if(in_array($def['type'], ['one2many', 'many2many'])) {
+                    unset($new_values[$field]);
+                    continue;
+                }
+                // unset id and parent_field (needs to be updated + could be part of unique contrainst)
+                if(in_array($field, ['id', $parent_field])) {
                     unset($new_values[$field]);
                 }
             }
@@ -1626,7 +1638,7 @@ class ObjectManager extends Service {
                     if(isset($rel_schema[$def['foreign_field']]) ) {
                         foreach($rel_ids as $oid) {
                             // perform cascade cloning (clone target objects)
-                            $res_c = $this->clone($def['foreign_object'], $oid, [], $lang);
+                            $res_c = $this->clone($def['foreign_object'], $oid, [], $lang, $def['foreign_field']);
                             if($res_c > 0) {
                                 $new_rel_ids[] = $res_c;
                             }
