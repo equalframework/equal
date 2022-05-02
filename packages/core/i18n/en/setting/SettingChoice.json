@@ -5,12 +5,12 @@
     "model": {
         "name": {
             "label": "Name",
-            "description": "Parameter name",
+            "description": "Parameter name.",
             "help": ""
         },
         "setting_id": {
             "label": "Parameter",
-            "description": "Parameter to which the choice belongs",
+            "description": "Parameter to which the choice belongs.",
             "help": ""
         },
         "value": {

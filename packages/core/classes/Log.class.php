@@ -14,18 +14,22 @@ class Log extends Model {
         return [
             'action' => [
                 'type'              => 'string',
+                'required'          => true,
                 'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or any custom value).',
-                'required'          => true
             ],
+
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'required'          => true
+                'required'          => true,
+                'description'       => 'User that performed the action.'
             ],
+
             'object_class' => [
                 'type'              => 'string',
                 'description'       => "Class of entity this entry is related to."
             ],
+
             'object_id' => [
                 'type'              => 'integer',
                 'description'       => "Identifier of the targeted object (of given class)."

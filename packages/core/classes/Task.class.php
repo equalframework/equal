@@ -10,6 +10,10 @@ use equal\orm\Model;
 
 class Task extends Model {
 
+    public static function getDescription() {
+        return "Tasks can be scheduled through the scheduler service and are run when their 'moment' reaches current time.";
+    }
+
     /**
      * 	Tasks are executed by the CRON service if moment (timestamp) is lower or equal to the current time
      */

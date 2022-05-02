@@ -90,8 +90,8 @@ if( is_dir($lang_dir) && ($list = scandir($lang_dir)) ) {
 }
 
 foreach($classes as $class) {
-// #todo - check match between namespace and package
-// #todo - check match between classname and filename
+    // #todo - check match between namespace and package
+    // #todo - check match between classname and filename
 
     // get the full class name
     $class_name = $params['package'].'\\'.$class;
@@ -107,7 +107,7 @@ foreach($classes as $class) {
     if(!preg_match('!No syntax errors detected!', $output)) {
         throw new Exception("FATAL - syntax error found in '{$class_name}' class definition file: {$output} ", QN_ERROR_UNKNOWN);
     }
-// #todo - an Exception may still arise while loading a class dependency (of the same package)
+    // #todo - an Exception may still arise while loading a class dependency (of the same package)
     $model = $orm->getModel($class_name);
 
     if(!$model || !is_object($model)) {
@@ -164,7 +164,7 @@ foreach($classes as $class) {
         }
     }
 
-// #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
+    // #todo - 2) check presence of class definition files to which some field may be related to + domain validity (ref to other object), when present
 
 
     // 3) check if default views are present (form.default.json and list.default.json)
@@ -177,9 +177,9 @@ foreach($classes as $class) {
 
     // 4) check if translation file are present (.json)
     foreach($lang_list as $lang) {
-         if(!is_file("$lang_dir/$lang/$class.json")) {
-             $result[] = "WARN - I18 - Class $class: missing translation file for language $lang";
-         }
+        if(!is_file("$lang_dir/$lang/$class.json")) {
+            $result[] = "WARN  - I18 - Class $class: missing translation file for language $lang";
+        }
     }
 
     // 5) check view files consistency (.json)
@@ -266,11 +266,11 @@ foreach($classes as $class) {
                 // check that the referenced fields are valid (defined in the schema)
                 foreach($fields as $field) {
                     if(!isset($schema[$field])) {
-                        $result[] = "WARN - I18 - Unknown field '$field' referenced in file $i18n_file";
+                        $result[] = "WARN  - I18 - Unknown field '$field' referenced in file $i18n_file";
                     }
                     // warn about renaming root fields (specifal fiels from Model interface)
                     if(in_array($field, ['id', 'creator', 'modifier', 'modified','created', 'deleted', 'state'])) {
-                        $result[] = "WARN - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
+                        $result[] = "WARN  - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
                     }
                 }
                 // check that the translation description is complete for each field
@@ -278,30 +278,30 @@ foreach($classes as $class) {
                     $mandatory_properties = ['label', 'help', 'description'];
                     foreach($mandatory_properties as $property) {
                         if(!isset($data['model'][$field][$property])) {
-                            $result[] = "WARN - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
+                            $result[] = "WARN  - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
                         }
                         else {
                             if(strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
-                                $result[] = "WARN - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
+                                $result[] = "WARN  - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
                             }
 
                             if($property == 'label') {
                                 if( strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
-                                    $result[] = "WARN - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
+                                    $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'help') {
                                 if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
-                                    $result[] = "WARN - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                    $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'description') {
                                 if( strlen($data['model'][$field][$property]) ) {
                                     if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
-                                        $result[] = "WARN - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
+                                        $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                     }
                                     if( strlen($data['model'][$field][$property]) > 60) {
-                                        $result[] = "WARN - I18 - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
+                                        $result[] = "WARN  - I18 - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
                                     }
                                 }
                             }
@@ -310,15 +310,15 @@ foreach($classes as $class) {
                     // check for 'selection' property
                     if($schema[$field]['type'] == 'string' && isset($schema[$field]['selection'])) {
                         if(!isset($data['model'][$field]['selection'])) {
-                            $result[] = "WARN - I18 - Missing property 'selection' for field '$field' referenced in file $i18n_file";
+                            $result[] = "WARN  - I18 - Missing property 'selection' for field '$field' referenced in file $i18n_file";
                         }
                     }
                 }
             }
         }
-   }
+    }
 
-// todo : 7) check apps / data / actions  files consistency (.php)
+    // todo : 7) check apps / data / actions  files consistency (.php)
     // - presence of " = announce( "
 
 }

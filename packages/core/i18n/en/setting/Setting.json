@@ -25,12 +25,12 @@
         },
         "title": {
             "label": "Title",
-            "description": "Setting title",
+            "description": "Setting title.",
             "help": ""
         },
         "description": {
             "label": "Description",
-            "description": "Setting description",
+            "description": "Setting description.",
             "help": ""
         },
         "help": {
@@ -40,7 +40,7 @@
         },
         "type": {
             "label": "Type",
-            "description": "Setting type",
+            "description": "Setting type.",
             "help": ""
         },
         "form": {
@@ -52,7 +52,7 @@
     "view": {
         "form.default": {
             "name": "Setting",
-            "description": "Display the setting"
+            "description": "Display the setting."
         },
         "list.default": {
             "name": "List of settings",

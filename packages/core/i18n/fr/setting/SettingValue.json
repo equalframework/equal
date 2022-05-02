@@ -15,19 +15,19 @@
         },
         "user_id": {
             "label": "Utilisateur",
-            "description": "Utilisateur auquel appartient le paramètre",
+            "description": "Utilisateur auquel appartient le paramètre.",
             "help": ""
         },
         "value": {
             "label": "Valeur",
-            "description": "Valeur du paramètre",
+            "description": "Valeur du paramètre.",
             "help": ""
         }
     },
     "view": {
         "form.default": {
             "name": "Valeur du paramètre",
-            "description": "Affiche une valeur de paramètre"
+            "description": "Affiche une valeur de paramètre."
         },
         "list.default": {
             "name": "Liste des valeurs de paramètres",
