@@ -25,12 +25,6 @@
             "operation": "?do=core_user_create"
         }
     },
-    "/me": {
-        "GET": {
-            "description": "Return authentified user, if any",
-            "operation": "?get=core_userinfo"
-        }
-    },
     "/groups": {
         "GET": {
             "description": "Retrieve all groups matching given criteria",
@@ -57,10 +51,22 @@
             "operation": "?do=core_model_delete&entity=core\\Group"
         }
     },
+    "/me": {
+        "GET": {
+            "description": "Return authentified user, if any.",
+            "operation": "?get=core_userinfo"
+        }
+    },
     "/userinfo": {
         "GET": {
             "description": "Retrieve current User object.",
-            "operation": "?get=identity_userinfo"
+            "operation": "?get=core_userinfo"
         }
-    }
+    },
+    "/appinfo": {
+        "GET": {
+            "description": "Retrieve current Settings.",
+            "operation": "?get=core_appinfo"
+        }
+    }    
 }
