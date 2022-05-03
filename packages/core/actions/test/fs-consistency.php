@@ -40,7 +40,7 @@ $paths = [
 
 if(ROUTING_METHOD == 'JSON') {
     $paths[] = [
-        'rights'    =>  QN_R_READ | QN_R_WRITE,
+        'rights'    =>  QN_R_READ,
         'path'      =>  ROUTING_CONFIG_DIR
     ];
 }
@@ -94,6 +94,7 @@ function check_permissions($path, $mask, $uid=0) {
 
 
 $uid = 0;
+// #todo - add HTTP_PROCESS_USERNAME
 $username = 'www-data';
 // get UID of a use by its name
 if(exec("id -u \"$username\"", $output)) {    
@@ -105,7 +106,7 @@ foreach($paths as $item) {
     if(!file_exists($item['path'])) {
         throw new Exception("Missing mandatory node {$item['path']}", QN_ERROR_INVALID_CONFIG);
     }
-    if( ($res = check_permissions($item['path'], $item['rights'])) <= 0) {
+    if( ($res = check_permissions($item['path'], $item['rights'], $uid)) <= 0) {
         switch(-$res) {
             case QN_R_READ:
                 $missing = 'read';
@@ -116,7 +117,7 @@ foreach($paths as $item) {
             default:
                 $missing = '';
         }
-        throw new Exception("PHP process has no {$missing} access on {$item['path']}", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("PHP or HTTP process has no {$missing} access on {$item['path']}", QN_ERROR_INVALID_CONFIG);
     }
 }
 
