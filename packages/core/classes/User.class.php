@@ -65,6 +65,12 @@ class User extends Model {
                 'rel_table'         => 'core_rel_group_user',
                 'rel_foreign_key'   => 'group_id',
                 'rel_local_key'     => 'user_id'
+            ],
+
+            'permissions_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\Permission',
+                'foreign_field'     => 'user_id'
             ]
         ];
     }
