@@ -24,7 +24,7 @@ class Message extends Model {
 
             'message_model_id' => [
                 'type'              => 'many2one',
-                'foreign_object'    => 'alert\MessageModel',
+                'foreign_object'    => 'core\alert\MessageModel',
                 'description'       => "Identifier of the targeted model.",
                 'required'          => true
             ],
@@ -40,7 +40,29 @@ class Message extends Model {
                 'description'       => "Importance of the notification."
             ],
 
+            'controller' => [
+                'type'              => 'string',
+                'description'       => "Full notation of the action controller to invoke (ex. core_example_action)."
+            ],
+
+            'params' => [
+                'type'              => 'string',
+                'description'       => "JSON object holding the parameters to relay to the controller.",
+                'default'           => ''
+            ],
+
+            'links' => [
+                'type'              => 'string',
+                'description'       => "JSON list holding links (md format) to objects that relate to the message.",
+                'default'           => ''
+            ]
 
         ];
     }
+
+    public function getUnique() {
+        return [
+            ['object_class', 'object_id', 'message_model_id']
+        ];
+    }    
 }

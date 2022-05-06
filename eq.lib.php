@@ -312,7 +312,8 @@ namespace config {
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
                 'spool'     => 'equal\email\EmailSpooler',
-                'cron'      => 'equal\cron\Scheduler'
+                'cron'      => 'equal\cron\Scheduler',
+                'dispatch'  => 'equal\dispatch\Dispatcher'                
             ]);
 
             // make sure mandatory dependencies are available (reporter requires context)
@@ -495,12 +496,14 @@ namespace config {
                 }
             }
 
-            // check access
+            // check access restrictions
             if(isset($announcement['access'])) {
                 list($access, $auth) = $container->get(['access', 'auth']);
-                if(isset($announcement['access']['visibility']) && $announcement['access']['visibility'] == 'private') {
-                    if(php_sapi_name() != 'cli') {
-                        // raise an exception with error details
+                if(isset($announcement['access']['visibility'])) {
+                    if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
+                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    }
+                    if($announcement['access']['visibility'] == 'protected' && $auth->userId() <= 0)  {
                         throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
                     }
                 }

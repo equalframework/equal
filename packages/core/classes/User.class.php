@@ -51,7 +51,7 @@ class User extends Model {
                 'default'           => 'en',
                 'description'       => "Prefered locale for user interfaces.",
             ],
-
+            
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,

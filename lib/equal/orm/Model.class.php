@@ -260,7 +260,7 @@ class Model {
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
      *
-     *
+     * @return string   Returns the name of the SQL table relating the the entity.
      */
     public function getTable() {
         $parent = get_parent_class($this);
@@ -287,7 +287,6 @@ class Model {
         return true;
     }
 
-
     /**
      * Check wether an object can be updated, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
@@ -302,6 +301,18 @@ class Model {
         return [];
     }
 
+    /**
+     * Check wether an object can be cloned, and perform some additional operations if necessary.
+     * This method can be overriden to define a more precise set of tests.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     */
+    public static function onclone($om, $oids, $lang) {
+        return [];
+    }
 
     /**
      * Check wether an object can be created, and optionally perform additional operations.
@@ -331,8 +342,10 @@ class Model {
     }
 
     /**
-     * Handle virtual static methods: use classname to invoke a Collection method, if available.
+     * Handler for virtual static methods: use classname to invoke a Collection method, if available.
      *
+     * @param  string   $name       Name of the called method.
+     * @param  array    $arguments  Array holding a list of arguments to relay to the invoked method.
      */
     public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {

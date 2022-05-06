@@ -12,6 +12,12 @@ class MessageModel extends Model {
 
     public static function getColumns() {
         return [
+            'name' => [
+                'type'              => 'string',
+                'description'       => 'Name of the model, for sytem identification.',
+                'required'          => true
+            ],
+
             'label' => [
                 'type'              => 'string',
                 'description'       => "Short name of the message model.",
@@ -30,7 +36,7 @@ class MessageModel extends Model {
 
             'messages_ids' => [
                 'type'              => 'one2many',
-                'foreign_object'    => 'alert\Message',
+                'foreign_object'    => 'core\alert\Message',
                 'foreign_field'     => 'message_model_id',
                 'description'       => "List of messages of this model."
             ]

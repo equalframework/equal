@@ -90,7 +90,9 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * @throws Exception ['auth_expired_token', QN_ERROR_INVALID_USER]
+     * @param   string      $token A token can be passed manually. Otherwise this method tries to fetch it from the current request header or from the received cookies.
+     * @throws  Exception   If a token is found and valid but expired, an Exception is raised with ['auth_expired_token', QN_ERROR_INVALID_USER]
+     * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
     public function userId($token=null) {
         // grant all rights when using CLI

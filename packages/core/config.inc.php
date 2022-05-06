@@ -17,11 +17,6 @@ define('EXPORT_FLAG', true);
 define('DEBUG_MODE', QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL | QN_DEBUG_APP);
 // define('DEBUG_MODE', 0);
 
-/**
-* List of public objects 
-*/
-// array of classes involved in right management and SPAM protection mechanism
-define ("PUBLIC_OBJECTS", serialize (array ('icway\Comment')));
 
 /**
 * File transfer parameters
