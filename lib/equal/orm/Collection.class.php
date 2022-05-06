@@ -419,9 +419,16 @@ class Collection implements \Iterator {
         $user_id = $this->am->userId();
 
         $schema = $this->instance->getSchema();
-
+        // retrieve targeted identifiers
+        $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         // get full list of available fields
         $fields = array_keys($schema);
+
+        $onclone = $this->class::onclone($this->orm, $ids, $lang);
+        if(!empty($onclone)) {
+            // send error using the same format as the announce method
+            throw new \Exception(serialize($onclone), QN_ERROR_INVALID_PARAM);
+        }
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {

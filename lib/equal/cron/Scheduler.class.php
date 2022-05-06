@@ -79,22 +79,13 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
         trigger_error("scheduling job", E_USER_WARNING);
 
-        try {
-            json_decode($params);
-            if(json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('invalid_json', QN_ERROR_INVALID_PARAM);
-            }
-            $orm->create('core\Task', [
-                'name'          => $name,
-                'moment'        => $moment,
-                'controller'    => $controller,
-                'params'        => $params,
-                'is_recurring'  => $recurring
-            ]);
-        }
-        catch(\Exception $e) {
-            trigger_error("invalid JSON received '$params'", E_USER_WARNING);
-        }
+        $orm->create('core\Task', [
+            'name'          => $name,
+            'moment'        => $moment,
+            'controller'    => $controller,
+            'params'        => json_encode($params),
+            'is_recurring'  => $recurring
+        ]);
     }
 
     /**

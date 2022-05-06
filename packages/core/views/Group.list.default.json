@@ -1,12 +1,17 @@
 {
     "name": "Groups list",
     "description": "This view is intended for displaying basic listing of existing groups",
+    "order": "name",
+    "sort": "asc",
     "layout": {
         "items": [
             {
                 "type": "field",
                 "value": "name",
-                "width": "25%"
+                "width": "25%",
+                "widget": {
+                    "sortable": true
+                }
             },
             {
                 "type": "field",

@@ -1,12 +1,17 @@
 {
     "name": "Permissions list",
     "description": "This view is intended for displaying basic listing of existing permissions",
+    "order": "name",
+    "sort": "asc",
     "layout": {
         "items": [
             {
                 "type": "field",            
                 "value": "class_name",
-                "width": "15%"
+                "width": "15%",
+                "widget": {
+                    "sortable": true
+                }
             },
             {
                 "type": "field",            
