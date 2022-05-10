@@ -725,8 +725,9 @@ class Collection implements \Iterator {
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
 
-            if( !$this->class::ondelete($this->orm, $ids) ) {
-                throw new \Exception('ondelete_denied', QN_ERROR_NOT_ALLOWED);
+            $ondelete = $this->class::ondelete($this->orm, $ids);
+            if(!empty($ondelete)) {
+                throw new \Exception(serialize($ondelete), QN_ERROR_INVALID_PARAM);
             }
 
             // 2) check that current user has enough privilege to perform WRITE operation

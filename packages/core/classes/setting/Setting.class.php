@@ -91,6 +91,12 @@ class Setting extends Model {
                 'required'          => true
             ],
 
+            'is_multilang' => [
+                'type'              => 'boolean',
+                'description'       => "Mark setting as translatable.",
+                'default'           => false
+            ],
+
             'form_control' => [
                 'type'              => 'string',
                 'selection'         => [
@@ -179,13 +185,15 @@ class Setting extends Model {
      * @param   $code       Unique code of the setting within the given package and section.
      * @param   $default    (optional) Default value to return if setting is not found.
      * @param   $user_id    (optional) Retrieve the specific value assigned to a given user.
+     * @param   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_value(string $package, string $section, string $code, $default=null, int $user_id=0) {
+    public static function get_value(string $package, string $section, string $code, $default=null, int $user_id=0, string $lang=DEFAULT_LANG) {
         $result = $default;
 
         $providers = \eQual::inject(['orm']);
+        /** @var \equal\orm\ObjectManager */
         $om = $providers['orm'];
 
         $settings_ids = $om->search('core\setting\Setting', [
@@ -196,12 +204,18 @@ class Setting extends Model {
 
         if($settings_ids > 0 && count($settings_ids)) {
 
-            $settings = $om->read('core\setting\Setting', $settings_ids, ['type', 'setting_values_ids']);
+            $settings = $om->read('core\setting\Setting', $settings_ids, ['type', 'is_multilang', 'setting_values_ids']);
 
             if($settings > 0 && count($settings)) {
                 // #memo - there should be exactly one setting matching the criterias
                 $setting = array_pop($settings);
-                $setting_values = $om->read('core\setting\SettingValue', $setting['setting_values_ids'], ['user_id', 'value']);
+
+                $values_lang = DEFAULT_LANG;
+                if($setting['is_multilang']) {
+                    $values_lang = $lang;
+                }
+
+                $setting_values = $om->read('core\setting\SettingValue', $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
                 if($setting_values > 0) {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
@@ -307,7 +321,6 @@ class Setting extends Model {
             foreach($matches[3] as $i => $match) {
                 $len = strlen($match[0]);
                 $offset = $match[1];
-
 
                 if($i == 0) {
                     $result_format .= substr($format, 0, $offset);

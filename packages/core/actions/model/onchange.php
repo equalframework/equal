@@ -36,7 +36,13 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\data\DataAdapter     $adapter
+ */
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
 $result = [];
 
 $model = $orm->getModel($params['entity']);
@@ -96,6 +102,15 @@ foreach($changes as $field => $value) {
 
 $result = $model::onchange($orm, $changes, $values, $params['lang']);
 
+// adapt resulting values to json
+foreach($result as $field => $value) {
+    $type = $schema[$field]['type'];
+    if($type == 'computed') {
+        $type = $schema[$field]['result_type'];
+    }
+    // adapt received values based on their type (as defined in schema)
+    $result[$field] = $adapter->adapt($value, $type, 'txt', 'php');
+}
 
 $context->httpResponse()
         ->status(200)

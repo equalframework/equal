@@ -44,9 +44,11 @@ class SettingValue extends Model {
                 'default'           => 0
             ],
 
+            // #memo - for settings not having the is_multilang field set, translations are ignored
             'value' => [
                 'type'              => 'string',
-                'description'       => 'JSON value of the parameter.'
+                'description'       => 'JSON value of the parameter.',
+                'multilang'         => true
             ]
 
         ];

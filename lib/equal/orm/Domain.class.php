@@ -77,6 +77,7 @@ class Domain {
      */
     public function addClause($clause) {
         $this->clauses[] = $clause;
+        return $this;
     }
 
     /**
@@ -86,6 +87,7 @@ class Domain {
         foreach($this->clauses as $clause) {
             $clause->addCondition($condition);
         }
+        return $this;
     }
 
     /*
@@ -284,6 +286,7 @@ class DomainClause {
 
     public function addCondition($condition) {
         $this->conditions[] = $condition;
+        return $this;
     }
 
     public function getConditions() {
