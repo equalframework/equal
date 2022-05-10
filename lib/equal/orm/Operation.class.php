@@ -88,9 +88,9 @@ class Operation {
 
     /**
      * Apply operator on given values (1 or 2 operands).
-     * @param mixed operand_a   Value of the first operand.
-     * @param mixed operand_b   Value of the second operand, if any.
-     * @return mixed    Returns the resulting value of the operation. If operand_a is an array, the result will be an array.
+     * @param   mixed   operand_a   Value of the first operand.
+     * @param   mixed   operand_b   Value of the second operand, if any.
+     * @return  mixed   Returns the resulting value of the operation. If operand_a is an array, the result will be an array.
      */
     private function apply() {
         if(in_array($this->operator, self::$unary_operators)) {

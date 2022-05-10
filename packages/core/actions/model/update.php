@@ -46,6 +46,11 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\data\DataAdapter     $adapter
+ */
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 $result = [];
 

@@ -281,10 +281,10 @@ class Model {
      * 
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
-     * @return boolean  Returns true if the object can be deleted, or false otherwise.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be deleted.
      */
     public static function ondelete($om, $oids) {
-        return true;
+        return [];
     }
 
     /**

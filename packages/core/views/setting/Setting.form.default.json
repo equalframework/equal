@@ -4,7 +4,7 @@
     "layout": {
         "groups": [
             {
-                "sections": [                    
+                "sections": [
                     {
                         "rows": [
                             {
@@ -60,14 +60,19 @@
                                             {
                                                 "type": "field",
                                                 "value": "form_control",
-                                                "width": "50%"                                                
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "is_multilang",
+                                                "width": "50%"
                                             }
                                         ]
-                                    }                                    
+                                    }
                                 ]
                             }
                         ]
-                    }            
+                    }
                 ]
             }
         ]
