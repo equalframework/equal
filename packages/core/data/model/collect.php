@@ -11,17 +11,17 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'fields' =>  [
             'description'   => 'Requested fields. If not specified, only \'id\' and \'name\' fields are returned.',
-            'type'          => 'array', 
+            'type'          => 'array',
             'default'       => ['id', 'name']
         ],
         'lang' =>  [
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ],
         'domain' => [
@@ -57,7 +57,7 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => [ 'context', 'orm' ] 
+    'providers'     => [ 'context', 'orm' ]
 ]);
 
 /**
@@ -78,14 +78,13 @@ $schema = $entity->getSchema();
 // adapt received fields names for dot notation support
 $fields = [];
 foreach($params['fields'] as $field) {
-    // keep only valid fields
-    if(gettype($field) != 'string' || !isset($schema[$field])) {
+    if(gettype($field) != 'string') {
         continue;
     }
-    // dot notation
+    // handle dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
-        $target = &$fields;        
+        $target = &$fields;
         while(count($parts) > 1) {
             $field = array_shift($parts);
             if(!isset($target[$field])) {
@@ -93,10 +92,13 @@ foreach($params['fields'] as $field) {
             }
             $target = &$target[$field];
         }
-        $target[] = array_shift($parts);
+        $field = array_shift($parts);
+        if(isset($schema[$field])) {
+            $target[] = $field;
+        }
     }
     // regular field name
-    else {
+    else if(isset($schema[$field])) {
         $fields[] = $field;
     }
 }
