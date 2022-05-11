@@ -81,7 +81,7 @@ foreach($params['fields'] as $field) {
     if(gettype($field) != 'string') {
         continue;
     }
-    // handle dot notation
+    // handle dot notation: convert to array notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
         if(!isset($schema[$parts[0]])) {
