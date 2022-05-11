@@ -65,13 +65,13 @@ $schema = $entity->getSchema();
 $fields = [];
 foreach($params['fields'] as $field) {
     // keep only valid fields
-    if(gettype($field) != 'string' || !isset($schema[$field])) {
+    if(gettype($field) != 'string') {
         continue;
     }
     // handle dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
-        $target = &$fields;        
+        $target = &$fields;
         while(count($parts) > 1) {
             $field = array_shift($parts);
             if(!isset($target[$field])) {
@@ -79,10 +79,13 @@ foreach($params['fields'] as $field) {
             }
             $target = &$target[$field];
         }
-        $target[] = array_shift($parts);
+        $field = array_shift($parts);
+        if(isset($schema[$field])) {        
+            $target[] = $field;
+        }
     }
     // regular field name: just append
-    else {
+    else if(isset($schema[$field])) {
         $fields[] = $field;
     }
 }
