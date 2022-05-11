@@ -71,7 +71,10 @@ foreach($params['fields'] as $field) {
     // handle dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
-        $target = &$fields;
+        if(!isset($schema[$parts[0]])) {
+            continue;
+        }
+        $target = &$fields;        
         while(count($parts) > 1) {
             $field = array_shift($parts);
             if(!isset($target[$field])) {
@@ -79,10 +82,7 @@ foreach($params['fields'] as $field) {
             }
             $target = &$target[$field];
         }
-        $field = array_shift($parts);
-        if(isset($schema[$field])) {        
-            $target[] = $field;
-        }
+        $target[] = array_shift($parts);
     }
     // regular field name: just append
     else if(isset($schema[$field])) {
