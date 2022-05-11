@@ -51,6 +51,7 @@ class DataFormatter {
   /**
    * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars
    * min. is 15 chars long, max. is 31 chars long
+   * @param string $iban expected to be a valid IBAN number.
    */
   private static function format_iban($iban) {
     $iban = strtoupper(str_replace([' ', '.', '-'], '', $iban));
