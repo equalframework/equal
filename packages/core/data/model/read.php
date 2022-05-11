@@ -43,20 +43,32 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => [ 'context' ]  
+    'providers'     => [ 'context', 'orm' ]
 ]);
 
-list($context) = [ $providers['context'] ];
+/**
+ * @var \equal\php\Context $context
+ * @var \equal\orm\ObjectManager $orm
+ */
+list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
-
-if(!class_exists($params['entity'])) {
-    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+// retrieve target entity
+$entity = $orm->getModel($params['entity']);
+if(!$entity) {
+    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
+
+// get the complete schema of the object (including special fields)
+$schema = $entity->getSchema();
 
 // adapt received fields names for dot notation support
 $fields = [];
 foreach($params['fields'] as $field) {
-    // dot notation
+    // keep only valid fields
+    if(gettype($field) != 'string' || !isset($schema[$field])) {
+        continue;
+    }
+    // handle dot notation
     if(strpos($field, '.')) {
         $parts = explode('.', $field);
         $target = &$fields;        
@@ -69,7 +81,7 @@ foreach($params['fields'] as $field) {
         }
         $target[] = array_shift($parts);
     }
-    // regular field name
+    // regular field name: just append
     else {
         $fields[] = $field;
     }
