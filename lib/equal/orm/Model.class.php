@@ -275,6 +275,9 @@ class Model {
         return strtolower(str_replace('\\', '_', $entity));
     }
 
+    public static function ondelete($om, $oids) {
+    }
+
     /**
      * Check wether an object can be deleted, and perform some additional operations if necessary.
      * This method can be overriden to define a more precise set of tests.
@@ -283,7 +286,7 @@ class Model {
      * @param  array    $oids       List of objects identifiers.
      * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be deleted.
      */
-    public static function ondelete($om, $oids) {
+    public static function candelete($om, $oids) {
         return [];
     }
 
@@ -297,7 +300,7 @@ class Model {
      * @param  string   $lang       Language in which multilang fields are being updated.
      * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
-    public static function onupdate($om, $oids, $values, $lang) {
+    public static function canupdate($om, $oids, $values, $lang) {
         return [];
     }
 
@@ -310,7 +313,7 @@ class Model {
      * @param  string   $lang       Language in which multilang fields are being updated.
      * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
-    public static function onclone($om, $oids, $lang) {
+    public static function canclone($om, $oids, $lang) {
         return [];
     }
 
@@ -324,7 +327,7 @@ class Model {
      * @param  string   $lang       Language in which multilang fields are being updated.
      * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be created.
      */
-    public static function oncreate($om, $values, $lang) {
+    public static function cancreate($om, $values, $lang) {
         return [];
     }
 
