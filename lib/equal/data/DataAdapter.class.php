@@ -56,7 +56,8 @@ class DataAdapter extends Service {
                                         $value = intval($value);
                                     }
                                     else if(!is_null($value)) {
-                                        throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer."]), QN_ERROR_INVALID_PARAM);
+                                        $out_value = serialize($value);
+                                        throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer for {$out_value}."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
                                 }
