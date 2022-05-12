@@ -1,0 +1,59 @@
+[
+    {
+        "name": "core\\Lang",
+        "lang": "en",
+        "data": [
+            {
+                "id": "1",
+                "name": "English",
+                "code": "en"
+            },
+            {
+                "id": "2",
+                "name": "French",
+                "code": "fr"
+            },
+            {
+                "id": "3",
+                "name": "Dutch",
+                "code": "nl"
+            }
+        ]
+    },
+    {
+        "name": "core\\Lang",
+        "lang": "fr",
+        "data": [
+            {
+                "id": "1",
+                "name": "Anglais"
+            },
+            {
+                "id": "2",
+                "name": "Français"
+            },
+            {
+                "id": "3",
+                "name": "Néérlandais"
+            }
+        ]
+    },
+    {
+        "name": "core\\Lang",
+        "lang": "nl",
+        "data": [
+            {
+                "id": "1",
+                "name": "Engels"
+            },
+            {
+                "id": "2",
+                "name": "Frans"
+            },
+            {
+                "id": "3",
+                "name": "Nederlands"
+            }
+        ]
+    }    
+]

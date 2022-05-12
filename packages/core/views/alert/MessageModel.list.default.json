@@ -1,0 +1,28 @@
+{
+    "name": "Message Models list",
+    "description": "Listing messages models.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "label",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "type",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "50%"
+            }
+        ]
+    }
+}

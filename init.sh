@@ -1,5 +1,4 @@
 #!/bin/bash
-./equal.run --do=init_db
 ./equal.run --do=init_package --package=core
 ./equal.run --do=init_package --package=identity
 ./equal.run --do=init_package --package=sale

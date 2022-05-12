@@ -1,0 +1,48 @@
+{
+    "name": "Messages list",
+    "description": "Listing of pending messages.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "created",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "creator",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "message_model_id",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "object_class",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "object_id",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "severity",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "controller",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "params",
+                "width": "15%"
+            }            
+        ]
+    }
+}

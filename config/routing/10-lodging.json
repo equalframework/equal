@@ -4,11 +4,5 @@
             "description": "Retrieve current User object.",
             "operation": "?get=lodging_userinfo"
         }
-    },
-    "/apps": {
-        "GET": {
-            "description": "Retrieve current User object.",
-            "operation": "?show=lodging_apps"
-        }
     }
 }
