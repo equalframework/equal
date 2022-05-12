@@ -1,0 +1,36 @@
+{
+    "name": "Language",
+    "description": "Default form for language.",
+    "layout": {
+        "groups": [
+            {
+                "sections": [
+                    {
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "name",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "code",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }                                                    
+                        ]
+                    }
+                ]
+            }            
+        ]
+    }
+}
