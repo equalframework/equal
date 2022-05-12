@@ -731,7 +731,6 @@ class ObjectManager extends Service {
                         // remove relation by setting pointing id to 0
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
-
                                 try {
                                     $this->call($class, $schema[$field]['ondetach'], $ids, $lang);
                                 }
@@ -1509,6 +1508,9 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
+
+            // call 'ondelete' hook
+            $this->call($class, 'ondelete', $ids);
 
             // soft deletion
             if (!$permanent) {

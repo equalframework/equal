@@ -424,10 +424,10 @@ class Collection implements \Iterator {
         // get full list of available fields
         $fields = array_keys($schema);
 
-        $onclone = $this->class::onclone($this->orm, $ids, $lang);
-        if(!empty($onclone)) {
+        $canclone = $this->class::canclone($this->orm, $ids, $lang);
+        if(!empty($canclone)) {
             // send error using the same format as the announce method
-            throw new \Exception(serialize($onclone), QN_ERROR_INVALID_PARAM);
+            throw new \Exception(serialize($canclone), QN_ERROR_INVALID_PARAM);
         }
 
         // 2) check that current user has enough privilege to perform CREATE operation
@@ -515,10 +515,10 @@ class Collection implements \Iterator {
         // retrieve targeted fields names
         $fields = array_keys($values);
 
-        $oncreate = $this->class::oncreate($this->orm, $values, $lang);
-        if(!empty($oncreate)) {
+        $cancreate = $this->class::cancreate($this->orm, $values, $lang);
+        if(!empty($cancreate)) {
             // send error using the same format as the announce method
-            throw new \Exception(serialize($oncreate), QN_ERROR_INVALID_PARAM);
+            throw new \Exception(serialize($cancreate), QN_ERROR_INVALID_PARAM);
         }
 
         // 2) check that current user has enough privilege to perform CREATE operation
@@ -679,10 +679,10 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            $onupdate = $this->class::onupdate($this->orm, $ids, $values, $lang);
-            if(!empty($onupdate)) {
+            $canupdate = $this->class::canupdate($this->orm, $ids, $values, $lang);
+            if(!empty($canupdate)) {
                 // send error using the same format as the announce method
-                throw new \Exception(serialize($onupdate), QN_ERROR_INVALID_PARAM);
+                throw new \Exception(serialize($canupdate), QN_ERROR_INVALID_PARAM);
             }
 
             // 2) check that current user has enough privilege to perform WRITE operation
@@ -725,9 +725,9 @@ class Collection implements \Iterator {
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
 
-            $ondelete = $this->class::ondelete($this->orm, $ids);
-            if(!empty($ondelete)) {
-                throw new \Exception(serialize($ondelete), QN_ERROR_INVALID_PARAM);
+            $candelete = $this->class::candelete($this->orm, $ids);
+            if(!empty($candelete)) {
+                throw new \Exception(serialize($candelete), QN_ERROR_INVALID_PARAM);
             }
 
             // 2) check that current user has enough privilege to perform WRITE operation
