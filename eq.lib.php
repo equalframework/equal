@@ -313,7 +313,7 @@ namespace config {
                 'log'       => 'equal\log\Logger',
                 'spool'     => 'equal\email\EmailSpooler',
                 'cron'      => 'equal\cron\Scheduler',
-                'dispatch'  => 'equal\dispatch\Dispatcher'                
+                'dispatch'  => 'equal\dispatch\Dispatcher'
             ]);
 
             // make sure mandatory dependencies are available (reporter requires context)
@@ -510,28 +510,35 @@ namespace config {
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
                     $current_user_id = $auth->userId();
-                    // #todo - add support for checks on login
-                    $allowed = false;
-                    $users = (array) $announcement['access']['users'];
-                    foreach($users as $user_id) {
-                        if($user_id == $current_user_id || $current_user_id == ROOT_USER_ID) {
-                            $allowed = true;
-                            break;
+                    if($current_user_id != ROOT_USER_ID) {                    
+                        // #todo - add support for checks on login
+                        $allowed = false;
+                        $users = (array) $announcement['access']['users'];
+                        foreach($users as $user_id) {
+                            if($user_id == $current_user_id) {
+                                $allowed = true;
+                                break;
+                            }
                         }
-                    }
-                    if(!$allowed) {
-                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                        if(!$allowed) {
+                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                        }
                     }
                 }
                 if(isset($announcement['access']['groups'])) {
                     $current_user_id = $auth->userId();
                     if($current_user_id != ROOT_USER_ID) {
-                        // conjunctions on groups
+                        // disjunctions on groups
+                        $allowed = false;
                         $groups = (array) $announcement['access']['groups'];
                         foreach($groups as $group) {
-                            if(!$access->hasGroup($group)) {
-                                throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                            if($access->hasGroup($group)) {
+                                $allowed = true;
+                                break;
                             }
+                        }
+                        if(!$allowed) {
+                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
                         }
                     }
                 }
@@ -937,8 +944,11 @@ namespace {
          */
         public static function run($type, $operation, $body=[], $root=false) {
             $result = config\eQual::run($type, $operation, $body, $root);
-
             $data = json_decode($result, true);
+            // if result is not JSON, return raw data
+            if(is_null($data)) {
+                return $result;
+            }
             if($data && isset($data['errors'])) {
                 // raise an exception with first returned error code
                 foreach($data['errors'] as $name => $message) {
