@@ -82,7 +82,6 @@ class Model {
                 }
             }
         }
-
     }
 
     // #memo - 'name' field is set in constructor if not defined in getColumns method

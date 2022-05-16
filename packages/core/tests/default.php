@@ -347,8 +347,8 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], $result['1'])) == 0
-                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result['2'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result['2'])) == 0
                                                 );
                                             }
                     ),
@@ -373,7 +373,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], $result['1'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
                                                 );
                                             }
                     ),
@@ -414,7 +414,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[1])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[1])) == 0
                                                 );
                                             }
                     ),
@@ -435,7 +435,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], $result[0])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[0])) == 0
                                                 );
                                             }
                     ),
