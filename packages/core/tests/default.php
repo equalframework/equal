@@ -236,7 +236,7 @@ $tests = [
                     'return'            =>  array('integer'),
                     'test'              =>  function () {
                                                 $om = &ObjectManager::getInstance();
-                                                $group_id = $om->create('core\Group', ['name' => 'test']);
+                                                $group_id = $om->create('core\Group', ['id' => 3, 'name' => 'test']);
                                                 return $group_id;
                                             },
                     'assert'            =>  function($result) {                                                
@@ -401,7 +401,6 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'test'              =>  function () {
                                                 try {
-
                                                     $values = User::search(['login', 'like', 'cedric@equal.run'])
                                                               ->read(['login'])
                                                               ->get();
@@ -414,7 +413,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[1])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[2])) == 0
                                                 );
                                             }
                     ),
