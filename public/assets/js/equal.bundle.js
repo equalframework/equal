@@ -1329,6 +1329,161 @@ exports.default = _default;
 
 /***/ }),
 
+/***/ "./build/DateReference.js":
+/*!********************************!*\
+  !*** ./build/DateReference.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = exports.DateReference = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+/**
+ * Class for Date descriptors parsing
+ *
+ */
+var DateReference = /*#__PURE__*/function () {
+  function DateReference(descriptor) {
+    (0, _classCallCheck2.default)(this, DateReference);
+    (0, _defineProperty2.default)(this, "date", void 0);
+    this.date = new Date();
+    this.parse(descriptor);
+  }
+  /**
+   *
+   * descriptor syntax: date.[this|prev|next].[day|week|month|quarter|semester|year].[first|last]
+   * @param descriptor
+   */
+
+
+  (0, _createClass2.default)(DateReference, [{
+    key: "parse",
+    value: function parse(descriptor) {
+      var date = new Date(descriptor);
+
+      if (!descriptor || !isNaN(date.getMonth())) {
+        this.date = date;
+      } else {
+        // init at today
+        date = new Date();
+        descriptor = descriptor.toLowerCase();
+
+        if (descriptor.indexOf('date.') == 0) {
+          var parts = descriptor.split('.');
+          var len = parts.length;
+
+          if (len > 2) {
+            var offset = parts[1] == 'prev' ? -1 : parts[1] == 'next' ? 1 : 0;
+            var day = len >= 4 && parts[3] == 'last' ? 'last' : 'first';
+
+            switch (parts[2]) {
+              case 'day':
+                this.date = new Date(date);
+                this.date.setDate(date.getDate() + offset);
+                break;
+
+              case 'week':
+                this.date = new Date(date);
+
+                var _day = date.getDay(),
+                    diff = date.getDate() - _day + (_day == 0 ? -6 : 1); // adjust sunday
+
+
+                this.date.setDate(date.getDate() + diff + offset * 7);
+
+                if (len >= 4 && parts[3] == 'last') {
+                  this.date.setDate(this.date.getDate() + 6);
+                }
+
+                break;
+
+              case 'month':
+                this.date = new Date(date.getFullYear(), date.getMonth() + offset, 1);
+
+                if (len >= 4 && parts[3] == 'last') {
+                  this.date = new Date(date.getFullYear(), date.getMonth() + offset + 1, 0);
+                }
+
+                break;
+
+              case 'quarter':
+                break;
+
+              case 'semester':
+                break;
+
+              case 'year':
+                this.date = new Date(date.getFullYear() + offset, 0, 1);
+
+                if (len >= 4 && parts[3] == 'last') {
+                  this.date = new Date(date.getFullYear() + offset, 11, 31);
+                }
+
+                break;
+            }
+          }
+        }
+      }
+    }
+  }, {
+    key: "getDate",
+    value: function getDate() {
+      return this.date;
+    }
+  }]);
+  return DateReference;
+}();
+
+exports.DateReference = DateReference;
+var _default = DateReference;
+/*
+
+if(strpos('date.month'))
+
+if(strpos('date.year'))
+	if date.year.first_day
+		var firstDay = new Date(date.getFullYear(), 0, 1);
+	if date.year.last_day
+		var lastDay = new Date(date.getFullYear(), 11, 31);
+
+	else new Date().getFullYear();
+
+
+if(strpos(date.week))
+    d = new Date();
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Make Sunday's day number 7
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    // Get first day of year
+    var yearStart = new Date(Date.UTC(d.getFullYear(), 0, 1));
+    // Calculate full weeks to nearest Thursday
+    var weekNo = Math.ceil(( ( (d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+
+
+if(date.dow)
+	var e = ((new Date()).getDay() + 6) % 7 + 1;
+
+if(date.now)
+	new Date();
+*/
+
+exports.default = _default;
+
+/***/ }),
+
 /***/ "./build/Domain.js":
 /*!*************************!*\
   !*** ./build/Domain.js ***!
@@ -8328,6 +8483,12 @@ Object.defineProperty(exports, "Domain", ({
     return _Domain.default;
   }
 }));
+Object.defineProperty(exports, "DateReference", ({
+  enumerable: true,
+  get: function get() {
+    return _DateReference.default;
+  }
+}));
 Object.defineProperty(exports, "Frame", ({
   enumerable: true,
   get: function get() {
@@ -8360,6 +8521,8 @@ Object.defineProperty(exports, "View", ({
 }));
 
 var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
+
+var _DateReference = _interopRequireDefault(__webpack_require__(/*! ./DateReference */ "./build/DateReference.js"));
 
 var _Frame = _interopRequireDefault(__webpack_require__(/*! ./Frame */ "./build/Frame.js"));
 
@@ -8561,17 +8724,9 @@ var WidgetFactory = /*#__PURE__*/function () {
           return new _WidgetLabel.default(layout, label, value, config);
 
         case 'text':
-          if (view_type == 'list') {
-            return new _WidgetString.default(layout, label, value, config);
-          }
-
           return new _WidgetText.default(layout, label, value, config);
 
         case 'string':
-          if (config.hasOwnProperty('usage') && config.usage == 'string/text' && view_type == 'form') {
-            return new _WidgetText.default(layout, label, value, config);
-          }
-
         default:
           return new _WidgetString.default(layout, label, value, config);
       }
@@ -8615,6 +8770,7 @@ var WidgetFactory = /*#__PURE__*/function () {
         if (def.hasOwnProperty('usage')) {
           switch (def.usage) {
             // #todo - complete the list
+            case 'string/text':
             case 'text/plain':
             case 'markup/html':
               type = 'text';
@@ -10023,6 +10179,8 @@ var _Layout2 = __webpack_require__(/*! ./Layout */ "./build/layouts/Layout.js");
 
 var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
 
+var _equalLib = __webpack_require__(/*! ../equal-lib */ "./build/equal-lib.js");
+
 var _auto = _interopRequireDefault(__webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.esm.js"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -10123,7 +10281,7 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
     key: "layout",
     value: function () {
       var _layout = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var view_schema, $elem, result, CHART_COLORS, datasets, myChart;
+        var view_schema, layout, $elem, result, CHART_COLORS, datasets, myChart;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -10131,29 +10289,29 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                 console.log('LayoutChart::layout');
                 view_schema = this.view.getViewSchema();
                 console.log('#########', view_schema);
+                layout = view_schema.layout;
+                /*
+                // parse schema to get the operations (datasets), relative dates : range_from, range_tp
+                */
+
                 $elem = (0, _jqueryLib.$)('<canvas/>').css({
                   "width": "100%",
                   "height": "100%"
                 });
                 this.$layout.append($elem); //    http://equal.local/?get=model_chart&entity=lodging\sale\booking\Booking&range_from=2022-03-01&range_to=2022-06-30&datasets=[{operation:[%22+%22,%20%22object.total_paid%22]}]
 
-                _context3.next = 7;
+                _context3.next = 8;
                 return _equalServices.ApiService.fetch('/', {
                   get: 'model_chart',
-                  entity: 'lodging\\sale\\booking\\Booking',
-                  group_by: 'range',
-                  range_interval: 'month',
-                  range_from: '2022-03-01',
-                  range_to: '2022-06-30',
-                  datasets: [{
-                    "operation": ["SUM", "object.total"]
-                  }, {
-                    "operation": ["AVG", "object.price"],
-                    "domain": ["type", "=", "general"]
-                  }]
+                  entity: layout.entity,
+                  group_by: layout.group_by,
+                  range_interval: layout.range_interval,
+                  range_from: new _equalLib.DateReference(layout.range_from).getDate().toISOString(),
+                  range_to: new _equalLib.DateReference(layout.range_to).getDate().toISOString(),
+                  datasets: layout.datasets
                 });
 
-              case 7:
+              case 8:
                 result = _context3.sent;
                 CHART_COLORS = ['rgb(75, 192, 192)', // green
                 'rgb(255, 99, 132)', // red
@@ -10165,7 +10323,7 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                 ];
                 datasets = result.datasets.map(function (a, index) {
                   return {
-                    label: 'data' + index,
+                    label: layout.datasets[index].label,
                     data: a,
                     backgroundColor: CHART_COLORS[index % 7]
                   };
@@ -10189,7 +10347,7 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   }
                 });
 
-              case 11:
+              case 12:
               case "end":
                 return _context3.stop();
             }
@@ -15389,6 +15547,8 @@ var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
 
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
 var _quill = _interopRequireDefault(__webpack_require__(/*! quill */ "./node_modules/quill/dist/quill.js"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -15423,82 +15583,108 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
       switch (this.mode) {
         case 'edit':
-          this.$elem = $('<div class="sb-ui-textarea" />');
-          var $editor = $('<div quill__editor></div>');
-          this.$elem.append($editor);
-          this.getLayout().getView().isReady().then(function () {
-            // init inline styling
-            var ColorClass = _quill.default.import('attributors/class/color');
+          if (this.config.layout == 'list') {
+            this.$elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly);
+            this.$elem.css({
+              "width": "calc(100% - 10px)"
+            }); // setup handler for relaying value update to parent layout
 
-            var SizeStyle = _quill.default.import('attributors/style/size');
-
-            var AlignStyle = _quill.default.import('attributors/style/align');
-
-            _quill.default.register(ColorClass, true);
-
-            _quill.default.register(SizeStyle, true);
-
-            _quill.default.register(AlignStyle, true);
-
-            var editor = new _quill.default($editor[0], {
-              placeholder: _this.config.description,
-              theme: "snow",
-              modules: {
-                toolbar: [['bold', 'italic', 'underline', 'strike'], ['blockquote'], // [{ 'header': [1, 2, 3, 4, 5, 6, false]}],
-                [{
-                  'list': 'ordered'
-                }, {
-                  'list': 'bullet'
-                }], [{
-                  "align": ''
-                }, {
-                  "align": 'center'
-                }, {
-                  'align': 'right'
-                }], [{
-                  'size': ['small', false, 'large', 'huge']
-                }], ['fullscreen']]
-              }
-            });
-
-            _this.$elem.find('.ql-fullscreen').on('click', function () {
-              var elem = _this.$elem[0];
-
-              if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-              } else if (elem.hasOwnProperty('webkitRequestFullscreen')) {
-                elem['webkitRequestFullscreen']();
-              }
-            });
-
-            _this.$elem.data('quill', editor);
-
-            editor.root.innerHTML = value;
-            var timeout;
-            editor.on('text-change', function (delta, source) {
-              _this.value = editor.root.innerHTML; // update value without refreshing the layout
+            this.$elem.find('input').on('change', function (event) {
+              var $this = $(event.currentTarget);
+              _this.value = $this.val();
 
               if (_this.value != value) {
-                // debounce updates
-                if (timeout) {
-                  clearTimeout(timeout);
-                }
-
-                timeout = setTimeout(function () {
-                  _this.$elem.trigger('_updatedWidget', [false]);
-                }, 1000);
+                _this.$elem.trigger('_updatedWidget', [false]);
               }
             });
-          });
+          } else {
+            this.$elem = $('<div class="sb-ui-textarea" />');
+            var $editor = $('<div quill__editor></div>');
+            this.$elem.append($editor);
+            this.getLayout().getView().isReady().then(function () {
+              // init inline styling
+              var ColorClass = _quill.default.import('attributors/class/color');
+
+              var SizeStyle = _quill.default.import('attributors/style/size');
+
+              var AlignStyle = _quill.default.import('attributors/style/align');
+
+              _quill.default.register(ColorClass, true);
+
+              _quill.default.register(SizeStyle, true);
+
+              _quill.default.register(AlignStyle, true);
+
+              var editor = new _quill.default($editor[0], {
+                placeholder: _this.config.description,
+                theme: "snow",
+                modules: {
+                  toolbar: [['bold', 'italic', 'underline', 'strike'], ['blockquote'], // [{ 'header': [1, 2, 3, 4, 5, 6, false]}],
+                  [{
+                    'list': 'ordered'
+                  }, {
+                    'list': 'bullet'
+                  }], [{
+                    "align": ''
+                  }, {
+                    "align": 'center'
+                  }, {
+                    'align': 'right'
+                  }], [{
+                    'size': ['small', false, 'large', 'huge']
+                  }], ['fullscreen']]
+                }
+              });
+
+              _this.$elem.find('.ql-fullscreen').on('click', function () {
+                var elem = _this.$elem[0];
+
+                if (elem.requestFullscreen) {
+                  elem.requestFullscreen();
+                } else if (elem.hasOwnProperty('webkitRequestFullscreen')) {
+                  elem['webkitRequestFullscreen']();
+                }
+              });
+
+              _this.$elem.data('quill', editor);
+
+              editor.root.innerHTML = value;
+              var timeout;
+              editor.on('text-change', function (delta, source) {
+                _this.value = editor.root.innerHTML; // update value without refreshing the layout
+
+                if (_this.value != value) {
+                  // debounce updates
+                  if (timeout) {
+                    clearTimeout(timeout);
+                  }
+
+                  timeout = setTimeout(function () {
+                    _this.$elem.trigger('_updatedWidget', [false]);
+                  }, 1000);
+                }
+              });
+            });
+          }
+
           break;
 
         case 'view':
         default:
-          this.$elem = $('<div class="sb-ui-textarea" />').append($('<div class="textarea-content" />').html(value));
+          if (this.config.layout == 'list') {
+            value = $("<div/>").html(value).text();
+            this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
+          } else {
+            this.$elem = $('<div class="sb-ui-textarea" />').append($('<div class="textarea-content" />').html(value));
+          }
+
           break;
       }
 
-      this.$elem.append($('<div class="textarea-title" />').text(this.label));
+      if (this.config.layout != 'list') {
+        this.$elem.append($('<div class="textarea-title" />').text(this.label));
+      }
+
       this.$elem.addClass('sb-widget').addClass('sb-widget-mode-' + this.mode).attr('id', this.getId());
       return this.$elem;
     }

@@ -87,17 +87,6 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-// convert sorting comma notation to a map ([order_field => sort_direction, ...])
-$sort = [];
-$sort_parts  = explode(',', str_replace(' ', '', $params['sort']));
-$order_parts = explode(',', str_replace(' ', '', $params['order']));
-
-foreach($order_parts as $index => $order) {
-    $order_sort = (count($sort_parts) > $index)? $sort_parts[$index] : $sort_parts[count($sort_parts)-1];
-    $sort[$order] = $order_sort;
-}
-
-
 /*
 configuration d'une vue avec la liste des datasets
 
@@ -169,39 +158,40 @@ else {
 // populate final result array with operations results
 $result = array_fill_keys(array_keys($results_map), []);
 foreach($datasets as $index => $dataset) {
-        $operation = $dataset['operation'];
-        /*
-        if(!is_array($operation) && in_array($operation, ['SUM', 'AVG', 'COUNT', 'MIN', 'MAX'])) {
-            switch($operation) {
-                case 'SUM':
-                    $operation = ['SUM', 'object.'.$field];
-                    break;
-                case 'AVG':
-                    $operation = ['AVG', 'object.'.$field];
-                    break;
-                case 'COUNT':
-                    $operation = ['COUNT', 'object.'.$field];
-                    break;
-                case 'MIN':
-                    $operation = ['MIN', 'object.'.$field];
-                case 'MAX':
-                    $operation = ['MAX', 'object.'.$field];
-                    break;
-            }
+    $operation = $dataset['operation'];
+    /*
+    if(!is_array($operation) && in_array($operation, ['SUM', 'AVG', 'COUNT', 'MIN', 'MAX'])) {
+        switch($operation) {
+            case 'SUM':
+                $operation = ['SUM', 'object.'.$field];
+                break;
+            case 'AVG':
+                $operation = ['AVG', 'object.'.$field];
+                break;
+            case 'COUNT':
+                $operation = ['COUNT', 'object.'.$field];
+                break;
+            case 'MIN':
+                $operation = ['MIN', 'object.'.$field];
+            case 'MAX':
+                $operation = ['MAX', 'object.'.$field];
+                break;
         }
-        */
-        $op = new Operation($operation);
+    }
+    */
+    $op = new Operation($operation);
 
-        $dom = new Domain($domain->toArray());
-        if(isset($dataset['domain'])) {
-            $dom = $dom->merge(new Domain($dataset['domain']));
-        }
+    $dom = new Domain($domain->toArray());
+    if(isset($dataset['domain'])) {
+        $dom = $dom->merge(new Domain($dataset['domain']));
+    }
 
-        // reset intervals map
-        $results_map = array_fill_keys(array_keys($results_map), []);
-        // search objects matching given domain and date range
-        $objects = $params['entity']::search($dom->toArray())->read($fields)->get();
+    // reset intervals map
+    $results_map = array_fill_keys(array_keys($results_map), []);
+    // search objects matching given domain and date range
+    $objects = $params['entity']::search($dom->toArray())->read($fields)->get();
 
+    if($objects && count($objects)) {
         // group objects by date interval
         foreach($objects as $oid => $object) {
             if($params['group_by'] == 'range') {
@@ -215,6 +205,7 @@ foreach($datasets as $index => $dataset) {
         foreach($results_map as $group_index => $objects) {
             $result[$group_index][$index] = $op->compute($objects);
         }
+    }
 }
 
 $datasets = [];
@@ -253,9 +244,8 @@ function _get_next_date($date, $interval) {
             $day = ($day == 0)?7:$day;
             return $date + ((8-$day)*24*3600);
         case 'month':
-            // day following the last day of the month
-            return strtotime(date("Y-m-t", $date)) + (24*3600);
+            return strtotime(date("Y-m-t", $date)) + (48*3600);
         case 'year':
-            return strtotime( (date('Y', $date) + 1).'-01-01');
+            return strtotime( (date('Y', $date) + 1).'-01-02');
     }
 }
