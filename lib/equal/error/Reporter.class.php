@@ -80,7 +80,7 @@ class Reporter extends Service {
     * @param mixed $errline
     * @param mixed $errcontext
     */
-    public static function errorHandler($errno, $errmsg, $errfile, $errline, $errcontext) {
+    public static function errorHandler($errno, $errmsg, $errfile='', $errline=0, $errcontext=[]) {
         // dismiss handler if not required
         if (!(error_reporting() & $errno)) return;
         // adapt error code

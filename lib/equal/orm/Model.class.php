@@ -66,7 +66,7 @@ class Model {
         $this->setDefaults($orm, $values);
     }
 
-    private final function setDefaults($orm, $values=[]) {
+    private function setDefaults($orm, $values=[]) {
         $this->values = [];
 
         $defaults = $this->getDefaults();
@@ -82,7 +82,6 @@ class Model {
                 }
             }
         }
-
     }
 
     // #memo - 'name' field is set in constructor if not defined in getColumns method
