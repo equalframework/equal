@@ -77,7 +77,7 @@ $fields = array_filter($params['fields'], function($field) use ($schema){
 foreach($fields as $field => $value) {
     $type = $schema[$field]['type'];
     // drop empty fields (allow reset to null)
-    if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['string', 'text']) && !is_null($value) ) {
+    if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value) ) {
         unset($fields[$field]);
         continue;
     }
