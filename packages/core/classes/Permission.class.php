@@ -44,7 +44,7 @@ class Permission extends Model {
 
             'rights' => [
                 'type' 	            => 'integer',
-                'onchange'          => 'core\Permission::onchangeRights',
+                'onupdate'          => 'onupdateRights',
                 'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)"
             ],
 
@@ -53,20 +53,20 @@ class Permission extends Model {
                 'type'              => 'computed', 
                 'store'             => true, 
                 'result_type'       => 'string', 
-                'function'          => 'core\Permission::getRightsTxt'
+                'function'          => 'calcRightsTxt'
             ]
         ];
     }
 
-    public static function onchangeRights($om, $ids, $lang) {
+    public static function onupdateRights($om, $ids, $lang) {
         // note : we are in the core namespace, so we don't need to specify it when referring to this class
-        $rights = self::getRightsTxt($om, $ids, $lang);
+        $rights = self::calcRightsTxt($om, $ids, $lang);
         foreach($ids as $oid) {
             $om->write(__CLASS__, $oid, ['rights_txt' => $rights[$oid]], $lang);
         } 
     }
 
-    public static function getRightsTxt($om, $ids, $lang) {
+    public static function calcRightsTxt($om, $ids, $lang) {
         $res = array();
         $values = $om->read(__CLASS__, $ids, ['rights'], $lang);
         foreach($ids as $oid) {

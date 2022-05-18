@@ -19,5 +19,4 @@ packages
 public/*
 !public/index.php
 !public/console.php
-!public/workbench
 !public/assets

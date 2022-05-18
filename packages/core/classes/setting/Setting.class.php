@@ -24,7 +24,7 @@ class Setting extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Full path setting code to serve as reference (unique).",
-                'function'          => 'core\setting\Setting::getDisplayName',
+                'function'          => 'calcName',
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -32,14 +32,14 @@ class Setting extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
-                'onchange'          => 'core\setting\Setting::onchangeCode',
+                'onupdate'          => 'onupdateCode',
                 'required'          => true
             ],
 
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
-                'onchange'          => 'core\setting\Setting::onchangePackage',
+                'onupdate'          => 'onupdatePackage',
                 'default'           => 'core'
             ],
 
@@ -47,7 +47,7 @@ class Setting extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Section name the setting belongs to.",
-                'function'          => 'core\setting\Setting::getSection',
+                'function'          => 'calcSection',
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -55,7 +55,7 @@ class Setting extends Model {
             'section_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\SettingSection',
-                'onchange'          => 'core\setting\Setting::onchangeSectionId',
+                'onupdate'          => 'onupdateSectionId',
                 'description'       => 'Section the setting relates to.',
                 'required'          => true
             ],
@@ -129,19 +129,19 @@ class Setting extends Model {
         ];
     }
 
-    public static function onchangeCode($om, $ids, $lang) {
+    public static function onupdateCode($om, $ids, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
-    public static function onchangeSectionId($om, $ids, $lang) {
+    public static function onupdateSectionId($om, $ids, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
     }
 
-    public static function onchangePackage($om, $ids, $lang) {
+    public static function onupdatePackage($om, $ids, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
-    public static function getSection($om, $oids, $lang) {
+    public static function calcSection($om, $oids, $lang) {
         $result = [];
 
         $settings = $om->read(__CLASS__, $oids, ['section_id.code'], $lang);
@@ -155,7 +155,7 @@ class Setting extends Model {
         return $result;
     }
 
-    public static function getDisplayName($om, $oids, $lang) {
+    public static function calcName($om, $oids, $lang) {
         $result = [];
 
         $settings = $om->read(__CLASS__, $oids, ['package', 'section', 'code'], $lang);

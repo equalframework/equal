@@ -414,15 +414,15 @@ foreach($classes as $class) {
         }
         else if($description['type'] == 'many2many') $m2m_fields[] = $field;
 
-        if(isset($description['onchange'])) {
-            $parts = explode('::', $description['onchange']);
+        if(isset($description['onupdate'])) {
+            $parts = explode('::', $description['onupdate']);
             $count = count($parts);
 
             $called_class = $entity;
-            $called_method = $description['onchange'];
+            $called_method = $description['onupdate'];
 
             if( $count < 1 || $count > 2 ) {
-                $result[] = "ERROR - ORM - Class $entity: Field $field has invalid onchange property ({$description['onchange']})";
+                $result[] = "ERROR - ORM - Class $entity: Field $field has invalid onupdate property ({$description['onupdate']})";
             }
             else {
                 if( $count == 2 ) {
@@ -430,7 +430,7 @@ foreach($classes as $class) {
                     $called_method = $parts[1];
                 }
                 if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $entity: Field $field has onchange property with unknown handler '{$description['onchange']}'";
+                    $result[] = "ERROR - ORM - Class $entity: Field $field has onupdate property with unknown handler '{$description['onupdate']}'";
                 }
             }
         }
