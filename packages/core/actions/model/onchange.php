@@ -23,7 +23,7 @@ list($params, $providers) = announce([
             'default'       => []
         ],
         'values' =>  [
-            'description'   => 'Copy of the (partial) object being edited.',
+            'description'   => 'Copy of the (partial) object being edited with original value.',
             'type'          => 'array',
             'default'       => []
         ],
@@ -56,11 +56,11 @@ $schema = $model->getSchema();
 // keep only known and non-empty fields (allow null values)
 
 $values = array_filter($params['values'], function($val, $field) use ($schema){
-    return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['string', 'text']) ) && isset($schema[$field]);
+    return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
 }, ARRAY_FILTER_USE_BOTH);
 
 $changes = array_filter($params['changes'], function($val, $field) use ($schema){
-    return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['string', 'text']) ) && isset($schema[$field]);
+    return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
 }, ARRAY_FILTER_USE_BOTH);
 
 

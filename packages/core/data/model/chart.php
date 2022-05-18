@@ -32,7 +32,7 @@ list($params, $providers) = announce([
             'default'       => []
         ],
         'field' => [
-            'description'   => 'Field that holds the date to use for grouping the objects.',
+            'description'   => 'Field to use for grouping the objects (date field in case of a time range).',
             'type'          => 'string',
             'default'       => 'created'
         ],
@@ -43,7 +43,7 @@ list($params, $providers) = announce([
                 'field',
                 'range'
             ],
-            'default'       => 'month'
+            'default'       => 'range'
         ],
         'range_from' => [
             'description'   => 'Start of date range.',
@@ -136,8 +136,11 @@ $fields[] = $params['field'];
 
 // add clause related to time range
 $domain = new Domain($params['domain']);
-$domain->addCondition(new DomainCondition($params['field'], '>=', $params['range_from']))
-       ->addCondition(new DomainCondition($params['field'], '<=', $params['range_to']));
+
+if($params['group_by'] == 'range') {
+    $domain->addCondition(new DomainCondition($params['field'], '>=', $params['range_from']))
+           ->addCondition(new DomainCondition($params['field'], '<=', $params['range_to']));
+}
 
 // initilize results_map as an empty associative array of intervals map
 $results_map = [];
@@ -157,6 +160,7 @@ else {
 
 // populate final result array with operations results
 $result = array_fill_keys(array_keys($results_map), []);
+
 foreach($datasets as $index => $dataset) {
     $operation = $dataset['operation'];
     /*
