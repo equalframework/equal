@@ -33,6 +33,9 @@ list($params, $providers) = announce([
             'default'       => DEFAULT_LANG
         ]
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 

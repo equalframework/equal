@@ -6,11 +6,6 @@
 */
 list($params, $providers) = announce([
     'description'   => "Create a new object by cloning an existing object.",
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class of original object(s).',
@@ -19,18 +14,30 @@ list($params, $providers) = announce([
         ],
         'ids' =>  [
             'description'   => 'Identifiers of original objects.',
-            'type'          => 'array', 
+            'type'          => 'array',
             'required'      => true
         ],
         'lang' => [
             'description '  => 'Language of target object (applied to multilang fields).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'access' => [
+        'visibility'        => 'protected'
     ],
     'providers'     => ['context', 'orm']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ */
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 $collection = $params['entity']::ids($params['ids'])

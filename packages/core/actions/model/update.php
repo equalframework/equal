@@ -6,11 +6,6 @@
 */
 list($params, $providers) = announce([
     'description'   => "Update (fully or partially) the given object.",
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
@@ -42,6 +37,14 @@ list($params, $providers) = announce([
             'type'          => 'string',
             'default'       => DEFAULT_LANG
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'access' => [
+        'visibility'        => 'protected'
     ],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
@@ -78,11 +81,6 @@ foreach($fields as $field => $value) {
     $type = $schema[$field]['type'];
     // drop empty fields (allow reset to null)
     if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value) ) {
-        unset($fields[$field]);
-        continue;
-    }
-    //drop readonly fields
-    if(isset($schema[$field]['readonly']) && $schema[$field]['readonly']) {
         unset($fields[$field]);
         continue;
     }
