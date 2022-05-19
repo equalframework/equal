@@ -61,20 +61,20 @@ class ObjectManager extends Service {
 
     public static $valid_attributes = [
         'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'unique'),
-        'float'         => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'selection', 'precision'),
-        'string'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang', 'selection', 'unique'),
-        'text'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'date'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'time'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onchange'),
-        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange'),
-        'file'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onchange', 'multilang'),
-        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onchange', 'ondelete', 'multilang'),
-        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onchange', 'ondetach', 'order', 'sort'),
-        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onchange'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onchange', 'store', 'multilang', 'selection', 'foreign_object')
+        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
+        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'unique'),
+        'float'         => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'precision'),
+        'string'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang', 'selection', 'unique'),
+        'text'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'date'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
+        'time'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onupdate'),
+        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
+        'file'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
+        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
+        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
@@ -1262,7 +1262,7 @@ class ObjectManager extends Service {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onchange event
                     // (computed fields assigned to null are meant to be re-computed without triggering onchange)
-                    if(isset($schema[$field]['onchange']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
+                    if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
                         $onchange_fields[] = $field;
                     }
                     // assign cache to object values
@@ -1282,16 +1282,16 @@ class ObjectManager extends Service {
                 foreach($onchange_fields as $field) {
                     try {
                         // #todo - not sure of this: check if correct
-                        // if(!in_array($schema[$field]['onchange'], $called_methods)) {
+                        // if(!in_array($schema[$field]['onupdate'], $called_methods)) {
                             // store current state of object_methods map (prevent recursion with the call() method)
                             $object_methods_state = $this->object_methods;
 
-                            $updates = $this->call($class, $schema[$field]['onchange'], $ids, $lang);
+                            $updates = $this->call($class, $schema[$field]['onupdate'], $ids, $lang);
 
                             // restore global object_methods
                             $this->object_methods = $object_methods_state;
 
-                            $called_methods[] = $schema[$field]['onchange'];
+                            $called_methods[] = $schema[$field]['onupdate'];
 
                             // if callback returned an array, update newly assigned values
                             if($updates && count($updates)) {

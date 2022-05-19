@@ -35,7 +35,7 @@ class SettingSection extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
-                'onchange'          => 'core\setting\SettingSection::onchangeCode',
+                'onupdate'          => 'onupdateCode',
                 'required'          => true
             ],
         
@@ -49,7 +49,7 @@ class SettingSection extends Model {
         ];
     }
 
-    public static function onchangeCode($om, $ids, $lang) {
+    public static function onupdateCode($om, $ids, $lang) {
         
         $sections = $om->read(__CLASS__, $ids, ['settings_ids'], $lang);
         if($sections > 0 && count($sections)) {
