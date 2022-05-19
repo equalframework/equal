@@ -497,7 +497,7 @@ namespace config {
             }
 
             // check access restrictions
-            if(isset($announcement['access'])) {
+            if(isset($announcement['access']) && $method != 'OPTIONS') {
                 list($access, $auth) = $container->get(['access', 'auth']);
                 if(isset($announcement['access']['visibility'])) {
                     if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
