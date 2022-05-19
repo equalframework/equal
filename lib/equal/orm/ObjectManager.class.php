@@ -1457,19 +1457,21 @@ class ObjectManager extends Service {
                             $sub_class = $schema[$path_field]['foreign_object'];
                             $sub_ids = $values[$oid][$path_field];
                             $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                            if($field_type == 'many2one') {
-                                $odata = array_shift($sub_values);
-                                $res[$oid][$field] = $odata[$parts[1]];
-                            }
-                            else {
-                                $res[$oid][$field] = $sub_values;
+                            if($sub_values > 0) {
+                                if($field_type == 'many2one') {
+                                    $odata = reset($sub_values);
+                                    if($odata > 0) {
+                                        $res[$oid][$field] = $odata[$parts[1]];
+                                    }
+                                }
+                                else {
+                                    $res[$oid][$field] = $sub_values;
+                                }
                             }
                         }
                     }
                 }
-
             }
-
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
