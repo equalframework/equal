@@ -274,50 +274,9 @@ class Model {
         return strtolower(str_replace('\\', '_', $entity));
     }
 
-    public static function ondelete($om, $oids) {
-    }
 
     /**
-     * Check wether an object can be deleted, and perform some additional operations if necessary.
-     * This method can be overriden to define a more precise set of tests.
-     * 
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be deleted.
-     */
-    public static function candelete($om, $oids) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be updated, and perform some additional operations if necessary.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  array    $values     Associative array holding the new values to be assigned.
-     * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canupdate($om, $oids, $values, $lang) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be cloned, and perform some additional operations if necessary.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canclone($om, $oids, $lang) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be created, and optionally perform additional operations.
+     * Check wether an object can be created.
      * These tests come in addition to the unique constraints return by method `getUnique()`.
      * This method can be overriden to define a more precise set of tests.
      *
@@ -331,7 +290,69 @@ class Model {
     }
 
     /**
-     * Signature for single object values change (intended for views).
+     * Check wether an object can be updated.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overriden to define a more precise set of tests.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $values     Associative array holding the new values to be assigned.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canupdate($om, $oids, $values, $lang) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be cloned.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overriden to define a more precise set of tests.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canclone($om, $oids, $lang) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be deleted.
+     * This method can be overriden to define a more precise set of tests.
+     * 
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be deleted.
+     */
+    public static function candelete($om, $oids) {
+        return [];
+    }
+
+    /**
+     * Hook invoked at object creation for performing object-specific additional operations.
+     * 
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $values     Associative array holding the new values to be assigned.
+     */
+    public static function oncreate($om, $values, $lang) {
+    }
+
+    public static function onupdate($om, $oids, $values, $lang) {
+    }
+
+    public static function onclone($om, $oids, $lang) {
+    }
+
+    public static function ondelete($om, $oids) {
+    }
+
+
+    /**
+     * Signature for single object values change.
+     * This mehtod do not imply an actual update of the model, but a potential one and is intended for front-end only.
      * 
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
