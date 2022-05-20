@@ -61,6 +61,7 @@
     "SB_ERROR_NON_EDITABLE": "L'élement ne peut pas être modifié dans son état actuel.",	
 	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",
 	"SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
+    "SB_ERROR_MISSING_PARAM": "Champ obligatoire manquant.",    
 	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
 	"SB_ERROR_INVALID_STATUS": "Le statut de l'objet ne permet pas sa modification.",
 	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",

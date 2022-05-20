@@ -3,7 +3,7 @@
     "SB_DIALOG_ACCEPT": "Accept",
 	"SB_DIALOG_SEND": "Send",
     "SB_DIALOG_CANCEL": "Cancel",
-    
+
     "SB_PURPOSE_CREATE": "Create",
     "SB_PURPOSE_UPDATE": "Update",
     "SB_PURPOSE_SELECT": "Select",
@@ -15,15 +15,15 @@
     "SB_FILTERS_DIALOG_VALUE": "Value",
     "SB_FILTERS_SEARCH": "Search",
     "SB_FILTERS_SEARCH_ON_NAME": "Search on name",
-        
+
     "SB_ACTIONS_BUTTON_CREATE": "Create",
     "SB_ACTIONS_BUTTON_SAVE": "Save",
 	"SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Save & close",
-	"SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Save & edit",	
+	"SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Save & edit",
 	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Save & continue",
 	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Save & see",
     "SB_ACTIONS_BUTTON_UPDATE": "Update",
-    "SB_ACTIONS_BUTTON_EXPORT": "Export",        
+    "SB_ACTIONS_BUTTON_EXPORT": "Export",
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Inline edit",
     "SB_ACTIONS_BUTTON_BULK_ASSIGN": "Mass update",
     "SB_ACTIONS_BUTTON_ARCHIVE": "Archive",
@@ -37,11 +37,11 @@
 
     "SB_ACTIONS_CONFIRM": "Confirm action",
 	"SB_ACTIONS_PROVIDE_PARAMS": "Action parameters",
-	
+
     "SB_ACTIONS_ARCHIVE_CONFIRM": "Confirm archiving",
     "SB_ACTIONS_ARCHIVE_DIALOG_MESSAGE": "Items will be archived and you might no longer be able to access those. Do you confirm?",
-    
-    "SB_ACTIONS_DELETION_CONFIRM": "Confirm removal",    
+
+    "SB_ACTIONS_DELETION_CONFIRM": "Confirm removal",
     "SB_ACTIONS_DELETION_DIALOG_I_CONFIRM": "Yes, remove items.",
     "SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT": "Remove permanently?",
 
@@ -50,22 +50,23 @@
 
     "SB_EXPORTS_AS_PDF": "Print as PDF",
     "SB_EXPORTS_AS_XLS": "Export as XLS",
-    
+
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Advanced search...",
 
 	"SB_ERROR_ERROR": "Erreur",
 	"SB_ERROR_UNKNOWN": "An unknown error occured.",
 	"SB_ERROR_CONFLICT_OBJECT": "A conflict prevents this operation.",
-    "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
+    "SB_ERROR_DUPLICATE_VALUE": "This value must be unique but already exists.",
     "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération.",
-    "SB_ERROR_NON_EDITABLE": "L'élement ne peut pas être modifié dans son état actuel.",		
+    "SB_ERROR_NON_EDITABLE": "The item cannot be updated in its current state.",
 	"SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",
-	"SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
-	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
-	"SB_ERROR_INVALID_STATUS": "Le statut de l'objet ne permet pas sa modification.",
-	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
-	"SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
-	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde dans cet état.",
+	"SB_ERROR_MISSING_MANDATORY": "Mandatory field.",
+    "SB_ERROR_MISSING_PARAM": "Missing mandatory field.",
+	"SB_ERROR_INVALID_PARAM": "Invalid param(s). Some changes couldn't be stored.",
+	"SB_ERROR_INVALID_STATUS": "Status of the item prevents its update.",
+	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Size exceeding maximum allowed.",
+	"SB_ERROR_BROKEN_CONSTRAINT": "Invalid value (broke at least one constrainst).",
+	"SB_ERROR_ONUPDATE_DENIED": "Object rejected the update.",
 
     "AUTH_SIGNIN_TITLE": "Connection",
     "AUTH_SIGNIN_SIGNIN": "Sign in",
@@ -78,13 +79,13 @@
     "AUTH_RECOVER_SUBTITLE": "Forgot password?",
     "AUTH_RECOVER_EMAIL": "Email address",
     "AUTH_RECOVER_ACTION_RECOVER": "Recover",
-    "AUTH_RECOVER_ACTION_SIGNIN": "Sign in",    
+    "AUTH_RECOVER_ACTION_SIGNIN": "Sign in",
     "AUTH_RESET_TITLE" : "New password",
     "AUTH_RESET_SUBTITLE": "Define a new password",
     "AUTH_RESET_PASSWORD": "Password",
     "AUTH_RESET_CONFIRM": "Confirm",
     "AUTH_RESET_ACTION_SUBMIT": "Reset",
-    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",    
+    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
     "AUTH_ERROR_MISSING_USERNAME": "Username is mandatory",
     "AUTH_ERROR_MISSING_PASSWORD": "Password is mandatory",
     "AUTH_ERROR_INVALID_PASSWORD": "Invalid password (min 8 car.)",
@@ -92,7 +93,7 @@
     "AUTH_ERROR_INVALID_USERNAME_OR_PASSWORD": "Nom d'utilisateur ou mot de passe invalide.",
     "AUTH_ERROR_SERVER_ERROR": "A server error occured. Please try later or contact support.",
     "AUTH_ERROR_MISSING_EMAIL": "Email address is mandatory",
-    
+
     "APPS_APP_BOOKING": "Réservations",
     "APPS_APP_POS": "Point de vente",
     "APPS_APP_ACCOUNTING": "Compta",
@@ -100,13 +101,13 @@
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
 	"APPS_APP_STATS": "Statistiques",
-    
+
     "SETTINGS_LIST_SETTING": "Settings",
     "SETTINGS_LIST_CORE": "General",
     "SETTINGS_LIST_SALE": "Sale",
-	"SETTINGS_LIST_PERMISSION": "Permissions",	
+	"SETTINGS_LIST_PERMISSION": "Permissions",
     "SETTINGS_LIST_FINANCE": "Finance",
-	
+
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Import",
     "DOCS_ERRORS_FAILED_UPLOAD": "Download of the file failed",
@@ -124,8 +125,8 @@
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Cancel",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Delete",
     "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?",
-    
-    
+
+
     "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
 
 
