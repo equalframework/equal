@@ -8,7 +8,7 @@ use core\Task;
 use core\setting\Setting;
 
 list($params, $providers) = announce([
-    'description'   => "Run a batch of scheduled task.",
+    'description'   => "Run a batch of scheduled task. Expected to be run with CLI `$ ./equal.run --do=cron_run`",
     'params'        => [
     ],
     'access' => [
