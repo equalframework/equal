@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Valider",
-	"SB_DIALOG_SEND": "Envoyer",
+	"SB_DIALOG_SEND": "Exécuter",
     "SB_DIALOG_CANCEL": "Annuler",
 
     "SB_PURPOSE_CREATE": "Création",
@@ -61,17 +61,15 @@
     "SB_ERROR_NON_EDITABLE": "L'élement ne peut pas être modifié dans son état actuel.",	
 	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",
 	"SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
+    "SB_ERROR_MISSING_PARAM": "Champ obligatoire manquant.",    
 	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
 	"SB_ERROR_INVALID_STATUS": "Le statut de l'objet ne permet pas sa modification.",
 	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
 	"SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
 	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde dans cet état.",
 
-	"SB_ERROR_BOOKING_CONFLICT_OBJECT": "Cette réservation a été modifiée entretemps par un autre utilisateur.",
-	"SB_ERROR_BOOKING_INVALID_STATUS": "La réservation n'est pas modifiable. Repassez en devis pour la modifier.",
-
     "AUTH_SIGNIN_TITLE": "Connexion",
-    "AUTH_SIGNIN_SIGNIN": "S'identifier dans Symbiose",
+    "AUTH_SIGNIN_SIGNIN": "S'identifier",
     "AUTH_SIGNIN_USERNAME": "Nom d'utilisateur",
     "AUTH_SIGNIN_PASSWORD": "Mot de passe",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connexion",
@@ -107,7 +105,7 @@
     "SETTINGS_LIST_SETTING": "Paramètres",
     "SETTINGS_LIST_CORE": "Général",
     "SETTINGS_LIST_SALE": "Vente",
-	"SETTINGS_LIST_PERMISSIONUPDATE": "ÉDITER PERMISSION",
+	"SETTINGS_LIST_PERMISSION": "Permissions",
     "SETTINGS_LIST_FINANCE": "Finances",
 
     "DOCS_LIST_DOCUMENT": "Documents",

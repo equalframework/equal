@@ -28,10 +28,17 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'providers'     => ['context', 'orm', 'access'] 
 ]);
 
-
+/**
+ * @var \equal\php\Context              $context
+ * @var \equal\orm\ObjectManager        $orm
+ * @var \equal\access\AccessController  $ac
+ */
 list($context, $orm, $ac) = [$providers['context'], $providers['orm'], $providers['access']];
 
 if( empty($params['ids']) ) {

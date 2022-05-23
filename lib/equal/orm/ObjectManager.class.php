@@ -1276,37 +1276,33 @@ class ObjectManager extends Service {
             // 5) second pass : handle onchange events, if any
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
-                // call each method only once for this class (several fields might trigger the same method)
-                $called_methods = [];
+                // store current state of object_methods map
+                // #memo - we want to call each method only once for current class (several fields might trigger the same method) and prevent recursion with the call() method
+                $object_methods_state = $this->object_methods;
+
                 // call methods associated with onchange events of related fields
                 foreach($onchange_fields as $field) {
                     try {
-                        // #todo - not sure of this: check if correct
-                        // if(!in_array($schema[$field]['onupdate'], $called_methods)) {
-                            // store current state of object_methods map (prevent recursion with the call() method)
-                            $object_methods_state = $this->object_methods;
 
-                            $updates = $this->call($class, $schema[$field]['onupdate'], $ids, $lang);
+                        $updates = $this->call($class, $schema[$field]['onupdate'], $ids, $lang);
 
-                            // restore global object_methods
-                            $this->object_methods = $object_methods_state;
-
-                            $called_methods[] = $schema[$field]['onupdate'];
-
-                            // if callback returned an array, update newly assigned values
-                            if($updates && count($updates)) {
-                                foreach($updates as $oid => $update) {
-                                    $this->cache[$table_name][$oid][$lang][$field] = $update;
-                                }
-                                $this->store($class, array_keys($updates), (array) $field, $lang);
+                        // if callback returned an array, update newly assigned values
+                        if($updates && count($updates)) {
+                            foreach($updates as $oid => $update) {
+                                $this->cache[$table_name][$oid][$lang][$field] = $update;
                             }
-                        // }
+                            $this->store($class, array_keys($updates), (array) $field, $lang);
+                        }
                     }
                     catch(Exception $e) {
                         // invalid schema : ignore onchange callback
                         trigger_error($e->getMessage(), E_USER_ERROR);
                     }
                 }
+
+                // restore global object_methods
+                $this->object_methods = $object_methods_state;
+
             }
 
         }
@@ -1457,19 +1453,21 @@ class ObjectManager extends Service {
                             $sub_class = $schema[$path_field]['foreign_object'];
                             $sub_ids = $values[$oid][$path_field];
                             $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                            if($field_type == 'many2one') {
-                                $odata = array_shift($sub_values);
-                                $res[$oid][$field] = $odata[$parts[1]];
-                            }
-                            else {
-                                $res[$oid][$field] = $sub_values;
+                            if($sub_values > 0) {
+                                if($field_type == 'many2one') {
+                                    $odata = reset($sub_values);
+                                    if($odata > 0) {
+                                        $res[$oid][$field] = $odata[$parts[1]];
+                                    }
+                                }
+                                else {
+                                    $res[$oid][$field] = $sub_values;
+                                }
                             }
                         }
                     }
                 }
-
             }
-
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);

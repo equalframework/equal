@@ -1504,6 +1504,8 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
+var _DateReference = __webpack_require__(/*! ./DateReference */ "./build/DateReference.js");
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -1676,7 +1678,8 @@ var Domain = /*#__PURE__*/function () {
 
   }, {
     key: "parse",
-    value: function parse(object) {
+    value: function parse() {
+      var object = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var user = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       var _iterator7 = _createForOfIteratorHelper(this.clauses),
@@ -1724,6 +1727,8 @@ var Domain = /*#__PURE__*/function () {
                   }
 
                   value = user[_target];
+                } else if (typeof value === 'string' && value.indexOf('date.') == 0) {
+                  value = new _DateReference.DateReference(value).getDate().toISOString();
                 }
 
               condition.value = value;
@@ -10183,6 +10188,8 @@ var _Layout2 = __webpack_require__(/*! ./Layout */ "./build/layouts/Layout.js");
 
 var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
 
+var _Domain = __webpack_require__(/*! ../Domain */ "./build/Domain.js");
+
 var _equalLib = __webpack_require__(/*! ../equal-lib */ "./build/equal-lib.js");
 
 var _auto = _interopRequireDefault(__webpack_require__(/*! chart.js/auto */ "./node_modules/chart.js/auto/auto.esm.js"));
@@ -10289,7 +10296,9 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
     key: "layout",
     value: function () {
       var _layout = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var view_schema, layout, config, $elem, result, CHART_COLORS, datasets, options;
+        var _this = this;
+
+        var view_schema, layout, config, parsed_datasets, $elem, result, CHART_COLORS, datasets, options;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -10306,6 +10315,22 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   range_from: 'date.this.year.first',
                   range_to: 'date.this.year.last'
                 }, layout);
+                parsed_datasets = layout.datasets.map(function (a, index) {
+                  var dataset = _objectSpread({
+                    label: 'label',
+                    operation: ['COUNT', 'object.id']
+                  }, a);
+
+                  if (a.hasOwnProperty('domain')) {
+                    var tmpDomain = new _Domain.Domain(a.domain);
+
+                    var user = _this.view.getUser();
+
+                    dataset.domain = tmpDomain.parse({}, user).toArray();
+                  }
+
+                  return dataset;
+                });
                 /*
                 // parse schema to get the operations (datasets), relative dates : range_from, range_tp
                 */
@@ -10314,9 +10339,8 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   "width": "100%",
                   "height": "100%"
                 });
-                this.$layout.append($elem); //    http://equal.local/?get=model_chart&entity=lodging\sale\booking\Booking&range_from=2022-03-01&range_to=2022-06-30&datasets=[{operation:[%22+%22,%20%22object.total_paid%22]}]
-
-                _context3.next = 8;
+                this.$layout.append($elem);
+                _context3.next = 9;
                 return _equalServices.ApiService.fetch('/', {
                   get: 'model_chart',
                   type: config.type,
@@ -10326,10 +10350,10 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   range_interval: config.range_interval,
                   range_from: new _equalLib.DateReference(config.range_from).getDate().toISOString(),
                   range_to: new _equalLib.DateReference(config.range_to).getDate().toISOString(),
-                  datasets: layout.datasets
+                  datasets: parsed_datasets
                 });
 
-              case 8:
+              case 9:
                 result = _context3.sent;
                 CHART_COLORS = ['rgb(75, 192, 192)', // green
                 'rgb(255, 99, 132)', // red
@@ -10386,7 +10410,7 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   });
                 });
 
-              case 12:
+              case 13:
               case "end":
                 return _context3.stop();
             }

@@ -57,6 +57,8 @@ class Message extends Model {
                 'default'           => ''
             ]
 
+            // #memo
+            // priority = age / 10 * weight
         ];
     }
 

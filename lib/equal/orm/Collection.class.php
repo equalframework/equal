@@ -192,7 +192,7 @@ class Collection implements \Iterator {
      * Provide the whole collection as a map (by default) or as an array.
      *
      * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
-     * @return  array       (associative) array holding objects converted to arrays (no Collection instances)
+     * @return  array       (Associative) array holding objects of the colletion. If $to_array is set to true, sub-collections are recursively converted to arrays as well. If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
@@ -269,7 +269,7 @@ class Collection implements \Iterator {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names and discard special fields; fields marked as readonly; and fields unknonwn to the current class.
+     * Filters a map of fields-values entries or an array of fields names and discard: special fields; fields marked as readonly; and fields unknonwn to the current class.
      *
      * @param   array   $fields             Associative array mapping field names with their values.
      * @param   bool    $check_readonly     If set to true, readonly fields are discarded.

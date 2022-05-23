@@ -25,11 +25,6 @@ $group = Group::create(['name' => 'test group'])->first();
 
 list($params, $providers) = announce([
     'description'   => "Create a new object using given fields values.",
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
@@ -46,6 +41,14 @@ list($params, $providers) = announce([
             'type'          => 'string',
             'default'       => DEFAULT_LANG
         ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'access' => [
+        'visibility'        => 'protected'
     ],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
