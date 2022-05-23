@@ -1276,15 +1276,16 @@ class ObjectManager extends Service {
             // 5) second pass : handle onchange events, if any
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onchange_fields)) {
-                // store current state of object_methods map
-                // #memo - we want to call each method only once for current class (several fields might trigger the same method) and prevent recursion with the call() method
-                $object_methods_state = $this->object_methods;
-
-                // call methods associated with onchange events of related fields
+                // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
                 foreach($onchange_fields as $field) {
                     try {
+                        // store current state of object_methods map, to prevent recursion with the call() method
+                        $object_methods_state = $this->object_methods;
 
                         $updates = $this->call($class, $schema[$field]['onupdate'], $ids, $lang);
+
+                        // restore global object_methods state
+                        $this->object_methods = $object_methods_state;
 
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
@@ -1299,10 +1300,6 @@ class ObjectManager extends Service {
                         trigger_error($e->getMessage(), E_USER_ERROR);
                     }
                 }
-
-                // restore global object_methods
-                $this->object_methods = $object_methods_state;
-
             }
 
         }
