@@ -394,7 +394,7 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // filter results using access controller... (reduce resulting ids based on access rights)
+            // filter results using access controller (reduce resulting ids based on access rights)
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
             // init keys of 'objects' member (so far, it is an empty array)
             $this->ids($ids);
