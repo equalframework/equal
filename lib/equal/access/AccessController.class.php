@@ -424,7 +424,7 @@ class AccessController extends Service {
 
         1) fetch regular ACL
         2) fetch ACL with a domain
-        either user has operation granted with its one of its ACL (or one of its groups)
+        either user has operation granted with one of its ACL (or one of its groups)
         or user is granted operation on specific objects (matching ACL domain)
 
         validate id as soon as an ACL condition is met
