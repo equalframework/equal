@@ -84,7 +84,12 @@ class Model {
         }
     }
 
-    // #memo - 'name' field is set in constructor if not defined in getColumns method
+    /**
+     * Return the static part of the schema (common to all objects).
+     * #memo - 'name' field is set in constructor if not defined in getColumns method
+     *
+     * @return array        Returns an associative array of the mandatory (system) fields.
+     */
     public final static function getSpecialColumns() {
         $special_columns = [
             'id' => [
@@ -210,16 +215,16 @@ class Model {
      * Returns a map of constraint items associating fields with validation functions.
      * This method is meant to be overridden by children classes.
      *
-     * Items should have the following structure : 
+     * Items should have following structure :
      *        'field_name' =>  [
      *            'error_id' => [
      *                'message'       => 'error message',
-     *                 'function'      => function ($field_new_value, $other_new_values) {
+     *                 'function'     => function ($field_new_value, $other_new_values) {
      *                     return (bool) $result;
      *                 }
      *             ]
      *            ]
-     * 
+     *
      */
     public static function getConstraints() {
         return [];
@@ -253,8 +258,6 @@ class Model {
         return $uniques;
     }
 
-
-
     /**
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
@@ -283,7 +286,7 @@ class Model {
      * @param  object   $om         ObjectManager instance.
      * @param  array    $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
      * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be created.
+     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
      */
     public static function cancreate($om, $values, $lang) {
         return [];
@@ -298,7 +301,7 @@ class Model {
      * @param  array    $oids       List of objects identifiers.
      * @param  array    $values     Associative array holding the new values to be assigned.
      * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
      */
     public static function canupdate($om, $oids, $values, $lang) {
         return [];
@@ -311,20 +314,19 @@ class Model {
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
-     * @param  string   $lang       Language in which multilang fields are being updated.
      * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
-    public static function canclone($om, $oids, $lang) {
+    public static function canclone($om, $oids) {
         return [];
     }
 
     /**
      * Check wether an object can be deleted.
      * This method can be overriden to define a more precise set of tests.
-     * 
+     *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be deleted.
+     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
      */
     public static function candelete($om, $oids) {
         return [];
@@ -332,34 +334,53 @@ class Model {
 
     /**
      * Hook invoked at object creation for performing object-specific additional operations.
-     * 
+     *
      * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
      * @param  array    $values     Associative array holding the new values to be assigned.
+     * @param  string   $lang       Language in which multilang fields are being created.
      */
     public static function oncreate($om, $values, $lang) {
     }
 
+    /**
+     * Hook invoked at object update for performing object-specific additional operations.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     * @param  array    $values     Associative array holding the new values to be assigned.
+     * @param  string   $lang       Language in which multilang fields are being updated.
+     */
     public static function onupdate($om, $oids, $values, $lang) {
     }
 
-    public static function onclone($om, $oids, $lang) {
+    /**
+     * Hook invoked at object cloning for performing object-specific additional operations.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     */
+    public static function onclone($om, $oids) {
     }
 
+    /**
+     * Hook invoked at object deletion for performing object-specific additional operations.
+     *
+     * @param  object   $om         ObjectManager instance.
+     * @param  array    $oids       List of objects identifiers.
+     */
     public static function ondelete($om, $oids) {
     }
-
 
     /**
      * Signature for single object values change.
      * This mehtod do not imply an actual update of the model, but a potential one and is intended for front-end only.
-     * 
+     *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
      * @param  array    $event      Associative array holding changed fields as keys, and their related new values.
      * @param  array    $values     Copy of the current (partial) state of the object.
      * @return array    Returns an associative array mapping fields with their resulting values.
-     */    
+     */
     public static function onchange($om, $event, $values, $lang) {
         return [];
     }
