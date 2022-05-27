@@ -51,19 +51,15 @@ class Permission extends Model {
             // virtual field, used in list views
             'rights_txt' => [
                 'type'              => 'computed', 
-                'store'             => true, 
                 'result_type'       => 'string', 
-                'function'          => 'calcRightsTxt'
+                'function'          => 'calcRightsTxt',
+                'store'             => true                
             ]
         ];
     }
 
-    public static function onupdateRights($om, $ids, $lang) {
-        // note : we are in the core namespace, so we don't need to specify it when referring to this class
-        $rights = self::calcRightsTxt($om, $ids, $lang);
-        foreach($ids as $oid) {
-            $om->write(__CLASS__, $oid, ['rights_txt' => $rights[$oid]], $lang);
-        } 
+    public static function onupdateRights($om, $ids, $values, $lang) {
+        $om->write(__CLASS__, $ids, ['rights_txt' => null], $lang);
     }
 
     public static function calcRightsTxt($om, $ids, $lang) {

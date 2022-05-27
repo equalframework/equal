@@ -79,7 +79,7 @@ class User extends Model {
      * @param   $ids    array   List of User objects identifiers
      * @param   $lang   string  Language for multilang fields
      */
-    public static function onupdatePassword($om, $ids, $lang) {
+    public static function onupdatePassword($om, $ids, $values, $lang) {
         $values = $om->read(__CLASS__, $ids, ['password']);
         foreach($values as $oid => $odata) {
             if(substr($odata['password'], 0, 4) != '$2y$') {

@@ -333,7 +333,7 @@ class Model {
     }
 
     /**
-     * Hook invoked at object creation for performing object-specific additional operations.
+     * Hook invoked after object creation for performing object-specific additional operations.
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $values     Associative array holding the new values to be assigned.
@@ -343,18 +343,18 @@ class Model {
     }
 
     /**
-     * Hook invoked at object update for performing object-specific additional operations.
+     * Hook invoked after object update for performing object-specific additional operations.
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
-     * @param  array    $values     Associative array holding the new values to be assigned.
+     * @param  array    $values     Associative array holding the new values that have been assigned.
      * @param  string   $lang       Language in which multilang fields are being updated.
      */
     public static function onupdate($om, $oids, $values, $lang) {
     }
 
     /**
-     * Hook invoked at object cloning for performing object-specific additional operations.
+     * Hook invoked after object cloning for performing object-specific additional operations.
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
@@ -363,7 +363,7 @@ class Model {
     }
 
     /**
-     * Hook invoked at object deletion for performing object-specific additional operations.
+     * Hook invoked after object deletion for performing object-specific additional operations.
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
