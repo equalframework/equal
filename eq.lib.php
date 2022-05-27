@@ -271,6 +271,9 @@ namespace config {
         }
     }
 
+    /** @var \equal\php\Context */
+    $last_context = null;
+
     class eQual {
 
         /**
@@ -342,6 +345,11 @@ namespace config {
                 throw new \Exception("autoload_register_failed", QN_REPORT_FATAL);
             }
 
+        }
+
+        public static function getLastContext() {
+            global $last_context;
+            return $last_context;
         }
 
         public static function inject(array $providers) {
@@ -697,13 +705,15 @@ namespace config {
          *
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
          * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
-         * @param array     $body           Payload to relay to the controller (associative array).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
+         * @param array     $body           Payload to relay to the controller (associative array mapping params with their values).
+         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked and their output is buffered).
          *
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
             trigger_error("QN_DEBUG_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            global $last_context;
+
             $result = '';
             $resolved = [
                 'type'      => $type,       // 'do', 'get' or 'show'
@@ -856,6 +866,7 @@ namespace config {
 
             // restore context
             if(!$root) {
+                $last_context = $context;
                 // restore original context
                 $container->set('context', $context_orig);
                 // restore container register
@@ -900,7 +911,7 @@ namespace config {
 
     }
 
-    //Initialize the eQual class for further 'load_class' calls
+    // Initialize the eQual class for further 'load_class' calls
     eQual::init();
 }
 namespace {
@@ -960,6 +971,10 @@ namespace {
 
         public static function inject(array $providers) {
             return config\eQual::inject($providers);
+        }
+
+        public static function get_last_context() {
+            return config\eQual::getLastContext();
         }
     }
 
