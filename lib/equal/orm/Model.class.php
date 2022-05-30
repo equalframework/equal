@@ -338,6 +338,7 @@ class Model {
      * @param  object   $om         ObjectManager instance.
      * @param  array    $values     Associative array holding the new values to be assigned.
      * @param  string   $lang       Language in which multilang fields are being created.
+     * @return void
      */
     public static function oncreate($om, $values, $lang) {
     }
@@ -349,6 +350,7 @@ class Model {
      * @param  array    $oids       List of objects identifiers.
      * @param  array    $values     Associative array holding the new values that have been assigned.
      * @param  string   $lang       Language in which multilang fields are being updated.
+     * @return void
      */
     public static function onupdate($om, $oids, $values, $lang) {
     }
@@ -358,6 +360,7 @@ class Model {
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
+     * @return void
      */
     public static function onclone($om, $oids) {
     }
@@ -367,6 +370,7 @@ class Model {
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
+     * @return void
      */
     public static function ondelete($om, $oids) {
     }
