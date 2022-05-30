@@ -129,15 +129,15 @@ class Setting extends Model {
         ];
     }
 
-    public static function onupdateCode($om, $ids, $lang) {
+    public static function onupdateCode($om, $ids, $values, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 
-    public static function onupdateSectionId($om, $ids, $lang) {
+    public static function onupdateSectionId($om, $ids, $values, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
     }
 
-    public static function onupdatePackage($om, $ids, $lang) {
+    public static function onupdatePackage($om, $ids, $values, $lang) {
         $om->write(__CLASS__, $ids, ['name' => null], $lang);
     }
 

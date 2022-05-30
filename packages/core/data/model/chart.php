@@ -163,26 +163,7 @@ $result = array_fill_keys(array_keys($results_map), []);
 
 foreach($datasets as $index => $dataset) {
     $operation = $dataset['operation'];
-    /*
-    if(!is_array($operation) && in_array($operation, ['SUM', 'AVG', 'COUNT', 'MIN', 'MAX'])) {
-        switch($operation) {
-            case 'SUM':
-                $operation = ['SUM', 'object.'.$field];
-                break;
-            case 'AVG':
-                $operation = ['AVG', 'object.'.$field];
-                break;
-            case 'COUNT':
-                $operation = ['COUNT', 'object.'.$field];
-                break;
-            case 'MIN':
-                $operation = ['MIN', 'object.'.$field];
-            case 'MAX':
-                $operation = ['MAX', 'object.'.$field];
-                break;
-        }
-    }
-    */
+    
     $op = new Operation($operation);
 
     $dom = new Domain($domain->toArray());

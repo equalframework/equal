@@ -253,7 +253,7 @@ class Collection implements \Iterator {
         }
         else {
             $ids = array_unique((array) $args[0]);
-            // #memo - filling the list with non-readable objects would raise a NOT_ALLOWED exception
+            // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception
             // #removed - filter resulting ids based on current user permissions
             /*
             foreach($ids as $i => $id) {
@@ -338,7 +338,9 @@ class Collection implements \Iterator {
         }
     }
 
-    /** */
+    /** 
+     * 
+     */
     public function grant($users_ids, $operation, $fields=[]) {
         // retrieve targeted identifiers
         $ids = array_keys($this->objects);
@@ -351,7 +353,9 @@ class Collection implements \Iterator {
         return $this;
     }
 
-    /** */
+    /** 
+     * 
+     */
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         $defaults = [
             'sort'  => ['id' => 'asc']
@@ -394,7 +398,7 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // filter results using access controller... (reduce resulting ids based on access rights)
+            // filter results using access controller (reduce resulting ids based on access rights)
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
             // init keys of 'objects' member (so far, it is an empty array)
             $this->ids($ids);
@@ -423,12 +427,6 @@ class Collection implements \Iterator {
         $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         // get full list of available fields
         $fields = array_keys($schema);
-
-        $canclone = $this->class::canclone($this->orm, $ids, $lang);
-        if(!empty($canclone)) {
-            // send error using the same format as the announce method
-            throw new \Exception(serialize($canclone), QN_ERROR_INVALID_PARAM);
-        }
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
@@ -514,12 +512,6 @@ class Collection implements \Iterator {
         $values = $this->filter($values, false);
         // retrieve targeted fields names
         $fields = array_keys($values);
-
-        $cancreate = $this->class::cancreate($this->orm, $values, $lang);
-        if(!empty($cancreate)) {
-            // send error using the same format as the announce method
-            throw new \Exception(serialize($cancreate), QN_ERROR_INVALID_PARAM);
-        }
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
@@ -679,12 +671,6 @@ class Collection implements \Iterator {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            $canupdate = $this->class::canupdate($this->orm, $ids, $values, $lang);
-            if(!empty($canupdate)) {
-                // send error using the same format as the announce method
-                throw new \Exception(serialize($canupdate), QN_ERROR_INVALID_PARAM);
-            }
-
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
@@ -696,7 +682,7 @@ class Collection implements \Iterator {
             // 3) validate : check unique keys and required fields
             $this->validate($values, $ids, true, $check_required);
 
-            // 4) write
+            // 4) update objects
             // by convention, update operation always sets object state as 'instance' and modifier as current user
             $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
             $res = $this->orm->write($this->class, $ids, $values, $lang);
@@ -725,17 +711,12 @@ class Collection implements \Iterator {
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
 
-            $candelete = $this->class::candelete($this->orm, $ids);
-            if(!empty($candelete)) {
-                throw new \Exception(serialize($candelete), QN_ERROR_INVALID_PARAM);
-            }
-
             // 2) check that current user has enough privilege to perform WRITE operation
             if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
                 throw new \Exception($user_id.';DELETE,'.$this->class.'['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
             }
 
-            // 3) delete
+            // 3) delete objects
             $res = $this->orm->remove($this->class, $ids, $permanent);
             if($res <= 0) {
                 throw new \Exception($this->class.'['.implode(',', $ids).']', $res);
@@ -749,7 +730,7 @@ class Collection implements \Iterator {
                 $this->logger->log($user_id, 'delete', $this->class, $oid);
             }
 
-            // 3) update current collection (remove all objects)
+            // 4) update current collection (remove all objects)
             $this->objects = [];
         }
         return $this;

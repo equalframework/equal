@@ -52,7 +52,7 @@ class DataValidator extends Service {
                 return [
                     'kind'  => 'function',
                     'rule'  => function($a, $o) {return (bool) (preg_match('/^tel:((\+[1-9]{2,3})|00)?[0-9]+$/', $a));}
-                ];    
+                ];
             case 'uri/url.mailto':
                 return [
                     'kind'  => 'function',
@@ -182,7 +182,7 @@ class DataValidator extends Service {
             }
             return [
                 'kind'  => 'function',
-                'rule'  => function($a, $o) use($precision, $scale) { 
+                'rule'  => function($a, $o) use($precision, $scale) {
                     if($scale > $precision) return false;
                     $integers = $precision - $scale;
                     return (preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $a));
@@ -252,13 +252,22 @@ class DataValidator extends Service {
             switch($constraint['kind']) {
             case 'type':
                 // fix alternate names to the expected value
-                foreach(['bool' => 'boolean', 'int' => 'integer', 'float' => 'double', 'text' => 'string'] as $key => $type) {
+                foreach([
+                    'bool'      => 'boolean',
+                    'int'       => 'integer',
+                    'float'     => 'double',
+                    'text'      => 'string',
+                    'binary'    => 'string',
+                    'many2one'  => 'integer',
+                    'one2many'  => 'array',
+                    'many2many' => 'array'
+                ] as $key => $type) {
                     if($constraint['rule'] == $key) {
                         $constraint['rule'] = $type;
                         break;
                     }
                 }
-                // $value type should be amongst elementary PHP types
+                // #todo - sync definitions from ObjectManager
                 if(!in_array($constraint['rule'], ['boolean', 'integer', 'double', 'string', 'date', 'datetime', 'array', 'file'])) {
                     throw new \Exception("Invalid type {$constraint['rule']}", QN_ERROR_INVALID_CONFIG);
                 }

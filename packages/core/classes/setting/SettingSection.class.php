@@ -49,7 +49,7 @@ class SettingSection extends Model {
         ];
     }
 
-    public static function onupdateCode($om, $ids, $lang) {
+    public static function onupdateCode($om, $ids, $values, $lang) {
         
         $sections = $om->read(__CLASS__, $ids, ['settings_ids'], $lang);
         if($sections > 0 && count($sections)) {

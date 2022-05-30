@@ -74,7 +74,7 @@ class Example extends Model {
         return $total;
     }
 
-    public static function onupdateTotalFloat($om, $oid, $lang) {
+    public static function onupdateTotalFloat($om, $oid, $values, $lang) {
         $om->update('test\Example', array($oid), [ 'total_float' => Example::calcTotalFloat($om, $oid, $lang) ], $lang);
     }
 

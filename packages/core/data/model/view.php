@@ -32,19 +32,14 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $entity = $params['entity'];
 
-$model = $orm->getModel($entity);
-
-if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
-}
-
-// retrieve existing view meant for entity or it
+// retrieve existing view meant for entity (recurse through parents)
 while(true) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
+    $file = array_pop($parts);    
     $class_path = implode('/', $parts);
     $parent = get_parent_class($entity);
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.json";
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$params['view_id']}.json";
     if(file_exists($file)) break;
     if(!$parent || $parent == 'equal\orm\Model') break;
     $entity = $parent;

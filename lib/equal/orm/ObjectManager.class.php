@@ -149,6 +149,9 @@ class ObjectManager extends Service {
         'phone'                     => 'varchar(20)'
     ];
 
+    /**
+     * @param DBConnection $db  Intance of the Service allowing connection to DBMS (connection might not be established yet).
+     */
     protected function __construct(DBConnection $db) {
         // make sure mandatory constants are defined
         if(!defined('EXPORT_FLAG') && function_exists('\config\export_config')) {
@@ -204,6 +207,11 @@ class ObjectManager extends Service {
         return "ObjectManager instance";
     }
 
+    /**
+     * Returns the list of installed packages, based on directories present in the /packages directory.
+     *
+     * @return string[]     Array of packages names (string).
+     */
     public function getPackages() {
         if(!$this->packages) {
             $this->packages = [];
@@ -226,7 +234,7 @@ class ObjectManager extends Service {
      *
      * @param   string       $class      The full name of the class with its namespace.
      * @throws  Exception
-     * @return  Object       Returns the array respresentation of the targeted (partial) instance.
+     * @return  Object       Returns a partial isntance of the targeted class.
      */
     private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
@@ -268,29 +276,31 @@ class ObjectManager extends Service {
     /**
      * Gets the name of the table associated to the specified class (required to convert namespace notation).
      *
-     * @param   string      $object_class   The full name of the class, with its namespace.
-     * @return  mixed(string|integer)       Returns the name of the table related to the Class or an error code.
+     * @param   string      $class          The full name of the class, with its namespace.
+     * @return  mixed(string|integer)       Returns the name of the table related to the Class, or an error code (integer) if class cannot be resolved.
      */
-    public function getObjectTableName($object_class) {
+    public function getObjectTableName($class) {
+        $result = '';
         try {
-            $object = $this->getStaticInstance($object_class);
+            $object = $this->getStaticInstance($class);
+            $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
             return $e->getCode();
         }
-        return strtolower($object->getTable());
+        return $result;
     }
 
     /**
      * Gets the filename containing the class definition of a class,
      * without package name, but including namespace path (required to convert namespace notation).
      *
-     * @param   string  $object_class  The full name of the entity with its namespace.
+     * @param   string  $class  The full name of the entity with its namespace.
      * @return  string  The path of the file holding the class definition, relative to the `<package>/class/` folder
      */
-    public static function getObjectClassFile($object_class) {
-        $parts = explode('\\', $object_class);
+    public static function getObjectClassFile($class) {
+        $parts = explode('\\', $class);
         array_shift($parts);
         return implode('/', $parts).'.class.php';
     }
@@ -298,10 +308,11 @@ class ObjectManager extends Service {
     /**
      * Retrieve the root parent class of a class.
      * If there are several level of inheritance, the method loops up until the first class that inherits from the Model interface (`equal\orm\Model`).
-     * @param   string  $object_class   The full name of the entity with its namespace.
+     *
+     * @param   string  $class   The full name of the entity with its namespace.
      */
-    public static function getObjectRootClass($object_class) {
-        $entity = $object_class;
+    public static function getObjectRootClass($class) {
+        $entity = $class;
         while(true) {
             $parent = get_parent_class($entity);
             if(!$parent || $parent == 'equal\orm\Model') break;
@@ -569,7 +580,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
 
-                        if($res = $this->call($class, $schema[$field]['function'], $ids, $lang)) {
+                        if($res = $this->call($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
@@ -703,7 +714,7 @@ class ObjectManager extends Service {
                         $type = $schema[$field]['type'];
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         // adapt values except for NULL of computed fields (marked as to be re-computed)
-                        if(!is_null($om->cache[$table_name][$oid][$lang][$field]) || $type != 'computed') {
+                        if(!is_null($value) || $type != 'computed') {
                             // support computed fields (handled as simple fields according to result type)
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
@@ -732,7 +743,7 @@ class ObjectManager extends Service {
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
                                 try {
-                                    $this->call($class, $schema[$field]['ondetach'], $ids, $lang);
+                                    $this->call($class, $schema[$field]['ondetach'], $ids, [], $lang, ['ids']);
                                 }
                                 catch(Exception $e) {
                                     switch($schema[$field]['ondetach']) {
@@ -845,9 +856,17 @@ class ObjectManager extends Service {
      * Invoke a callback from an object Class.
      * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
      * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle.
+     * 
+     * @param string    $class
+     * @param string    $method
+     * @param int[]     $ids
+     * @param array     $values
+     * @param array     $signature  List of parameters to relay to target method (required if differing from signatures conventions).
      */
-    public function call($class, $method, $ids, $lang=DEFAULT_LANG) {
+    public function call($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        $result = [];
+
         $called_class = $class;
         $called_method = $method;
 
@@ -876,10 +895,41 @@ class ObjectManager extends Service {
         $unprocessed_ids = array_diff($ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
-        $result = [];
-        if(count($unprocessed_ids)) {
-            $result = $called_class::$called_method($this, $unprocessed_ids, $lang);
+        // force signature for system methods
+        switch($called_method) {
+            case 'oncreate':
+            case 'cancreate':
+                $signature = ['values', 'lang'];
+                break;
+            case 'onupdate':
+            case 'canupdate':
+                $signature = ['ids', 'values', 'lang'];
+                break;
+            case 'onclone':
+            case 'canclone':
+            case 'ondelete':
+            case 'candelete':
+                $signature = ['ids'];
+                break;
         }
+
+        $params = [];
+        foreach($signature as $param) {
+            switch($param) {
+                case 'ids':
+                    $params[] = $unprocessed_ids;
+                    break;
+                case 'values':
+                    $params[] = $values;
+                    break;
+                case 'lang':
+                    $params[] = $lang;
+                    break;
+            }
+        }
+
+        $result = $called_class::$called_method($this, ...$params);
+
         return $result;
     }
 
@@ -1155,7 +1205,14 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 2) garbage collect: check for expired draft object
+            // 2) make sure objects in the collection can be updated
+
+            $cancreate = $this->call($class, 'cancreate', [], $fields, $lang);
+            if(!empty($cancreate)) {
+                throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
+            }
+
+            // 3) garbage collect: check for expired draft object
 
             // by default, request a new object ID
             $oid = 0;
@@ -1180,7 +1237,8 @@ class ObjectManager extends Service {
                 $oid = (int) $creation_array['id'];
             }
 
-            // 3) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
+            // 4) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
+
             $db->addRecords($table_name, array_keys($creation_array), [ array_values($creation_array) ]);
 
             if($oid <= 0) {
@@ -1191,13 +1249,18 @@ class ObjectManager extends Service {
             // in any case, we return the object id
             $res = $oid;
 
-            // 4) update new object with given fiels values, if any
+            // 5) update new object with given fiels values, if any
 
             // update creation array with actual object values (#memo - fields described as PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             $res_w = $this->write($class, $oid, $creation_array, $lang);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) $res = $res_w;
+
+
+            // call 'oncreate' hook
+            $this->call($class, 'oncreate', (array) $oid);
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -1223,23 +1286,27 @@ class ObjectManager extends Service {
         $this->getDBHandler();
 
         try {
-            // 1) do some pre-treatment
+            // 1) pre-processing - $ids sanitization
 
             // cast fields to an array (passing a single field is accepted)
-            if(!is_array($fields))    $fields = (array) $fields;
+            if(!is_array($fields)) {
+                $fields = (array) $fields;
+            }
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
-            if(empty($ids)) return $res;
+            if(empty($ids)) {
+                return $res;
+            }
             // ids that are left are the ones of the objects that will be writen
             $res = $ids;
+
+            // 2) pre-processing - $fields sanitization
+
             // get stattic instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
-
-            // 2) check $fields arg validity
-
             // prevent updating id field (reserved)
             if(isset($fields['id'])) unset($fields['id']);
             // remove unknown fields
@@ -1251,45 +1318,56 @@ class ObjectManager extends Service {
                     trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in {$fields} arg", QN_REPORT_WARNING);
                 }
             }
+
+
+            // 3) make sure objects in the collection can be updated
+
+            $canupdate = $this->call($class, 'canupdate', $ids, $fields, $lang);
+            if(!empty($canupdate)) {
+                throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
+            }
+
             // #memo - writing an object does not change its state, unless when explicitely set in $fields
             // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
             $fields['modified'] = time();
 
-            // 3) update internal buffer with given values
+            // 4) update objects
+
+            // update internal buffer with given values
             $schema = $object->getSchema();
-            $onchange_fields = array();
+            $onupdate_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onchange event
                     // (computed fields assigned to null are meant to be re-computed without triggering onchange)
                     if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
-                        $onchange_fields[] = $field;
+                        $onupdate_fields[] = $field;
                     }
+
                     // assign cache to object values
                     $this->cache[$table_name][$oid][$lang][$field] = $value;
                 }
             }
 
-            // 4) write selected fields to DB
+
+
+            // 5) write selected fields to DB
+
             $this->store($class, $ids, array_keys($fields), $lang);
 
-            // 5) second pass : handle onchange events, if any
+            // 6) second pass : handle onchange events, if any
+
             // #memo - this must be done after modifications otherwise object values might be outdated
-            if(count($onchange_fields)) {
+            if(count($onupdate_fields)) {
                 // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
 
                 // store current state of object_methods map, to prevent recursion with the call() method
                 $object_methods_state = $this->object_methods;
 
-                foreach($onchange_fields as $field) {
+                foreach($onupdate_fields as $field) {
                     try {
-                        // store current state of object_methods map, to prevent recursion with the call() method
-                        // $object_methods_state = $this->object_methods;
-
-                        $updates = $this->call($class, $schema[$field]['onupdate'], $ids, $lang);
-
-                        // restore global object_methods state
-                        // $this->object_methods = $object_methods_state;
+                        // run onupdate callback
+                        $updates = $this->call($class, $schema[$field]['onupdate'], $ids, [], $lang, ['ids', 'values', 'lang']);
 
                         // if callback returned an array, update newly assigned values
                         if($updates && count($updates)) {
@@ -1309,6 +1387,9 @@ class ObjectManager extends Service {
                 $this->object_methods = $object_methods_state;
 
             }
+
+            // call 'onupdate' hook
+            $this->call($class, 'onupdate', $ids, $fields, $lang);
 
         }
         catch(Exception $e) {
@@ -1338,15 +1419,12 @@ class ObjectManager extends Service {
 
         try {
 
-            // 1) do some pre-treatment
+            // 1) pre-processing: $ids sanitization
 
             // get static instance (check that given class exists)
             $object = $this->getStaticInstance($class);
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
-            // cast fields to an array (passing a single field is accepted)
-            // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
-            if(!is_array($fields)) $fields = (array) $fields;
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
@@ -1354,11 +1432,14 @@ class ObjectManager extends Service {
             // init resulting array
             foreach($ids as $oid) $res[$oid] = [];
 
-            // 2) check $fields arg validity
+            // 2) pre-processing: $fields sanitization
 
             $schema = $object->getSchema();
             $requested_fields = [];
             $dot_fields = [];
+            // cast fields to an array (passing a single field is accepted)
+            // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
+            if(!is_array($fields)) $fields = (array) $fields;
             // check fields validity
             foreach($fields as $key => $field) {
                 // handle fields with 'dot' notation
@@ -1382,7 +1463,10 @@ class ObjectManager extends Service {
                 }
             }
 
+            // #memo - there is no canread(), since it would be redundant with access::isAllowed()
+
             // 3) check among requested fields wich ones are not yet present in the internal buffer
+
             if(count($requested_fields)) {
                 // if internal buffer is empty, query the DB to load all fields from requested objects
                 if(empty($this->cache) || !isset($this->cache[$table_name])) {
@@ -1409,6 +1493,7 @@ class ObjectManager extends Service {
                 }
 
                 // 4) build result by reading from internal buffer
+
                 foreach($ids as $oid) {
                     if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
                         trigger_error("QN_DEBUG_ORM::unknown or empty object $class($oid)", QN_REPORT_WARNING);
@@ -1499,21 +1584,27 @@ class ObjectManager extends Service {
 
         try {
 
-            // 1) do some pre-treatment
+            // 1) pre-processing
+
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
             // ids that are left are the ones of the objects that will be (marked as) deleted
             $res = $ids;
-
-            // 2) remove object
+            // retrieve required info
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
 
-            // call 'ondelete' hook
-            $this->call($class, 'ondelete', $ids);
+            // 2) make sure objects in the collection can be deleted
+
+            $candelete = $this->call($class, 'candelete', $ids, []);
+            if(!empty($candelete)) {
+                throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
+            }
+
+            // 3) remove object
 
             // soft deletion
             if (!$permanent) {
@@ -1521,7 +1612,7 @@ class ObjectManager extends Service {
             }
             // hard deletion
             else {
-                // 3) cascade deletions / relations updates
+                // 3 bis) cascade deletions / relations updates
                 foreach($schema as $field => $def) {
                     if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
                         switch($def['type']) {
@@ -1579,6 +1670,10 @@ class ObjectManager extends Service {
                 // delete targeted objects
                 $db->deleteRecords($table_name, $ids);
             }
+
+            // call 'ondelete' hook
+            $this->call($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -1588,6 +1683,8 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Create a recursive copy of an object.
+     * This method does not check unique constrainsts. If creation fails, it returns an arror code.
      *
      * @param   string    $class    Class name of the object to clone.
      * @param   integer   $id       Unique identifier of the object to clone.
@@ -1596,12 +1693,18 @@ class ObjectManager extends Service {
      *
      * @return  int|array  Error code OR resulting associative array.
      */
+    // #todo - use same signature than other CRUD
     public function clone($class, $id, $values=[], $lang=DEFAULT_LANG, $parent_field='') {
         $res = 0;
 
         try {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
+
+            $canclone = $this->call($class, 'canclone', (array) $id);
+            if(!empty($canclone)) {
+                throw new \Exception(serialize($canclone), QN_ERROR_NOT_ALLOWED);
+            }
 
             // read full object
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
@@ -1659,6 +1762,10 @@ class ObjectManager extends Service {
                     }
                 }
             }
+
+            // call 'onclone' hook
+            $this->call($class, 'onclone', (array) $id);
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);

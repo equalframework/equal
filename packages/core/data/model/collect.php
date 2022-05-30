@@ -66,6 +66,34 @@ list($params, $providers) = announce([
  */
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
+
+// handle controller entities
+$parts = explode('\\', $params['entity']);
+$file = array_pop($parts);
+if(ctype_lower(substr($file, 0, 1))) {
+    $package = array_shift($parts);
+    $path = implode('/', $parts);
+    
+    if(!file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
+        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    }
+
+    $operation = str_replace('\\', '_', $params['entity']);
+    $data = eQual::run('get', $operation, ['announce' => true]);
+    $fields = $data['announcement']['params'];
+
+    $fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
+    $object = array_merge(['id' => 0], array_fill_keys($fields, null));
+
+    // provide an empty collection
+    $context->httpResponse()
+            ->header('X-Total-Count', 1)
+            ->body([$object])
+            ->send();    
+    exit();
+}
+
+
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
