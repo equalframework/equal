@@ -136,7 +136,7 @@ class Model {
     }
 
     /**
-     * Gets Model readable name.
+     * Get Model readable name.
      * This method is meant to be overridden by children classes.
      *
      * @access public
@@ -146,9 +146,15 @@ class Model {
         return 'Model';
     }
 
+    /**
+     * Get the URL associated to the class, to browse to the main form of a single object.
+     */
+    public static function getLink() {
+        return '';
+    }
 
     /**
-     * Gets Model description.
+     * Get Model description.
      * This method is meant to be overridden by children classes.
      *
      * @access public
@@ -159,7 +165,7 @@ class Model {
     }
 
     /**
-     * Gets object schema
+     * Get object schema
      *
      * @access public
      * @return array
@@ -376,8 +382,8 @@ class Model {
     }
 
     /**
-     * Signature for single object values change.
-     * This mehtod do not imply an actual update of the model, but a potential one and is intended for front-end only.
+     * Signature for single object values change in UI.
+     * This mehtod does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
      *
      * @param  object   $om         ObjectManager instance.
      * @param  array    $oids       List of objects identifiers.
