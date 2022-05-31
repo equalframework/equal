@@ -459,72 +459,63 @@ var _ApiService = /*#__PURE__*/function () {
       }());
     }
   }, {
+    key: "call",
+    value: function call(route) {
+      var body = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return new Promise( /*#__PURE__*/function () {
+        var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(resolve, reject) {
+          var environment, xhr, params;
+          return _regenerator.default.wrap(function _callee7$(_context7) {
+            while (1) {
+              switch (_context7.prev = _context7.next) {
+                case 0:
+                  _context7.prev = 0;
+                  _context7.next = 3;
+                  return _equalServices.EnvService.getEnv();
+
+                case 3:
+                  environment = _context7.sent;
+                  xhr = new XMLHttpRequest();
+                  xhr.open('POST', environment.backend_url + route, true);
+                  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                  params = jQuery.param(body);
+                  xhr.withCredentials = true;
+                  xhr.send(params);
+
+                  xhr.onload = function () {
+                    if (xhr.status < 200 || xhr.status > 299) {
+                      reject(xhr.response);
+                    } else {
+                      resolve(xhr.response);
+                    }
+                  };
+
+                  _context7.next = 16;
+                  break;
+
+                case 13:
+                  _context7.prev = 13;
+                  _context7.t0 = _context7["catch"](0);
+                  reject(_context7.t0);
+
+                case 16:
+                case "end":
+                  return _context7.stop();
+              }
+            }
+          }, _callee7, null, [[0, 13]]);
+        }));
+
+        return function (_x7, _x8) {
+          return _ref2.apply(this, arguments);
+        };
+      }());
+    }
+  }, {
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity) {
         var fields,
-            result,
-            environment,
-            params,
-            response,
-            _args7 = arguments;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                fields = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : {};
-                _context7.prev = 1;
-                _context7.next = 4;
-                return _equalServices.EnvService.getEnv();
-
-              case 4:
-                environment = _context7.sent;
-                params = {
-                  entity: entity,
-                  fields: fields,
-                  lang: environment.lang
-                };
-                _context7.next = 8;
-                return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?do=model_create',
-                  dataType: 'json',
-                  data: params,
-                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
-                });
-
-              case 8:
-                response = _context7.sent;
-                result = response;
-                _context7.next = 15;
-                break;
-
-              case 12:
-                _context7.prev = 12;
-                _context7.t0 = _context7["catch"](1);
-                throw _context7.t0.responseJSON;
-
-              case 15:
-                return _context7.abrupt("return", result);
-
-              case 16:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee7, null, [[1, 12]]);
-      }));
-
-      function create(_x7) {
-        return _create.apply(this, arguments);
-      }
-
-      return create;
-    }()
-  }, {
-    key: "read",
-    value: function () {
-      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, ids, fields) {
-        var lang,
             result,
             environment,
             params,
@@ -534,7 +525,7 @@ var _ApiService = /*#__PURE__*/function () {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
-                lang = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : '';
+                fields = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : {};
                 _context8.prev = 1;
                 _context8.next = 4;
                 return _equalServices.EnvService.getEnv();
@@ -543,13 +534,12 @@ var _ApiService = /*#__PURE__*/function () {
                 environment = _context8.sent;
                 params = {
                   entity: entity,
-                  ids: ids,
                   fields: fields,
-                  lang: lang.length ? lang : environment.lang
+                  lang: environment.lang
                 };
                 _context8.next = 8;
                 return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?get=model_read',
+                  url: environment.backend_url + '/?do=model_create',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -577,17 +567,17 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee8, null, [[1, 12]]);
       }));
 
-      function read(_x8, _x9, _x10) {
-        return _read.apply(this, arguments);
+      function create(_x9) {
+        return _create.apply(this, arguments);
       }
 
-      return read;
+      return create;
     }()
   }, {
-    key: "delete",
+    key: "read",
     value: function () {
-      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids) {
-        var permanent,
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids, fields) {
+        var lang,
             result,
             environment,
             params,
@@ -597,7 +587,7 @@ var _ApiService = /*#__PURE__*/function () {
           while (1) {
             switch (_context9.prev = _context9.next) {
               case 0:
-                permanent = _args9.length > 2 && _args9[2] !== undefined ? _args9[2] : false;
+                lang = _args9.length > 3 && _args9[3] !== undefined ? _args9[3] : '';
                 _context9.prev = 1;
                 _context9.next = 4;
                 return _equalServices.EnvService.getEnv();
@@ -607,11 +597,12 @@ var _ApiService = /*#__PURE__*/function () {
                 params = {
                   entity: entity,
                   ids: ids,
-                  permanent: permanent
+                  fields: fields,
+                  lang: lang.length ? lang : environment.lang
                 };
                 _context9.next = 8;
                 return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?do=model_delete',
+                  url: environment.backend_url + '/?get=model_read',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -639,7 +630,69 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee9, null, [[1, 12]]);
       }));
 
-      function _delete(_x11, _x12) {
+      function read(_x10, _x11, _x12) {
+        return _read.apply(this, arguments);
+      }
+
+      return read;
+    }()
+  }, {
+    key: "delete",
+    value: function () {
+      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, ids) {
+        var permanent,
+            result,
+            environment,
+            params,
+            response,
+            _args10 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                permanent = _args10.length > 2 && _args10[2] !== undefined ? _args10[2] : false;
+                _context10.prev = 1;
+                _context10.next = 4;
+                return _equalServices.EnvService.getEnv();
+
+              case 4:
+                environment = _context10.sent;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  permanent: permanent
+                };
+                _context10.next = 8;
+                return _jqueryLib.$.get({
+                  url: environment.backend_url + '/?do=model_delete',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 8:
+                response = _context10.sent;
+                result = response;
+                _context10.next = 15;
+                break;
+
+              case 12:
+                _context10.prev = 12;
+                _context10.t0 = _context10["catch"](1);
+                throw _context10.t0.responseJSON;
+
+              case 15:
+                return _context10.abrupt("return", result);
+
+              case 16:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, null, [[1, 12]]);
+      }));
+
+      function _delete(_x13, _x14) {
         return _delete2.apply(this, arguments);
       }
 
@@ -648,23 +701,23 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "archive",
     value: function () {
-      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, ids) {
+      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, ids) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                _context10.prev = 0;
-                _context10.next = 3;
+                _context11.prev = 0;
+                _context11.next = 3;
                 return _equalServices.EnvService.getEnv();
 
               case 3:
-                environment = _context10.sent;
+                environment = _context11.sent;
                 params = {
                   entity: entity,
                   ids: ids
                 };
-                _context10.next = 7;
+                _context11.next = 7;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?do=model_archive',
                   dataType: 'json',
@@ -673,28 +726,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 7:
-                response = _context10.sent;
+                response = _context11.sent;
                 result = response;
-                _context10.next = 14;
+                _context11.next = 14;
                 break;
 
               case 11:
-                _context10.prev = 11;
-                _context10.t0 = _context10["catch"](0);
-                throw _context10.t0.responseJSON;
+                _context11.prev = 11;
+                _context11.t0 = _context11["catch"](0);
+                throw _context11.t0.responseJSON;
 
               case 14:
-                return _context10.abrupt("return", result);
+                return _context11.abrupt("return", result);
 
               case 15:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, null, [[0, 11]]);
+        }, _callee11, null, [[0, 11]]);
       }));
 
-      function archive(_x13, _x14) {
+      function archive(_x15, _x16) {
         return _archive.apply(this, arguments);
       }
 
@@ -712,28 +765,28 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function () {
-      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, ids, fields) {
+      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(entity, ids, fields) {
         var force,
             lang,
             result,
             environment,
             params,
             response,
-            _args11 = arguments;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+            _args12 = arguments;
+        return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
-                force = _args11.length > 3 && _args11[3] !== undefined ? _args11[3] : false;
-                lang = _args11.length > 4 && _args11[4] !== undefined ? _args11[4] : '';
+                force = _args12.length > 3 && _args12[3] !== undefined ? _args12[3] : false;
+                lang = _args12.length > 4 && _args12[4] !== undefined ? _args12[4] : '';
                 console.log('ApiService::update', entity, ids, fields);
                 result = true;
-                _context11.prev = 4;
-                _context11.next = 7;
+                _context12.prev = 4;
+                _context12.next = 7;
                 return _equalServices.EnvService.getEnv();
 
               case 7:
-                environment = _context11.sent;
+                environment = _context12.sent;
                 params = {
                   entity: entity,
                   ids: ids,
@@ -741,7 +794,7 @@ var _ApiService = /*#__PURE__*/function () {
                   lang: lang.length ? lang : environment.lang,
                   force: force
                 };
-                _context11.next = 11;
+                _context12.next = 11;
                 return _jqueryLib.$.post({
                   url: environment.backend_url + '/?do=model_update',
                   dataType: 'json',
@@ -750,28 +803,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 11:
-                response = _context11.sent;
+                response = _context12.sent;
                 result = response;
-                _context11.next = 18;
+                _context12.next = 18;
                 break;
 
               case 15:
-                _context11.prev = 15;
-                _context11.t0 = _context11["catch"](4);
-                throw _context11.t0.responseJSON;
+                _context12.prev = 15;
+                _context12.t0 = _context12["catch"](4);
+                throw _context12.t0.responseJSON;
 
               case 18:
-                return _context11.abrupt("return", result);
+                return _context12.abrupt("return", result);
 
               case 19:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, null, [[4, 15]]);
+        }, _callee12, null, [[4, 15]]);
       }));
 
-      function update(_x15, _x16, _x17) {
+      function update(_x17, _x18, _x19) {
         return _update.apply(this, arguments);
       }
 
@@ -780,24 +833,24 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "clone",
     value: function () {
-      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(entity, ids) {
+      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(entity, ids) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee12$(_context12) {
+        return _regenerator.default.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
-                _context12.prev = 0;
-                _context12.next = 3;
+                _context13.prev = 0;
+                _context13.next = 3;
                 return _equalServices.EnvService.getEnv();
 
               case 3:
-                environment = _context12.sent;
+                environment = _context13.sent;
                 params = {
                   entity: entity,
                   ids: ids,
                   lang: environment.lang
                 };
-                _context12.next = 7;
+                _context13.next = 7;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?do=model_clone',
                   dataType: 'json',
@@ -806,28 +859,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 7:
-                response = _context12.sent;
+                response = _context13.sent;
                 result = response;
-                _context12.next = 14;
+                _context13.next = 14;
                 break;
 
               case 11:
-                _context12.prev = 11;
-                _context12.t0 = _context12["catch"](0);
-                throw _context12.t0.responseJSON;
+                _context13.prev = 11;
+                _context13.t0 = _context13["catch"](0);
+                throw _context13.t0.responseJSON;
 
               case 14:
-                return _context12.abrupt("return", result);
+                return _context13.abrupt("return", result);
 
               case 15:
               case "end":
-                return _context12.stop();
+                return _context13.stop();
             }
           }
-        }, _callee12, null, [[0, 11]]);
+        }, _callee13, null, [[0, 11]]);
       }));
 
-      function clone(_x18, _x19) {
+      function clone(_x20, _x21) {
         return _clone.apply(this, arguments);
       }
 
@@ -850,7 +903,7 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(entity, domain, fields, order, sort, start, limit) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(entity, domain, fields, order, sort, start, limit) {
         var _this5 = this;
 
         var lang,
@@ -858,20 +911,20 @@ var _ApiService = /*#__PURE__*/function () {
             environment,
             params,
             response,
-            _args13 = arguments;
-        return _regenerator.default.wrap(function _callee13$(_context13) {
+            _args14 = arguments;
+        return _regenerator.default.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
-                lang = _args13.length > 7 && _args13[7] !== undefined ? _args13[7] : '';
+                lang = _args14.length > 7 && _args14[7] !== undefined ? _args14[7] : '';
                 console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit);
                 result = [];
-                _context13.prev = 3;
-                _context13.next = 6;
+                _context14.prev = 3;
+                _context14.next = 6;
                 return _equalServices.EnvService.getEnv();
 
               case 6:
-                environment = _context13.sent;
+                environment = _context14.sent;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -882,7 +935,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context13.next = 10;
+                _context14.next = 10;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?get=model_collect',
                   dataType: 'json',
@@ -893,28 +946,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 10:
-                response = _context13.sent;
+                response = _context14.sent;
                 result = response;
-                _context13.next = 17;
+                _context14.next = 17;
                 break;
 
               case 14:
-                _context13.prev = 14;
-                _context13.t0 = _context13["catch"](3);
-                throw _context13.t0.responseJSON;
+                _context14.prev = 14;
+                _context14.t0 = _context14["catch"](3);
+                throw _context14.t0.responseJSON;
 
               case 17:
-                return _context13.abrupt("return", result);
+                return _context14.abrupt("return", result);
 
               case 18:
               case "end":
-                return _context13.stop();
+                return _context14.stop();
             }
           }
-        }, _callee13, null, [[3, 14]]);
+        }, _callee14, null, [[3, 14]]);
       }));
 
-      function collect(_x20, _x21, _x22, _x23, _x24, _x25, _x26) {
+      function collect(_x22, _x23, _x24, _x25, _x26, _x27, _x28) {
         return _collect.apply(this, arguments);
       }
 
@@ -935,19 +988,19 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "search",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(entity, domain, order, sort, start, limit) {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(entity, domain, order, sort, start, limit) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee14$(_context14) {
+        return _regenerator.default.wrap(function _callee15$(_context15) {
           while (1) {
-            switch (_context14.prev = _context14.next) {
+            switch (_context15.prev = _context15.next) {
               case 0:
                 result = [];
-                _context14.prev = 1;
-                _context14.next = 4;
+                _context15.prev = 1;
+                _context15.next = 4;
                 return _equalServices.EnvService.getEnv();
 
               case 4:
-                environment = _context14.sent;
+                environment = _context15.sent;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -956,7 +1009,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context14.next = 8;
+                _context15.next = 8;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?get=model_search',
                   dataType: 'json',
@@ -965,29 +1018,29 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 8:
-                response = _context14.sent;
+                response = _context15.sent;
                 // reponse should be an array of ids
                 result = response;
-                _context14.next = 15;
+                _context15.next = 15;
                 break;
 
               case 12:
-                _context14.prev = 12;
-                _context14.t0 = _context14["catch"](1);
-                throw _context14.t0.responseJSON;
+                _context15.prev = 12;
+                _context15.t0 = _context15["catch"](1);
+                throw _context15.t0.responseJSON;
 
               case 15:
-                return _context14.abrupt("return", result);
+                return _context15.abrupt("return", result);
 
               case 16:
               case "end":
-                return _context14.stop();
+                return _context15.stop();
             }
           }
-        }, _callee14, null, [[1, 12]]);
+        }, _callee15, null, [[1, 12]]);
       }));
 
-      function search(_x27, _x28, _x29, _x30, _x31, _x32) {
+      function search(_x29, _x30, _x31, _x32, _x33, _x34) {
         return _search.apply(this, arguments);
       }
 
@@ -5616,17 +5669,22 @@ var View = /*#__PURE__*/function () {
 
 
                 if (this.view_schema.hasOwnProperty("filters")) {
-                  _iterator = _createForOfIteratorHelper(this.view_schema.filters);
+                  if (Array.isArray(this.view_schema.filters)) {
+                    _iterator = _createForOfIteratorHelper(this.view_schema.filters);
 
-                  try {
-                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                      item = _step.value;
-                      this.filters[item.id] = item;
+                    try {
+                      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                        item = _step.value;
+                        this.filters[item.id] = item;
+                      }
+                    } catch (err) {
+                      _iterator.e(err);
+                    } finally {
+                      _iterator.f();
                     }
-                  } catch (err) {
-                    _iterator.e(err);
-                  } finally {
-                    _iterator.f();
+                  } else {
+                    // 'filters' is set and is not an array (expected to be false)
+                    this.config.show_filter = false;
                   }
                 } // override of default controller
 
@@ -6680,7 +6738,7 @@ var View = /*#__PURE__*/function () {
       } // append additional option for custom filter
 
 
-      if (this.filters.length) {
+      if (Object.keys(this.filters).length) {
         _materialLib.UIHelper.createListDivider().appendTo($filters_list);
       }
 
@@ -6786,26 +6844,29 @@ var View = /*#__PURE__*/function () {
 
         _this2.onchangeView();
       });
-      $level2.append($filters_button);
-      $level2.append($filters_search);
-      $level2.append($filters_set);
-      $level2.append($pagination);
-      $level2.append($fields_toggle_button); // show pre-applied filters (@see init())
 
-      var _iterator10 = _createForOfIteratorHelper(this.applied_filters_ids),
-          _step10;
+      if (this.config.show_filter) {
+        $level2.append($filters_button);
+        $level2.append($filters_search);
+        $level2.append($filters_set); // show pre-applied filters (@see init())
 
-      try {
-        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-          var _filter_id = _step10.value;
-          this.showFilter(_filter_id);
+        var _iterator10 = _createForOfIteratorHelper(this.applied_filters_ids),
+            _step10;
+
+        try {
+          for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+            var _filter_id = _step10.value;
+            this.showFilter(_filter_id);
+          }
+        } catch (err) {
+          _iterator10.e(err);
+        } finally {
+          _iterator10.f();
         }
-      } catch (err) {
-        _iterator10.e(err);
-      } finally {
-        _iterator10.f();
       }
 
+      $level2.append($pagination);
+      $level2.append($fields_toggle_button);
       this.$headerContainer.append($elem);
     }
     /**
@@ -10252,6 +10313,7 @@ var Layout = /*#__PURE__*/function () {
                     while (1) {
                       switch (_context2.prev = _context2.next) {
                         case 0:
+                          _context2.prev = 0;
                           console.log("click action button ", object); // mark action button as loading
 
                           $button.addClass('mdc-button--spinner').attr('disabled', 'disabled');
@@ -10275,13 +10337,13 @@ var Layout = /*#__PURE__*/function () {
                           } // 2) retrieve announcement from the target action controller
 
 
-                          _context2.next = 10;
+                          _context2.next = 11;
                           return _equalServices.ApiService.fetch("/", {
                             do: action.controller,
                             announce: true
                           });
 
-                        case 10:
+                        case 11:
                           result = _context2.sent;
                           params = {};
                           response_descr = {};
@@ -10310,10 +10372,10 @@ var Layout = /*#__PURE__*/function () {
                           } // 3) retrieve translation related to action, if any
 
 
-                          _context2.next = 17;
+                          _context2.next = 18;
                           return _equalServices.ApiService.getTranslation(action.controller.replaceAll('_', '\\'), _this3.view.getLocale());
 
-                        case 17:
+                        case 18:
                           translation = _context2.sent;
                           // restore action button
                           $button.removeClass('mdc-button--spinner').removeAttr('disabled'); // check presence of description and fallback to controller description
@@ -10335,21 +10397,21 @@ var Layout = /*#__PURE__*/function () {
                           $description = (0, _jqueryLib.$)('<p />').text(description);
 
                           if (!(action.hasOwnProperty('confirm') && action.confirm)) {
-                            _context2.next = 42;
+                            _context2.next = 43;
                             break;
                           }
 
                           if (!Object.keys(missing_params).length) {
-                            _context2.next = 35;
+                            _context2.next = 36;
                             break;
                           }
 
                           $dialog = _materialLib.UIHelper.createDialog(_this3.view.getUUID() + '_' + action.id + '_custom_action_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_PROVIDE_PARAMS'), _equalServices.TranslationService.instant('SB_DIALOG_SEND'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
                           $dialog.find('.mdc-dialog__content').append($description);
-                          _context2.next = 30;
+                          _context2.next = 31;
                           return _this3.decorateViewActionDialog($dialog, action, missing_params);
 
-                        case 30:
+                        case 31:
                           $dialog.addClass('sb-view-dialog').appendTo(_this3.view.getContainer());
                           $dialog.on('_accept', function () {
                             return defer.resolve($dialog.data('result'));
@@ -10357,10 +10419,10 @@ var Layout = /*#__PURE__*/function () {
                             return defer.reject();
                           });
                           $dialog.trigger('_open');
-                          _context2.next = 40;
+                          _context2.next = 41;
                           break;
 
-                        case 35:
+                        case 36:
                           // display confirmation dialog with checkbox for archive
                           _$dialog = _materialLib.UIHelper.createDialog(_this3.view.getUUID() + '_' + action.id + '_confirm-action-dialog', _equalServices.TranslationService.instant('SB_ACTIONS_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
 
@@ -10376,13 +10438,13 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog.trigger('_open');
 
-                        case 40:
-                          _context2.next = 53;
+                        case 41:
+                          _context2.next = 54;
                           break;
 
-                        case 42:
+                        case 43:
                           if (!Object.keys(missing_params).length) {
-                            _context2.next = 52;
+                            _context2.next = 53;
                             break;
                           }
 
@@ -10390,10 +10452,10 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog2.find('.mdc-dialog__content').append($description);
 
-                          _context2.next = 47;
+                          _context2.next = 48;
                           return _this3.decorateViewActionDialog(_$dialog2, action, missing_params);
 
-                        case 47:
+                        case 48:
                           _$dialog2.addClass('sb-view-dialog').appendTo(_this3.view.getContainer());
 
                           _$dialog2.on('_accept', function () {
@@ -10404,13 +10466,13 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog2.trigger('_open');
 
-                          _context2.next = 53;
+                          _context2.next = 54;
                           break;
 
-                        case 52:
+                        case 53:
                           defer.resolve();
 
-                        case 53:
+                        case 54:
                           defer.promise().then( /*#__PURE__*/function () {
                             var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(result) {
                               return _regenerator.default.wrap(function _callee$(_context) {
@@ -10438,13 +10500,24 @@ var Layout = /*#__PURE__*/function () {
                               return _ref2.apply(this, arguments);
                             };
                           }());
+                          _context2.next = 63;
+                          break;
 
-                        case 54:
+                        case 57:
+                          _context2.prev = 57;
+                          _context2.t0 = _context2["catch"](0);
+                          console.log('unknown error', _context2.t0); // restore action button
+
+                          $button.removeClass('mdc-button--spinner').removeAttr('disabled');
+                          _context2.next = 63;
+                          return _this3.view.displayErrorFeedback(_this3.view.getTranslation(), _context2.t0);
+
+                        case 63:
                         case "end":
                           return _context2.stop();
                       }
                     }
-                  }, _callee2);
+                  }, _callee2, null, [[0, 57]]);
                 })));
 
               case 2:
@@ -10586,20 +10659,21 @@ var Layout = /*#__PURE__*/function () {
                 return this.view.onchangeView();
 
               case 11:
-                _context5.next = 19;
+                _context5.next = 20;
                 break;
 
               case 13:
                 _context5.prev = 13;
                 _context5.t0 = _context5["catch"](2);
-                _context5.next = 17;
+                console.log('################# error', _context5.t0);
+                _context5.next = 18;
                 return this.view.updatedContext();
 
-              case 17:
-                _context5.next = 19;
+              case 18:
+                _context5.next = 20;
                 return this.view.displayErrorFeedback(translation, _context5.t0);
 
-              case 19:
+              case 20:
               case "end":
                 return _context5.stop();
             }
@@ -10787,7 +10861,8 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   range_interval: 'month',
                   range_from: 'date.this.year.first',
                   range_to: 'date.this.year.last'
-                }, layout);
+                }, layout); // parse schema to get the operations (datasets), relative dates : range_from, range_to
+
                 parsed_datasets = layout.datasets.map(function (a, index) {
                   var dataset = _objectSpread({
                     label: 'label',
@@ -10804,13 +10879,10 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
 
                   return dataset;
                 });
-                /*
-                // parse schema to get the operations (datasets), relative dates : range_from, range_tp
-                */
-
                 $elem = (0, _jqueryLib.$)('<canvas/>').css({
                   "width": "100%",
-                  "height": "100%"
+                  "height": "calc(100% - 20px)",
+                  "margin-top": "20px"
                 });
                 this.$layout.append($elem);
                 _context3.next = 9;
@@ -11721,19 +11793,24 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                             console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
 
                             values = {};
-                            values[field] = widget.getValue(); // relay the change to back-end through onupdate
+                            values[field] = widget.getValue(); // if value is less than 1k, relay onchange to server
+                            // #todo - choose an objective limit
 
-                            _context3.prev = 4;
-                            _context3.next = 7;
-                            return _equalServices.ApiService.fetch("/", {
-                              do: 'model_onchange',
+                            if (!(String(widget.getValue()).length < 1000)) {
+                              _context3.next = 15;
+                              break;
+                            }
+
+                            _context3.prev = 5;
+                            _context3.next = 8;
+                            return _equalServices.ApiService.call("/?do=model_onchange", {
                               entity: _this2.view.getEntity(),
                               changes: _this2.view.getModel().export(values),
                               values: _this2.view.getModel().export(object),
                               lang: _this2.view.getLang()
                             });
 
-                          case 7:
+                          case 8:
                             result = _context3.sent;
 
                             for (_i3 = 0, _Object$keys2 = Object.keys(result); _i3 < _Object$keys2.length; _i3++) {
@@ -11742,24 +11819,24 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                               values[_field] = result[_field];
                             }
 
-                            _context3.next = 14;
+                            _context3.next = 15;
                             break;
 
-                          case 11:
-                            _context3.prev = 11;
-                            _context3.t0 = _context3["catch"](4);
+                          case 12:
+                            _context3.prev = 12;
+                            _context3.t0 = _context3["catch"](5);
                             // ignore faulty responses
                             console.warn('unable to send onupdate request', _context3.t0);
 
-                          case 14:
+                          case 15:
                             _this2.view.onchangeViewModel([object.id], values, refresh);
 
-                          case 15:
+                          case 16:
                           case "end":
                             return _context3.stop();
                         }
                       }
-                    }, _callee3, null, [[4, 11]]);
+                    }, _callee3, null, [[5, 12]]);
                   }));
 
                   return function (_x) {

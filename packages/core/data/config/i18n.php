@@ -31,18 +31,22 @@ list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 $entity = $params['entity'];
 $parents = [];
 
-// retrieve parents cascade
-while(true) {
-    $parent = get_parent_class($entity);
-    if(!$parent) break;
-    if($parent == 'equal\orm\Model') {
-        // simulate Model class to be part of core package (to fallback to related translation files)
-        $parents[] = 'core\Model';
+// for non-controller entities, retrieve parents hierarchy
+$parts = explode('\\', $params['entity']);
+$file = array_pop($parts);
+if(!ctype_lower(substr($file, 0, 1))) {    
+    while(true) {
+        $parent = get_parent_class($entity);
+        if(!$parent) break;
+        if($parent == 'equal\orm\Model') {
+            // simulate Model class to be part of core package (to fallback to related translation files)
+            $parents[] = 'core\Model';
+        }
+        else {
+            $parents[] = $parent;
+        }
+        $entity = $parent;
     }
-    else {
-        $parents[] = $parent;
-    }
-    $entity = $parent;
 }
 
 $parents[] = $params['entity'];

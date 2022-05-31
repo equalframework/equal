@@ -114,6 +114,7 @@ class DataAdapter extends Service {
                 // string times are expected to be ISO 8601 formatted times (hh:mm:ss)
                 'txt'   => [
                     'php' =>    function ($value) {
+                                    // valid even if seconds are missing
                                     list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
                                     return ($hour * 3600) + ($minute * 60) + $second;
                                 }
