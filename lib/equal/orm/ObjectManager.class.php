@@ -743,7 +743,7 @@ class ObjectManager extends Service {
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
                                 try {
-                                    $this->call($class, $schema[$field]['ondetach'], $ids, [], $lang, ['ids']);
+                                    $this->callonce($class, $schema[$field]['ondetach'], $ids, [], $lang, ['ids']);
                                 }
                                 catch(Exception $e) {
                                     switch($schema[$field]['ondetach']) {
@@ -856,13 +856,70 @@ class ObjectManager extends Service {
      * Invoke a callback from an object Class.
      * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
      * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle.
-     * 
+     *
      * @param string    $class
      * @param string    $method
      * @param int[]     $ids
      * @param array     $values
-     * @param array     $signature  List of parameters to relay to target method (required if differing from signatures conventions).
+     * @param array     $signature  List of parameters to relay to target method (required if differing from default).
      */
+    public function callonce($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        $result = [];
+
+        $called_class = $class;
+        $called_method = $method;
+
+        $parts = explode('::', $method);
+        $count = count($parts);
+
+        if( $count < 1 || $count > 2 ) {
+          throw new Exception("ObjectManager::call: invalid args ($method, $class)");
+        }
+
+        if( $count == 2 ) {
+          $called_class = $parts[0];
+          $called_method = $parts[1];
+        }
+
+        if(!method_exists($called_class, $called_method)) {
+          throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+        }
+
+        $first_call = false;
+
+        // init object_method map if necessary
+        if(!isset($this->object_methods[$called_class][$called_method])) {
+            $this->object_methods[$called_class][$called_method] = [];
+            $first_call = true;
+        }
+
+        // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
+        $processed_ids = $this->object_methods[$called_class][$called_method];
+        $unprocessed_ids = array_diff($ids, $processed_ids);
+        $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
+
+        $params = [];
+        foreach($signature as $param) {
+            switch($param) {
+                case 'ids':     $params[] = $unprocessed_ids;
+                    break;
+                case 'values':  $params[] = $values;
+                    break;
+                case 'lang':    $params[] = $lang;
+                    break;
+            }
+        }
+
+        if( (in_array('ids', $signature) && count($unprocessed_ids) > 0)
+         || (in_array('values', $signature) && $first_call) ) {
+            $called_class::$called_method($this, ...$params);
+        }
+
+        return $result;
+    }
+
+
     public function call($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
@@ -886,44 +943,14 @@ class ObjectManager extends Service {
           throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
-        // init object_method map if necessary
-        if(!isset($this->object_methods[$called_class][$called_method])) {
-            $this->object_methods[$called_class][$called_method] = [];
-        }
-        // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
-        $processed_ids = $this->object_methods[$called_class][$called_method];
-        $unprocessed_ids = array_diff($ids, $processed_ids);
-        $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
-
-        // force signature for system methods
-        switch($called_method) {
-            case 'oncreate':
-            case 'cancreate':
-                $signature = ['values', 'lang'];
-                break;
-            case 'onupdate':
-            case 'canupdate':
-                $signature = ['ids', 'values', 'lang'];
-                break;
-            case 'onclone':
-            case 'canclone':
-            case 'ondelete':
-            case 'candelete':
-                $signature = ['ids'];
-                break;
-        }
-
         $params = [];
         foreach($signature as $param) {
             switch($param) {
-                case 'ids':
-                    $params[] = $unprocessed_ids;
+                case 'ids':     $params[] = $ids;
                     break;
-                case 'values':
-                    $params[] = $values;
+                case 'values':  $params[] = $values;
                     break;
-                case 'lang':
-                    $params[] = $lang;
+                case 'lang':    $params[] = $lang;
                     break;
             }
         }
@@ -1207,7 +1234,7 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be updated
 
-            $cancreate = $this->call($class, 'cancreate', [], $fields, $lang);
+            $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $object::getSpecialColumns()), $lang, ['values', 'lang']);
             if(!empty($cancreate)) {
                 throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
             }
@@ -1251,15 +1278,16 @@ class ObjectManager extends Service {
 
             // 5) update new object with given fiels values, if any
 
-            // update creation array with actual object values (#memo - fields described as PHP values, not SQL)
+            // build creation array with actual object values (#memo - fields described as PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
-            $res_w = $this->write($class, $oid, $creation_array, $lang);
+            // request an object update (mark call as 'from_create')
+            $res_w = $this->write($class, $oid, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) $res = $res_w;
 
 
             // call 'oncreate' hook
-            $this->call($class, 'oncreate', (array) $oid);
+            $this->callonce($class, 'oncreate', (array) $oid, [], $lang, ['values', 'lang']);
 
         }
         catch(Exception $e) {
@@ -1276,10 +1304,11 @@ class ObjectManager extends Service {
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
+     * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
      *
      * @return  int|array Error code OR array of updated ids.
      */
-    public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG) {
+    public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG, $create=false) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
@@ -1319,12 +1348,14 @@ class ObjectManager extends Service {
                 }
             }
 
-
             // 3) make sure objects in the collection can be updated
 
-            $canupdate = $this->call($class, 'canupdate', $ids, $fields, $lang);
-            if(!empty($canupdate)) {
-                throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
+            // if current call results from an object creation, the cancreate hook prevails on canupdate, so we ignore the later
+            if(!$create) {
+                $canupdate = $this->call($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang, ['ids', 'values', 'lang']);
+                if(!empty($canupdate)) {
+                    throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
+                }
             }
 
             // #memo - writing an object does not change its state, unless when explicitely set in $fields
@@ -1367,15 +1398,7 @@ class ObjectManager extends Service {
                 foreach($onupdate_fields as $field) {
                     try {
                         // run onupdate callback
-                        $updates = $this->call($class, $schema[$field]['onupdate'], $ids, [], $lang, ['ids', 'values', 'lang']);
-
-                        // if callback returned an array, update newly assigned values
-                        if($updates && count($updates)) {
-                            foreach($updates as $oid => $update) {
-                                $this->cache[$table_name][$oid][$lang][$field] = $update;
-                            }
-                            $this->store($class, array_keys($updates), (array) $field, $lang);
-                        }
+                        $this->callonce($class, $schema[$field]['onupdate'], $ids, [], $lang, ['ids', 'values', 'lang']);
                     }
                     catch(Exception $e) {
                         // invalid schema : ignore onchange callback
@@ -1389,7 +1412,7 @@ class ObjectManager extends Service {
             }
 
             // call 'onupdate' hook
-            $this->call($class, 'onupdate', $ids, $fields, $lang);
+            $this->callonce($class, 'onupdate', $ids, $fields, $lang, ['ids', 'values', 'lang']);
 
         }
         catch(Exception $e) {
@@ -1599,7 +1622,7 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be deleted
 
-            $candelete = $this->call($class, 'candelete', $ids, []);
+            $candelete = $this->call($class, 'candelete', $ids, [], DEFAULT_LANG, ['ids']);
             if(!empty($candelete)) {
                 throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
             }
@@ -1639,7 +1662,7 @@ class ObjectManager extends Service {
                                 // call ondelete method when defined (to allow cascade deletion)
                                 if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
                                     try {
-                                        $this->call($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
+                                        $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], DEFAULT_LANG, ['ids']);
                                     }
                                     catch(Exception $e) {
                                         switch($rel_schema[$def['foreign_field']]['ondelete']) {
@@ -1672,7 +1695,7 @@ class ObjectManager extends Service {
             }
 
             // call 'ondelete' hook
-            $this->call($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
+            $this->callonce($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
 
         }
         catch(Exception $e) {
@@ -1701,7 +1724,7 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
 
-            $canclone = $this->call($class, 'canclone', (array) $id);
+            $canclone = $this->call($class, 'canclone', (array) $id, [], $lang, ['ids']);
             if(!empty($canclone)) {
                 throw new \Exception(serialize($canclone), QN_ERROR_NOT_ALLOWED);
             }
@@ -1764,7 +1787,7 @@ class ObjectManager extends Service {
             }
 
             // call 'onclone' hook
-            $this->call($class, 'onclone', (array) $id);
+            $this->callonce($class, 'onclone', (array) $id, [], $lang, ['ids']);
 
         }
         catch(Exception $e) {
