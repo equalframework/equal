@@ -90,6 +90,143 @@ class Domain {
         return $this;
     }
 
+
+    /**
+     * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.
+     *
+     * @param values
+     * @returns Domain  Returns current instance with updated values.
+     */
+    public function parse($object = [], $user = []) {
+        foreach($this->clauses as $clause) {
+            foreach($clause->conditions as $condition) {
+                // adapt value according to its syntax ('user.' or 'object.')
+                $value = $condition->value;
+
+                // handle object references as `value` part
+                if(is_string($value) && strpos($value, 'object.') == 0 ) {
+                    $target = substr($value, 0, strlen('object.'));
+                    if(!$object || !isset($object[$target])) {
+                        continue;
+                    }
+                    $tmp = $object[$target];
+                    // target points to an object with subfields
+                    if(is_array($tmp)) {
+                        if($tmp['id']) {
+                            $value = $tmp['id'];
+                        }
+                        else if(isset($tmp['name'])) {
+                            $value = $tmp['name'];
+                        }
+                        else {
+                            continue;
+                        }
+                    }
+                    else {
+                        $value = $object[$target];
+                    }
+                }
+                // handle user references as `value` part
+                else if(is_string($value) && strpos($value, 'user.') == 0) {
+                    $target = substr($value, 0, strlen('user.'));
+                    if(!$user || !isset($user[$target])) {
+                        continue;
+                    }
+                    $value = $user[$target];
+                }
+                else if(is_string($value) && strpos($value, 'date.') == 0) {
+                    // #todo
+                    // $value = (new DateReference($value)).getDate().toISOString();
+                }
+
+                $condition->value = $value;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Evaluate domain for a given object.
+     * Object structure has to comply with the operands mentionned in the conditions of the domain. If no, related conditions are ignored (skipped).
+     *
+     * @param object
+     * @return boolean Return true if the object matches the domain, false otherwise.
+     */
+    public function evaluate($object) {
+        $res = false;
+        if(count($this->clauses) == 0) {
+            return true;
+        }
+        // parse any reference to object in conditions
+        $this->parse($object);
+        // evaluate clauses (OR) and conditions (AND)
+        foreach($this->clauses as $clause) {
+            $c_res = true;
+            foreach($clause->conditions as $condition) {
+
+                if(!isset($object[$condition->operand])) {
+                    continue;
+                }
+
+                $operand = $object[$condition->operand];
+                $operator = $condition->operator;
+                $value = $condition->value;
+
+                $cc_res = false;
+
+                // handle special cases
+                if($operator == '=') {
+                    $operator = '==';
+                }
+                else if($operator == '<>') {
+                    $operator = '!=';
+                }
+
+                if($operator == 'is' && is_numeric($value)) {
+                    $operator = '==';
+                }
+
+                if($operator == 'is') {
+                    if( $value === true ) {
+                        $cc_res = $operand;
+                    }
+                    else if( in_array($value, [false, null, 'null', 'empty']) ) {
+                        $cc_res = ( in_array($operand, ['', false, null]) || (is_array($operand) && !count($operand)) );
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else if($operator == 'in') {
+                    if(!is_array($value)) {
+                        continue;
+                    }
+                    $cc_res = in_array($operand, $value);
+                }
+                else if($operator == 'not in') {
+                    if(!is_array($value)) {
+                        continue;
+                    }
+                    $cc_res = !in_array($operand, $value);
+                }
+                else if($operator == 'like') {
+                    $cc_res = strpos($operand, str_replace('%', '', $value));
+                }
+                else if($operator == 'ilike') {
+                    $cc_res = stripos($operand, str_replace('%', '', $value));
+                }
+                else {
+                    $c_condition = "return ( '".$operand."' ".$operator." '".$value."');";
+                    $cc_res = eval($c_condition);
+                }
+                $c_res = $c_res && $cc_res;
+            }
+            $res = $res || $c_res;
+        }
+        return $res;
+    }
+
+
     /*
     * Domain checks and operations.
     * a domain should always be composed of a serie of clauses against which a OR test is made
