@@ -31,7 +31,7 @@
         },
         "list.default": {
             "name": "Liste des valeurs de paramètres",
-            "description": "Cette vue est destinée à afficher la liste des valeurs des paramètres."
+            "description": "Liste des valeurs des paramètres."
         }
     },
     "error": {

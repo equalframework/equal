@@ -26,6 +26,16 @@ list($params, $providers) = announce([
             'type'          => 'array',
             'default'       => []
         ],
+        'controller' => [
+            'description'   => 'Data controller to use to retrieve objects to print.',
+            'type'          => 'string',
+            'default'       => 'core_model_collect'
+        ],
+        'params' => [
+            'description'   => 'Additional params to relay to the data controller.',
+            'type'          => 'array',
+            'default'       => []
+        ],
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
@@ -38,15 +48,14 @@ list($params, $providers) = announce([
     'response'      => [
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'adapt']
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
- * @var \equal\data\DataAdapter     $adapter
  */
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm) = [$providers['context'], $providers['orm']];
 
 
 // retrieve target entity
@@ -79,20 +88,13 @@ if(!isset($data['layout']['items'])) {
 }
 
 $view_schema = $data;
-$group_by = $view_schema['group_by'];
+$group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
 
-$fields = [];
-$widths = [];
-// colspan for rows with single column (group)
-$colspan = 1;
-$default_width = round(100.0 / count($view_schema['layout']['items']), 2);
+$view_fields = [];
 
-// compute columns widths, from layout
 foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
-        $field = $item['value'];
-        $widths[$field] = isset($item['width'])?intval($item['width']):$default_width;
-        $fields[] = $field;
+        $view_fields[] = $item;
     }
 }
 
@@ -101,19 +103,42 @@ foreach($view_schema['layout']['items'] as $item) {
     Read targeted objects
 */
 
-// copy original array holding fields names
-$fields_to_read = $fields;
+$fields_to_read = [];
 
 // adapt fields to force retrieving name for m2o fields
-foreach($fields_to_read as $index => $field) {
+foreach($view_fields as $item) {
+    $field =  $item['value'];
     $descr = $schema[$field];
     if($descr['type'] == 'many2one') {
-        unset($fields_to_read[$index]);
         $fields_to_read[$field] = ['id', 'name'];
+    }
+    else {
+        $fields_to_read[] = $field;
     }
 }
 
-$values = $params['entity']::search($params['domain'])->read($fields_to_read)->get();
+if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
+    $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
+    $start = (isset($params['params']['start']))?$params['params']['start']:0;
+    $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+    $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+    $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+}
+else {
+    $body = [
+            'entity'    => $params['entity'],
+            'domain'    => $params['domain'],
+            'fields'    => [],
+            'limit'     => 25,
+            'lang'      => $params['lang']
+        ] + $params['params'];
+    // retrieve objects collection using the target controller
+    $data = eQual::run('get', $params['controller'], $body);
+    // extract objects ids
+    $objects_ids = array_map(function ($a) { return $a['id']; }, $data);
+    // retrieve objects required fields
+    $values = $params['entity']::ids($objects_ids)->read($fields_to_read)->get();
+}
 
 
 /*
@@ -131,15 +156,30 @@ $i18n = json_decode($json, true);
 $translations = [];
 if(!isset($i18n['errors']) && isset($i18n['model'])) {
     foreach($i18n['model'] as $field => $descr) {
-        $translations[$field] = $descr['label'];
+        $translations[$field] = $descr;
     }
 }
 
 // retrieve view title
 $view_title = $view_schema['name'];
+$view_legend = $view_schema['description'];
 if(isset($i18n['view'][$params['view_id']])) {
     $view_title = $i18n['view'][$params['view_id']]['name'];
+    $view_legend = $i18n['view'][$params['view_id']]['description'];
 }
+
+
+/*
+    Fetch settings
+*/
+
+$settings = [
+    'date_format'       => Setting::get_value('core', 'locale', 'date_format', 'm/d/Y'),
+    'time_format'       => Setting::get_value('core', 'locale', 'time_format', 'H:i'),
+    'format_currency'   => function($a) { return Setting::format_number_currency($a); }
+];
+
+
 /*
     Generate HTML
 */
@@ -168,18 +208,22 @@ $css = "
     table, tr, td {
         border-spacing:0;
     }
-    th, td { 
+    th, td {
         vertical-align: top;
         border-left: 0;
         border-right: 1px solid #aaa;
         border-top: 0;
-        border-bottom: 1px solid #aaa;    
+        border-bottom: 1px solid #aaa;
     }
     td {
         padding: 0px 5px;
+        text-align: left;
     }
     td.center {
         text-align: center;
+    }
+    td.right {
+        text-align: right;
     }
     tr.sb-group-row td {
         font-weight: bold;
@@ -196,49 +240,43 @@ $head = $html->appendChild($doc->createElement('head'));
 $head->appendChild($doc->createElement('style', $css));
 $body = $html->appendChild($doc->createElement('body'));
 $table = $body->appendChild($doc->createElement('table'));
-$row_h = $table->appendChild($doc->createElement('tr'));
-
-foreach($fields as $field) {
-    $width = $widths[$field];
-    if($width > 0) {
-        $name = isset($translations[$field])?$translations[$field]:$field;
-        $cell = $row_h->appendChild($doc->createElement('th', $name));
-        $cell->setAttribute('width', $widths[$field].'%');
-        ++$colspan;
-    }
-}
 
 
-$groups = [];
+// 1) create head row
 
+$row = createHeaderRow($doc, $view_fields, $translations);
+$table->appendChild($row);
+
+
+// 2) generate table lines (with group_by support)
+
+// create initial stack of goups / objects
 $stack = [$values];
-if(isset($group_by) && count($group_by)) {
+if(count($group_by)) {
     $groups = groupObjects($schema, $values, $group_by);
     $stack = [$groups];
 }
-
-
 while(true) {
     if(count($stack) == 0) break;
 
     $elem = array_pop($stack);
     $first = reset($elem);
 
-    if(is_array($elem) && isset($first['id'])) { 
+    if(is_array($elem) && isset($first['id'])) {
         // group is an array of objects: render a row for each object
         foreach($elem as $object) {
-            $row = createObjectRow($doc, $object, $view_schema['layout']['items'], $schema, $adapter);
+            $row = createObjectRow($doc, $object, $view_fields, $translations, $schema, $settings);
             $table->appendChild($row);
         }
 
         // #todo - if operations are defined, add a line for each group
     }
     else if(isset($elem['_is_group'])) {
-        $row = createGroupRow($doc, $elem, $colspan);
+        $row = createGroupRow($doc, $elem, $view_fields, $translations);
         $table->appendChild($row);
     }
     else {
-        // #memo - keys must be strings        
+        // #memo - keys must be strings
         $keys = array_keys($elem);
         sort($keys);
         $keys = array_reverse( $keys );
@@ -256,9 +294,19 @@ while(true) {
     }
 }
 
+// 3) handle 'operations' propoerty, if set
+// #todo 
+
 $html = $doc->saveHTML();
 
+/*
+$context->httpResponse()
+        ->header('Content-Type', 'text/html')
+        ->body($html)
+        ->send();
 
+die();
+*/
 
 /*
     Generate PDF content
@@ -275,10 +323,10 @@ $dompdf->render();
 
 $canvas = $dompdf->getCanvas();
 $font = $dompdf->getFontMetrics()->getFont("helvetica", "regular");
-$canvas->page_text(560, $canvas->get_height() - 35, "{PAGE_NUM} / {PAGE_COUNT}", $font, 9, array(0,0,0));
-$canvas->page_text(40, $canvas->get_height() - 35, "Export", $font, 9, array(0,0,0));
+$canvas->page_text(550, $canvas->get_height() - 35, "{PAGE_NUM} / {PAGE_COUNT}", $font, 9, array(0,0,0));
+$canvas->page_text(30, $canvas->get_height() - 35, "Export - ".$view_legend, $font, 9, array(0,0,0));
 
-$canvas->page_text(40, 30, $view_title, $font, 14, array(0,0,0));
+$canvas->page_text(30, 30, $view_title, $font, 14, array(0,0,0));
 
 /*
     Output PDF envelope
@@ -300,7 +348,6 @@ $context->httpResponse()
  * @param array $group_by   Descriptor of the fields grouping
  */
 function groupObjects($schema, $objects, $group_by) {
-
     $groups = [];
 
     // group objects
@@ -309,7 +356,7 @@ function groupObjects($schema, $objects, $group_by) {
         $parent = &$groups;
         $parent_id = '';
 
-        for($i = 0; $i < $n; ++$i) {            
+        for($i = 0; $i < $n; ++$i) {
             $group = $group_by[$i];
             $field = $group;
 
@@ -383,56 +430,102 @@ function getElementByAttributeValue($doc, $tagname, $attrname, $value) {
     return null;
 }
 
-function createObjectRow($doc, $object, $items, $schema, $adapter) {
-
+function createHeaderRow($doc, &$view_items, &$translations) {
     $row = $doc->createElement('tr');
-
-    // for each field, create a widget, append to a cell, and append cell to row
-    foreach($items as $item) {
+    $default_width = round(100.0 / count($view_items), 2);
+    foreach($view_items as $item) {
         $field = $item['value'];
-        $width = intval($item['width']);
+        $width = (isset($item['width']))?intval($item['width']):$default_width;
+        if($width <= 0) {
+            continue;
+        }
+        $name = isset($translations[$field])?$translations[$field]['label']:$field;
+        $cell = $row->appendChild($doc->createElement('th', htmlspecialchars($name)));
+        $cell->setAttribute('width', $width.'%');
+    }
+    return $row;
+}
+
+function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, &$settings) {
+    $row = $doc->createElement('tr');
+    $default_width = round(100.0 / count($view_items), 2);
+    // for each field, create a widget, append to a cell, and append cell to row
+    foreach($view_items as $item) {
+        $field = $item['value'];
+        $width = (isset($item['width']))?intval($item['width']):$default_width;    
         if($width <= 0) continue;
 
         $value = $object[$field];
 
-        $date_format = Setting::get_value('core', 'locale', 'date_format', 'm/d/Y');
-        $time_format = Setting::get_value('core', 'locale', 'time_format', 'H:i');        
+        $type = $schema[$field]['type'];
+        // #todo - handle 'alias'
+        if($type == 'computed') {
+            $type = $schema[$field]['result_type'];
+        }
+
+        $usage = (isset($schema[$field]['usage']))?$schema[$field]['usage']:'';
+        $align = 'left';
 
         // for relational fields, we need to check if the Model has been fetched
-        if(in_array($schema[$field]['type'], ['one2many', 'many2one', 'many2many'])) {
+        if(in_array($type, ['one2many', 'many2one', 'many2many'])) {
             // by convention, `name` subfield is always loaded for relational fields
-            if($schema[$field]['type'] == 'many2one' && isset($value['name'])) {
+            if($type == 'many2one' && isset($value['name'])) {
                 $value = $value['name'];
             }
             else {
                 $value = "...";
             }
+            if(is_numeric($value)) {
+                $align = 'right';
+            }
         }
-        else if($schema[$field]['type'] == 'date') {
-            $value = date($date_format, $value);
+        else if($type == 'date') {
+            $align = 'center';
+            $value = date($settings['date_format'], $value);
         }
-        else if($schema[$field]['type'] == 'time') {
-            $value = date($time_format, strtotime('today') + $value);
+        else if($type == 'time') {
+            $align = 'center';
+            $value = date($settings['time_format'], strtotime('today') + $value);
         }
-        else if($schema[$field]['type'] == 'datetime') {
-            $value = date($date_format.' '.$time_format, $value);
+        else if($type == 'datetime') {
+            $align = 'center';
+            $value = date($settings['date_format'].' '.$settings['time_format'], $value);
         }
         else {
-            // adapt from php to txt
-            $value = $adapter->adapt($value, $schema[$field]['type'], 'txt', 'php');
+            if($type == 'string') {
+                $align = 'center';
+            }
+            else {
+                if(strpos($usage, 'amount/money') === 0) {
+                    $align = 'right';
+                    $value = $settings['format_currency']($value);
+                }
+                if(is_numeric($value)) {
+                    $align = 'right';
+                }                
+            }
         }
 
         // handle html content
-        if($schema[$field]['type'] == 'string') {
+        if($type == 'string' && strlen($value) && $usage == 'text/html') {
+            $align = 'left';
             $elem = $doc->createDocumentFragment();
             $elem->appendXML($value);
-            
+
             $cell = $doc->createElement('td');
             $cell->appendChild($elem);
         }
         else {
-            $cell = $doc->createElement('td', $value);
+            // translate 'select' values
+            if($type == 'string' && isset($schema[$field]['selection'])) {
+                if(isset($translations[$field]) && isset($translations[$field]['selection'])) {
+                    $value = $translations[$field]['selection'][$value];
+                }
+            }
+            $cell = $doc->createElement('td', htmlspecialchars($value));
         }
+
+        $cell->setAttribute('class', $align);
 
         $row->appendChild($cell);
     }
@@ -440,7 +533,7 @@ function createObjectRow($doc, $object, $items, $schema, $adapter) {
     return $row;
 }
 
-function createGroupRow($doc, $group, $colspan) {
+function createGroupRow($doc, $group, &$view_items, &$translations) {
 
     $label = $group['_label'];
     $prefix = '';
@@ -469,7 +562,7 @@ function createGroupRow($doc, $group, $colspan) {
                 if(isset($obj[$op_field])) {
                     switch($op_type) {
                         case 'SUM':
-                            $op_result += $obj[$op_field];                        
+                            $op_result += $obj[$op_field];
                             break;
                         case 'COUNT':
                             $op_result += 1;
@@ -487,7 +580,7 @@ function createGroupRow($doc, $group, $colspan) {
         }
         else {
             $suffix = ' ('.$children_count.')';
-        }            
+        }
     }
     else {
         // sum children groups
@@ -499,9 +592,9 @@ function createGroupRow($doc, $group, $colspan) {
 
     $cell = $doc->createElement('td', $prefix.$label.$suffix);
     $cell->setAttribute('title', $prefix.$label);
-    
-    $cell->setAttribute('colspan', $colspan);
+
+    $cell->setAttribute('colspan', count($view_items));
     $row->appendChild($cell);
-    
+
     return $row;
 }
