@@ -395,6 +395,24 @@ namespace config {
 
             $reporter->debug("method $method");
 
+            // normalize $announcement array
+            if(!isset($announcement['params'])) $announcement['params'] = array();
+
+
+            if(isset($announcement['extends']))  {
+                // retrieve params from parent controller
+                $op_descr = $context->get('operation');
+                try {
+                    $data = \eQual::run($op_descr['type'], $announcement['extends'], ['announce' => true], false);
+                    if(!is_null($data) && isset($data['announcement']['params'])) {
+                        $announcement['params'] = array_merge($data['announcement']['params'], $announcement['params']);
+                    }
+                }
+                catch(\Exception $e) {
+                    // ignore errors (non existing controller ?)
+                }
+            }
+
             // set response headers
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
@@ -518,7 +536,7 @@ namespace config {
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
                     $current_user_id = $auth->userId();
-                    if($current_user_id != ROOT_USER_ID) {                    
+                    if($current_user_id != ROOT_USER_ID) {
                         // #todo - add support for checks on login
                         $allowed = false;
                         $users = (array) $announcement['access']['users'];
@@ -552,8 +570,6 @@ namespace config {
                 }
             }
 
-            // normalize $announcement array
-            if(!isset($announcement['params'])) $announcement['params'] = array();
 
             // 1) check if all required parameters have been received
 
