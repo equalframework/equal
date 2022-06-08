@@ -17,59 +17,59 @@ namespace equal\data;
 class DataFormatter {
 
 
-  public static function format($value, $usage, $locale=DEFAULT_LANG) {
-    switch($usage) {
-      case 'phone':
-        return self::format_phone($value);
-      case 'uri/urn.iban':
-      case 'iban':
-        return self::format_iban($value);
-      case 'bic':
-        return self::format_bic($value);
-      case 'scor':
-        return self::format_scor($value);
+    public static function format($value, $usage, $locale=DEFAULT_LANG) {
+        switch($usage) {
+            case 'phone':
+                return self::format_phone($value);
+            case 'uri/urn.iban':
+            case 'iban':
+                return self::format_iban($value);
+            case 'bic':
+                return self::format_bic($value);
+            case 'scor':
+                return self::format_scor($value);
+        }
+        return $value;
     }
-    return $value;
-  }
 
-  /**
-   * SCOR is the belgian Structured Communication Reference used in bank payments.
-   *
-  */
-  private static function format_scor($ref) {
-    return '+++'.substr($ref, 0, 3).'/'.substr($ref, 3, 4).'/'.substr($ref, 7, 5).'+++';
-  }
+    /**
+     * SCOR is the belgian Structured COmmunication Reference used in bank payments.
+     *
+     */
+    private static function format_scor($ref) {
+        return '+++'.substr($ref, 0, 3).'/'.substr($ref, 3, 4).'/'.substr($ref, 7, 5).'+++';
+    }
 
-  /**
-   * BIC (Business Identifier Code) codes are 8 to 11 chars long and follow the iso norm ISO 9362:2014.
-   *
-   */
-  private static function format_bic($bic) {
-    return strtoupper(str_replace([' ', '.', '-'], '', $bic));
-  }
+    /**
+     * BIC (Business Identifier Code) codes are 8 to 11 chars long and follow the iso norm ISO 9362:2014.
+     *
+     */
+    private static function format_bic($bic) {
+        return strtoupper(str_replace([' ', '.', '-'], '', $bic));
+    }
 
-  /**
-   * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars
-   * min. is 15 chars long, max. is 31 chars long
-   * @param string $iban expected to be a valid IBAN number.
-   */
-  private static function format_iban($iban) {
-    $iban = strtoupper(str_replace([' ', '.', '-'], '', $iban));
-    $len = strlen($iban);
-    if($len <= 16) {
-      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12);
+    /**
+     * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars
+     * size is min. 15 chars long and max. 31 chars long
+     * @param string $iban expected to be a valid IBAN number.
+     */
+    private static function format_iban($iban) {
+        $iban = strtoupper(str_replace([' ', '.', '-'], '', $iban));
+        $len = strlen($iban);
+        if($len <= 16) {
+            return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12);
+        }
+        if($len <= 20) {
+            return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16);
+        }
+        if($len <= 24) {
+            return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20);
+        }
+        if($len <= 28) {
+            return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24);
+        }
+        return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24, 4).' '.substr($iban, 28);
     }
-    if($len <= 20) {
-      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16);
-    }
-    if($len <= 24) {
-      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20);
-    }
-    if($len <= 28) {
-      return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24);
-    }
-    return substr($iban, 0, 4).' '.substr($iban, 4, 4).' '.substr($iban, 8, 4).' '.substr($iban, 12, 4).' '.substr($iban, 16, 4).' '.substr($iban, 20, 4).' '.substr($iban, 24, 4).' '.substr($iban, 28);
-  }
 
   /**
    *
