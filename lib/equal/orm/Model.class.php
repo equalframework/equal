@@ -71,15 +71,13 @@ class Model {
 
         $defaults = $this->getDefaults();
         // get default values, set fields for default language, and mark fields as modified
-        foreach($defaults as $field => $default) {
-            if(isset($this->schema[$field])) {
-                // #todo - add support for std functions + custom methods with namespace notation
-                if(is_callable($default) && (!isset($this->schema[$field]['selection']) || !in_array($default, $this->schema[$field]['selection']))) {
-                    $this->values[$field] = call_user_func($default, $orm, $values);
-                }
-                else {
-                    $this->values[$field] = $default;
-                }
+        foreach($this->fields as $field) {
+            if(isset($defaults[$field])) {
+                // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
+                $this->values[$field] = $defaults[$field];
+            }
+            if(isset($values[$field])) {
+                $this->values[$field] = $values[$field];
             }
         }
     }
@@ -289,10 +287,10 @@ class Model {
      * These tests come in addition to the unique constraints return by method `getUnique()`.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
-     * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
      */
     public static function cancreate($om, $values, $lang) {
         return [];
@@ -303,11 +301,11 @@ class Model {
      * These tests come in addition to the unique constraints return by method `getUnique()`.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  array    $values     Associative array holding the new values to be assigned.
-     * @param  string   $lang       Language in which multilang fields are being updated.
-     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values to be assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
      */
     public static function canupdate($om, $oids, $values, $lang) {
         return [];
@@ -318,9 +316,9 @@ class Model {
      * These tests come in addition to the unique constraints return by method `getUnique()`.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @return array    Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
+     * @return array            Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
      */
     public static function canclone($om, $oids) {
         return [];
@@ -330,9 +328,9 @@ class Model {
      * Check wether an object can be deleted.
      * This method can be overriden to define a more precise set of tests.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @return array    Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
      */
     public static function candelete($om, $oids) {
         return [];
@@ -341,21 +339,23 @@ class Model {
     /**
      * Hook invoked after object creation for performing object-specific additional operations.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $values     Associative array holding the new values to be assigned.
-     * @param  string   $lang       Language in which multilang fields are being created.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers. Should contain only the id of the object just created.
+     * @param  array            $values     Associative array holding the newly assigned values.
+     * @param  string           $lang       Language in which multilang fields are being created.
      * @return void
      */
-    public static function oncreate($om, $values, $lang) {
+    public static function oncreate($om, $oids, $values, $lang) {
     }
 
     /**
-     * Hook invoked after object update for performing object-specific additional operations.
+     * Hook invoked before object update for performing object-specific additional operations.
+     * Current values of the object can still be read for comparing with new values.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  array    $values     Associative array holding the new values that have been assigned.
-     * @param  string   $lang       Language in which multilang fields are being updated.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values that have been assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
      * @return void
      */
     public static function onupdate($om, $oids, $values, $lang) {
@@ -364,8 +364,8 @@ class Model {
     /**
      * Hook invoked after object cloning for performing object-specific additional operations.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
      * @return void
      */
     public static function onclone($om, $oids) {
@@ -374,8 +374,8 @@ class Model {
     /**
      * Hook invoked after object deletion for performing object-specific additional operations.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
      * @return void
      */
     public static function ondelete($om, $oids) {
@@ -385,11 +385,11 @@ class Model {
      * Signature for single object values change in UI.
      * This mehtod does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
      *
-     * @param  object   $om         ObjectManager instance.
-     * @param  array    $oids       List of objects identifiers.
-     * @param  array    $event      Associative array holding changed fields as keys, and their related new values.
-     * @param  array    $values     Copy of the current (partial) state of the object.
-     * @return array    Returns an associative array mapping fields with their resulting values.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $oids       List of objects identifiers.
+     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array            $values     Copy of the current (partial) state of the object.
+     * @return array            Returns an associative array mapping fields with their resulting values.
      */
     public static function onchange($om, $event, $values, $lang) {
         return [];

@@ -25,7 +25,7 @@ class SettingValue extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Code to serve as reference (might not be unique).",
-                'function'          => 'core\setting\SettingValue::getDisplayName',
+                'function'          => 'core\setting\SettingValue::calcName',
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -54,7 +54,7 @@ class SettingValue extends Model {
         ];
     }
 
-    public static function getDisplayName($om, $oids, $lang) {
+    public static function calcName($om, $oids, $lang) {
         $result = [];
 
         $settingValues = $om->read(__CLASS__, $oids, ['setting_id.name'], $lang);

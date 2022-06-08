@@ -26,7 +26,7 @@
         },
         "list.default": {
             "name": "Liste des valeurs des options de paramètres",
-            "description": "Cette vue est destinée à afficher la liste des options des paramètres."
+            "description": "Liste des options des paramètres."
         }
     },
     "error": {

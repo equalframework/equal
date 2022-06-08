@@ -61,7 +61,7 @@
         },
         "list.default": {
             "name": "Liste des paramètres",
-            "description": "Cette vue est destinée à afficher la liste des paramètres."
+            "description": "Liste des paramètres."
         }
     },
     "error": {

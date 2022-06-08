@@ -57,6 +57,7 @@
 	"SB_ERROR_UNKNOWN": "An unknown error occured.",
 	"SB_ERROR_CONFLICT_OBJECT": "A conflict prevents this operation.",
     "SB_ERROR_DUPLICATE_VALUE": "This value must be unique but already exists.",
+	"SB_ERROR_DUPLICATE_INDEX": "An entry is duplicated.",
     "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération.",
     "SB_ERROR_NON_EDITABLE": "The item cannot be updated in its current state.",
 	"SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",

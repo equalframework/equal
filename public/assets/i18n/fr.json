@@ -46,7 +46,7 @@
     "SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT": "Supprimer définitivement ?",
 
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
-    "SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
+    "SB_ACTIONS_MESSAGE_ERASE_CONCURRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
 
     "SB_EXPORTS_AS_PDF": "Imprimer en PDF",
     "SB_EXPORTS_AS_XLS": "Exporter en XLS",
@@ -57,6 +57,7 @@
 	"SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
 	"SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
+	"SB_ERROR_DUPLICATE_INDEX": "Un doublon est présent.",	
     "SB_ERROR_NOT_ALLOWED": "Non permis. Vous n'avez pas les droits ou l'état de l'objet ne le permet pas.",
     "SB_ERROR_NON_EDITABLE": "L'élement ne peut pas être modifié dans son état actuel.",	
 	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",

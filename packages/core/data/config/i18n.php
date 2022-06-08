@@ -72,7 +72,7 @@ foreach($parents as $entity) {
         $lang = $schema;
     }
     else {
-        $lang = array_replace_recursive($schema, $lang);
+        $lang = array_replace_recursive($lang, $schema);
     }
 }
 

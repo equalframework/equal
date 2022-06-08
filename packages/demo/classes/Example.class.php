@@ -23,7 +23,7 @@ class Example extends Model {
 
             'date_1' => [
                 'type'          => 'date',
-                'default'       => function($orm, $values) { return date("Y-m-d"); }
+                'default'       => time()
             ],
 
             'date_2' => [
@@ -61,7 +61,12 @@ class Example extends Model {
 
             'integer_2'			=> ['type' => 'integer'],
 
-            'integer_3'			=> ['type' => 'function', 'result_type' => 'integer', 'store' => true, 'function' => 'test\Example::calcInteger3']
+            'integer_3' => [
+                'type'          => 'function', 
+                'result_type'   => 'integer', 
+                'store'         => true, 
+                'function'      => 'test\Example::calcInteger3'
+            ]
 
         ];
     }

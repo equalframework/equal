@@ -57,35 +57,46 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => [ 'context', 'orm' ]
+    'providers'     => [ 'context', 'orm', 'adapt' ]
 ]);
 
 /**
  * @var \equal\php\Context $context
  * @var \equal\orm\ObjectManager $orm
+ * @var \equal\data\DataAdapter $adapter
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+list($context, $orm, $adapter) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
 
 
-// handle controller entities
+/* 
+    Handle controller entities
+*/
 $parts = explode('\\', $params['entity']);
 $file = array_pop($parts);
 if(ctype_lower(substr($file, 0, 1))) {
     $package = array_shift($parts);
-    $path = implode('/', $parts);
-    
+    $path = implode('/', $parts);    
     if(!file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
         throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
     }
-
     $operation = str_replace('\\', '_', $params['entity']);
+    // retrieve announcement of target contoller
     $data = eQual::run('get', $operation, ['announce' => true]);
-    $fields = $data['announcement']['params'];
-
-    $fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
-    $object = array_merge(['id' => 0], array_fill_keys($fields, null));
-
-    // provide an empty collection
+    $controller_schema = $data['announcement']['params'];
+    $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
+    // generata a virtual (emtpy) object
+    $object = ['id' => 0];
+    foreach($requested_fields as $field) {
+        if(!isset($controller_schema[$field])) {
+            continue;
+        }
+        $value = null;
+        if(isset($controller_schema[$field]['default'])) {
+            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'txt', 'php');
+        }
+        $object[$field] = $value;
+    }
+    // send single-itel collection as response
     $context->httpResponse()
             ->header('X-Total-Count', 1)
             ->body([$object])

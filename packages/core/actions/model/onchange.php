@@ -67,6 +67,7 @@ $changes = array_filter($params['changes'], function($val, $field) use ($schema)
 }, ARRAY_FILTER_USE_BOTH);
 
 
+// adapt fields in values array
 foreach($values as $field => $value) {
     $type = $schema[$field]['type'];
     if($type == 'computed') {
@@ -81,7 +82,7 @@ foreach($values as $field => $value) {
         unset($values[$field]);
     }
 }
-
+// adapt fields in changes array
 foreach($changes as $field => $value) {
     $type = $schema[$field]['type'];
     if($type == 'computed') {

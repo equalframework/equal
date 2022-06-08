@@ -73,10 +73,10 @@ if(!count($data)) {
         }
         $root = $prev_parent;
     }
+
     $data['root'] = $root;
-
     $data['table'] = $model->getTable();
-
+    $data['link'] = $model->getLink();
     $data['fields'] = $schema;
 
     if(method_exists($model, 'getUnique')) {

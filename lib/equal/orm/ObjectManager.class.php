@@ -144,6 +144,7 @@ class ObjectManager extends Service {
         'language/iso-639:2'        => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
         'language/iso-639:3'        => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
         'markup/html'               => 'mediumtext',
+        'text/html'                 => 'mediumtext',
         'text/plain'                => 'text',                  // 64k chars
         'email'                     => 'varchar(255)',
         'phone'                     => 'varchar(20)'
@@ -234,7 +235,7 @@ class ObjectManager extends Service {
      *
      * @param   string       $class      The full name of the class with its namespace.
      * @throws  Exception
-     * @return  Object       Returns a partial isntance of the targeted class.
+     * @return  Object       Returns a partial instance of the targeted class.
      */
     private function getStaticInstance($class, $fields=[]) {
         // if class is unknown, load the file containing the class declaration of the requested object
@@ -899,6 +900,7 @@ class ObjectManager extends Service {
         $unprocessed_ids = array_diff($ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
+        // only 'ids', 'values' and 'lang' are accepted
         $params = [];
         foreach($signature as $param) {
             switch($param) {
@@ -1278,16 +1280,15 @@ class ObjectManager extends Service {
 
             // 5) update new object with given fiels values, if any
 
-            // build creation array with actual object values (#memo - fields described as PHP values, not SQL)
+            // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             // request an object update (mark call as 'from_create')
             $res_w = $this->write($class, $oid, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) $res = $res_w;
 
-
             // call 'oncreate' hook
-            $this->callonce($class, 'oncreate', (array) $oid, [], $lang, ['values', 'lang']);
+            $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
 
         }
         catch(Exception $e) {
@@ -1362,15 +1363,20 @@ class ObjectManager extends Service {
             // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
             $fields['modified'] = time();
 
-            // 4) update objects
+
+            // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
+            $this->callonce($class, 'onupdate', $ids, $fields, $lang, ['ids', 'values', 'lang']);
+
+
+            // 5) update objects
 
             // update internal buffer with given values
             $schema = $object->getSchema();
             $onupdate_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers an onchange event
-                    // (computed fields assigned to null are meant to be re-computed without triggering onchange)
+                    // remember fields whose modification triggers an onupdate event
+                    // (computed fields assigned to null are meant to be re-computed without triggering onupdate)
                     if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
                         $onupdate_fields[] = $field;
                     }
@@ -1381,12 +1387,11 @@ class ObjectManager extends Service {
             }
 
 
-
-            // 5) write selected fields to DB
+            // 6) write selected fields to DB
 
             $this->store($class, $ids, array_keys($fields), $lang);
 
-            // 6) second pass : handle onchange events, if any
+            // 7) second pass : handle onupdate events, if any
 
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onupdate_fields)) {
@@ -1410,9 +1415,6 @@ class ObjectManager extends Service {
                 $this->object_methods = $object_methods_state;
 
             }
-
-            // call 'onupdate' hook
-            $this->callonce($class, 'onupdate', $ids, $fields, $lang, ['ids', 'values', 'lang']);
 
         }
         catch(Exception $e) {
@@ -1502,7 +1504,7 @@ class ObjectManager extends Service {
                     $fields_missing = array();
                     foreach($requested_fields as $key => $field) {
                         foreach($ids as $oid) {
-                            // prevent using cache for one2many fields : cache cannot remain consistent in case of cross updates
+                            // prevent using cache for one2many fields : cache can become unconsistent in case of cross updates
                             // #todo - use the cache for m2m relations (using the rel table)
                             if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$lang][$field])) {
                                 $fields_missing[] = $field;
@@ -1717,6 +1719,7 @@ class ObjectManager extends Service {
      * @return  int|array  Error code OR resulting associative array.
      */
     // #todo - use same signature than other CRUD
+    // #todo - when cloning, all multilang values should be duplicated as well
     public function clone($class, $id, $values=[], $lang=DEFAULT_LANG, $parent_field='') {
         $res = 0;
 
