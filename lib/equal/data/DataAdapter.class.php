@@ -114,8 +114,17 @@ class DataAdapter extends Service {
                 // string times are expected to be ISO 8601 formatted times (hh:mm:ss)
                 'txt'   => [
                     'php' =>    function ($value) {
-                                    // valid even if seconds are missing
-                                    list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+                                    $count = substr_count($value, ':');
+                                    list($hour, $minute, $second) = [0,0,0];
+                                    if($count == 2) {
+                                        list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+                                    }
+                                    else if($count == 1) {
+                                        list($hour, $minute) = sscanf($value, "%d:%d");
+                                    }
+                                    else if($count == 0) {
+                                        $hour = $value;
+                                    }
                                     return ($hour * 3600) + ($minute * 60) + $second;
                                 }
 
@@ -333,7 +342,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     // consider empty string as null
-                                    if(is_string($value) && !strlen($value)) {
+                                    if(is_string($value) && (!strlen($value) || $value == 'null')) {
                                         $value = null;
                                     }
                                     if(!is_null($value) && !is_numeric($value)) {
