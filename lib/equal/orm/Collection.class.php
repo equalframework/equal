@@ -30,7 +30,7 @@ class Collection implements \Iterator {
     private $class;
 
     /* static instance of target class (for retrieving fields and schema) */
-    private $instance;
+    private $model;
 
     /* map associating objects with their values with identifiers as keys */
     private $objects;
@@ -66,8 +66,8 @@ class Collection implements \Iterator {
             throw new \Exception(__CLASS__, QN_ERROR_UNKNOWN);
         }
         // retrieve static instance for target class
-        $this->instance = $this->orm->getStatic($class);
-        if($this->instance === false) {
+        $this->model = $this->orm->getModel($class);
+        if($this->model === false) {
             throw new \Exception($class, QN_ERROR_UNKNOWN_OBJECT);
         }
         // default to unlimited page size
@@ -75,7 +75,7 @@ class Collection implements \Iterator {
     }
 
     public function extend($column, $description) {
-        $this->instance->setColumn($column, $description);
+        $this->model->setColumn($column, $description);
     }
 
     public function set($fields) {
@@ -213,7 +213,7 @@ class Collection implements \Iterator {
      */
     private function get_raw_object(&$object, $to_array=false) {
         $result = [];
-        $schema = $this->instance->getSchema();
+        $schema = $this->model->getSchema();
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
                 $list = $value->get($to_array);
@@ -279,9 +279,9 @@ class Collection implements \Iterator {
     private function filter(array $fields, bool $check_readonly=true) {
         $result = [];
         if(count($fields)) {
-            $schema = $this->instance->getSchema();
+            $schema = $this->model->getSchema();
             // retrieve valid fields, i.e. fields from schema
-            $allowed_fields = $this->instance->getFields();
+            $allowed_fields = $this->model->getFields();
             if($check_readonly) {
                 // discard readonly fields
                 $allowed_fields = array_filter($allowed_fields, function ($field) use($schema) {
@@ -305,7 +305,7 @@ class Collection implements \Iterator {
      * @return object   current instance
      */
     public function adapt($to='txt') {
-        $schema = $this->instance->getSchema();
+        $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
                 if($value instanceof Collection) {
@@ -370,7 +370,7 @@ class Collection implements \Iterator {
         // 1) sanitize and validate given domain
         if(!empty($domain)) {
             $domain = Domain::normalize($domain);
-            $schema = $this->instance->getSchema();
+            $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
                 throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);
             }
@@ -422,7 +422,7 @@ class Collection implements \Iterator {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
 
-        $schema = $this->instance->getSchema();
+        $schema = $this->model->getSchema();
         // retrieve targeted identifiers
         $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         // get full list of available fields
@@ -434,7 +434,7 @@ class Collection implements \Iterator {
         }
 
         $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
-        $uniques = $this->instance->getUnique();
+        $uniques = $this->model->getUnique();
 
         $res = $this->orm->read($this->class, $ids, $fields, $lang);
 
@@ -560,7 +560,7 @@ class Collection implements \Iterator {
             // force argument into an array (single field name is accepted, empty array is accepted: load all fields)
             $fields = (array) $fields;
 
-            $schema = $this->instance->getSchema();
+            $schema = $this->model->getSchema();
 
             // 1) drop invalid fields and build sub-request array
             $allowed_fields = array_keys($schema);
@@ -587,7 +587,7 @@ class Collection implements \Iterator {
                 }
                 else {
                     $requested_fields[] = $field;
-                    $target = $this->instance->field($field);
+                    $target = $this->model->field($field);
                     // remember only requested relational sub-fields
                     // if(is_numeric($key) || !in_array($schema[$field]['type'], ['one2many', 'many2one', 'many2many'])) {
                     if(!is_numeric($key) && in_array($target['type'], ['one2many', 'many2one', 'many2many'])) {
@@ -639,7 +639,7 @@ class Collection implements \Iterator {
                 foreach($this->objects as $object) {
                     $ids = array_merge($ids, (array) $object[$field]);
                 }
-                $target = $this->instance->field($field);
+                $target = $this->model->field($field);
                 $objects = $target['foreign_object']::ids($ids)->read($subfields, $lang)->get();
                 // assign retrieved values to the objects they're related to
                 foreach($this->objects as $id => $object) {
