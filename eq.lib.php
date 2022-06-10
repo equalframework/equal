@@ -339,7 +339,7 @@ namespace config {
                 $om = $container->get('orm');
                 // init collections provider
                 $container->get('equal\orm\Collections');
-                spl_autoload_register([$om, 'getStatic']);
+                spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
                 throw new \Exception("autoload_register_failed", QN_REPORT_FATAL);
