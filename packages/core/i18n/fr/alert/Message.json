@@ -1,0 +1,59 @@
+{
+    "name": "Message",
+    "plural": "Messages",
+    "description": "Mssages d'alerte et de notification.",
+    "model": {
+        "object_class": {
+            "label": "Classe",
+            "description": "Classe de l'objet visé.",
+            "help": ""
+        },
+        "object_id": {
+            "label": "Id",
+            "description": "Identifiant de l'objet visé.",
+            "help": ""
+        },
+        "object_link": {
+            "label": "Lien",
+            "description": "Lien vers l'objet.",
+            "help": ""
+        },
+        "label": {
+            "label": "Libellé",
+            "description": "Titre du message.",
+            "help": ""
+        },
+        "description": {
+            "label": "Description",
+            "description": "Descriptif du motif de l'alerte.",
+            "help": ""
+        },
+        "severity": {
+            "label": "Sévérité",
+            "description": "Niveau d'importance de l'alerte.",
+            "help": ""
+        },
+        "controller": {
+            "label": "Controleur",
+            "description": "Controleur a invoquer.",
+            "help": ""
+        },
+        "params": {
+            "label": "Paramètres",
+            "description": "Paramètres à transmettre au controleur.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Message",
+            "description": "Message d'alerte."
+        },
+        "list.default": {
+            "name": "Liste des messages",
+            "description": "Liste des messages d'alerte."
+        }
+    },
+    "error": {
+    }
+}
