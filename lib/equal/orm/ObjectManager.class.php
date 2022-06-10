@@ -585,7 +585,6 @@ class ObjectManager extends Service {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
-                                    // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
                                     $value = $res[$oid];
                                 }
                                 else {
@@ -975,27 +974,21 @@ class ObjectManager extends Service {
     /**
      * Retrieve the static instance of a given class (Model with default values).
      *
-     * @return boolean|Object   Returns the default instance of the model, or false if no Model matches the class name.
+     * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
-    public function getStatic($object_class) {
-        $instance = false;
+    public function getModel($object_class) {
+        $model = false;
         $packages = $this->getPackages();
         $package = self::getObjectPackage($object_class);
         if(in_array($package, $packages)) {
             try {
-                $instance = $this->getStaticInstance($object_class);
+                $model = $this->getStaticInstance($object_class);
             }
             catch(Exception $e) {
                 trigger_error($e->getMessage(), E_USER_ERROR);
             }
         }
-        return $instance;
-    }
-
-    // alias for getStatic
-    public function getModel($object_class) {
-        $instance = $this->getStatic($object_class);
-        return $instance;
+        return $model;
     }
 
     /**
