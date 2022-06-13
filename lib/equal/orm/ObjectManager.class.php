@@ -439,7 +439,6 @@ class ObjectManager extends Service {
      * @throws Exception
      */
     private function load($class, $ids, $fields, $lang) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::load", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -664,7 +663,6 @@ class ObjectManager extends Service {
      * @param string $lang      Lang id (2 chars) in which to store multilang fields.
      */
     private function store($class, $ids, $fields, $lang) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::store", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -719,6 +717,7 @@ class ObjectManager extends Service {
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
                             }
+                            // #todo - this breaks the collection pattern (to handle oid in filname for binaries stored as files)
                            $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
                         }
                         $fields_values[$field] = $value;
@@ -864,7 +863,7 @@ class ObjectManager extends Service {
      * @param array     $signature  List of parameters to relay to target method (required if differing from default).
      */
     public function callonce($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
         $called_class = $class;
@@ -1353,7 +1352,7 @@ class ObjectManager extends Service {
                 }
             }
 
-            // store current state of object_methods map, to restore current state at the end of the cycle
+            // stack current state of object_methods map (we'll restore current state at the end of the update cycle)
             $object_methods_state = $this->object_methods;
 
 
@@ -1418,7 +1417,7 @@ class ObjectManager extends Service {
 
             }
 
-            // restore global object_methods state
+            // unstack global object_methods state
             $this->object_methods = $object_methods_state;
         }
         catch(Exception $e) {
