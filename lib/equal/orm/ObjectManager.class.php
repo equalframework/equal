@@ -439,7 +439,6 @@ class ObjectManager extends Service {
      * @throws Exception
      */
     private function load($class, $ids, $fields, $lang) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::load", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -585,7 +584,6 @@ class ObjectManager extends Service {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
-                                    // $value = $this->container->get('adapt')->adapt($res[$oid], $schema[$field]['result_type'], 'php', 'sql', $class, $oid, $field, $lang);
                                     $value = $res[$oid];
                                 }
                                 else {
@@ -665,7 +663,6 @@ class ObjectManager extends Service {
      * @param string $lang      Lang id (2 chars) in which to store multilang fields.
      */
     private function store($class, $ids, $fields, $lang) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::store", QN_REPORT_DEBUG);
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -720,6 +717,7 @@ class ObjectManager extends Service {
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
                             }
+                            // #todo - this breaks the collection pattern (to handle oid in filname for binaries stored as files)
                            $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
                         }
                         $fields_values[$field] = $value;
@@ -855,8 +853,8 @@ class ObjectManager extends Service {
 
     /**
      * Invoke a callback from an object Class.
-     * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
-     * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle.
+     * By default, objects callback signature is `methodName($orm: object, $ids: array, $lang: string)`. Arguments can be adapted in the $signature parameter.
+     * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle (sub-calls from callbacks invoked in a create, read, write, delete).
      *
      * @param string    $class
      * @param string    $method
@@ -865,7 +863,7 @@ class ObjectManager extends Service {
      * @param array     $signature  List of parameters to relay to target method (required if differing from default).
      */
     public function callonce($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
         $called_class = $class;
@@ -875,16 +873,16 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-          throw new Exception("ObjectManager::call: invalid args ($method, $class)");
+            throw new Exception("ObjectManager::call: invalid args ($method, $class)");
         }
 
         if( $count == 2 ) {
-          $called_class = $parts[0];
-          $called_method = $parts[1];
+            $called_class = $parts[0];
+            $called_method = $parts[1];
         }
 
         if(!method_exists($called_class, $called_method)) {
-          throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+            throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
         $first_call = false;
@@ -921,7 +919,17 @@ class ObjectManager extends Service {
         return $result;
     }
 
-
+    /**
+     * Invoke a callback from an object Class.
+     * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
+     * There is no recursion protection and a same callback can be invoked several times without any restrictions.
+     *
+     * @param string    $class
+     * @param string    $method
+     * @param int[]     $ids
+     * @param array     $values
+     * @param array     $signature  List of parameters to relay to target method (required if differing from default).
+     */
     public function call($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
@@ -937,8 +945,8 @@ class ObjectManager extends Service {
         }
 
         if( $count == 2 ) {
-          $called_class = $parts[0];
-          $called_method = $parts[1];
+            $called_class = $parts[0];
+            $called_method = $parts[1];
         }
 
         if(!method_exists($called_class, $called_method)) {
@@ -965,27 +973,21 @@ class ObjectManager extends Service {
     /**
      * Retrieve the static instance of a given class (Model with default values).
      *
-     * @return boolean|Object   Returns the default instance of the model, or false if no Model matches the class name.
+     * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
-    public function getStatic($object_class) {
-        $instance = false;
+    public function getModel($object_class) {
+        $model = false;
         $packages = $this->getPackages();
         $package = self::getObjectPackage($object_class);
         if(in_array($package, $packages)) {
             try {
-                $instance = $this->getStaticInstance($object_class);
+                $model = $this->getStaticInstance($object_class);
             }
             catch(Exception $e) {
                 trigger_error($e->getMessage(), E_USER_ERROR);
             }
         }
-        return $instance;
-    }
-
-    // alias for getStatic
-    public function getModel($object_class) {
-        $instance = $this->getStatic($object_class);
-        return $instance;
+        return $model;
     }
 
     /**
@@ -1331,6 +1333,7 @@ class ObjectManager extends Service {
             // ids that are left are the ones of the objects that will be writen
             $res = $ids;
 
+
             // 2) pre-processing - $fields sanitization
 
             // get stattic instance (checks that given class exists)
@@ -1349,11 +1352,15 @@ class ObjectManager extends Service {
                 }
             }
 
+            // stack current state of object_methods map (we'll restore current state at the end of the update cycle)
+            $object_methods_state = $this->object_methods;
+
+
             // 3) make sure objects in the collection can be updated
 
             // if current call results from an object creation, the cancreate hook prevails on canupdate, so we ignore the later
             if(!$create) {
-                $canupdate = $this->call($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang, ['ids', 'values', 'lang']);
+                $canupdate = $this->callonce($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang, ['ids', 'values', 'lang']);
                 if(!empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
@@ -1397,9 +1404,6 @@ class ObjectManager extends Service {
             if(count($onupdate_fields)) {
                 // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
 
-                // store current state of object_methods map, to prevent recursion with the call() method
-                $object_methods_state = $this->object_methods;
-
                 foreach($onupdate_fields as $field) {
                     try {
                         // run onupdate callback
@@ -1411,11 +1415,10 @@ class ObjectManager extends Service {
                     }
                 }
 
-                // restore global object_methods state
-                $this->object_methods = $object_methods_state;
-
             }
 
+            // unstack global object_methods state
+            $this->object_methods = $object_methods_state;
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);

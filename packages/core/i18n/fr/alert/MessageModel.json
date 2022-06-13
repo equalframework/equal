@@ -1,0 +1,39 @@
+{
+    "name": "Modèle de message d'alerte",
+    "plural": "Modèles de messages d'alerte",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Nom",
+            "description": "Identifiant de l'option de paramètre.",
+            "help": ""
+        },
+        "label": {
+            "label": "Libellé",
+            "description": "Titre du message.",
+            "help": ""
+        },
+        "description": {
+            "label": "Description",
+            "description": "Descriptif du motif de l'alerte.",
+            "help": ""
+        },
+        "type": {
+            "label": "Typer",
+            "description": "Type de message.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Modèle de message",
+            "description": "Modèe de message d'alerte."
+        },
+        "list.default": {
+            "name": "Modèles des messages",
+            "description": "Liste des modèles de messages d'alerte."
+        }
+    },
+    "error": {
+    }
+}

@@ -26,7 +26,8 @@ class MessageModel extends Model {
 
             'description' => [
                 'type'              => 'string',
-                'description'       => "Description of the meaning of the message."
+                'description'       => "Description of the meaning of the message.",
+                'multilang'         => true                
             ],
 
             'type' => [
