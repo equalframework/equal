@@ -49,8 +49,9 @@ class DataFormatter {
     }
 
     /**
-     * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars
-     * size is min. 15 chars long and max. 31 chars long
+     * IBAN codes start with 2 letters (ISO 3166 country code) + variable length series of digits or chars.
+     * Size is min. 15 chars long and max. 31 chars long.
+     *
      * @param string $iban expected to be a valid IBAN number.
      */
     private static function format_iban($iban) {
