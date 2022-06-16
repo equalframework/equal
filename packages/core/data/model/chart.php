@@ -48,12 +48,12 @@ list($params, $providers) = announce([
         'range_from' => [
             'description'   => 'Start of date range.',
             'type'          => 'date',
-            'required'      => true
+            'default'       => time() - (30 * 86400)
         ],
         'range_to' => [
             'description'   => 'End of date range.',
             'type'          => 'date',
-            'required'      => true
+            'default'       => time() + (30 * 86400)
         ],
         'range_interval' => [
             'description'   => 'Time interval for grouping absciss values.',
@@ -64,6 +64,15 @@ list($params, $providers) = announce([
                 'year'
             ],
             'default'       => 'month'
+        ],
+        'mode' => [
+            'description'   => 'Mode defining to way data are to be returned.',
+            'type'          => 'string',
+            'selection'     => [
+                'chart',
+                'grid'
+            ],
+            'default'       => 'chart'
         ]
     ],
     'response'      => [
@@ -77,32 +86,31 @@ list($params, $providers) = announce([
 list($context) = [ $providers['context'] ];
 
 
-/* 
-examples: 
-    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-06-30&operations={test:{total:{operation:SUM}}}
-    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&operations={test:{total:{operation:SUM}}}&field=type
-*/
 
 if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 /*
-configuration d'une vue avec la liste des datasets
+Configuration of a view with a list of datasets
 
-la configuration du chart dépend du type de chart sélectionné
+The chart layout depends on the selected chart type
 
 LINE, BAR : plusieurs datasets, chaque dataset correspond à une valeur pour un interval donné : group_by range
 POLAR, DOUGHNUT, PIE : 1 seul dataset, chaque valeur correspond à un segment => group_by field: les labels sont les valeurs de groupes, les valeurs sont les operations sur les groupes
     
-    group_by = field, range
+    group_by = 'field' or 'range'
 
                             field                       range
-    field                   field on which to group     field holding the dates for grouping
+                            -----                       -----
+    field                   field on which to group     field of type 'date' to use for grouping (defaults to 'created')
     range_interval          /                           week, month, year
-    range_from
-    range_to
+    range_from              /
+    range_to                /
 
+Examples: 
+    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-12-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]
+    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
 
 */
 
@@ -114,6 +122,7 @@ $datasets = [
         "operation" => ["SUM", "object.total"]
     ],
     [
+        "label"     => "Average price for general public"
         "operation" => ["AVG", "object.price"],
         "domain"    => ["type", "=", "general"]
     ]
@@ -157,13 +166,21 @@ else {
     $datasets = [$datasets[0]];
 }
 
-
 // populate final result array with operations results
 $result = array_fill_keys(array_keys($results_map), []);
 
+// final array of legends
+$legends = [];
+// working map for legends
+$legends_map = [];
+
 foreach($datasets as $index => $dataset) {
     $operation = $dataset['operation'];
-    
+
+    if($params['group_by'] == 'range') {
+        $legends_map[$index] = (isset($dataset['label']))?$dataset['label']:'';
+    }
+
     $op = new Operation($operation);
 
     $dom = new Domain($domain->toArray());
@@ -171,8 +188,8 @@ foreach($datasets as $index => $dataset) {
         $dom = $dom->merge(new Domain($dataset['domain']));
     }
 
-    // reset intervals map
-    $results_map = array_fill_keys(array_keys($results_map), []);
+    // init empty intervals map
+    $result_map = $results_map;
     // search objects matching given domain and date range
     $objects = $params['entity']::search($dom->toArray())->read($fields)->get();
 
@@ -185,10 +202,10 @@ foreach($datasets as $index => $dataset) {
             else {
                 $group_index = $object[$params['field']];
             }
-            $results_map[$group_index][] = $object;
+            $result_map[$group_index][] = $object;
         }
-        foreach($results_map as $group_index => $objects) {
-            $result[$group_index][$index] = $op->compute($objects);
+        foreach($result_map as $group_index => $objects) {
+            $result[$group_index][$index] = round($op->compute($objects), 2);
         }
     }
 }
@@ -200,14 +217,37 @@ foreach($result as $date_index => $sets) {
             $datasets[$index] = [];
         }
         $datasets[$index][] = $value;
+        if($params['group_by'] == 'range' && !isset($legends[$index])) {
+            $legends[$index] = $legends_map[$index];        
+        }
+    }
+    // #todo - translate fields names and values
+    if($params['group_by'] == 'field') {
+        $legends[] = $params['field'].'='.$date_index;
     }
 }
 
+
+$result = [
+    'labels'    => array_keys($results_map),
+    'datasets'  => array_values($datasets),
+    'legends'   => array_values($legends)
+];
+
+
+if($params['mode'] == 'grid') {
+    $res = [];
+    $keys = array_merge(['#label'], $result['labels']);
+    foreach($result['datasets'] as $i => $dataset) {
+        $values =  array_merge( [$result['legends'][$i]], $dataset);
+        $res[] = array_combine($keys, $values);
+    }
+
+    $result = &$res;
+}
+
 $context->httpResponse()
-        ->body([
-            'labels'    => array_keys($results_map),
-            'datasets'  => $datasets
-        ])
+        ->body($result)
         ->send();
 
 
