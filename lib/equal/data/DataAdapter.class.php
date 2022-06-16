@@ -228,6 +228,11 @@ class DataAdapter extends Service {
             'array' => [
                 'txt'   => [
                     'php' =>    function ($value) {
+                                    // try to resolve value as JSON
+                                    $data = @json_decode($value, true);
+                                    if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
+                                        $value = $data;
+                                    }
                                     $to_array = function ($value) use(&$to_array) {
                                         $result = [];
                                         $current = "";
