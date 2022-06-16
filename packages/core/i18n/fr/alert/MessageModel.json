@@ -19,7 +19,7 @@
             "help": ""
         },
         "type": {
-            "label": "Typer",
+            "label": "Type",
             "description": "Type de message.",
             "help": ""
         }
