@@ -322,6 +322,9 @@ class Domain {
         return $domain;
     }
 
+    /**
+     * @param Domain    $domain     Domain to be merged with current domain.
+     */
     public function merge($domain) {
         $res_domain = [];
         $domain_a = $domain->toArray();
