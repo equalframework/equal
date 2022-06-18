@@ -889,6 +889,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
+            // #todo - trigger error and return empty array
             throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
