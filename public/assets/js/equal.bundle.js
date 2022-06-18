@@ -5719,6 +5719,20 @@ var View = /*#__PURE__*/function () {
         "view": this.getId()
       }
     };
+
+    if (this.type == 'chart') {
+      this.exports = {
+        "export.xls": {
+          "id": "export.xls",
+          "label": _equalServices.TranslationService.instant('SB_EXPORTS_AS_XLS'),
+          "icon": "print",
+          "description": "Export as XLS",
+          "controller": "model_export-chart-xls",
+          "view": this.getId()
+        }
+      };
+    }
+
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view').hide();
     this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header').appendTo(this.$container);
     this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout').appendTo(this.$container);
@@ -7342,6 +7356,7 @@ var View = /*#__PURE__*/function () {
           var $export_actions_menu = _materialLib.UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);
 
           var $export_actions_list = _materialLib.UIHelper.createList('export-actions-list').appendTo($export_actions_menu); // generate filters list
+          // #memo - for charts there is only one export (export-chart-xls)
 
 
           var _loop6 = function _loop6(export_id) {
@@ -7352,13 +7367,10 @@ var View = /*#__PURE__*/function () {
             _materialLib.UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-' + item.id, export_title, item.hasOwnProperty('icon') ? item.icon : '').on('click', function (event) {
               var params = new URLSearchParams({
                 get: item.controller,
-                view_id: item.view ? item.view : _this5.getId(),
                 entity: _this5.entity,
+                view_id: item.view ? item.view : _this5.getId(),
                 domain: JSON.stringify(_this5.getDomain()),
-                id: _this5.selected_ids.length ? _this5.selected_ids[0] : 0,
-                ids: JSON.stringify(_this5.selected_ids),
                 lang: _this5.lang,
-                controller: _this5.controller,
                 params: JSON.stringify(_this5.getParams())
               }).toString();
               window.open(_this5.getEnv().backend_url + '/?' + params, "_blank");
