@@ -16,8 +16,7 @@ list($params, $providers) = announce([
             'description'   => 'The identifier of the view <type.name>.',
             'type'          => 'string',
             'default'       => 'list'
-        ],
-
+        ]
     ],
     'response'      => [
         'content-type'  => 'application/json',
