@@ -122,6 +122,9 @@ if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
     $start = (isset($params['params']['start']))?$params['params']['start']:0;
     $order = (isset($params['params']['order']))?$params['params']['order']:'id';
     $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+    if(is_array($order)) {
+        $order = $order[0];
+    }
     $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
 }
 else {
