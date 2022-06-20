@@ -13,12 +13,12 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'lang' =>  [
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ],
         'domain' => [
@@ -80,7 +80,7 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => [ 'context' ] 
+    'providers'     => [ 'context' ]
 ]);
 
 list($context) = [ $providers['context'] ];
@@ -98,7 +98,7 @@ The chart layout depends on the selected chart type
 
 LINE, BAR : plusieurs datasets, chaque dataset correspond à une valeur pour un interval donné : group_by range
 POLAR, DOUGHNUT, PIE : 1 seul dataset, chaque valeur correspond à un segment => group_by field: les labels sont les valeurs de groupes, les valeurs sont les operations sur les groupes
-    
+
     group_by = 'field' or 'range'
 
                             field                       range
@@ -108,7 +108,7 @@ POLAR, DOUGHNUT, PIE : 1 seul dataset, chaque valeur correspond à un segment =>
     range_from              /
     range_to                /
 
-Examples: 
+Examples:
     /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-12-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]
     /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
 
@@ -163,13 +163,15 @@ if($params['group_by'] == 'range') {
     }
 }
 else {
-    $datasets = [$datasets[0]];
+    // $datasets = [$datasets[0]];
 }
 
 // populate final result array with operations results
 $result = array_fill_keys(array_keys($results_map), []);
 
-// final array of legends
+// final array of legends (field)
+$labels = [];
+// final array of legends (range)
 $legends = [];
 // working map for legends
 $legends_map = [];
@@ -179,6 +181,9 @@ foreach($datasets as $index => $dataset) {
 
     if($params['group_by'] == 'range') {
         $legends_map[$index] = (isset($dataset['label']))?$dataset['label']:'';
+    }
+    else {
+        $labels[] = (isset($dataset['label']))?$dataset['label']:'#value';
     }
 
     $op = new Operation($operation);
@@ -200,7 +205,7 @@ foreach($datasets as $index => $dataset) {
                 $group_index = _get_date_index($object[$params['field']], $params['range_interval']);
             }
             else {
-                $group_index = $object[$params['field']];
+                $group_index = date('Y-m-d', $object[$params['field']]);
             }
             $result_map[$group_index][] = $object;
         }
@@ -212,35 +217,54 @@ foreach($datasets as $index => $dataset) {
 
 $datasets = [];
 foreach($result as $date_index => $sets) {
-    foreach($sets as $index => $value) {    
+    foreach($sets as $index => $value) {
         if(!isset($datasets[$index])) {
             $datasets[$index] = [];
         }
         $datasets[$index][] = $value;
         if($params['group_by'] == 'range' && !isset($legends[$index])) {
-            $legends[$index] = $legends_map[$index];        
+            $legends[$index] = $legends_map[$index];
         }
     }
-    // #todo - translate fields names and values
     if($params['group_by'] == 'field') {
-        $legends[] = $params['field'].'='.$date_index;
+        $legends[] = strval($date_index);
     }
 }
 
-
-$result = [
-    'labels'    => array_keys($results_map),
-    'datasets'  => array_values($datasets),
-    'legends'   => array_values($legends)
-];
-
+if($params['group_by'] == 'range') {
+    $result = [
+        'labels'    => array_keys($results_map),
+        'datasets'  => array_values($datasets),
+        'legends'   => array_values($legends)
+    ];
+}
+else if($params['group_by'] == 'field') {
+    $result = [
+        'labels'    => $labels,
+        'datasets'  => array_values($datasets),
+        'legends'   => array_values($legends)
+    ];
+}
 
 if($params['mode'] == 'grid') {
     $res = [];
-    $keys = array_merge(['#label'], $result['labels']);
-    foreach($result['datasets'] as $i => $dataset) {
-        $values =  array_merge( [$result['legends'][$i]], $dataset);
-        $res[] = array_combine($keys, $values);
+
+    if($params['group_by'] == 'range') {
+        $keys = array_merge(['#label'], $result['labels']);
+        foreach($result['datasets'] as $i => $dataset) {
+            $values =  array_merge( [$result['legends'][$i]], $dataset);
+            $res[] = array_combine($keys, $values);
+        }
+    }
+    else if($params['group_by'] == 'field') {
+        $keys = array_merge(['#label'], $result['labels']);
+        foreach($result['legends'] as $i => $legend) {
+            $values = [$legend];
+            foreach($result['datasets'] as $dataset) {
+                $values[] = $dataset[$i];
+            }
+            $res[] = array_combine($keys, $values);            
+        }
     }
 
     $result = &$res;
