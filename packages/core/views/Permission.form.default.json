@@ -37,11 +37,6 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "domain",
-                                                "width": "100%"
-                                            },
-                                            {
-                                                "type": "field",
                                                 "value": "group_id",
                                                 "width": "100%"
                                             },
