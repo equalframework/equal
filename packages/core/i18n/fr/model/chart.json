@@ -1,0 +1,67 @@
+{
+    "model": {
+        "entity": {
+            "label": "Entité",
+            "description": "",
+            "help": ""
+        },
+        "lang": {
+            "label": "Langue",
+            "description": "",
+            "help": ""
+        },
+        "domain": {
+            "label": "Domaine",
+            "description": "",
+            "help": ""
+        },
+        "datasets": {
+            "label": "Données",
+            "description": "",
+            "help": ""
+        },
+        "field": {
+            "label": "Champ",
+            "description": "",
+            "help": ""
+        },
+        "group_by": {
+            "label": "Grouper par",
+            "description": "",
+            "selection": {
+                "range": "intervalle",
+                "field": "champ"
+            },
+            "help": ""
+        },
+        "range_from": {
+            "label": "Du",
+            "description": "Date de début de l'intervalle.",
+            "help": ""
+        },
+        "range_to": {
+            "label": "Au",
+            "description": "Date de fin de l'intervalle.",
+            "help": ""
+        },
+        "range_interval": {
+            "label": "Type d'intervalle",
+            "description": "Groupement des valeurs par tranche de temps.",
+            "selection": {
+                "week": "semaine",
+                "month": "mois",
+                "year": "année"
+            },
+            "help": ""
+        },
+        "mode": {
+            "label": "Mode",
+            "description": "Mode d'affichage.",
+            "help": ""
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}

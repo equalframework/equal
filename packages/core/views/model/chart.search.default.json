@@ -1,0 +1,59 @@
+{
+    "name": "Chart",
+    "description": "Advanced collector for Charts",
+    "layout": {
+        "groups": [
+            {
+                "sections": [
+                    {
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "group_by",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "range_from",
+                                                "width": "50%",
+                                                "visible": ["group_by", "=", "range"]
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "range_to",
+                                                "width": "50%",
+                                                "visible": ["group_by", "=", "range"]
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "range_interval",
+                                                "width": "50%",
+                                                "visible": ["group_by", "=", "range"]
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "field",
+                                                "width": "50%",
+                                                "visible": ["group_by", "=", "field"]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -50,6 +50,12 @@ class ObjectManager extends Service {
     private $packages;
 
     /**
+     * String holding the serialized value of the latest error that occured (to be used in addition with error codes)
+     * @var string
+     */
+    private $last_error;
+
+    /**
      * Instance to a DBConnection object
      * @var DBConnection
      */
@@ -164,6 +170,7 @@ class ObjectManager extends Service {
         $this->cache = [];
         $this->instances = [];
         $this->object_methods = [];
+        $this->last_error = '';
     }
 
     public function __clone() {
@@ -882,6 +889,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
+            // #todo - trigger error and return empty array
             throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
@@ -913,7 +921,7 @@ class ObjectManager extends Service {
 
         if( (in_array('ids', $signature) && count($unprocessed_ids) > 0)
          || (in_array('values', $signature) && $first_call) ) {
-            $called_class::$called_method($this, ...$params);
+            $result = $called_class::$called_method($this, ...$params);
         }
 
         return $result;
@@ -990,6 +998,10 @@ class ObjectManager extends Service {
         return $model;
     }
 
+    public function getLastError() {
+        return $this->last_error;
+    }
+
     /**
      * Checks whether the values of given object fields are valid.
      * This is done using the class validation method.
@@ -1003,7 +1015,7 @@ class ObjectManager extends Service {
      *
      * @param   string  $class          Entity name.
      * @param   array   $ids            Array of objects identifiers.
-     * @param   array   $values         Map with fields names as properties, holding values to be assigned to the object(s).
+     * @param   array   $values         Associative array mapping fields names with values to be assigned to the object(s).
      * @param   boolean $check_unique   Request check for unicity contraints (related to getUnique method).
      * @param   boolean $check_required Request check for required fields (and _self constraints).
      * @return  array   Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
@@ -1295,6 +1307,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
+            $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
         return $res;
@@ -1421,7 +1434,8 @@ class ObjectManager extends Service {
             $this->object_methods = $object_methods_state;
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($this->last_error, E_USER_ERROR);
+            $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
 
@@ -1705,6 +1719,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
+            $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
         return $res;
@@ -1798,6 +1813,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
+            $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
         return $res;

@@ -522,16 +522,18 @@ class Collection implements \Iterator {
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
         // 3) validate : check required fields accordingly
-        // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) and we must be able to create several draft objects
+        // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
         $this->validate($values, [], false, $check_required);
         // set current user as creator
         $values = array_merge($values, ['creator' => $user_id]);
 
         // 4) create the new object
-        $oid = $this->orm->create($this->class, $values, $lang);
-        if($oid <= 0) {
-            throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
+        $res = $this->orm->create($this->class, $values, $lang);
+        if($res <= 0) {
+            throw new \Exception($this->orm->getLastError(), $res);
         }
+
+        $oid = $res;
 
         // log action (if enabled)
         $this->logger->log($user_id, 'create', $this->class, $oid);
@@ -687,7 +689,7 @@ class Collection implements \Iterator {
             $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
             $res = $this->orm->write($this->class, $ids, $values, $lang);
             if($res <= 0) {
-                throw new \Exception($this->class.'::'.implode(',', $fields), $res);
+                throw new \Exception($this->orm->getLastError(), $res);
             }
             else {
                 $ids = $res;
@@ -719,7 +721,7 @@ class Collection implements \Iterator {
             // 3) delete objects
             $res = $this->orm->remove($this->class, $ids, $permanent);
             if($res <= 0) {
-                throw new \Exception($this->class.'['.implode(',', $ids).']', $res);
+                throw new \Exception($this->orm->getLastError(), $res);
             }
             else {
                 $ids = $res;

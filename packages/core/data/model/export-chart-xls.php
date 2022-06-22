@@ -8,6 +8,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 use core\setting\Setting;
+use equal\orm\Domain;
+use equal\orm\DateReference;
 
 use core\User;
 
@@ -15,22 +17,17 @@ list($params, $providers) = announce([
     'description'   => "Returns a view populated with a collection of objects, and outputs it as an XLS spreadsheet.",
     'params'        => [
         'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
+            'type'          => 'string',
             'required'      => true
         ],
         'view_id' =>  [
             'description'   => 'The identifier of the view <type.name>.',
-            'type'          => 'string', 
-            'default'       => 'list.default'
-        ],
+            'type'          => 'string',
+            'default'       => 'list'
+        ],        
         'domain' =>  [
             'description'   => 'Domain for filtering objects to include in the export.',
-            'type'          => 'array',
-            'default'       => []
-        ],
-        'params' => [
-            'description'   => 'Additional params to relay to the data controller.',
             'type'          => 'array',
             'default'       => []
         ],
@@ -38,7 +35,12 @@ list($params, $providers) = announce([
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string', 
             'default'       => DEFAULT_LANG
-        ]        
+        ],
+        'params' => [
+            'description'   => 'Additional params to relay to the data controller.',
+            'type'          => 'array',
+            'default'       => []
+        ]
     ],
     'response'      => [
         'accept-origin' => '*'        
@@ -46,17 +48,10 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'auth'] 
 ]);
 
+// we expect the controller to be core_model_chart
 
 list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
 
-// retrieve target entity
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
-}
-
-// get the complete schema of the object (including special fields)
-$schema = $entity->getSchema();
 
 // retrieve view schema
 $json = run('get', 'model_view', [
@@ -74,71 +69,49 @@ if(isset($data['errors'])) {
     }
 }
 
-if(!isset($data['layout']['items'])) {
+$view_schema = $data;
+
+if(!isset($view_schema['layout'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
-$view_fields = [];
+$controller = isset($view_schema['controller'])?$view_schema['controller']:'core_model_chart';
 
-foreach($data['layout']['items'] as $item) {
-    if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
-        $view_fields[] = $item;
+$body = $view_schema['layout'];
+$body['mode'] = 'grid';
+
+if(count($params['domain'])) {
+    $domain = new Domain($params['domain']);
+    if(isset($body['domain'])) {
+        $domain_tmp = new Domain($body['domain']);
+        $domain = $domain->merge($domain_tmp);
     }
+    $body['domain'] = $domain->toArray();
 }
 
-
-/*
-    Read targeted objects
-*/
-
-$fields_to_read = [];
-
-// adapt fields to force retrieving name for m2o fields
-foreach($view_fields as $item) {
-    $field =  $item['value'];
-    $descr = $schema[$field];
-    if($descr['type'] == 'many2one') {
-        $fields_to_read[$field] = ['id', 'name'];
-    }
-    else {
-        $fields_to_read[] = $field;
-    }
+if(isset($body['range_from'])) {
+    $ref = new DateReference($body['range_from']);
+    $body['range_from'] = date('c', $ref->getDate());
 }
 
-$limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-$start = (isset($params['params']['start']))?$params['params']['start']:0;
-$order = (isset($params['params']['order']))?$params['params']['order']:'id';
-$sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
-if(is_array($order)) {
-    $order = $order[0];
-}
-$values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
-
-/*
-    Retrieve translation data, if any
-*/
-
-$json = run('get', 'config_i18n', [
-    'entity'        => $params['entity'], 
-    'lang'          => $params['lang']
-]);
-
-// decode json into an array
-$data = json_decode($json, true);
-$translations = [];
-if(!isset($data['errors']) && isset($data['model'])) {
-    foreach($data['model'] as $field => $descr) {
-        $translations[$field] = $descr;
-    }
+if(isset($body['range_to'])) {
+    $ref = new DateReference($body['range_to']);
+    $body['range_to'] = date('c', $ref->getDate());
 }
 
-// retrieve view title
-$view_title = $view_schema['name'];
-$view_legend = $view_schema['description'];
-if(isset($i18n['view'][$params['view_id']])) {
-    $view_title = $i18n['view'][$params['view_id']]['name'];
-    $view_legend = $i18n['view'][$params['view_id']]['description'];
-}
+$values = eQual::run('get', $controller, $body);
+
+
+
+// generate a virtual layout
+$first = reset($values);
+$fields = array_keys($first);
+$view_fields = array_map(function($a) { return ['value' => $a]; }, $fields);
+
+// generate a virtaul schema
+// fields descriptors
+$descriptors = array_merge( [['type' => 'string']], array_fill(0, count($fields)-1, ['type' => 'float']));
+$schema = array_combine($fields, $descriptors);
 
 
 /*
@@ -174,11 +147,8 @@ $row = 1;
 // generate head row
 foreach($view_fields as $item) {
     $field = $item['value'];
-    $width = (isset($item['width']))?intval($item['width']):0;
-    if($width <= 0) {
-        continue;
-    }
-    $name = isset($translations[$field]['label'])?$translations[$field]['label']:$field;
+
+    $name = $field;
     $sheet->setCellValue($column.$row, $name);
     $sheet->getColumnDimension($column)->setAutoSize(true);
     $sheet->getStyle($column.$row)->getFont()->setBold(true);
@@ -190,10 +160,6 @@ foreach($values as $oid => $odata) {
     $column = 'A';
     foreach($view_fields as $item) {
         $field = $item['value'];
-        $width = (isset($item['width']))?intval($item['width']):0;
-        if($width <= 0) {
-            continue;
-        }
 
         $value = $odata[$field];
 
