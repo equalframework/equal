@@ -111,7 +111,7 @@ class AccessController extends Service {
                     // extract package parts from class name (for wildcard notation)
                     $package_parts = explode('\\', $object_class);
 
-                    // #todo - add parent classes (when a right is granted on a class, it is also granted on parent classes !)
+                    // #todo - add parent classes (when a right is granted on a class, it is also granted on classes from which they inherit from)
 
                     // add disjunctions
                     for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n; ++$i) {
