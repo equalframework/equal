@@ -134,6 +134,17 @@ class Model {
     }
 
     /**
+     * Get Model class name.
+     * Return the name of the current class (same as declaration) with its full namespace.
+     *
+     * @access public
+     * @return string
+     */
+    public static function getType() {
+        return get_called_class();
+    }
+
+    /**
      * Get Model readable name.
      * This method is meant to be overridden by children classes.
      *
@@ -145,7 +156,9 @@ class Model {
     }
 
     /**
-     * Get the URL associated to the class, to browse to the main form of a single object.
+     * Get the URL associated with the class (for UI to browse main form of a single object).
+     *
+     * @return string
      */
     public static function getLink() {
         return '';
