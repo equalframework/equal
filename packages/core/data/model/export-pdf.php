@@ -221,6 +221,12 @@ $css = "
     td {
         padding: 0px 5px;
         text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    td.allow-wrap {
+        white-space: normal;
     }
     td.center {
         text-align: center;
@@ -298,7 +304,7 @@ while(true) {
 }
 
 // 3) handle 'operations' propoerty, if set
-// #todo 
+// #todo
 
 $html = $doc->saveHTML();
 
@@ -455,7 +461,7 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
     // for each field, create a widget, append to a cell, and append cell to row
     foreach($view_items as $item) {
         $field = $item['value'];
-        $width = (isset($item['width']))?intval($item['width']):$default_width;    
+        $width = (isset($item['width']))?intval($item['width']):$default_width;
         if($width <= 0) continue;
 
         $value = $object[$field];
@@ -467,7 +473,7 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
         }
 
         $usage = (isset($schema[$field]['usage']))?$schema[$field]['usage']:'';
-        $align = 'left';
+        $class = 'left';
 
         // for relational fields, we need to check if the Model has been fetched
         if(in_array($type, ['one2many', 'many2one', 'many2many'])) {
@@ -479,39 +485,39 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
                 $value = "...";
             }
             if(is_numeric($value)) {
-                $align = 'right';
+                $class = 'right';
             }
         }
         else if($type == 'date') {
-            $align = 'center';
-            $value = date($settings['date_format'], $value);
+            $class = 'center';
+            $value = ($value)?date($settings['date_format'], $value):'';
         }
         else if($type == 'time') {
-            $align = 'center';
+            $class = 'center';
             $value = date($settings['time_format'], strtotime('today') + $value);
         }
         else if($type == 'datetime') {
-            $align = 'center';
-            $value = date($settings['date_format'].' '.$settings['time_format'], $value);
+            $class = 'center';
+            $value = ($value)?date($settings['date_format'].' '.$settings['time_format'], $value):'';
         }
         else {
             if($type == 'string') {
-                $align = 'center';
+                $class = 'center';
             }
             else {
                 if(strpos($usage, 'amount/money') === 0) {
-                    $align = 'right';
+                    $class = 'right';
                     $value = $settings['format_currency']($value);
                 }
                 if(is_numeric($value)) {
-                    $align = 'right';
-                }                
+                    $class = 'right';
+                }
             }
         }
 
         // handle html content
         if($type == 'string' && strlen($value) && $usage == 'text/html') {
-            $align = 'left';
+            $class = 'left';
             $elem = $doc->createDocumentFragment();
             $elem->appendXML($value);
 
@@ -528,7 +534,11 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
             $cell = $doc->createElement('td', htmlspecialchars($value));
         }
 
-        $cell->setAttribute('class', $align);
+        if($type == 'string' && strpos($usage, 'text/') === 0) {
+            $class += ' allow-wrap';
+        }
+
+        $cell->setAttribute('class', $class);
 
         $row->appendChild($cell);
     }
