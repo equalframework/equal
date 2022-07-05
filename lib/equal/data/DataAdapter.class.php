@@ -172,15 +172,24 @@ class DataAdapter extends Service {
                 // internally, we handle dates as timestamps
                 'php'   => [
                     'txt' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return null;
+                                    }
                                     // return date as a ISO 8601 formatted string
                                     return date("c", $value);
                                 },
                     'sql' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return 'NULL';
+                                    }
                                     return date('Y-m-d', $value);
                                 }
                 ],
                 'sql'   => [
                     'php' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return null;
+                                    }
                                     // return date as a timestamp
                                     list($year, $month, $day) = sscanf($value, "%d-%d-%d");
                                     return mktime(0, 0, 0, $month, $day, $year);
@@ -208,15 +217,24 @@ class DataAdapter extends Service {
                 // internally, we handle dates as timestamps
                 'php'   => [
                     'txt' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return null;
+                                    }
                                     // return date as a ISO 8601 formatted string
                                     return date("c", $value);
                                 },
                     'sql' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return 'NULL';
+                                    }
                                     return date('Y-m-d H:i:s', $value);
                                 }
                 ],
                 'sql'   => [
                     'php' =>    function ($value) {
+                                    if(is_null($value)) {
+                                        return null;
+                                    }
                                     // return SQL date as a timestamp
                                     list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
                                     return mktime($hour, $minute, $second, $month, $day, $year);
