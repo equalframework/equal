@@ -313,8 +313,8 @@ foreach($classes as $class) {
                                     if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                         $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                     }
-                                    if( mb_strlen($data['model'][$field][$property]) > 60) {
-                                        $result[] = "WARN  - I18 - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
+                                    if( mb_strlen($data['model'][$field][$property]) > 65) {
+                                        $result[] = "WARN  - I18 - Property '$property' should not exceed 65 chars for field '$field' referenced in file $i18n_file";
                                     }
                                 }
                             }
