@@ -205,6 +205,7 @@ foreach($datasets as $index => $dataset) {
                 $group_index = _get_date_index($object[$params['field']], $params['range_interval']);
             }
             else {
+                // #todo - check value of param 1
                 $group_index = date('Y-m-d', $object[$params['field']]);
             }
             $result_map[$group_index][] = $object;

@@ -13269,7 +13269,7 @@ var LayoutList = /*#__PURE__*/function (_Layout) {
                 if (descriptor[item.value].hasOwnProperty('usage')) {
                   usage = descriptor[item.value]['usage'];
 
-                  if (usage.indexOf('amount/percent') >= 0) {
+                  if (usage.indexOf('amount/percent') >= 0 || usage.indexOf('amount/rate') >= 0) {
                     suffix = '%';
                     value = (value * 100).toFixed(0);
                   } else if (usage.indexOf('amount/money') >= 0) {
@@ -15587,7 +15587,7 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          value = (0, _moment.default)(date).format('LL');
+          value = this.value ? (0, _moment.default)(date).format('LL') : '';
           this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
           break;
       }
@@ -15979,7 +15979,8 @@ var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
   (0, _createClass2.default)(WidgetFloat, [{
     key: "setValue",
     value: function setValue(value) {
-      this.value = Number.parseFloat(value);
+      var res = Number.parseFloat(value);
+      this.value = isNaN(res) ? 0 : res;
       return this;
     }
   }, {
@@ -16001,7 +16002,7 @@ var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
         if (this.config.hasOwnProperty('usage')) {
           var usage = this.config.usage;
 
-          if (usage.indexOf('amount/percent') >= 0) {
+          if (usage.indexOf('amount/percent') >= 0 || usage.indexOf('amount/rate') >= 0) {
             value = (value * 100).toFixed(0) + '%';
           } else if (usage.indexOf('amount/money') >= 0) {
             value = _equalServices.EnvService.formatCurrency(value);
