@@ -524,7 +524,7 @@ function view_test($data, $structure) {
                     return "missing property '$key' for item $index";
                 }
             }
-            else {
+            else if(isset($elem[$key]) && isset($structure[$item])){
                 $res = view_test($elem[$key], $structure[$item]);
                 if($res) {
                     return $res;
