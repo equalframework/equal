@@ -143,6 +143,7 @@
                                                 "type": "field",
                                                 "value": "groups_ids",
                                                 "label": "Groups",
+                                                "width": "100%",
                                                 "widget": {
                                                     "view": "list.selection"
                                                 }                                                

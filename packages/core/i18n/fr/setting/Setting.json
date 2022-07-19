@@ -46,12 +46,13 @@
         "type": {
             "label": "Type",
             "description": "Type du paramètre.",
-            "help": ""
-        },
-        "form": {
-            "label": "Formulaire",
-            "description": "Formulaire adapté à la présentation du paramètre.",
-            "help": ""
+            "help": "",
+            "selection":{
+                "boolean": "booléen",
+                "integer": "entier",
+                "float": "nombre flottant",
+                "string": "chaîne de caractère"
+            }
         }
     },
     "view": {

@@ -5,11 +5,13 @@
         "items": [
             {
                 "type": "field",            
-                "value": "name"
+                "value": "name",
+                "width": "20%"
             },
             {
                 "type": "field",            
-                "value": "code"
+                "value": "code",
+                "width": "20%"
             }
         ]
     }
