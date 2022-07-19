@@ -44,11 +44,13 @@ class EmailSpooler extends Service {
             // extract message details
             $filename = self::MESSAGE_FOLDER.'/'.$file;
             $data = file_get_contents($filename);
-            $message = unserialize($data);
+            $message = json_decode($data, true);
         
             // spool is mapped by email address 
             $email = $message['email'];
-            if(!isset($this->spool[$email])) $this->spool[$email] = [];            
+            if(!isset($this->spool[$email])) {
+                $this->spool[$email] = [];            
+            }
             $this->spool[$email][] = $message;            
         }
     }
@@ -68,13 +70,13 @@ class EmailSpooler extends Service {
     /**
      * Add a message to the spool
      */
-    public function queue($subject, $message, $email) {
+    public function queue($subject, $body, $email) {
         $message = [
             'subject'   => $subject,
-            'message'   => $message,
+            'message'   => $body,
             'email'     => $email
         ];
-        $data = serialize($message);
+        $data = json_encode($message, JSON_PRETTY_PRINT);
         $file = md5($data);
         $filename = self::MESSAGE_FOLDER.'/'.$file;
         file_put_contents($filename, $data);
@@ -100,10 +102,12 @@ class EmailSpooler extends Service {
             $subject = '';
 
             foreach($messages as $message) {
-                if(!strlen($subject) && strlen($message['subject'])) $subject = $message['subject'];
+                if(!strlen($subject) && strlen($message['subject'])) {
+                    $subject = $message['subject'];
+                }
                 $body .= $message['message'];
-                // remove file from storage
-                $data = serialize($message);
+                // retrieve filename and remove file from storage
+                $data = json_encode($message, JSON_PRETTY_PRINT);
                 $file = md5($data);
                 $filename = self::MESSAGE_FOLDER.'/'.$file;
                 unlink($filename);
@@ -115,7 +119,7 @@ class EmailSpooler extends Service {
                      ->setBody($body)
                      ->setFrom([EMAIL_SMTP_ACCOUNT_EMAIL => EMAIL_SMTP_ACCOUNT_DISPLAYNAME]);
                  
-            $result = $mailer->send($envelope);     
+            $mailer->send($envelope);     
         }
     }
 
