@@ -232,7 +232,7 @@ foreach($classes as $class) {
                     'entity',
                     'group_by',                    
                     'datasets' => [
-                        'label', 'operation', 'domain'
+                        'label', 'operation'
                     ]
                 ]
             ];
