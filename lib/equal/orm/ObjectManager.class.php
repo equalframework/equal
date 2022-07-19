@@ -647,7 +647,11 @@ class ObjectManager extends Service {
                 // if store attribute is set and no result was found, we need to compute the value
                 // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
                 // (this implies that the DB schema has 'DEFAULT NULL' for columns associated to computed fields)
-                foreach($ids as $oid) if(is_null($this->cache[$table_name][$oid][$lang][$field])) $oids[] = $oid;
+                foreach($ids as $oid) {
+                    if(is_null($this->cache[$table_name][$oid][$lang][$field])) {
+                        $oids[] = $oid;
+                    }
+                }
                 // compute field for incomplete objects
                 $load_fields['computed']($this, $oids, array($field));
                 // store newly computed fields to database, if required ('store' attribute set to true)
@@ -1958,6 +1962,8 @@ class ObjectManager extends Service {
                             default:
                                 // adapt value
                                 if(!is_array($value)) {
+                                    // #todo - json to php conversion should be done in Collection class
+                                    // at this stage, we should be dealing with PHP values only
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }

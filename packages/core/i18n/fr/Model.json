@@ -5,6 +5,11 @@
             "description": "Identifiant unique de l'objet.",
             "help": ""
         },
+        "name": {
+            "label": "Libellé",
+            "description": "Nom de l'objet.",
+            "help": ""
+        },
         "creator": {
             "label": "Créé par",
             "description": "Utilisateur ayant créé l'objet.",

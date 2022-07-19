@@ -224,6 +224,19 @@ foreach($classes as $class) {
                 ]
             ];
         }
+        else if(strpos($view_file, 'chart.') > 0) {
+            $structure = [
+                'name',
+                'description',
+                'layout' => [
+                    'entity',
+                    'group_by',                    
+                    'datasets' => [
+                        'label', 'operation', 'domain'
+                    ]
+                ]
+            ];
+        }        
         // check that mandatory properties are present in the view
         $res = view_test($data, $structure);
         if($res) {
@@ -281,26 +294,26 @@ foreach($classes as $class) {
                             $result[] = "WARN  - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
                         }
                         else {
-                            if(strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
+                            if(mb_strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
                                 $result[] = "WARN  - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
                             }
 
                             if($property == 'label') {
-                                if( strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
+                                if( mb_strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'help') {
-                                if( strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
+                                if( mb_strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
                             else if($property == 'description') {
-                                if( strlen($data['model'][$field][$property]) ) {
+                                if( mb_strlen($data['model'][$field][$property]) ) {
                                     if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                         $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                     }
-                                    if( strlen($data['model'][$field][$property]) > 60) {
+                                    if( mb_strlen($data['model'][$field][$property]) > 60) {
                                         $result[] = "WARN  - I18 - Property '$property' should not exceed 60 chars for field '$field' referenced in file $i18n_file";
                                     }
                                 }
