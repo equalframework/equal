@@ -5,8 +5,8 @@
         {
             "id": "lang.french",
             "label": "français",
-            "description": "Utilisateurs parlant français",
-            "clause": ["language", "=", "fr"] 
+            "description": "Users with locale set to french.",
+            "clause": ["language", "=", "fr"]
         }
     ],
     "layout": {
@@ -22,13 +22,13 @@
                 "type": "field",
                 "value": "created",
                 "width": "25%",
-                "sortable": true                
+                "sortable": true
             },
             {
                 "type": "field",
                 "value": "validated",
                 "width": "10%"
-            },    
+            },
             {
                 "type": "field",
                 "value": "login",
@@ -56,7 +56,7 @@
                 "widget": {
                     "type": "one2many"
                 }
-            }        
+            }
         ]
     }
 }

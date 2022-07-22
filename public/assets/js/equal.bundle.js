@@ -3846,7 +3846,7 @@ var Frame = /*#__PURE__*/function () {
               case 42:
                 objects = _context6.sent;
                 link = model_schema.link.replace(/object\.id/, objects[0].id);
-                (0, _jqueryLib.$)('<a>' + current_purpose_string + '</a>').attr('href', link).prependTo($elem);
+                (0, _jqueryLib.$)('<a>' + current_purpose_string + '</a>').attr('href', link).attr('target', '_blank').prependTo($elem);
                 _context6.next = 48;
                 break;
 
@@ -8938,10 +8938,10 @@ var View = /*#__PURE__*/function () {
 
                     var translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], field, msg, error_id);
 
-                    if (translated_msg == msg) {
+                    if (translated_msg == msg.replace(/_/g, ' ')) {
                       var translated_error = _equalServices.TranslationService.instant('SB_ERROR_' + error_id.toUpperCase());
 
-                      if (translated_error.length) {
+                      if (translated_error != 'SB_ERROR_' + error_id.toUpperCase()) {
                         translated_msg = translated_error;
                       }
                     } // update widget to provide feedback (as error hint)
@@ -8976,10 +8976,10 @@ var View = /*#__PURE__*/function () {
                       msg = _equalServices.TranslationService.instant('SB_ERROR_INVALID_PARAM');
                       translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], 'errors', error_id, error_id);
 
-                      if (translated_msg == error_id) {
+                      if (translated_msg == error_id.replace(/_/g, ' ')) {
                         translated_error = _equalServices.TranslationService.instant('SB_ERROR_' + error_id.toUpperCase());
 
-                        if (translated_error.length) {
+                        if (translated_error != 'SB_ERROR_' + error_id.toUpperCase()) {
                           msg = translated_error;
                         }
                       } else {
@@ -9022,10 +9022,10 @@ var View = /*#__PURE__*/function () {
 
                     var translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], _field, msg, error_id);
 
-                    if (translated_msg == msg) {
+                    if (translated_msg == msg.replace(/_/g, ' ')) {
                       var _translated_error = _equalServices.TranslationService.instant('SB_ERROR_' + error_id.toUpperCase());
 
-                      if (_translated_error.length) {
+                      if (_translated_error != 'SB_ERROR_' + error_id.toUpperCase()) {
                         translated_msg = _translated_error;
                       }
                     } // update widget to provide feedback (as error hint)
@@ -9060,10 +9060,10 @@ var View = /*#__PURE__*/function () {
 
                       _translated_msg = _equalServices.TranslationService.resolve(translation, 'error', [], 'errors', _error_id, _error_id);
 
-                      if (_translated_msg == _error_id) {
+                      if (_translated_msg == _error_id.replace(/_/g, ' ')) {
                         _translated_error2 = _equalServices.TranslationService.instant('SB_ERROR_' + _error_id.toUpperCase());
 
-                        if (_translated_error2.length) {
+                        if (_translated_error2 != 'SB_ERROR_' + _error_id.toUpperCase()) {
                           _msg2 = _translated_error2;
                         }
                       } else {
@@ -9840,7 +9840,7 @@ var WidgetFactory = /*#__PURE__*/function () {
       } // convert visible property to JSON
 
 
-      config.visible = eval(config.visible); // for relational fields, we need to check if the Model has been fetched al
+      config.visible = eval(config.visible); // for relational fields, we need some additional values
 
       if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
         // defined config for Widget's view with a custom domain according to object values
@@ -9857,22 +9857,22 @@ var WidgetFactory = /*#__PURE__*/function () {
           view_type: view_type,
           view_name: view_name,
           original_domain: domain.toArray(),
-          action_create: true,
-          action_open: true,
-          action_select: true
+          has_action_create: true,
+          has_action_open: true,
+          has_action_select: true
         });
 
-        if (config.hasOwnProperty('header')) {
-          if (config.header.hasOwnProperty('ACTION.CREATE')) {
-            config.action_create = config.header['ACTION.CREATE'];
+        if (config.hasOwnProperty('header') && config.header.hasOwnProperty('actions')) {
+          if (config.header.actions.hasOwnProperty('ACTION.CREATE')) {
+            config.has_action_create = config.header.actions['ACTION.CREATE'];
           }
 
-          if (config.header.hasOwnProperty('ACTION.OPEN')) {
-            config.action_open = config.header['ACTION.OPEN'];
+          if (config.header.actions.hasOwnProperty('ACTION.OPEN')) {
+            config.has_action_open = config.header.actions['ACTION.OPEN'];
           }
 
-          if (config.header.hasOwnProperty('ACTION.SELECT')) {
-            config.action_select = config.header['ACTION.SELECT'];
+          if (config.header.actions.hasOwnProperty('ACTION.SELECT')) {
+            config.has_action_select = config.header.actions['ACTION.SELECT'];
           }
         }
       }
@@ -13982,8 +13982,8 @@ var LayoutSearch = /*#__PURE__*/function (_Layout) {
                     var config = _equalWidgets.WidgetFactory.getWidgetConfig(_this.view, item.value, translation, model_fields, view_fields);
 
                     if (config) {
-                      config.action_create = false;
-                      config.action_open = false;
+                      config.has_action_create = false;
+                      config.has_action_open = false;
 
                       var widget = _equalWidgets.WidgetFactory.getWidget(_this, config.type, config.title, '', config);
 
@@ -15893,13 +15893,16 @@ var WidgetFile = /*#__PURE__*/function (_Widget) {
 
                     case 4:
                       _this.value = _context2.sent;
+
+                      _this.$elem.trigger('_updatedWidget', [false]);
+
                       filename = val.split('\\').pop();
                       $text.remove();
                       $text = _materialLib.UIHelper.createInputView('', _this.label, filename, _this.config.description);
 
                       _this.$elem.prepend($text);
 
-                    case 9:
+                    case 10:
                     case "end":
                       return _context2.stop();
                   }
@@ -15916,7 +15919,7 @@ var WidgetFile = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          this.$elem.append('binary data');
+          this.$elem.append('[binary data]');
           break;
       }
 
@@ -16958,7 +16961,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
           var $link = _materialLib.UIHelper.createListItem('m2o-actions-create-' + this.id, '<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
 
-          if (this.config.action_open || this.config.action_create) {
+          if (this.config.has_action_open || this.config.has_action_create) {
             $select.css({
               "width": "calc(100% - 48px)"
             });
@@ -16978,7 +16981,9 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             $select.attr('data-selected', this.config.object_id);
           }
 
-          if (this.config.action_open) {
+          if (!this.config.has_action_open) {
+            $button_open.hide();
+          } else {
             this.$elem.append($button_open); // open targeted object in new context
 
             $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
@@ -17019,7 +17024,9 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             })));
           }
 
-          if (this.config.action_create) {
+          if (!this.config.has_action_create) {
+            $button_create.hide();
+          } else {
             this.$elem.append($button_create); // open creation form in new context
 
             $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
@@ -17112,12 +17119,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       return _context3.abrupt("return");
 
                     case 3:
-                      console.log('feedobjects');
                       val = $input.val();
                       parts = val.split(" ");
 
                       if (!(val != query || !objects.length)) {
-                        _context3.next = 30;
+                        _context3.next = 29;
                         break;
                       }
 
@@ -17141,11 +17147,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       tmpDomain.merge(new _Domain.default(domain)); // fetch first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
 
                       limit = _this.config.limit ? _this.config.limit : 5;
-                      _context3.prev = 14;
-                      _context3.next = 17;
+                      _context3.prev = 13;
+                      _context3.next = 16;
                       return _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, limit, _this.config.lang);
 
-                    case 17:
+                    case 16:
                       response = _context3.sent;
                       objects = response;
                       $menu_list.empty();
@@ -17186,24 +17192,24 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                       $link.on('click', openSelectContext);
                       $menu_list.append($link);
-                      _context3.next = 30;
+                      _context3.next = 29;
                       break;
 
-                    case 27:
-                      _context3.prev = 27;
-                      _context3.t0 = _context3["catch"](14);
+                    case 26:
+                      _context3.prev = 26;
+                      _context3.t0 = _context3["catch"](13);
                       console.log('request failed', _context3.t0);
 
-                    case 30:
+                    case 29:
                       // make the menu sync with its parent width (menu is 'fixed')
                       $select.find('.mdc-menu-surface').width($select.width());
 
-                    case 31:
+                    case 30:
                     case "end":
                       return _context3.stop();
                   }
                 }
-              }, _callee3, null, [[14, 27]]);
+              }, _callee3, null, [[13, 26]]);
             }));
 
             return function feedObjects() {
@@ -17219,7 +17225,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               "z-index": "2"
             });
 
-            if (!this.config.action_open && !this.config.action_create) {
+            if (!this.config.has_action_open && !this.config.has_action_create) {
               $button_reset.css({
                 "right": "5px"
               });
@@ -17236,7 +17242,6 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             var has_focus = false;
             var dblclick_timeout = false;
             $button_reset.on('click', function (event) {
-              console.log('button reset onclick');
               _this.value = {
                 id: 0,
                 name: ''
@@ -17267,7 +17272,6 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
               setTimeout(function () {
                 has_focus = false;
-                console.log('closing menu');
                 $menu.trigger('_close');
               }, 150);
             });
@@ -17276,14 +17280,12 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
               if (dblclick_timeout) {
                 return;
-              }
+              } // click on a focused input blurs (workaround for disapearing menu)
 
-              console.log('widget on click', has_focus); // click on a focused input blurs (workaround for disapearing menu)
 
               if (has_focus) {
                 has_focus = false;
                 dblclick_timeout = true;
-                console.log('bluring');
                 $select.find('input').blur();
                 setTimeout(function () {
                   dblclick_timeout = false; // $menu.trigger('_close');
@@ -17314,14 +17316,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               feedObjects(); // delay has_focus to distinguish first focus and later
 
               setTimeout(function () {
-                console.log('has focus');
                 has_focus = true;
               }, 250);
             });
             var timeout = null;
             $select.find('input').on('keyup', function (event) {
-              console.log('input on keyup');
-
               if (event.which == 9) {
                 console.log('tab', _this.getLabel()); // if clicked ok, if tab only not
 
@@ -17358,8 +17357,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               });
 
               if (object) {
+                if (_this.config.has_action_open) {
+                  $button_open.show();
+                }
+
                 $button_create.hide();
-                $button_open.show();
                 _this.value = {
                   id: object.id,
                   name: object.name
@@ -17367,7 +17369,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                 _this.$elem.trigger('_updatedWidget');
               } else {
-                $button_create.show();
+                if (_this.config.has_action_create) {
+                  $button_create.show();
+                }
+
                 $button_open.hide();
               }
             });
