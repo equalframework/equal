@@ -5,36 +5,36 @@ jobs:
   build:
     docker:
       - image: php:7.3-apache
-	  
-	  - image: circleci/mysql:5.7
-	    environment:
+    
+    - image: circleci/mysql:5.7
+      environment:
         MYSQL_ROOT_PASSWORD: test
-		MYSQL_DATABASE: equal
-		
-	working_directory: ~/repo
-	
+    MYSQL_DATABASE: equal
+    
+  working_directory: ~/repo
+  
     steps:
-	  - run:
-		  name: Install system packages
-		  command: apt-get update && apt-get -y install git
-		  
+    - run:
+      name: Install system packages
+      command: apt-get update && apt-get -y install git
+      
       - run:
           name: Install PHP extensions
           command: docker-php-ext-install pdo pdo_mysql
-		
+    
       - checkout:
-		  path: ~/repo
-		  
-	  # check that mandatory directories are present and have correct access rights set
-	  - run: php run.php --do=test_fs-consistency
-	  # check ability to connect to the dbms service
-	  - run: php run.php --do=test_db-connectivity
-	  # create an empty database 
-	  - run: php run.php --do=init_db  
-	  # initialise database with demo data
-	  - run: php run.php --do=init_package --package=core --import=true
-	  # run test units
-	  - run: php run.php --do=test_package --package=core	  
+      path: ~/repo
+      
+    # check that mandatory directories are present and have correct access rights set
+    - run: php run.php --do=test_fs-consistency
+    # check ability to connect to the dbms service
+    - run: php run.php --do=test_db-connectivity
+    # create an empty database 
+    - run: php run.php --do=init_db  
+    # initialise database with demo data
+    - run: php run.php --do=init_package --package=core --import=true
+    # run test units
+    - run: php run.php --do=test_package --package=core	  
 
 # Orchestrate our job run sequence
 workflows:
