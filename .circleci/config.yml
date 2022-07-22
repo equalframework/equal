@@ -16,7 +16,7 @@ jobs:
     steps:
       # install dependencies
       - run: apt-get update && apt-get -y install git      
-      - run: docker-php-ext-install pdo pdo_mysql
+      - run: docker-php-ext-install pdo pdo_mysql php-mysqli
     
       - checkout:
           path: ~/repo
