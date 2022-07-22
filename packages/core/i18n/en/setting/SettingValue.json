@@ -15,12 +15,12 @@
         },
         "user_id": {
             "label": "User",
-            "description": "User to which the parameter belongs",
+            "description": "User to which the parameter belongs.",
             "help": ""
         },
         "value": {
             "label": "Value",
-            "description": "Parameter Value",
+            "description": "Parameter Value.",
             "help": ""
         }
     },

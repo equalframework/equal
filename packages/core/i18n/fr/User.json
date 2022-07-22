@@ -5,27 +5,32 @@
     "model": {
         "login":{
             "label":"Identifiant",
+            "description": "",
             "help":"Les identifiants sont des adresses e-mail."
         },
         "password":{
-            "label":"Mot de passe"
+            "label":"Mot de passe",
+            "description": "",
+            "help": ""
         },
         "firstname":{
-            "label":"Prénom"
+            "label":"Prénom",
+            "description": "",
+            "help": ""
         },
         "lastname":{
-            "label":"Nom"
-        },
-        "created":{
-            "label":"Date de création",
-            "help": "Date de création du compte."
+            "label":"Nom",
+            "description": "",
+            "help": ""
         },
         "validated":{
             "label":"Validé",
+            "description": "",
             "help": "Compte validé ?"
         },
         "language":{
             "label":"Langue",
+            "description": "",
             "help": "La langue de préférence de l'utilisateur."
         }
     },

@@ -5,11 +5,12 @@
 	"model": {
 		"login":{
 			"label":"Username", 
+			"description": "",
 			"help":"Your username is your email address."
 		},
-		"password":{"label":"Password"},
-		"firstname":{"label":"Given name"},
-		"lastname":{"label":"Family name"}
+		"password":{"label":"Password", "description": "", "help": ""},
+		"firstname":{"label":"Given name", "description": "", "help": ""},
+		"lastname":{"label":"Family name", "description": "", "help": ""}
 	},
 	"view": {
 		"identification":{"label":"Identification"},

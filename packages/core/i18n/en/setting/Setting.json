@@ -40,12 +40,13 @@
         },
         "type": {
             "label": "Type",
+            "selection": {
+                "boolean": "booléen",
+                "integer": "entier",
+                "float": "nombre flottant",
+                "string": "chaîne de caractères"
+            },
             "description": "Setting type.",
-            "help": ""
-        },
-        "form": {
-            "label": "Form",
-            "description": "Telling which form is the best to display the setting.",
             "help": ""
         }
     },

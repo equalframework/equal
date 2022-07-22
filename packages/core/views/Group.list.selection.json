@@ -5,7 +5,8 @@
         "items": [
             {
                 "type": "field",
-                "value": "name"
+                "value": "name",
+                "width": "20%"
             }
         ]
     }

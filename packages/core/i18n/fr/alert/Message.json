@@ -1,7 +1,7 @@
 {
     "name": "Message",
     "plural": "Messages",
-    "description": "Mssages d'alerte et de notification.",
+    "description": "Messages d'alerte et de notification.",
     "model": {
         "object_class": {
             "label": "Classe",
@@ -30,6 +30,12 @@
         },
         "severity": {
             "label": "Sévérité",
+            "selection" :{
+                "notice": "notification",
+                "warning": "alerte",
+                "important": "important",
+                "urgent": "urgent"
+            },
             "description": "Niveau d'importance de l'alerte.",
             "help": ""
         },

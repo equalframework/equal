@@ -1,10 +1,12 @@
-{
+{	
+	"name": "Permission",
+	"plural": "Permissions",
+	"description": "Permissions.",
 	"model": {
-        "class_name":{"label":"Class"},
-		"rights":{"label":"Rights", "help":"Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."},
-        "group_id":{"label":"Group"},
-        "group_id.name":{"label":"Group"},
-        "rights_txt":{"label":"Rights"}
+        "class_name":{"label":"Class", "description": "", "help": ""},
+		"rights":{"label":"Rights", "description": "", "help":"Permissions are set by using a binary mask, bits meaning:\nbit 0 (2^0 = 1): create\nbit 1 (2^1 = 2): read\nbit 2 (2^2 = 4): write\nbit 3 (2^3 = 8): delete\nbit 4 (2^4 = 16): manage\n\nEx.: To grant read and write permissions, we need to set bits 1 and 2,\n so field value would be 6 (2^1+2^2)."},
+        "group_id":{"label":"Group", "description": "Group to which the permission belongs.", "help": ""},
+        "rights_txt":{"label":"Rights", "description": "Translation in text of the rights of the permission.", "help": ""}
 	},
 	"view": {
 

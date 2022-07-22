@@ -15,7 +15,7 @@
         },
         "value": {
             "label": "Valeur",
-            "description": "Valeur de l'option de paramètre",
+            "description": "Valeur de l'option de paramètre.",
             "help": ""
         }
     },
