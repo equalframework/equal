@@ -5,12 +5,9 @@ jobs:
   build:
     docker:
     - image: php:7.3-apache
-    
-    - image: circleci/mysql:5.7
-      environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
-    
+        
     working_directory: ~/repo
   
     steps:
