@@ -5,11 +5,12 @@ jobs:
   build:
     docker:
     - image: php:7.3-apache
+      environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
-        
+
     working_directory: ~/repo
-  
+
     steps:
       # install dependencies
       - run: apt-get update && apt-get -y install git      
