@@ -5,10 +5,31 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <style>
+        body {
+            font-family: Roboto, sans-serif;
+        }
+        a {
+            text-transform: uppercase;
+            color:black;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-<div id="app" style="display: flex;">
-    <div><img alt="" src="http://doc.equal.run/assets/img/equal_logo_w_bg.png"></div>
-</div>
+    <div style="display: flex; justify-content: center;">
+        <div style="margin-top: 10%;"><img alt="" src="http://doc.equal.run/assets/img/equal_logo_w_bg.png"></div>
+    </div>
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; width: 756px;">
+            <div style="margin: 10px 20px;"><a href="https://doc.equal.run" target="_blank">Documentation</a></div>
+            <div style="margin: 10px;"><a href="https://discord.gg/BNCPYxD9kk" target="_blank">Discord</a></div>        
+            <div style="margin: 10px;"><a href="https://github.com/cedricfrancoys/equal" target="_blank">Github</a></div>        
+            <div style="margin: 10px;"><a href="https://hub.docker.com/repository/docker/cedricfrancoys/equal" target="_blank">Dockerhub</a></div>                    
+        </div>        
+    </div>
 </body>
 </html>
