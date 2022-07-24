@@ -107,7 +107,7 @@ namespace {
     define('DB_DBMS',       'MYSQL');
     define('DB_CHARSET',    'UTF8');        // 'UTF8' in most cases
 
-    define('DB_HOST',     getenv('EQ_DB_HOST')?getenv('EQ_DB_HOST'):'127.0.0.1');   // IP or fully qualified domain name (ex.: www.example.com)
+    define('DB_HOST',     getenv('EQ_DB_HOST')?getenv('EQ_DB_HOST'):'127.0.0.1');   // IP or fully qualified domain name (ex.: sql.example.com)
     define('DB_PORT',     getenv('EQ_DB_PORT')?getenv('EQ_DB_PORT'):'3306');        // this is the default port for MySQL
     define('DB_USER',     getenv('EQ_DB_USER')?getenv('EQ_DB_USER'):'root');        // this should be changed for security reasons
     define('DB_PASSWORD', getenv('EQ_DB_PASS')?getenv('EQ_DB_PASS'):'test');        // this should be changed for security reasons

@@ -194,7 +194,7 @@ catch(Throwable $e) {
         // append an 'error' section to response body
         ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
         // for debug purpose
-        // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/qn_error.log')])
+        // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log')])
         ->send();
         trigger_error("{$request_headers['Origin']} QN_DEBUG_PHP::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         exit(1);

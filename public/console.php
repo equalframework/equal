@@ -5,10 +5,10 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 /**
-* This file is supposed to remain standalone (free of any dependency other than the qn_error.log file)
+* This file is supposed to remain standalone (free of any dependency other than the eq_error.log file)
 * For security reasons its access should be restricted to development environment only.
 */
-define('QN_LOG_FILE', '../log/qn_error.log');
+define('QN_LOG_FILE', '../log/eq_error.log');
 define('PHP_LOG_FILE', '../log/error.log');
  
 date_default_timezone_set('Europe/Brussels');
@@ -265,7 +265,7 @@ for($j = $i+1;$j < $len-1; ++$j){
 
 $current_thread = get_header($thread_id, $thread_id, $previous_thread, $next_thread);
 
-// check for errors from error.log (check if last line is newer than qn_error.log's last line) 
+// check for errors from error.log (check if last line is newer than eq_error.log's last line) 
 if(file_exists(PHP_LOG_FILE)) {
     $php_log = file_get_contents(PHP_LOG_FILE);
     $php_lines = explode(PHP_EOL, $php_log);
