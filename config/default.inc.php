@@ -107,11 +107,11 @@ namespace {
     define('DB_DBMS',       'MYSQL');
     define('DB_CHARSET',    'UTF8');        // 'UTF8' in most cases
 
-    define('DB_HOST',       '127.0.0.1');   // IP or fully qualified domain name (ex.: www.example.com)
-    define('DB_PORT',       '3306');        // this is the default port for MySQL
-    define('DB_USER',       'root');        // this should be changed for security reasons
-    define('DB_PASSWORD',   'test');        // this should be changed for security reasons
-    define('DB_NAME',       'equal');       // the name of the DB that you've created or plan to use
+    define('DB_HOST',     getenv('EQ_DB_HOST')?getenv('EQ_DB_HOST'):'127.0.0.1');   // IP or fully qualified domain name (ex.: www.example.com)
+    define('DB_PORT',     getenv('EQ_DB_PORT')?getenv('EQ_DB_PORT'):'3306');        // this is the default port for MySQL
+    define('DB_USER',     getenv('EQ_DB_USER')?getenv('EQ_DB_USER'):'root');        // this should be changed for security reasons
+    define('DB_PASSWORD', getenv('EQ_DB_PASS')?getenv('EQ_DB_PASS'):'test');        // this should be changed for security reasons
+    define('DB_NAME',     getenv('EQ_DB_NAME')?getenv('EQ_DB_NAME'):'equal');       // the name of the DB that you've created or plan to use
 
     // additional DB server(s) can be configured as below
     /*
@@ -119,13 +119,13 @@ namespace {
     define('DB_1_PORT',       '3306');
     define('DB_1_USER',       'root');
     define('DB_1_PASSWORD',   'test');
-    define('DB_1_NAME',       'qinoa');
+    define('DB_1_NAME',       'equal');
 
     define('DB_2_HOST',       '127.0.0.1');
     define('DB_2_PORT',       '3306');
     define('DB_2_USER',       'root');
     define('DB_2_PASSWORD',   'test');
-    define('DB_2_NAME',       'qinoa');
+    define('DB_2_NAME',       'equal');
 
     [...]
     */
