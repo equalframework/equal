@@ -1,0 +1,28 @@
+version: '3'
+services:
+  equal_srv:
+    image: cedricfrancoys/equal
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - /var/www/html
+    extra_hosts:
+      - "equal.local:127.0.0.1"
+    hostname: equal.local
+    domainname: local       
+    environment:
+      - EQ_DB_HOST=equal_db
+      - EQ_DB_USER=root
+      - EQ_DB_PASS=test
+      - EQ_DB_NAME=equal
+    links:
+      - equal_db
+  equal_db:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_DATABASE=equal
+      - MYSQL_ROOT_PASSWORD=test
