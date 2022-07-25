@@ -2,6 +2,7 @@ version: '3'
 services:
   equal_srv:
     image: cedricfrancoys/equal
+    container_name: equal.local    
     restart: always
     ports:
       - 80:80
