@@ -19,7 +19,7 @@ class ObjectManager extends Service {
     /**
      * Buffer for storing objects values as they are loaded.
      * Structure is defined this way: `$cache[$class][$oid][$lang][$field]`
-     * Only methods load() and write() update its values.
+     * Only methods load() and update() update its values.
      * @var array
      */
     private $cache;
@@ -749,13 +749,14 @@ class ObjectManager extends Service {
                             if($id > 0) $ids_to_add[] = $id;
                         }
                         $foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
-                        // remove relation by setting pointing id to 0
+                        // remove relation
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
                                 try {
                                     $this->callonce($class, $schema[$field]['ondetach'], $ids, [], $lang, ['ids']);
                                 }
                                 catch(Exception $e) {
+                                    // 'ondetach' property is a string
                                     switch($schema[$field]['ondetach']) {
                                         case 'delete':
                                             $this->remove($schema[$field]['foreign_object'], $ids_to_remove, true);
@@ -768,7 +769,8 @@ class ObjectManager extends Service {
                                 }
                             }
                             else {
-                                $om->db->setRecords($foreign_table, $ids_to_remove, array($schema[$field]['foreign_field']=>0));
+                                // remove relation by setting pointing id to 0
+                                $om->db->setRecords($foreign_table, $ids_to_remove, [$schema[$field]['foreign_field'] => 0]);
                             }
                         }
                         // add relation by setting the pointing id (overwrite previous value if any)
@@ -1317,6 +1319,14 @@ class ObjectManager extends Service {
         return $res;
     }
 
+    /** 
+     * Alias for update()
+     * @deprecated
+     */
+    public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG, $create=false) {
+        return $this->update($class, $ids, $fields, $lang, $create);
+    }
+
     /**
      * Updates specifield fields of seleced objects and stores changes into database
      *
@@ -1326,9 +1336,9 @@ class ObjectManager extends Service {
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
      * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
      *
-     * @return  int|array Error code OR array of updated ids.
+     * @return  int|array Returns an array of updated ids or an error code (int) in case an error occured.
      */
-    public function write($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG, $create=false) {
+    public function update($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG, $create=false) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
