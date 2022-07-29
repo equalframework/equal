@@ -238,7 +238,7 @@ class Context extends Service {
                 $headers['Origin'] = '*';
                 if(isset($headers['Referer'])) {
                     if ( $parts = parse_url( $headers['Referer'] ) ) {
-                        $headers['Origin'] = $parts[ "scheme" ].'://'.$parts[ "host" ];
+                        $headers['Origin'] = $parts['scheme'].'://'.$parts['host'].(isset($parts['port'])?':'.$parts['port']:'');
                     }
                 }
             }
