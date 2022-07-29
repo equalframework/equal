@@ -1319,7 +1319,7 @@ class ObjectManager extends Service {
         return $res;
     }
 
-    /** 
+    /**
      * Alias for update()
      * @deprecated
      */
@@ -1623,6 +1623,16 @@ class ObjectManager extends Service {
     }
 
 
+
+    /**
+     * Alias for delete()
+     * @deprecated
+     */
+    public function remove($class, $ids, $permanent=false) {
+        return $this->delete($class, $ids, $permanent);
+    }
+
+
     /**
      * Delete an object permanently or put it in the "trash bin" (i.e. setting the 'deleted' flag to 1).
      * The returned structure is an associative array containing ids of the objects actually deleted.
@@ -1633,7 +1643,7 @@ class ObjectManager extends Service {
      *
      * @return  integer|array   Error code OR array of ids of deleted objects
      */
-    public function remove($class, $ids, $permanent=false) {
+    public function delete($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
         $res = [];
