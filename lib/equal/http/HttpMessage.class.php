@@ -250,7 +250,7 @@ class HttpMessage {
     
     /**
      *
-     * This method is invoked byt HttpRequest and HttpResponse constructors.
+     * This method is invoked by the HttpRequest and HttpResponse constructors.
      *
      * @param $uri  string
      */
