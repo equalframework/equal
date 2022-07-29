@@ -687,7 +687,7 @@ class Collection implements \Iterator {
             // 4) update objects
             // by convention, update operation always sets object state as 'instance' and modifier as current user
             $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
-            $res = $this->orm->write($this->class, $ids, $values, $lang);
+            $res = $this->orm->update($this->class, $ids, $values, $lang);
             if($res <= 0) {
                 throw new \Exception($this->orm->getLastError(), $res);
             }
@@ -719,7 +719,7 @@ class Collection implements \Iterator {
             }
 
             // 3) delete objects
-            $res = $this->orm->remove($this->class, $ids, $permanent);
+            $res = $this->orm->delete($this->class, $ids, $permanent);
             if($res <= 0) {
                 throw new \Exception($this->orm->getLastError(), $res);
             }
