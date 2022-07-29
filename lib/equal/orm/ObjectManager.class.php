@@ -1448,7 +1448,7 @@ class ObjectManager extends Service {
             $this->object_methods = $object_methods_state;
         }
         catch(Exception $e) {
-            trigger_error($this->last_error, E_USER_ERROR);
+            trigger_error($e->getMessage(), E_USER_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
