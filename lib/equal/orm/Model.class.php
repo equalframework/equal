@@ -14,8 +14,8 @@ namespace equal\orm;
 class Model {
 
     /**
-     * Complete object schema, containing all columns (including special ones as object id).
-     *
+     * Complete object schema: an associative array mapping fields names with their definition.
+     * Schema is the concatenation of spcecial-columns and custom-defined columns.
      * @var array
      */
     private $schema;
@@ -40,9 +40,8 @@ class Model {
      *
      */
     public final function __construct($orm, $values=[]) {
-        // schema is the concatenation of spcecial-columns and custom-defined columns
+        // build the schema based on current class and ancestors
         $this->schema = self::getSpecialColumns();
-
         // piles up the getColumns methods from oldest ancestor to called class
         $parent_class = get_parent_class(get_called_class());
         $parents_classes = [get_called_class()];
@@ -53,7 +52,6 @@ class Model {
         foreach($parents_classes as $class) {
             $this->schema = array_merge($this->schema, (array) call_user_func_array([$class, 'getColumns'], []));
         }
-
         // make sure that a field 'name' is always defined
         if( !isset($this->schema['name']) ) {
             // if no field 'name' is defined, fall back to 'id' field
@@ -61,7 +59,6 @@ class Model {
         }
         // set array holding fields names
         $this->fields = array_keys($this->schema);
-
         // set fields to default values
         $this->setDefaults($orm, $values);
     }
@@ -187,7 +184,7 @@ class Model {
 
     /**
      * Returns all fields names
-     *
+     * @return array    List of all fields names (including special fields).
      */
     public final function getFields() {
         return $this->fields;
