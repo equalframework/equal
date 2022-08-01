@@ -41,7 +41,7 @@ namespace {
      * Error codes
      * we use negative values to make it possible to distinguish error codes from object ids
      */
-    define('QN_ERROR_UNKNOWN',             -1);        // something went wrong (that requires to check the logs)
+    define('QN_ERROR_UNKNOWN',             -1);        // something went wrong (check the logs)
     define('QN_ERROR_MISSING_PARAM',       -2);        // one or more mandatory parameters are missing
     define('QN_ERROR_INVALID_PARAM',       -4);        // one or more parameters have invalid or incompatible value
     define('QN_ERROR_SQL',                 -8);        // error while building SQL query or processing it (check that object class matches DB schema)
