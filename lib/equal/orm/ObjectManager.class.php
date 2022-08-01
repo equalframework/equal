@@ -1336,7 +1336,7 @@ class ObjectManager extends Service {
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
      * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
      *
-     * @return  int|array Returns an array of updated ids or an error code (int) in case an error occured.
+     * @return  int|array Returns an array of updated ids, or an error code (int) in case an error occured.
      */
     public function update($class, $ids=NULL, $fields=NULL, $lang=DEFAULT_LANG, $create=false) {
         // init result
