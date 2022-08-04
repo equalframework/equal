@@ -298,19 +298,19 @@ class DataValidator extends Service {
                     throw new \Exception("Non numeric min constraint {$constraint['rule']}", QN_ERROR_INVALID_CONFIG);
                 }
                 switch(gettype($value)) {
-                case 'string':
-                    if(strlen($value) < $constraint['rule']) return false;
-                    break;
-                case 'integer':
-                case 'double':
-                    if($value < $constraint['rule']) return false;
-                    break;
-                case 'array':
-                    if(count($value) < $constraint['rule']) return false;
-                    break;
-                default:
-                    // error : unhandled value type for contraint 'min'
-                    break;
+                    case 'string':
+                        if(strlen($value) < $constraint['rule']) return false;
+                        break;
+                    case 'integer':
+                    case 'double':
+                        if($value < $constraint['rule']) return false;
+                        break;
+                    case 'array':
+                        if(count($value) < $constraint['rule']) return false;
+                        break;
+                    default:
+                        // error : unhandled value type for contraint 'min'
+                        break;
                 }
                 break;
             case 'max':
@@ -318,19 +318,19 @@ class DataValidator extends Service {
                     throw new \Exception("Non numeric max constraint {$constraint['rule']}", QN_ERROR_INVALID_CONFIG);
                 }
                 switch(gettype($value)) {
-                case 'string':
-                    if(strlen($value) > $constraint['rule']) return false;
-                    break;
-                case 'integer':
-                case 'double':
-                    if($value > $constraint['rule']) return false;
-                    break;
-                case 'array':
-                    if(count($value) > $constraint['rule']) return false;
-                    break;
-                default:
-                    // error : unhandled value type for contraint 'max'
-                    break;
+                    case 'string':
+                        if(strlen($value) > $constraint['rule']) return false;
+                        break;
+                    case 'integer':
+                    case 'double':
+                        if($value > $constraint['rule']) return false;
+                        break;
+                    case 'array':
+                        if(count($value) > $constraint['rule']) return false;
+                        break;
+                    default:
+                        // error : unhandled value type for contraint 'max'
+                        break;
                 }
                 break;
             case 'selection':

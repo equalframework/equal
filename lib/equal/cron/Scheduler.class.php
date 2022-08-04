@@ -79,13 +79,15 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
         trigger_error("scheduling job", E_USER_WARNING);
 
-        $orm->create('core\Task', [
-            'name'          => $name,
-            'moment'        => $moment,
-            'controller'    => $controller,
-            'params'        => json_encode($params),
-            'is_recurring'  => $recurring
-        ]);
+        if($moment > time()) {
+            $orm->create('core\Task', [
+                'name'          => $name,
+                'moment'        => $moment,
+                'controller'    => $controller,
+                'params'        => json_encode($params),
+                'is_recurring'  => $recurring
+            ]);
+        }
     }
 
     /**
@@ -97,7 +99,7 @@ class Scheduler extends Service {
     public function cancel($name) {
         $orm = $this->container->get('orm');
         $tasks_ids = $orm->search('core\Task', ['name', '=', $name]);
-        if($tasks_ids > 0) {
+        if($tasks_ids > 0 && count($tasks_ids)) {
             $orm->remove('core\Task', $tasks_ids, true);
         }
     }

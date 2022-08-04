@@ -52,6 +52,7 @@ var _ApiService = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "translations", void 0);
     (0, _defineProperty2.default)(this, "schemas", void 0);
     (0, _defineProperty2.default)(this, "last_count", void 0);
+    (0, _defineProperty2.default)(this, "last_status", void 0);
 
     _jqueryLib.$.ajaxSetup({
       cache: true,
@@ -74,6 +75,7 @@ var _ApiService = /*#__PURE__*/function () {
     this.translations = {};
     this.schemas = {};
     this.last_count = 0;
+    this.last_status = 0;
   }
   /**
    * ObjectManager methods
@@ -192,6 +194,11 @@ var _ApiService = /*#__PURE__*/function () {
 
 
       return this.translations[package_name][class_name][locale];
+    }
+  }, {
+    key: "getLastStatus",
+    value: function getLastStatus() {
+      return this.last_status;
     }
   }, {
     key: "getLastCount",
@@ -426,6 +433,8 @@ var _ApiService = /*#__PURE__*/function () {
                   xhr.send(null);
 
                   xhr.onload = function () {
+                    _this4.last_status = xhr.status;
+
                     if (xhr.status < 200 || xhr.status > 299) {
                       reject(xhr.response);
                     } else {
@@ -4763,10 +4772,9 @@ var Model = /*#__PURE__*/function () {
 
               case 19:
                 response = _context2.sent;
-                // let response = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
+                this.total = _equalServices.ApiService.getLastCount();
                 this.objects = response;
                 this.loaded_promise.resolve();
-                this.total = _equalServices.ApiService.getLastCount();
                 _context2.next = 31;
                 break;
 
@@ -9193,7 +9201,7 @@ var View = /*#__PURE__*/function () {
 
               case 5:
                 if ((_step20 = _iterator20.n()).done) {
-                  _context44.next = 59;
+                  _context44.next = 58;
                   break;
                 }
 
@@ -9201,7 +9209,7 @@ var View = /*#__PURE__*/function () {
                 condition = conditionObj.toArray();
 
                 if (!(condition.length == 3)) {
-                  _context44.next = 57;
+                  _context44.next = 56;
                   break;
                 }
 
@@ -9210,7 +9218,6 @@ var View = /*#__PURE__*/function () {
                 operand = condition[0];
                 operator = condition[1];
                 value = condition[2];
-                console.log('#######################', operand, operator, value);
                 field = operand; // assign default resulting values
 
                 res_operand = operand;
@@ -9226,23 +9233,23 @@ var View = /*#__PURE__*/function () {
                 */
 
                 _context44.t0 = operator;
-                _context44.next = _context44.t0 === 'like' ? 23 : _context44.t0 === 'in' ? 24 : _context44.t0 === 'is' ? 24 : _context44.t0 === '=' ? 24 : _context44.t0 === 'not in' ? 26 : _context44.t0 === '<>' ? 26 : _context44.t0 === '!=' ? 26 : 28;
+                _context44.next = _context44.t0 === 'like' ? 22 : _context44.t0 === 'in' ? 23 : _context44.t0 === 'is' ? 23 : _context44.t0 === '=' ? 23 : _context44.t0 === 'not in' ? 25 : _context44.t0 === '<>' ? 25 : _context44.t0 === '!=' ? 25 : 27;
                 break;
 
-              case 23:
+              case 22:
                 res_value = res_value.replace(/%/g, '');
 
-              case 24:
+              case 23:
                 res_operator = '=';
-                return _context44.abrupt("break", 28);
+                return _context44.abrupt("break", 27);
 
-              case 26:
+              case 25:
                 res_operator = '<>';
-                return _context44.abrupt("break", 28);
+                return _context44.abrupt("break", 27);
 
-              case 28:
+              case 27:
                 if (!model_fields.hasOwnProperty(field)) {
-                  _context44.next = 55;
+                  _context44.next = 54;
                   break;
                 }
 
@@ -9250,7 +9257,7 @@ var View = /*#__PURE__*/function () {
                 type = this.model.getFinalType(field); // handle translation by type
 
                 if (!(type == 'string' && model_fields[field].selection)) {
-                  _context44.next = 37;
+                  _context44.next = 36;
                   break;
                 }
 
@@ -9270,12 +9277,12 @@ var View = /*#__PURE__*/function () {
                   res_value = values[value];
                 }
 
-                _context44.next = 55;
+                _context44.next = 54;
                 break;
 
-              case 37:
+              case 36:
                 if (!(['date', 'datetime'].indexOf(type) >= 0)) {
-                  _context44.next = 42;
+                  _context44.next = 41;
                   break;
                 }
 
@@ -9284,75 +9291,75 @@ var View = /*#__PURE__*/function () {
                 }
 
                 res_value = res_value.substring(0, 10);
-                _context44.next = 55;
+                _context44.next = 54;
                 break;
 
-              case 42:
+              case 41:
                 if (!(type == 'many2one')) {
-                  _context44.next = 55;
+                  _context44.next = 54;
                   break;
                 }
 
                 if (!model_fields[field].hasOwnProperty('foreign_object')) {
-                  _context44.next = 55;
+                  _context44.next = 54;
                   break;
                 }
 
                 entity = model_fields[field].foreign_object; // value should be an ID
                 // read name field of targeted entity
 
-                _context44.prev = 45;
-                _context44.next = 48;
+                _context44.prev = 44;
+                _context44.next = 47;
                 return _equalServices.ApiService.read(entity, [value], ['name'], this.getLang());
 
-              case 48:
+              case 47:
                 response = _context44.sent;
                 _object = response[0];
                 res_value = _object['name'];
-                _context44.next = 55;
+                _context44.next = 54;
                 break;
 
-              case 53:
-                _context44.prev = 53;
-                _context44.t1 = _context44["catch"](45);
+              case 52:
+                _context44.prev = 52;
+                _context44.t1 = _context44["catch"](44);
 
-              case 55:
+              case 54:
                 if (result.length) {
                   result = result + ' & ';
                 }
 
                 result = res_operand + ' ' + res_operator + ' ' + res_value;
 
-              case 57:
+              case 56:
                 _context44.next = 5;
                 break;
 
-              case 59:
-                _context44.next = 64;
+              case 58:
+                _context44.next = 63;
                 break;
 
-              case 61:
-                _context44.prev = 61;
+              case 60:
+                _context44.prev = 60;
                 _context44.t2 = _context44["catch"](3);
 
                 _iterator20.e(_context44.t2);
 
-              case 64:
-                _context44.prev = 64;
+              case 63:
+                _context44.prev = 63;
 
                 _iterator20.f();
 
-                return _context44.finish(64);
+                return _context44.finish(63);
 
-              case 67:
+              case 66:
                 return _context44.abrupt("return", result);
 
-              case 68:
+              case 67:
               case "end":
                 return _context44.stop();
             }
           }
-        }, _callee44, this, [[3, 61, 64, 67], [45, 53]]);
+        }, _callee44, this, [[3, 60, 63, 66], [44, 52]]);
       }));
 
       function translateFilterClause(_x33) {
@@ -10986,36 +10993,33 @@ var Layout = /*#__PURE__*/function () {
                                       $action_dropdown = $button.closest('button');
                                       $action_dropdown.addClass('mdc-button--spinner');
                                       _context3.prev = 2;
-                                      console.log('########## perform action', $button.closest('button'));
-                                      _context3.next = 6;
+                                      _context3.next = 5;
                                       return _this3.performViewAction(action, _objectSpread(_objectSpread({}, resulting_params), result), translation, response_descr);
 
-                                    case 6:
-                                      _context3.next = 10;
+                                    case 5:
+                                      _context3.next = 9;
                                       break;
 
-                                    case 8:
-                                      _context3.prev = 8;
+                                    case 7:
+                                      _context3.prev = 7;
                                       _context3.t0 = _context3["catch"](2);
 
-                                    case 10:
+                                    case 9:
                                       // restore action button
-                                      console.log('########## accepted', $button.closest('button'));
                                       $action_dropdown.removeClass('mdc-button--spinner');
 
-                                    case 12:
+                                    case 10:
                                     case "end":
                                       return _context3.stop();
                                   }
                                 }
-                              }, _callee3, null, [[2, 8]]);
+                              }, _callee3, null, [[2, 7]]);
                             }));
 
                             return function (_x5) {
                               return _ref2.apply(this, arguments);
                             };
                           }()).catch(function () {
-                            console.log('########## rejected', $button.closest('button'));
                             $button.closest('button').removeClass('mdc-button--spinner');
                           });
                           _context4.next = 61;
@@ -11130,6 +11134,7 @@ var Layout = /*#__PURE__*/function () {
         var response_descr,
             content_type,
             result,
+            status,
             blob,
             filename,
             parts,
@@ -11154,6 +11159,7 @@ var Layout = /*#__PURE__*/function () {
 
               case 7:
                 result = _context7.sent;
+                status = _equalServices.ApiService.getLastStatus(); // handle binary data response
 
                 if (content_type != 'application/json') {
                   blob = new Blob([result], {
@@ -11170,32 +11176,44 @@ var Layout = /*#__PURE__*/function () {
                   }
 
                   (0, _fileSaver.saveAs)(blob, filename);
-                } // #memo - this will trigger updatedContext
+                }
 
+                if (!(status == 205)) {
+                  _context7.next = 15;
+                  break;
+                }
 
-                _context7.next = 11;
-                return this.view.onchangeView();
-
-              case 11:
-                _context7.next = 19;
-                break;
+                _context7.next = 13;
+                return this.view.closeContext();
 
               case 13:
-                _context7.prev = 13;
-                _context7.t0 = _context7["catch"](2);
                 _context7.next = 17;
-                return this.view.updatedContext();
+                break;
+
+              case 15:
+                _context7.next = 17;
+                return this.view.onchangeView();
 
               case 17:
-                _context7.next = 19;
-                return this.view.displayErrorFeedback(translation, _context7.t0);
+                _context7.next = 25;
+                break;
 
               case 19:
+                _context7.prev = 19;
+                _context7.t0 = _context7["catch"](2);
+                _context7.next = 23;
+                return this.view.updatedContext();
+
+              case 23:
+                _context7.next = 25;
+                return this.view.displayErrorFeedback(translation, _context7.t0);
+
+              case 25:
               case "end":
                 return _context7.stop();
             }
           }
-        }, _callee7, this, [[2, 13]]);
+        }, _callee7, this, [[2, 19]]);
       }));
 
       function performViewAction(_x9, _x10, _x11) {

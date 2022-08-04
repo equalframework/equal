@@ -369,8 +369,13 @@ class DataAdapter extends Service {
                                         $value = null;
                                     }
                                     if(!is_null($value) && !is_numeric($value)) {
-                                        $out_value = serialize($value);
-                                        throw new \Exception(serialize(["not_valid_identifier" => "Format inconvertible to id (integer) for $out_value."]), QN_ERROR_INVALID_PARAM);
+                                        if(is_array($value) && isset($value['id'])) {
+                                            $value = $value['id'];
+                                        }
+                                        else {
+                                            $out_value = serialize($value);
+                                            throw new \Exception(serialize(["not_valid_identifier" => "Format inconvertible to id (integer) for $out_value."]), QN_ERROR_INVALID_PARAM);
+                                        }
                                     }
                                     $value = (int) $value;
                                     // setting to zero unsets the field
