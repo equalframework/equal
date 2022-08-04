@@ -15,7 +15,7 @@ list($params, $providers) = announce([
         'view_id' =>  [
             'description'   => 'The identifier of the view <type.name>.',
             'type'          => 'string',
-            'default'       => 'list'
+            'default'       => 'list.default'
         ]
     ],
     'response'      => [
