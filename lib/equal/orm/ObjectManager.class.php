@@ -1269,7 +1269,7 @@ class ObjectManager extends Service {
             if(!isset($creation_array['id'])) {
                 if($use_draft) {
                     // list ids of records having creation date older than DRAFT_VALIDITY
-                    $ids = $this->search($class, [['state', '=', 'draft'],['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
+                    $ids = $this->search($class, [['state', '=', 'draft'], ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
                     if(count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];
@@ -1385,7 +1385,7 @@ class ObjectManager extends Service {
 
             // 3) make sure objects in the collection can be updated
 
-            // if current call results from an object creation, the cancreate hook prevails on canupdate, so we ignore the later
+            // if current call results from an object creation, the cancreate hook prevails over canupdate and we ignore the later
             if(!$create) {
                 $canupdate = $this->callonce($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang, ['ids', 'values', 'lang']);
                 if(!empty($canupdate)) {
@@ -1399,6 +1399,7 @@ class ObjectManager extends Service {
 
 
             // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
+
             $this->callonce($class, 'onupdate', $ids, $fields, $lang, ['ids', 'values', 'lang']);
 
 
