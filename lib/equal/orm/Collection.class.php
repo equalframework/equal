@@ -25,8 +25,7 @@ class Collection implements \Iterator {
     /* Logger */
     private $logger;
 
-
-    /* target class */
+    /* Target class */
     private $class;
 
     /* static instance of target class (for retrieving fields and schema) */
@@ -40,7 +39,7 @@ class Collection implements \Iterator {
 
     /**
      *
-     * This method makes valid 'is_callable' tests on any static method name (i.e. 'entry' calls, e.g. ::search, ::ids, ::id, ...)
+     * This method makes valid 'is_callable' tests on any static method name (i.e. entry calls, ::search(), ::ids(), ::id(), ::create() )
      */
     public static function __callStatic($name, $arguments) {}
 
@@ -236,15 +235,24 @@ class Collection implements \Iterator {
     }
 
     /**
-     * create an empty object based on a given id
+     * Initialize an empty Collection based on a given id.
+     * This is an alias of the ids() method for conenience when a single id is passed.
+     *
+     * @return Collection Returns the Collection with a single empty object.
      */
     public function id($id) {
         return $this->ids((array) $id);
     }
 
     /**
+     * Combined method depending on the arguments.
+     * Getter - returns the list of objects identifiers in the Collection.
+     * Setter - initialize the Collection with a list of identifiers (that are mapped with empty objects).
+     * Note: neither ids validity not user rights are checked at this point (will be within subsequent CRUD calls).
+     *
      * @param array optional if given, sets current objects array, if not returns current ids
      *
+     * @return (Collection|array)  Setter version returns the Collection with a single empty object. Getter version returns an array with all objects identifiers.
      */
     public function ids() {
         $args = func_get_args();
@@ -252,16 +260,8 @@ class Collection implements \Iterator {
             return array_keys($this->objects);
         }
         else {
+            // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
-            // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception
-            // #removed - filter resulting ids based on current user permissions
-            /*
-            foreach($ids as $i => $id) {
-                if(!$this->ac->isAllowed(QN_R_READ, $this->class, [], $id)) {
-                    unset($ids[$i]);
-                }
-            }
-            */
             // init keys of 'objects' member (resulting in a map with keys but no values)
             $this->objects = array_fill_keys($ids, []);
         }
@@ -338,8 +338,8 @@ class Collection implements \Iterator {
         }
     }
 
-    /** 
-     * 
+    /**
+     *
      */
     public function grant($users_ids, $operation, $fields=[]) {
         // retrieve targeted identifiers
@@ -353,8 +353,8 @@ class Collection implements \Iterator {
         return $this;
     }
 
-    /** 
-     * 
+    /**
+     *
      */
     public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         $defaults = [
@@ -398,7 +398,7 @@ class Collection implements \Iterator {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // filter results using access controller (reduce resulting ids based on access rights)
+            // filter results using access controller (reduce resulting ids based on access rights of current user)
             $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
             // init keys of 'objects' member (so far, it is an empty array)
             $this->ids($ids);
@@ -413,9 +413,8 @@ class Collection implements \Iterator {
     /**
      * Creates new instances by copying exiting ones
      *
-     * @return  object  current Collection
-     * @example $newObject = MyClass::create();
-     *
+     * @return  Collection  Returns the current Collection.
+     * @example $newObject = MyClass::id(5)->clone()->first();
      */
     public function clone($lang=DEFAULT_LANG) {
 
@@ -496,13 +495,13 @@ class Collection implements \Iterator {
     }
 
     /**
-     * Creates a new instance
+     * Creates a new Object.
      *
      * @param   array   $values   Associative array mapping fields and values.
      * @param   string  $lang     Language for multilang fields.
      *
-     * @return  object  current Collection
-     * @example $newObject = MyClass::create();
+     * @return  Collection  Returns the current Collection.
+     * @example $newObject = MyClass::create(['name'=>'test','code'=>3])->first();
      */
     public function create(array $values=null, $lang=DEFAULT_LANG) {
 
@@ -552,6 +551,7 @@ class Collection implements \Iterator {
      *
      * @param $fields
      * @param $lang
+     * @return Collection   Returns the current collection.
      */
     public function read($fields, $lang=DEFAULT_LANG) {
 
