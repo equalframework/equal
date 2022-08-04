@@ -118,6 +118,7 @@ foreach($classes as $class) {
     $schema = $model->getSchema();
 
     // 1) check fields descriptions consistency
+
     $valid_types = array_merge($orm::$virtual_types, $orm::$simple_types, $orm::$complex_types);
 
     // #toto - fields involved in unique constraint should be set as required
@@ -168,21 +169,34 @@ foreach($classes as $class) {
 
 
     // 3) check if default views are present (form.default.json and list.default.json)
-    if(!is_file("$view_dir/$class.form.default.json")) {
+
+    try {
+        eQual::run('get', 'model_view', ['entity' => $class_name, 'view_id' => 'form.default']);
+    }
+    catch(Exception $e) {
         $result[] = "ERROR - GUI - Class $class: missing default form view (/views/$class.form.default.json)";
     }
-    if(!is_file("$view_dir/$class.list.default.json")) {
+
+    try {
+        eQual::run('get', 'model_view', ['entity' => $class_name, 'view_id' => 'list.default']);
+    }
+    catch(Exception $e) {
         $result[] = "ERROR - GUI - Class $class: missing default list view (/views/$class.list.default.json)";
     }
 
     // 4) check if translation file are present (.json)
+
     foreach($lang_list as $lang) {
-        if(!is_file("$lang_dir/$lang/$class.json")) {
+        try {
+            eQual::run('get', 'config_i18n', ['entity' => $class_name, 'lang' => $lang]);
+        }
+        catch(Exception $e) {
             $result[] = "WARN  - I18 - Class $class: missing translation file for language $lang";
         }
     }
 
     // 5) check view files consistency (.json)
+
     $view_files = glob("$view_dir/$class.*.json");
 
     foreach($view_files as $view_file) {
@@ -257,6 +271,7 @@ foreach($classes as $class) {
     }
 
     // 6) check translation file consistency (.json)
+    
     foreach($lang_list as $lang) {
         $i18n_file = "$lang_dir/$lang/$class.json";
         if(is_file($i18n_file)) {
