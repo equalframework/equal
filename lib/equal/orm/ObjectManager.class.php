@@ -1431,18 +1431,16 @@ class ObjectManager extends Service {
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onupdate_fields)) {
                 // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
-
                 foreach($onupdate_fields as $field) {
                     try {
                         // run onupdate callback
-                        $this->callonce($class, $schema[$field]['onupdate'], $ids, [], $lang, ['ids', 'values', 'lang']);
+                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
                     }
                     catch(Exception $e) {
                         // invalid schema : ignore onchange callback
                         trigger_error($e->getMessage(), E_USER_ERROR);
                     }
                 }
-
             }
 
             // unstack global object_methods state
