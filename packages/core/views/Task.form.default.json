@@ -51,6 +51,16 @@
                                                 "type": "field",
                                                 "value": "params",
                                                 "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "moment",
+                                                "width": "33%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "is_active",
+                                                "width": "33%"
                                             }
                                         ]
                                     }
