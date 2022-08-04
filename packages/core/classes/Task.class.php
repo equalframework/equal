@@ -33,13 +33,13 @@ class Task extends Model {
 
             'is_active'          => [
                 'type'              => 'boolean',
-                'description'       => 'Flag to mark the task as (temporarily) active or inactive.',
+                'description'       => 'Mark the task as (temporarily) active or inactive.',
                 'default'           => true
             ],
 
             'is_recurring'          => [
                 'type'              => 'boolean',
-                'description'       => 'Flag to mark the task as recurring (to be run more than once).',
+                'description'       => 'Mark the task as recurring (to be run more than once).',
                 'default'           => true
             ],
 
