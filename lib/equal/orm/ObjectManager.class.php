@@ -759,7 +759,7 @@ class ObjectManager extends Service {
                                     // 'ondetach' property is a string
                                     switch($schema[$field]['ondetach']) {
                                         case 'delete':
-                                            $this->remove($schema[$field]['foreign_object'], $ids_to_remove, true);
+                                            $this->delete($schema[$field]['foreign_object'], $ids_to_remove, true);
                                             break;
                                         case 'null':
                                         default:
@@ -999,6 +999,8 @@ class ObjectManager extends Service {
             }
             catch(Exception $e) {
                 trigger_error($e->getMessage(), E_USER_ERROR);
+                // #todo - validate (only method in ORM that raises an Exception)
+                throw new Exception("FATAL - unknown class '{$object_class}'", QN_ERROR_UNKNOWN_OBJECT);
             }
         }
         return $model;
@@ -1303,7 +1305,7 @@ class ObjectManager extends Service {
             // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             // request an object update (mark call as 'from_create')
-            $res_w = $this->write($class, $oid, $creation_array, $lang, true);
+            $res_w = $this->update($class, $oid, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) $res = $res_w;
 
@@ -1709,11 +1711,11 @@ class ObjectManager extends Service {
                                     catch(Exception $e) {
                                         switch($rel_schema[$def['foreign_field']]['ondelete']) {
                                             case 'cascade':
-                                                $this->remove($def['foreign_object'], $rel_ids, $permanent);
+                                                $this->delete($def['foreign_object'], $rel_ids, $permanent);
                                                 break;
                                             case 'null':
                                             default:
-                                                $this->write($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
+                                                $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
                                                 break;
                                         }
                                     }
@@ -1825,7 +1827,7 @@ class ObjectManager extends Service {
                         if(isset($values['creator'])) {
                             $rel_values['creator'] = $values['creator'];
                         }
-                        $this->write($def['foreign_object'], $new_rel_ids, $rel_values, $lang);
+                        $this->update($def['foreign_object'], $new_rel_ids, $rel_values, $lang);
                     }
                 }
             }
