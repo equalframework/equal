@@ -398,9 +398,9 @@ class AccessController extends Service {
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
-        // user always has READ and WRITE rights on its own object
+        // user always has READ rights on its own object
         if($orm::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
-            $user_rights |= (QN_R_READ | QN_R_WRITE);
+            $user_rights |= QN_R_READ;
         }
 		else if($operation == QN_R_READ) {
             // this is a special case of a generic feature (we should add this in the init data)
