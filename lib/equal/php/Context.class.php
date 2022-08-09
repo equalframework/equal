@@ -324,7 +324,8 @@ class Context extends Service {
                 if(strpos($_SERVER['argv'][$i], '--') === 0) {
                     $parts = explode('=', substr($_SERVER['argv'][$i], 2), 2);
                     $param = $parts[0];
-                    $value = (isset($parts[1]))?$parts[1]:null;
+                    // default to empty string to ensure arg is present in URI
+                    $value = (isset($parts[1]))?$parts[1]:'';
                     // handle array notation (a name followed by brackets)
                     if(preg_match("/(.*)\[(.*)\]/i", $param, $matches)) {
                         $param = $matches[1];
