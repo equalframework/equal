@@ -35,13 +35,25 @@ $entity = $params['entity'];
 while(true) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
-    $file = array_pop($parts);    
+    $file = array_pop($parts);
     $class_path = implode('/', $parts);
-    $parent = get_parent_class($entity);
     $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$params['view_id']}.json";
-    if(file_exists($file)) break;
-    if(!$parent || $parent == 'equal\orm\Model') break;
-    $entity = $parent;
+
+    if(file_exists($file)) {
+        break;
+    }
+
+    try {
+        $parent = get_parent_class($orm->getModel($entity));
+        if(!$parent || $parent == 'equal\orm\Model') {
+            break;
+        }
+        $entity = $parent;
+    }
+    catch(Exception $e) {
+        // support for controller entities
+        break;
+    }
 }
 
 if(!file_exists($file)) {
