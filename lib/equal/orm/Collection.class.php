@@ -236,7 +236,7 @@ class Collection implements \Iterator {
 
     /**
      * Initialize an empty Collection based on a given id.
-     * This is an alias of the ids() method for conenience when a single id is passed.
+     * This is an alias of the `ids()` method for conenience when a single id is passed.
      *
      * @return Collection Returns the Collection with a single empty object.
      */
@@ -256,7 +256,7 @@ class Collection implements \Iterator {
      */
     public function ids() {
         $args = func_get_args();
-        if(count($args) < 1) {
+        if(count($args) <= 0) {
             return array_keys($this->objects);
         }
         else {
@@ -332,8 +332,11 @@ class Collection implements \Iterator {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
         if($validation < 0 || count($validation)) {
             foreach($validation as $error_code => $error_descr) {
+                if(is_array($error_descr)) {
+                    $error_descr = serialize($error_descr);
+                }
                 // send error using the same format as the announce method
-                throw new \Exception(serialize($error_descr), $error_code);
+                throw new \Exception($error_descr, (int) $error_code);
             }
         }
     }
@@ -364,7 +367,9 @@ class Collection implements \Iterator {
         // retrieve current user id
         $user_id = $this->am->userId();
 
-        if(isset($params['sort'])) $params['sort'] = (array) $params['sort'];
+        if(isset($params['sort'])) {
+            $params['sort'] = (array) $params['sort'];
+        }
         $params = array_merge($defaults, $params);
 
         // 1) sanitize and validate given domain
