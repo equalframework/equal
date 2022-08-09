@@ -163,7 +163,8 @@ class DataAdapter extends Service {
                                         // convert ISO8601 to timestamp
                                         $value = strtotime($value);
                                         if($value === false) {
-                                            throw new \Exception(serialize(["not_valid_date" => "Format inconvertible to date."]), QN_ERROR_INVALID_PARAM);
+                                            // throw new \Exception(serialize(["not_valid_date" => "Format inconvertible to date."]), QN_ERROR_INVALID_PARAM);
+                                            return null;
                                         }
                                     }
                                     return $value;
@@ -208,7 +209,8 @@ class DataAdapter extends Service {
                                         // convert ISO 8601 to timestamp
                                         $value = strtotime($value);
                                         if($value === false) {
-                                            throw new \Exception(serialize(["not_valid_datetime" => "Format inconvertible to datetime."]), QN_ERROR_INVALID_PARAM);
+                                            // throw new \Exception(serialize(["not_valid_datetime" => "Format inconvertible to datetime."]), QN_ERROR_INVALID_PARAM);
+                                            return null;
                                         }
                                     }
                                     return $value;
