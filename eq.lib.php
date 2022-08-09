@@ -396,9 +396,11 @@ namespace config {
             $reporter->debug("method $method");
 
             // normalize $announcement array
-            if(!isset($announcement['params'])) $announcement['params'] = array();
+            if(!isset($announcement['params'])) {
+                $announcement['params'] = array();
+            }
 
-
+            // handle controller inheritance
             if(isset($announcement['extends']))  {
                 // retrieve params from parent controller
                 $op_descr = $context->get('operation');
@@ -579,7 +581,9 @@ namespace config {
             }
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS') {
+            if( count($missing_params)
+                || (isset($body['announce']) && !in_array($body['announce'], ['0', 'false']))
+                || $method == 'OPTIONS' ) {
                 // no feedback about services
                 if(isset($announcement['providers'])) unset($announcement['providers']);
                 // no feedback about constants
