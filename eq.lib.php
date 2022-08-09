@@ -114,16 +114,16 @@ namespace {
      */
     function qn_error_name($error_id) {
         switch($error_id) {
-        case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
-        case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
-        case QN_ERROR_SQL:              return 'SQL_ERROR';
-        case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
-        case QN_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
-        case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
-        case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
-        case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
-        case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
-        case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
+            case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
+            case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
+            case QN_ERROR_SQL:              return 'SQL_ERROR';
+            case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
+            case QN_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
+            case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
+            case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
+            case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
+            case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
+            case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
         }
         return 'UNKNOWN_ERROR';
     }
@@ -133,16 +133,16 @@ namespace {
      */
     function qn_error_code($error_name) {
         switch($error_name) {
-        case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
-        case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
-        case 'SQL_ERROR':           return QN_ERROR_SQL;
-        case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
-        case 'UNKNOWN_OBJECT':      return QN_ERROR_UNKNOWN_OBJECT;
-        case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
-        case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
-        case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
-        case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
-        case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;
+            case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
+            case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
+            case 'SQL_ERROR':           return QN_ERROR_SQL;
+            case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
+            case 'UNKNOWN_OBJECT':      return QN_ERROR_UNKNOWN_OBJECT;
+            case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
+            case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
+            case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
+            case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
+            case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;
         }
         return QN_ERROR_UNKNOWN;
     }
@@ -152,19 +152,19 @@ namespace {
      */
     function qn_error_http($error_id) {
         switch($error_id) {
-        case 0:                         return 200;
-        case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
-        case QN_ERROR_INVALID_PARAM:    return 400;
-        case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario happend and operation could not be performed
-        case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'              user has not enough privilege to perform requested operation (includes method not allowed-
-        case QN_ERROR_UNKNOWN_OBJECT:   return 404;     // 'Not Found'              object or route does not exist
-        case QN_ERROR_LOCKED_OBJECT:    return 423;     // 'Locked'                 resource is currently locked
-        case QN_ERROR_CONFLICT_OBJECT:  return 409;     // 'Conflict'               version conflict or broken 'unique' rule
-        case QN_ERROR_INVALID_USER:     return 401;     // 'Unauthorized'           auth required or auth failure
-        // server errors
-        case QN_ERROR_UNKNOWN:
-        case QN_ERROR_INVALID_CONFIG:   return 500;
-        case QN_ERROR_UNKNOWN_SERVICE:  return 503;
+            case 0:                         return 200;
+            case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
+            case QN_ERROR_INVALID_PARAM:    return 400;
+            case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario happend and operation could not be performed
+            case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'              user has not enough privilege to perform requested operation (includes method not allowed-
+            case QN_ERROR_UNKNOWN_OBJECT:   return 404;     // 'Not Found'              object or route does not exist
+            case QN_ERROR_LOCKED_OBJECT:    return 423;     // 'Locked'                 resource is currently locked
+            case QN_ERROR_CONFLICT_OBJECT:  return 409;     // 'Conflict'               version conflict or broken 'unique' rule
+            case QN_ERROR_INVALID_USER:     return 401;     // 'Unauthorized'           auth required or auth failure
+            // server errors
+            case QN_ERROR_UNKNOWN:
+            case QN_ERROR_INVALID_CONFIG:   return 500;
+            case QN_ERROR_UNKNOWN_SERVICE:  return 503;
         }
         // fallback to 'Internal Server Error': something went wrong (details should be available in the log)
         return 500;
@@ -174,10 +174,10 @@ namespace {
 
     function qn_report_name($code) {
         switch($code) {
-        case QN_REPORT_DEBUG:    return 'DEBUG';
-        case QN_REPORT_WARNING:  return 'WARNING';
-        case QN_REPORT_ERROR:    return 'ERROR';
-        case QN_REPORT_FATAL:    return 'FATAL';
+            case QN_REPORT_DEBUG:    return 'DEBUG';
+            case QN_REPORT_WARNING:  return 'WARNING';
+            case QN_REPORT_ERROR:    return 'ERROR';
+            case QN_REPORT_FATAL:    return 'FATAL';
         }
         return 'UNKNOWN';
     }
@@ -979,6 +979,9 @@ namespace {
             if($data && isset($data['errors'])) {
                 // raise an exception with first returned error code
                 foreach($data['errors'] as $name => $message) {
+                    if(is_array($message)) {
+                        $message = serialize($message);
+                    }
                     throw new \Exception($message, qn_error_code($name));
                 }
             }
