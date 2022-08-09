@@ -955,7 +955,7 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-          throw new Exception("ObjectManager::call: invalid args ($method, $class)");
+            throw new Exception("ObjectManager::call: invalid args ($method, $class)");
         }
 
         if( $count == 2 ) {
@@ -964,7 +964,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-          throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+            throw new Exception("ObjectManager::call: unknown method ($method, $class)");
         }
 
         $params = [];
@@ -1045,7 +1045,7 @@ class ObjectManager extends Service {
                 if( isset($def['required']) && $def['required'] && (!isset($values[$field]) || is_null($values[$field])) ) {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
-                    trigger_error("QN_DEBUG_ORM::mandatory field {$field} is missing", QN_REPORT_WARNING);
+                    trigger_error("QN_DEBUG_ORM::mandatory field {$field} is missing for instance of {$class}", QN_REPORT_WARNING);
                 }
             }
         }
