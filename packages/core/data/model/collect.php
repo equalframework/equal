@@ -68,14 +68,14 @@ list($params, $providers) = announce([
 list($context, $orm, $adapter) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
 
 
-/* 
+/*
     Handle controller entities
 */
 $parts = explode('\\', $params['entity']);
 $file = array_pop($parts);
 if(ctype_lower(substr($file, 0, 1))) {
     $package = array_shift($parts);
-    $path = implode('/', $parts);    
+    $path = implode('/', $parts);
     if(!file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
         throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
     }
@@ -100,11 +100,13 @@ if(ctype_lower(substr($file, 0, 1))) {
     $context->httpResponse()
             ->header('X-Total-Count', 1)
             ->body([$object])
-            ->send();    
+            ->send();
     exit();
 }
 
-
+/*
+    Handle Model entities
+*/
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
