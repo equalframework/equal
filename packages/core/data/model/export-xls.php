@@ -8,7 +8,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 use core\setting\Setting;
-
 use core\User;
 
 list($params, $providers) = announce([
@@ -16,12 +15,12 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to use (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'view_id' =>  [
             'description'   => 'The identifier of the view <type.name>.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => 'list.default'
         ],
         'domain' =>  [
@@ -36,14 +35,14 @@ list($params, $providers) = announce([
         ],
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
-        ]        
+        ]
     ],
     'response'      => [
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth'] 
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 
@@ -59,28 +58,19 @@ if(!$entity) {
 $schema = $entity->getSchema();
 
 // retrieve view schema
-$json = run('get', 'model_view', [
-    'entity'        => $params['entity'], 
+$view_schema = eQual::run('get', 'model_view', [
+    'entity'        => $params['entity'],
     'view_id'       => $params['view_id']
 ]);
 
-// decode json into an array
-$data = json_decode($json, true);
-
-// relay error if any
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
-}
-
-if(!isset($data['layout']['items'])) {
+if(!isset($view_schema['layout']['items'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
-$view_fields = [];
+// #todo - add support for group_by directive
 
-foreach($data['layout']['items'] as $item) {
+$view_fields = [];
+foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
         $view_fields[] = $item;
     }
@@ -118,18 +108,21 @@ $values = $params['entity']::search($params['domain'], ['sort' => [$order => $so
     Retrieve translation data, if any
 */
 
-$json = run('get', 'config_i18n', [
-    'entity'        => $params['entity'], 
-    'lang'          => $params['lang']
-]);
-
-// decode json into an array
-$data = json_decode($json, true);
 $translations = [];
-if(!isset($data['errors']) && isset($data['model'])) {
-    foreach($data['model'] as $field => $descr) {
+try {
+    $i18n = eQual::run('get', 'config_i18n', [
+        'entity'        => $params['entity'],
+        'lang'          => $params['lang']
+    ]);
+    if(!isset($i18n['model'])) {
+        throw new Exception('invalid_translation', QN_ERROR_INVALID_CONFIG);
+    }
+    foreach($i18n['model'] as $field => $descr) {
         $translations[$field] = $descr;
     }
+}
+catch(Exception $e) {
+    // ignore missing or invalid translation
 }
 
 // retrieve view title
@@ -151,12 +144,9 @@ $settings = [
     'format_currency'   => function($a) { return Setting::format_number_currency($a); }
 ];
 
-
-
-$doc = new Spreadsheet();
-
 $user = User::id($auth->userId())->read(['id', 'login'])->first();
 
+$doc = new Spreadsheet();
 $doc->getProperties()
       ->setCreator($user['login'])
       ->setTitle('Export')
@@ -164,7 +154,7 @@ $doc->getProperties()
 
 $doc->setActiveSheetIndex(0);
 
-$sheet = $doc->getActiveSheet(); 
+$sheet = $doc->getActiveSheet();
 $sheet->setTitle("export");
 
 
@@ -174,9 +164,12 @@ $row = 1;
 // generate head row
 foreach($view_fields as $item) {
     $field = $item['value'];
+
     $width = (isset($item['width']))?intval($item['width']):0;
     if($width <= 0) {
-        continue;
+        // #todo - since group_by is not supported yet, we set the min with to 10%
+        $width = 10;
+        // continue;
     }
     $name = isset($translations[$field]['label'])?$translations[$field]['label']:$field;
     $sheet->setCellValue($column.$row, $name);
@@ -192,7 +185,9 @@ foreach($values as $oid => $odata) {
         $field = $item['value'];
         $width = (isset($item['width']))?intval($item['width']):0;
         if($width <= 0) {
-            continue;
+            // #todo - since group_by is not supported yet, we set the min with to 10%
+            $width = 10;
+            //continue;
         }
 
         $value = $odata[$field];
@@ -243,14 +238,16 @@ foreach($values as $oid => $odata) {
                 }
                 if(is_numeric($value)) {
                     $align = 'right';
-                }                
+                }
             }
         }
 
+        $allow_wrap = false;
         // handle html content
         if($type == 'string' && strlen($value) && $usage == 'text/html') {
             $align = 'left';
-            $$value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));            
+            $value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));
+            $allow_wrap = true;
         }
         else {
             // translate 'select' values
@@ -262,15 +259,19 @@ foreach($values as $oid => $odata) {
             $value =  $value;
         }
 
-
         $sheet->setCellValue($column.$row, $value);
+
+        if($allow_wrap) {
+            $sheet->getStyle($column.$row)->getAlignment()->setWrapText(true);
+        }
+
         ++$column;
-    }    
+    }
 }
 
 $writer = IOFactory::createWriter($doc, "Xlsx");
 
-ob_start();	
+ob_start();
 $writer->save('php://output');
 $output = ob_get_clean();
 
