@@ -582,7 +582,7 @@ namespace config {
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
             if( count($missing_params)
-                || (isset($body['announce']) && !in_array($body['announce'], ['0', 'false']))
+                || isset($body['announce'])
                 || $method == 'OPTIONS' ) {
                 // no feedback about services
                 if(isset($announcement['providers'])) unset($announcement['providers']);
