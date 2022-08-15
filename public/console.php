@@ -376,7 +376,7 @@ html, body {
 </style>
 <iframe name="list" width="100%" height="30%" src="/console.php?list=true" frameborder="0" allowfullscreen></iframe>
 
-<iframe name="details" width="100%" height="70%" src="/console.php?details=true" frameborder="0" allowfullscreen></iframe>
+<iframe name="details" width="100%" height="70%" src="/console.php?details=true" frameborder="0" allowfullscreen style="padding-bottom: 5px;"></iframe>
 <?php 
 }
 ?>

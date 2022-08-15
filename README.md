@@ -2,7 +2,7 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![Maintainer](https://img.shields.io/badge/maintainer-cedricfrancoys-blue)](https://github.com/cedricfrancoys)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/cedricfrancoys/equal/pulls)
-# eQual framework
+# Create great Apps, your way!
 
 eQual is a versatile, language-agnostic and web-oriented framework, aiming to elegantly manage interactions between front-end Apps and Business Logic involved in modern Web Applications.
 
@@ -35,7 +35,7 @@ eQual requires the following environment:
 
 * **PHP 7+** with extensions mysqli (mandatory) + gd opcache zip tidy (optional)
 * **Apache 2+** or **Nginx**
-* **MySQL 5+** compatible DBMS (up to MySQL 5.7 and MariaDB 10.3)
+* **MySQL 5+** compatible DBMS (tested up to MySQL 5.7 and MariaDB 10.3)
 
 ## Install
 

@@ -5,33 +5,33 @@ jobs:
   build:
     docker:
     - image: php:7.3-apache
-    
+
     - image: mysql:5.7
       environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
-    
+
     working_directory: ~/repo
-  
+
     steps:
       # install dependencies
-      - run: apt-get update && apt-get -y install git      
+      - run: apt-get update && apt-get -y install git
       - run: docker-php-ext-install pdo pdo_mysql mysqli
       - run: docker-php-ext-enable mysqli
-    
+
       - checkout:
           path: ~/repo
-      
+
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
       # check ability to connect to the dbms service
       - run: php run.php --do=test_db-connectivity
-      # create an empty database 
-      - run: php run.php --do=init_db  
+      # create an empty database
+      - run: php run.php --do=init_db
       # initialise database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
-      - run: php run.php --do=test_package --package=core	  
+      - run: php run.php --do=test_package --package=core
 
 # Orchestrate our job run sequence
 workflows:
