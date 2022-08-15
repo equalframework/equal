@@ -38,13 +38,13 @@ if(ctype_lower(substr($file, 0, 1))) {
     if(file_exists(QN_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
         $result = eQual::run('do', $operation, ['announce' => true]);
         $data = [
-            'fields' => $result['announcement']['params']
+            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
         ];
     }
     else if(file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
         $result = eQual::run('get', $operation, ['announce' => true]);
         $data = [
-            'fields' => $result['announcement']['params']
+            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
         ];
     }
     else {
