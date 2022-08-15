@@ -82,7 +82,7 @@ if(ctype_lower(substr($file, 0, 1))) {
     $operation = str_replace('\\', '_', $params['entity']);
     // retrieve announcement of target contoller
     $data = eQual::run('get', $operation, ['announce' => true]);
-    $controller_schema = $data['announcement']['params'];
+    $controller_schema = isset($data['announcement']['params'])?$data['announcement']['params']:[];
     $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
     // generata a virtual (emtpy) object
     $object = ['id' => 0];
