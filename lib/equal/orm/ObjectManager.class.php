@@ -1389,7 +1389,7 @@ class ObjectManager extends Service {
 
             // if current call results from an object creation, the cancreate hook prevails over canupdate and we ignore the later
             if(!$create) {
-                $canupdate = $this->callonce($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang, ['ids', 'values', 'lang']);
+                $canupdate = $this->callonce($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang);
                 if(!empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
@@ -1402,7 +1402,7 @@ class ObjectManager extends Service {
 
             // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
 
-            $this->callonce($class, 'onupdate', $ids, $fields, $lang, ['ids', 'values', 'lang']);
+            $this->callonce($class, 'onupdate', $ids, $fields, $lang);
 
 
             // 5) update objects
