@@ -382,7 +382,7 @@ class Model {
     }
 
     /**
-     * Hook invoked after object deletion for performing object-specific additional operations.
+     * Hook invoked before object deletion for performing object-specific additional operations.
      *
      * @param  ObjectManager    $om         ObjectManager instance.
      * @param  array            $oids       List of objects identifiers.

@@ -1671,7 +1671,11 @@ class ObjectManager extends Service {
                 throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
             }
 
-            // 3) remove object
+            // 3) call 'ondelete' hook : notify objects that they're about to be deleted
+
+            $this->callonce($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
+
+            // 4) remove object
 
             // soft deletion
             if (!$permanent) {
@@ -1737,9 +1741,6 @@ class ObjectManager extends Service {
                 // delete targeted objects
                 $db->deleteRecords($table_name, $ids);
             }
-
-            // call 'ondelete' hook
-            $this->callonce($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
 
         }
         catch(Exception $e) {

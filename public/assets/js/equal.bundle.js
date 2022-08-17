@@ -4725,28 +4725,27 @@ var Model = /*#__PURE__*/function () {
 
                 view_fields = Object.keys(this.view.getViewFields());
                 schema = this.view.getModelFields();
-                console.log('###############', schema);
                 fields = [];
                 _context2.t0 = _regenerator.default.keys(view_fields);
 
-              case 7:
+              case 6:
                 if ((_context2.t1 = _context2.t0()).done) {
-                  _context2.next = 16;
+                  _context2.next = 15;
                   break;
                 }
 
                 i = _context2.t1.value;
                 field = view_fields[i];
 
-                if (schema.hasOwnProperty(field)) {
-                  _context2.next = 13;
+                if (!(!schema || !schema.hasOwnProperty(field))) {
+                  _context2.next = 12;
                   break;
                 }
 
                 console.log('unknown field', field);
-                return _context2.abrupt("continue", 7);
+                return _context2.abrupt("continue", 6);
 
-              case 13:
+              case 12:
                 // append `name` subfield for relational fields, using the dot notation
                 if ('many2one' == schema[field]['type']) {
                   fields.push(field + '.name');
@@ -4757,11 +4756,11 @@ var Model = /*#__PURE__*/function () {
                     fields.push(field);
                   }
 
-                _context2.next = 7;
+                _context2.next = 6;
                 break;
 
-              case 16:
-                _context2.prev = 16;
+              case 15:
+                _context2.prev = 15;
                 body = _objectSpread({
                   get: this.view.getController(),
                   entity: this.view.getEntity(),
@@ -4769,35 +4768,35 @@ var Model = /*#__PURE__*/function () {
                   domain: this.view.getDomain()
                 }, this.view.getParams()); // fetch objects using controller given by View (default is core_model_collect)
 
-                _context2.next = 20;
+                _context2.next = 19;
                 return _equalServices.ApiService.fetch('/', body);
 
-              case 20:
+              case 19:
                 response = _context2.sent;
                 this.total = _equalServices.ApiService.getLastCount();
                 this.objects = response;
                 this.loaded_promise.resolve();
-                _context2.next = 32;
+                _context2.next = 31;
                 break;
 
-              case 26:
-                _context2.prev = 26;
-                _context2.t2 = _context2["catch"](16);
+              case 25:
+                _context2.prev = 25;
+                _context2.t2 = _context2["catch"](15);
                 console.log('Unable to fetch Collection from server', _context2.t2);
                 this.objects = [];
                 this.loaded_promise.resolve();
                 this.total = 0;
 
-              case 32:
-                _context2.next = 34;
+              case 31:
+                _context2.next = 33;
                 return this.view.onchangeModel(full);
 
-              case 34:
+              case 33:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[16, 26]]);
+        }, _callee2, this, [[15, 25]]);
       }));
 
       function refresh() {
@@ -12236,6 +12235,12 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
 
                 var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
                 $cell.addClass('mdc-layout-grid__cell--span-' + width);
+
+                if (item.hasOwnProperty('align') && item.align != 'left') {
+                  $cell.css({
+                    'text-align': item.align
+                  });
+                }
 
                 if (item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
                   if (item.type == 'field') {

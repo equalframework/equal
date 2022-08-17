@@ -3,7 +3,7 @@ use equal\html\HtmlTemplate;
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([	
+list($params, $providers) = announce([
     'description'	=>	"Send password recovery instructions to current user.",
     'params' 		=>	[
         'email' =>  [
@@ -17,7 +17,7 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],        
+    ],
     'providers'     => ['context', 'orm', 'spool', 'auth']
 ]);
 
@@ -32,7 +32,7 @@ try {
     // retrieve by login
     $ids = User::search(['login', '=', $params['email']])->ids();
 
-    if(!count($ids)) { 
+    if(!count($ids)) {
         throw new Exception("user_not_found", QN_ERROR_UNKNOWN_OBJECT);
     }
 
@@ -47,7 +47,7 @@ try {
         throw new Exception("not_allowed", QN_ERROR_NOT_ALLOWED);
     }
 
-    // generate a token that will be valid for 15 minutes 
+    // generate a token that will be valid for 15 minutes
     $token = $auth->token($user_id, 60*15);
 
 
@@ -69,26 +69,26 @@ try {
                                 return $params['user']['firstname'];
                             },
         'recovery_url'	=>	function ($params, $attributes) {
-                                $url = ROOT_APP_URL."/auth/#!/reset/{$params['token']}";
+                                $url = ROOT_APP_URL."/auth/#/reset/{$params['token']}";
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {
                                 return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
                             },
         'abuse'         =>  function($params, $attributes) {
-                                return "<a href=\"mailto:".EMAIL_SMTP_ABUSE_EMAIL."\">".EMAIL_SMTP_ABUSE_EMAIL."</a>";            
+                                return "<a href=\"mailto:".EMAIL_SMTP_ABUSE_EMAIL."\">".EMAIL_SMTP_ABUSE_EMAIL."</a>";
                             }
         ],
         [
             'user'  => $user,
             'token' => $token
-        ]        
+        ]
     );
 
     // parse template as html
     $body = $template->getHtml();
 
-    // send message            
+    // send message
     $spool->queue($subject, $body, $params['email']);
 }
 catch(Exception $e) {
