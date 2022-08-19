@@ -1553,7 +1553,7 @@ class ObjectManager extends Service {
 
                 foreach($ids as $oid) {
                     if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
-                        trigger_error("QN_DEBUG_ORM::unknown or empty object $class($oid)", QN_REPORT_WARNING);
+                        trigger_error("QN_DEBUG_ORM::unknown or empty object $class[$oid]", QN_REPORT_WARNING);
                         continue;
                     }
                     // init result for given id, if missing

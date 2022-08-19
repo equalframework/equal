@@ -420,7 +420,7 @@ class Model {
                 return call_user_func_array([$collection, $name], $arguments);
             }
             else {
-                throw new \Exception('call to non-existing method on Collection class', QN_ERROR_INVALID_PARAM);
+                throw new \Exception("call to non-existing method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
             }
         }
         return null;
