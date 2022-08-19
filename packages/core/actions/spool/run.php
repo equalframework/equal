@@ -2,7 +2,7 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([	
+list($params, $providers) = announce([
     'description'	=>	"Send emails that are currently in spool queue.",
     'params' 		=>	[
     ],
@@ -10,7 +10,7 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],        
+    ],
     'providers'     => ['context', 'orm', 'spool', 'auth']
 ]);
 

@@ -16,7 +16,7 @@ ini_set('session.use_trans_sid',    '0');
 ini_set('url_rewriter.tags',        '');
 
 /*
-    URI sanitization 
+    URI sanitization
 */
 // handle the '_escaped_fragment_' parameter to support requests made by crawlers
 if(isset($_REQUEST['_escaped_fragment_'])) {

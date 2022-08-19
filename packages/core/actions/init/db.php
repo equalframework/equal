@@ -9,9 +9,7 @@ use equal\db\DBConnection;
 
 list($params, $providers) = announce([
     'description'   => 'Create a database according to the configuration',
-    'params'        => [
-    
-    ],
+    'params'        => [],
     'providers'     => ['context', 'orm'],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);
@@ -36,7 +34,7 @@ if(defined('DB_REPLICATION') && DB_REPLICATION != 'NO') {
     $i = 1;
     while(defined('DB_'.$i.'_HOST') && defined('DB_'.$i.'_PORT') && defined('DB_'.$i.'_USER') && defined('DB_'.$i.'_PASSWORD') && defined('DB_'.$i.'_NAME')) {
         $db = DBConnection::getInstance(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'), DB_DBMS)->connect(false);
-        $db->sendQuery("CREATE DATABASE IF NOT EXISTS ".constant('DB_'.$i.'_NAME').";");        
+        $db->sendQuery("CREATE DATABASE IF NOT EXISTS ".constant('DB_'.$i.'_NAME').";");
         ++$i;
     }
 }
