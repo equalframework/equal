@@ -861,6 +861,16 @@ namespace config {
                 // export as constants all parameters declared with config\define() to make them accessible through global scope
                 export_config();
 
+
+                if(defined('L10N_TIMEZONE')) {
+                    date_default_timezone_set(constant('L10N_TIMEZONE'));
+                }
+                if(defined('L10N_LOCALE')) {
+                    $res = setlocale(LC_ALL, constant('L10N_LOCALE'));
+                    var_dump($res);
+                    die();
+                }
+
                 if(!$root) {
                     // include and execute requested script
                     $result = $getOperationOutput($filename);
