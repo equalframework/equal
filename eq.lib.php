@@ -867,8 +867,6 @@ namespace config {
                 }
                 if(defined('L10N_LOCALE')) {
                     $res = setlocale(LC_ALL, constant('L10N_LOCALE'));
-                    var_dump($res);
-                    die();
                 }
 
                 if(!$root) {
