@@ -871,6 +871,9 @@ namespace config {
                     if($res) {
                         trigger_error("QN_DEBUG_PHP::set locale to ".constant('L10N_LOCALE'), QN_REPORT_DEBUG);
                     }
+                    else {
+                        trigger_error("QN_DEBUG_PHP::unknown locale ".constant('L10N_LOCALE'), QN_REPORT_WARNING);
+                    }
                 }
 
                 if(!$root) {
