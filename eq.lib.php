@@ -864,9 +864,13 @@ namespace config {
 
                 if(defined('L10N_TIMEZONE')) {
                     date_default_timezone_set(constant('L10N_TIMEZONE'));
+                    trigger_error("QN_DEBUG_PHP::set timezone to ".constant('L10N_TIMEZONE'), QN_REPORT_DEBUG);
                 }
                 if(defined('L10N_LOCALE')) {
                     $res = setlocale(LC_ALL, constant('L10N_LOCALE'));
+                    if($res) {
+                        trigger_error("QN_DEBUG_PHP::set locale to ".constant('L10N_LOCALE'), QN_REPORT_DEBUG);
+                    }
                 }
 
                 if(!$root) {
