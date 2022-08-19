@@ -19,16 +19,16 @@ list($params, $providers) = announce([
         ],
         'lang' =>  [
             'description'   => "Language for which values are requested (iso639 code expected).",
-            'type'          => 'string', 
-			      'default' 		  => DEFAULT_LANG
-        ]        
+            'type'          => 'string',
+            'default'       => DEFAULT_LANG
+        ]
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
@@ -36,12 +36,12 @@ list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 $file = QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json";
 
-if(!file_exists($file)) {    
-  throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
+if(!file_exists($file)) {
+    throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 if( ($schema = json_decode(@file_get_contents($file), true)) === null) {
-  throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
 }
 
 $context->httpResponse()

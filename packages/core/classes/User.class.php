@@ -25,7 +25,7 @@ class User extends Model {
                 'type'              => 'string',
                 'usage'             => 'email',
                 'required'          => true,
-                'unique'            => true                
+                'unique'            => true
             ],
 
             'password' => [
@@ -35,7 +35,7 @@ class User extends Model {
                 'required'          => true
             ],
 
-            // #todo - deprecate firstname and lastname fields (use only `login` to refer to a user)            
+            // #todo - deprecate firstname and lastname fields (use only `login` to refer to a user)
             'firstname' => [
                 'type'              => 'string'
             ],
@@ -46,12 +46,12 @@ class User extends Model {
 
             // #todo - rename to 'locale'
             'language' => [
-                'type'              => 'string', 
+                'type'              => 'string',
                 'usage'             => 'language/iso-639',
                 'default'           => 'en',
                 'description'       => "Prefered locale for user interfaces.",
             ],
-            
+
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,
@@ -80,7 +80,7 @@ class User extends Model {
      * Make sure password is crypted when stored to DB.
      * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
      * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
-     * 
+     *
      * @param   $om     Object  Instance of the ObjectManager Service
      * @param   $ids    array   List of User objects identifiers
      * @param   $lang   string  Language for multilang fields
@@ -90,7 +90,7 @@ class User extends Model {
         foreach($values as $oid => $odata) {
             if(substr($odata['password'], 0, 4) != '$2y$') {
                 $om->write(__CLASS__, $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
-            }            
+            }
         }
     }
 
@@ -103,11 +103,11 @@ class User extends Model {
                         // an exception for admin
                         if($login == 'admin') return true;
                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
-                    }    
+                    }
                 ]
             ]
             // #memo - password constraints are applied based on the 'usage' attribute
         ];
     }
-    
+
 }

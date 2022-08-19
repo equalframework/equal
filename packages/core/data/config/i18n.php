@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => "Retrieves the translation values related to the specified class.",
+    'description'   => "Retrieves the translation values related to the specified entity.",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look for (e.g. \'core\\User\').',
@@ -34,7 +34,7 @@ $parents = [];
 // for non-controller entities, retrieve parents hierarchy
 $parts = explode('\\', $params['entity']);
 $file = array_pop($parts);
-if(!ctype_lower(substr($file, 0, 1))) {    
+if(!ctype_lower(substr($file, 0, 1))) {
     while(true) {
         $parent = get_parent_class($entity);
         if(!$parent) break;
@@ -65,7 +65,7 @@ foreach($parents as $entity) {
         continue;
     }
 
-    if( ($schema = json_decode(@file_get_contents($file), true)) === null) {
+    if(($schema = json_decode(@file_get_contents($file), true)) === null) {
         throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
     }
     if(empty($lang)) {
