@@ -1742,6 +1742,10 @@ class ObjectManager extends Service {
                 $db->deleteRecords($table_name, $ids);
             }
 
+            // remove objects from cache
+            foreach($ids as $oid) {
+                unset($this->cache[$table_name][$oid]);
+            }
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
