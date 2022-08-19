@@ -33,25 +33,25 @@ class EmailSpooler extends Service {
         return ['QN_BASEDIR', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD', 'EMAIL_SMTP_ACCOUNT_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'];
     }
 
-    /** 
+    /**
      * Load the spool by reading all files currently in `$messages_folder` directory
     */
     private function load() {
         $files = scandir(self::MESSAGE_FOLDER);
         foreach($files as $file) {
             if(in_array($file, ['.', '..', '.gitkeep'])) continue;
-            
+
             // extract message details
             $filename = self::MESSAGE_FOLDER.'/'.$file;
             $data = file_get_contents($filename);
             $message = json_decode($data, true);
-        
-            // spool is mapped by email address 
+
+            // spool is mapped by email address
             $email = $message['email'];
             if(!isset($this->spool[$email])) {
-                $this->spool[$email] = [];            
+                $this->spool[$email] = [];
             }
-            $this->spool[$email][] = $message;            
+            $this->spool[$email][] = $message;
         }
     }
 
@@ -81,19 +81,33 @@ class EmailSpooler extends Service {
         $filename = self::MESSAGE_FOLDER.'/'.$file;
         file_put_contents($filename, $data);
     }
-    
+
 
     /**
      * Send all messages currently in the spool
      */
     public function run() {
         $this->load();
-        
-        $transport = new Swift_SmtpTransport(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT);
+
+        $transport = new Swift_SmtpTransport(
+            EMAIL_SMTP_HOST,
+            EMAIL_SMTP_PORT,
+            (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?EMAIL_SMTP_ENCRYPT:null
+        );
+
         $transport->setUsername(EMAIL_SMTP_ACCOUNT_USERNAME)
-                  ->setPassword(EMAIL_SMTP_ACCOUNT_PASSWORD);          
- 
-        $mailer = new Swift_Mailer($transport);                  
+                  ->setPassword(EMAIL_SMTP_ACCOUNT_PASSWORD);
+
+        if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
+            $transport->setStreamOptions([
+                'ssl' => [
+                    'allow_self_signed'     => true,
+                    'verify_peer'           => false
+                ]
+            ]);
+        }
+
+        $mailer = new Swift_Mailer($transport);
 
         foreach($this->spool as $email => $messages) {
             $envelope = new Swift_Message();
@@ -112,14 +126,14 @@ class EmailSpooler extends Service {
                 $filename = self::MESSAGE_FOLDER.'/'.$file;
                 unlink($filename);
             }
-        
+
             $envelope->setTo($email)
                      ->setSubject($subject)
                      ->setContentType("text/html")
                      ->setBody($body)
                      ->setFrom([EMAIL_SMTP_ACCOUNT_EMAIL => EMAIL_SMTP_ACCOUNT_DISPLAYNAME]);
-                 
-            $mailer->send($envelope);     
+
+            $mailer->send($envelope);
         }
     }
 
