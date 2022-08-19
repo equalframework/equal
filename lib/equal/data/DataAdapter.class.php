@@ -90,7 +90,6 @@ class DataAdapter extends Service {
                                     return floatval($value);
                                 }
                 ]
-
             ],
             'string' => [
                 'txt'   => [
@@ -100,7 +99,7 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php' => [
-                    'sql' => function($value) {
+                    'sql' =>    function($value) {
                                     // make sure the string does not have a binary notation
                                     if(substr($value, 0, 3) == 'h0x') {
                                         // trim binary prefix
