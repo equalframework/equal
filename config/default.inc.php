@@ -73,9 +73,15 @@ namespace {
 
     /**
      * EMAIL related parameters
+     *
+     * Possible value for EMAIL_SMTP_ENCRYPT (encryption level):
+     * false or null   plain SMTP (no encryption)
+     * 'tls'           SMTP with STARTTLS
+     * 'ssl'           SMTP over TLS
      */
     define('EMAIL_SMTP_HOST',               'SSL0.PROVIDER.NET');
     define('EMAIL_SMTP_PORT',               '587');
+    define('EMAIL_SMTP_ENCRYPT',             null);
     define('EMAIL_SMTP_ACCOUNT_DISPLAYNAME','Full Name');
     define('EMAIL_SMTP_ACCOUNT_USERNAME',   'email.as.username@provider.com');
     define('EMAIL_SMTP_ACCOUNT_PASSWORD',   'password');
@@ -97,7 +103,7 @@ namespace {
     /**
      * Database replication strategy
      *
-     * Possible values:
+     * Possible values for DB_REPLICATION:
      * - 'NO': no replication
      * - 'MS' ('master-slave'): 2 servers; write operations are performed on both servers, read operations are performed on the master only
      * - 'MM' ('multi-master'): any number of servers; write operations are performed on all servers, read operations can be performed on any server
@@ -168,7 +174,8 @@ namespace config {
     /**
     * Locale parameters
     */
-    date_default_timezone_set('Europe/Brussels');
+    define('L10N_TIMEZONE', 'Europe/Brussels');
+    define('L10N_LOCALE', 'fr_BE');
 
 
     /**
