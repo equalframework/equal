@@ -9870,17 +9870,23 @@ var WidgetFactory = /*#__PURE__*/function () {
           has_action_select: true
         });
 
-        if (config.hasOwnProperty('header') && config.header.hasOwnProperty('actions')) {
-          if (config.header.actions.hasOwnProperty('ACTION.CREATE')) {
-            config.has_action_create = config.header.actions['ACTION.CREATE'];
-          }
+        if (config.hasOwnProperty('header')) {
+          if (config.header === false) {
+            config.has_action_create = false;
+            config.has_action_open = false;
+            config.has_action_select = false;
+          } else if (config.header.hasOwnProperty('actions')) {
+            if (config.header.actions.hasOwnProperty('ACTION.CREATE')) {
+              config.has_action_create = config.header.actions['ACTION.CREATE'];
+            }
 
-          if (config.header.actions.hasOwnProperty('ACTION.OPEN')) {
-            config.has_action_open = config.header.actions['ACTION.OPEN'];
-          }
+            if (config.header.actions.hasOwnProperty('ACTION.OPEN')) {
+              config.has_action_open = config.header.actions['ACTION.OPEN'];
+            }
 
-          if (config.header.actions.hasOwnProperty('ACTION.SELECT')) {
-            config.has_action_select = config.header.actions['ACTION.SELECT'];
+            if (config.header.actions.hasOwnProperty('ACTION.SELECT')) {
+              config.has_action_select = config.header.actions['ACTION.SELECT'];
+            }
           }
         }
       }
@@ -12236,9 +12242,9 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                 var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
                 $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
-                if (item.hasOwnProperty('align') && item.align != 'left') {
+                if (item.hasOwnProperty('align') && item.align == 'right') {
                   $cell.css({
-                    'text-align': item.align
+                    'margin-left': 'auto'
                   });
                 }
 
@@ -14980,8 +14986,7 @@ var UIHelper = /*#__PURE__*/function () {
       var fields_toggle_menu = new _menu.MDCMenu($elem[0]); // prevent menu from getting the focus
 
       fields_toggle_menu.setDefaultFocusState(_menu.DefaultFocusState.NONE);
-      $elem.on('_toggle', function () {
-        fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
+      $elem.on('_toggle', function () {// fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
       });
       $elem.on('_open', function (event) {
         console.log('MDCMenu _open');
@@ -14995,9 +15000,8 @@ var UIHelper = /*#__PURE__*/function () {
         }
       });
       $elem.on('_close', function (event) {
-        console.log('MDCMenu _close');
-        event.stopPropagation();
-        fields_toggle_menu.open = false;
+        console.log('MDCMenu _close'); // event.stopPropagation();
+        // fields_toggle_menu.open = false;
       });
       $elem.on('_moveup', function (event) {
         event.stopPropagation();
@@ -17442,29 +17446,33 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 "display": "inline-block"
               });
               this.$elem.append($input);
-              this.$elem.append($button_open); // open targeted object in new context
 
-              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-                return _regenerator.default.wrap(function _callee4$(_context4) {
-                  while (1) {
-                    switch (_context4.prev = _context4.next) {
-                      case 0:
-                        if (_this.config.hasOwnProperty('object_id') && _this.config.object_id && _this.config.object_id > 0) {
-                          _this.getLayout().openContext({
-                            entity: _this.config.foreign_object,
-                            type: 'form',
-                            name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
-                            domain: ['id', '=', _this.config.object_id]
-                          });
-                        }
+              if (this.config.has_action_open) {
+                this.$elem.append($button_open); // open targeted object in new context
 
-                      case 1:
-                      case "end":
-                        return _context4.stop();
+                $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+                  return _regenerator.default.wrap(function _callee4$(_context4) {
+                    while (1) {
+                      switch (_context4.prev = _context4.next) {
+                        case 0:
+                          if (_this.config.hasOwnProperty('object_id') && _this.config.object_id && _this.config.object_id > 0) {
+                            _this.getLayout().openContext({
+                              entity: _this.config.foreign_object,
+                              type: 'form',
+                              name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
+                              domain: ['id', '=', _this.config.object_id]
+                            });
+                          }
+
+                        case 1:
+                        case "end":
+                          return _context4.stop();
+                      }
                     }
-                  }
-                }, _callee4);
-              })));
+                  }, _callee4);
+                })));
+              }
+
               break;
 
             case 'list':

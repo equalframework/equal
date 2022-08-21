@@ -9,7 +9,7 @@ list($params, $providers) = announce([
     'params' 		=>	[
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'ids' =>  [
@@ -19,12 +19,12 @@ list($params, $providers) = announce([
         ],
         'fields' =>  [
             'description'   => 'Requested fields. If not specified, only \'id\' and \'name\' fields are returned.',
-            'type'          => 'array', 
+            'type'          => 'array',
             'default'       => ['id', 'name']
         ],
         'lang' =>  [
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ],
         'order' => [
@@ -74,7 +74,7 @@ foreach($params['fields'] as $field) {
         if(!isset($schema[$parts[0]])) {
             continue;
         }
-        $target = &$fields;        
+        $target = &$fields;
         while(count($parts) > 1) {
             $field = array_shift($parts);
             if(!isset($target[$field])) {

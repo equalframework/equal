@@ -8,15 +8,15 @@ namespace equal\orm;
 
 class Operation {
 
-    /** 
+    /**
      * Operators that take a single operand (either a single value, or a field reference [array of values])
-     * @var array 
+     * @var array
      */
     private static $unary_operators = ['ABS', 'AVG', 'COUNT', 'DIFF', 'MAX', 'MIN', 'SUM'];
 
-    /** 
+    /**
      * Operators that take two operands (each operand can be an Operation, a single value, or a field reference [array of values])
-     * @var array 
+     * @var array
      */
     private static $binary_operators = [
         '+',            // addition
@@ -153,6 +153,11 @@ class Operation {
         return 0;
     }
 
+    /**
+     * Compute the result of the operation applied on a given collection.
+     *
+     * @param iterable  $collection
+     */
     public function compute($collection) {
         $result = false;
 

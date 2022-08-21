@@ -39,7 +39,7 @@ class Model {
      * Constructor
      *
      */
-    public final function __construct($orm, $values=[]) {
+    public final function __construct($values=[]) {
         // build the schema based on current class and ancestors
         $this->schema = self::getSpecialColumns();
         // piles up the getColumns methods from oldest ancestor to called class
@@ -60,10 +60,10 @@ class Model {
         // set array holding fields names
         $this->fields = array_keys($this->schema);
         // set fields to default values
-        $this->setDefaults($orm, $values);
+        $this->setDefaults($values);
     }
 
-    private function setDefaults($orm, $values=[]) {
+    private function setDefaults($values=[]) {
         $this->values = [];
 
         $defaults = $this->getDefaults();
@@ -188,6 +188,10 @@ class Model {
      */
     public final function getFields() {
         return $this->fields;
+    }
+
+    public final function getField($field) {
+        return $this->field($field);
     }
 
     /**

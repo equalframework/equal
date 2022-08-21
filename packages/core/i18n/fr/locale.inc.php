@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-/** 
+/**
 * Use the 'config' namespace to use config\define() instead of define()
 */
 namespace config;

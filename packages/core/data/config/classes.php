@@ -21,9 +21,9 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
-        'accept-origin'     => '*'        
+        'accept-origin'     => '*'
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context']
 ]);
 
 
@@ -36,16 +36,16 @@ list($context) = [$providers['context']];
  */
 // prevent multi-declaration in global scope
 if(!function_exists('get_classes')) {
-    
+
     // recurse within the `classes` directory
     function get_files($dir) {
         $result = [];
         if(is_dir($dir) && $list = scandir($dir)) {
             foreach($list as $node) {
-                if(is_file($dir.'/'.$node)) {                
+                if(is_file($dir.'/'.$node)) {
                     if(stristr($node, '.class.php')) {
                         $result[] = substr($node, 0, -10);
-                    }                
+                    }
                 }
                 else if(!in_array($node, ['.', '..']) && is_dir($dir.'/'.$node)) {
                     $data = get_files($dir.'/'.$node);
@@ -57,7 +57,7 @@ if(!function_exists('get_classes')) {
         }
         return $result;
     }
-    
+
 	function get_classes($package, $path='') {
 		$data = [];
         $path = trim($path, '/');
@@ -67,7 +67,7 @@ if(!function_exists('get_classes')) {
         }
 		if(is_dir($package_dir) && ($list = scandir($package_dir))) {
             $data = get_files($package_dir);
-		}		
+		}
 		return $data;
 	}
 }
@@ -94,7 +94,7 @@ else {
 	$data = get_classes($params['package'], $params['path']);
 }
 
-    
+
 $context->httpResponse()
         ->body($data)
         ->send();

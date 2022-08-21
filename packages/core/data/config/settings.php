@@ -12,12 +12,12 @@ list($params, $providers) = announce([
     'params'        => [
         'package' =>  [
             'description'   => "The package which the result list has to be limited to.",
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => '*'
         ],
         'section' =>  [
             'description'   => 'The section which the result list has to be limited to.',
-            'type'          => 'string', 
+            'type'          => 'string',
 			'default' 		=> '*'
         ]
     ],
@@ -35,7 +35,7 @@ list($context, $om, $auth) = [$providers['context'], $providers['orm'], $provide
 $user_id = $auth->userId();
 // make sure user is authenticated
 if($user_id <= 0) {
-    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);    
+    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);
 }
 
 $domain = [];
@@ -88,13 +88,13 @@ foreach($collection as $oid => $odata) {
         $res[$setting_id] = [
             'name'      => $odata['setting_id']['name'],
             'package'   => $odata['setting_id']['package'],
-            'section'   => $odata['setting_id']['section'],                        
+            'section'   => $odata['setting_id']['section'],
             'value'     => $odata['value'],
             'user_id'   => $odata['user_id']
         ];
     }
 }
-           
+
 // send back basic info of the User object
 $context->httpResponse()
         ->body(array_values($res))

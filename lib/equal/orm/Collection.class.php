@@ -301,21 +301,26 @@ class Collection implements \Iterator {
      * Convert values to specified context (txt, php, sql, orm) based on their type
      *
      * @param $to       string  might be a map associating fields with their values, or a map association ids with objects
-     *
-     * @return object   current instance
+     * @throws Exception    if encounters something not convertible.
+     * @return Collection       current instance
      */
-    public function adapt($to='txt') {
+    public function adapt($to='txt', $lang=DEFAULT_LANG) {
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
                 if($value instanceof Collection) {
-                    $value->adapt($to);
+                    $value->adapt($to, $lang);
                 }
                 else {
                     $type = $schema[$field]['type'];
                     if($type == 'computed' && isset($schema[$field]['result_type'])) {
                         $type = $schema[$field]['result_type'];
                     }
+
+//                    $f = $this->orm->getField($this->class, $field); // retrieve descriptor from schema
+//                    $f->setValue($value);
+//                    $this->objects[$id][$field] = $f->adapt($to, $lang);
+
                     $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
                 }
             }

@@ -38,10 +38,16 @@ class ObjectManager extends Service {
     private $identifiers;
 
     /**
-     * Array holding static instances (i.e. one object of each class having fields set to default values)
+     * Array holding static instances of models (i.e. one object of each class having fields set to default values)
      * @var array
      */
-    private $instances;
+    private $models;
+
+    /**
+     * Array holding static fields instances
+     * @var array
+     */
+    private $fields;
 
     /**
      * Array holding names of defined packages (folders under /package directory)
@@ -168,7 +174,7 @@ class ObjectManager extends Service {
         $this->db = &$db;
         $this->packages = null;
         $this->cache = [];
-        $this->instances = [];
+        $this->models = [];
         $this->object_methods = [];
         $this->last_error = '';
     }
@@ -241,43 +247,46 @@ class ObjectManager extends Service {
      * Returns a static instance for the specified object class (does not create a new object)
      *
      * @param   string       $class      The full name of the class with its namespace.
+     * @param   array        $fields     Associative array mapping fields with default values (provided by create() method).
      * @throws  Exception
      * @return  Object       Returns a partial instance of the targeted class.
      */
     private function getStaticInstance($class, $fields=[]) {
-        // if class is unknown, load the file containing the class declaration of the requested object
-        if(!class_exists($class)) {
-            // first, read the file to see if the class extends from another (which could not be loaded yet)
-            $filename = QN_BASEDIR.'/packages/'.self::getObjectPackage($class).'/classes/'.self::getObjectClassFile($class);
-            if(!is_file($filename)) {
-                throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
-            }
-            $parts = explode('\\', $class);
-            $class_name = array_pop($parts);
-            $file_content = file_get_contents($filename);
-            preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
-            if(!isset($matches[1])) {
-                throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
-            }
-            preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
-            if(!isset($matches[1])) {
-                throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
-            }
-            $parent_class = trim($matches[1]);
-            if(!(include_once $filename)) {
-                throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
-            }
+        if(count($fields) || !isset($this->models[$class])) {
+            // if class is unknown, load the file containing the class declaration of the requested object
             if(!class_exists($class)) {
-                throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                // first, read the file to see if the class extends from another (which could not be loaded yet)
+                $filename = QN_BASEDIR.'/packages/'.self::getObjectPackage($class).'/classes/'.self::getObjectClassFile($class);
+                if(!is_file($filename)) {
+                    throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                }
+                $parts = explode('\\', $class);
+                $class_name = array_pop($parts);
+                $file_content = file_get_contents($filename);
+                preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
+                if(!isset($matches[1])) {
+                    throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
+                }
+                preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
+                if(!isset($matches[1])) {
+                    throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
+                }
+                $parent_class = trim($matches[1]);
+                if(!(include_once $filename)) {
+                    throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                }
+                if(!class_exists($class)) {
+                    throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                }
+            }
+            if(!isset($this->models[$class])) {
+                $this->models[$class] = new $class();
+            }
+            if(count($fields)) {
+                return new $class($fields);
             }
         }
-        if(!isset($this->instances[$class])) {
-            $this->instances[$class] = new $class($this);
-        }
-        if(count($fields)) {
-            return new $class($this, $fields);
-        }
-        return $this->instances[$class];
+        return $this->models[$class];
     }
 
 
@@ -989,21 +998,33 @@ class ObjectManager extends Service {
      *
      * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
-    public function getModel($object_class) {
+    public function getModel($class) {
         $model = false;
-        $packages = $this->getPackages();
-        $package = self::getObjectPackage($object_class);
-        if(in_array($package, $packages)) {
-            try {
-                $model = $this->getStaticInstance($object_class);
-            }
-            catch(Exception $e) {
-                trigger_error($e->getMessage(), E_USER_ERROR);
-                // #todo - validate (only method in ORM that raises an Exception)
-                throw new Exception("FATAL - unknown class '{$object_class}'", QN_ERROR_UNKNOWN_OBJECT);
-            }
+        try {
+            $model = $this->getStaticInstance($class);
+        }
+        catch(Exception $e) {
+            trigger_error($e->getMessage(), E_USER_ERROR);
+            // #todo - validate (only method in ORM that raises an Exception)
+            throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
         return $model;
+    }
+
+    /**
+     * Create a Field instance based on class name and field name.
+     *
+     * @return \equal\orm\fields\Field   Returns a Field instance (variation according to type found in description).
+     */
+    public function getField($class, $field) {
+        if(!isset($this->fields[$class][$field])) {
+            if(!isset($this->fields[$class])) {
+                $this->fields[$class] = [];
+            }
+            $model = $this->getModel($class);
+            $this->fields[$class][$field] = Fields::create($model->getField($field));
+        }
+        return $this->fields[$class][$field];
     }
 
     public function getLastError() {
@@ -1011,7 +1032,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Checks whether the values of given object fields are valid.
+     * Checks whether a set of values is valid according to given class definition.
      * This is done using the class validation method.
      *
      * Ex.:

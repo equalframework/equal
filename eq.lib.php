@@ -622,7 +622,7 @@ namespace config {
 
             $adapter = $container->get('adapt');
             foreach($announcement['params'] as $param => $config) {
-                // #memo - at some point condition had a clause " || empty($body[$param]) ", remember not to alter received data!
+                // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
                     $body[$param] = $config['default'];
                 }
@@ -631,6 +631,30 @@ namespace config {
                     // prevent type confusion while converting data from text
                     // all inputs are handled as text, conversion is made based on expected type
                     $result[$param] = $adapter->adapt($body[$param], $config['type']);
+                    /*
+                    $f = Fields::create($config);
+                    // raises an Exception if assignment is not possible
+                    $f->setValue($body[$param], 'json');
+                    try {
+                        $f->validate();
+                    }
+                    catch(\Exception $e) {
+                        // only mandatory params raise an exception
+                        if(in_array($param, $mandatory_params)) {
+                            $error = @unserialize($e->getMessage()));
+                            throw new \Exception(serialize([$param => $error]), QN_ERROR_INVALID_PARAM);
+                        }
+                        else {
+                            if(isset($config['default'])) {
+                                $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
+                                $result[$param] = $config['default'];
+                            }
+                            else {
+                                $reporter->warning("dropped invalid non-mandatory parameter '{$param}'");
+                            }
+                        }
+                    }
+                    */
                 }
             }
 
@@ -923,9 +947,13 @@ namespace config {
                 $GLOBALS['eQual_loading_classes'][$class_name] = true;
                 $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use 'class.php' extention
-                if(file_exists($file_path.'.class.php')) $result = include_once $file_path.'.class.php';
+                if(file_exists($file_path.'.class.php')) {
+                    $result = include_once $file_path.'.class.php';
+                }
                 // Fallback to simple php extension
-                else if(file_exists($file_path.'.php')) $result = include_once $file_path.'.php';
+                else if(file_exists($file_path.'.php')) {
+                    $result = include_once $file_path.'.php';
+                }
                 else {
                     // give up an relay to next registered loader, if any
                 }

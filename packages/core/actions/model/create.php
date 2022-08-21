@@ -70,6 +70,7 @@ try {
             unset($params['fields'][$field]);
             continue;
         }
+        // $params['fields'][$field] = $orm->getField($params['entity'], $field)->setValue($value, 'json');
         $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
 }

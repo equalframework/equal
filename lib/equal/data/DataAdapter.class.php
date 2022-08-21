@@ -9,6 +9,12 @@ namespace equal\data;
 use equal\organic\Service;
 use equal\fs\FSManipulator;
 
+
+class IntegerAdapter {
+    public function adapt($to, $from) {
+
+    }
+}
 class DataAdapter extends Service {
 
     private $config;
@@ -474,7 +480,7 @@ class DataAdapter extends Service {
                         else {
                             if(!isset($value['tmp_name'])) {
                                 // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
-                                // #todo: issue a warning
+                                trigger_error("QN_DEBUG_ORM::binary data has not been received or cannot be retrieved", QN_REPORT_WARNING);
                                 $res = '';
                             }
                             else {
@@ -593,12 +599,19 @@ class DataAdapter extends Service {
         else if($type == 'bool') $type = 'boolean';
         else if($type == 'file') $type = 'binary';
 
+        // #transition - accept json as txt
+        if($from == 'json') {
+            $from = 'txt';
+        }
+        if($to == 'json') {
+            $to = 'txt';
+        }
+
         if(!in_array($from, ['txt', 'php', 'sql'])) {
             // in case of unknown origin, fallback to raw text
             $from = 'txt';
             // todo: issue a warning
         }
-
         if(!in_array($to, ['txt', 'php', 'sql'])) {
             // in case of unknown destination, fallback to PHP
             $to = 'php';

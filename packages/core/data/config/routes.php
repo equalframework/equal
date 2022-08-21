@@ -10,10 +10,10 @@ list($params, $providers) = announce([
                         'api'   => [
                             'description'   => 'The name (string identifier) of the API for which routes are requested',
                             'type'          => 'string',
-                            'required'      => true            
+                            'required'      => true
                        ]
     ],
-    'providers'     => ['context', 'route'] 
+    'providers'     => ['context', 'route']
 ]);
 
 
@@ -57,10 +57,10 @@ foreach($routes as $path => $resolver) {
         if(isset($announce['announcement']['response'])) {
             $descriptor['response'] = $announce['announcement']['response'];
         }
-        
+
         $result[] = $descriptor;
     }
-    
+
 }
 
 $context->httpResponse()->body($result)->send();

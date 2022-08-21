@@ -9,8 +9,8 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'UTF-8',
-        'accept-origin'     => '*'        
-    ],        
+        'accept-origin'     => '*'
+    ],
     'params'        => [
         'package' => [
             'description'   => 'Name of the package for which the list is requested',
@@ -18,7 +18,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context']
 ]);
 
 
@@ -37,7 +37,7 @@ function recurse_dir($directory, $parent_name='') {
         foreach($list as $node) {
             $scriptname = basename($node, '.php');
             if(is_dir($node)) {
-                if(count(glob_recursive($node)) === 0) continue;                
+                if(count(glob_recursive($node)) === 0) continue;
                 $result = array_merge($result, recurse_dir($node, (strlen($parent_name)?$parent_name.'_'.$scriptname:$scriptname)));
             }
             elseif(pathinfo($node, PATHINFO_EXTENSION) == 'php'){
@@ -61,7 +61,7 @@ $result = [
     'data'      => $php_scripts('data')
 ];
 
-   
+
 $context->httpResponse()
         ->body($result)
-        ->send();    
+        ->send();

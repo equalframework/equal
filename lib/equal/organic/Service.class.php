@@ -9,10 +9,10 @@ use equal\services\Container;
 
 class Service extends Singleton {
     /*  All services are instanciated throught the service container
-        which instance is, in turn, made available as public member 
+        which instance is, in turn, made available as public member
     */
     public $container;
-    
+
     /**
      * Returns a list of constant names that the service expect to be available
      *
@@ -24,5 +24,5 @@ class Service extends Singleton {
     public function getContainer() {
         return $this->container;
     }
-        
+
 }
