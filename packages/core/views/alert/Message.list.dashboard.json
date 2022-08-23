@@ -1,0 +1,29 @@
+{
+    "name": "Messages list",
+    "description": "Listing of pending messages.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "object_link",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "label",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "label": "Name",
+                "width": "35%"
+            },
+            {
+                "type": "field",
+                "value": "severity",
+                "width": "15%"
+            }
+        ]
+    }
+}
