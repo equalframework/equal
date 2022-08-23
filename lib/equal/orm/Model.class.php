@@ -373,6 +373,13 @@ class Model {
      * @return void
      */
     public static function onupdate($om, $oids, $values, $lang) {
+        // upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+        if(isset($values['state']) && $values['state'] != 'instance') {
+            $messages_ids = $om->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $oids] ] );
+            if($messages_ids) {
+                $om->delete('core\alert\Message', $messages_ids, true);
+            }
+        }
     }
 
     /**
