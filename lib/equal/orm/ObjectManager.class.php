@@ -863,7 +863,9 @@ class ObjectManager extends Service {
                 else  $fields_lists[$type][] = $field;
             }
             // 2) store fields according to their types
-            foreach($fields_lists as $type => $list) $store_fields[$type]($this, $ids, $list);
+            foreach($fields_lists as $type => $list) {
+                $store_fields[$type]($this, $ids, $list);
+            }
 
         }
         catch (Exception $e) {
@@ -1073,6 +1075,14 @@ class ObjectManager extends Service {
 
 
         // 2) MODEL constraint check
+
+        /*
+            foreach($values as $field => $value) {
+                $f = $this->getField($class);
+                $f->set($value)->validate();
+            }
+
+        */
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();

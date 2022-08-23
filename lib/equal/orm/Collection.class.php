@@ -316,11 +316,14 @@ class Collection implements \Iterator {
                     if($type == 'computed' && isset($schema[$field]['result_type'])) {
                         $type = $schema[$field]['result_type'];
                     }
-
-//                    $f = $this->orm->getField($this->class, $field); // retrieve descriptor from schema
-//                    $f->setValue($value);
-//                    $this->objects[$id][$field] = $f->adapt($to, $lang);
-
+/*
+                    $f = $this->orm->getField($this->class, $field); // retrieve descriptor from schema
+                    if(!$f) {
+                        throw new Exception("missing_field", QN_ERROR_UNKNOWN);
+                    }
+                    // raises an Exception if field is invalid or cannot be adapted
+                    $this->objects[$id][$field] = $f->set($value)->adapt($to, $lang)->get();
+*/
                     $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
                 }
             }

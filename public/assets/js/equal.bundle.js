@@ -12354,10 +12354,11 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                           }
 
                           if (visible) {
-                            var action_title = _equalServices.TranslationService.resolve(_this2.view.getTranslation(), 'view', [_this2.view.getId(), 'actions'], action.id, action.label); // let $button = UIHelper.createButton('action-view-'+action.id, action_title, 'outlined')
+                            var action_title = _equalServices.TranslationService.resolve(_this2.view.getTranslation(), 'view', [_this2.view.getId(), 'actions'], action.id, action.label);
+
+                            console.log('add ', action_title); // let $button = UIHelper.createButton('action-view-'+action.id, action_title, 'outlined')
                             // this.decorateActionButton($button, action, object);
                             // $view_actions.append($button);
-
 
                             var $item = _materialLib.UIHelper.createListItem(_this2.uuid + '_action-' + action.id.replace('.', '_'), action_title);
 
@@ -14510,6 +14511,7 @@ var UIHelper = /*#__PURE__*/function () {
         'right': 0
       });
       $drop_button.on('click', function (event) {
+        console.log('dropdown click');
         event.preventDefault();
         event.stopPropagation();
         var parent_width = Math.round($drop_button.innerWidth());
@@ -14985,8 +14987,10 @@ var UIHelper = /*#__PURE__*/function () {
       if (!$elem.length) return;
       var fields_toggle_menu = new _menu.MDCMenu($elem[0]); // prevent menu from getting the focus
 
-      fields_toggle_menu.setDefaultFocusState(_menu.DefaultFocusState.NONE);
-      $elem.on('_toggle', function () {// fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
+      fields_toggle_menu.setDefaultFocusState(_menu.DefaultFocusState.NONE); // UI elements having a menu rely on this custom _toggle
+
+      $elem.on('_toggle', function () {
+        fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
       });
       $elem.on('_open', function (event) {
         console.log('MDCMenu _open');

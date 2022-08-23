@@ -208,6 +208,7 @@ namespace {
 }
 namespace config {
     use equal\services\Container;
+    use equal\orm\Fields;
 
 
 
@@ -620,23 +621,28 @@ namespace config {
 
             // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
+            $invalid_params = [];
             $adapter = $container->get('adapt');
             foreach($announcement['params'] as $param => $config) {
                 // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
                     $body[$param] = $config['default'];
                 }
-                // ignore optional params without default value (this allows PATCH of objects on specific fields only)
-                if(array_key_exists($param, $body)) {
+                if(!array_key_exists($param, $body)) {
+                    // ignore optional params without default value (this allows PATCH of objects on specific fields only)
+                }
+                else {
                     // prevent type confusion while converting data from text
                     // all inputs are handled as text, conversion is made based on expected type
                     $result[$param] = $adapter->adapt($body[$param], $config['type']);
                     /*
+                    // convert value from input format + validate type and usage constraints
                     $f = Fields::create($config);
                     // raises an Exception if assignment is not possible
-                    $f->setValue($body[$param], 'json');
+                    $f->set($body[$param], 'json');
                     try {
                         $f->validate();
+                        $result[$param] = $f->get();
                     }
                     catch(\Exception $e) {
                         // only mandatory params raise an exception
@@ -659,8 +665,7 @@ namespace config {
             }
 
             // 4) validate values types and handle optional attributes
-
-            $invalid_params = [];
+            // #transition - to remove
             $validator = $container->get('validate');
             foreach($result as $param => $value) {
                 $config = $announcement['params'][$param];

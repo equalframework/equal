@@ -70,7 +70,16 @@ try {
             unset($params['fields'][$field]);
             continue;
         }
-        // $params['fields'][$field] = $orm->getField($params['entity'], $field)->setValue($value, 'json');
+        /*
+        $f = $orm->getField($params['entity'], $field);
+        if(!$f) {
+            throw new Exception("missing_field", QN_ERROR_UNKNOWN);
+        }
+        // raises an Exception if value is not convertible or breaks the usage
+        $params['fields'][$field] = $f->set($value, 'json')
+                                      ->validate()
+                                      ->get();
+        */
         $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
     }
 }
