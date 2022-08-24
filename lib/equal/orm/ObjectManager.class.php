@@ -1095,7 +1095,7 @@ class ObjectManager extends Service {
                 if(isset($schema[$field]['usage'])) {
                     switch($schema[$field]['usage']) {
                         // #todo - continue this list
-                        case 'markup/html':
+                        case 'text/html':
                             $type = 'text';
                             break;
                     }

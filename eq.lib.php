@@ -298,7 +298,7 @@ namespace config {
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
-                throw new \Exception('eQual init: mandatory Container service is missing or cannot be instanciated', QN_REPORT_FATAL);
+                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instanciated.', QN_REPORT_FATAL);
             }
             // instanciate service container
             $container = Container::getInstance();
@@ -333,7 +333,7 @@ namespace config {
                     ],
                     JSON_PRETTY_PRINT);
                 // and raise an exception (will be output in PHP error log)
-                throw new \Exception("mandatory_dependency_missing", QN_REPORT_FATAL);
+                throw new \Exception("missing_mandatory_dependency", QN_REPORT_FATAL);
             }
             // register ORM classes autoloader
             try {
