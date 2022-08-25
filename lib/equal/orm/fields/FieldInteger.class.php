@@ -17,18 +17,15 @@ class FieldInteger extends Field {
         return 'int(11)';
     }
 
-    public function validate(): Field {
-        if(gettype($this->value) != 'integer') {
-            throw new \Exception(serialize(["not_valid_integer" => "Value {$this->value} is not integer."]), QN_ERROR_INVALID_PARAM);
-        }
-        if($this->hasUsage()) {
-            $usage = $this->getUsage();
-            if($usage) {
-                // raise an exception if invalid
-                $usage->validate($this->value);
-            }
-        }
-        return $this;
+    public function getConstraints(): array {
+        return array_merge(parent::getConstraints(), [
+            'not_integer_type' => [
+                'message'   => 'Value is not an integer.',
+                'function'  =>  function($value) {
+                    return (gettype($value) == 'integer');
+                }
+            ]
+        ]);
     }
 
     protected function adaptFromSql($value): void {

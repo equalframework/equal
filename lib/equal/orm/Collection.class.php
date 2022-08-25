@@ -10,7 +10,7 @@ namespace equal\orm;
 
 class Collection implements \Iterator {
 
-    /* ObjectManager */
+    /** @var ObjectManager */
     private $orm;
 
     /* AccessController */
@@ -92,10 +92,10 @@ class Collection implements \Iterator {
     }
 
     public function current() {
-        return current($this->objects);
+        return $this->get_raw_object(current($this->objects));
     }
 
-    public function key() : mixed {
+    public function key() : int {
         return key($this->objects);
     }
 
@@ -210,7 +210,7 @@ class Collection implements \Iterator {
      *
      * @param   $to_array   boolean    Flag to ask conversion of sub-objects to arrays (instead of a maps)
      */
-    private function get_raw_object(&$object, $to_array=false) {
+    private function get_raw_object($object, $to_array=false) {
         $result = [];
         $schema = $this->model->getSchema();
         foreach($object as $field => $value) {
@@ -646,22 +646,30 @@ class Collection implements \Iterator {
                 }
             }
 
-            // 5) recursively load sub-fields, if any
             $this->objects = $res;
+
+            // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
+            // #todo - this could be improved by parsing the $fields map and collecting all sub-entities and ids before calling subsequent ::read()
             foreach($relational_fields as $field => $subfields) {
-                // load batches of sub-objects grouped by field
-                $ids = [];
+                $children_ids = [];
                 foreach($this->objects as $object) {
-                    $ids = array_merge($ids, (array) $object[$field]);
+                    foreach((array) $object[$field] as $oid) {
+                        $children_ids[] = $oid;
+                    }
                 }
+                $children_fields = [];
+                foreach($subfields as $key => $val) {
+                    $children_fields[] = (!is_numeric($key))?$key:$val;
+                }
+                // #todo - use orm::getField()
                 $target = $this->model->field($field);
-                $objects = $target['foreign_object']::ids($ids)->read($subfields, $lang)->get();
-                // assign retrieved values to the objects they're related to
+                // read all targeted children objects at once
+                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang);
+                // assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
                     $this->objects[$id][$field] = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
                 }
             }
-
         }
         return $this;
     }

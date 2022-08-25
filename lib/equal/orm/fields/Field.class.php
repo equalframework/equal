@@ -17,6 +17,9 @@ abstract class Field {
     /** @var mixed */
     private $value = null;
 
+    /** @var Usage */
+    private $usage = null;
+
     final public function __construct(array $descriptor) {
         $this->descriptor = $descriptor;
     }
@@ -36,7 +39,10 @@ abstract class Field {
     }
 
     final protected function getUsage(): Usage {
-        return ($this->hasUsage())?Usages::create($this->descriptor['usage']):null;
+        if(is_null($this->usage) && $this->hasUsage()) {
+            $this->usage = Usages::create($this->descriptor['usage']);
+        }
+        return $this->usage;
     }
 
     /**
@@ -103,10 +109,14 @@ abstract class Field {
      */
     abstract protected function adaptToTxt($lang=DEFAULT_LANG): void;
 
-    /**
-     * Checks if the currently assigned value complies with the type constraints.
-     * @throws Exception        In case given value does not comply with targeted type.
-     * @return Field     Returns current instance for chained operations.
-     */
-    abstract public function validate(): Field;
+    public function getConstraints(): array {
+        $constraints = [];
+        if($this->hasUsage()) {
+            $usage = $this->getUsage();
+            if($usage) {
+                $constraints = array_merge($constraints, $usage->getConstraints());
+            }
+        }
+        return $constraints;
+    }
 }

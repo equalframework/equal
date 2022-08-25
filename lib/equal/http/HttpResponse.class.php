@@ -9,10 +9,10 @@ namespace equal\http;
 use equal\http\HttpMessage;
 
 class HttpResponse extends HttpMessage {
-    
+
     public function __construct($headline, $headers=[], $body='') {
         parent::__construct($headline, $headers, $body);
-        
+
         // parse headline
         $parts = explode(' ', $headline, 2);
 
@@ -31,11 +31,11 @@ class HttpResponse extends HttpMessage {
                 }
             }
         }
-                
+
     }
     /**
      * Sends a HTTP response to the output stream (stdout)
-     * This method can only be used with PHP context 
+     * This method can only be used with PHP context
      * and is used as a helper to build the actual response of the current request
      *
      */
@@ -45,7 +45,7 @@ class HttpResponse extends HttpMessage {
 
         // set status-line
         header($this->getProtocol().' '.$this->getStatus());
-        // CGI SAPI 
+        // CGI SAPI
         header('Status:  '.$this->getStatus());
         // set headers
         $headers = $this->getHeaders(true);
@@ -56,7 +56,7 @@ class HttpResponse extends HttpMessage {
             if($header == 'Cookie') continue;
             header($header.': '.$value);
         }
-        
+
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
             $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
@@ -66,7 +66,7 @@ class HttpResponse extends HttpMessage {
             $domain = (isset($params['domain']))?$params['domain']:$hostname;
             $secure = (isset($params['secure']))?$params['secure']:false;
             $httponly = (isset($params['httponly']))?$params['httponly']:false;
-// #todo handle samesite (as of PHP 7.3)            
+// #todo handle samesite (as of PHP 7.3)
             $samesite = (isset($params['samesite']))?$params['samesite']:false;
             setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
@@ -76,20 +76,20 @@ class HttpResponse extends HttpMessage {
 
         // if body is an associative array, try to convert it into plain text
         if(is_array($body)) {
-            
+
             switch($this->headers()->getContentType()) {
             case 'application/vnd.api+json':
             case 'application/x-json':
             case 'application/json':
                 $body = json_encode($body, JSON_PRETTY_PRINT);
                 break;
-            case 'application/javascript':            
+            case 'application/javascript':
             case 'text/javascript':
                 // JSON-P
-                // todo                
+                // todo
                 break;
             case 'text/csv':
-                // todo            
+                // todo
             case 'text/html':
             case 'text/plain':
                 // raw content
@@ -97,8 +97,8 @@ class HttpResponse extends HttpMessage {
             case 'text/xml':
             case 'application/xml':
             case 'text/xml, application/xml':
-                function to_xml(\SimpleXMLElement &$object, array $data) {   
-                    foreach ($data as $key => $value) {                        
+                function to_xml(\SimpleXMLElement &$object, array $data) {
+                    foreach ($data as $key => $value) {
                         if (is_array($value)) {
                             if(is_numeric($key)) {
                                 $new_object = $object->addChild('elem');
@@ -106,10 +106,10 @@ class HttpResponse extends HttpMessage {
                             }
                             else $new_object = $object->addChild($key);
                             to_xml($new_object, $value);
-                        } 
+                        }
                         else $object->addChild($key, $value);
-                    }   
-                }              
+                    }
+                }
                 $xml = new \SimpleXMLElement('<root/>');
                 to_xml($xml, $body);
                 $body = $xml->asXML();
@@ -121,7 +121,7 @@ class HttpResponse extends HttpMessage {
         else {
             switch($this->headers()->getContentType()) {
             case 'text/csv':
-                if($this->headers()->getCharset() == 'UTF-8') {               
+                if($this->headers()->getCharset() == 'UTF-8') {
                      $body = "\xEF\xBB\xBF".$body;
                 }
                 break;
@@ -132,7 +132,7 @@ class HttpResponse extends HttpMessage {
         // output body
         print($body);
         // we return a pointer to current instance for consistency, but no output should be emitted after this point
-        return $this;        
+        return $this;
     }
-    
+
 }

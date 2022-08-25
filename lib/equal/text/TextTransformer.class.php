@@ -7,7 +7,8 @@ class TextTransformer {
     /**
     * Transforms given string to a standard ASCII string containing lowercase words separated by single spaces
     * (no accent, punctuation signs, quotes, plus nor dash)
-    * This method expects a UTF-8 string
+    * @param    string  $value  UTF-8 string to convert to ASCII.
+    * @return   string          Returns an ASCII-chars only string with no punctuation, that should be accepted by any system.
     */
     public static function normalize($value) {
         // #memo - remember to maintain current file charset to UTF-8 !
@@ -31,9 +32,7 @@ class TextTransformer {
         );
         $value = str_replace(array_keys($ascii), array_values($ascii), $value);
         // remove all non-[quote-space-alphanum-dash] chars
-        $value = preg_replace('/[^\'\s-a-z0-9]/i', '', $value);
-        // replace spaces, dashes, pluses and quotes with spaces
-        $value = preg_replace('/[\s-\']+/', ' ', $value);
+        $value = preg_replace('/[^-\'\sa-z0-9]/i', '', $value);
         // trim the end of the string
         $value = trim($value, ' .-_');
         return strtolower($value);

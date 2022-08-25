@@ -23,6 +23,8 @@ abstract class Usage {
 
     abstract public function getType(): string;
 
+    abstract public function getConstraints(): array;
+
     final public function getSubtype() {
         return $this->subtype;
     }
@@ -50,11 +52,5 @@ abstract class Usage {
      * @return mixed     Returns the value adapted to the usage, according to a specific locale, if given.
      */
     abstract public function export($value, $lang=DEFAULT_LANG): string;
-
-    /**
-     * Checks if the given value complies with the usage definition.
-     * @throws Exception        In case given value is not compatible with targeted type.
-     */
-    abstract public function validate($value);
 
 }

@@ -14,11 +14,15 @@ class FieldBoolean extends Field {
         return 'tinyint(4)';
     }
 
-    public function validate(): Field {
-        if(gettype($this->value) != 'boolean') {
-            throw new \Exception(serialize(["not_valid_boolean" => "Value {$this->value} is not integer."]), QN_ERROR_INVALID_PARAM);
-        }
-        return $this;
+    public function getConstraints(): array {
+        return array_merge(parent::getConstraints(), [
+            'not_bool_type' => [
+                'message'   => 'Value is not a bool number.',
+                'function'  =>  function($value) {
+                    return (gettype($value) == 'boolean');
+                }
+            ]
+        ]);
     }
 
     protected function adaptFromSql($value): void {

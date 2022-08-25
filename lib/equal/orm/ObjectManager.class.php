@@ -1142,6 +1142,7 @@ class ObjectManager extends Service {
                 foreach($constraints[$field] as $error_id => $constraint) {
                     if(isset($constraint['function']) ) {
                         $validation_func = $constraint['function'];
+                        // #todo - use a single arg (validation should be independant from context, otherwise use cancreate/canupdate)
                         if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
                             if(!isset($constraint['message'])) {
                                 $constraint['message'] = 'Invalid field.';
@@ -1269,7 +1270,11 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
 
             // 1) define default values
-            $creation_array = ['creator' => ROOT_USER_ID, 'created' => date("Y-m-d H:i:s"), 'state' => (isset($fields['state']))?$fields['state']:'instance'];
+            $creation_array = [
+                'creator'   => ROOT_USER_ID,
+                'created'   => date("Y-m-d H:i:s"),
+                'state'     => (isset($fields['state']))?$fields['state']:'instance'
+            ];
 
             // set creation array according to received fields: `id` and `creator` can be set to force resulting object
             if(!empty($fields)) {

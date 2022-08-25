@@ -17,18 +17,15 @@ class FieldFloat extends Field {
         return 'decimal(10,2)';
     }
 
-    public function validate(): Field {
-        if(gettype($this->value) != 'double') {
-            throw new \Exception(serialize(["not_valid_float" => "Value {$this->value} is not a floating point number."]), QN_ERROR_INVALID_PARAM);
-        }
-        if($this->hasUsage()) {
-            $usage = $this->getUsage();
-            if($usage) {
-                // raise an exception if invalid
-                $usage->validate($this->value);
-            }
-        }
-        return $this;
+    public function getConstraints(): array {
+        return array_merge(parent::getConstraints(), [
+            'not_float_type' => [
+                'message'   => 'Value is not a floating point number.',
+                'function'  =>  function($value) {
+                    return (gettype($value) == 'double');
+                }
+            ]
+        ]);
     }
 
     protected function adaptFromSql($value): void {

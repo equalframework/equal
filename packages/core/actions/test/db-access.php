@@ -23,7 +23,7 @@ if(strlen($json)) {
     // return an error code
     exit(1);
 }
-// 2) try to connect to DBMS 
+// 2) try to connect to DBMS
 if(!$db->connected()) {
     if($db->connect(false) == false) {
         throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', QN_ERROR_INVALID_CONFIG);
