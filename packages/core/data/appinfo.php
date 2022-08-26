@@ -23,7 +23,7 @@ list($context, $om, $auth) = [$providers['context'], $providers['orm'], $provide
 $user_id = $auth->userId();
 // make sure user is authenticated
 if($user_id <= 0) {
-    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);    
+    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);
 }
 
 $result = [];
@@ -40,7 +40,7 @@ $settings = SettingValue::search(['user_id', '=', $user_id])->read(['name', 'val
 foreach($settings as $sid => $setting) {
     $result[$setting['name']] = $setting['value'];
 }
-            
+
 // send back basic info of the User object
 $context->httpResponse()
         ->body($result)
