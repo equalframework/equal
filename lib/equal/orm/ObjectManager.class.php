@@ -594,7 +594,9 @@ class ObjectManager extends Service {
                 },
                 'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     foreach($fields as $field) {
-                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        }
 
                         if($res = $this->call($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
                             foreach($ids as $oid) {
@@ -636,10 +638,13 @@ class ObjectManager extends Service {
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
                     // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang'])
+                    if($lang != DEFAULT_LANG && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                         $fields_lists['multilang'][] = $field;
+                    }
                     // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
-                    else $fields_lists['simple'][] = $field;
+                    else {
+                        $fields_lists['simple'][] = $field;
+                    }
                 }
                 else  $fields_lists[$type][] = $field;
             }
@@ -663,7 +668,7 @@ class ObjectManager extends Service {
                 }
                 // compute field for incomplete objects
                 $load_fields['computed']($this, $oids, array($field));
-                // store newly computed fields to database, if required ('store' attribute set to true)
+                // store newly computed fields to database ('store' attribute set to true)
                 $this->store($class, $oids, array($field), $lang);
             }
 
@@ -1965,16 +1970,22 @@ class ObjectManager extends Service {
                         }
 
                         // check field validity
-                        if(!in_array($field, array_keys($schema))) throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!in_array($field, array_keys($schema))) {
+                            throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                        }
                         // get final target field
                         while($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
-                            if(!in_array($field, array_keys($schema))) throw new Exception("invalid schema, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            if(!in_array($field, array_keys($schema))) {
+                                throw new Exception("invalid schema, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            }
                         }
                         // get final type
                         $type = $schema[$field]['type'];
                         if($type == 'computed') {
-                            if(!isset($schema[$field]['result_type'])) throw new Exception("invalid schema, missing result_type for field '$field' of object '$class'", QN_ERROR_INVALID_PARAM);
+                            if(!isset($schema[$field]['result_type'])) {
+                                throw new Exception("invalid schema, missing result_type for field '$field' of object '$class'", QN_ERROR_INVALID_PARAM);
+                            }
                             $type = $schema[$field]['result_type'];
                         }
                         // check the validity of the field name and the operator
