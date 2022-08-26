@@ -25,7 +25,7 @@ list($params, $providers) = announce([
             'description'   => 'The identifier of the view <type.name>.',
             'type'          => 'string',
             'default'       => 'list'
-        ],        
+        ],
         'domain' =>  [
             'description'   => 'Domain for filtering objects to include in the export.',
             'type'          => 'array',
@@ -33,7 +33,7 @@ list($params, $providers) = announce([
         ],
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => DEFAULT_LANG
         ],
         'params' => [
@@ -43,9 +43,9 @@ list($params, $providers) = announce([
         ]
     ],
     'response'      => [
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth'] 
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 // we expect the controller to be core_model_chart
@@ -55,7 +55,7 @@ list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $provid
 
 // retrieve view schema
 $json = run('get', 'model_view', [
-    'entity'        => $params['entity'], 
+    'entity'        => $params['entity'],
     'view_id'       => $params['view_id']
 ]);
 
@@ -137,7 +137,7 @@ $doc->getProperties()
 
 $doc->setActiveSheetIndex(0);
 
-$sheet = $doc->getActiveSheet(); 
+$sheet = $doc->getActiveSheet();
 $sheet->setTitle("export");
 
 
@@ -209,14 +209,14 @@ foreach($values as $oid => $odata) {
                 }
                 if(is_numeric($value)) {
                     $align = 'right';
-                }                
+                }
             }
         }
 
         // handle html content
         if($type == 'string' && strlen($value) && $usage == 'text/html') {
             $align = 'left';
-            $$value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));            
+            $$value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));
         }
         else {
             // translate 'select' values
@@ -231,12 +231,12 @@ foreach($values as $oid => $odata) {
 
         $sheet->setCellValue($column.$row, $value);
         ++$column;
-    }    
+    }
 }
 
 $writer = IOFactory::createWriter($doc, "Xlsx");
 
-ob_start();	
+ob_start();
 $writer->save('php://output');
 $output = ob_get_clean();
 
