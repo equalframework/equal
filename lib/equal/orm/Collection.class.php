@@ -649,7 +649,6 @@ class Collection implements \Iterator {
             $this->objects = $res;
 
             // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
-            // #todo - this could be improved by parsing the $fields map and collecting all sub-entities and ids before calling subsequent ::read()
             foreach($relational_fields as $field => $subfields) {
                 $children_ids = [];
                 foreach($this->objects as $object) {
