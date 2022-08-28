@@ -1,10 +1,13 @@
 <?php
-use core\User;
+use core\Mail;
 
 // announce script and fetch parameters values
 list($params, $providers) = announce([
     'description'	=>	"Send emails that are currently in spool queue.",
     'params' 		=>	[
+    ],
+    'access' => [
+        'visibility'        => 'private'
     ],
     'response'      => [
         'content-type'      => 'application/json',
@@ -18,13 +21,7 @@ list($params, $providers) = announce([
 // initalise local vars with inputs
 list($om, $context, $spool, $auth) = [ $providers['orm'], $providers['context'], $providers['spool'], $providers['auth'] ];
 
-// #todo : improve permissions checks
-
-if( $auth->userId() != ROOT_USER_ID) {
-    throw new \Exception("spool_access_restricted", QN_ERROR_NOT_ALLOWED);
-}
-
-$spool->run();
+Mail::flush();
 
 $context->httpResponse()
         ->body('')
