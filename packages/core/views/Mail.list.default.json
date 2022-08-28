@@ -1,0 +1,54 @@
+{
+    "name": "Emails",
+    "description": "List of outgoing emails.",
+    "order": "created",
+    "sort": "desc",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "name",
+                "width": "25%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "created",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "label": "Sent",
+                "value": "modified",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "to",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "cc",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "response_status",
+                "width": "20%"
+            }
+        ]
+    }
+}
