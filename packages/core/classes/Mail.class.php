@@ -6,15 +6,6 @@
 */
 namespace core;
 
-if(file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-    require_once QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php';
-}
-
-use \Swift_SmtpTransport as Swift_SmtpTransport;
-use \Swift_Message as Swift_Message;
-use \Swift_Mailer as Swift_Mailer;
-use \Swift_Attachment as Swift_Attachment;
-
 use equal\orm\Model;
 use equal\email\Email;
 use equal\email\EmailAttachment;
@@ -140,6 +131,11 @@ class Mail extends Model {
      *
      */
     public static function flush() {
+        // load dependencies
+        if(file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+            require_once QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php';
+        }
+
         // load pending messages by reading all files in `$messages_folder` (outbox) directory
         $queue = [];
         $files = scandir(self::MESSAGE_FOLDER);
@@ -170,7 +166,7 @@ class Mail extends Model {
         }
 
         // setup SMTP settings
-        $transport = new Swift_SmtpTransport(
+        $transport = new \Swift_SmtpTransport(
             EMAIL_SMTP_HOST,
             EMAIL_SMTP_PORT,
             (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?EMAIL_SMTP_ENCRYPT:null
@@ -190,7 +186,7 @@ class Mail extends Model {
         }
 
         // setup SMTP settings
-        $mailer = new Swift_Mailer($transport);
+        $mailer = new \Swift_Mailer($transport);
 
         // loop through messages
         foreach($queue as $file => $message) {
@@ -199,7 +195,7 @@ class Mail extends Model {
             $subject = (isset($message['subject']))?$message['subject']:'';
 
             if(isset($message['to'])) {
-                $envelope = new Swift_Message();
+                $envelope = new \Swift_Message();
                 try {
                     // set from and to
                     $envelope
@@ -220,7 +216,7 @@ class Mail extends Model {
                     // add attachments
                     if(isset($message['attachments']) && count($message['attachments'])) {
                         foreach($message['attachments'] as $key => $attachment) {
-                            $envelope->attach(new Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
+                            $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
                         }
                     }
                     // send email
