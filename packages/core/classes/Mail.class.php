@@ -6,10 +6,9 @@
 */
 namespace core;
 
-if(!file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-    throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
+if(file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+    require_once QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php';
 }
-require_once QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php';
 
 use \Swift_SmtpTransport as Swift_SmtpTransport;
 use \Swift_Message as Swift_Message;
