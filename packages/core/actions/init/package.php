@@ -140,7 +140,7 @@ foreach($classes as $class) {
 
 // 3) add missing relation tables, if any
 foreach($m2m_tables as $table => $columns) {
-    $query = "CREATE TABLE IF NOT EXISTS `{$table}` (";
+    $query = "CREATE TABLE IF NOT EXISTS `{$table}` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci (";
     $key = '';
     foreach($columns as $column) {
         $query .= "`{$column}` int(11) NOT NULL,";

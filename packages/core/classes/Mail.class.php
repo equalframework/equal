@@ -132,9 +132,11 @@ class Mail extends Model {
      */
     public static function flush() {
         // load dependencies
-        if(file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-            require_once QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php';
+        if(!file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+            throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
         }
+
+        require_once(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
 
         // load pending messages by reading all files in `$messages_folder` (outbox) directory
         $queue = [];
