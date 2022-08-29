@@ -94,12 +94,17 @@ class Mail extends Model {
      * @throws  Exception                This method raises an Exception in case of error.
      */
     public static function queue(Email $email, string $object_class='', int $object_id=0): void {
+
+;
+
         // create an Object
         $values = [
             'to'            => $email->to,
             'cc'            => implode(',', $email->cc),
             'subject'       => $email->subject,
-            'body'          => $email->body,
+            // #todo - set DB to UTF8mb4 by default
+            // remove emojis and utf8mb4 chars
+            'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
             'attachments'   => '',
             'object_class'  => $object_class,
             'object_id'     => $object_id
