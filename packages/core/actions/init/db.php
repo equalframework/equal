@@ -11,7 +11,7 @@ list($params, $providers) = announce([
     'description'   => 'Create a database according to the configuration',
     'params'        => [],
     'providers'     => ['context', 'orm'],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS', 'DB_CHARSET']
 ]);
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
@@ -27,7 +27,10 @@ if(strlen($json)) {
 
 // create Master database
 $db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect(false);
-$db->sendQuery("CREATE DATABASE IF NOT EXISTS ".DB_NAME." CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+$query = "CREATE DATABASE IF NOT EXISTS ".DB_NAME." CHARACTER SET ".DB_CHARSET;
+
+// #todo - append collation : "COLLATE utf8mb4_unicode_ci"
+$db->sendQuery($query.';');
 
 // create replica members, if any
 if(defined('DB_REPLICATION') && DB_REPLICATION != 'NO') {

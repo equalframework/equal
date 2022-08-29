@@ -111,7 +111,8 @@ namespace {
     define('DB_REPLICATION', 'MS');
 
     define('DB_DBMS',       'MYSQL');
-    define('DB_CHARSET',    'UTF8');        // 'UTF8' in most cases
+    define('DB_CHARSET',    'utf8mb4');                   // 'utf8' (3 bytes) or 'utf8mb4' (4 bytes) in most cases
+    define('DB_COLLATION',  'utf8mb4_unicode_ci');        // 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases
 
     define('DB_HOST',     getenv('EQ_DB_HOST')?getenv('EQ_DB_HOST'):'127.0.0.1');   // IP or fully qualified domain name (ex.: sql.example.com)
     define('DB_PORT',     getenv('EQ_DB_PORT')?getenv('EQ_DB_PORT'):'3306');        // this is the default port for MySQL

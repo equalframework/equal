@@ -27,6 +27,11 @@
             "label":"Corps",
             "description": "Corps du message.",
             "help": ""
+        },
+        "attachments":{
+            "label":"Pièces jointes",
+            "description": "Liste des noms des documents joints au message.",
+            "help": ""
         }
     },
     "view": {

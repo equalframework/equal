@@ -21,13 +21,13 @@
             {
                 "type": "field",
                 "value": "created",
-                "width": "15%"
+                "width": "20%"
             },
             {
                 "type": "field",
                 "label": "Sent",
                 "value": "modified",
-                "width": "15%"
+                "width": "20%"
             },
             {
                 "type": "field",
@@ -42,12 +42,12 @@
             {
                 "type": "field",
                 "value": "status",
-                "width": "20%"
+                "width": "10%"
             },
             {
                 "type": "field",
                 "value": "response_status",
-                "width": "20%"
+                "width": "10%"
             }
         ]
     }

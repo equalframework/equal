@@ -77,7 +77,8 @@ class Email {
     }
 
     public function setBody($body) {
-        $this->body = $body;
+        // prevent double line-break
+        $this->body = str_replace('<p><br></p>', '<p>&nbsp;</p>', $body);
         return $this;
     }
 

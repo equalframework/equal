@@ -94,9 +94,6 @@ class Mail extends Model {
      * @throws  Exception                This method raises an Exception in case of error.
      */
     public static function queue(Email $email, string $object_class='', int $object_id=0): void {
-
-;
-
         // create an Object
         $values = [
             'to'            => $email->to,

@@ -21,9 +21,9 @@ class DBManipulatorMySQL extends DBManipulator {
 
   /**
    * Open the DBMS connection
-   * 
+   *
    * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
-   * @return  integer   		          The status of the connect function call
+   * @return  integer   		        The status of the connect function call.
    * @access  public
    */
   public function connect($auto_select=true) {
@@ -32,7 +32,9 @@ class DBManipulatorMySQL extends DBManipulator {
       if($auto_select) {
         if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
           if($result = $this->select($this->db_name)) {
-            mysqli_query($this->dbms_handler, 'SET NAMES '.DB_CHARSET);
+            $query = 'set names '.DB_CHARSET;
+            $query .= (defined('DB_COLLATION'))?' collate '.DB_COLLATION:'';
+            mysqli_query($this->dbms_handler, $query);
             $result = true;
           }
         }
