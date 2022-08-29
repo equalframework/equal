@@ -315,7 +315,6 @@ namespace config {
                 'orm'       => 'equal\orm\ObjectManager',
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
-                'spool'     => 'equal\email\EmailSpooler',
                 'cron'      => 'equal\cron\Scheduler',
                 'dispatch'  => 'equal\dispatch\Dispatcher'
             ]);

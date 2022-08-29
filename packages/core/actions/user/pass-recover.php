@@ -1,6 +1,13 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 use equal\html\HtmlTemplate;
+use equal\email\Email;
 use core\User;
+use core\Mail;
 
 // announce script and fetch parameters values
 list($params, $providers) = announce([
@@ -18,12 +25,12 @@ list($params, $providers) = announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context', 'orm', 'spool', 'auth']
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 
 // initalise local vars with inputs
-list($om, $context, $spool, $auth) = [ $providers['orm'], $providers['context'], $providers['spool'], $providers['auth'] ];
+list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 try {
     // we need root privilege
@@ -88,8 +95,16 @@ try {
     // parse template as html
     $body = $template->getHtml();
 
+    // create message
+    $message = new Email();
+    $message
+        ->setTo($params['email'])
+        ->setSubject($subject)
+        ->setContentType("text/html")
+        ->setBody($body);
+
     // send message
-    $spool->queue($subject, $body, $params['email']);
+    Mail::queue($message);
 }
 catch(Exception $e) {
     // for security reasons, in case of error no details are relayed to client
@@ -97,5 +112,5 @@ catch(Exception $e) {
 }
 
 $context->httpResponse()
-        ->body([])
+        ->status(204)
         ->send();

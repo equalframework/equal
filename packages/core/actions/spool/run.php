@@ -14,12 +14,12 @@ list($params, $providers) = announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context', 'orm', 'spool', 'auth']
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 
 // initalise local vars with inputs
-list($om, $context, $spool, $auth) = [ $providers['orm'], $providers['context'], $providers['spool'], $providers['auth'] ];
+list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 Mail::flush();
 
