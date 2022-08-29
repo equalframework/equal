@@ -9,8 +9,8 @@
             "help":"Destinataire repris dans le champ `to`."
         },
         "status":{
-            "label":"Mot de passe",
-            "slection": {
+            "label":"Statut",
+            "selection": {
                 "pending": "en attente",
                 "failing": "en échec",
                 "sent": "envoyé"
