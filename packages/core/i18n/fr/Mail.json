@@ -1,0 +1,36 @@
+{
+    "name": "Mail",
+    "plural": "Mails",
+    "description": "Messages courriels envoyés.",
+    "model": {
+        "to":{
+            "label":"À",
+            "description": "Destinataire principal du courriel",
+            "help":"Destinataire repris dans le champ `to`."
+        },
+        "status":{
+            "label":"Mot de passe",
+            "slection": {
+                "pending": "en attente",
+                "failing": "en échec",
+                "sent": "envoyé"
+            },
+            "description": "",
+            "help": ""
+        },
+        "subject":{
+            "label":"Sujet",
+            "description": "Titre du message.",
+            "help": ""
+        },
+        "body":{
+            "label":"Corps",
+            "description": "Corps du message.",
+            "help": ""
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}
