@@ -100,7 +100,7 @@ class Mail extends Model {
             'cc'            => implode(',', $email->cc),
             'subject'       => $email->subject,
             // #todo - set DB to UTF8mb4 by default
-            // remove emojis and utf8mb4 chars
+            // remove utf8mb4 chars (emojis)
             'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
             'attachments'   => '',
             'object_class'  => $object_class,
