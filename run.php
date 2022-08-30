@@ -80,7 +80,7 @@ try {
     if( strlen($path) > 1 && !in_array(basename($path), [
         'index.php',                // HTTP request
         'run.php',                  // CLI
-        'equal.php'                 // integration with another framework that already usess index.php (e.g. WP)
+        'equal.php'                 // integration with other frameworks that already uses index.php (e.g. WP)
         ]) ) {
 
         $router = Router::getInstance();
