@@ -216,7 +216,10 @@ class Collection implements \Iterator {
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
                 $list = $value->get($to_array);
-                if($schema[$field]['type'] == 'many2one' && count($list)) {
+                // #todo - use orm::getField
+                $target = $this->model->field($field);
+                $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
+                if($target_type == 'many2one' && count($list)) {
                     $result[$field] = current($list);
                 }
                 else {
@@ -284,12 +287,15 @@ class Collection implements \Iterator {
             $allowed_fields = $this->model->getFields();
             if($check_readonly) {
                 // discard readonly fields
-                $allowed_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                    return (isset($schema[$field]['readonly']))?!$schema[$field]['readonly']:true;
+                $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
+                    return (isset($schema[$field]['readonly']))?$schema[$field]['readonly']:false;
                 });
+                $allowed_fields = array_diff($allowed_fields, $readonly_fields);
+                // log a notice about discarded readonly fields
+                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_WARNING);
             }
             // discard special fields
-            // #memo - `state` is allowed for draft creation
+            // #memo - `state` is left allowed for draft creation
             $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
             // filter $fields argument
             $result = array_intersect_key($fields, array_flip($allowed_fields));
@@ -586,7 +592,7 @@ class Collection implements \Iterator {
             // 'id': we might access an object directly by giving its `id`.
             // 'name': as a convention the name is always provided.
             // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
-            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` status in order to know if object needs to be in the result set or not.
+            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` state in order to know if object needs to be in the result set or not.
             // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
             $mandatory_fields = ['id', 'name', 'state', 'deleted', 'modified'];
 
@@ -599,14 +605,16 @@ class Collection implements \Iterator {
                 // check fields validity (and silently drop invalid fields)
                 if(!in_array($field, $allowed_fields)) {
                     unset($fields[$key]);
+                    continue;
                 }
                 else {
                     $requested_fields[] = $field;
+                    // #todo - use orm::getField()
                     $target = $this->model->field($field);
-                    // remember only requested relational sub-fields
-                    // if(is_numeric($key) || !in_array($schema[$field]['type'], ['one2many', 'many2one', 'many2many'])) {
-                    if(!is_numeric($key) && in_array($target['type'], ['one2many', 'many2one', 'many2many'])) {
-                        $relational_fields[$key] = $val;
+                    $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
+                    // remember requested relational sub-fields
+                    if(in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
+                        $relational_fields[$field] = $val;
                     }
                 }
             }
@@ -648,8 +656,19 @@ class Collection implements \Iterator {
 
             $this->objects = $res;
 
+
             // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
-            foreach($relational_fields as $field => $subfields) {
+            foreach($fields as $field => $subfields ) {
+                // discard direct fields
+                if(is_numeric($field)) {
+                    continue;
+                }
+                // #todo - use orm::getField()
+                $target = $this->model->field($field);
+                $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
+                if(!in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
+                    continue;
+                }
                 $children_ids = [];
                 foreach($this->objects as $object) {
                     foreach((array) $object[$field] as $oid) {
@@ -660,8 +679,6 @@ class Collection implements \Iterator {
                 foreach($subfields as $key => $val) {
                     $children_fields[] = (!is_numeric($key))?$key:$val;
                 }
-                // #todo - use orm::getField()
-                $target = $this->model->field($field);
                 // read all targeted children objects at once
                 $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang);
                 // assign retrieved values to the objects they relate to

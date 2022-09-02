@@ -11,10 +11,10 @@ use equal\orm\ObjectManager;
 
 
 class Logger extends Service {
-	
+
     // Object Manager instance
     private $orm;
-    
+
     /**
      * Contructor defines which methods have to be called when errors and uncaught exceptions occur
      *
@@ -31,7 +31,6 @@ class Logger extends Service {
         return ['LOGGING_ENABLED', 'ROOT_USER_ID'];
     }
 
-    
 	/**
 	 * Adds a log to database.
 	 * Everytime a change to an object occurs, a new record is created.
@@ -45,7 +44,7 @@ class Logger extends Service {
 	public function log($user_id, $action, $object_class, $object_id) {
 		if(!LOGGING_ENABLED) return;
 
-		// prevent from infintite loop
+		// prevent infintite loops
 		if($object_class == 'core\Log') return;
 
         // when using CLI actions are performed using ROOT_USER_ID, unless otherwise specified
@@ -54,14 +53,14 @@ class Logger extends Service {
         }
 
 		$values = [
-            'action'        => $action, 
-            'object_class'  => $object_class, 
+            'action'        => $action,
+            'object_class'  => $object_class,
             'object_id'     => $object_id,
             'user_id'       => $user_id
         ];
 
 		// logs are system objects (no permissions must be applied)
 		$this->orm->create('core\Log', $values, DEFAULT_LANG, false);
-	}    
-    
+	}
+
 }

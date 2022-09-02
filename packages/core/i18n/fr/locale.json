@@ -51,6 +51,8 @@
         "date.long": "EEE dd MMM YYYY",
         "date.full": "EEEE dd MMMM YYYY",
         "time.short": "H:mm",
-        "time.long": "HH:mm:ss"
+        "time.medium": "HH:mm",
+        "time.long": "HH:mm:ss",
+        "time.full": "HH:mm:ss.SSS"
     }
 }

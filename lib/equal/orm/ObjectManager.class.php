@@ -1410,6 +1410,8 @@ class ObjectManager extends Service {
 
             // get stattic instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
+            // retrieve schema
+            $schema = $object->getSchema();
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // prevent updating id field (reserved)
@@ -1432,14 +1434,22 @@ class ObjectManager extends Service {
 
             // if current call results from an object creation, the cancreate hook prevails over canupdate and we ignore the later
             if(!$create) {
-                $canupdate = $this->callonce($class, 'canupdate', $ids, array_diff_key($fields, $object::getSpecialColumns()), $lang);
+                // always allow special fields to be updated
+                // #todo - is it right to do so?
+                $fields_to_check = array_diff_key($fields, $object::getSpecialColumns());
+                foreach($fields_to_check as $field => $value) {
+                    // always allow computed fields to be reset
+                    if($schema[$field]['type'] == 'computed' && $value === null) {
+                        unset($fields_to_check[$field]);
+                    }
+                }
+                $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
                 if(!empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
             }
 
             // #memo - writing an object does not change its state, unless when explicitely set in $fields
-            // $fields['state'] = (isset($fields['state']))?$fields['state']:'instance';
             $fields['modified'] = time();
 
 
@@ -1451,7 +1461,6 @@ class ObjectManager extends Service {
             // 5) update objects
 
             // update internal buffer with given values
-            $schema = $object->getSchema();
             $onupdate_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
