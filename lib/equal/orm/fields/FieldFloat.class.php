@@ -17,6 +17,9 @@ class FieldFloat extends Field {
         return 'decimal(10,2)';
     }
 
+    /**
+     * Parent method is in charge of fetching the constraints from the usage, if any.
+     */
     public function getConstraints(): array {
         return array_merge(parent::getConstraints(), [
             'not_float_type' => [

@@ -7,14 +7,14 @@
 namespace equal\orm\usages;
 
 
-class UsageImage extends Usage {
+class UsageEmail extends Usage {
 
     public function getType(): string {
-        return 'image';
+        return 'email';
     }
 
     public function getSqlType(): string {
-            return 'longblob';
+            return 'varchar(255)';
     }
 
     /**

@@ -29,7 +29,7 @@ abstract class Usage {
         return $this->subtype;
     }
 
-    final public function getLength() {
+    final public function getLength(): string {
         return $this->length;
     }
 
@@ -43,12 +43,14 @@ abstract class Usage {
         // extract subtype and length
         $parts = explode(':', $def);
         $this->subtype = $parts[0];
-        // accepts various formats : single int ('255'), precision.scale ('5:3') defaults to '0'
+        // accepts various formats (single int ('255'), precision.scale ('5:3')), defaults to '0'.
         $this->length = isset($parts[1])?$parts[1]:'0';
     }
 
     /**
      * Export a given value following the usage definition, according to given locale.
+     * If necessary, format is retrieved from the locale.json file of the core package.
+     *
      * @return mixed     Returns the value adapted to the usage, according to a specific locale, if given.
      */
     abstract public function export($value, $lang=DEFAULT_LANG): string;

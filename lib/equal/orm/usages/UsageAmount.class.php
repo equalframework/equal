@@ -15,42 +15,69 @@ class UsageAmount extends Usage {
         return 'amount';
     }
 
-    public function getSqlType(): string {
-        $precision = 10;
+    private function getScale() {
         $scale = intval($this->getLength());
         switch($this->getSubtype()) {
             case 'money':
-                // default to decimal(13,4)
                 $scale = ($scale)?$scale:4;
+                break;
+            case 'percent':
+                $scale = ($scale)?$scale:6;
+                break;
+            case 'rate':
+                $scale = ($scale)?$scale:4;
+                break;
+        }
+        return $scale;
+    }
+
+    public function getSqlType(): string {
+        $precision = 10;
+        $scale = $this->getScale();
+        switch($this->getSubtype()) {
+            case 'money':
+                // default to decimal(13,4)
                 $precision = 17 - $scale;
                 break;
             case 'percent':
                 // default to decimal(7,6)
-                $scale = ($scale)?$scale:6;
                 $precision = $scale + 1;
                 break;
             case 'rate':
                 // default to decimal(10,4)
-                $scale = ($scale)?$scale:4;
                 $precision = 14 - $scale;
                 break;
         }
         return 'decimal('.$precision.','.$scale.')';
     }
 
-    public function validate($value): bool {
-        $len = $this->getLength();
-        switch($this->getSubtype()) {
-            case 'money':
-            case 'percent':
-            case 'rate':
-                // expected len format is single integer
-                if(preg_match('/^[+-]?[0-9]{0,15}}(\.?[0-9]{0,4})$/', (string) $value)) {
-                    throw new \Exception(serialize(["broken_usage" => "Number is not a real or does not match length constraint."]), QN_ERROR_INVALID_PARAM);
+    /**
+     * supports:
+     *      123456789.1
+     *      1.123456
+     *      -2.41
+     *      +3.1
+     *      0.6
+     */
+    public function getConstraints(): array {
+        return [
+            'invalid_amount' => [
+                'message'   => 'Malformed amount or size overflow.',
+                'function'  =>  function($value) {
+                    $scale = $this->getScale();
+                    switch($this->getSubtype()) {
+                        case 'money':
+                        case 'percent':
+                        case 'rate':
+                            if(preg_match('/^[+-]?[0-9]{0,9}(\.[0-9]{0,'.$scale.'})?$/', (string) $value)) {
+                                return false;
+                            }
+                            break;
+                    }
+                    return true;
                 }
-                break;
-        }
-        return true;
+            ]
+        ];
     }
 
     public function export($value, $lang=DEFAULT_LANG): string {

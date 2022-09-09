@@ -17,12 +17,17 @@ class UsageImage extends Usage {
         return 'longblob';
     }
 
-    public function validate($value) {
-        $len = intval($this->getLength());
-        $strlen = strlen($value);
-        if( ($len && $strlen > $len) || $strlen > UPLOAD_MAX_FILE_SIZE) {
-            throw new \Exception(serialize(["broken_usage" => "Image exceeds length constraint."]), QN_ERROR_INVALID_PARAM);
-        }
+    public function getConstraints(): array {
+        return [
+            'size_exceeded' => [
+                'message'   => 'Image exceeds length constraint.',
+                'function'  =>  function($value) {
+                    $len = intval($this->getLength());
+                    $strlen = strlen($value);
+                    return !( ($len && $strlen > $len) || $strlen > UPLOAD_MAX_FILE_SIZE);
+                }
+            ]
+        ];
     }
 
     public function export($value, $lang=DEFAULT_LANG): string {

@@ -10,19 +10,19 @@ namespace equal\orm;
 
 class Collection implements \Iterator {
 
-    /** @var ObjectManager */
+    /** @var \equal\orm\ObjectManager */
     private $orm;
 
-    /* AccessController */
+    /** @var \equal\access\AccessController */
     private $ac;
 
-    /* AuthenticationManager */
+    /** @var \equal\auth\AuthenticationManager */
     private $am;
 
     /* DataAdapter */
     private $adapter;
 
-    /* Logger */
+    /** @var \equal\log\Logger */
     private $logger;
 
     /* Target class */
@@ -190,7 +190,7 @@ class Collection implements \Iterator {
     /**
      * Provide the whole collection as a map (by default) or as an array.
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @param   $to_array   boolean    Flag to force conversion to an array (instead of a map). If set, the returned result is an of objects with keys holding indexes (and no ids).
      * @return  array       (Associative) array holding objects of the colletion. If $to_array is set to true, sub-collections are recursively converted to arrays as well. If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {

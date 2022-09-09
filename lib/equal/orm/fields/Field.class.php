@@ -11,7 +11,9 @@ use equal\orm\usages\Usage;
 
 abstract class Field {
 
-    /** @var array */
+    /** @var array
+     * Descriptor of the field, as returned by Model::getColumns()
+     */
     private $descriptor = [];
 
     /** @var mixed */
@@ -109,8 +111,15 @@ abstract class Field {
      */
     abstract protected function adaptToTxt($lang=DEFAULT_LANG): void;
 
+    /**
+     * Retrieves all constraints for the field, according to its type.
+     * If a usage property is present, related constraints are merge to the result set.
+     *
+     * @return array
+     */
     public function getConstraints(): array {
         $constraints = [];
+
         if($this->hasUsage()) {
             $usage = $this->getUsage();
             if($usage) {

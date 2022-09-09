@@ -891,8 +891,8 @@ namespace config {
 
                 // set Localisation prefs
                 if(defined('L10N_TIMEZONE')) {
+                    // this is only relevant for data controllers (involving some output impacted by localization)
                     date_default_timezone_set(constant('L10N_TIMEZONE'));
-                    trigger_error("QN_DEBUG_PHP::set timezone to ".constant('L10N_TIMEZONE'), QN_REPORT_DEBUG);
                 }
 
                 if(!$root) {

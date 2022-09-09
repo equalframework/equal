@@ -496,7 +496,9 @@ class ObjectManager extends Service {
                     // force assignment to NULL if no result was returned by the SQL query
                     foreach($ids as $oid) {
                         foreach($fields as $field) {
-                            if(!isset($om->cache[$table_name][$oid][$lang][$field])) $om->cache[$table_name][$oid][$lang][$field] = NULL;
+                            if(!isset($om->cache[$table_name][$oid][$lang][$field])) {
+                                $om->cache[$table_name][$oid][$lang][$field] = NULL;
+                            }
                         }
                     }
                 },
@@ -754,7 +756,9 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
-                        if(!is_array($value)) throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
+                        if(!is_array($value)) {
+                            throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
+                        }
                         $ids_to_remove = array();
                         $ids_to_add = array();
                         foreach($value as $id) {
@@ -767,7 +771,7 @@ class ObjectManager extends Service {
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
                                 try {
-                                    $this->callonce($class, $schema[$field]['ondetach'], $ids, [], $lang, ['ids']);
+                                    $this->callonce($class, $schema[$field]['ondetach'], $ids, $ids_to_remove, $lang);
                                 }
                                 catch(Exception $e) {
                                     // 'ondetach' property is a string
@@ -890,6 +894,8 @@ class ObjectManager extends Service {
      * @param int[]     $ids
      * @param array     $values
      * @param array     $signature  List of parameters to relay to target method (required if differing from default).
+     * @throws Excpetion            If method cannot be called (argument might be a string referring to a std action).
+     * @return mixed                Result of the called method, if any
      */
     public function callonce($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
@@ -925,7 +931,7 @@ class ObjectManager extends Service {
 
         // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
         $processed_ids = $this->object_methods[$called_class][$called_method];
-        $unprocessed_ids = array_diff($ids, $processed_ids);
+        $unprocessed_ids = array_diff((array) $ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
         // only 'ids', 'values' and 'lang' are accepted
@@ -1073,6 +1079,7 @@ class ObjectManager extends Service {
                 if( isset($def['required']) && $def['required'] && (!isset($values[$field]) || is_null($values[$field])) ) {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
+                    // issue a warning about missing mandatory field
                     trigger_error("QN_DEBUG_ORM::mandatory field {$field} is missing for instance of {$class}", QN_REPORT_WARNING);
                 }
             }
@@ -1082,10 +1089,21 @@ class ObjectManager extends Service {
         // 2) MODEL constraint check
 
         /*
+            // check constraints implied by type and usage
             foreach($values as $field => $value) {
                 $f = $this->getField($class);
-                $f->set($value)->validate();
+                $usage = $f->getUsage();
+                $constaints = $f->getConstraints();
+                foreach($constraints as $error_id => $constraint) {
+                    $fn = $constraint['function'];
+                    $fn->bindTo($usage);
+                    if(is_callable($fn) && !call_user_func($fn, $value, $values)) {
+                        $res[$field][$error_id] = $constraint['message'];
+                    }
+                }
             }
+
+            // + support $model->getConstraints()
 
         */
 
@@ -1138,12 +1156,15 @@ class ObjectManager extends Service {
                 ];
             }
             // add constraints based on `required` attribute
+            /*
+            // #memo - has no effect
             if(isset($schema[$field]['required']) && $schema[$field]['required']) {
                 $constraints[$field]['missing_mandatory'] = [
                     'message'     => 'Missing mandatory value.',
                     'function'    => function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
                 ];
             }
+            */
             // check constraints
             if(isset($constraints[$field])) {
                 foreach($constraints[$field] as $error_id => $constraint) {
@@ -1422,7 +1443,7 @@ class ObjectManager extends Service {
                 // remove fields not defined in related schema
                 if(!in_array($field, $allowed_fields)) {
                     unset($fields[$field]);
-                    trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in {$fields} arg", QN_REPORT_WARNING);
+                    trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in fields arg", QN_REPORT_WARNING);
                 }
             }
 

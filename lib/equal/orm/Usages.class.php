@@ -20,7 +20,9 @@ class Usages {
     public static function create(string $def) {
         $parts = explode('/', $def);
         if(count($parts)) {
+            // retrieve type
             $type = $parts[0];
+            // extract tree
             $def = isset($parts[1])?$parts[1]:'';
             switch($type) {
                 // string usages
@@ -34,21 +36,25 @@ class Usages {
                     break;
                 case 'hash':
                     break;
+                case 'image':
+                    return new UsageImage($def);
                 case 'language':
                     break;
                 case 'uri':
                     break;
                 case 'password':
-                    break;
+                    return new UsagePassword($def);
                 case 'phone':
-                    break;
+                    return new UsageEmail($def);
+                case 'phone':
+                    return new UsagePhone($def);
                 case 'text':
                     return new UsageText($def);
                 // number usages
                 case 'numeric':
-                    break;
+                    return new UsageNumeric($def);
                 case 'amount':
-                    break;
+                    return new UsageAmount($def);
                 // datetime usages
                 case 'date':
                     break;

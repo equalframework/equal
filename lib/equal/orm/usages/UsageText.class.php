@@ -41,26 +41,42 @@ class UsageText extends Usage {
         return 'text';
     }
 
-    public function validate($value): bool {
-        $len = $this->getLength();
-        switch($this->getSubtype()) {
-            case 'plain':
-                // expected len is either empty or a single int
-                $len = intval($len);
-                if($len && strlen($value) > $len) {
-                    throw new \Exception(serialize(["broken_usage" => "String exceeds length constraint."]), QN_ERROR_INVALID_PARAM);
+    public function getConstraints(): array {
+        return [
+            'size_exceeded' => [
+                'message'   => 'String exceeds usage length constraint.',
+                'function'  =>  function($value) {
+                    $len = intval($this->getLength());
+                    if($len && strlen($value) > $len) {
+                        return false;
+                    }
+                    return true;
                 }
-                break;
-            case 'html':
-                break;
-            case 'xml':
-                break;
-            case 'markdown':
-                break;
-            case 'wiki':
-                break;
-        }
-        return true;
+            ],
+            'broken_usage' => [
+                'message'   => 'Number does not match usage constraint.',
+                'function'  =>  function($value) {
+                    $len = intval($this->getLength());
+                    switch($this->getSubtype()) {
+                        case 'plain':
+                            break;
+                        case 'html':
+                            // #todo - check HTML validity
+                            break;
+                        case 'xml':
+                            // #todo - check XML validity
+                            break;
+                        case 'markdown':
+                            // #todo - check markdown validity
+                            break;
+                        case 'wiki':
+                            // #todo - check wikitext validity
+                            break;
+                    }
+                    return true;
+                }
+            ]
+        ];
     }
 
     public function export($value, $lang=DEFAULT_LANG): string {

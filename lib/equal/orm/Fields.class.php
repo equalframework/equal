@@ -28,6 +28,7 @@ class Fields {
             case 'integer':
                 return new FieldInteger($descriptor);
             case 'float':
+                return new FieldFloat($descriptor);
             case 'string':
             case 'date':
             case 'time':

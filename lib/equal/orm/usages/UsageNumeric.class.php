@@ -30,34 +30,58 @@ class UsageNumeric extends Usage {
         return 'varchar(255)';
     }
 
-    public function validate($value): bool {
-        $len = $this->getLength();
+    public function getConstraints(): array {
         switch($this->getSubtype()) {
             case 'integer':
-                // expected len is either empty or a single int
-                $len = intval($len);
-                $len = ($len)?$len:18;
-                if(!preg_match('/^[+-]?[0-9]{0,'.$len.'}$/', (string) $value)) {
-                    throw new \Exception(serialize(["broken_usage" => "Number is not an integer or does not match length constraint."]), QN_ERROR_INVALID_PARAM);
-                }
-                break;
+                return [
+                    'broken_usage' => [
+                        'message'   => 'Number does not match usage or length constraint.',
+                        'function'  =>  function($value) {
+                            $len = intval($this->getLength());
+                            // if length is empty, default to 18 (max)
+                            $len = ($len)?$len:18;
+                            if(!preg_match('/^[+-]?[0-9]{0,'.$len.'}$/', (string) $value)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    ]
+                ];
             case 'real':
-                // expected len format is `precision.scale`
-                $parts = explode('.', $len);
-                $scale = isset($parts[1])?$parts[1]:0;
-                $integers = $parts[0] - $scale;
-                if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $value)) {
-                    throw new \Exception(serialize(["broken_usage" => "Number is not a real or does not match length constraint."]), QN_ERROR_INVALID_PARAM);
-                }
+                return [
+                    'broken_usage' => [
+                        'message'   => 'Number does not match usage or length constraint.',
+                        'function'  =>  function($value) {
+                            $len = intval($this->getLength());
+                            // expected len format is `precision.scale`
+                            $parts = explode('.', $len);
+                            $scale = isset($parts[1])?$parts[1]:0;
+                            $integers = $parts[0] - $scale;
+                            if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $value)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    ]
+                ];
             case 'hexadecimal':
-                // expected len is either empty or a single int
-                $len = intval($len);
-                $len = ($len)?$len:255;
-                if(preg_match('/^[0-9A-F]{0,'.$len.'}$/', (string) $value)) {
-                    throw new \Exception(serialize(["broken_usage" => "Number is not hexadecimal or does not match length constraint."]), QN_ERROR_INVALID_PARAM);
-                }
+                return [
+                    'broken_usage' => [
+                        'message'   => 'Number does not match usage or length constraint.',
+                        'function'  =>  function($value) {
+                            $len = intval($this->getLength());
+                            // if length is empty, default to 255 (max)
+                            $len = ($len)?$len:255;
+                            if(preg_match('/^[0-9A-F]{0,'.$len.'}$/', (string) $value)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    ]
+                ];
+            default:
+                return [];
         }
-        return true;
     }
 
     public function export($value, $lang=DEFAULT_LANG): string {
