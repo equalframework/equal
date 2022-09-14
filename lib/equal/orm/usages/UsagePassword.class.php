@@ -23,7 +23,7 @@ class UsagePassword extends Usage {
             case 'nist':
                 return [
                     'invalid_password' => [
-                        'message'   => 'Malformed email address.',
+                        'message'   => 'Password does not pass some NIST rules.',
                         'function'  =>  function($value) {
                             // NIST compliant password: min. 8 chars, 1 numeric digit, 1 uppercase, 1 lowercase, 1 special char (amongst #?!@$%^*-).'
                             // supported special chars are : #?!@$%^*- (compatible with Oracle Identity Manager and Microsoft Active Directory)
@@ -34,7 +34,7 @@ class UsagePassword extends Usage {
             default:
                 return [
                     'invalid_password' => [
-                        'message'   => 'Malformed email address.',
+                        'message'   => 'Password too short.',
                         'function'  =>  function($value) {
                             $min_len = ($this->getLength() > 0)?$this->getLength():8;
                             return strlen($value) >= $min_len;

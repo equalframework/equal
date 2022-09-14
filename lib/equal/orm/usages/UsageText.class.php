@@ -54,7 +54,7 @@ class UsageText extends Usage {
                 }
             ],
             'broken_usage' => [
-                'message'   => 'Number does not match usage constraint.',
+                'message'   => 'String does not comply with usage format.',
                 'function'  =>  function($value) {
                     $len = intval($this->getLength());
                     switch($this->getSubtype()) {
@@ -65,7 +65,10 @@ class UsageText extends Usage {
                             break;
                         case 'xml':
                             // #todo - check XML validity
-                            break;
+                            $xml = new XMLReader();
+                            $xml->xml($value);
+                            $xml->setParserProperty(XMLReader::VALIDATE, true);
+                            return $xml->isValid();
                         case 'markdown':
                             // #todo - check markdown validity
                             break;
