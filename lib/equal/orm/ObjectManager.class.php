@@ -338,6 +338,18 @@ class ObjectManager extends Service {
         return $entity;
     }
 
+    public static function getObjectParentsClasses($class) {
+        $classes = [];
+        $entity = $class;
+        while(true) {
+            $parent = get_parent_class($entity);
+            if(!$parent || $parent == 'equal\orm\Model') break;
+            $classes[] = $parent;
+            $entity = $parent;
+        }
+        return $classes;
+    }
+
     /**
      * Retrieve the package in which is defined the class of an object (required to convert namespace notation).
      *
@@ -770,11 +782,9 @@ class ObjectManager extends Service {
                         // remove relation
                         if(count($ids_to_remove)) {
                             if(isset($schema[$field]['ondetach'])) {
-                                try {
-                                    $this->callonce($class, $schema[$field]['ondetach'], $ids, $ids_to_remove, $lang);
-                                }
-                                catch(Exception $e) {
-                                    // 'ondetach' property is a string
+                                $call_res = $this->callonce($class, $schema[$field]['ondetach'], $ids, $ids_to_remove, $lang);
+                                // for unknown method, check special keywords 'delete' and 'null'
+                                if($call_res < 0) {
                                     switch($schema[$field]['ondetach']) {
                                         case 'delete':
                                             $this->delete($schema[$field]['foreign_object'], $ids_to_remove, true);
@@ -889,13 +899,12 @@ class ObjectManager extends Service {
      * By default, objects callback signature is `methodName($orm: object, $ids: array, $lang: string)`. Arguments can be adapted in the $signature parameter.
      * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle (sub-calls from callbacks invoked in a create, read, write, delete).
      *
-     * @param string    $class
-     * @param string    $method
-     * @param int[]     $ids
-     * @param array     $values
-     * @param array     $signature  List of parameters to relay to target method (required if differing from default).
-     * @throws Excpetion            If method cannot be called (argument might be a string referring to a std action).
-     * @return mixed                Result of the called method, if any
+     * @param   string    $class
+     * @param   string    $method
+     * @param   int[]     $ids
+     * @param   array     $values
+     * @param   array     $signature        List of parameters to relay to target method (required if differing from default).
+     * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids, $values=[], $lang=DEFAULT_LANG, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
@@ -908,7 +917,8 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-            throw new Exception("ObjectManager::call: invalid args ($method, $class)");
+            trigger_error("QN_DEBUG_ORM::invalid args ($method, $class)", QN_REPORT_WARNING);
+            return QN_ERROR_INVALID_PARAM;
         }
 
         if( $count == 2 ) {
@@ -917,8 +927,8 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            // #todo - trigger error and return empty array
-            throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+            trigger_error("QN_DEBUG_ORM::unknown method '$method' for class '$class'", QN_REPORT_WARNING);
+            return QN_ERROR_INVALID_PARAM;
         }
 
         $first_call = false;
@@ -1465,7 +1475,7 @@ class ObjectManager extends Service {
                     }
                 }
                 $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
-                if(!empty($canupdate)) {
+                if($canupdate > 0 && !empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
             }
@@ -1481,16 +1491,20 @@ class ObjectManager extends Service {
 
             // 5) update objects
 
+            $onupdate_fields = [];
+            $dependencies = [];
             // update internal buffer with given values
-            $onupdate_fields = array();
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
+                    // remember fields whose modification triggers resetting computed fields
+                    if(isset($schema[$field]['dependencies'])) {
+                        $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
+                    }
                     // remember fields whose modification triggers an onupdate event
-                    // (computed fields assigned to null are meant to be re-computed without triggering onupdate)
+                    // #memo - computed fields assigned to null are meant to be re-computed without triggering onupdate
                     if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
                         $onupdate_fields[] = $field;
                     }
-
                     // assign cache to object values
                     $this->cache[$table_name][$oid][$lang][$field] = $value;
                 }
@@ -1501,25 +1515,29 @@ class ObjectManager extends Service {
 
             $this->store($class, $ids, array_keys($fields), $lang);
 
+
             // 7) second pass : handle onupdate events, if any
 
             // #memo - this must be done after modifications otherwise object values might be outdated
             if(count($onupdate_fields)) {
                 // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
                 foreach($onupdate_fields as $field) {
-                    try {
-                        // run onupdate callback
-                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
-                    }
-                    catch(Exception $e) {
-                        // invalid schema : ignore onchange callback
-                        trigger_error($e->getMessage(), E_USER_ERROR);
-                    }
+                    // run onupdate callback (ignore undefined methods)
+                    $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
                 }
             }
 
             // unstack global object_methods state
             $this->object_methods = $object_methods_state;
+
+
+            // 8) handle the resetting of the dependent computed fields
+            // #todo $dependencies
+
+            if(count($dependencies)) {
+                foreach($dependencies as $dependency) {
+                }
+            }
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -1652,6 +1670,7 @@ class ObjectManager extends Service {
                 $parts = explode('.', $field, 2);
                 // left side of the first dot
                 $path_field = $parts[0];
+                // #todo - use getField
                 // retrieve final type of targeted field
                 $field_type = $this->getFinalType($class, $path_field);
                 // ignore non-relational fields
@@ -1782,10 +1801,9 @@ class ObjectManager extends Service {
                                 $rel_schema = $this->getObjectSchema($def['foreign_object']);
                                 // call ondelete method when defined (to allow cascade deletion)
                                 if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                    try {
-                                        $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], DEFAULT_LANG, ['ids']);
-                                    }
-                                    catch(Exception $e) {
+                                    $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], DEFAULT_LANG, ['ids']);
+                                    // for unknown method, check special keywords 'cascade' and 'null'
+                                    if($call_res < 0) {
                                         switch($rel_schema[$def['foreign_field']]['ondelete']) {
                                             case 'cascade':
                                                 $this->delete($def['foreign_object'], $rel_ids, $permanent);
@@ -1946,7 +1964,9 @@ class ObjectManager extends Service {
         $db = $this->getDBHandler();
 
         try {
-            if(empty($sort)) throw new Exception("sorting order field cannot be empty", QN_ERROR_MISSING_PARAM);
+            if(empty($sort)) {
+                throw new Exception("sorting order field cannot be empty", QN_ERROR_MISSING_PARAM);
+            }
 
             // check and fix domain format
             if($domain && !is_array($domain)) throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);

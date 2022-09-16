@@ -20,6 +20,10 @@ class User extends Model {
                 'type'              => 'alias',
                 'alias'             => 'login'
             ],
+            'test' => [
+                'type'              => 'alias',
+                'alias'             => 'login'
+            ],
 
             'login' => [
                 'type'              => 'string',

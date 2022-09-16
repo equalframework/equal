@@ -30,14 +30,14 @@ class Permission extends Model {
             ],
 
             'group_id' => [
-                'type'              => 'many2one', 
+                'type'              => 'many2one',
                 'foreign_object'    => 'core\Group',
                 'description'       => "Targeted group, if permission applies to a group.",
                 'default'           => DEFAULT_GROUP_ID
             ],
 
             'user_id' => [
-                'type'              => 'many2one', 
+                'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
                 'description'       => "Targeted user, if permission applies to a single user."
             ],
@@ -50,23 +50,23 @@ class Permission extends Model {
 
             // virtual field, used in list views
             'rights_txt' => [
-                'type'              => 'computed', 
-                'result_type'       => 'string', 
+                'type'              => 'computed',
+                'result_type'       => 'string',
                 'function'          => 'calcRightsTxt',
-                'store'             => true                
+                'store'             => true
             ]
         ];
     }
 
     public static function onupdateRights($om, $ids, $values, $lang) {
-        $om->write(__CLASS__, $ids, ['rights_txt' => null], $lang);
+        $om->update(__CLASS__, $ids, ['rights_txt' => null], $lang);
     }
 
     public static function calcRightsTxt($om, $ids, $lang) {
-        $res = array();
+        $res = [];
         $values = $om->read(__CLASS__, $ids, ['rights'], $lang);
         foreach($ids as $oid) {
-            $rights_txt = array();
+            $rights_txt = [];
             $rights = $values[$oid]['rights'];
             if($rights & QN_R_CREATE)   $rights_txt[] = 'create';
             if($rights & QN_R_READ)     $rights_txt[] = 'read';

@@ -107,7 +107,7 @@ abstract class Field {
     abstract protected function adaptToSql(): void;
 
     /**
-     * difference with toJson is that there is a support for the locale
+     * Unlike toJson, this method provides support for the locale.
      */
     abstract protected function adaptToTxt($lang=DEFAULT_LANG): void;
 
