@@ -381,7 +381,22 @@ class AccessController extends Service {
     }
 
     public function rights($user_id, $object_class, $object_fields=[]) {
+        // non root user can only fetch their own rights
+        if(php_sapi_name() != 'cli') {
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
         return $this->getUserRights($user_id, $object_class, $object_fields);
+    }
+
+    public function groups($user_id) {
+        // non root user can only fetch their own groups
+        if(php_sapi_name() != 'cli') {
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+
+        return $this->getUserGroups($user_id);
     }
 
     /**
