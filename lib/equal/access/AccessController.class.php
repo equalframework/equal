@@ -107,27 +107,29 @@ class AccessController extends Service {
 					$orm = $this->container->get('orm');
 
                     $domains = [];
+                    // add parent classes to the domain (when a right is granted on a class, it is also granted on children classes)
+                    $classes = $orm->getObjectParentsClasses($object_class);
+                    $classes[] = $object_class;
 
-                    // extract package parts from class name (for wildcard notation)
-                    $package_parts = explode('\\', $object_class);
+                    foreach($classes as $class) {
+                        // extract package parts from class name (for wildcard notation)
+                        $package_parts = explode('\\', $class);
 
-                    // #todo - add parent classes (when a right is granted on a class, it is also granted on classes from which they inherit from)
+                        // add disjunctions
+                        for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n; ++$i) {
+                            $level = array_slice($package_parts, 0, $i);
+                            $level_wildcard = implode('\\', $level);
+                            if($i < $n) {
+                                $level_wildcard .= (strlen($level_wildcard))?'\*':'*';
+                            }
 
-                    // add disjunctions
-                    for($i = 0, $n = count($package_parts), $is_groups = count($groups_ids); $i <= $n; ++$i) {
-                        $level = array_slice($package_parts, 0, $i);
-                        $level_wildcard = implode('\\', $level);
-                        if($i < $n) {
-                            $level_wildcard .= (strlen($level_wildcard))?'\*':'*';
-                        }
+                            $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id], ['domain', 'is', null] ];
 
-                        $domains[] = [ ['class_name', '=', $level_wildcard], ['user_id', '=', $user_id], ['domain', 'is', null] ];
-
-                        if($is_groups) {
-                            $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids], ['domain', 'is', null] ];
+                            if($is_groups) {
+                                $domains[] = [ ['class_name', '=', $level_wildcard], ['group_id', 'in', $groups_ids], ['domain', 'is', null] ];
+                            }
                         }
                     }
-
                 }
 
                 // fetch all ACLs variants
