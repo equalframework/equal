@@ -64,11 +64,11 @@ class AccessController extends Service {
 
     /**
      * Retrieve the permissions that apply for a given user on a target entity.
-     * 
+     *
      * @param   string  $object_class    The class for which the rights have to be fetched accepts wildcard notation (use of '*').
      * @return  integer Returns a binary mask made of the resulting rights of the given user on the target entity.
-     * 
-     *  #todo : Add support for domains 
+     *
+     *  #todo : Add support for domains
      *  restrict granting to a given class based on a series of conditions, with support for specific ids
      *  example :
      *  // limit objects visibility to the users who created them
@@ -378,6 +378,10 @@ class AccessController extends Service {
         }
 
         return $allowed;
+    }
+
+    public function rights($user_id, $object_class, $object_fields=[]) {
+        return $this->getUserRights($user_id, $object_class, $object_fields);
     }
 
     /**
