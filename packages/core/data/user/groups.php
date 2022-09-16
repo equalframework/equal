@@ -5,6 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use core\User;
+use core\Group;
 
 list($params, $providers) = announce([
     'description'   => 'Grant additional privilege to given user.',
@@ -18,11 +19,6 @@ list($params, $providers) = announce([
             'description'   => 'login (email address) or ID of targeted user.',
             'type'          => 'string',
             'required'      => true
-        ],
-        'entity' =>  [
-            'description'   => 'Entity on which operation is to be granted.',
-            'type'          => 'string',
-            'default'       => '*'
         ]
     ],
     'providers'     => ['context', 'auth', 'access', 'orm']
@@ -30,14 +26,6 @@ list($params, $providers) = announce([
 
 list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
 
-
-$operations = [
-    QN_R_CREATE => 'create',
-    QN_R_READ   => 'read',
-    QN_R_WRITE  => 'update',
-    QN_R_DELETE => 'delete',
-    QN_R_MANAGE => 'manage'
-];
 
 // retrieve targeted user
 if(is_numeric($params['user'])) {
@@ -56,17 +44,13 @@ else {
 
 $user_id = array_shift($ids);
 
-$rights = $ac->rights($user_id, $params['entity']);
+$groups_ids = $ac->groups($user_id);
 
-$rights_txt = [];
+$groups = Group::ids($groups_ids)->read(['id', 'name'])->get();
 
-foreach($operations as $id => $name) {
-    if($rights & $id) {
-        $rights_txt[] = $name;
-    }
-}
+$groups_txt = array_map(function($a) {return $a['name'];}, $groups);
 
 $context->httpResponse()
         ->status(200)
-        ->body(['result' => implode(', ', $rights_txt)])
+        ->body(['result' => implode(', ', $groups_txt)])
         ->send();
