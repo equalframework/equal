@@ -6,7 +6,7 @@
 */
 namespace equal\orm;
 
-
+use stdClass;
 
 class Collection implements \Iterator {
 
@@ -219,8 +219,14 @@ class Collection implements \Iterator {
                 // #todo - use orm::getField
                 $target = $this->model->field($field);
                 $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
-                if($target_type == 'many2one' && count($list)) {
-                    $result[$field] = current($list);
+                if($target_type == 'many2one') {
+                    if(count($list)) {
+                        $result[$field] = current($list);
+                    }
+                    else {
+                        // empty object
+                        $result[$field] = null;
+                    }
                 }
                 else {
                     $result[$field] = $list;
