@@ -32,6 +32,16 @@
             "label":"Pièces jointes",
             "description": "Liste des noms des documents joints au message.",
             "help": ""
+        },
+        "response_status":{
+            "label":"Réponse",
+            "description": "Code de statut de la réponse SMTP.",
+            "help": ""
+        },
+        "response": {
+            "label":"Réponse",
+            "description": "Message de réponse du serveur SMTP.",
+            "help": ""
         }
     },
     "view": {

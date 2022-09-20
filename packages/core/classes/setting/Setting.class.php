@@ -206,7 +206,7 @@ class Setting extends Model {
         /** @var \equal\orm\ObjectManager */
         $om = $providers['orm'];
 
-        $settings_ids = $om->search('core\setting\Setting', [
+        $settings_ids = $om->search(self::getType(), [
             ['package', '=', $package],
             ['section', '=', $section],
             ['code', '=', $code]
@@ -214,7 +214,7 @@ class Setting extends Model {
 
         if($settings_ids > 0 && count($settings_ids)) {
 
-            $settings = $om->read('core\setting\Setting', $settings_ids, ['type', 'is_multilang', 'setting_values_ids']);
+            $settings = $om->read(self::getType(), $settings_ids, ['type', 'is_multilang', 'setting_values_ids']);
 
             if($settings > 0 && count($settings)) {
                 // #memo - there should be exactly one setting matching the criterias
@@ -225,7 +225,7 @@ class Setting extends Model {
                     $values_lang = $lang;
                 }
 
-                $setting_values = $om->read('core\setting\SettingValue', $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
+                $setting_values = $om->read(SettingValue::getType(), $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
                 if($setting_values > 0) {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
@@ -263,7 +263,7 @@ class Setting extends Model {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
-        $settings_ids = $om->search('core\setting\Setting', [
+        $settings_ids = $om->search(self::getType(), [
             ['package', '=', $package],
             ['section', '=', $section],
             ['code', '=', $code]
@@ -271,14 +271,14 @@ class Setting extends Model {
 
         if($settings_ids > 0 && count($settings_ids)) {
             $setting_id = array_pop($settings_ids);
-            $settings_values_ids = $om->search('core\setting\SettingValue', [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
+            $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
             if($settings_values_ids > 0 && count($settings_values_ids)) {
                 // update the value
-                $om->write('core\setting\SettingValue', $settings_values_ids, ['value' => $value]);
+                $om->write(SettingValue::getType(), $settings_values_ids, ['value' => $value]);
             }
             else {
                 // value does not exist yet: create a new value
-                $om->create('core\setting\SettingValue', ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id]);
+                $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id]);
             }
         }
     }

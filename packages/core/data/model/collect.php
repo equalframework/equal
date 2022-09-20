@@ -151,6 +151,27 @@ if(in_array('deleted', $params['fields'])) {
     $domain = Domain::conditionAdd($domain, ['deleted', 'in', [0, 1]]);
 }
 
+// if domain contains a condition that targets `id` field, force searching regardless the state (this is the case for form views)
+$has_id_clause = false;
+foreach($domain as $clause) {
+    if(is_array($clause)) {
+        foreach($clause as $condition) {
+            if(is_array($condition)) {
+                $has_id_clause = ($condition[0] == 'id');
+            }
+            else {
+                $has_id_clause = ($condition == 'id');
+            }
+        }
+    }
+    else {
+        $has_id_clause = ($clause == 'id');
+    }
+}
+if($has_id_clause) {
+    $domain = Domain::conditionAdd($domain, ['state', '<>', 'unknown']);
+}
+
 // convert sorting comma notation to a map ([order_field => sort_direction, ...])
 $sort = [];
 $sort_parts  = explode(',', str_replace(' ', '', $params['sort']));

@@ -11,11 +11,11 @@ list($params, $providers) = announce([
         'charset'           => 'UTF-8',
         'accept-origin'     => '*',
         'cacheable'         => false
-    ],    
+    ],
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'domain' => [
@@ -49,7 +49,7 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => [ 'context' ] 
+    'providers'     => [ 'context' ]
 ]);
 
 list($context) = [ $providers['context'] ];

@@ -29,10 +29,10 @@ list($params, $providers) = announce([
 ]);
 
 /**
- * @var \equal\php\Context $context 
+ * @var \equal\php\Context $context
  * @var \equal\orm\ObjectManager $orm
- * @var \equal\auth\AuthenticationManager $auth 
- * @var \equal\dispatch\Dispatcher $dispatch 
+ * @var \equal\auth\AuthenticationManager $auth
+ * @var \equal\dispatch\Dispatcher $dispatch
  */
 list($context, $orm, $auth, $dispatch) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['dispatch']];
 
@@ -40,7 +40,7 @@ list($context, $orm, $auth, $dispatch) = [ $providers['context'], $providers['or
 
 // #todo - deprecate (visibility = protected)
 $user_id = $auth->userId();
-    
+
 if($user_id <= 0) {
     throw new Exception("not_allowed", QN_ERROR_NOT_ALLOWED);
 }

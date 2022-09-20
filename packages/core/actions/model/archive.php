@@ -9,7 +9,7 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'id' =>  [
@@ -31,7 +31,7 @@ list($params, $providers) = announce([
     'access' => [
         'visibility'        => 'protected'
     ],
-    'providers'     => ['context', 'orm', 'access'] 
+    'providers'     => ['context', 'orm', 'access']
 ]);
 
 /**
@@ -56,12 +56,11 @@ if(!$ac->isAllowed(QN_R_WRITE, $params['entity'], ['state'], $params['ids'])) {
     throw new Exception('UPDATE;'.$params['entity'].';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
 }
 
-$res = $orm->write($params['entity'], $params['ids'], ['state' => 'archived']);
+$res = $orm->update($params['entity'], $params['ids'], ['state' => 'archive']);
 if($res <= 0) {
     throw new Exception($params['entity'].'::state', $res);
 }
 
 $context->httpResponse()
         ->status(204)
-        ->body([])
         ->send();

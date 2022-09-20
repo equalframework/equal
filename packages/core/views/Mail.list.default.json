@@ -7,11 +7,6 @@
         "items": [
             {
                 "type": "field",
-                "value": "id",
-                "width": "10%"
-            },
-            {
-                "type": "field",
                 "value": "name",
                 "width": "25%",
                 "widget": {
@@ -20,14 +15,27 @@
             },
             {
                 "type": "field",
-                "value": "created",
+                "value": "creator",
                 "width": "20%"
+            },
+
+            {
+                "type": "field",
+                "value": "created",
+                "width": "15%",
+                "widget": {
+                    "usage": "datetime/short"
+                }
+
             },
             {
                 "type": "field",
                 "label": "Sent",
                 "value": "modified",
-                "width": "20%"
+                "width": "15%",
+                "widget": {
+                    "usage": "datetime/short"
+                }
             },
             {
                 "type": "field",
