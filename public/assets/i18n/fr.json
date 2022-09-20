@@ -64,10 +64,10 @@
 	"SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
     "SB_ERROR_MISSING_PARAM": "Champ obligatoire manquant.",
 	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
-	"SB_ERROR_INVALID_STATUS": "L'état de l'objet ne permet pas sa modification.",
+	"SB_ERROR_INVALID_STATUS": "L'état de l'objet ne permet pas cette modification.",
 	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
 	"SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
-	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde dans cet état.",
+	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde avec les valeurs actuelles.",
 
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier",

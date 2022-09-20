@@ -82,7 +82,7 @@ class Dispatcher extends Service {
             $messages = $orm->read('core\alert\Message', $message_id, ['controller', 'params']);
             if($messages > 0) {
                 $message = reset($messages);
-                $orm->remove('core\alert\Message', $message_id, true);                
+                $orm->delete('core\alert\Message', $message_id, true);
                 if($message['controller']) {
                     try {
                         $body = json_decode($message['params'], true);

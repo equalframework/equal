@@ -41,39 +41,47 @@ class UsageDate extends Usage {
     /**
      */
     public function getConstraints(): array {
-        return [
-            'invalid_amount' => [
-                'message'   => 'Malformed amount or size overflow.',
-                'function'  =>  function($value) {
-                    switch($this->getSubtype()) {
-                        case 'day':
+        switch($this->getSubtype()) {
+            case 'day':
+                return [
+                    'invalid_amount' => [
+                        'message'   => 'Malformed amount or size overflow.',
+                        'function'  =>  function($value) {
                             // 2 digits, from 1 to 31
-                            if($value > 31 || $value <= 0) {
-                                return false;
-                            }
-                            break;
-                        case 'month':
-                            // 4 digits, from 1 to 12
-                            if($value > 12 || $value <= 0) {
-                                return false;
-                            }
-                            break;
-                        case 'year':
+                            return ($value >= 0 && $value <= 31);
+                        }
+                    ]
+                ];
+            case 'month':
+                return [
+                    'invalid_amount' => [
+                        'message'   => 'Malformed amount or size overflow.',
+                        'function'  =>  function($value) {
+                            // 2 digits, from 1 to 12
+                            return ($value >= 0 && $value <= 12);
+                        }
+                    ]
+                ];
+            case 'year':
+                return [
+                    'invalid_amount' => [
+                        'message'   => 'Malformed amount or size overflow.',
+                        'function'  =>  function($value) {
                             // 4 digits, from 0 to 9999
-                            if($value > 9999 || $value < 0) {
-                                return false;
-                            }
-                            break;
-                        default:
-                            // timestamp, from 0 to PHP_INT_MAX
-                            if($value == PHP_INT_MAX || $value < 0) {
-                                return false;
-                            }
-                    }
-                    return true;
-                }
-            ]
-        ];
+                            return ($value >= 0 && $value <= 9999);
+                        }
+                    ]
+                ];
+            default:
+                return [
+                    'invalid_amount' => [
+                        'message'   => 'Malformed amount or size overflow.',
+                        'function'  =>  function($value) {
+                            return ($value <= PHP_INT_MAX && $value >= 0);
+                        }
+                    ]
+                ];
+        }
     }
 
     public function export($value, $lang=DEFAULT_LANG): string {

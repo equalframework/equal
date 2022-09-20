@@ -2116,8 +2116,12 @@ class ObjectManager extends Service {
                     }
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
-                    if(isset($special_fields['state']))        $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
-                    if(isset($special_fields['deleted']))    $conditions[$j][] = array($table_alias.'.deleted', '=', '0');
+                    if(isset($special_fields['state'])) {
+                        $conditions[$j][] = array($table_alias.'.state', '=', 'instance');
+                    }
+                    if(isset($special_fields['deleted'])) {
+                        $conditions[$j][] = array($table_alias.'.deleted', '=', '0');
+                    }
                     // add join conditions to current clause
                     foreach($join_conditions as $join_condition) {
                         $conditions[$j][] = $join_condition;

@@ -6,6 +6,7 @@
 */
 namespace equal\orm;
 
+use equal\orm\usages\UsageCurrency;
 use equal\orm\usages\UsageText;
 
 /**
@@ -25,40 +26,38 @@ class Usages {
             // extract tree
             $def = isset($parts[1])?$parts[1]:'';
             switch($type) {
+                case 'amount':
+                    return new UsageAmount($def);
                 // string usages
                 case 'coordinate':
                     break;
                 case 'country':
-                    break;
+                    return new UsageCountry($def);
                 case 'currency':
-                    break;
+                    return new UsageCurrency($def);
+                // datetime usages
+                case 'date':
+                    return new UsageDate($def);
                 case 'email':
-                    break;
+                    return new UsageEmail($def);
                 case 'hash':
                     break;
                 case 'image':
                     return new UsageImage($def);
                 case 'language':
-                    break;
-                case 'uri':
-                    break;
+                    return new UsageLanguage($def);
+                // number usages
+                case 'numeric':
+                    return new UsageNumeric($def);
                 case 'password':
                     return new UsagePassword($def);
-                case 'phone':
-                    return new UsageEmail($def);
                 case 'phone':
                     return new UsagePhone($def);
                 case 'text':
                     return new UsageText($def);
-                // number usages
-                case 'numeric':
-                    return new UsageNumeric($def);
-                case 'amount':
-                    return new UsageAmount($def);
-                // datetime usages
-                case 'date':
-                    break;
                 case 'time':
+                    break;
+                case 'uri':
                     break;
             }
         }

@@ -728,8 +728,12 @@ class Collection implements \Iterator {
             $this->validate($values, $ids, true, $check_required);
 
             // 4) update objects
-            // by convention, update operation always sets object state as 'instance' and modifier as current user
-            $values = array_merge($values, ['modifier' => $user_id, 'state' => 'instance']);
+            // by convention, update operation sets modifier as current user
+            $values['modifier'] = $user_id;
+            if(!isset($values['state'])) {
+                // unless explicitely assigned, update operation always sets state to 'instance'
+                $values['state'] = 'instance';
+            }
             $res = $this->orm->update($this->class, $ids, $values, $lang);
             if($res <= 0) {
                 throw new \Exception($this->orm->getLastError(), $res);
