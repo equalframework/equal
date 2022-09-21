@@ -12,7 +12,7 @@ list($params, $providers) = announce([
     'params' 		=>	[
         'network_name'  =>  [
             'description'   => 'name of the social network to address oauth request.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'network_token' =>  [
@@ -25,8 +25,8 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],        
-    'providers'     => ['context', 'orm', 'auth'] 
+    ],
+    'providers'     => ['context', 'orm', 'auth']
 ]);
 
 // initalise local vars with inputs
@@ -34,29 +34,30 @@ list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $provid
 
 list($result, $error_message_ids) = [true, []];
 
-list($action_name, $network_name, $network_token) = [ 
+list($action_name, $network_name, $network_token) = [
     'resiway_user_auth',
     $params['network_name'],
     $params['network_token']
 ];
 
-    
+
 switch($network_name) {
 case 'facebook':
-    $oauthRequest = new HttpRequest('/v2.9/me', ['Host' => 'graph.facebook.com:443']);    
+    $oauthRequest = new HttpRequest('/v2.9/me', ['Host' => 'graph.facebook.com:443']);
     $response = $oauthRequest
                 ->setBody([
                     'fields'       => 'email,first_name,last_name',
                     'access_token' => $network_token
-                ])->send();
+                ])
+                ->send();
     if(!is_null($response->get('error'))) {
         throw new Exception("user_invalid_auth", QN_ERROR_NOT_ALLOWED);
-    }                
+    }
     $data = $response->getBody();
     $id = $data['id'];
-    $account_type = 'facebook';        
+    $account_type = 'facebook';
     $avatar_url = "https://graph.facebook.com/{$id}/picture?height=@size&width=@size";
-    list($login, $firstname, $lastname) = [$data['email'], $data['first_name'], $data['last_name']];       
+    list($login, $firstname, $lastname) = [$data['email'], $data['first_name'], $data['last_name']];
     break;
 case 'google':
     /* upcoming changes : @see https://developers.google.com/people/api/rest/v1/people/get
@@ -67,7 +68,7 @@ case 'google':
                     'personFields' => 'names,emailAddresses',
                     'access_token' => $network_token
                 ])->send();
-    
+
     */
     $oauthRequest = new HttpRequest('/userinfo/v2/me', ['Host' => 'www.googleapis.com:443']);
     $response = $oauthRequest
@@ -78,12 +79,12 @@ case 'google':
         throw new Exception("user_invalid_auth", QN_ERROR_NOT_ALLOWED);
     }
     $data = $response->getBody();
-    $account_type = 'google';        
+    $account_type = 'google';
     $avatar_url = $data['picture'];
     list($login, $firstname, $lastname) = [$data['email'], $data['given_name'], $data['family_name']];
     break;
 default:
-    throw new Exception("user_invalid_network", QN_ERROR_INVALID_PARAM);           
+    throw new Exception("user_invalid_network", QN_ERROR_INVALID_PARAM);
 }
 
 
@@ -107,11 +108,11 @@ else {
     for ($i = 0; $i < 10; $i++) {
         $password .= $dict[rand(0, $len)];
     }
-    
+
     // try to create a new user account (disable email confirmation)
     $json = run('do', 'user_signup', [
-        'login'         => $login, 
-        'password'      => $password, 
+        'login'         => $login,
+        'password'      => $password,
         'firstname'     => $firstname,
         'lastname'      => $lastname,
         'language'      => $language,
@@ -133,16 +134,16 @@ else {
     $user_id = $auth->userId();
 }
 
-if($user_id <= 0) throw new Exception("action_failed", QN_ERROR_UNKNOWN); 
+if($user_id <= 0) throw new Exception("action_failed", QN_ERROR_UNKNOWN);
 
 // update user data
 $om->write('core\User', $user_id, [
     'validated'      => true
-]);        
+]);
 
 // generate access_token
 $access_token = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
-                 
+
 $context->httpResponse()
         // store token in cookie
         ->cookie('access_token', $access_token)
