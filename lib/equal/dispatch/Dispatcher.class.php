@@ -114,7 +114,7 @@ class Dispatcher extends Service {
             $message_model_id = reset($message_models_ids);
             $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]] );
             if($messages_ids > 0) {
-                $orm->remove('core\alert\Message', $messages_ids, true);
+                $orm->delete('core\alert\Message', $messages_ids, true);
             }
         }
     }
