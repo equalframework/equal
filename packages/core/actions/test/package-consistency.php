@@ -244,13 +244,13 @@ foreach($classes as $class) {
                 'description',
                 'layout' => [
                     'entity',
-                    'group_by',                    
+                    'group_by',
                     'datasets' => [
                         'label', 'operation'
                     ]
                 ]
             ];
-        }        
+        }
         // check that mandatory properties are present in the view
         $res = view_test($data, $structure);
         if($res) {
@@ -271,7 +271,7 @@ foreach($classes as $class) {
     }
 
     // 6) check translation file consistency (.json)
-    
+
     foreach($lang_list as $lang) {
         $i18n_file = "$lang_dir/$lang/$class.json";
         if(is_file($i18n_file)) {
