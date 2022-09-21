@@ -922,9 +922,13 @@ namespace config {
             if(!$root) {
                 $last_context = $context;
                 // restore original context
-                $container->set('context', $context_orig);
+                if(isset($context_orig)) {
+                    $container->set('context', $context_orig);
+                }
                 // restore container register
-                $container->register($register);
+                if(isset($register)) {
+                    $container->register($register);
+                }
             }
 
             return $result;
