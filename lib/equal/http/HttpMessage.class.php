@@ -11,7 +11,7 @@ use equal\http\HttpHeaders;
 
 
 /*
-    # What is a HTTP message?
+    # Recap about HTTP messages
 
 
     ## HTTP request
@@ -34,7 +34,7 @@ use equal\http\HttpHeaders;
     example: http://www.example.com/index.html
 
 
-    URI __toString 
+    URI __toString
 
     getters :   scheme, user, password, host, port, path, query, fragment
 
@@ -43,10 +43,11 @@ use equal\http\HttpHeaders;
         name    always 'HTTP'
         version HTTP version (1.0 or 1.1)
 
-    generic form: name/version    
+    generic form: name/version
     example: HTTP/1.0
 
-    getters: name (string), version (string) 
+    getters: name (string), version (string)
+
 
     ## HTTP response
 
@@ -61,29 +62,33 @@ use equal\http\HttpHeaders;
 
 
 class HttpMessage {
-      
-    // @var string      (ex.: 'POST')
+
+    /** @var string     (ex.: 'POST') */
     private $method;
-    
-    // @var string      (ex.: 'HTTP/1.1')
+
+    /** @var string     (ex.: 'HTTP/1.1') */
     private $protocol;
-    
-    // @var mixed (string | array)
+
+    /** @var mixed (string | array) */
     // The body part is intended to be an associative array mapping keys (parameters) with their related values.
-    // However, if HTTP message content-type cannot be determined, we fallback to a raw string.
+    // However, if HTTP message content-type cannot be determined, we fallback to raw value.
     private $body;
-    
-    // @var string
+
+    /** @var string unprocessed version of the body (as sent or as received) */
+    private $raw_body;
+
+    /** @var string */
     private $status;
 
-    // @var HttpUri
-    private $uri;     
-    
-    // @var HttpHeader
-    private $headers;    
+    /** @var HttpUri */
+    private $uri;
 
+    /** @var HttpHeader */
+    private $headers;
+
+    /** @var string[] */
     protected static $HTTP_METHODS = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE', 'PURGE', 'OPTIONS', 'TRACE', 'CONNECT'];
-    
+
     /**
     * Handle sub objects for deep cloning
     *
@@ -92,7 +97,7 @@ class HttpMessage {
         if($this->uri)     $this->uri = clone $this->uri;
         if($this->headers) $this->headers = clone $this->headers;
     }
-    
+
     /**
      *  List from Wikipedia article "List of HTTP status codes"
      *  @link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -161,7 +166,7 @@ class HttpMessage {
         '499' => 'Client Closed Request',
         '500' => 'Internal Server Error',
         '501' => 'Not Implemented',
-        '502' => 'Bad Gateway ou Proxy Error',
+        '502' => 'Bad Gateway or Proxy Error',
         '503' => 'Service Unavailable',
         '504' => 'Gateway Time-out',
         '505' => 'HTTP Version not supported',
@@ -179,15 +184,15 @@ class HttpMessage {
         '525' => 'SSL Handshake Failed',
         '526' => 'Invalid SSL Certificate',
         '527' => 'Railgun Error'
-    ];    
-    
+    ];
+
     /**
      *
      * @param $headline string
-     * @param $headers  array   associative array with headers names as keys and headers content as values 
+     * @param $headers  array   associative array with headers names as keys and headers content as values
      * @param $body mixed (array, string)   either associative array (of key-value pairs) or raw text for unknown content-type
      */
-    public function __construct($headline, $headers=[], $body='') {        
+    public function __construct($headline, $headers=[], $body='') {
         // $headline is handled in HttpResponse and HttpRequest constructors (which might update protocol and method)
         $this->setStatus(null);
         // headers have to be set before body
@@ -201,7 +206,7 @@ class HttpMessage {
         // init URI (this is an invalid URI, so all members will be set to null)
         $this->setUri('');
     }
-    
+
     public function setMethod($method) {
         $method = strtoupper($method);
         if(in_array($method, self::$HTTP_METHODS) ) {
@@ -209,7 +214,7 @@ class HttpMessage {
         }
         return $this;
     }
-    
+
     /**
      *
      * @param $headers  array
@@ -221,9 +226,9 @@ class HttpMessage {
         else {
             $this->headers = new HttpHeaders((array) $headers);
         }
-        return $this;        
+        return $this;
     }
-    
+
     public function setHeader($header, $value) {
         $this->headers->set($header, $value);
         // maintain URI consitency
@@ -247,14 +252,14 @@ class HttpMessage {
         $this->headers->setContentType($content_type);
         return $this;
     }
-    
+
     /**
      *
      * This method is invoked by the HttpRequest and HttpResponse constructors.
      *
      * @param $uri  string
      */
-    public function setUri($uri) {        
+    public function setUri($uri) {
         $this->uri = new HttpUri($uri);
 
         // maintain headers consistency
@@ -262,8 +267,8 @@ class HttpMessage {
             if($port = $this->uri->getPort()) {
                 $host = $host.':'.$port;
             }
-            $this->headers->set('Host', $host);            
-        }        
+            $this->headers->set('Host', $host);
+        }
         // maintain body consistency
         if($query = $this->uri->getQuery()) {
             $body = [];
@@ -271,8 +276,8 @@ class HttpMessage {
             $this->extendBody($body);
         }
         return $this;
-    }    
-    
+    }
+
     public function extendBody($params) {
         if(is_array($params)) {
             if(is_array($this->body) && !empty($this->body)) {
@@ -288,18 +293,19 @@ class HttpMessage {
         }
         return $this;
     }
-    
+
     /**
      * Tries to force conversion to an associative array based on content-type.
      * Falls back to a raw string if conversion is not possible.
-     * 
+     *
      *
      * @param $body mixed (string | array)
      */
     public function setBody($body, $raw=false) {
+        $this->raw_body = $body;
 
         if(!$raw && !is_array($body)) {
-            // attempt to convert body to an associative array 
+            // attempt to convert body to an associative array
             $content_type = $this->contentType();
             // adapt content type to map known MIMES to generic ones (@see https://www.iana.org/assignments/media-types/media-types.xhtml)
             if(stripos($content_type, '+json')) {
@@ -309,71 +315,69 @@ class HttpMessage {
                 $content_type = 'application/xml';
             }
             switch($content_type) {
-            case 'multipart/form-data':                
-                // retrieve boundary from content type header
-                preg_match('/boundary=(.*)$/', $this->getHeader('Content-Type'), $matches);
-                // ignore malformed request
-                if(!isset($matches[1]) || !isset($matches[2])) break;
-                $boundary = $matches[1];
-                // split content by boundary and get rid of last -- element
-                $blocks = preg_split("/-+$boundary/", $body);
-                array_pop($blocks);
-                // build request array
-                $request = [];
-                // loop data blocks
-                foreach ($blocks as $id => $block) {
-                    // skip empty blocks
-                    if (empty($block)) continue;
-                    // parse uploaded files
-                    if (strpos($block, 'application/octet-stream') !== FALSE) {
-                      // match "name", then everything after "stream" (optional) except for prepending newlines 
-                      preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
+                case 'multipart/form-data':
+                    // retrieve boundary from content type header
+                    preg_match('/boundary=(.*)$/', $this->getHeader('Content-Type'), $matches);
+                    // ignore malformed request
+                    if(!isset($matches[1]) || !isset($matches[2])) break;
+                    $boundary = $matches[1];
+                    // split content by boundary and get rid of last -- element
+                    $blocks = preg_split("/-+$boundary/", $body);
+                    array_pop($blocks);
+                    // build request array
+                    $request = [];
+                    // loop data blocks
+                    foreach ($blocks as $id => $block) {
+                        // skip empty blocks
+                        if (empty($block)) continue;
+                        // parse uploaded files
+                        if (strpos($block, 'application/octet-stream') !== FALSE) {
+                        // match "name", then everything after "stream" (optional) except for prepending newlines
+                        preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
+                        }
+                        // parse all other fields
+                        else {
+                        // match "name" and optional value in between newline sequences
+                        preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
+                        }
+                        // assign param/value pair to related body index
+                        $request[$matches[1]] = $matches[2];
                     }
-                    // parse all other fields
-                    else {
-                      // match "name" and optional value in between newline sequences
-                      preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
-                    }
-                    // assign param/value pair to related body index
-                    $request[$matches[1]] = $matches[2];
-                }            
-                $body = http_build_query($request);                
-                // we can now deal with the body as form-urlencoded data
-                // hence no break !
-            case 'application/x-www-form-urlencoded':
-                $params = [];
-                // #memo : this function is impacted by ini_get('max_input_vars')
-                parse_str($body, $params);
-                $body = (array) $params;
-                break;
-            case 'application/json':
-            case 'application/javascript':
-            case 'text/javascript':
-                // convert to JSON (with type convertion + fallback to string)
-                $arr = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
-                if(!is_null($arr)) {
-                    $body = $arr;
-                }
-                break;
-            case 'text/xml':
-            case 'application/xml':
-                libxml_use_internal_errors(true);
-                $xml = simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
-                if($xml) {
-                    $json = json_encode($xml);
-                    $arr = json_decode($json, true);
+                    $body = http_build_query($request);
+                    // we can now deal with the body as form-urlencoded data
+                    // hence no break !
+                case 'application/x-www-form-urlencoded':
+                    $params = [];
+                    // #memo : this function is impacted by ini_get('max_input_vars')
+                    parse_str($body, $params);
+                    $body = (array) $params;
+                    break;
+                case 'application/json':
+                case 'application/javascript':
+                case 'text/javascript':
+                    // convert to JSON (with type convertion + fallback to string)
+                    $arr = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
                     if(!is_null($arr)) {
                         $body = $arr;
                     }
-                }
-                break;
-            case 'text/plain':
-            case 'text/html':                
-            default:
-                // fallback to raw content
+                    break;
+                case 'text/xml':
+                case 'application/xml':
+                    libxml_use_internal_errors(true);
+                    $xml = simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
+                    if($xml !== false) {
+                        $body = self::xmlToArray($xml);
+                    }
+                    break;
+                case 'text/plain':
+                case 'text/html':
+                default:
+                    // fallback to raw content
             }
-        }        
+        }
+
         $this->body = $body;
+
         return $this;
     }
 
@@ -383,7 +387,7 @@ class HttpMessage {
     }
 
     /**
-     * @param $status   mixed (string | integer)  
+     * @param $status   mixed (string | integer)
      *
      * @return HttpMessage
      */
@@ -399,66 +403,66 @@ class HttpMessage {
     }
 
     /**
-     * 
+     *
      * can be forced to cast to string using $as_string boolean
      *
      * @return HttpUri
      *
-     */    
+     */
     public function getUri($as_string=false) {
         if($as_string) {
             return (string) $this->uri;
         }
         return $this->uri;
-    }    
+    }
 
     /**
-     * 
+     *
      * can be forced to cast to array using $as_array boolean
      *
      * @return HttpHeaders, array
      *
-     */    
+     */
     public function getHeaders($as_array=false) {
         if($as_array) {
             return $this->headers->getHeaders();
         }
         return $this->headers;
     }
-    
+
     public function getHeader($header, $default=null) {
         return $this->headers->get($header, $default);
     }
-    
+
 
     public function getMethod() {
         return $this->method;
-    }  
+    }
 
     public function getCookie($cookie) {
         return $this->headers->getCookie($cookie);
-    }    
+    }
 
     public function getCharset() {
         return $this->headers->getCharset();
-    }    
+    }
 
     public function getContentType() {
         return $this->headers->getContentType();
-    }    
-    
+    }
+
     /**
-     *
-     * @return mixed    array or string associative array or raw data
+     * @param   boolean   $raw  Flag for the version of the body to return. If set to true, the raw/unprocessed version of the body is returned.
+     * @return  mixed           Associative array or raw data of the body/payload currently stored in the HTTP message.
      */
-    public function getBody() {
-        return $this->body;
-    }    
+    public function getBody($raw=false) {
+        return ($raw)?$this->raw_body:$this->body;
+    }
 
     public function getProtocol() {
         return $this->protocol;
     }
-    
+
     public function getProtocolVersion() {
         return (float) explode('/', $this->getProtocol())[1];
     }
@@ -466,12 +470,12 @@ class HttpMessage {
     public function getStatus() {
         return $this->status;
     }
-    
+
     public function getStatusCode() {
         list($code, $reason) = explode(' ', $this->status, 2);
         return $code;
     }
-    
+
     /**
      * Retrieve a value from message body based on a given param name
      *
@@ -499,16 +503,16 @@ class HttpMessage {
         }
         return $res;
     }
-    
+
     /**
      * Assign a new parameter to message body, or update an existing one to a new value.
      * This method overwrites raw string value, if any.
-     * 
+     *
      * @param   $param  mixed(string|array)    For single assignement, $param is the name of the parameter to be set. In case of bulk assign, $param is an associative array with keys and values respectively holding parameters names and values.
      * @param   $value  mixed   If $param is an array, $value is not taken under account (this argument is therefore optional)
      * @return  HttpMessage Returns current instance
      */
-    public function set($param, $value=null) {        
+    public function set($param, $value=null) {
         if(!is_array($this->body)) {
             $this->body = [];
         }
@@ -524,13 +528,13 @@ class HttpMessage {
         }
         return $this;
     }
-    
+
     /**
      * Remove a parameter from the message body, if existing
      *
      *
-     */    
-    public function del($param) {        
+     */
+    public function del($param) {
         if(is_array($this->body)) {
             if(is_array($param)) {
                 foreach($param as $p) {
@@ -545,7 +549,7 @@ class HttpMessage {
         }
         return $this;
     }
-        
+
     // Here-below are additional method using short name and get/set behaviour based on arguments
 
     public function method() {
@@ -558,7 +562,7 @@ class HttpMessage {
             return $this->setMethod($method);
         }
     }
-    
+
     public function body() {
         $args = func_get_args();
         if(count($args) < 1) {
@@ -579,14 +583,14 @@ class HttpMessage {
             return $this->setProtocol($protocol);
         }
     }
-    
+
     /**
      *
      *
      */
     public function headers() {
         $args = func_get_args();
-        if(count($args) < 1) {            
+        if(count($args) < 1) {
             return $this->getHeaders();
         }
         else {
@@ -625,7 +629,7 @@ class HttpMessage {
         else {
             return $this->setCookie(...$args);
         }
-    }    
+    }
 
     /**
      * Charset getter/setter method based on arguments list
@@ -645,7 +649,7 @@ class HttpMessage {
 
     /**
      * Status getter/setter method based on arguments list
-     * Argument might be a full status line or a numeric code
+     * For setter, argument might be a full status line or a numeric code
      *
      */
     public function status() {
@@ -669,7 +673,7 @@ class HttpMessage {
             return $this->setStatus($status);
         }
 	}
-	
+
     /**
      * Content type getter/setter method based on arguments list
      * reminder: content type in stored either in 'content-type' or 'accept' header
@@ -685,7 +689,7 @@ class HttpMessage {
             return $this->setContentType($content_type);
         }
     }
-    
+
     /**
      * Header getter/setter method based on arguments list
      *
@@ -693,15 +697,15 @@ class HttpMessage {
      */
     public function uri() {
         $args = func_get_args();
-        if(count($args) < 1) {            
+        if(count($args) < 1) {
             return $this->getUri();
         }
         else {
             $uri = $args[0];
             return $this->setUri($uri);
         }
-    } 
-    
+    }
+
     /**
      * send method is defined in HttpResponse and HttpRequest classes
      *
@@ -720,5 +724,68 @@ class HttpMessage {
      */
     public function isXHR() {
         return ('XMLHttpRequest' == $this->headers->get('X-Requested-With'));
-    }      
+    }
+
+   private static function xmlToArray(\SimpleXMLElement $obj) {
+        $name = '';
+        $text = '';
+        $attributes = [];
+        $children = [];
+        $has_children = false;
+
+        if(is_object($obj)) {
+            // get info for all namespaces
+            $namespace = $obj->getDocNamespaces(true);
+            // append empty namespace
+            $namespace[null] = null;
+
+            $name = strtolower((string)$obj->getName());
+
+            foreach( $namespace as $ns => $nsUrl ) {
+                // handle atributes
+                $objAttributes = $obj->attributes($ns, true);
+                foreach( $objAttributes as $attributeName => $attributeValue ) {
+                    $attribName = strtolower(trim((string)$attributeName));
+                    $attribVal = trim((string)$attributeValue);
+                    if (!empty($ns)) {
+                        $attribName = $ns . ':' . $attribName;
+                    }
+                    $attributes[$attribName] = $attribVal;
+                }
+
+                // handle children
+                $objChildren = $obj->children($ns, true);
+                if(count($objChildren)) {
+                    $has_children = true;
+                    foreach( $objChildren as $childName => $child ) {
+                        $childName = strtolower((string)$childName);
+                        if( !empty($ns) ) {
+                            $childName = $ns.':'.$childName;
+                        }
+                        $res = self::xmlToArray($child);
+                        if($res['has_children']) {
+                            $children[] = $res;
+                        }
+                        else {
+                            $children[$childName] = $res;
+                        }
+                    }
+                }
+                else {
+                    $text = trim((string)$obj);
+                    if( strlen($text) <= 0 ) {
+                        $text = null;
+                    }
+                }
+            }
+        }
+
+        return [
+            'name'          => $name,
+            'value'         => $text,
+            'attributes'    => $attributes,
+            'has_children'  => $has_children,
+            'children'      => $children
+        ];
+    }
 }
