@@ -18,47 +18,49 @@ use equal\http\HttpHeaders;
  */
 class HttpHeadersHelper {
 
+    /** @var HttpHeaders $instance */
     private static $instance;
 
     private static function &getInstance() {
         if (!(self::$instance instanceof self)) {
             self::$instance = new HttpHeaders();
         }
-        return self::$instance;        
+        return self::$instance;
     }
+
     public static function getCharsets($headers) {
         $instance = self::getInstance();
-        $instance->setHeaders($headers);        
+        $instance->setHeaders($headers);
         return $instance->getCharsets();
-    }    
+    }
+
     public static function getCharset($headers) {
         $instance = self::getInstance();
-        $instance->setHeaders($headers);        
+        $instance->setHeaders($headers);
         return $instance->getCharset();
     }
-    public static function getLanguages($headers) {
+
+    public static function getLanguages($headers=[]) {
         $instance = self::getInstance();
         $instance->setHeaders($headers);
         return $instance->getLanguages();
     }
-    public static function getLanguage($headers) {
+
+    public static function getLanguage($headers=[]) {
         $instance = self::getInstance();
-        $instance->setHeaders($headers);        
+        $instance->setHeaders($headers);
         return $instance->getLanguage();
     }
-    public static function getIpAddresses($headers) {
+
+    public static function getIpAddress($headers=[]) {
         $instance = self::getInstance();
-        $instance->setHeaders($headers);        
-        return $instance->getIpAddresses();
-    }
-    public static function getIpAddress($headers) {
-        $instance = self::getInstance();
-        $instance->setHeaders($headers);        
+        $instance->setHeaders($headers);
         return $instance->getIpAddress();
     }
-    public static function getContentType($headers) {
+
+    public static function getContentType($headers=[]) {
         $instance = self::getInstance();
-        $instance->setHeaders($headers);        
+        $instance->setHeaders($headers);
         return $instance->getContentType();
-    }        
+    }
 }
