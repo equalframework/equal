@@ -23,35 +23,35 @@ class HttpHeaders {
         'MIME_PDF'   => ['application/pdf'],
         'MIME_JPEG'  => ['image/jpeg']
     ];
-    
+
     // map of headers
     private $headers;
     // map for cookies extra data (for HttpResponse)
     private $cookies_params;
-    
-    public function __construct($headers) {
+
+    public function __construct($headers=[]) {
         $this->setHeaders($headers);
         $this->cookies_params = [];
     }
-    
+
     public function toArray() {
         return $this->getHeaders();
     }
-    
+
     public function set($header, $value) {
         $header = self::normalizeName($header);
         $this->headers[$header] = $value;
         return $this;
     }
-        
-    public function setHeaders($headers) {
-        if(!isset($this->headers)) $this->headers = [];
+
+    public function setHeaders($headers=[]) {
+        $headers = (array) $headers;
         foreach($headers as $header => $value) {
             $this->set($header, $value);
         }
         return $this;
     }
-    
+
     public function setCookie($cookie, $value, $params=null) {
         $cookies = $this->getCookies();
         $cookies[$cookie] = $value;
@@ -61,7 +61,7 @@ class HttpHeaders {
             $this->cookies_params[$cookie] = $params;
         }
         return $this;
-    }    
+    }
 
     public function setCharset($charset) {
         if(isset($this->headers['Accept-Charset'])) {
@@ -82,7 +82,7 @@ class HttpHeaders {
             return $this->set('Content-Type', $content_type.'; charset='.$charset);
         }
     }
-    
+
     /**
      * Retrieves a message header value by the given case-insensitive name.
      *
@@ -92,9 +92,9 @@ class HttpHeaders {
      *
      * @param string $header Case-insensitive header field name.
      * @param string $default Default value to return in case header is not present.
-     *     
+     *
      * @return string The raw value of specified header
-     */    
+     */
     public function get($header, $default=null) {
         $res = $default;
         if(isset($this->headers[$header])) $res = $this->headers[$header];
@@ -104,16 +104,16 @@ class HttpHeaders {
         }
         return $res;
     }
-    
+
     public function getHeaders() {
         return $this->headers;
-    }    
+    }
 
     public function getCookies()  {
         $cookies = [];
         if(isset($this->headers['Cookie']) && strlen($this->headers['Cookie']) > 0) {
             // general syntax: key=value
-            // example: Cookie: _gid=GA1.2.810697551.1513508707; PHPSESSID=3hhf6qekt89k9v0hkllvu4u815 
+            // example: Cookie: _gid=GA1.2.810697551.1513508707; PHPSESSID=3hhf6qekt89k9v0hkllvu4u815
             $lines = explode(';', $this->headers['Cookie']);
             foreach($lines as $line) {
                 $parts = explode('=', $line);
@@ -140,9 +140,9 @@ class HttpHeaders {
         }
         return $default;
     }
-    
+
 // todo: make explicit distinction between charset used in the message and expected charset in response
-    
+
     public function getCharsets()  {
         $charsets = [];
         if(isset($this->headers['Accept-Charset'])) {
@@ -161,7 +161,7 @@ class HttpHeaders {
                 list($key, $val) = explode('=', $parts[1]);
                 if(trim($key) == 'charset') {
                     $charsets[] = trim($val);
-                }                
+                }
             }
         }
         if(empty($charsets)) {
@@ -169,13 +169,13 @@ class HttpHeaders {
         }
         return $charsets;
     }
-    
+
     // preferred charset
     public function getCharset() {
         $charsets = $this->getCharsets();
-        return $charsets[0];        
+        return $charsets[0];
     }
-    
+
     public function getLanguages()  {
         $languages = (array) 'en';
         if(isset($this->headers['Accept-Language'])) {
@@ -192,7 +192,7 @@ class HttpHeaders {
                         foreach($lang_descr as $lang) {
                             $languages[] = $lang;
                         }
-                    }       
+                    }
                 }
             }
         }
@@ -211,10 +211,10 @@ class HttpHeaders {
     // preferred languages
     public function getLanguage() {
         $languages = $this->getLanguages();
-        return $languages[0];        
+        return $languages[0];
     }
-    
-    
+
+
     /**
      * Returns the client IP addresses.
      *
@@ -231,7 +231,7 @@ class HttpHeaders {
         if (isset($this->headers['Forwarded'])) {
             preg_match_all('{(for)=("?\[?)([a-z0-9\.:_\-/]*)}', $this->headers['X-Forwarded-For'], $matches);
             $client_ips = $matches[3];
-        } 
+        }
         elseif (isset($this->headers['X-Forwarded-For'])) {
             $client_ips = array_map('trim', explode(',', $this->headers['X-Forwarded-For']));
         }
@@ -248,7 +248,7 @@ class HttpHeaders {
             }
         }
 
-        // Now the IP chain contains only untrusted proxies and the client IP
+        // the IP chain contains only untrusted proxies and the client IP
         return array_reverse($client_ips) ;
     }
 
@@ -269,7 +269,7 @@ class HttpHeaders {
     public function getIpAddress() {
         $ipAddresses = $this->getIpAddresses();
         return (count($ipAddresses))?$ipAddresses[0]:'';
-    }    
+    }
 
 
     /**
@@ -277,7 +277,7 @@ class HttpHeaders {
      *
      * @return string|null The format (null if no content type is present)
      */
-    public function getContentType() {        
+    public function getContentType() {
         $content_type = '';
         // use content-type header, if defined
         if(isset($this->headers['Content-Type'])) {
@@ -296,20 +296,20 @@ class HttpHeaders {
         return $content_type;
     }
 
-  
+
 
     /**
      *
      * Dominant rule consists of separate words with a dash (-), and write words lowercase using a capital letter for first character
      * But some commonly used names do not comply with this rule Content-MD5, ETag, P3P, DNT, X-ATT-DeviceId, ...
      * Besides, user might define some custom header and expect to retrieve them unaltered
-     
+
      * List of official and common non-standards fields from Wikipedia
      * @link https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
      */
     public static function normalizeName($name) {
         static $fields = null;
-        
+
         if(is_null($fields)) {
             $fields = [
                 'accept'                        => 'Accept',
@@ -377,7 +377,7 @@ class HttpHeaders {
                 'secchuaplatform'               => 'Sec-CH-UA-Platform',
                 'secfetchsite'                  => 'Sec-Fetch-Site',
                 'secfetchmode'                  => 'Sec-Fetch-Mode',
-                'secfetchdest'                  => 'Sec-Fetch-Dest',                
+                'secfetchdest'                  => 'Sec-Fetch-Dest',
                 'server'                        => 'Server',
                 'setcookie'                     => 'Set-Cookie',
                 'status'                        => 'Status',
@@ -414,7 +414,7 @@ class HttpHeaders {
                 'xxssprotection'                => 'X-XSS-Protection'
             ];
         }
-        // if no match is found, we'll fallback to given name
+        // by default, fallback to received name
         $res = $name;
         // set name to lowercase and strip dashes
         $key = str_replace('-', '', strtolower($name));
@@ -423,5 +423,5 @@ class HttpHeaders {
             $res = $fields[$key];
         }
         return $res;
-    }    
+    }
 }
