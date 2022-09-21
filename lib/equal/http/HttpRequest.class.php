@@ -13,8 +13,8 @@ use equal\http\MobileDetect;
 class HttpRequest extends HttpMessage {
 
     public function __construct($headline='', $headers=[], $body='') {
-        parent::__construct($headline, $headers, $body);        
-        // parse headline        
+        parent::__construct($headline, $headers, $body);
+        // parse headline
         $re = '/((GET|POST|PUT|DELETE|PATCH|OPTIONS) )?( )?([^ ]*)(( )HTTP.*)?/i';
         preg_match($re, $headline, $matches);
 
@@ -27,7 +27,7 @@ class HttpRequest extends HttpMessage {
         }
         if(isset($matches[7]) && strlen($matches[7])) {
             $protocol = $matches[7];
-        }        
+        }
 
         // 1) retrieve protocol
         if(isset($protocol)) {
@@ -46,9 +46,9 @@ class HttpRequest extends HttpMessage {
                     // @link https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23
                     $port = isset($host_parts[1])?trim($host_parts[1]):80;
                     $scheme = ($port==443)?'https':'http';
-                    $uri = $scheme.'://'.$host.':'.$port.$uri;                    
+                    $uri = $scheme.'://'.$host.':'.$port.$uri;
                     $this->setUri($uri);
-                }                
+                }
             }
             else {
                 // absolute URI
@@ -57,7 +57,7 @@ class HttpRequest extends HttpMessage {
 
             if(!HttpUri::isValid($uri)) {
                 echo 'invalid';
-// todo : should we raise an Exception ?
+                // #todo : should we raise an Exception ?
             }
         }
         // 3) retrieve method
@@ -65,24 +65,24 @@ class HttpRequest extends HttpMessage {
             // method ?
             if(in_array($method, self::$HTTP_METHODS) ) {
                 $this->setMethod($method);
-            }           
+            }
         }
 
     }
 
-   
-    public function send() {       
+
+    public function send() {
         $response = null;
-        
+
         $uri = (string) $this->getUri();
-        
+
         if(strlen($uri) > 0) {
             $method = $this->getMethod();
 
             $http_options = [];
             $additional_headers = [
                 // invalidate keep-alive behavior
-                'Connection'        => 'close', 
+                'Connection'        => 'close',
                 // simulate a XHR request
                 'X-Requested-With'  => 'XMLHttpRequest',
                 // accept any content type
@@ -94,11 +94,11 @@ class HttpRequest extends HttpMessage {
             $content_type = $this->getHeaders()->getContentType();
 
             if(strlen($content_type) <= 0 && in_array($method,['GET', 'POST'])) {
-                // fallback to form encoded data 
+                // fallback to form encoded data
                 $content_type = 'application/x-www-form-urlencoded';
-            }            
+            }
 
-            // retrieve content            
+            // retrieve content
             $body = $this->body();
 
             if(is_array($body)) {
@@ -113,7 +113,7 @@ class HttpRequest extends HttpMessage {
                         break;
                     default:
                         $body = http_build_query($body);
-                }                
+                }
             }
 
             // force parameters to the URI in case of GET request
@@ -131,7 +131,7 @@ class HttpRequest extends HttpMessage {
                 $additional_headers['Content-Type'] = $content_type;
             }
             // set content-length (might be 0)
-            $additional_headers['Content-Length'] = $body_length;            
+            $additional_headers['Content-Length'] = $body_length;
             // merge manually defined headers with additional headers (later overwrites the former)
             $headers = array_merge((array) $this->getHeaders(true), $additional_headers);
             // adapt headers to fit into a numerically indexed array
@@ -150,14 +150,14 @@ class HttpRequest extends HttpMessage {
                 'http' => $http_options
             ]);
 
-            // send request                     
+            // send request
             $data = @file_get_contents(
-                                        $uri, 
+                                        $uri,
                                         false,
                                         $context
                                        );
             // build HTTP response object
-            if(isset($http_response_header[0])) {                               
+            if(isset($http_response_header[0])) {
                 $response_status = $http_response_header[0];
                 unset($http_response_header[0]);
                 $headers = [];
@@ -167,7 +167,7 @@ class HttpRequest extends HttpMessage {
 					if(isset($parts[0])) $header = $parts[0];
 					if(isset($parts[1])) $value = $parts[1];
 					if(strpos($header, 'HTTP/1.1') === 0) {
-						$response_status = $header;						
+						$response_status = $header;
 					}
 					else {
 						$headers[$header] = $value;
@@ -181,7 +181,7 @@ class HttpRequest extends HttpMessage {
         }
         return $response;
     }
-    
+
     public function isBot() {
         if (isset($this->is_bot)) return $this->is_bot;
 
@@ -203,27 +203,27 @@ class HttpRequest extends HttpMessage {
                 //  rate-limited-proxy-66-249-90-77.google.com
                 $res = preg_match('/\.googlebot\.com$/i', $hostname);
                 if(!$res) {
-                    $res = preg_match('/\.google\.com$/i', $hostname);        
-                }        
+                    $res = preg_match('/\.google\.com$/i', $hostname);
+                }
             }
             /* Facebook */
-            else if(stripos($_SERVER["HTTP_USER_AGENT"], "facebookexternalhit/") !== false 
+            else if(stripos($_SERVER["HTTP_USER_AGENT"], "facebookexternalhit/") !== false
                 || stripos($_SERVER["HTTP_USER_AGENT"], "Facebot") !== false ) {
                 $res = true;
             }
             /* Twitter */
             else if(stripos($_SERVER["HTTP_USER_AGENT"], "Twitterbot") !== false) {
-                $res = true;    
-            }            
+                $res = true;
+            }
         }
-        $this->is_bot = $res;        
+        $this->is_bot = $res;
         return $this->is_bot;
     }
-    
+
     public function isThing() {
         return false;
     }
-    
+
     public function isMobile() {
         if (isset($this->is_mobile)) return $this->is_mobile;
         // Any mobile device (phones or tablets).
@@ -231,7 +231,7 @@ class HttpRequest extends HttpMessage {
         $detector = new MobileDetect();
         $this->is_mobile = ( $detector->isMobile() || $detector->isTablet());
         return $this->is_mobile;
-    }    
-          
-    
+    }
+
+
 }
