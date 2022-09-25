@@ -56,7 +56,7 @@ namespace {
 
 
     /**
-     * Debugging modes
+     * Debugging modes and levels
      */
     define('QN_DEBUG_PHP',          1);
     define('QN_DEBUG_SQL',          2);
