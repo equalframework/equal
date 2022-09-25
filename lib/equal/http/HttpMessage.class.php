@@ -727,7 +727,6 @@ class HttpMessage {
     }
 
    private static function xmlToArray(\SimpleXMLElement $obj) {
-        $name = '';
         $text = '';
         $attributes = [];
         $children = [];
@@ -735,17 +734,15 @@ class HttpMessage {
 
         if(is_object($obj)) {
             // get info for all namespaces
-            $namespace = $obj->getDocNamespaces(true);
+            $namespaces = $obj->getDocNamespaces(true);
             // append empty namespace
-            $namespace[null] = null;
+            $namespaces[null] = null;
 
-            $name = strtolower((string)$obj->getName());
-
-            foreach( $namespace as $ns => $nsUrl ) {
+            foreach( $namespaces as $ns => $nsUrl ) {
                 // handle atributes
                 $objAttributes = $obj->attributes($ns, true);
                 foreach( $objAttributes as $attributeName => $attributeValue ) {
-                    $attribName = strtolower(trim((string)$attributeName));
+                    $attribName = trim($attributeName);
                     $attribVal = trim((string)$attributeValue);
                     if (!empty($ns)) {
                         $attribName = $ns . ':' . $attribName;
@@ -755,15 +752,15 @@ class HttpMessage {
 
                 // handle children
                 $objChildren = $obj->children($ns, true);
-                if(count($objChildren)) {
+                $count_children = count($objChildren);
+                if($count_children) {
                     $has_children = true;
                     foreach( $objChildren as $childName => $child ) {
-                        $childName = strtolower((string)$childName);
                         if( !empty($ns) ) {
                             $childName = $ns.':'.$childName;
                         }
                         $res = self::xmlToArray($child);
-                        if($res['has_children']) {
+                        if($count_children > 1 && $res['has_children']) {
                             $children[] = $res;
                         }
                         else {
@@ -781,7 +778,7 @@ class HttpMessage {
         }
 
         return [
-            'name'          => $name,
+            'name'          => $obj->getName(),
             'value'         => $text,
             'attributes'    => $attributes,
             'has_children'  => $has_children,
