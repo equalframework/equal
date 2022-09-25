@@ -130,15 +130,15 @@ class Setting extends Model {
     }
 
     public static function onupdateCode($om, $ids, $values, $lang) {
-        $om->write(__CLASS__, $ids, ['name' => null], $lang);
+        $om->update(__CLASS__, $ids, ['name' => null], $lang);
     }
 
     public static function onupdateSectionId($om, $ids, $values, $lang) {
-        $om->write(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
+        $om->update(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
     }
 
     public static function onupdatePackage($om, $ids, $values, $lang) {
-        $om->write(__CLASS__, $ids, ['name' => null], $lang);
+        $om->update(__CLASS__, $ids, ['name' => null], $lang);
     }
 
     public static function calcSection($om, $oids, $lang) {
@@ -263,23 +263,33 @@ class Setting extends Model {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
+        $sections_ids = $om->search(SettingSection::getType(), ['code', '=', $section]);
+        if(!count($sections_ids)) {
+            // section does not exist yet
+            $sections_ids = (array) $om->create(SettingSection::getType(), ['name' => $section, 'code' => $section]);
+        }
+        $section_id = reset($sections_ids);
+
         $settings_ids = $om->search(self::getType(), [
             ['package', '=', $package],
-            ['section', '=', $section],
+            ['section_id', '=', $section_id],
             ['code', '=', $code]
         ]);
 
-        if($settings_ids > 0 && count($settings_ids)) {
-            $setting_id = array_pop($settings_ids);
-            $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
-            if($settings_values_ids > 0 && count($settings_values_ids)) {
-                // update the value
-                $om->write(SettingValue::getType(), $settings_values_ids, ['value' => $value]);
-            }
-            else {
-                // value does not exist yet: create a new value
-                $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id]);
-            }
+        if(!count($settings_ids)) {
+            // setting does not exist yet
+            $settings_ids = (array) $om->create(Setting::getType(), ['package' => $package, 'section_id' => $section_id, 'code' => $code]);
+        }
+        $setting_id = reset($settings_ids);
+
+        $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
+        if(!count($settings_values_ids)) {
+            // value does not exist yet: create a new value
+            $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id]);
+        }
+        else {
+            // update existing value
+            $om->update(SettingValue::getType(), $settings_values_ids, ['value' => $value]);
         }
     }
 
