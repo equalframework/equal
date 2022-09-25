@@ -542,7 +542,7 @@ class Collection implements \Iterator {
             throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
         }
 
-        // if state is forced to draft, do not check required fields (to allow creation of emtpy objects)
+        // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
         // 3) validate : check required fields accordingly
