@@ -22,7 +22,7 @@ class SettingSection extends Model {
         return [
             'name' => [
                 'type'              => 'string',
-                'description'       => "Title of the secftion.",
+                'description'       => "Title of the section.",
                 'multilang'         => true
             ],
 
@@ -38,7 +38,7 @@ class SettingSection extends Model {
                 'onupdate'          => 'onupdateCode',
                 'required'          => true
             ],
-        
+
             'settings_ids' => [
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\setting\Setting',
@@ -50,14 +50,14 @@ class SettingSection extends Model {
     }
 
     public static function onupdateCode($om, $ids, $values, $lang) {
-        
+
         $sections = $om->read(__CLASS__, $ids, ['settings_ids'], $lang);
         if($sections > 0 && count($sections)) {
             foreach($sections as $oid => $odata) {
-                $om->write('core\setting\Setting', $odata['settings_ids'], ['name' => null], $lang);
-            }    
+                $om->update('core\setting\Setting', $odata['settings_ids'], ['name' => null], $lang);
+            }
         }
-        
+
     }
 
     public function getUnique() {
