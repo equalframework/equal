@@ -62,13 +62,13 @@ class SettingValue extends Model {
         foreach($settingValues as $oid => $odata) {
             $result[$oid] = $odata['setting_id.name'];
         }
-        
-        return $result;              
-    }    
+
+        return $result;
+    }
 
     public function getUnique() {
         return [
             ['setting_id', 'user_id']
         ];
-    }    
+    }
 }
