@@ -107,7 +107,7 @@ class Message extends Model {
         foreach($messages as $mid => $message) {
             $result[$mid] = $message['message_model_id.label'];
         }
-        return $result;    
+        return $result;
     }
 
     public static function calcDescription($om, $oids, $lang) {
@@ -117,7 +117,7 @@ class Message extends Model {
         foreach($messages as $mid => $message) {
             $result[$mid] = $message['message_model_id.description'];
         }
-        return $result;    
+        return $result;
     }
 
     public function getUnique() {
