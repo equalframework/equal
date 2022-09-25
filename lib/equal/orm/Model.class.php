@@ -11,7 +11,7 @@ namespace equal\orm;
  *  Root Model for all objects.
  *  This class holds the description of an object (and not the object itself)
  */
-class Model {
+class Model implements \ArrayAccess {
 
     /**
      * Complete object schema: an associative array mapping fields names with their definition.
@@ -79,6 +79,27 @@ class Model {
         }
     }
 
+    public function offsetSet($offset, $value): void {
+        if (is_null($offset)) {
+            $this->values[] = $value;
+        }
+        else {
+            $this->values[$offset] = $value;
+        }
+    }
+
+    public function offsetExists($offset): bool {
+        return isset($this->values[$offset]);
+    }
+
+    public function offsetUnset($offset): void {
+        unset($this->values[$offset]);
+    }
+
+    public function offsetGet($offset) {
+        return isset($this->values[$offset]) ? $this->values[$offset] : null;
+    }
+
     /**
      * Return the static part of the schema (common to all objects).
      * #memo - 'name' field is set in constructor if not defined in getColumns method
@@ -122,10 +143,12 @@ class Model {
         return $special_columns;
     }
 
+    // #todo - deprecate : this method doesn't seem to be used
     public final function setField($field, $value) {
         $this->values[$field] = $value;
     }
 
+    // #todo - deprecate : this method doesn't seem to be used
     public final function setColumn($column, array $description) {
         $this->schema[$column] = $description;
     }
@@ -143,7 +166,7 @@ class Model {
 
     /**
      * Get Model readable name.
-     * This method is meant to be overridden by children classes.
+     * This method is meant to be overridden by children classes to define their own name.
      *
      * @access public
      * @return array
@@ -286,7 +309,7 @@ class Model {
         $parent = get_parent_class($this);
         $entity = get_class($this);
 
-        // class uses its parent class name, unless it directly inherits from root class (equal\orm\Model)
+        // class uses its parent class name, unless it directly inherits from root Model class (equal\orm\Model)
         while($parent != __CLASS__) {
             $entity = $parent;
             $parent = get_parent_class($parent);
@@ -416,11 +439,45 @@ class Model {
         return [];
     }
 
+    public static function id($id) {
+        return self::ids((array) $id);
+    }
+
+    public static function ids($ids) {
+        if(is_callable('equal\orm\Collections::getInstance')) {
+            $factory = \equal\orm\Collections::getInstance();
+            $collection = $factory->create(get_called_class());
+            return $collection->ids($ids);
+        }
+        return null;
+    }
+
+
+    public static function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
+        if(is_callable('equal\orm\Collections::getInstance')) {
+            $factory = \equal\orm\Collections::getInstance();
+            $collection = $factory->create(get_called_class());
+            return $collection->search($domain, $params, $lang);
+        }
+        return null;
+    }
+
+    public static function create(array $values=null, $lang=DEFAULT_LANG) {
+        if(is_callable('equal\orm\Collections::getInstance')) {
+            $factory = \equal\orm\Collections::getInstance();
+            $collection = $factory->create(get_called_class());
+            return $collection->create($values, $lang);
+        }
+        return null;
+    }
+
     /**
      * Handler for virtual static methods: use classname to invoke a Collection method, if available.
+     * # todo - deprecate : since we cover all entry points with static methods, magic methods should no longer be involved.
      *
      * @param  string   $name       Name of the called method.
      * @param  array    $arguments  Array holding a list of arguments to relay to the invoked method.
+     * @deprecated
      */
     public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {
