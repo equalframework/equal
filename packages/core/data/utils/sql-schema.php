@@ -17,7 +17,7 @@ list($params, $providers) = announce([
     'params' 		=>	[
         'package'	=> [
             'description'   => 'Package for which we want SQL schema.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
             'required'      => true
         ],
@@ -25,14 +25,14 @@ list($params, $providers) = announce([
             'description'   => 'Force the output to complete schema (i.e. with tables already present in DB).',
             'type'          => 'boolean',
             'default'       => false
-        ]        
+        ]
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],    
-    'providers'     => ['context', 'orm']     
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'providers'     => ['context', 'orm']
 ]);
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
@@ -73,18 +73,18 @@ $parent_tables = [];
 foreach($classes as $class) {
 	// get the full class name
 	$class_name = $params['package'].'\\'.$class;
-    $model = $orm->getModel($class_name);    
-    if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);    	
-    
+    $model = $orm->getModel($class_name);
+    if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
+
     // get the SQL table name
-    $table_name = $orm->getObjectTableName($class_name);	
-    $direct_name = strtolower(str_replace('\\', '_', $class_name));    
+    $table_name = $orm->getObjectTableName($class_name);
+    $direct_name = strtolower(str_replace('\\', '_', $class_name));
     // handle inherited classes
     if($table_name != $direct_name) {
         // table name is the table of an ancestor
         $parent_tables[] = $table_name;
     }
-    
+
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
@@ -92,8 +92,8 @@ foreach($classes as $class) {
 
 // #todo : deleting tables prevents keeping data across inherited classes
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
-    
-    // fetch existing column 
+
+    // fetch existing column
     $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
     $res = $db->sendQuery($query);
 
@@ -136,16 +136,16 @@ foreach($classes as $class) {
     // in this case, we create the table and add all the columns
     else {
         $result[] = "CREATE TABLE IF NOT EXISTS `{$table_name}` (";
-	
+
         foreach($schema as $field => $description) {
             if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
                 $type = ObjectManager::$types_associations[$description['type']];
-    
+
                 // if a SQL type is associated to field 'usage', it prevails over the type association
                 if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
                     $type = ObjectManager::$usages_associations[$description['usage']];
                 }
-    
+
                 if($field == 'id') $result[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
                 elseif(in_array($field, array('creator','modifier','published','deleted'))) $result[] = "`{$field}` {$type} NOT NULL DEFAULT '0',";
                 else $result[] = "`{$field}` {$type},";
@@ -159,7 +159,7 @@ foreach($classes as $class) {
             }
         }
         $result[] = "PRIMARY KEY (`id`)";
-    
+
         if(method_exists($model, 'getUnique')) {
             $list = $model->getUnique();
             foreach($list as $unique) {
@@ -167,16 +167,18 @@ foreach($classes as $class) {
                 foreach($unique as $field) {
                     $part = "`{$field}`";
                     // limit index size to 20 bytes for strings
-                    if(in_array($schema[$field]['type'], ['string', 'text'])) {                        
+                    if(in_array($schema[$field]['type'], ['string', 'text'])) {
                         $part .= "(25)";
                     }
                     $parts[] = $part;
                 }
-                $result[] = ",UNIQUE KEY `".implode('_', $unique)."` (".implode(',', $parts).")";
-            }        
+                // #todo - deprecate
+                // Classes are allowed to override the getUnique method. Therefore, we cannot apply parent unicity constraints to parent table (which also applies on all inherited classes)
+                // $result[] = ",UNIQUE KEY `".implode('_', $unique)."` (".implode(',', $parts).")";
+            }
         }
-        
-        $result[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";    
+
+        $result[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";
     }
 
 }
