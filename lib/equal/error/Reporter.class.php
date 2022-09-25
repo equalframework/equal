@@ -15,16 +15,21 @@ class Reporter extends Service {
     // PHP context instance
     private $context;
 
+    private $debug_mode;
+    private $debug_level;
+
     /**
     * Contructor defines which methods have to be called when errors and uncaught exceptions occur
     *
     */
     public function __construct(Context $context) {
         $this->context = $context;
+        $this->debug_mode = (defined('DEBUG_MODE'))?constant('DEBUG_MODE'):0;
+        $this->debug_level = (defined('DEBUG_LEVEL'))?constant('DEBUG_LEVEL'):0;
         // ::errorHandler() will deal with error and debug messages depending on debug source value
         ini_set('display_errors', 1);
         // use QN_REPORT_x for reporting, E_ERROR for fatal errors only, E_ALL for all errors
-        error_reporting(E_ALL);
+        error_reporting($this->debug_level);
         set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
         set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
     }
@@ -82,7 +87,9 @@ class Reporter extends Service {
     */
     public static function errorHandler($errno, $errmsg, $errfile='', $errline=0, $errcontext=[]) {
         // dismiss handler if not required
-        if (!(error_reporting() & $errno)) return;
+        if (!(error_reporting() & $errno)) {
+            return;
+        }
         // adapt error code
         $code = $errno;
 
@@ -120,11 +127,11 @@ class Reporter extends Service {
     }
 
     private function log($code, $msg, $trace) {
-        if(!DEBUG_MODE) {
+        if(!$this->debug_mode) {
             return;
         }
         // check reporting level
-        if($code <= error_reporting()) {
+        if($code <= $this->debug_level) {
             // handle debug messages
             if($code == QN_REPORT_DEBUG) {
                 // default to arbitrary '1' mask debug info
@@ -140,7 +147,7 @@ class Reporter extends Service {
                 else {
                     $mask = (int) $source;
                 }
-                if(!(DEBUG_MODE & $mask)) return;
+                if(!($this->debug_mode & $mask)) return;
             }
 
             // build error message
