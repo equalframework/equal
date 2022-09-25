@@ -185,7 +185,7 @@ class DataValidator extends Service {
                 'rule'  => function($a, $o) use($precision, $scale) {
                     if($scale > $precision) return false;
                     $integers = $precision - $scale;
-                    return (preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $a));
+                    return (preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $a));
                 }
             ];
         }
