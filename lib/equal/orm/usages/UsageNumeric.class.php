@@ -48,6 +48,13 @@ class UsageNumeric extends Usage {
                     ]
                 ];
             case 'real':
+                /*
+                    supports:
+                        1
+                        2.3
+                        999.12
+                        0.00
+                */
                 return [
                     'broken_usage' => [
                         'message'   => 'Number does not match usage or length constraint.',
@@ -57,7 +64,7 @@ class UsageNumeric extends Usage {
                             $parts = explode('.', $len);
                             $scale = isset($parts[1])?$parts[1]:0;
                             $integers = $parts[0] - $scale;
-                            if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}}(\.?[0-9]{0,'.$scale.'})$/', (string) $value)) {
+                            if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $value)) {
                                 return false;
                             }
                             return true;
