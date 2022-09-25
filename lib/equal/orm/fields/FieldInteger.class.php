@@ -41,10 +41,10 @@ class FieldInteger extends Field {
             else if(empty($value)) {
                 $value = 0;
             }
-            else if(in_array($value, ['TRUE', 'true'])) {
+            else if(strtolower($value) == 'true') {
                 $value = 1;
             }
-            else if(in_array($value, ['FALSE', 'false'])) {
+            else if(strtolower($value) == 'false') {
                 $value = 0;
             }
         }
