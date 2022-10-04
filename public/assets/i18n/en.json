@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Accept",
-	"SB_DIALOG_SEND": "Send",
+    "SB_DIALOG_SEND": "Send",
     "SB_DIALOG_CANCEL": "Cancel",
 
     "SB_PURPOSE_CREATE": "Create",
@@ -18,10 +18,10 @@
 
     "SB_ACTIONS_BUTTON_CREATE": "Create",
     "SB_ACTIONS_BUTTON_SAVE": "Save",
-	"SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Save & close",
-	"SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Save & edit",
-	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Save & continue",
-	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Save & see",
+    "SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Save & close",
+    "SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Save & edit",
+    "SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Save & continue",
+    "SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Save & see",
     "SB_ACTIONS_BUTTON_UPDATE": "Update",
     "SB_ACTIONS_BUTTON_EXPORT": "Export",
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Inline edit",
@@ -36,7 +36,7 @@
     "SB_ACTIONS_BUTTON_SELECTED": "selected",
 
     "SB_ACTIONS_CONFIRM": "Confirm action",
-	"SB_ACTIONS_PROVIDE_PARAMS": "Action parameters",
+    "SB_ACTIONS_PROVIDE_PARAMS": "Action parameters",
 
     "SB_ACTIONS_ARCHIVE_CONFIRM": "Confirm archiving",
     "SB_ACTIONS_ARCHIVE_DIALOG_MESSAGE": "Items will be archived and you might no longer be able to access those. Do you confirm?",
@@ -53,21 +53,22 @@
 
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Advanced search...",
 
-	"SB_ERROR_ERROR": "Erreur",
-	"SB_ERROR_UNKNOWN": "An unknown error occured.",
-	"SB_ERROR_CONFLICT_OBJECT": "A conflict prevents this operation.",
+    "SB_ERROR_ERROR": "Erreur",
+    "SB_ERROR_UNKNOWN": "An unknown error occured.",
+    "SB_ERROR_SQL_ERROR": "An error at database level prevents the operation (duplicate?).",
+    "SB_ERROR_CONFLICT_OBJECT": "A conflict prevents this operation.",
     "SB_ERROR_DUPLICATE_VALUE": "This value must be unique but already exists.",
-	"SB_ERROR_DUPLICATE_INDEX": "An entry is duplicated.",
+    "SB_ERROR_DUPLICATE_INDEX": "An entry is duplicated.",
     "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération.",
     "SB_ERROR_NON_EDITABLE": "The item cannot be updated in its current state.",
-	"SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",
-	"SB_ERROR_MISSING_MANDATORY": "Mandatory field.",
+    "SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",
+    "SB_ERROR_MISSING_MANDATORY": "Mandatory field.",
     "SB_ERROR_MISSING_PARAM": "Missing mandatory field.",
-	"SB_ERROR_INVALID_PARAM": "Invalid param(s). Some changes couldn't be stored.",
-	"SB_ERROR_INVALID_STATUS": "Status of the item prevents its update.",
-	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Size exceeding maximum allowed.",
-	"SB_ERROR_BROKEN_CONSTRAINT": "Invalid value (broke at least one constrainst).",
-	"SB_ERROR_ONUPDATE_DENIED": "Object rejected the update.",
+    "SB_ERROR_INVALID_PARAM": "Invalid param(s). Some changes couldn't be stored.",
+    "SB_ERROR_INVALID_STATUS": "Status of the item prevents its update.",
+    "SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Size exceeding maximum allowed.",
+    "SB_ERROR_BROKEN_CONSTRAINT": "Invalid value (broke at least one constrainst).",
+    "SB_ERROR_ONUPDATE_DENIED": "Object rejected the update.",
 
     "AUTH_SIGNIN_TITLE": "Connection",
     "AUTH_SIGNIN_SIGNIN": "Sign in",
@@ -101,12 +102,12 @@
     "APPS_APP_SALES": "Ventes",
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
-	"APPS_APP_STATS": "Statistiques",
+    "APPS_APP_STATS": "Statistiques",
 
     "SETTINGS_LIST_SETTING": "Settings",
     "SETTINGS_LIST_CORE": "General",
     "SETTINGS_LIST_SALE": "Sale",
-	"SETTINGS_LIST_PERMISSION": "Permissions",
+    "SETTINGS_LIST_PERMISSION": "Permissions",
     "SETTINGS_LIST_FINANCE": "Finance",
 
     "DOCS_LIST_DOCUMENT": "Documents",

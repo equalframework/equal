@@ -40,9 +40,9 @@ $failed = false;
 $tests_path = "packages/{$params['package']}/tests";
 
 if(is_dir($tests_path)) {
-    
+
     foreach (glob($tests_path."/*.php") as $filename) {
-        
+
         include($filename);
         $tester = new Tester($tests);
         $body = $tester->test($params['test_id'])->toArray();
@@ -50,16 +50,16 @@ if(is_dir($tests_path)) {
             $failed = true;
         }
         $result[basename($filename, '.php')] = $body;
-    }    
+    }
 }
 if($params['logs']) {
-    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log');            
+    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log');
 }
 
 $providers['context']->httpResponse()
                      ->body($result)
                      ->send();
-                     
+
 if($failed) {
     exit(1);
 }

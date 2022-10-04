@@ -1,6 +1,6 @@
 {
     "name": "Parameter value",
-    "plural": "Parameters value",
+    "plural": "Parameters values",
     "description": "",
     "model": {
         "name": {
@@ -30,7 +30,7 @@
             "description": "Displays the value of a setting."
         },
         "list.default": {
-            "name": "List of settings.",
+            "name": "List of parameters values.",
             "description": "Displays the value of settings."
         }
     },

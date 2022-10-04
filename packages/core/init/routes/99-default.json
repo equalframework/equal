@@ -68,5 +68,5 @@
             "description": "Retrieve current Settings.",
             "operation": "?get=core_appinfo"
         }
-    }    
+    }
 }

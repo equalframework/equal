@@ -18,7 +18,6 @@
                 "value": "creator",
                 "width": "20%"
             },
-
             {
                 "type": "field",
                 "value": "created",
@@ -26,7 +25,6 @@
                 "widget": {
                     "usage": "datetime/short"
                 }
-
             },
             {
                 "type": "field",

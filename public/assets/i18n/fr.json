@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Valider",
-	"SB_DIALOG_SEND": "Exécuter",
+    "SB_DIALOG_SEND": "Exécuter",
     "SB_DIALOG_CANCEL": "Annuler",
 
     "SB_PURPOSE_CREATE": "Création",
@@ -18,10 +18,10 @@
 
     "SB_ACTIONS_BUTTON_CREATE": "Créer",
     "SB_ACTIONS_BUTTON_SAVE": "Sauver",
-	"SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Sauver & fermer",
-	"SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Sauver & editer",
-	"SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Sauver & continuer",
-	"SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Sauver & voir",
+    "SB_ACTIONS_BUTTON_SAVE_AND_CLOSE": "Sauver & fermer",
+    "SB_ACTIONS_BUTTON_SAVE_AND_EDIT": "Sauver & editer",
+    "SB_ACTIONS_BUTTON_SAVE_AND_CONTINUE": "Sauver & continuer",
+    "SB_ACTIONS_BUTTON_SAVE_AND_VIEW": "Sauver & voir",
     "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
     "SB_ACTIONS_BUTTON_EXPORT": "Exporter",
     "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Éditer en ligne",
@@ -36,7 +36,7 @@
     "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
 
     "SB_ACTIONS_CONFIRM": "Confirmer l'action",
-	"SB_ACTIONS_PROVIDE_PARAMS": "Paramètres de l'action",
+    "SB_ACTIONS_PROVIDE_PARAMS": "Paramètres de l'action",
 
     "SB_ACTIONS_ARCHIVE_CONFIRM": "Confirmer l'archivage",
     "SB_ACTIONS_ARCHIVE_DIALOG_MESSAGE": "Les éléments seront archivés et vous n'y aurez peut-être plus accès. Voulez-vous continuer ?",
@@ -53,21 +53,22 @@
 
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
 
-	"SB_ERROR_ERROR": "Erreur",
-	"SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
-	"SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
+    "SB_ERROR_ERROR": "Erreur",
+    "SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
+    "SB_ERROR_SQL_ERROR": "Une erreur au niveau de la base de données empêche l'opération (doublon?).",
+    "SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
-	"SB_ERROR_DUPLICATE_INDEX": "Un doublon est présent.",
+    "SB_ERROR_DUPLICATE_INDEX": "Un doublon est présent.",
     "SB_ERROR_NOT_ALLOWED": "Non permis. Vous n'avez pas les droits ou l'état de l'objet ne le permet pas.",
     "SB_ERROR_NON_EDITABLE": "L'élement ne peut pas être modifié dans son état actuel.",
-	"SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",
-	"SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
+    "SB_ERROR_CONFIG_MISSING_PARAM": "Paramètre(s) ou section(s) manquant(es):",
+    "SB_ERROR_MISSING_MANDATORY": "Champ obligatoire.",
     "SB_ERROR_MISSING_PARAM": "Champ obligatoire manquant.",
-	"SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
-	"SB_ERROR_INVALID_STATUS": "L'état de l'objet ne permet pas cette modification.",
-	"SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
-	"SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
-	"SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde avec les valeurs actuelles.",
+    "SB_ERROR_INVALID_PARAM": "Paramètre(s) invalide(s). Certains changements n'ont pas pu être enregistrés.",
+    "SB_ERROR_INVALID_STATUS": "L'état de l'objet ne permet pas cette modification.",
+    "SB_ERROR_MAXIMUM_SIZE_EXCEEDED": "Taille supérieure au maximum autorisé.",
+    "SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
+    "SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde avec les valeurs actuelles.",
 
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier",
@@ -101,12 +102,12 @@
     "APPS_APP_SALES": "Ventes",
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
-	"APPS_APP_STATS": "Statistiques",
+    "APPS_APP_STATS": "Statistiques",
 
     "SETTINGS_LIST_SETTING": "Paramètres",
     "SETTINGS_LIST_CORE": "Général",
     "SETTINGS_LIST_SALE": "Vente",
-	"SETTINGS_LIST_PERMISSION": "Permissions",
+    "SETTINGS_LIST_PERMISSION": "Permissions",
     "SETTINGS_LIST_FINANCE": "Finances",
 
     "DOCS_LIST_DOCUMENT": "Documents",

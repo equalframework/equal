@@ -1,7 +1,7 @@
 [
     {
         "name": "core\\Permission",
-        "lang": "fr",
+        "lang": "en",
 		"description": "assign READ on common objects",
         "data": [
             {
@@ -10,7 +10,7 @@
                 "group_id": 2,
                 "user_id": null,
                 "rights": 2
-            },		
+            },
             {
                 "class_name": "lodging\\sale\\booking\\Booking",
                 "domain": "",
@@ -31,8 +31,8 @@
                 "group_id": 2,
                 "user_id": null,
                 "rights": 2
-            },			
-            {                
+            },
+            {
                 "class_name": "lodging\\identity\\Center",
                 "domain": "",
                 "group_id": 2,
