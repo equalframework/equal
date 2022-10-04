@@ -65,10 +65,11 @@ namespace {
     define('QN_DEBUG_APP',          16);
 
 
-    define('QN_REPORT_DEBUG',       E_USER_NOTICE);     // 1024
-    define('QN_REPORT_WARNING',     E_USER_WARNING);    // 512
-    define('QN_REPORT_ERROR',       E_USER_ERROR);      // 256
-    define('QN_REPORT_FATAL',       E_ERROR);           // 1
+    define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
+    define('QN_REPORT_INFO',        E_USER_NOTICE);         // 1024
+    define('QN_REPORT_WARNING',     E_USER_WARNING);        // 512
+    define('QN_REPORT_ERROR',       E_USER_ERROR);          // 256
+    define('QN_REPORT_FATAL',       E_ERROR);               // 1
 
 
     /**
