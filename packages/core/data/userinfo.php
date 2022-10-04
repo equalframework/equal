@@ -15,7 +15,13 @@ list($params, $providers) = announce([
     ],
     'providers'     => ['context', 'orm', 'auth']
 ]);
+// use equal\orm\ObjectManager
 
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\orm\ObjectManager            $om
+ */
 list($context, $om, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
 
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
@@ -32,9 +38,11 @@ if(!count($ids)) {
 }
 // user has allways READ right on its own object
 $user = User::ids($ids)
-            ->read(['id', 'login', 'firstname', 'lastname', 'language'])
-            ->adapt('txt')
-            ->first();
+    ->read(['id', 'login', 'firstname', 'lastname', 'language', 'groups_ids' => ['name']])
+    ->adapt('txt')
+    ->first();
+
+$user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $user['groups_ids']));
 
 // send back basic info of the User object
 $context->httpResponse()
