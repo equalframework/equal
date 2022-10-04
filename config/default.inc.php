@@ -150,7 +150,7 @@ namespace {
     define('DEBUG_MODE', QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL | QN_DEBUG_APP);
     // define('DEBUG_MODE', 0);
     define('DEBUG_LEVEL', E_ALL);
-    // define('DEBUG_LEVEL', QN_REPORT_DEBUG | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL);
+    // define('DEBUG_LEVEL', QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL);
     // define('DEBUG_LEVEL', 0);
 }
 namespace config {
