@@ -1,24 +1,25 @@
 dist: xenial
 language: php
-php: 
+php:
   # - '5.6'
   # - '7.1'
-  - '7.2'
+  # - '7.2'
   - '7.3'
+  - '7.4'
   - '8.0'
   - '8.1'
-  
+
 services:
 # make the `mysql` binary available
   - mysql
 
 env:
   # make environment variables available
-  # bash: `$SITE_FOLDER` 
-  # PHP : `getenv('SITE_FOLDER');` 
+  # bash: `$SITE_FOLDER`
+  # PHP : `getenv('SITE_FOLDER');`
   global:
     - DB_NAME="equal"
-    
+
 before_script:
   # travis DB user is `root`, password is empty and host is `127.0.0.1`
   # - mysql -e "create database IF NOT EXISTS $DB_NAME;" -uroot
@@ -27,15 +28,15 @@ before_script:
   - chmod +x .travis/*.sh
   - .travis/init-php7.sh
 
-  
-  
-script: 
+
+
+script:
   # check that mandatory directories are present and have correct access rights set
   - php run.php --do=test_fs-consistency
   # check ability to connect to the dbms service
   - php run.php --do=test_db-connectivity
-  # create an empty database 
-  - php run.php --do=init_db  
+  # create an empty database
+  - php run.php --do=init_db
   # initialise database with demo data
   - php run.php --do=init_package --package=core --import=true
   # run test units
