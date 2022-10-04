@@ -73,6 +73,7 @@ class Collection implements \Iterator {
         $this->limit(0);
     }
 
+    // #todo - deprecate : this method doesn't seem to be used
     public function extend($column, $description) {
         $this->model->setColumn($column, $description);
     }
@@ -92,6 +93,8 @@ class Collection implements \Iterator {
     }
 
     public function current() {
+        // #todo - when ready to deal directly with objects
+        // return current($this->objects);
         return $this->get_raw_object(current($this->objects));
     }
 
@@ -105,7 +108,7 @@ class Collection implements \Iterator {
 
     public function valid() : bool {
         $key = key($this->objects);
-        $res = ($key !== NULL && $key !== FALSE);
+        $res = ($key !== null && $key !== false);
         return $res;
     }
 
@@ -463,7 +466,8 @@ class Collection implements \Iterator {
         $res = $this->orm->read($this->class, $ids, $fields, $lang);
 
         // 3) duplicate each object of the collection
-        foreach($res as $id => $original) {
+        foreach($res as $id => $obj) {
+            $original = is_array($obj) ? $obj : $obj->toArray();
 
             // make unique fields complying with related constraints
             foreach($uniques as $unique) {
@@ -498,7 +502,7 @@ class Collection implements \Iterator {
             }
 
             // set current user as creator
-            $original = array_merge($original, ['creator' => $user_id]);
+            $original['creator'] = $user_id;
 
             // validate : check unique keys
             $this->validate($original, [], true);
@@ -549,7 +553,7 @@ class Collection implements \Iterator {
         // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
         $this->validate($values, [], false, $check_required);
         // set current user as creator
-        $values = array_merge($values, ['creator' => $user_id]);
+        $values['creator'] = $user_id;
 
         // 4) create the new object
         $res = $this->orm->create($this->class, $values, $lang);
@@ -602,9 +606,6 @@ class Collection implements \Iterator {
             // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
             $mandatory_fields = ['id', 'name', 'state', 'deleted', 'modified'];
 
-            // remeber relational fields requiring additional loading
-            $relational_fields = [];
-
             foreach($fields as $key => $val ) {
                 // handle array notation
                 $field = (!is_numeric($key))?$key:$val;
@@ -615,13 +616,6 @@ class Collection implements \Iterator {
                 }
                 else {
                     $requested_fields[] = $field;
-                    // #todo - use orm::getField()
-                    $target = $this->model->field($field);
-                    $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
-                    // remember requested relational sub-fields
-                    if(in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
-                        $relational_fields[$field] = $val;
-                    }
                 }
             }
 
@@ -698,7 +692,7 @@ class Collection implements \Iterator {
 
     /**
      *
-     * @param   array       $values   associative array mapping fields and values
+     * @param   array       $values   Associative array mapping fields names and their new values.
      * @param   string      $lang     Language for multilang fields.
      *
      * @return  Collection  returns the current instance (allowing calls chaining)
@@ -738,15 +732,15 @@ class Collection implements \Iterator {
             if($res <= 0) {
                 throw new \Exception($this->orm->getLastError(), $res);
             }
-            else {
-                $ids = $res;
-            }
 
             foreach($ids as $oid) {
                 // log action (if enabled)
                 $this->logger->log($user_id, 'update', $this->class, $oid);
                 // store updated objects in current collection
-                $this->objects[$oid] = array_merge(['id' => $oid], $values);
+                $this->objects[$oid]['id'] = $oid;
+                foreach($values as $field => $value) {
+                    $this->objects[$oid][$field] = $value;
+                }
             }
         }
         return $this;
