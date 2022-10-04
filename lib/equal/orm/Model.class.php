@@ -11,7 +11,7 @@ namespace equal\orm;
  *  Root Model for all objects.
  *  This class holds the description of an object (and not the object itself)
  */
-class Model implements \ArrayAccess {
+class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Complete object schema: an associative array mapping fields names with their definition.
@@ -79,12 +79,30 @@ class Model implements \ArrayAccess {
         }
     }
 
+    public function toArray() {
+        return $this->values;
+    }
+
+
+    /* Magic properties */
+
+    public function __get( $key ) {
+        return $this->values[ $key ];
+    }
+
+    public function __set( $key, $value ) {
+        $this->values[ $key ] = $value;
+    }
+
+
+    /* ArrayAccess methods */
+
     public function offsetSet($offset, $value): void {
-        if (is_null($offset)) {
-            $this->values[] = $value;
-        }
-        else {
+        if (!is_null($offset)) {
             $this->values[$offset] = $value;
+            if(property_exists($this, $offset)) {
+                $this->$offset = $value;
+            }
         }
     }
 
@@ -98,6 +116,31 @@ class Model implements \ArrayAccess {
 
     public function offsetGet($offset) {
         return isset($this->values[$offset]) ? $this->values[$offset] : null;
+    }
+
+
+    /* Iterator methods */
+
+    public function rewind() : void {
+        reset($this->values);
+    }
+
+    public function current() {
+        return current($this->values);
+    }
+
+    public function key() : string {
+        return key($this->values);
+    }
+
+    public function next() : void {
+        next($this->values);
+    }
+
+    public function valid() : bool {
+        $key = key($this->values);
+        $res = ($key !== null && $key !== false);
+        return $res;
     }
 
     /**
