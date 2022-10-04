@@ -45,7 +45,7 @@ class Reporter extends Service {
     public function getThreadId() {
         static $thread_id = null;
 
-        if(!$thread_id){
+        if(!$thread_id) {
             // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)
             $operation = $this->context->get('operation');
             $op_name = ($operation && isset($operation['operation']))?$operation['operation']:'';
@@ -153,7 +153,9 @@ class Reporter extends Service {
             // build error message
             $origin = '{main}()';
             if(isset($trace['function'])) {
-                if(isset($trace['class'])) $origin = $trace['class'].'::'.$trace['function'].'()';
+                if(isset($trace['class'])) {
+                    $origin = $trace['class'].'::'.$trace['function'].'()';
+                }
                 else $origin = $trace['function'].'()';
             }
 
@@ -168,6 +170,7 @@ class Reporter extends Service {
             // append backtrace if required (fatal errors)
 
             if($code == QN_REPORT_FATAL) {
+                /*
                 $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
                 $n = count($backtrace);
                 if($n > 2) {
@@ -179,7 +182,9 @@ class Reporter extends Service {
                         $error .= "# $origin @ [{$trace['file']}:{$trace['line']}]".PHP_EOL;
                     }
                 }
+                */
             }
+
             // #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the webservice to access it)
             $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
 
@@ -278,6 +283,10 @@ class Reporter extends Service {
 
     public function warning($msg) {
         $this->log(QN_REPORT_WARNING, $msg, self::getTrace());
+    }
+
+    public function info($msg) {
+        $this->log(QN_REPORT_INFO, $msg, self::getTrace());
     }
 
     public function debug($msg) {
