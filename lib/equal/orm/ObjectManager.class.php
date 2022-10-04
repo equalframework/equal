@@ -774,6 +774,9 @@ class ObjectManager extends Service {
                         $ids_to_remove = array();
                         $ids_to_add = array();
                         foreach($value as $id) {
+                            if(!is_numeric($id)) {
+                                continue;
+                            }
                             $id = intval($id);
                             if($id < 0) $ids_to_remove[] = abs($id);
                             if($id > 0) $ids_to_add[] = $id;
@@ -1532,7 +1535,7 @@ class ObjectManager extends Service {
 
 
             // 8) handle the resetting of the dependent computed fields
-            // #todo $dependencies
+            // #todo $dependencies - each item can be the name of a field, with support for dot notation
 
             if(count($dependencies)) {
                 foreach($dependencies as $dependency) {
@@ -1576,9 +1579,15 @@ class ObjectManager extends Service {
             // keep only valid objects identifiers
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
-            if(empty($ids)) return $res;
+            if(empty($ids)) {
+                return $res;
+            }
             // init resulting array
-            foreach($ids as $oid) $res[$oid] = [];
+            foreach($ids as $oid) {
+                // #todo - when ready to deal directly with objects
+                // $res[$oid] = clone $object;
+                $res[$oid] = [];
+            }
 
             // 2) pre-processing: $fields sanitization
 
@@ -1647,8 +1656,6 @@ class ObjectManager extends Service {
                         trigger_error("QN_DEBUG_ORM::unknown or empty object $class[$oid]", QN_REPORT_WARNING);
                         continue;
                     }
-                    // init result for given id, if missing
-                    if(!isset($res[$oid])) $res[$oid] = array();
                     // first pass : retrieve fields values
                     foreach($fields as $key => $field) {
                         // handle aliases
@@ -1695,7 +1702,7 @@ class ObjectManager extends Service {
                             if($sub_values > 0) {
                                 if($field_type == 'many2one') {
                                     $odata = reset($sub_values);
-                                    if($odata > 0) {
+                                    if(is_array($odata) || is_a($odata, Model::getType())) {
                                         $res[$oid][$field] = $odata[$parts[1]];
                                     }
                                 }
@@ -1880,21 +1887,18 @@ class ObjectManager extends Service {
             }
 
             $original = $res_r[$id];
+            $new_values = [];
 
-            $new_values = array_merge($original, $values);
-
-            foreach($schema as $field => $def) {
-                if(in_array($def['type'], ['one2many', 'many2many'])) {
-                    unset($new_values[$field]);
-                    continue;
-                }
-                // unset id and parent_field (needs to be updated + could be part of unique contrainst)
-                if(in_array($field, ['id', $parent_field])) {
-                    unset($new_values[$field]);
+            // build the array holding the new values
+            // discard relational fields, id field and parent field (those needs to be updated + could be part of unique contrainst)
+            foreach($original as $field => $value) {
+                $def = $schema[$field];
+                if(!in_array($def['type'], ['one2many', 'many2many']) && !in_array($field, ['id', $parent_field])) {
+                    $new_values[$field] = $value;
                 }
             }
 
-            // create new object based on original
+            // create a new object based on original
             $res_c = $this->create($class, $new_values, $lang);
             if($res_c < 0) {
                 throw new Exception('creation_aborted', $res_c);
