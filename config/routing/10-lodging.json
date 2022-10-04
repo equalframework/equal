@@ -1,8 +1,0 @@
-{
-    "/userinfo": {
-        "GET": {
-            "description": "Retrieve current User object.",
-            "operation": "?get=lodging_userinfo"
-        }
-    }
-}
