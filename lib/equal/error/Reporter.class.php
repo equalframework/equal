@@ -39,7 +39,7 @@ class Reporter extends Service {
      *
      */
     public static function constants() {
-        return ['QN_LOG_STORAGE_DIR', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG'];
+        return ['QN_LOG_STORAGE_DIR', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG', 'QN_REPORT_INFO', 'QN_REPORT_DEBUG'];
     }
 
     public function getThreadId() {
@@ -96,7 +96,8 @@ class Reporter extends Service {
         $depth = 1;
         switch($errno) {
             // handler was invoked using trigger_error()
-            case QN_REPORT_DEBUG:       // E_USER_NOTICE
+            case QN_REPORT_DEBUG:       // E_USER_DEPRECATED
+            case QN_REPORT_INFO:        // E_USER_NOTICE
             case QN_REPORT_WARNING:     // E_USER_WARNING
             case QN_REPORT_ERROR:       // E_USER_ERROR
             case QN_REPORT_FATAL:       // E_ERROR
@@ -117,7 +118,6 @@ class Reporter extends Service {
             case E_NOTICE:
             case E_STRICT:
             case E_DEPRECATED:
-            case E_USER_DEPRECATED:
                 $code = QN_REPORT_WARNING;
                 break;
         }
