@@ -472,8 +472,8 @@ class HttpMessage {
     }
 
     public function getStatusCode() {
-        list($code, $reason) = explode(' ', $this->status, 2);
-        return $code;
+        $parts = explode(' ', $this->status, 2);
+        return (int) $parts[0];
     }
 
     /**
