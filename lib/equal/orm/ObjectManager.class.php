@@ -1232,19 +1232,18 @@ class ObjectManager extends Service {
                     $domain = [];
                     foreach($unique as $field) {
                         // map unique fields with the given values
-                        if(!isset($values[$field])) {
-                            // #memo - field involved in unique constraints should be marked as required
-                            if(isset($extra_values[$id][$field])) {
-                                $domain[] = [ $field, '=', $extra_values[$id][$field] ];
-                            }
-                            else {
-                                $domain[] = [ $field, 'is', null ];
-                            }
+                        $value = null;
+                        if(isset($values[$field])) {
+                            $value = $values[$field];
                         }
-                        else {
-                            // map unique fields with the given values
-                            $domain[] = [$field, '=', $values[$field]];
+                        else if(isset($extra_values[$id][$field])) {
+                            $value = $extra_values[$id][$field];
                         }
+                        // #memo - field involved in unique constraint can be left to null (unless marked as required)
+                        // map unique fields with the given values
+                        $domain[] = [$field, '=', $value];
+                        // make sure to ignore existing records with field left as null
+                        $domain[] = [$field, 'is not', null];
                     }
                     // search for objects already set with unique values
                     if(count($domain)) {
@@ -1260,17 +1259,9 @@ class ObjectManager extends Service {
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
-                        $objects = $this->read($class, $conflict_ids, $unique);
-                        foreach($objects as $oid => $odata) {
-                            foreach($odata as $field => $value) {
-                                $original = isset($values[$field])? $values[$field] : ( isset($extra_values[$id])? $extra_values[$id][$field] : null );
-                                if($value == $original) {
-                                    trigger_error("QN_DEBUG_ORM::field {$field} violates unique constraint with object {$oid}", QN_REPORT_WARNING);
-                                    $error_code = QN_ERROR_CONFLICT_OBJECT;
-                                    $res[$field] = ['duplicate_index' => 'unique constraint violation'];
-                                }
-                            }
-                        }
+                        trigger_error("QN_DEBUG_ORM::field {$field} violates unique constraint with objects ".implode(',', array_keys($conflict_ids)), QN_REPORT_WARNING);
+                        $error_code = QN_ERROR_CONFLICT_OBJECT;
+                        $res[$field] = ['duplicate_index' => 'unique constraint violation'];
                         break 2;
                     }
                 }
@@ -1535,7 +1526,7 @@ class ObjectManager extends Service {
 
 
             // 8) handle the resetting of the dependent computed fields
-            // #todo $dependencies - each item can be the name of a field, with support for dot notation
+            // #todo $dependencies
 
             if(count($dependencies)) {
                 foreach($dependencies as $dependency) {
@@ -1889,8 +1880,7 @@ class ObjectManager extends Service {
             $original = $res_r[$id];
             $new_values = [];
 
-            // build the array holding the new values
-            // discard relational fields, id field and parent field (those needs to be updated + could be part of unique contrainst)
+            // unset relations + id and parent_field (needs to be updated + could be part of unique contrainst)
             foreach($original as $field => $value) {
                 $def = $schema[$field];
                 if(!in_array($def['type'], ['one2many', 'many2many']) && !in_array($field, ['id', $parent_field])) {
@@ -1898,7 +1888,7 @@ class ObjectManager extends Service {
                 }
             }
 
-            // create a new object based on original
+            // create new object based on original
             $res_c = $this->create($class, $new_values, $lang);
             if($res_c < 0) {
                 throw new Exception('creation_aborted', $res_c);
