@@ -8,7 +8,7 @@ namespace equal\orm;
 
 use stdClass;
 
-class Collection implements \Iterator {
+class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */
     private $orm;
@@ -78,6 +78,7 @@ class Collection implements \Iterator {
         $this->model->setColumn($column, $description);
     }
 
+    // #todo - deprecate : this method doesn't seem to be used
     public function set($fields) {
         $fields = (array) $fields;
         foreach($this->objects as $id => $object) {
@@ -88,25 +89,31 @@ class Collection implements \Iterator {
         return $this;
     }
 
-    public function rewind() : void {
-        reset($this->objects);
+    /* Countable  methods */
+
+    public function count(): int {
+        return count($this->objects);
     }
+
+    /* Iterator  methods */
 
     public function current() {
-        // #todo - when ready to deal directly with objects
-        // return current($this->objects);
-        return $this->get_raw_object(current($this->objects));
+        return current($this->objects);
     }
 
-    public function key() : int {
+    public function key(): int {
         return key($this->objects);
     }
 
-    public function next() : void {
+    public function next(): void {
         next($this->objects);
     }
 
-    public function valid() : bool {
+    public function rewind(): void {
+        reset($this->objects);
+    }
+
+    public function valid(): bool {
         $key = key($this->objects);
         $res = ($key !== null && $key !== false);
         return $res;
@@ -215,7 +222,6 @@ class Collection implements \Iterator {
      */
     private function get_raw_object($object, $to_array=false) {
         $result = [];
-        $schema = $this->model->getSchema();
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
                 $list = $value->get($to_array);
@@ -487,6 +493,7 @@ class Collection implements \Iterator {
                             $original[$field] = 'copy - '.$original[$field];
                         }
                         else {
+                            // #todo - this does not guarantee that there will be no duplicate
                             // remove latest field to prevent duplicate issue
                             unset($original[$field]);
                         }
@@ -692,7 +699,7 @@ class Collection implements \Iterator {
 
     /**
      *
-     * @param   array       $values   Associative array mapping fields names and their new values.
+     * @param   array       $values   associative array mapping fields and values
      * @param   string      $lang     Language for multilang fields.
      *
      * @return  Collection  returns the current instance (allowing calls chaining)
