@@ -8,8 +8,15 @@ namespace equal\orm;
 
 
 /**
- *  Root Model for all objects.
- *  This class holds the description of an object (and not the object itself)
+ * Root Model for all objects.
+ * This class holds the description of an object (and not the object itself)
+ *
+ * Static methods for building new Collection objects (accessed through magic methods):
+ *
+ * @method \equal\orm\Collection id($id)
+ * @method \equal\orm\Collection ids(array $ids=[])
+ * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=DEFAULT_LANG)
+ * @method \equal\orm\Collection create(array $values=null, $lang=DEFAULT_LANG)
  */
 class Model implements \ArrayAccess, \Iterator {
 
@@ -86,11 +93,11 @@ class Model implements \ArrayAccess, \Iterator {
 
     /* Magic properties */
 
-    public function __get( $key ) {
-        return $this->values[ $key ];
+    public function __get($key) {
+        return $this->values[$key];
     }
 
-    public function __set( $key, $value ) {
+    public function __set($key, $value) {
         $this->values[ $key ] = $value;
     }
 
@@ -488,7 +495,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     public static function ids($ids) {
         if(is_callable('equal\orm\Collections::getInstance')) {
-            $factory = \equal\orm\Collections::getInstance();
+            $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             return $collection->ids($ids);
         }
@@ -498,7 +505,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     public static function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
         if(is_callable('equal\orm\Collections::getInstance')) {
-            $factory = \equal\orm\Collections::getInstance();
+            $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             return $collection->search($domain, $params, $lang);
         }
@@ -507,7 +514,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     public static function create(array $values=null, $lang=DEFAULT_LANG) {
         if(is_callable('equal\orm\Collections::getInstance')) {
-            $factory = \equal\orm\Collections::getInstance();
+            $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             return $collection->create($values, $lang);
         }
@@ -516,7 +523,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Handler for virtual static methods: use classname to invoke a Collection method, if available.
-     * # todo - deprecate : since we cover all entry points with static methods, magic methods should no longer be involved.
+     * #todo - deprecate : since we cover all entry points with static methods, magic methods should no longer be involved.
      *
      * @param  string   $name       Name of the called method.
      * @param  array    $arguments  Array holding a list of arguments to relay to the invoked method.
@@ -524,7 +531,7 @@ class Model implements \ArrayAccess, \Iterator {
      */
     public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {
-            $factory = \equal\orm\Collections::getInstance();
+            $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             // check that the method actually exists
             if(is_callable([$collection, $name])) {
