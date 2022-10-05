@@ -109,16 +109,16 @@ class ObjectManager extends Service {
     ];
 
     public static $valid_operators = [
-        'boolean'       => array('=', '<>', '<', '>', 'in', 'is'),
-        'integer'       => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
-        'float'         => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is'),
-        'string'        => array('like', 'ilike', 'in', 'not in', '=', '<>', 'is'),
-        'text'          => array('like', 'ilike', '=', 'is'),
-        'date'          => array('=', '<>', '<', '>', '<=', '>=', 'like', 'is'),
-        'time'          => array('=', '<>', '<', '>', '<=', '>=', 'is'),
-        'datetime'      => array('=', '<>', '<', '>', '<=', '>=', 'is'),
-        'file'          => array('like', 'ilike', '=', 'is'),
-        'binary'        => array('like', 'ilike', '=', 'is'),
+        'boolean'       => array('=', '<>', '<', '>', 'in', 'is', 'is not'),
+        'integer'       => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
+        'float'         => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
+        'string'        => array('like', 'ilike', 'in', 'not in', '=', '<>', 'is', 'is not'),
+        'text'          => array('like', 'ilike', '=', 'is', 'is not'),
+        'date'          => array('=', '<>', '<', '>', '<=', '>=', 'like', 'is', 'is not'),
+        'time'          => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
+        'datetime'      => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
+        'file'          => array('like', 'ilike', '=', 'is', 'is not'),
+        'binary'        => array('like', 'ilike', '=', 'is', 'is not'),
         // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
         'many2one'      => array('is', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'      => array('contains'),
@@ -1233,7 +1233,7 @@ class ObjectManager extends Service {
                     foreach($unique as $field) {
                         // map unique fields with the given values
                         if(!isset($values[$field])) {
-                            // #memo - field involved in uniqu constraint should be marked as required
+                            // #memo - field involved in unique constraints should be marked as required
                             if(isset($extra_values[$id][$field])) {
                                 $domain[] = [ $field, '=', $extra_values[$id][$field] ];
                             }
@@ -2022,6 +2022,9 @@ class ObjectManager extends Service {
                         if(is_null($value) || $value === 'NULL') {
                             if( $operator == '=') {
                                 $operator = 'is';
+                            }
+                            else if( $operator == '<>') {
+                                $operator = 'is not';
                             }
                         }
 
