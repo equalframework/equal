@@ -778,8 +778,12 @@ class ObjectManager extends Service {
                                 continue;
                             }
                             $id = intval($id);
-                            if($id < 0) $ids_to_remove[] = abs($id);
-                            if($id > 0) $ids_to_add[] = $id;
+                            if($id < 0) {
+                                $ids_to_remove[] = abs($id);
+                            }
+                            elseif($id > 0) {
+                                $ids_to_add[] = $id;
+                            }
                         }
                         $foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
                         // remove relation
@@ -1255,11 +1259,11 @@ class ObjectManager extends Service {
                             // ids are always unique
                             $domain[] = ['id', 'not in', $ids];
                         }
-                        $conflict_ids = $this->search($class, $domain);
+                        $conflict_ids = array_filter((array) $this->search($class, $domain), function($a) {return $a > 0;});
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
-                        trigger_error("QN_DEBUG_ORM::field {$field} violates unique constraint with objects ".implode(',', array_keys($conflict_ids)), QN_REPORT_WARNING);
+                        trigger_error("QN_DEBUG_ORM::field {$field} violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
                         $error_code = QN_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
                         break 2;
@@ -1835,6 +1839,10 @@ class ObjectManager extends Service {
             foreach($ids as $oid) {
                 unset($this->cache[$table_name][$oid]);
             }
+
+            // 4) call 'onafterdelete' hook
+
+            $this->callonce($class, 'onafterdelete', $ids, [], DEFAULT_LANG, ['ids']);
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
