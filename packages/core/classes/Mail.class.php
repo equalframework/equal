@@ -38,6 +38,11 @@ class Mail extends Model {
                 'usage'             => 'email'
             ],
 
+            'reply_to' => [
+                'type'              => 'string',
+                'usage'             => 'email'
+            ],
+
             'cc' => [
                 'type'              => 'string',
                 'description'       => 'Comma separated list of carbon-copy recipients.'
@@ -106,6 +111,10 @@ class Mail extends Model {
             'object_class'  => $object_class,
             'object_id'     => $object_id
         ];
+
+        if(isset($email->reply_to)) {
+            $values['reply_to'] = $email->reply_to;
+        }
         // extract attachment names, if any
         if(count($email->attachments)) {
             $attachments = array_map(function ($a) {return $a->name;}, $email->attachments);
@@ -198,7 +207,7 @@ class Mail extends Model {
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 
-            if(isset($message['to'])) {
+            if(isset($message['to']) && strlen($message['to']) > 0) {
                 $envelope = new \Swift_Message();
                 try {
                     // set from and to
@@ -206,6 +215,11 @@ class Mail extends Model {
                         ->setTo($message['to'])
                         ->setCc($message['cc'])
                         ->setFrom([EMAIL_SMTP_ACCOUNT_EMAIL => EMAIL_SMTP_ACCOUNT_DISPLAYNAME]);
+
+                    if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
+                        $envelope->setReplyTo($message['reply_to']);
+                    }
+
                     // add subject
                     $envelope->setSubject($subject);
                     // add body

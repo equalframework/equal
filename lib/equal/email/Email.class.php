@@ -23,6 +23,12 @@ class Email {
     public $to;
 
     /**
+     * Email address to use as 'reply to'.
+     * @var string
+     */
+    public $reply_to;
+
+    /**
      * Array of one or more carbon-copy recipients email addresses.
      * @var string[]
      */
@@ -54,6 +60,7 @@ class Email {
     public function __construct() {
         $this->id = 0;
         $this->to = '';
+        $this->reply_to = '';
         $this->cc = [];
         $this->subject = '';
         $this->body = '';
@@ -68,6 +75,11 @@ class Email {
 
     public function setTo($to) {
         $this->to = $to;
+        return $this;
+    }
+
+    public function setReplyTo($reply_to) {
+        $this->reply_to = $reply_to;
         return $this;
     }
 
@@ -98,9 +110,11 @@ class Email {
     }
 
     public function toArray() {
+        // #memo - 'from' field cannot differ from the email account used for sending (@see config file)
         $values = [
             'id'            => $this->id,
             'to'            => $this->to,
+            'reply_to'      => $this->reply_to,
             'cc'            => $this->cc,
             'subject'       => $this->subject,
             'content-type'  => $this->content_type,
