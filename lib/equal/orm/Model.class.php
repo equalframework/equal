@@ -91,7 +91,7 @@ class Model implements \ArrayAccess, \Iterator {
             // init related field instance
             $this->fields[$field] = Fields::create($this->schema[$field]);
             // assign field value (fields always default to null)
-            $this->values[$field] = null;
+            // $this->values[$field] = null;
             if(isset($values[$field])) {
                 $this->values[$field] = $values[$field];
             }
