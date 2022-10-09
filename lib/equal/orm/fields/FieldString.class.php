@@ -8,7 +8,7 @@ namespace equal\orm\fields;
 
 use equal\locale\Locale;
 
-class FieldInteger extends Field {
+class FieldString extends Field {
 
     public function getSqlType(): string {
         if($this->hasUsage()) {
