@@ -66,6 +66,12 @@ class Model implements \ArrayAccess, \Iterator {
             // if no field 'name' is defined, fall back to 'id' field
             $this->schema['name'] = ['type' => 'alias', 'alias' => 'id'];
         }
+        $fields = array_keys($this->schema);
+        // get default values, set fields for default language, and mark fields as modified
+        foreach($fields as $field) {
+            // init related field instance
+            $this->fields[$field] = Fields::create($this->schema[$field]);
+        }
         // set fields to default values
         $this->setDefaults($values);
     }
@@ -89,18 +95,18 @@ class Model implements \ArrayAccess, \Iterator {
         // get default values, set fields for default language, and mark fields as modified
         foreach($fields as $field) {
             // init related field instance
-            $this->fields[$field] = Fields::create($this->schema[$field]);
-            // assign field value (fields always default to null)
-            // $this->values[$field] = null;
             if(isset($values[$field])) {
                 $this->values[$field] = $values[$field];
+                if($this->fields[$field]) {
+                    $this->fields[$field]->set($this->values[$field]);
+                }
             }
             elseif(isset($defaults[$field])) {
                 // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
                 $this->values[$field] = $defaults[$field];
-            }
-            if($this->fields[$field]) {
-                $this->fields[$field]->set($this->values[$field]);
+                if($this->fields[$field]) {
+                    $this->fields[$field]->set($this->values[$field]);
+                }
             }
         }
     }

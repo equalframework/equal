@@ -31,7 +31,7 @@ jobs:
       # initialise database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
-      - run: php run.php --do=test_package --package=core --logs=true
+      - run: php run.php --do=test_package --package=core
 
 # Orchestrate our job run sequence
 workflows:
