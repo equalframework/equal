@@ -9,6 +9,7 @@ namespace equal\orm;
 use equal\orm\fields\FieldBoolean;
 use equal\orm\fields\FieldInteger;
 use equal\orm\fields\FieldFloat;
+use equal\orm\fields\FieldString;
 
 /**
  * Factory for providing Field instances.
@@ -32,6 +33,7 @@ class Fields {
             case 'float':
                 return new FieldFloat($descriptor);
             case 'string':
+                return new FieldString($descriptor);
             case 'date':
             case 'time':
             case 'binary':

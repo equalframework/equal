@@ -32,14 +32,6 @@ abstract class Field {
         return isset($this->descriptor['usage']);
     }
 
-    /**
-     * Retrun the value as a PHP-typed var.
-     * @return mixed
-     */
-    final public function get() {
-        return $this->value;
-    }
-
     final protected function getUsage(): Usage {
         if(is_null($this->usage) && $this->hasUsage()) {
             $this->usage = Usages::create($this->descriptor['usage']);
@@ -68,6 +60,15 @@ abstract class Field {
                 break;
         }
         return $this;
+    }
+
+    /**
+     * Retrun the value as a PHP-typed var.
+     * #todo - return the value, adapted to the targeted language
+     * @return mixed
+     */
+    final public function get($to='php') {
+        return $this->value;
     }
 
     /**
