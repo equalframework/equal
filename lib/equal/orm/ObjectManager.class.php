@@ -1555,7 +1555,7 @@ class ObjectManager extends Service {
             // 1) pre-processing: $ids sanitization
 
             // get static instance (check that given class exists)
-            $object = $this->getStaticInstance($class);
+            $model = $this->getStaticInstance($class);
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // keep only valid objects identifiers
@@ -1567,18 +1567,20 @@ class ObjectManager extends Service {
             // init resulting array
             foreach($ids as $oid) {
                 // #todo - when ready to deal directly with objects
-                // $res[$oid] = clone $object;
+                // $res[$oid] = clone $model;
                 $res[$oid] = [];
             }
 
             // 2) pre-processing: $fields sanitization
 
-            $schema = $object->getSchema();
+            $schema = $model->getSchema();
             $requested_fields = [];
             $dot_fields = [];
             // cast fields to an array (passing a single field is accepted)
-            // #memo - duplicate fields are allowed: the value will be loaded once and returned as many times as requested
-            if(!is_array($fields)) $fields = (array) $fields;
+            // #memo - duplicate fields are allowed in $fields array: the value will be loaded once and returned as many times as requested
+            if(!is_array($fields)) {
+                $fields = (array) $fields;
+            }
             // check fields validity
             foreach($fields as $key => $field) {
                 // handle fields with 'dot' notation
@@ -1742,9 +1744,9 @@ class ObjectManager extends Service {
             if(empty($ids)) return $res;
             // ids that are left are the ones of the objects that will be (marked as) deleted
             $res = $ids;
-            // retrieve required info
-            $object = $this->getStaticInstance($class);
-            $schema = $object->getSchema();
+            // retrieve targeted Model
+            $model = $this->getStaticInstance($class);
+            $schema = $model->getSchema();
             $table_name = $this->getObjectTableName($class);
 
             // 2) make sure objects in the collection can be deleted

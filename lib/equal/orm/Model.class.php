@@ -43,10 +43,12 @@ class Model implements \ArrayAccess, \Iterator {
 
 
     /**
-     * Constructor
+     * Constructor: initiliases members vars and set fields to values, if given.
      *
      */
     public final function __construct($values=[]) {
+        $this->values = [];
+        $this->fields = [];
         // build the schema based on current class and ancestors
         $this->schema = self::getSpecialColumns();
         // piles up the getColumns methods from oldest ancestor to called class
@@ -62,25 +64,43 @@ class Model implements \ArrayAccess, \Iterator {
         // make sure that a field 'name' is always defined
         if( !isset($this->schema['name']) ) {
             // if no field 'name' is defined, fall back to 'id' field
-            $this->schema['name'] = array( 'type' => 'alias', 'alias' => 'id' );
+            $this->schema['name'] = ['type' => 'alias', 'alias' => 'id'];
         }
         // set fields to default values
         $this->setDefaults($values);
     }
 
-    private function setDefaults($values=[]) {
-        $this->values = [];
+    /**
+     * Custom clone handler for cloning Field sub-instances.
+     */
+    public function __clone() {
+        foreach($this->fields as $field => $instance) {
+            if($this->fields[$field]) {
+                $this->fields[$field] = clone $instance;
+            }
+        }
+    }
 
+    private function setDefaults($values=[]) {
         $defaults = $this->getDefaults();
+        // reset fields values
+        $this->values = [];
         $fields = array_keys($this->schema);
         // get default values, set fields for default language, and mark fields as modified
         foreach($fields as $field) {
-            if(isset($defaults[$field])) {
+            // init related field instance
+            $this->fields[$field] = Fields::create($this->schema[$field]);
+            // assign field value (fields always default to null)
+            $this->values[$field] = null;
+            if(isset($values[$field])) {
+                $this->values[$field] = $values[$field];
+            }
+            elseif(isset($defaults[$field])) {
                 // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
                 $this->values[$field] = $defaults[$field];
             }
-            if(isset($values[$field])) {
-                $this->values[$field] = $values[$field];
+            if($this->fields[$field]) {
+                $this->fields[$field]->set($this->values[$field]);
             }
         }
     }
@@ -98,7 +118,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     public function __set($field, $value) {
         $this->values[$field] = $value;
-        if(isset($this->fields[$field])) {
+        if(isset($this->fields[$field]) && $this->fields[$field]) {
             $this->fields[$field]->set($value);
         }
     }
@@ -109,7 +129,7 @@ class Model implements \ArrayAccess, \Iterator {
     public function offsetSet($field, $value): void {
         if (!is_null($field)) {
             $this->values[$field] = $value;
-            if(isset($this->fields[$field])) {
+            if(isset($this->fields[$field]) && $this->fields[$field]) {
                 $this->fields[$field]->set($value);
             }
             // #memo - properties should remain virtual (we cannot intercept direct value assignation)
@@ -279,7 +299,9 @@ class Model implements \ArrayAccess, \Iterator {
         if(!isset($this->fields[$field])) {
             if(isset($this->schema[$field])) {
                 $this->fields[$field] = Fields::create($this->schema[$field]);
-                $this->fields[$field]->set($this->values[$field]);
+                if($this->fields[$field]) {
+                    $this->fields[$field]->set($this->values[$field]);
+                }
             }
         }
         return (isset($this->fields[$field]))?$this->fields[$field]:null;
