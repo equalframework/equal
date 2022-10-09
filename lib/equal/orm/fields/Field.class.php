@@ -26,15 +26,6 @@ abstract class Field {
         $this->descriptor = $descriptor;
     }
 
-    /**
-     * Custom clone handler for cloning Usage sub-instance.
-     */
-    public function __clone() {
-        if($this->usage) {
-            $this->usage = clone $this->usage;
-        }
-    }
-
     abstract public function getSqlType(): string;
 
     final protected function hasUsage(): bool {
