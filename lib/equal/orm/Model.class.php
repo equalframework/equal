@@ -28,9 +28,9 @@ class Model implements \ArrayAccess, \Iterator {
     private $schema;
 
     /**
-     * List of all fields names (columns) defined in the model.
+     * Associative array holing Field instances defined in the model.
      *
-     * @var array
+     * @var Field[]
      */
     private $fields;
 
@@ -64,8 +64,6 @@ class Model implements \ArrayAccess, \Iterator {
             // if no field 'name' is defined, fall back to 'id' field
             $this->schema['name'] = array( 'type' => 'alias', 'alias' => 'id' );
         }
-        // set array holding fields names
-        $this->fields = array_keys($this->schema);
         // set fields to default values
         $this->setDefaults($values);
     }
@@ -74,8 +72,9 @@ class Model implements \ArrayAccess, \Iterator {
         $this->values = [];
 
         $defaults = $this->getDefaults();
+        $fields = array_keys($this->schema);
         // get default values, set fields for default language, and mark fields as modified
-        foreach($this->fields as $field) {
+        foreach($fields as $field) {
             if(isset($defaults[$field])) {
                 // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
                 $this->values[$field] = $defaults[$field];
@@ -93,36 +92,40 @@ class Model implements \ArrayAccess, \Iterator {
 
     /* Magic properties */
 
-    public function __get($key) {
-        return $this->values[$key];
+    public function __get($field) {
+        return $this->values[$field];
     }
 
-    public function __set($key, $value) {
-        $this->values[ $key ] = $value;
+    public function __set($field, $value) {
+        $this->values[$field] = $value;
+        if(isset($this->fields[$field])) {
+            $this->fields[$field]->set($value);
+        }
     }
 
 
     /* ArrayAccess methods */
 
-    public function offsetSet($offset, $value): void {
-        if (!is_null($offset)) {
-            $this->values[$offset] = $value;
-            if(property_exists($this, $offset)) {
-                $this->$offset = $value;
+    public function offsetSet($field, $value): void {
+        if (!is_null($field)) {
+            $this->values[$field] = $value;
+            if(isset($this->fields[$field])) {
+                $this->fields[$field]->set($value);
             }
+            // #memo - properties should remain virtual (we cannot intercept direct value assignation)
         }
     }
 
-    public function offsetExists($offset): bool {
-        return isset($this->values[$offset]);
+    public function offsetExists($field): bool {
+        return isset($this->values[$field]);
     }
 
-    public function offsetUnset($offset): void {
-        unset($this->values[$offset]);
+    public function offsetUnset($field): void {
+        unset($this->values[$field]);
     }
 
-    public function offsetGet($offset) {
-        return isset($this->values[$offset]) ? $this->values[$offset] : null;
+    public function offsetGet($field) {
+        return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
 
@@ -193,12 +196,18 @@ class Model implements \ArrayAccess, \Iterator {
         return $special_columns;
     }
 
-    // #todo - deprecate : this method doesn't seem to be used
+    // #todo - deprecate : this method shouldn't be used
+    /**
+     * @deprecated
+     */
     public final function setField($field, $value) {
         $this->values[$field] = $value;
     }
 
     // #todo - deprecate : this method doesn't seem to be used
+    /**
+     * @deprecated
+     */
     public final function setColumn($column, array $description) {
         $this->schema[$column] = $description;
     }
@@ -256,15 +265,24 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Returns all fields names
-     * @return array    List of all fields names (including special fields).
+     * Returns fields as Field objects.
+     * #memo - $fields member might be uncomplete (fields isntances are created when requested for the first time)
+     *
+     * @return Field[]    Associative array mapping fields names with their related Field instances.
+     * #deprecated
      */
     public final function getFields() {
         return $this->fields;
     }
 
     public final function getField($field) {
-        return $this->field($field);
+        if(!isset($this->fields[$field])) {
+            if(isset($this->schema[$field])) {
+                $this->fields[$field] = Fields::create($this->schema[$field]);
+                $this->fields[$field]->set($this->values[$field]);
+            }
+        }
+        return (isset($this->fields[$field]))?$this->fields[$field]:null;
     }
 
     /**
@@ -272,6 +290,7 @@ class Model implements \ArrayAccess, \Iterator {
      * This method should be used for type comparisons and when checking field structure validity.
      *
      * @access public
+     * @deprecated
      */
     public final function field($field) {
         $type = $this->schema[$field]['type'];

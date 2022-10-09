@@ -271,7 +271,6 @@ class ObjectManager extends Service {
                 if(!isset($matches[1])) {
                     throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
                 }
-                $parent_class = trim($matches[1]);
                 if(!(include_once $filename)) {
                     throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
                 }
@@ -756,7 +755,8 @@ class ObjectManager extends Service {
                             if($type == 'computed') {
                                 $type = $schema[$field]['result_type'];
                             }
-                            // #todo - this breaks the collection pattern (to handle oid in filname for binaries stored as files)
+                            // #todo - this breaks the collection pattern
+                            // #memo - we do this in order to handle oid in filname for binaries stored as files)
                            $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
                         }
                         $fields_values[$field] = $value;
@@ -934,7 +934,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            trigger_error("QN_DEBUG_ORM::unknown method '$method' for class '$class'", QN_REPORT_WARNING);
+            trigger_error("QN_DEBUG_ORM::non-existing method '$method' for class '$class'", QN_REPORT_INFO);
             return QN_ERROR_INVALID_PARAM;
         }
 
@@ -1035,26 +1035,10 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
-            // #todo - validate (only method in ORM that raises an Exception)
+            // #todo - validate (this is the only public method in ORM that raises an Exception)
             throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
         return $model;
-    }
-
-    /**
-     * Create a Field instance based on class name and field name.
-     *
-     * @return \equal\orm\fields\Field   Returns a Field instance (variation according to type found in description).
-     */
-    public function getField($class, $field) {
-        if(!isset($this->fields[$class][$field])) {
-            if(!isset($this->fields[$class])) {
-                $this->fields[$class] = [];
-            }
-            $model = $this->getModel($class);
-            $this->fields[$class][$field] = Fields::create($model->getField($field));
-        }
-        return $this->fields[$class][$field];
     }
 
     public function getLastError() {
@@ -1105,24 +1089,26 @@ class ObjectManager extends Service {
 
         // 2) MODEL constraint check
 
-        /*
-            // check constraints implied by type and usage
-            foreach($values as $field => $value) {
-                $f = $this->getField($class);
-                $usage = $f->getUsage();
-                $constaints = $f->getConstraints();
-                foreach($constraints as $error_id => $constraint) {
-                    $fn = $constraint['function'];
-                    $fn->bindTo($usage);
-                    if(is_callable($fn) && !call_user_func($fn, $value, $values)) {
-                        $res[$field][$error_id] = $constraint['message'];
-                    }
-                }
-            }
+        //     // #todo
+        //     // check constraints implied by type and usage
+        //     foreach($values as $field => $value) {
+        //         /** @var \equal\orm\fields\Field */
+        //         $f = $model->getField($class);
+        //         $usage = $f->getUsage();
+        //         $constaints = $f->getConstraints();
+        //         foreach($constraints as $error_id => $constraint) {
+        //             $fn = $constraint['function'];
+        //             if(is_callable($fn)) {
+        //                 $fn->bindTo($usage);
+        //                 if(!call_user_func($fn, $value)) {
+        //                     $res[$field][$error_id] = $constraint['message'];
+        //                 }
+        //             }
+        //         }
+        //     }
 
-            // + support $model->getConstraints()
+        //     // + support $model->getConstraints()
 
-        */
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
@@ -1444,12 +1430,13 @@ class ObjectManager extends Service {
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // prevent updating id field (reserved)
-            if(isset($fields['id'])) unset($fields['id']);
+            if(isset($fields['id'])) {
+                unset($fields['id']);
+            }
             // remove unknown fields
-            $allowed_fields = $object->getFields();
             foreach($fields as $field => $values) {
                 // remove fields not defined in related schema
-                if(!in_array($field, $allowed_fields)) {
+                if(!isset($schema[$field])) {
                     unset($fields[$field]);
                     trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in fields arg", QN_REPORT_WARNING);
                 }
@@ -1676,7 +1663,9 @@ class ObjectManager extends Service {
                 // retrieve final type of targeted field
                 $field_type = $this->getFinalType($class, $path_field);
                 // ignore non-relational fields
-                if(!$field_type || !in_array($field_type, ['many2one', 'one2many', 'many2many'])) continue;
+                if(!$field_type || !in_array($field_type, ['many2one', 'one2many', 'many2many'])) {
+                    continue;
+                }
                 // read the field values
                 $values = $this->read($class, $ids, (array) $path_field, $lang);
 
@@ -2092,9 +2081,9 @@ class ObjectManager extends Service {
                             default:
                                 // adapt value
                                 if(!is_array($value)) {
-                                    // #todo - json to php conversion should be done in Collection class
-                                    // at this stage, we should be dealing with PHP values only
+                                    // #todo - json to php conversion should be done in Collection class (at this stage, we should be dealing with PHP values only)
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
+                                    // adapt value to SQL
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)

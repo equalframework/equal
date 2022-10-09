@@ -48,6 +48,9 @@ abstract class Field {
     }
 
     /**
+     * Adapt the value of the field to the target language.
+     * Pseudo language 'txt' is a text-based output that is locale-dependent.
+     *
      * @param string $lang      Only affects txt conversions (output is generated according to $lang locale).
      * @return mixed
      * @throws Exception        In case a value is not convertible to the targeted language.
@@ -123,7 +126,7 @@ abstract class Field {
         if($this->hasUsage()) {
             $usage = $this->getUsage();
             if($usage) {
-                $constraints = array_merge($constraints, $usage->getConstraints());
+                $constraints = $usage->getConstraints();
             }
         }
         return $constraints;

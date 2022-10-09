@@ -6,7 +6,9 @@
 */
 namespace equal\orm;
 
+use equal\orm\fields\FieldBoolean;
 use equal\orm\fields\FieldInteger;
+use equal\orm\fields\FieldFloat;
 
 /**
  * Factory for providing Field instances.

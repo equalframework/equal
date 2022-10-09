@@ -28,7 +28,8 @@ class Collection implements \Iterator, \Countable {
     /* Target class */
     private $class;
 
-    /* static instance of target class (for retrieving fields and schema) */
+    /* Instance of target class (used for retrieving fields and schema; inherits from Model class) */
+    /** @var \equal\orm\Model */
     private $model;
 
     /* map associating objects with their values with identifiers as keys */
@@ -287,7 +288,8 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names and discard: special fields; fields marked as readonly; and fields unknonwn to the current class.
+     * Filters a map of fields-values entries or an array of fields names
+     * by discarding: special fields; fields marked as readonly; and fields unknonwn to the current class.
      *
      * @param   array   $fields             Associative array mapping field names with their values.
      * @param   bool    $check_readonly     If set to true, readonly fields are discarded.
@@ -299,7 +301,7 @@ class Collection implements \Iterator, \Countable {
         if(count($fields)) {
             $schema = $this->model->getSchema();
             // retrieve valid fields, i.e. fields from schema
-            $allowed_fields = $this->model->getFields();
+            $allowed_fields = array_keys($schema);
             if($check_readonly) {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
@@ -338,6 +340,7 @@ class Collection implements \Iterator, \Countable {
                         $type = $schema[$field]['result_type'];
                     }
 /*
+                    // #todo
                     $f = $this->orm->getField($this->class, $field); // retrieve descriptor from schema
                     if(!$f) {
                         throw new Exception("missing_field", QN_ERROR_UNKNOWN);
