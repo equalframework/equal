@@ -128,7 +128,7 @@ $settings = [
 
 $doc = new Spreadsheet();
 
-$user = User::id($auth->userId())->read(['id', 'login'])->first();
+$user = User::id($auth->userId())->read(['id', 'login'])->first(true);
 
 $doc->getProperties()
       ->setCreator($user['login'])

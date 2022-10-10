@@ -12,7 +12,7 @@ Usage examples :
 ```php
 <?php
 use core\Group;
-$group = Group::create(['name' => 'test group'])->first();
+$group = Group::create(['name' => 'test group'])->first(true);
 ```
 
 ## CLI
@@ -97,7 +97,7 @@ catch(Exception $e) {
 // fields for which no value has been given are set to default value (set in Model)
 $instance = $params['entity']::create($params['fields'], $params['lang'])
             ->adapt('txt')
-            ->first();
+            ->first(true);
 
 $result = [
     'entity' => $params['entity'],

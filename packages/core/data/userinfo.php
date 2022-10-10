@@ -40,7 +40,7 @@ if(!count($ids)) {
 $user = User::ids($ids)
     ->read(['id', 'login', 'firstname', 'lastname', 'language', 'groups_ids' => ['name']])
     ->adapt('txt')
-    ->first();
+    ->first(true);
 
 $user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $user['groups_ids']));
 

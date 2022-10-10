@@ -144,7 +144,7 @@ $settings = [
     'format_currency'   => function($a) { return Setting::format_number_currency($a); }
 ];
 
-$user = User::id($auth->userId())->read(['id', 'login'])->first();
+$user = User::id($auth->userId())->read(['id', 'login'])->first(true);
 
 $doc = new Spreadsheet();
 $doc->getProperties()

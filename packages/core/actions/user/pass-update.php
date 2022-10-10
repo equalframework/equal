@@ -12,7 +12,7 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],    
+    ],
     'params'        => [
         'user_id' =>  [
             'description'   => 'Identifier of the user to update (when not current user).',
@@ -55,7 +55,7 @@ else {
 }
 
 if(!$user_id) {
-    throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);    
+    throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);
 }
 
 $target_user_id = $params['user_id'];
@@ -64,13 +64,13 @@ if($target_user_id <= 0) {
 }
 
 // update user instance (user always has write access on its own object)
-// #memo - User::onchangePassword method makes sure `password` is hashed 
+// #memo - User::onchangePassword method makes sure `password` is hashed
 $instance = User::id($target_user_id)
     ->update([
         'password' => $params['password']
     ])
     ->adapt('txt')
-    ->first();
+    ->first(true);
 
 $response = $context->httpResponse();
 
@@ -80,13 +80,13 @@ if(strlen($params['token'])) {
     $access_token  = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
     $refresh_token = $auth->token($user_id, AUTH_REFRESH_TOKEN_VALIDITY);
     $response->cookie('access_token',  $access_token, [
-        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
-        'httponly'  => true, 
+        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY,
+        'httponly'  => true,
         'secure'    => AUTH_TOKEN_HTTPS
     ])
     ->cookie('refresh_token', $refresh_token, [
-        'expires'   => time() + AUTH_REFRESH_TOKEN_VALIDITY, 
-        'httponly'  => true, 
+        'expires'   => time() + AUTH_REFRESH_TOKEN_VALIDITY,
+        'httponly'  => true,
         'secure'    => AUTH_TOKEN_HTTPS
     ]);
 }

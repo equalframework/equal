@@ -46,7 +46,7 @@ if(!$user_id) {
     throw new Exception("user_not_found", QN_ERROR_INVALID_USER);
 }
 
-$user = User::id($user_id)->read(['validated'])->first();
+$user = User::id($user_id)->read(['validated'])->first(true);
 if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", QN_ERROR_NOT_ALLOWED);
 }

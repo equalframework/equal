@@ -108,7 +108,7 @@ if(count($fields)) {
     if( count($params['ids']) == 1) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
-            $object = $params['entity']::ids($params['ids'])->read(['state'])->first();
+            $object = $params['entity']::ids($params['ids'])->read(['state'])->first(true);
             // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object
             if($object['state'] != 'draft') {
                 // create object as draft to avoid a missing_mandatory error, and then update it
@@ -116,13 +116,13 @@ if(count($fields)) {
                                              ->update($fields, $params['lang'])
                                              ->read(['id'])
                                              ->adapt('txt')
-                                             ->first();
+                                             ->first(true);
                 $params['ids'] = [$instance['id']];
             }
         }
         // handle instances edition
         else if(isset($fields['modified']) ) {
-            $object = $params['entity']::ids($params['ids'])->read(['modified'])->first();
+            $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
             // a changed occured in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
                 throw new Exception("concurrent_change", QN_ERROR_CONFLICT_OBJECT);

@@ -1,4 +1,4 @@
-<?php
+irst(<?php
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
@@ -12,16 +12,16 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],    
+    ],
     'params'        => [
         'id' =>  [
             'description'   => 'Identifier of the user to update.',
             'type'          => 'integer',
             'required'      => true
-        ],    
+        ],
         'firstname' =>  [
             'description'   => 'User firstname.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => ''
         ],
         'lastname' => [
@@ -33,9 +33,9 @@ list($params, $providers) = announce([
             'description'   => 'User language.',
             'type'          => 'string',
             'default'       => DEFAULT_LANG
-        ]        
+        ]
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
@@ -43,12 +43,12 @@ list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 // update user instance
 $instance = User::id($params['id'])
     ->update([
-        'firstname' => $params['firstname'], 
-        'lastname'  => $params['lastname'], 
+        'firstname' => $params['firstname'],
+        'lastname'  => $params['lastname'],
         'language'  => $params['language']
     ])
     ->adapt('txt')
-    ->first();
+    ->first(true);
 
 $context->httpResponse()
         ->status(200)

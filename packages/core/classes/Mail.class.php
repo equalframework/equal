@@ -121,7 +121,7 @@ class Mail extends Model {
             $values['attachments'] = implode("\n", $attachments);
         }
         // create the Mail object
-        $mail = Mail::create($values)->read(['id'])->first();
+        $mail = Mail::create($values)->read(['id'])->first(true);
         // create JSON data (append newly created object ID)
         $values = $email->setId($mail['id'])->toArray();
         // convert to JSON

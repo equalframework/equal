@@ -177,7 +177,7 @@ class Collection implements \Iterator, \Countable {
         if(!count($this->objects)) {
             return null;
         }
-        $object = reset( $objects );
+        $object = reset($this->objects);
         return $this->get_raw_object($object, $to_array);
         // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
@@ -193,7 +193,7 @@ class Collection implements \Iterator, \Countable {
         if(!count($this->objects)) {
             return null;
         }
-        $object = end($objects);
+        $object = end($this->objects);
         return $this->get_raw_object($object, $to_array);
         // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }

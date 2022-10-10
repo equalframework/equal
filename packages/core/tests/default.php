@@ -239,7 +239,7 @@ $tests = [
                                                 $group_id = $om->create('core\Group', ['id' => 3, 'name' => 'test']);
                                                 return $group_id;
                                             },
-                    'assert'            =>  function($result) {                                                
+                    'assert'            =>  function($result) {
                                                 return ($result >= 1);
                                             }
                     ),
@@ -413,7 +413,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count($result) && 
+                                                    count($result) &&
                                                     count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[2])) == 0
                                                 );
                                             }
@@ -465,7 +465,7 @@ $tests = [
                                                 try {
                                                     $values = User::search(['login', '=', 'test@equal.run'])
                                                               ->read(['login'])
-                                                              ->first();
+                                                              ->first(true);
                                                 }
                                                 catch(\Exception $e) {
                                                     // possible raised Exception codes : QN_ERROR_NOT_ALLOWED

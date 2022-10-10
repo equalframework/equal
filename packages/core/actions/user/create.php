@@ -12,7 +12,7 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],    
+    ],
     'params'        => [
         'login' =>  [
             'description'   => 'email address to be used as login for the user.',
@@ -28,7 +28,7 @@ list($params, $providers) = announce([
         ],
         'firstname' =>  [
             'description'   => 'User given name.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => ''
         ],
         'lastname' => [
@@ -40,19 +40,19 @@ list($params, $providers) = announce([
             'description'   => 'User language.',
             'type'          => 'string',
             'default'       => DEFAULT_LANG
-        ]        
+        ]
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 // create user: resulting Collection will check for current user privilege; validate the received values; and check the `Unique` constraints
-// #memo - User class defines its own Unique constraint on `login` field, and User::onchangePassword method makes sure `password` is hashed 
+// #memo - User class defines its own Unique constraint on `login` field, and User::onchangePassword method makes sure `password` is hashed
 $instance = User::create($params)
             ->read(['id', 'login', 'firstname', 'lastname', 'language'])
             ->adapt('txt')
-            ->first();
+            ->first(true);
 
 $context->httpResponse()
         ->status(201)

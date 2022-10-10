@@ -48,7 +48,7 @@ try {
     // we need the user credentials to generate confirmation code in the email
     $user = User::id($user_id)
             ->read(['id', 'login', 'validated', 'firstname', 'language'])
-            ->first();
+            ->first(true);
 
     if(!$user || !$user['validated']) {
         throw new Exception("not_allowed", QN_ERROR_NOT_ALLOWED);
