@@ -177,9 +177,9 @@ class Collection implements \Iterator, \Countable {
         if(!count($this->objects)) {
             return null;
         }
-        $objects = array_slice($this->objects, 0, 1);
-        $object = array_pop( $objects );
+        $object = reset( $objects );
         return $this->get_raw_object($object, $to_array);
+        // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
 
     /**
@@ -193,9 +193,9 @@ class Collection implements \Iterator, \Countable {
         if(!count($this->objects)) {
             return null;
         }
-        $objects = array_slice($this->objects, -1, 1);
-        $object = array_pop( $objects );
+        $object = end($objects);
         return $this->get_raw_object($object, $to_array);
+        // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
 
     /**

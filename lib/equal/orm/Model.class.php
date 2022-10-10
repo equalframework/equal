@@ -76,17 +76,6 @@ class Model implements \ArrayAccess, \Iterator {
         $this->setDefaults($values);
     }
 
-    /**
-     * Custom clone handler for cloning Field sub-instances.
-     */
-    public function __clone() {
-        foreach($this->fields as $field => $instance) {
-            if($this->fields[$field]) {
-                $this->fields[$field] = clone $instance;
-            }
-        }
-    }
-
     private function setDefaults($values=[]) {
         $defaults = $this->getDefaults();
         // reset fields values
@@ -97,16 +86,10 @@ class Model implements \ArrayAccess, \Iterator {
             // init related field instance
             if(isset($values[$field])) {
                 $this->values[$field] = $values[$field];
-                if($this->fields[$field]) {
-                    $this->fields[$field]->set($this->values[$field]);
-                }
             }
             elseif(isset($defaults[$field])) {
                 // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
                 $this->values[$field] = $defaults[$field];
-                if($this->fields[$field]) {
-                    $this->fields[$field]->set($this->values[$field]);
-                }
             }
         }
     }
@@ -124,9 +107,6 @@ class Model implements \ArrayAccess, \Iterator {
 
     public function __set($field, $value) {
         $this->values[$field] = $value;
-        if(isset($this->fields[$field]) && $this->fields[$field]) {
-            $this->fields[$field]->set($value);
-        }
     }
 
 
@@ -135,9 +115,6 @@ class Model implements \ArrayAccess, \Iterator {
     public function offsetSet($field, $value): void {
         if (!is_null($field)) {
             $this->values[$field] = $value;
-            if(isset($this->fields[$field]) && $this->fields[$field]) {
-                $this->fields[$field]->set($value);
-            }
             // #memo - properties should remain virtual (we cannot intercept direct value assignation)
         }
     }
@@ -305,9 +282,6 @@ class Model implements \ArrayAccess, \Iterator {
         if(!isset($this->fields[$field])) {
             if(isset($this->schema[$field])) {
                 $this->fields[$field] = Fields::create($this->schema[$field]);
-                if($this->fields[$field]) {
-                    $this->fields[$field]->set($this->values[$field]);
-                }
             }
         }
         return (isset($this->fields[$field]))?$this->fields[$field]:null;
