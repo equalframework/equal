@@ -46,7 +46,7 @@ class DataValidator extends Service {
             case 'email':
                 return [
                     'kind'  => 'function',
-                    'rule'  => function($a, $o) {return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $a));}
+                    'rule'  => function($a, $o) {return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/i', $a));}
                 ];
             case 'uri/url.tel':
                 return [

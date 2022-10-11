@@ -14,7 +14,7 @@ class UsageEmail extends Usage {
     }
 
     public function getSqlType(): string {
-            return 'varchar(255)';
+        return 'varchar(255)';
     }
 
     /**
@@ -34,7 +34,7 @@ class UsageEmail extends Usage {
             'invalid_email' => [
                 'message'   => 'Malformed email address.',
                 'function'  =>  function($value) {
-                    return (bool) (preg_match('/^([_a-z0-9-\.]+)(\+([_a-z0-9]+))?@(([a-z0-9-]+\.)*)([a-z0-9-]{1,63})(\.[a-z-]{2,24})$/', $value));
+                    return (bool) (preg_match('/^([_a-z0-9-\.]+)(\+([_a-z0-9]+))?@(([a-z0-9-]+\.)*)([a-z0-9-]{1,63})(\.[a-z-]{2,24})$/i', $value));
                 }
             ]
         ];

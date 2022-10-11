@@ -15,9 +15,24 @@ use \Exception as Exception;
 class DBManipulatorMySQL extends DBManipulator {
 
 
-  public function select($db_name) {
-    return mysqli_select_db($this->dbms_handler, $db_name);
-  }
+    public static $types_associations = [
+        'boolean'       => 'tinyint(4)',
+        'integer'       => 'int(11)',
+        'float'         => 'decimal(10,2)',
+        'string'        => 'varchar(255)',
+        'text'          => 'text',
+        'date'          => 'date',
+        'time'          => 'time',
+        'datetime'      => 'datetime',
+        'timestamp'     => 'timestamp',
+        'file'          => 'longblob',
+        'binary'        => 'longblob',
+        'many2one'      => 'int(11)'
+    ];
+
+    public function select($db_name) {
+        return mysqli_select_db($this->dbms_handler, $db_name);
+    }
 
   /**
    * Open the DBMS connection

@@ -120,7 +120,7 @@ class ObjectManager extends Service {
         'file'          => array('like', 'ilike', '=', 'is', 'is not'),
         'binary'        => array('like', 'ilike', '=', 'is', 'is not'),
         // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
-        'many2one'      => array('is', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
+        'many2one'      => array('is', 'is not', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'      => array('contains'),
         'many2many'     => array('contains'),
     ];
@@ -1154,7 +1154,7 @@ class ObjectManager extends Service {
             if(isset($schema[$field]['usage']) && !empty($value)) {
                 $constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
                 $constraints[$field]['type_misuse'] = [
-                    'message'     => 'Value does not comply with usage \''.$schema[$field]['usage'].'\'.',
+                    'message'     => "Value [$value] does not comply with usage '{$schema[$field]['usage']}'.",
                     'function'    => $constraint['rule']
                 ];
             }

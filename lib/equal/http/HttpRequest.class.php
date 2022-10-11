@@ -100,27 +100,29 @@ class HttpRequest extends HttpMessage {
 
             // retrieve content
             $body = $this->body();
-
-            if(is_array($body)) {
+            // force parameters to the URI in case of GET request (which shouldn't hold a body)
+            // (@see RFC7231 : "A payload within a GET request message has no defined semantics")
+            if($method == 'GET') {
+                if(is_array($body)) {
+                    $body = http_build_query($body);
+                }
+                else {
+                    $body = urlencode($body);
+                }
+                $uri = explode('?', $uri)[0].'?'.$body;
+                $body = '';
+            }
+            elseif(is_array($body)) {
                 switch($content_type) {
-                    case 'application/x-www-form-urlencoded':
-                        $body = http_build_query($body);
-                        break;
                     case 'application/vnd.api+json':
                     case 'application/x-json':
                     case 'application/json':
                         $body = json_encode($body, JSON_PRETTY_PRINT);
                         break;
+                    case 'application/x-www-form-urlencoded':
                     default:
                         $body = http_build_query($body);
                 }
-            }
-
-            // force parameters to the URI in case of GET request
-            if($method == 'GET') {
-                $uri = explode('?', $uri)[0].'?'.$body;
-                // GET request shouldn't hold a body
-                $body = '';
             }
 
             // compute content length
@@ -144,18 +146,18 @@ class HttpRequest extends HttpMessage {
                     'ignore_errors'     => true,
                     'timeout'           => 10,
                     'protocol_version'  => $this->getProtocolVersion()
-            ]);
+                ]);
             // create the HTTP stream context
             $context = stream_context_create([
-                'http' => $http_options
-            ]);
+                    'http' => $http_options
+                ]);
 
             // send request
             $data = @file_get_contents(
-                                        $uri,
-                                        false,
-                                        $context
-                                       );
+                    $uri,
+                    false,
+                    $context
+                );
             // build HTTP response object
             if(isset($http_response_header[0])) {
                 $response_status = $http_response_header[0];
