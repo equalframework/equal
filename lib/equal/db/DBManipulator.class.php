@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\db;
- 
+
 class DBManipulator {
 
 	/**
@@ -140,7 +140,7 @@ class DBManipulator {
     public function connected() {
         return (bool) $this->dbms_handler;
     }
-    
+
 	/**
 	* Close the DBMS connection
 	*
@@ -164,7 +164,7 @@ class DBManipulator {
 		}
 		return false;
     }
-        
+
 	public final function isEmpty($value) {
 		return (empty($value) || $value == '0000-00-00' || !strcasecmp($value, 'false') || !strcasecmp($value, 'null'));
 	}
