@@ -1760,7 +1760,63 @@ class ObjectManager extends Service {
 
             $this->callonce($class, 'ondelete', $ids, [], DEFAULT_LANG, ['ids']);
 
-            // 4) remove object
+            // 4) cascade deletions / relations updates
+
+            foreach($schema as $field => $def) {
+                if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
+                    switch($def['type']) {
+                    case 'file':
+                        if(FILE_STORAGE_MODE == 'FS') {
+                            // build a unique name  (package/class/field/oid.lang)
+                            $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
+                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+                            foreach($ids as $oid) {
+                                // remove binary for all langs
+                                foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
+                                    unlink($filename);
+                                }
+                            }
+                        }
+                        break;
+                    case 'one2many':
+                        $rel_res = $this->read($class, $ids, $field);
+                        $rel_ids = [];
+                        array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
+                        if(isset($def['foreign_object'])) {
+                            // foreign field is many2one
+                            $rel_schema = $this->getObjectSchema($def['foreign_object']);
+                            // call ondelete method when defined (to allow cascade deletion)
+                            if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
+                                $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], DEFAULT_LANG, ['ids']);
+                                // for unknown method, check special keywords 'cascade' and 'null'
+                                if($call_res < 0) {
+                                    switch($rel_schema[$def['foreign_field']]['ondelete']) {
+                                        case 'cascade':
+                                            $this->delete($def['foreign_object'], $rel_ids, $permanent);
+                                            break;
+                                        case 'null':
+                                        default:
+                                            $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 'many2many':
+                        // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
+                        $this->db->deleteRecords(
+                            $def['rel_table'],
+                            $ids,
+                            null,
+                            $schema[$field]['rel_local_key']
+                        );
+                        break;
+                    }
+                }
+            }
+
+            // 5) remove object
 
             // soft deletion
             if (!$permanent) {
@@ -1768,60 +1824,6 @@ class ObjectManager extends Service {
             }
             // hard deletion
             else {
-                // 3 bis) cascade deletions / relations updates
-                foreach($schema as $field => $def) {
-                    if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
-                        switch($def['type']) {
-                        case 'file':
-                            if(FILE_STORAGE_MODE == 'FS') {
-                                // build a unique name  (package/class/field/oid.lang)
-                                $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                                $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
-                                foreach($ids as $oid) {
-                                    // remove binary for all langs
-                                    foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
-                                        unlink($filename);
-                                    }
-                                }
-                            }
-                            break;
-                        case 'one2many':
-                            $rel_res = $this->read($class, $ids, $field);
-                            $rel_ids = [];
-                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
-                            if(isset($def['foreign_object'])) {
-                                // foreign field is many2one
-                                $rel_schema = $this->getObjectSchema($def['foreign_object']);
-                                // call ondelete method when defined (to allow cascade deletion)
-                                if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                    $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], DEFAULT_LANG, ['ids']);
-                                    // for unknown method, check special keywords 'cascade' and 'null'
-                                    if($call_res < 0) {
-                                        switch($rel_schema[$def['foreign_field']]['ondelete']) {
-                                            case 'cascade':
-                                                $this->delete($def['foreign_object'], $rel_ids, $permanent);
-                                                break;
-                                            case 'null':
-                                            default:
-                                                $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        case 'many2many':
-                            // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
-                            $this->db->deleteRecords(
-                                $def['rel_table'],
-                                $ids,
-                                null,
-                                $schema[$field]['rel_local_key']
-                            );
-                            break;
-                        }
-                    }
-                }
                 // delete targeted objects
                 $db->deleteRecords($table_name, $ids);
             }
