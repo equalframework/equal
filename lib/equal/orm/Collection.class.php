@@ -693,7 +693,14 @@ class Collection implements \Iterator, \Countable {
                 $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang);
                 // assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
-                    $this->objects[$id][$field] = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
+                    /** @var Collection */
+                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
+                    if($target_type == 'many2one') {
+                        $this->objects[$id][$field] = $children->first();
+                    }
+                    else {
+                        $this->objects[$id][$field] = $children;
+                    }
                 }
             }
         }

@@ -78,8 +78,13 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "response",
-                                                "width": "100%"
+                                                "value": "reply_to",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "cc",
+                                                "width": "50%"
                                             },
                                             {
                                                 "type": "field",

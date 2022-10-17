@@ -37,6 +37,11 @@
             },
             {
                 "type": "field",
+                "value": "reply_to",
+                "width": "25%"
+            },
+            {
+                "type": "field",
                 "value": "to",
                 "width": "25%"
             },

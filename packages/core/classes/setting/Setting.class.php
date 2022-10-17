@@ -123,7 +123,7 @@ class Setting extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\setting\SettingChoice',
                 'foreign_field'     => 'setting_id',
-                'description'       => 'List of values related to the setting.'
+                'description'       => 'List of possible values related to the setting.'
             ]
 
         ];

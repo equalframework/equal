@@ -107,6 +107,7 @@ class Dispatcher extends Service {
     public function cancel($message_model, $object_class, $object_id) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
+        trigger_error("QN_DEBUG_PHP::cancelling message", QN_REPORT_DEBUG);
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 

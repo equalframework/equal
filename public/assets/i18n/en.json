@@ -56,6 +56,7 @@
     "SB_ERROR_ERROR": "Erreur",
     "SB_ERROR_UNKNOWN": "An unknown error occured.",
     "SB_ERROR_SQL_ERROR": "An error at database level prevents the operation (duplicate?).",
+	"SB_ERROR_UNKNOWN_OBJECT": "Call on an unknown Object.",
     "SB_ERROR_CONFLICT_OBJECT": "A conflict prevents this operation.",
     "SB_ERROR_DUPLICATE_VALUE": "This value must be unique but already exists.",
     "SB_ERROR_DUPLICATE_INDEX": "An entry is duplicated.",
@@ -87,7 +88,7 @@
     "AUTH_RESET_PASSWORD": "Password",
     "AUTH_RESET_CONFIRM": "Confirm",
     "AUTH_RESET_ACTION_SUBMIT": "Reset",
-    "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
+    "AUTH_RESET_ACTION_SIGNIN": "Sign in",
     "AUTH_ERROR_MISSING_USERNAME": "Username is mandatory",
     "AUTH_ERROR_MISSING_PASSWORD": "Password is mandatory",
     "AUTH_ERROR_INVALID_PASSWORD": "Invalid password (min 8 car.)",
@@ -96,13 +97,13 @@
     "AUTH_ERROR_SERVER_ERROR": "A server error occured. Please try later or contact support.",
     "AUTH_ERROR_MISSING_EMAIL": "Email address is mandatory",
 
-    "APPS_APP_BOOKING": "Réservations",
-    "APPS_APP_POS": "Point de vente",
-    "APPS_APP_ACCOUNTING": "Compta",
-    "APPS_APP_SALES": "Ventes",
+    "APPS_APP_BOOKING": "Bookings",
+    "APPS_APP_POS": "Point of Sale",
+    "APPS_APP_ACCOUNTING": "Accounting",
+    "APPS_APP_SALES": "Sales",
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
-    "APPS_APP_STATS": "Statistiques",
+    "APPS_APP_STATS": "Statistics",
 
     "SETTINGS_LIST_SETTING": "Settings",
     "SETTINGS_LIST_CORE": "General",
@@ -129,8 +130,8 @@
     "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?",
 
 
-    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
+    "BOOKING_PLANNING_HEADER_TODAY": "Today",
 
 
-    "empty_booking": "La réservation est vide."
+    "empty_booking": "The booking is empty."
 }

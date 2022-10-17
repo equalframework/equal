@@ -90,10 +90,10 @@ class User extends Model {
      * @param   $lang   string  Language for multilang fields
      */
     public static function onupdatePassword($om, $ids, $values, $lang) {
-        $values = $om->read(__CLASS__, $ids, ['password']);
+        $values = $om->read(self::getType(), $ids, ['password']);
         foreach($values as $oid => $odata) {
             if(substr($odata['password'], 0, 4) != '$2y$') {
-                $om->write(__CLASS__, $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
+                $om->update(self::getType(), $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
             }
         }
     }

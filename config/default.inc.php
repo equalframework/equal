@@ -176,6 +176,10 @@ namespace config {
 
     /**
     * Locale parameters
+    *
+    * Localisation is meant to be stored as Setting objects. The values defined below are fallback defaults in case settings cannot be found.
+    * Locale params are only relevant for data controllers involving some output impacted by localization.
+    * By convention, timezone is always set to UTC for script processing (using `date_default_timezone_set('UTC');`).
     */
     define('L10N_TIMEZONE', 'Europe/Brussels');
     define('L10N_LOCALE', 'fr_BE');
@@ -222,7 +226,7 @@ namespace config {
     // define('HTTP_REDIRECT_404', '404.html');
     // define('HTTP_REDIRECT_500', '500.html');
 
-// todo : generate a random key during install process
+    // #memo - this should be updated (random key) during install process
     define('AUTH_SECRET_KEY', 'my_secret_key');
 
     // validity duration of the access token, in seconds

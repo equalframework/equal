@@ -56,6 +56,7 @@
     "SB_ERROR_ERROR": "Erreur",
     "SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
     "SB_ERROR_SQL_ERROR": "Une erreur au niveau de la base de données empêche l'opération (doublon?).",
+	"SB_ERROR_UNKNOWN_OBJECT": "Appel sur un Objet inconnu.",
     "SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
     "SB_ERROR_DUPLICATE_INDEX": "Un doublon est présent.",

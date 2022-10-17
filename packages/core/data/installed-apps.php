@@ -22,24 +22,20 @@ list($params, $providers) = announce([
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-// end of process, to have the app slugs and descriptors
-$manifestMap = [];
-// Reads all the manifest.json inside the public app files
-foreach(glob("public/*", GLOB_ONLYDIR) as $app_name){
-    $slug = basename($app_name);
-    foreach(glob("$app_name/manifest.json") as $manifestJson){
-        $manifestJson = json_decode(file_get_contents($manifestJson), true);
-        // checks if manifest has an 'apps' section
-        if(isset($manifestJson['apps'])){
-            foreach($manifestJson['apps'] as $app_name=>$descriptor) {
-                $manifestMap[$app_name] = $descriptor;
+$manifests_map = [];
+
+// search and read manifest.json inside App folders within /public
+foreach(glob("public/*", GLOB_ONLYDIR) as $app_name) {
+    if(file_exists("$app_name/manifest.json")) {
+        $manifest = json_decode(file_get_contents("$app_name/manifest.json"), true);
+        if(isset($manifest['apps'])) {
+            foreach($manifest['apps'] as $app => $descriptor) {
+                $manifests_map[$app] = $descriptor;
             }
         }
     }
 }
 
-$manifestMap = json_encode($manifestMap);
-
 $context->httpResponse()
-        ->body($manifestMap)
-        ->send();
+    ->body($manifests_map)
+    ->send();

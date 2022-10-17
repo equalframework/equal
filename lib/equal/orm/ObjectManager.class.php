@@ -143,6 +143,7 @@ class ObjectManager extends Service {
     public static $usages_associations = [
         'amount/percent'            => 'decimal(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
         'amount/rate'               => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
+        'amount/rate:4'             => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
         'amount/money'              => 'decimal(15,2)',
         'amount/money:2'            => 'decimal(15,2)',
         'amount/money:4'            => 'decimal(13,4)',         // GAAP compliant

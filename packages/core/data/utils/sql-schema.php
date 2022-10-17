@@ -13,9 +13,9 @@ $packages = json_decode($json, true);
 
 
 list($params, $providers) = announce([
-    'description'	=>	"Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
-    'params' 		=>	[
-        'package'	=> [
+    'description'	=> "Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
+    'params'        => [
+        'package'   => [
             'description'   => 'Package for which we want SQL schema.',
             'type'          => 'string',
             'selection'     => array_combine(array_values($packages), array_values($packages)),
@@ -71,8 +71,8 @@ $m2m_tables = array();
 $parent_tables = [];
 
 foreach($classes as $class) {
-	// get the full class name
-	$class_name = $params['package'].'\\'.$class;
+    // get the full class name
+    $class_name = $params['package'].'\\'.$class;
     $model = $orm->getModel($class_name);
     if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
 
@@ -88,7 +88,7 @@ foreach($classes as $class) {
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
-	// init result array
+    // init result array
 
     // #memo - deleting tables prevents keeping data across inherited classes
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
@@ -196,18 +196,18 @@ foreach($classes as $class) {
 }
 
 foreach($m2m_tables as $table => $columns) {
-	$result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
-	$key = '';
-	foreach($columns as $column) {
-		$result[] = "`{$column}` int(11) NOT NULL,";
-		$key .= "`$column`,";
-	}
-	$key = rtrim($key, ",");
-	$result[] = "PRIMARY KEY ({$key})";
-	$result[] = ");";
-	// add an empty record (required for JOIN conditions on empty tables)
-	$result[] = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
-	$result[]= '('.implode(',', array_fill(0, count($columns), 0)).");";
+    $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
+    $key = '';
+    foreach($columns as $column) {
+        $result[] = "`{$column}` int(11) NOT NULL,";
+        $key .= "`$column`,";
+    }
+    $key = rtrim($key, ",");
+    $result[] = "PRIMARY KEY ({$key})";
+    $result[] = ");";
+    // add an empty record (required for JOIN conditions on empty tables)
+    $result[] = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
+    $result[]= '('.implode(',', array_fill(0, count($columns), 0)).");";
 }
 
 // send json result
