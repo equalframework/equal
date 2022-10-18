@@ -225,22 +225,10 @@ class Collection implements \Iterator, \Countable {
         $result = [];
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
-                $list = $value->get($to_array);
-                // #todo - use orm::getField
-                $target = $this->model->field($field);
-                $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
-                if($target_type == 'many2one') {
-                    if(count($list)) {
-                        $result[$field] = current($list);
-                    }
-                    else {
-                        // empty object
-                        $result[$field] = null;
-                    }
-                }
-                else {
-                    $result[$field] = $list;
-                }
+                $result[$field] = $value->get($to_array);
+            }
+            elseif($value instanceof Model) {
+                $result[$field] = $value->toArray();
             }
             else {
                 $result[$field] = $value;
@@ -696,6 +684,7 @@ class Collection implements \Iterator, \Countable {
                     /** @var Collection */
                     $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
                     if($target_type == 'many2one') {
+                        // #memo - result might be null
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
