@@ -168,7 +168,7 @@ class ObjectManager extends Service {
      */
     protected function __construct(DBConnection $db) {
         // make sure mandatory constants are defined
-        if(!defined('EXPORT_FLAG') && function_exists('\config\export_config')) {
+        if(!isset($GLOBALS['QN_CONFIG_EXPORTED']) && function_exists('\config\export_config')) {
             \config\export_config();
         }
 
