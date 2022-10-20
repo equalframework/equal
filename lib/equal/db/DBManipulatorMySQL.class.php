@@ -7,7 +7,7 @@
 namespace equal\db;
 
 /**
- * DBManipulatorMySQL class
+ * DBManipulator implementation for MySQL server.
  *
  */
 
@@ -97,7 +97,7 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     /**
-     * Send a SQL query.
+     * Sends a SQL query.
      *
      * @param string The query to send to the DBMS.
      *
@@ -176,7 +176,7 @@ class DBManipulatorMySQL extends DBManipulator {
             $value = (string) $value;
             // value is a field name
             if(strlen($value) && substr($value, 0, 1) == '`') {
-                $result = DBManipulatorMySQL::escapeFieldName($value);
+                $result = self::escapeFieldName($value);
             }
             // value represents NULL SQL value
             else if($value == 'null' || $value == 'NULL') {
@@ -198,7 +198,7 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     /**
-     * Gets the mysql WHERE clause
+     * Gets the SQL WHERE clause
      *
      * @param string $id_field
      * @param array $ids
@@ -227,7 +227,7 @@ class DBManipulatorMySQL extends DBManipulator {
                     continue;
                 }
                 // adjust the field syntax (if necessary)
-                $cond[0] = DBManipulatorMySQL::escapeFieldName($cond[0]);
+                $cond[0] = self::escapeFieldName($cond[0]);
                 // operator 'in' having a single value as right operand
                 if(strcasecmp($cond[1], 'in') == 0 && !is_array($cond[2])) {
                     $cond[2] = array($cond[2]);
