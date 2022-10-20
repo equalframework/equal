@@ -8,9 +8,6 @@ define('DEFAULT_APP', 'welcome');
 *
 */
 
-// flag constant allowing to detect if config has been exported
-define('EXPORT_FLAG', true);
-
 /**
 * Debugging
 */	
