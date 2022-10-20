@@ -266,11 +266,14 @@ namespace config {
      * After a call to this method, these params will be accessible in global scope.
      */
     function export_config() {
-        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) $GLOBALS['QN_CONFIG_ARRAY'] = array();
+        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
+            $GLOBALS['QN_CONFIG_ARRAY'] = array();
+        }
         foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
             \defined($name) or \define($name, $value);
             unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
         }
+        $GLOBALS['QN_CONFIG_EXPORTED'] = true;
     }
 
     /** @var \equal\php\Context */
