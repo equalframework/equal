@@ -159,9 +159,6 @@ namespace config {
      *
      */
 
-    // flag constant allowing to detect if config has been exported
-    define('EXPORT_FLAG', true);
-
     /**
      * File transfer parameters
      */
@@ -203,24 +200,12 @@ namespace config {
 
     define('VERSIONING_ENABLED', true);
 
-    /**
-    * Date formatting
-    */
-    define('DATE_FORMAT', 'd/m/Y');
-
 
     /**
     * Currency formatting
     * Mask examples: '£#,##0.00', '#.##0,00€'
     */
     define('CURRENCY_FORMAT', '£#,##0.00');
-
-
-    /**
-    * Default precision for floating point values
-    *
-    */
-    define('NUMERIC_DECIMAL_PRECISION', 2);
 
 
     // define('HTTP_REDIRECT_404', '404.html');
