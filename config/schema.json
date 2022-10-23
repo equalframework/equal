@@ -188,11 +188,13 @@
     "AUTH_SECRET_KEY": {
         "type": "string",
         "description": "Secret key used for hashing JWT data.",
+        "instant": true,
         "default": "my_secret_key"
     },
     "AUTH_ACCESS_TOKEN_VALIDITY": {
         "type": "integer",
         "description": "Validity duration of the access token, in seconds.",
+        "instant": true,
         "default": 3600
     },
     "AUTH_REFRESH_TOKEN_VALIDITY": {
@@ -202,7 +204,8 @@
     "AUTH_TOKEN_HTTPS":{
         "type": "boolean",
         "description": "FLag for limiting the sending of auth token to HTTPS.",
-        "default":    false
+        "instant": true,
+        "default": false
     },
     "ROOT_APP_URL": {
         "type": "string",
