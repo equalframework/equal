@@ -173,6 +173,7 @@
     },
     "LOGGING_ENABLED": {
         "type": "boolean",
+        "instant": true,
         "default": true,
         "description": "Keep in mind that enabling logging increases I/O operations."
     },
