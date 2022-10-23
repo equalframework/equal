@@ -34,7 +34,7 @@ $paths = [
     ],
     [
         'rights'    =>  QN_R_READ,
-        'path'      =>  QN_BASEDIR.'/config/default.inc.php'
+        'path'      =>  QN_BASEDIR.'/config/schema.json'
     ]
 ];
 
