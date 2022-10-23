@@ -80,7 +80,7 @@ $tests = [
                                         ),
                 'test'              =>  function (){
                                             $om = &ObjectManager::getInstance();
-                                            return $om->read('core\User', [ROOT_USER_ID], array('language','firstname','lastname'));
+                                            return $om->read('core\User', [QN_ROOT_USER_ID], array('language','firstname','lastname'));
                                         },
                 ),
 
@@ -96,7 +96,7 @@ $tests = [
                                             ),
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', ROOT_USER_ID, array('language','firstname','lastname'));
+                                                return $om->read('core\User', QN_ROOT_USER_ID, array('language','firstname','lastname'));
                                             },
                     ),
     '2102' => array(
@@ -111,7 +111,7 @@ $tests = [
                                             ),
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', (string) ROOT_USER_ID, array('language','firstname','lastname'));
+                                                return $om->read('core\User', (string) QN_ROOT_USER_ID, array('language','firstname','lastname'));
                                             },
                     ),
 
@@ -137,7 +137,7 @@ $tests = [
                                             ),
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', array(0, ROOT_USER_ID), array('language','firstname','lastname'));
+                                                return $om->read('core\User', array(0, QN_ROOT_USER_ID), array('language','firstname','lastname'));
                                             },
                     ),
 
@@ -310,9 +310,9 @@ $tests = [
 
     // calls related to authentication
     '2610' => array(
-                    'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return ROOT_USER_ID.",
+                    'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return QN_ROOT_USER_ID.",
                     'return'            =>  array('integer'),
-                    'expected'          =>  ROOT_USER_ID,
+                    'expected'          =>  QN_ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('root@host.local', 'secure_password');

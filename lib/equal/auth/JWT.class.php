@@ -14,7 +14,7 @@ class JWT {
 	 *
 	 * @return 	array      			A map holding JWT header, payload, and signature
 	 * @throws 	Exception
-	 * 
+	 *
 	 * @uses urlsafeB64Decode
 	 */
 	public static function decode($jwt) {
@@ -33,7 +33,7 @@ class JWT {
 		if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
 			throw new \Exception('jwt_header_unreadable');
 		}
-		if ( !isset($header['alg']) ) {		
+		if ( !isset($header['alg']) ) {
 			throw new \Exception('jwt_header_missing_algorithm');
 		}
 		if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
@@ -76,19 +76,19 @@ class JWT {
 			if ($sig == self::sign($msg, $key, $alg)) {
 				$res = 1;
 			}
-		}		
+		}
 		else if( in_array($alg, ['RS256', 'RS384', 'RS512']) ){
 			$alg_map = [
 				'RS256' => OPENSSL_ALGO_SHA256,
 				'RS384' => OPENSSL_ALGO_SHA384,
 				'RS512' => OPENSSL_ALGO_SHA512
 			];
-			$res = openssl_verify( 
+			$res = openssl_verify(
 				$msg,  	      	// base64 encoded header.payload
 				$sig,           // binary value of token signature
 				$key,           // PEM formatted public key
 				$alg_map[$alg]  // OPENSSL algo to use
-			);	
+			);
 		}
 		else {
 			throw new \Exception("JWT_non_supported_alg");
@@ -152,9 +152,9 @@ class JWT {
 
 
         // sequence for rsaEncryption: oid(1.2.840.113549.1.1.1), null
-		
+
 		// hex version of MA0GCSqGSIb3DQEBAQUA
-        $rsaOID = pack('H*', '300d06092a864886f70d0101010500'); 
+        $rsaOID = pack('H*', '300d06092a864886f70d0101010500');
         $RSAPublicKey = chr(0) . $RSAPublicKey;
         $RSAPublicKey = chr(3) . self::encodeLength(strlen($RSAPublicKey)) . $RSAPublicKey;
 

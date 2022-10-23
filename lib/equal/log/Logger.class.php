@@ -28,7 +28,7 @@ class Logger extends Service {
      *
      */
     public static function constants() {
-        return ['LOGGING_ENABLED', 'ROOT_USER_ID'];
+        return ['LOGGING_ENABLED', 'QN_ROOT_USER_ID'];
     }
 
 	/**
@@ -47,9 +47,9 @@ class Logger extends Service {
 		// prevent infintite loops
 		if($object_class == 'core\Log') return;
 
-        // when using CLI actions are performed using ROOT_USER_ID, unless otherwise specified
+        // when using CLI actions are performed using QN_ROOT_USER_ID, unless otherwise specified
         if($user_id == 0 && php_sapi_name() === 'cli') {
-            $user_id = ROOT_USER_ID;
+            $user_id = QN_ROOT_USER_ID;
         }
 
 		$values = [

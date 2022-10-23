@@ -17,6 +17,8 @@ class AccessController extends Service {
 
     private $usersTable;
 
+    private $default_rights;
+
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      */
@@ -24,17 +26,18 @@ class AccessController extends Service {
         $this->permissionsTable = array();
         $this->groupsTable = array();
         $this->usersTable = array();
+        $this->default_rights = (defined('DEFAULT_RIGHTS'))?constant('DEFAULT_RIGHTS'):0;
     }
 
     public static function constants() {
-        return ['DEFAULT_RIGHTS', 'ROOT_GROUP_ID', 'DEFAULT_GROUP_ID', 'ROOT_USER_ID', 'GUEST_USER_ID'];
+        return ['QN_ROOT_GROUP_ID', 'QN_DEFAULT_GROUP_ID', 'QN_ROOT_USER_ID', 'QN_GUEST_USER_ID'];
     }
 
     protected function getUserGroups($user_id) {
 		$groups_ids = [];
 		if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
-            $this->groupsTable[$user_id] = [(string) DEFAULT_GROUP_ID];
+            $this->groupsTable[$user_id] = [(string) QN_DEFAULT_GROUP_ID];
 
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
@@ -78,7 +81,7 @@ class AccessController extends Service {
      */
     protected function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
 		// all users are at least granted the default permissions
-		$user_rights = DEFAULT_RIGHTS;
+		$user_rights = $this->default_rights;
 
         // if we did already compute user rights then we're done!
 		if(isset($this->permissionsTable[$user_id][$object_class])) {
@@ -86,7 +89,7 @@ class AccessController extends Service {
         }
 		else {
             // root user always has full rights
-            if($user_id == ROOT_USER_ID) {
+            if($user_id == QN_ROOT_USER_ID) {
                 return QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
             }
             else {
@@ -349,7 +352,7 @@ class AccessController extends Service {
         if(php_sapi_name() === 'cli') return true;
 
         // check operation against default rights
-		if(DEFAULT_RIGHTS & $operation) return true;
+		if($this->default_rights & $operation) return true;
 
         $allowed = false;
 

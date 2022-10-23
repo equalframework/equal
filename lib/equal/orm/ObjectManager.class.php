@@ -1294,7 +1294,7 @@ class ObjectManager extends Service {
 
             // 1) define default values
             $creation_array = [
-                'creator'   => ROOT_USER_ID,
+                'creator'   => QN_ROOT_USER_ID,
                 'created'   => date("Y-m-d H:i:s"),
                 'state'     => (isset($fields['state']))?$fields['state']:'instance'
             ];
@@ -1770,7 +1770,7 @@ class ObjectManager extends Service {
                         if(FILE_STORAGE_MODE == 'FS') {
                             // build a unique name  (package/class/field/oid.lang)
                             $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+                            $storage_location = realpath(QN_BASEDIR.'/bin').'/'.$path;
                             foreach($ids as $oid) {
                                 // remove binary for all langs
                                 foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {

@@ -3,14 +3,14 @@ namespace config;
 
 define('DEFAULT_APP', 'welcome');
 
-/** 
+/**
 * Constants defined in this section are mandatory but can be modified/re-defined in customs config.inc.php (i.e.: packages/[package_name]/config.inc.php)
 *
 */
 
 /**
 * Debugging
-*/	
+*/
 define('DEBUG_MODE', QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL | QN_DEBUG_APP);
 // define('DEBUG_MODE', 0);
 
@@ -33,14 +33,6 @@ date_default_timezone_set('Europe/Brussels');
 
 
 /**
-* Logging
-*/
-// note : keep in mind that enabling logging increases I/O operations
-define('LOGGING_MODE', QN_R_CREATE | QN_R_WRITE | QN_R_DELETE);
-//define('LOGGING_MODE', false);
-
-
-/**
 * Draft & Versioning
 */
 // draft validity in days
@@ -52,13 +44,6 @@ define('DRAFT_VALIDITY', 0);
 * Date formatting
 */
 define('DATE_FORMAT', 'd/m/Y');
-
-
-/**
-* Currency formatting
-* Mask examples: '£#,##0.00', '#.##0,00€'
-*/
-define('CURRENCY_FORMAT', '£#,##0.00');
 
 
 /**

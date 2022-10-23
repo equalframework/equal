@@ -24,6 +24,51 @@ class DataAdapter extends Service {
         $this->config = null;
     }
 
+    public static function strToInteger($value) {
+        if(is_string($value)) {
+            if($value == 'null') {
+                $value = null;
+            }
+            elseif(empty($value)) {
+                $value = 0;
+            }
+            elseif(in_array($value, ['TRUE', 'true'])) {
+                $value = 1;
+            }
+            elseif(in_array($value, ['FALSE', 'false'])) {
+                $value = 0;
+            }
+        }
+        // arg represents a numeric value (numeric type or string)
+        if(is_numeric($value)) {
+            $value = intval($value);
+        }
+        elseif(is_scalar($value)) {
+            $suffixes = [
+                'B'  => 1,
+                'KB' => 1024,
+                'MB' => 1048576,
+                'GB' => 1073741824,
+                's'  => 1,
+                'm'  => 60,
+                'h'  => 3600,
+                'd'  => 3600*24,
+                'w'  => 3600*24*7,
+                'M'  => 3600*24*30,
+                'Y'  => 3600*24*365
+            ];
+            $val = (string) $value;
+            $intval = intval($val);
+            foreach($suffixes as $suffix => $factor) {
+                if(strval($intval).$suffix == $val) {
+                    $value = $intval * $factor;
+                    break;
+                }
+            }
+        }
+        return $value;
+    }
+
     private function init() {
         $this->config = [
             'boolean' => [
@@ -51,17 +96,8 @@ class DataAdapter extends Service {
             'integer' => [
                 'txt' => [
                     'php' =>    function ($value) {
-                                    if(is_string($value)) {
-                                        if($value == 'null') $value = null;
-                                        else if(empty($value)) $value = 0;
-                                        else if(in_array($value, ['TRUE', 'true'])) $value = 1;
-                                        else if(in_array($value, ['FALSE', 'false'])) $value = 0;
-                                    }
-                                    // arg represents a numeric value (numeric type or string)
-                                    if(is_numeric($value)) {
-                                        $value = intval($value);
-                                    }
-                                    else if(!is_null($value)) {
+                                    $value = self::strToInteger($value);
+                                    if(!is_int($value)) {
                                         $out_value = serialize($value);
                                         throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer for {$out_value}."]), QN_ERROR_INVALID_PARAM);
                                     }
@@ -504,8 +540,8 @@ class DataAdapter extends Service {
                         // read the content from filestore, filename is the received value
                         else if(FILE_STORAGE_MODE == 'FS') {
                             $filename = $value;
-                            if(strlen($filename) && file_exists(FILE_STORAGE_DIR.'/'.$filename)) {
-                                $res = file_get_contents(FILE_STORAGE_DIR.'/'.$filename);
+                            if(strlen($filename) && file_exists(QN_BASEDIR.'/bin/'.$filename)) {
+                                $res = file_get_contents(QN_BASEDIR.'/bin/'.$filename);
                             }
                             else {
                                 throw new \Exception("binary_data_not_received", QN_ERROR_UNKNOWN);
@@ -536,7 +572,7 @@ class DataAdapter extends Service {
                             $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
                             $file = sprintf("%011d.%s", $oid, $lang);
 
-                            $storage_location = realpath(FILE_STORAGE_DIR).'/'.$path;
+                            $storage_location = realpath(QN_BASEDIR.'/bin').'/'.$path;
 
                             if (!is_dir($storage_location)) {
                                 // make missing directories

@@ -44,7 +44,9 @@ use equal\route\Router;
  (eQual library allows to include required files and classes)
 */
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
-if( (include($bootstrap)) === false ) die('eQual lib is missing');
+if( (include($bootstrap)) === false ) {
+    die('eQual lib is missing');
+}
 
 try {
     // 1) retrieve current HTTP context
@@ -69,7 +71,9 @@ try {
             $method = strtoupper($parts[0]);
             $path = $parts[1];
         }
-        else $path = $parts[0];
+        else {
+            $path = $parts[0];
+        }
         // remove route param from body, if any
         $request->del('route');
     }
@@ -78,9 +82,9 @@ try {
 
     // if routing is required
     if( strlen($path) > 1 && !in_array(basename($path), [
-        'index.php',                // HTTP request
-        'run.php',                  // CLI
-        'equal.php'                 // integration with other frameworks that already uses index.php (e.g. WP)
+            'index.php',                // HTTP request
+            'run.php',                  // CLI
+            'equal.php'                 // integration with other frameworks that already use index.php (e.g. WP)
         ]) ) {
 
         $router = Router::getInstance();
@@ -100,13 +104,13 @@ try {
                 }
             }
         }
-        // if route cannot be resolved, raise a HTTP 404 exception
+        // if route cannot be resolved, raise a "UNKNOWN_OBJECT" exception (HTTP 404)
         if(!($route = $router->resolve($path, $method))) {
             throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
         }
         // fetch resolved parameters
         $params = $route['params'];
-        // if found URL is another location(absolute notation), redirect to it
+        // if found URL is another location (absolute notation), redirect to it
         if(isset($route['redirect'])) {
             // resolve params in pointed location, if any
             foreach($params as $param => $value) {
@@ -145,10 +149,10 @@ try {
         }
     }
 
-    // 3) perform requested operation
+    // 3) perform requested operation and output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
 }
-// something went wrong: send an HTTP response with code related to the raised exception
+// something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
     if( !($e instanceof Exception) ) {
         $error_code = QN_ERROR_UNKNOWN;

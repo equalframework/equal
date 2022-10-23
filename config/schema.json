@@ -1,0 +1,211 @@
+{
+    "CIPHER_KEY": {
+        "type": "string",
+        "description": "Private key to use for secrets decryption. In order to allow decryption, if required, this property should be defined first.",
+        "instant": true,
+        "example": "this is a secret key"
+    },
+    "DEFAULT_LANG": {
+        "type": "string",
+        "description": "The language in which the content must be displayed by default (ISO 639-1).",
+        "instant": true,
+        "default": "en"
+    },
+    "DEFAULT_PACKAGE": {
+        "type": "string",
+        "description": "Package we'll try to access if nothing is specified in the url (typically while accessing root URL).",
+        "instant": true,
+        "default": "core"
+    },
+    "ROUTING_METHOD": {
+        "type": "string",
+        "description": "Method to use for parsing the URIs. Possible values are: 'ORM' or 'JSON' (router.json).",
+        "instant": true,
+        "default": "JSON"
+    },
+    "FILE_STORAGE_MODE": {
+        "type": "string",
+        "description": "Storage mode for binary content. Possible values are: 'DB' (database) and 'FS' (filesystem).",
+        "instant": true,
+        "default": "DB"
+    },
+    "DEFAULT_RIGHTS": {
+        "type": "integer",
+        "description": "Rights to grant to any user when no ACL is defined.",
+        "instant": true,
+        "default": 0,
+        "example": "QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE"
+    },
+    "DEBUG_MODE": {
+        "type": "integer",
+        "description": "Classes of report-messages to log (non-matching messages are ignored).",
+        "instant": true,
+        "default": 0,
+        "example": "QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL"
+    },
+    "DEBUG_LEVEL": {
+        "type": "integer",
+        "description": "Types of error to report (defaults to E_ALL = 32767).",
+        "instant": true,
+        "default": 32767,
+        "example": "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
+    },
+    "EMAIL_SMTP_HOST": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "SSL0.PROVIDER.NET"
+    },
+    "EMAIL_SMTP_PORT": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "2525"
+    },
+    "EMAIL_SMTP_ACCOUNT_DISPLAYNAME": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "Yesbabylon Symbiose"
+    },
+    "EMAIL_SMTP_ACCOUNT_USERNAME": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "account.username"
+    },
+    "EMAIL_SMTP_ACCOUNT_PASSWORD": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "password"
+    },
+    "EMAIL_SMTP_ACCOUNT_EMAIL": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "email.to.send.from@provider.com"
+    },
+    "EMAIL_SMTP_ABUSE_EMAIL": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "abuse@example.com"
+    },
+    "DB_REPLICATION": {
+        "type": "string",
+        "description": "Strategy to apply for database replication. Possible values are: 'NO': no replication; 'MS' ('master-slave', 2 servers) write operations are performed on both servers, read operations are performed on the master only; 'MM' ('multi-master'): any number of servers; write operations are performed on all servers, read operations can be performed on any server",
+        "instant": true,
+        "default": "NO",
+        "example": "MS"
+    },
+    "DB_DBMS": {
+        "type": "string",
+        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRE', 'ORACLE'",
+        "instant": true,
+        "default": "MYSQL",
+        "example": "MARIADB"
+    },
+    "DB_CHARSET": {
+        "type": "string",
+        "description": "Charset to use when manipulating strings with DBMS. Possible values are: 'utf8' (3 bytes) or 'utf8mb4' (4 bytes).",
+        "instant": true,
+        "default": "utf8mb4",
+        "example": "utf8"
+    },
+    "DB_COLLATION": {
+        "type": "string",
+        "description": "Collation to apply on SQL queries. Possible values are: 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases.",
+        "instant": true,
+        "default": "utf8mb4_unicode_ci",
+        "example": "MARIADB"
+    },
+    "DB_HOST": {
+        "type": "string",
+        "description": "IP address or fully qualified domain name (ex.: sql.example.com) of the DB host.",
+        "instant": true,
+        "environement": "EQ_DB_HOST",
+        "default": "127.0.0.1"
+    },
+    "DB_PORT": {
+        "type": "integer",
+        "description": "TCP/IP port for connecting to DB host.",
+        "instant": true,
+        "environement": "EQ_DB_PORT",
+        "default": "3306"
+    },
+    "DB_USER": {
+        "type": "string",
+        "description": "Login for authentifying on DB host.",
+        "instant": true,
+        "environment": "EQ_DB_USER",
+        "default": "root"
+    },
+    "DB_PASSWORD": {
+        "type": "string",
+        "description": "Password for authentifying on DB host.",
+        "instant": true,
+        "environment": "EQ_DB_PASS",
+        "default": "test"
+    },
+    "DB_NAME": {
+        "type": "string",
+        "description": "the name of the DB that you've created or plan to use.",
+        "instant": true,
+        "environment": "EQ_DB_NAME",
+        "default": "equal"
+    },
+    "UPLOAD_MAX_FILE_SIZE": {
+        "type": "integer",
+        "description": "Maximum authorized size for file upload (in octet). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
+        "default": "64M",
+        "example": ""
+    },
+    "L10N_TIMEZONE": {
+        "type": "string",
+        "description": "Locale params are only relevant for data controllers involving some output impacted by localization. By convention, timezone is always set to UTC for script processing (using `date_default_timezone_set('UTC');`).",
+        "default": "Europe/Brussels"
+    },
+    "L10N_LOCALE": {
+        "type": "string",
+        "description": "Locale params are only relevant for data controllers involving some output impacted by localization.",
+        "default" : "fr"
+    },
+    "LOGGING_ENABLED": {
+        "type": "boolean",
+        "default": true,
+        "description": "Keep in mind that enabling logging increases I/O operations."
+    },
+    "DRAFT_VALIDITY": {
+        "type": "integer",
+        "description": "Duration in days before recycling draft objects.",
+        "default": 0
+    },
+    "VERSIONING_ENABLED": {
+        "type": "boolean",
+        "default": true
+    },
+    "AUTH_SECRET_KEY": {
+        "type": "string",
+        "description": "Secret key used for hashing JWT data.",
+        "default": "my_secret_key"
+    },
+    "AUTH_ACCESS_TOKEN_VALIDITY": {
+        "type": "integer",
+        "description": "Validity duration of the access token, in seconds.",
+        "default": 3600
+    },
+    "AUTH_REFRESH_TOKEN_VALIDITY": {
+        "type": "integer",
+        "default": "90d"
+    },
+    "AUTH_TOKEN_HTTPS":{
+        "type": "boolean",
+        "description": "FLag for limiting the sending of auth token to HTTPS.",
+        "default":    false
+    },
+    "ROOT_APP_URL": {
+        "type": "string",
+        "default": "http://equal.local"
+    }
+}

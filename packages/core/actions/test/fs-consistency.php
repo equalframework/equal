@@ -7,7 +7,7 @@
 $params = announce([
     'description'   => 'Checks current installation directories integrity',
     'params'        => [],
-    'constants'     => ['FILE_STORAGE_MODE', 'FILE_STORAGE_DIR', 'ROUTING_METHOD', 'ROUTING_CONFIG_DIR']
+    'constants'     => ['FILE_STORAGE_MODE', 'ROUTING_METHOD']
 ]);
 
 // array holding files and directories to be tested
@@ -41,14 +41,14 @@ $paths = [
 if(ROUTING_METHOD == 'JSON') {
     $paths[] = [
         'rights'    =>  QN_R_READ,
-        'path'      =>  ROUTING_CONFIG_DIR
+        'path'      =>  QN_BASEDIR.'/config/routing'
     ];
 }
 
 if(FILE_STORAGE_MODE == 'FS') {
     $paths[] = [
         'rights'    =>  QN_R_READ | QN_R_WRITE,
-        'path'      =>  FILE_STORAGE_DIR
+        'path'      =>  QN_BASEDIR.'/bin'
     ];
 }
 

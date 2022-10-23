@@ -13,10 +13,10 @@ use equal\auth\JWT;
 
 class AuthenticationManager extends Service {
 
-    
-    private $user_id; 
+
+    private $user_id;
     private $method;
-    
+
     private $tokens;        // cache map of decoded tokens
 
     /**
@@ -27,16 +27,16 @@ class AuthenticationManager extends Service {
         $this->user_id = 0;
         $this->tokens = [];
     }
-    
+
     public static function constants() {
-        return ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'ROOT_USER_ID'];
+        return ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'QN_ROOT_USER_ID'];
     }
-    
+
     /**
      * Provide a JWT token based on current user id and `AUTH_SECRET_KEY`
-     * 
+     *
      * @param   $user_id    identifier of the user for who a token is requested
-     * @param   $validity   validity duration in seconds 
+     * @param   $validity   validity duration in seconds
      * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
     public function token($user_id=0, $validity=0) {
@@ -51,10 +51,10 @@ class AuthenticationManager extends Service {
      * Encode an array to a JWT token
      *
      * @param  $payload array representation of the object to be encoded
-     * 
+     *
      * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    
+
     public function encode(array $payload) {
         return JWT::encode($payload, AUTH_SECRET_KEY);
     }
@@ -67,7 +67,7 @@ class AuthenticationManager extends Service {
         else {
             $decoded = JWT::decode($jwt);
             $this->tokens[$jwt] = $decoded;
-        }        
+        }
         return $decoded;
     }
 
@@ -97,7 +97,7 @@ class AuthenticationManager extends Service {
     public function userId($token=null) {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') {
-            $this->user_id = ROOT_USER_ID;
+            $this->user_id = QN_ROOT_USER_ID;
         }
 
         // return user_id member, if already resolved
@@ -115,7 +115,7 @@ class AuthenticationManager extends Service {
             $auth_header = $request->header('Authorization');
             if(!is_null($auth_header)) {
                 if(strpos($auth_header, 'Bearer ') !== false) {
-                    // retrieve JWT token    
+                    // retrieve JWT token
                     list($jwt) = sscanf($auth_header, 'Bearer %s');
                 }
                 else if(strpos($auth_header, 'Basic ') !== false) {
@@ -126,8 +126,8 @@ class AuthenticationManager extends Service {
                 }
                 else if(strpos($auth_header, 'Digest ') !== false) {
                     // #todo
-                }            
-            }    
+                }
+            }
         }
 
         // no token found : fallback to cookie
@@ -146,7 +146,7 @@ class AuthenticationManager extends Service {
                 if( !$this->verifyToken($jwt, AUTH_SECRET_KEY) ){
                     throw new \Exception('jwt_invalid_signature');
                 }
-                
+
                 $decoded = $this->decodeToken($jwt);
 
                 if(!isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
@@ -167,28 +167,28 @@ class AuthenticationManager extends Service {
                     $token = $this->token($this->user_id, AUTH_ACCESS_TOKEN_VALIDITY);
                     $context->httpResponse()
                     ->cookie('access_token', $token, [
-                        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
-                        'httponly'  => true, 
+                        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY,
+                        'httponly'  => true,
                         'secure'    => AUTH_TOKEN_HTTPS
                     ]);
                 }
-            }            
+            }
         }
-        
+
         return $this->user_id;
     }
-    
+
     /**
      * @throws Exception    Raises an excetpion in case the credentials are not related to a user.
      */
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');
-        
+
         $errors = $orm->validate('core\User', [], ['login' => $login]);
         if(count($errors)) {
             throw new \Exception('invalid_username', QN_ERROR_INVALID_PARAM);
         }
-        
+
         $ids = $orm->search('core\User', ['login', '=', $login]);
         if(!count($ids)) {
             throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
@@ -200,7 +200,7 @@ class AuthenticationManager extends Service {
         if(!password_verify($password, $user['password'])) {
             throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
         }
-        
+
         // remember current user identifier
         $this->user_id = $user['id'];
 
@@ -214,7 +214,7 @@ class AuthenticationManager extends Service {
      *
      * @param   $user_id    integer Identifier of an existing user account.
      */
-    public function su(int $user_id = ROOT_USER_ID) {
+    public function su(int $user_id = QN_ROOT_USER_ID) {
         if($user_id >= 0) {
             // update current user identifier
             $this->user_id = $user_id;

@@ -11,25 +11,25 @@ use equal\services\Container;
 
 
 class Scheduler extends Service {
-    
+
 
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
      */
     protected function __construct(Container $container) {
     }
-    
+
     public static function constants() {
-        return ['ROOT_USER_ID'];
+        return ['QN_ROOT_USER_ID'];
     }
 
     /**
      * Run a batch of scheduled tasks.
-     * 
+     *
      * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
      * For recurring tasks we update the moment field to the next time, accoring to repeat axis and repeat step.
      * Non-recurring tasks are deleted once they've been run.
-     * 
+     *
      * #memo - Scheduler always operates as root user.
      */
     public function run() {
@@ -69,7 +69,7 @@ class Scheduler extends Service {
     /**
      * Run a batch of scheduled tasks.
      * #memo - Scheduler always operates as root user.
-     * 
+     *
      * @param   string    $name         Name of the task to schedule, to ease task identification.
      * @param   integer   $moment       Timestamp of the moment of the first execution.
      * @param   string    $controller   Controller to invoker, with package notation.
@@ -93,7 +93,7 @@ class Scheduler extends Service {
     /**
      * Cancel (delete) a scheduled task.
      * #memo - Scheduler always operates as root user.
-     * 
+     *
      * @param   string    $name         Name of the task to cancel.
      */
     public function cancel($name) {

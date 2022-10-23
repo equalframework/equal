@@ -20,7 +20,7 @@ class Dispatcher extends Service {
     }
 
     public static function constants() {
-        return ['ROOT_USER_ID'];
+        return ['QN_ROOT_USER_ID'];
     }
 
     /**

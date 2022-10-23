@@ -10,7 +10,7 @@ namespace equal\route;
 use equal\organic\Service;
 
 /**
- * 
+ *
  * Routes and resolutions consist of strings accepting optional ':' and '?' special chars
  *
  * JSON expected format:
@@ -20,47 +20,47 @@ use equal\organic\Service;
  *       "GET": {
  *           "description": "Retrieve test data",
  *           "operation": "?get=mypackage_tests"
- *       } 
+ *       }
  *   }
- * } 
+ * }
  *
  * Route structure (holding resolved route attributes)
  *  {
  *      method:         string      HTTP method
  *      path:           string      full path of the requested URI
  *      parts:          array       array of parts composing the path
- *      operation:      string      the operation the URI resolves to 
+ *      operation:      string      the operation the URI resolves to
  *      params:         array       map of parameters names as keys, related to their values
  *  }
  */
 class Router  extends Service {
-    
+
     // routes providers
     private $providers;
-    
+
     // resolved route
     private $route;
 
- 
+
     public function __construct() {
         $this->providers = [];
-        $this->route = [];        
+        $this->route = [];
     }
-        
+
     // resolve all providers and return existing routes (first declaration prevails)
     public function getRoutes() {
         $routes = [];
         // process all providers until we get a match
         for($i = 0, $n = count($this->providers); $i < $n; ++$i) {
             $routes = array_merge($this->loadProvider($this->providers[$i]), $routes);
-        }        
+        }
         return $routes;
     }
-        
+
     private function loadProvider($provider) {
         $routes = [];
         // provider is an array of routes
-        if(is_array($provider)) {            
+        if(is_array($provider)) {
             $routes = $provider;
         }
         // provider is a path to one or more JSON file
@@ -70,8 +70,12 @@ class Router  extends Service {
             foreach(glob($provider) as $json_file) {
                 // load content from first file
                 if($first) {
-                    if( ($json = @file_get_contents($json_file)) === false) throw new \Exception("routing config file ".basename($json_file)." not found", QN_ERROR_INVALID_CONFIG);    
-                    if( ($routes = json_decode($json, true)) === null) throw new \Exception("malformed json in routing config file ".basename($json_file), QN_ERROR_INVALID_CONFIG);
+                    if( ($json = @file_get_contents($json_file)) === false) {
+                        throw new \Exception("routing config file ".basename($json_file)." not found", QN_ERROR_INVALID_CONFIG);
+                    }
+                    if( ($routes = json_decode($json, true)) === null) {
+                        throw new \Exception("malformed json in routing config file ".basename($json_file), QN_ERROR_INVALID_CONFIG);
+                    }
                     $first = false;
                 }
                 else {
@@ -85,7 +89,7 @@ class Router  extends Service {
 
     public static function normalizeOperation($operation) {
         $result = [];
-        $op_params = [];        
+        $op_params = [];
         $query = explode('?', $operation);
         parse_str($query[1], $op_params);
 
@@ -102,14 +106,14 @@ class Router  extends Service {
         }
         return $result;
     }
-    
+
     public function normalize($path, $resolver) {
         $result = [];
         $routes = $this->loadRoute($path, $resolver);
         foreach($routes as $route) {
             if(substr($route['operation'], 0, 1) == '/') {
                 $route['redirect'] = $route['operation'];
-                unset($route['operation']);                
+                unset($route['operation']);
             }
             else {
                 $route['operation'] = self::normalizeOperation($route['operation']);
@@ -118,7 +122,7 @@ class Router  extends Service {
         }
         return $result;
     }
-    
+
     /**
      *
      * Convert an entry from a map (URI => resolver) to an array of route structures (stored as array)
@@ -132,13 +136,13 @@ class Router  extends Service {
             'method'    => 'GET',
             'path'      => $path,
             'parts'     => explode('/', ltrim($path, '/'))
-        ];        
-        // we have a match, check amongst 2 accepted formats: 
+        ];
+        // we have a match, check amongst 2 accepted formats:
         // 1) URI => controller resolver (GET method implied)
         if(!is_array($resolver)) {
             // resolver is an URL
             $route['operation'] = $resolver;
-            $result['GET'] = $route;            
+            $result['GET'] = $route;
         }
         // 2) URI => map METHOD / controller resolver
         else {
@@ -153,7 +157,7 @@ class Router  extends Service {
         }
         return $result;
     }
-    
+
     /**
      * Compare two Route structures
      *
@@ -162,14 +166,14 @@ class Router  extends Service {
         $result = [];
         $n = count($canvas['parts']);
         $m = count($path['parts']);
-        if($m > $n) {            
+        if($m > $n) {
             $result = false;
         }
         else {
             // review each path component
             for($i = 0; $i < $n; ++$i) {
                 // part is a parameter
-                if(strlen($canvas['parts'][$i]) && substr($canvas['parts'][$i], 0, 1) == ':') {                    
+                if(strlen($canvas['parts'][$i]) && substr($canvas['parts'][$i], 0, 1) == ':') {
                     $is_mandatory = !(substr($canvas['parts'][$i], -1) == '?');
                     // we exceeded the number of parts in path
                     if($i >= $m) {
@@ -187,7 +191,7 @@ class Router  extends Service {
                 else {
                     // we exceeded the number of parts in path OR parts are distinct
                     if($i >= $m || strcmp($path['parts'][$i], $canvas['parts'][$i]) != 0) {
-                        $result = false;                            
+                        $result = false;
                         break;
                     }
                 }
@@ -195,24 +199,23 @@ class Router  extends Service {
         }
         return $result;
     }
-    
+
     /**
-    * Add a route collection provider 
+    * Add a route collection provider
     *
     * @param mixed (array | string) $provider   Either an associative array of routes or a path (or glob) to one or more JSON files
     *
-    */    
+    */
     public function add($provider) {
-        $this->providers[] = $provider;            
+        $this->providers[] = $provider;
         return $this;
     }
 
-    
+
     public function resolve($uri, $method='GET') {
         $path = current(($this->loadRoute($uri)));
 
         $lookup = function($routes) use($path, $method) {
-            $found_url = null;
             // check routes and stop on first match
             foreach($routes as $route_path => $resolver) {
                 $res = $this->loadRoute($route_path, $resolver);
@@ -222,7 +225,7 @@ class Router  extends Service {
                             $res[$method]['params'] = $params;
                             if(substr($res[$method]['operation'], 0, 1) == '/') {
                                 $res[$method]['redirect'] = $res[$method]['operation'];
-                                unset($res[$method]['operation']);                
+                                unset($res[$method]['operation']);
                             }
                             else {
                                 $res[$method]['operation'] = self::normalizeOperation($res[$method]['operation']);
@@ -234,11 +237,11 @@ class Router  extends Service {
             }
             return null;
         };
-        
+
         // process all providers until we get a match
-        $i = 0; 
+        $i = 0;
         // we don't know the length of $this->providers beforehand (pushes can be made in $this->add())
-        while($i < count($this->providers)) { 
+        while($i < count($this->providers)) {
             $routes = $this->loadProvider($this->providers[$i]);
             if($match = $lookup($routes)) {
                 return $match;
@@ -246,6 +249,6 @@ class Router  extends Service {
             ++$i;
         }
         return null;
-    }    
-    
+    }
+
 }

@@ -98,12 +98,12 @@ namespace {
      *
      * Note : make sure that the ids in DB are set and matching these
      */
-    define('GUEST_USER_ID',       0);
-    define('ROOT_USER_ID',        1);
+    define('QN_GUEST_USER_ID',       0);
+    define('QN_ROOT_USER_ID',        1);
 
     // default group (all users are members of the default group)
-    define('ROOT_GROUP_ID',       1);
-    define('DEFAULT_GROUP_ID',    2);
+    define('QN_ROOT_GROUP_ID',       1);
+    define('QN_DEFAULT_GROUP_ID',    2);
 
 
     /*
@@ -187,11 +187,74 @@ namespace {
      * Add global system-related constants
      * (which cannot be modified by other scripts)
      */
-    if( file_exists(QN_BASEDIR.'/config/config.inc.php') ) {
+    $constants_schema = [];
+    if(!file_exists(QN_BASEDIR.'/config/schema.json')) {
+        die('Missing mandatory config schema.');
+    }
+    else {
+        $data = file_get_contents(QN_BASEDIR.'/config/schema.json');
+        if(!($constants_schema = json_decode($data, true))) {
+            die('Invalid config schema.');
+        }
+
+        // pass-1 - process properties defined in config file
+        if(file_exists(QN_BASEDIR.'/config/config.json')) {
+            $data = file_get_contents(QN_BASEDIR.'/config/config.json');
+            if(($config = json_decode($data, true))) {
+                foreach($config as $property => $value) {
+                    // handle crypted values
+                    if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
+                        $value = \config\decrypt(substr($value, 7));
+                    }
+                    // handle binary masks on arbitrary values or pre-defined constants
+                    if(strpos($value, '|') !== false || strpos($value, '&') !== false) {
+                        try {
+                            $value = eval("return $value;");
+                        }
+                        catch(Exception $e) {
+                            // ignore parse error
+                        }
+                    }
+                    if(isset($constants_schema[$property])) {
+                        if($constants_schema[$property]['type'] == 'integer') {
+                            // handle shorthand notations, if any
+                            $value = \config\strtoint($value);
+                        }
+                        if(isset($constants_schema[$property]['instant']) && $constants_schema[$property]['instant']) {
+                            define($property, $value);
+                        }
+                    }
+                    else {
+                        \config\define($property, $value);
+                    }
+                }
+            }
+        }
+        // pass-2 - process instant properties
+        foreach($constants_schema as $property => $descriptor) {
+            if(isset($descriptor['instant']) && $descriptor['instant']) {
+                $value = null;
+                if(isset($descriptor['environement'])) {
+                    if(($env = getenv($descriptor['environement'])) !== false) {
+                        $value = $env;
+                    }
+                }
+                if(is_null($value) && isset($descriptor['default'])) {
+                    $value = $descriptor['default'];
+                }
+                if(!is_null($value) && !defined($property)) {
+                    define($property, $value);
+                }
+            }
+        }
+    }
+    if(file_exists(QN_BASEDIR.'/config/config.inc.php')) {
         include_once(QN_BASEDIR.'/config/config.inc.php');
     }
     else {
-        if( (include_once(QN_BASEDIR.'/config/default.inc.php')) === false ) die('oops, default root config file is missing');
+        if((@include_once(QN_BASEDIR.'/config/default.inc.php')) === false) {
+            // die('oops, default root config file is missing');
+        }
     }
 
 /*
@@ -211,7 +274,62 @@ namespace config {
     use equal\services\Container;
     use equal\orm\Fields;
 
+    function decrypt($string) {
+        $output = false;
+        if(\defined('CIPHER_KEY')) {
+            $cipher_algo = "AES-256-CBC";
+            $secret_key = \constant('CIPHER_KEY');
+            $key = hash('sha256', $secret_key);
+            $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
+            $output = openssl_decrypt(base64_decode($string), $cipher_algo, $key, 0, $iv);
+        }
+        return $output;
+    }
 
+    function strtoint($value) {
+        if(is_string($value)) {
+            if($value == 'null') {
+                $value = null;
+            }
+            elseif(empty($value)) {
+                $value = 0;
+            }
+            elseif(in_array($value, ['TRUE', 'true'])) {
+                $value = 1;
+            }
+            elseif(in_array($value, ['FALSE', 'false'])) {
+                $value = 0;
+            }
+        }
+        // arg represents a numeric value (numeric type or string)
+        if(is_numeric($value)) {
+            $value = intval($value);
+        }
+        elseif(is_scalar($value)) {
+            $suffixes = [
+                'B'  => 1,
+                'KB' => 1024,
+                'MB' => 1048576,
+                'GB' => 1073741824,
+                's'  => 1,
+                'm'  => 60,
+                'h'  => 3600,
+                'd'  => 3600*24,
+                'w'  => 3600*24*7,
+                'M'  => 3600*24*30,
+                'Y'  => 3600*24*365
+            ];
+            $val = (string) $value;
+            $intval = intval($val);
+            foreach($suffixes as $suffix => $factor) {
+                if(strval($intval).$suffix == $val) {
+                    $value = $intval * $factor;
+                    break;
+                }
+            }
+        }
+        return $value;
+    }
 
     /*
      * Add some config-utility functions to the 'config' namespace
@@ -221,6 +339,9 @@ namespace config {
      * Adds a parameter to the configuration array
      */
     function define($name, $value) {
+        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
+            $GLOBALS['QN_CONFIG_ARRAY'] = [];
+        }
         $GLOBALS['QN_CONFIG_ARRAY'][$name] = $value;
     }
 
@@ -266,12 +387,13 @@ namespace config {
      * After a call to this method, these params will be accessible in global scope.
      */
     function export_config() {
-        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            $GLOBALS['QN_CONFIG_ARRAY'] = array();
-        }
-        foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
-            \defined($name) or \define($name, $value);
-            unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+        if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
+            foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
+                if(!\defined($name)) {
+                    \define($name, $value);
+                }
+                unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+            }
         }
         $GLOBALS['QN_CONFIG_EXPORTED'] = true;
     }
@@ -542,7 +664,7 @@ namespace config {
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
                     $current_user_id = $auth->userId();
-                    if($current_user_id != ROOT_USER_ID) {
+                    if($current_user_id != QN_ROOT_USER_ID) {
                         // #todo - add support for checks on login
                         $allowed = false;
                         $users = (array) $announcement['access']['users'];
@@ -559,7 +681,7 @@ namespace config {
                 }
                 if(isset($announcement['access']['groups'])) {
                     $current_user_id = $auth->userId();
-                    if($current_user_id != ROOT_USER_ID) {
+                    if($current_user_id != QN_ROOT_USER_ID) {
                         // disjunctions on groups
                         $allowed = false;
                         $groups = (array) $announcement['access']['groups'];
