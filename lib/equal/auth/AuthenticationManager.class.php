@@ -56,7 +56,7 @@ class AuthenticationManager extends Service {
      */
 
     public function encode(array $payload) {
-        return JWT::encode($payload, AUTH_SECRET_KEY);
+        return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
     }
 
     public function decodeToken($jwt) {
@@ -143,7 +143,7 @@ class AuthenticationManager extends Service {
         if($jwt) {
             $payload = null;
             try {
-                if( !$this->verifyToken($jwt, AUTH_SECRET_KEY) ){
+                if( !$this->verifyToken($jwt, constant('AUTH_SECRET_KEY')) ){
                     throw new \Exception('jwt_invalid_signature');
                 }
 

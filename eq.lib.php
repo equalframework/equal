@@ -202,17 +202,13 @@ namespace {
             $data = file_get_contents(QN_BASEDIR.'/config/config.json');
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
-                    // handle crypted values
-                    if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
-                        $value = \config\decrypt(substr($value, 7));
-                    }
                     // handle binary masks on arbitrary values or pre-defined constants
                     if(strpos($value, '|') !== false || strpos($value, '&') !== false) {
                         try {
                             $value = eval("return $value;");
                         }
                         catch(Exception $e) {
-                            // ignore parse error
+                            // ignore parse errors
                         }
                     }
                     if(isset($constants_schema[$property])) {
@@ -230,7 +226,7 @@ namespace {
                 }
             }
         }
-        // pass-2 - process instant properties
+        // pass-2 - process instant properties not present in config
         foreach($constants_schema as $property => $descriptor) {
             if(isset($descriptor['instant']) && $descriptor['instant']) {
                 $value = null;
@@ -352,6 +348,12 @@ namespace config {
         return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
     }
 
+    /**
+     * Retrieve a configuraiton parameter as a constant.
+     */
+    function constant($name, $default=null) {
+        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+    }
 
     /**
      * Register a service by assigning an identifier (name) to a class (stored under `/lib`).
@@ -376,6 +378,7 @@ namespace config {
 
     /**
      * Retrieve  a configuraiton parameter.
+     * @deprecated
      */
     function config($name, $default=null) {
         return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
@@ -390,6 +393,10 @@ namespace config {
         if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
             foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
                 if(!\defined($name)) {
+                    // handle crypted values
+                    if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
+                        $value = decrypt(substr($value, 7));
+                    }
                     \define($name, $value);
                 }
                 unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
@@ -861,7 +868,16 @@ namespace config {
             if(isset($announcement['constants']) && count($announcement['constants'])) {
                 // inject dependencies
                 foreach($announcement['constants'] as $name) {
-                    if(!defined($name)) {
+                    echo $name;
+                    if(defined($name) && !\defined($name)) {
+                        $value = constant($name);
+                        // handle crypted values
+                        if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
+                            $value = decrypt(substr($value, 7));
+                        }
+                        \define($name, $value);
+                    }
+                    if(!\defined($name)) {
                         throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
                     }
                 }
@@ -981,9 +997,9 @@ namespace config {
                 }
                 if(defined('DEFAULT_APP')) {
                     $resolved['type'] = 'show';
-                    $resolved['script'] = config('DEFAULT_APP').'.php';
+                    $resolved['script'] = constant('DEFAULT_APP').'.php';
                     // maintain current URI consistency
-                    $request->uri()->set('show', $resolved['package'].'_'.config('DEFAULT_APP'));
+                    $request->uri()->set('show', $resolved['package'].'_'.constant('DEFAULT_APP'));
                 }
                 else {
                     throw new \Exception("No default app for package {$resolved['package']}", QN_ERROR_UNKNOWN_OBJECT);
@@ -1000,7 +1016,9 @@ namespace config {
                 // store current operation into context
                 $context->set('operation', $resolved);
                 // if no app is specified, use the default app (if any)
-                if(empty($resolved['script']) && defined('DEFAULT_APP')) $resolved['script'] = config('DEFAULT_APP').'.php';
+                if(empty($resolved['script']) && defined('DEFAULT_APP')) {
+                    $resolved['script'] = constant('DEFAULT_APP').'.php';
+                }
                 $filename = QN_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
                 if(!is_file($filename)) {
                     // always try to fallback to core package (for short syntax calls)
@@ -1013,6 +1031,7 @@ namespace config {
                     }
                 }
                 // export as constants all parameters declared with config\define() to make them accessible through global scope
+                // #todo : export on demand only, except for instant properies (already exported)
                 export_config();
 
                 // set Localisation prefs

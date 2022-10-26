@@ -180,14 +180,14 @@ class Mail extends Model {
 
         // setup SMTP settings
         $transport = new \Swift_SmtpTransport(
-            EMAIL_SMTP_HOST,
-            EMAIL_SMTP_PORT,
-            (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?EMAIL_SMTP_ENCRYPT:null
+            constant('EMAIL_SMTP_HOST'),
+            constant('EMAIL_SMTP_PORT'),
+            (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
         );
 
         $transport
-            ->setUsername(EMAIL_SMTP_ACCOUNT_USERNAME)
-            ->setPassword(EMAIL_SMTP_ACCOUNT_PASSWORD);
+            ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
+            ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
 
         if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
             $transport->setStreamOptions([
@@ -214,7 +214,7 @@ class Mail extends Model {
                     $envelope
                         ->setTo($message['to'])
                         ->setCc($message['cc'])
-                        ->setFrom([EMAIL_SMTP_ACCOUNT_EMAIL => EMAIL_SMTP_ACCOUNT_DISPLAYNAME]);
+                        ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
                     if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
                         $envelope->setReplyTo($message['reply_to']);

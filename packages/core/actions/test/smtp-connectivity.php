@@ -33,20 +33,18 @@ function read_line($sock, $append=true) {
 
 // init vars
 list($host, $port, $username, $password) = [
-    EMAIL_SMTP_HOST,
-    EMAIL_SMTP_PORT,
-    base64_encode(EMAIL_SMTP_ACCOUNT_USERNAME),
-    base64_encode(EMAIL_SMTP_ACCOUNT_PASSWORD)
+    constant('EMAIL_SMTP_HOST'),
+    constant('EMAIL_SMTP_PORT'),
+    base64_encode(constant('EMAIL_SMTP_ACCOUNT_USERNAME')),
+    base64_encode(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'))
 ];
-list($account, $domain) = explode('@', EMAIL_SMTP_ACCOUNT_EMAIL);
-
-echo $host, $port, $username, $password;
+list($account, $domain) = explode('@', constant('EMAIL_SMTP_ACCOUNT_EMAIL'));
 
 $attributes = [];
 
 try {
     // check email syntax validity
-    if(filter_var(EMAIL_SMTP_ACCOUNT_EMAIL, FILTER_VALIDATE_EMAIL) === false) {
+    if(filter_var(constant('EMAIL_SMTP_ACCOUNT_EMAIL'), FILTER_VALIDATE_EMAIL) === false) {
         throw new Exception('invalid_smtp_account_email', QN_ERROR_INVALID_PARAM);
     }
 
@@ -61,9 +59,9 @@ try {
     }
 
     // make sure the smtp hostname can be resolved to an IP address
-    if( ip2long(EMAIL_SMTP_HOST) === false) {
-        $ipv4 = gethostbyname(EMAIL_SMTP_HOST);
-        if($ipv4 == EMAIL_SMTP_HOST) {
+    if( ip2long(constant('EMAIL_SMTP_HOST')) === false) {
+        $ipv4 = gethostbyname(constant('EMAIL_SMTP_HOST'));
+        if($ipv4 == constant('EMAIL_SMTP_HOST')) {
             throw new Exception('invalid_smtp_host', QN_ERROR_INVALID_PARAM);
         }
     }
@@ -150,4 +148,7 @@ catch(Exception $e) {
 
 fclose($sock);
 
-$providers['context']->httpResponse()->body(['result' => $line])->send();
+$providers['context']
+    ->httpResponse()
+    ->body(['result' => $line])
+    ->send();

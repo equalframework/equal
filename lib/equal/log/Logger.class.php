@@ -15,12 +15,20 @@ class Logger extends Service {
     // Object Manager instance
     private $orm;
 
+    // logging enabled
+    private $enabled;
+
+    // language
+    private $lang;
+
     /**
      * Contructor defines which methods have to be called when errors and uncaught exceptions occur
      *
      */
 	public function __construct(ObjectManager $orm) {
         $this->orm = $orm;
+        $this->enabled = (defined('LOGGING_ENABLED'))?constant('LOGGING_ENABLED'):false;
+        $this->lang = (defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en';
 	}
 
     /**
@@ -28,7 +36,7 @@ class Logger extends Service {
      *
      */
     public static function constants() {
-        return ['LOGGING_ENABLED', 'QN_ROOT_USER_ID'];
+        return ['QN_ROOT_USER_ID'];
     }
 
 	/**
@@ -42,10 +50,10 @@ class Logger extends Service {
 	 * @param integer $object_id
 	 */
 	public function log($user_id, $action, $object_class, $object_id) {
-		if(!LOGGING_ENABLED) return;
-
 		// prevent infintite loops
-		if($object_class == 'core\Log') return;
+		if(!$this->enabled || $object_class == 'core\Log') {
+            return;
+        }
 
         // when using CLI actions are performed using QN_ROOT_USER_ID, unless otherwise specified
         if($user_id == 0 && php_sapi_name() === 'cli') {
@@ -60,7 +68,7 @@ class Logger extends Service {
         ];
 
 		// logs are system objects (no permissions must be applied)
-		$this->orm->create('core\Log', $values, DEFAULT_LANG, false);
+		$this->orm->create('core\Log', $values, $this->lang, false);
 	}
 
 }

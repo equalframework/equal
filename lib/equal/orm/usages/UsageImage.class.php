@@ -24,7 +24,7 @@ class UsageImage extends Usage {
                 'function'  =>  function($value) {
                     $len = intval($this->getLength());
                     $strlen = strlen($value);
-                    return !( ($len && $strlen > $len) || $strlen > UPLOAD_MAX_FILE_SIZE);
+                    return !( ($len && $strlen > $len) || $strlen > constant('UPLOAD_MAX_FILE_SIZE'));
                 }
             ]
         ];

@@ -20,6 +20,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
+    'constants'     => ['ROOT_APP_URL'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -76,7 +77,7 @@ try {
                                 return $params['user']['firstname'];
                             },
         'recovery_url'	=>	function ($params, $attributes) {
-                                $url = ROOT_APP_URL."/auth/#/reset/{$params['token']}";
+                                $url = constant('ROOT_APP_URL')."/auth/#/reset/{$params['token']}";
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {

@@ -19,6 +19,8 @@ class DataAdapter extends Service {
 
     private $config;
 
+    public static function constants() { return ['UPLOAD_MAX_FILE_SIZE']; }
+
     protected function __construct(/* no dependency */) {
         // initial configuration
         $this->config = null;
@@ -509,7 +511,7 @@ class DataAdapter extends Service {
                             if(!$res) {
                                 throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), QN_ERROR_INVALID_PARAM);
                             }
-                            if(strlen($res) > UPLOAD_MAX_FILE_SIZE) {
+                            if(strlen($res) > constant('UPLOAD_MAX_FILE_SIZE')) {
                                 throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                             }
                         }
@@ -520,7 +522,7 @@ class DataAdapter extends Service {
                                 $res = '';
                             }
                             else {
-                                if(isset($value['error']) && $value['error'] == 2 || isset($value['size']) && $value['size'] > UPLOAD_MAX_FILE_SIZE) {
+                                if(isset($value['error']) && $value['error'] == 2 || isset($value['size']) && $value['size'] > constant('UPLOAD_MAX_FILE_SIZE')) {
                                     throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                                 }
                                 $res = file_get_contents($value['tmp_name']);
@@ -557,7 +559,7 @@ class DataAdapter extends Service {
                         }
                         list($value, $class, $oid, $field, $lang) = func_get_args();
 
-                        if(strlen($value) > UPLOAD_MAX_FILE_SIZE) {
+                        if(strlen($value) > constant('UPLOAD_MAX_FILE_SIZE')) {
                             throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
                         }
 

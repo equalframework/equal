@@ -143,7 +143,7 @@ try {
         // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root config.inc.php)
         if(!isset($route['operation']['name'])) {
             if(defined('DEFAULT_PACKAGE')) {
-                $route['operation']['name'] = DEFAULT_PACKAGE;
+                $route['operation']['name'] = constant('DEFAULT_PACKAGE');
                 $route['operation']['type'] = 'show';
             }
         }

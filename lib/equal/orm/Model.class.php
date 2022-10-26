@@ -15,8 +15,8 @@ namespace equal\orm;
  *
  * @method \equal\orm\Collection id($id)
  * @method \equal\orm\Collection ids(array $ids=[])
- * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=DEFAULT_LANG)
- * @method \equal\orm\Collection create(array $values=null, $lang=DEFAULT_LANG)
+ * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=null)
+ * @method \equal\orm\Collection create(array $values=null, $lang=null)
  */
 class Model implements \ArrayAccess, \Iterator {
 
@@ -43,10 +43,17 @@ class Model implements \ArrayAccess, \Iterator {
 
 
     /**
+     * Default language to use for CRUD calls.
+     * @var string
+     */
+    private $default_lang;
+
+    /**
      * Constructor: initiliases members vars and set fields to values, if given.
      *
      */
     public final function __construct($values=[]) {
+        $this->default_lang = (defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en';
         $this->values = [];
         $this->fields = [];
         // build the schema based on current class and ancestors
@@ -524,7 +531,8 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
 
-    public static function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
+    public static function search(array $domain=[], array $params=[], $lang=null) {
+        $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
             $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
@@ -533,7 +541,8 @@ class Model implements \ArrayAccess, \Iterator {
         return null;
     }
 
-    public static function create(array $values=null, $lang=DEFAULT_LANG) {
+    public static function create(array $values=null, $lang=null) {
+        $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
             $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());

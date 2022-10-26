@@ -38,14 +38,14 @@ $paths = [
     ]
 ];
 
-if(ROUTING_METHOD == 'JSON') {
+if(constant('ROUTING_METHOD') == 'JSON') {
     $paths[] = [
         'rights'    =>  QN_R_READ,
         'path'      =>  QN_BASEDIR.'/config/routing'
     ];
 }
 
-if(FILE_STORAGE_MODE == 'FS') {
+if(constant('FILE_STORAGE_MODE') == 'FS') {
     $paths[] = [
         'rights'    =>  QN_R_READ | QN_R_WRITE,
         'path'      =>  QN_BASEDIR.'/bin'
@@ -97,7 +97,7 @@ $uid = 0;
 // #todo - add HTTP_PROCESS_USERNAME
 $username = 'www-data';
 // get UID of a use by its name
-if(exec("id -u \"$username\"", $output)) {    
+if(exec("id -u \"$username\"", $output)) {
     $uid = intval(reset($output));
 }
 

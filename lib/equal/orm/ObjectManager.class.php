@@ -192,7 +192,7 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-        return ['QN_BASEDIR', 'QN_ERROR_UNKNOWN', 'QN_ERROR_MISSING_PARAM', 'QN_ERROR_INVALID_PARAM', 'QN_ERROR_UNKNOWN_OBJECT', 'QN_ERROR_CONFLICT_OBJECT'];
+        return ['UPLOAD_MAX_FILE_SIZE', 'DRAFT_VALIDITY'];
     }
 
     public function getDB() {
@@ -1145,8 +1145,8 @@ class ObjectManager extends Service {
                     case 'file':
                     case 'binary':
                         $constraints[$field]['size_overflow'] = [
-                            'message'     => 'String length must be maximum '.UPLOAD_MAX_FILE_SIZE.' chars.',
-                            'function'    => function($val, $obj) {return (strlen($val) <= UPLOAD_MAX_FILE_SIZE);}
+                            'message'     => 'String length must be maximum '.constant('UPLOAD_MAX_FILE_SIZE').' chars.',
+                            'function'    => function($val, $obj) {return (strlen($val) <= constant('UPLOAD_MAX_FILE_SIZE'));}
                         ];
                         break;
                 }
@@ -1330,7 +1330,7 @@ class ObjectManager extends Service {
             if(!isset($creation_array['id'])) {
                 if($use_draft) {
                     // list ids of records having creation date older than DRAFT_VALIDITY
-                    $ids = $this->search($class, [['state', '=', 'draft'], ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*DRAFT_VALIDITY))]], ['id' => 'asc']);
+                    $ids = $this->search($class, [['state', '=', 'draft'], ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]], ['id' => 'asc']);
                     if(count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];

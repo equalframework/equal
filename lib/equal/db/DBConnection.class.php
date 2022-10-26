@@ -30,7 +30,7 @@ class DBConnection extends Service {
                 $this->dbConnection = null;
         }
 
-        if(defined('DB_REPLICATION') && DB_REPLICATION != 'NO') {
+        if(defined('DB_REPLICATION') && constant('DB_REPLICATION') != 'NO') {
             // add replica members, if any
             $i = 1;
 
