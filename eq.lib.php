@@ -203,12 +203,6 @@ namespace {
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
                     config\define($property, $value);
-                    if(isset($constants_schema[$property])) {
-                        // handle shorthand notations
-                        if($constants_schema[$property]['type'] == 'integer') {
-                            config\define($property, config\strtoint($value));
-                        }
-                    }
                 }
             }
         }
@@ -229,7 +223,7 @@ namespace {
                 config\export($property);
             }
             elseif(!config\defined($property) && isset($descriptor['default'])) {
-                config\defined($property, $descriptor['default']);
+                config\define($property, $descriptor['default']);
             }
         }
     }
@@ -392,10 +386,16 @@ namespace config {
     /**
      * Exports a property as constant to the global scope.
      */
-    function export($name) {
-        $value = constant($name);
+    function export($property) {
+        global $constants_schema;
+        // retrieve current value
+        $value = constant($property);
+        // handle shorthand notations
+        if($constants_schema[$property]['type'] == 'integer') {
+            $value = strtoint($value);
+        }
         // handle crypted values
-        if(is_string($value)) {
+        elseif(is_string($value)) {
             if(substr($value, 0, 7) == 'cipher:') {
                 $value = decrypt(substr($value, 7));
             }
@@ -409,7 +409,7 @@ namespace config {
                 }
             }
         }
-        \define($name, $value);
+        \define($property, $value);
     }
 
     /**
