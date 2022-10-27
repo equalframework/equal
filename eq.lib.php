@@ -219,6 +219,7 @@ namespace {
                     if(is_null($value) && isset($descriptor['default'])) {
                         $value = $descriptor['default'];
                     }
+                    config\define($property, $value);
                 }
                 config\export($property);
             }
@@ -392,15 +393,8 @@ namespace config {
         $value = constant($property);
         // handle shorthand notations
         if($constants_schema[$property]['type'] == 'integer') {
-            $value = strtoint($value);
-        }
-        // handle crypted values
-        elseif(is_string($value)) {
-            if(substr($value, 0, 7) == 'cipher:') {
-                $value = decrypt(substr($value, 7));
-            }
             // handle binary masks on arbitrary values or pre-defined constants
-            elseif(strpos($value, '|') !== false || strpos($value, '&') !== false) {
+            if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
                 try {
                     $value = eval("return $value;");
                 }
@@ -408,6 +402,13 @@ namespace config {
                     // ignore parse errors
                 }
             }
+            else {
+                $value = strtoint($value);
+            }
+        }
+        // handle crypted values
+        elseif(is_string($value) && substr($value, 0, 7) == 'cipher:') {
+            $value = decrypt(substr($value, 7));
         }
         \define($property, $value);
     }
