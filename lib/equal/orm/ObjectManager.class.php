@@ -167,11 +167,6 @@ class ObjectManager extends Service {
      * @param DBConnection $db  Intance of the Service allowing connection to DBMS (connection might not be established yet).
      */
     protected function __construct(DBConnection $db) {
-        // make sure mandatory constants are defined
-        if(!isset($GLOBALS['QN_CONFIG_EXPORTED']) && function_exists('\config\export_config')) {
-            \config\export_config();
-        }
-
         $this->db = &$db;
         $this->packages = null;
         $this->cache = [];

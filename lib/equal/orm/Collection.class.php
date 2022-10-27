@@ -6,8 +6,6 @@
 */
 namespace equal\orm;
 
-use stdClass;
-
 class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */

@@ -401,6 +401,7 @@ namespace config {
      * Export all parameters declared with `config\define()` function, as constants.
      *
      * After a call to this method, these params will be accessible in global scope.
+     * @deprecated
      */
     function export_config() {
         if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
@@ -1043,9 +1044,6 @@ namespace config {
                         }
                     }
                 }
-                // export as constants all parameters declared with config\define() to make them accessible through global scope
-                // #todo : export on demand only, except for instant properies (already exported)
-                export_config();
 
                 // set Localisation prefs
                 if(defined('L10N_TIMEZONE')) {
