@@ -13,7 +13,7 @@ $params = announce([
 ]);
 
 // retrieve connection object
-$db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
+$db = &DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
 
 // 1) test connectivity to DBMS service
 $json = run('do', 'test_db-connectivity');
@@ -30,9 +30,9 @@ if(!$db->connected()) {
     }
 }
 // 3) try to select specified DB
-if(!$db->select(DB_NAME)) {
+if(!$db->select(constant('DB_NAME'))) {
     $db->disconnect();
-    throw new Exception('Unable to access specified database (DB \''.DB_NAME.'\' not found)', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('Unable to access specified database (DB \''.constant('DB_NAME').'\' not found)', QN_ERROR_INVALID_CONFIG);
 }
 // 3) everything went well: disconnect
 $db->disconnect();
