@@ -14,9 +14,7 @@ class Container extends Service {
 
     private $instances;
 
-    /*
-    serves as a map to assign aliases to services
-    */
+    /** @var array  Map for assigning aliases to services. */
     private $register;
 
     public function __construct() {
@@ -91,6 +89,9 @@ class Container extends Service {
                 if(is_callable($dependency.'::constants')) {
                     $constants = call_user_func($dependency.'::constants');
                     foreach($constants as $i => $constant) {
+                        if(!defined($constant) && \config\defined($constant)) {
+                            \config\export($constant);
+                        }
                         if(!defined($constant)) {
                             trigger_error("required constant '$constant' is not defined for service '$dependency'", E_USER_WARNING);
                             break;

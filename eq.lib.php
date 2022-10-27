@@ -202,26 +202,15 @@ namespace {
             $data = file_get_contents(QN_BASEDIR.'/config/config.json');
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
-                    // handle binary masks on arbitrary values or pre-defined constants
-                    if(strpos($value, '|') !== false || strpos($value, '&') !== false) {
-                        try {
-                            $value = eval("return $value;");
-                        }
-                        catch(Exception $e) {
-                            // ignore parse errors
-                        }
-                    }
+                    \config\define($property, $value);
                     if(isset($constants_schema[$property])) {
                         if($constants_schema[$property]['type'] == 'integer') {
-                            // handle shorthand notations, if any
-                            $value = \config\strtoint($value);
+                            // handle shorthand notations
+                            \config\define($property, \config\strtoint($value));
                         }
                         if(isset($constants_schema[$property]['instant']) && $constants_schema[$property]['instant']) {
-                            define($property, $value);
+                            \config\export($property, $value);
                         }
-                    }
-                    else {
-                        \config\define($property, $value);
                     }
                 }
             }
@@ -382,6 +371,30 @@ namespace config {
      */
     function config($name, $default=null) {
         return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+    }
+
+
+    /**
+     * Exports a property as constant to the global scope.
+     */
+    function export($name) {
+        $value = constant($name);
+        // handle crypted values
+        if(is_string($value)) {
+            if(substr($value, 0, 7) == 'cipher:') {
+                $value = decrypt(substr($value, 7));
+            }
+            // handle binary masks on arbitrary values or pre-defined constants
+            elseif(strpos($value, '|') !== false || strpos($value, '&') !== false) {
+                try {
+                    $value = eval("return $value;");
+                }
+                catch(Exception $e) {
+                    // ignore parse errors
+                }
+            }
+        }
+        \define($name, $value);
     }
 
     /**
