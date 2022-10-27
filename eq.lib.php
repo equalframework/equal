@@ -204,12 +204,9 @@ namespace {
                 foreach($config as $property => $value) {
                     config\define($property, $value);
                     if(isset($constants_schema[$property])) {
+                        // handle shorthand notations
                         if($constants_schema[$property]['type'] == 'integer') {
-                            // handle shorthand notations
                             config\define($property, config\strtoint($value));
-                        }
-                        if(isset($constants_schema[$property]['instant']) && $constants_schema[$property]['instant']) {
-                            config\export($property);
                         }
                     }
                 }
@@ -217,8 +214,8 @@ namespace {
         }
         // pass-2 - process instant properties not present in config
         foreach($constants_schema as $property => $descriptor) {
-            if(!defined($property)) {
-                if(isset($descriptor['instant']) && $descriptor['instant']) {
+            if(isset($descriptor['instant']) && $descriptor['instant']) {
+                if(!config\defined($property)) {
                     $value = null;
                     if(isset($descriptor['environment'])) {
                         if(($env = getenv($descriptor['environment'])) !== false) {
@@ -228,11 +225,11 @@ namespace {
                     if(is_null($value) && isset($descriptor['default'])) {
                         $value = $descriptor['default'];
                     }
-                    define($property, $value);
                 }
-                elseif(!config\defined($property) && isset($descriptor['default'])) {
-                    config\defined($property, $descriptor['default']);
-                }
+                config\export($property);
+            }
+            elseif(!config\defined($property) && isset($descriptor['default'])) {
+                config\defined($property, $descriptor['default']);
             }
         }
     }

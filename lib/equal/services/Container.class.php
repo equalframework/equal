@@ -81,7 +81,7 @@ class Container extends Service {
             // check if class owns a getInstance() method
             if(!is_callable($dependency.'::getInstance')) {
                 $unresolved_dependencies[] = $dependency;
-                trigger_error("required method 'getInstance' is not defined for class '$dependency'", E_USER_WARNING);
+                trigger_error("Required method 'getInstance' is not defined for class '$dependency'.", E_USER_WARNING);
             }
             else {
                 // check for required constants availability
@@ -93,7 +93,7 @@ class Container extends Service {
                             \config\export($constant);
                         }
                         if(!defined($constant)) {
-                            trigger_error("required constant '$constant' is not defined for service '$dependency'", E_USER_WARNING);
+                            trigger_error("Required constant '$constant' is not defined for service '$dependency'.", E_USER_WARNING);
                             break;
                         }
                         unset($constants[$i]);
@@ -112,7 +112,7 @@ class Container extends Service {
         }
         catch(ReflectionException $e) {
             $unresolved_dependencies[] = $dependency;
-            trigger_error("unable to autoload required dependency '$dependency'", E_USER_WARNING);
+            trigger_error("Unable to autoload required dependency '$dependency'.", E_USER_WARNING);
         }
         return [$instance, $unresolved_dependencies];
     }
