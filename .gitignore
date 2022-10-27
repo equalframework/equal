@@ -8,6 +8,8 @@ spool/*
 bin/*
 !bin/.gitkeep
 config/config.inc.php
+config/config.json
+config/secrets.json
 config/routing/*
 !config/routing/.gitkeep
 composer.phar

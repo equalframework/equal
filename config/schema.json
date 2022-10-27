@@ -3,6 +3,7 @@
         "type": "string",
         "description": "Private key to use for secrets decryption. In order to allow decryption, if required, this property should be defined first.",
         "instant": true,
+        "environment": "EQ_CIPHER_KEY",
         "example": "this is a secret key"
     },
     "DEFAULT_LANG": {
@@ -124,14 +125,14 @@
         "type": "string",
         "description": "IP address or fully qualified domain name (ex.: sql.example.com) of the DB host.",
         "instant": true,
-        "environement": "EQ_DB_HOST",
+        "environment": "EQ_DB_HOST",
         "default": "127.0.0.1"
     },
     "DB_PORT": {
         "type": "integer",
         "description": "TCP/IP port for connecting to DB host.",
         "instant": true,
-        "environement": "EQ_DB_PORT",
+        "environment": "EQ_DB_PORT",
         "default": "3306"
     },
     "DB_USER": {

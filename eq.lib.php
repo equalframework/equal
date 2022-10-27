@@ -202,14 +202,14 @@ namespace {
             $data = file_get_contents(QN_BASEDIR.'/config/config.json');
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
-                    \config\define($property, $value);
+                    config\define($property, $value);
                     if(isset($constants_schema[$property])) {
                         if($constants_schema[$property]['type'] == 'integer') {
                             // handle shorthand notations
-                            \config\define($property, \config\strtoint($value));
+                            config\define($property, config\strtoint($value));
                         }
                         if(isset($constants_schema[$property]['instant']) && $constants_schema[$property]['instant']) {
-                            \config\export($property, $value);
+                            config\export($property);
                         }
                     }
                 }
@@ -217,18 +217,21 @@ namespace {
         }
         // pass-2 - process instant properties not present in config
         foreach($constants_schema as $property => $descriptor) {
-            if(isset($descriptor['instant']) && $descriptor['instant']) {
-                $value = null;
-                if(isset($descriptor['environement'])) {
-                    if(($env = getenv($descriptor['environement'])) !== false) {
-                        $value = $env;
+            if(!defined($property)) {
+                if(isset($descriptor['instant']) && $descriptor['instant']) {
+                    $value = null;
+                    if(isset($descriptor['environment'])) {
+                        if(($env = getenv($descriptor['environment'])) !== false) {
+                            $value = $env;
+                        }
                     }
-                }
-                if(is_null($value) && isset($descriptor['default'])) {
-                    $value = $descriptor['default'];
-                }
-                if(!is_null($value) && !defined($property)) {
+                    if(is_null($value) && isset($descriptor['default'])) {
+                        $value = $descriptor['default'];
+                    }
                     define($property, $value);
+                }
+                elseif(!config\defined($property) && isset($descriptor['default'])) {
+                    config\defined($property, $descriptor['default']);
                 }
             }
         }
@@ -258,6 +261,24 @@ namespace {
 namespace config {
     use equal\services\Container;
     use equal\orm\Fields;
+
+    /*
+     * This section adds some config-utility functions to the 'config' namespace.
+     */
+
+
+    function encrypt($string) {
+        $output = false;
+        if(\defined('CIPHER_KEY')) {
+            $cipher_algo = "AES-256-CBC";
+            $secret_key = \constant('CIPHER_KEY');
+            $key = hash('sha256', $secret_key);
+            $iv = substr(implode('', range(0, 12)), 0, openssl_cipher_iv_length($cipher_algo));
+            $output = openssl_encrypt($string, $cipher_algo, $key, 0, $iv);
+            $output = base64_encode($output);
+        }
+        return $output;
+    }
 
     function decrypt($string) {
         $output = false;
@@ -316,9 +337,6 @@ namespace config {
         return $value;
     }
 
-    /*
-     * Add some config-utility functions to the 'config' namespace
-     */
 
     /**
      * Adds a parameter to the configuration array
@@ -882,7 +900,6 @@ namespace config {
             if(isset($announcement['constants']) && count($announcement['constants'])) {
                 // inject dependencies
                 foreach($announcement['constants'] as $name) {
-                    echo $name;
                     if(defined($name) && !\defined($name)) {
                         $value = constant($name);
                         // handle crypted values
