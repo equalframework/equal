@@ -99,7 +99,7 @@ class DataAdapter extends Service {
                 'txt' => [
                     'php' =>    function ($value) {
                                     $value = self::strToInteger($value);
-                                    if(!is_int($value)) {
+                                    if(!is_int($value) && !is_null($value)) {
                                         $out_value = serialize($value);
                                         throw new \Exception(serialize(["not_valid_integer" => "Format inconvertible to integer for {$out_value}."]), QN_ERROR_INVALID_PARAM);
                                     }
@@ -116,14 +116,14 @@ class DataAdapter extends Service {
             'float' => [
                 'txt'   => [
                     'php' =>    function ($value) {
-                                    if(is_string($value)) {
-                                        if($value == 'null') $value = null;
+                                    if(is_string($value) && $value == 'null') {
+                                        $value = null;
                                     }
                                     // arg represents a numeric value (either numeric type or string)
                                     if(is_numeric($value)) {
                                         $value = floatval($value);
                                     }
-                                    else if(!is_null($value)) {
+                                    elseif(!is_null($value)) {
                                         throw new \Exception(serialize(["not_valid_float" => "Format inconvertible to float."]), QN_ERROR_INVALID_PARAM);
                                     }
                                     return $value;
