@@ -4,8 +4,6 @@
     Some Rights Reserved, Yesbabylon SRL, 2020-2021
     Licensed under GNU AGPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\Task;
-use core\setting\Setting;
 
 list($params, $providers) = announce([
     'description'   => "Run a batch of scheduled task. Expected to be run with CLI `$ ./equal.run --do=cron_run`",
@@ -19,9 +17,8 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'cron'] 
+    'providers'     => ['context', 'cron']
 ]);
-
 
 /**
  * @var \equal\php\Context $context
@@ -29,8 +26,7 @@ list($params, $providers) = announce([
  */
 list($context, $cron) = [$providers['context'], $providers['cron']];
 
-
-// run scheduled tasks that require it
+// run the scheduled tasks that require it
 $cron->run();
 
 $context->httpResponse()

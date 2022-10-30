@@ -274,8 +274,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names
-     * by discarding: special fields; fields marked as readonly; and fields unknonwn to the current class.
+     * Filters a map of fields-values entries or an array of fields names by discarding special fields; fields marked as readonly; and fields unknonwn to the current class.
      *
      * @param   array   $fields             Associative array mapping field names with their values.
      * @param   bool    $check_readonly     If set to true, readonly fields are discarded.

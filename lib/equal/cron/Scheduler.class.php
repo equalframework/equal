@@ -20,11 +20,11 @@ class Scheduler extends Service {
     }
 
     public static function constants() {
-        return ['QN_ROOT_USER_ID'];
+        return [];
     }
 
     /**
-     * Run a batch of scheduled tasks.
+     * Runs a batch of scheduled tasks.
      *
      * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
      * For recurring tasks we update the moment field to the next time, accoring to repeat axis and repeat step.
@@ -52,11 +52,8 @@ class Scheduler extends Service {
                     }
                     // update task, if recurring
                     if($task['is_recurring']) {
-                        $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $task['moment']);
-                        if($moment < $now) {
-                            $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $now);
-                        }
-                        $orm->write('core\Task', $tid, ['moment' => $moment]);
+                        $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $now);
+                        $orm->update('core\Task', $tid, ['moment' => $moment]);
                     }
                     else {
                         $orm->remove('core\Task', $tid, true);
@@ -67,13 +64,14 @@ class Scheduler extends Service {
     }
 
     /**
-     * Run a batch of scheduled tasks.
+     * Schedules a new task.
      * #memo - Scheduler always operates as root user.
      *
      * @param   string    $name         Name of the task to schedule, to ease task identification.
      * @param   integer   $moment       Timestamp of the moment of the first execution.
      * @param   string    $controller   Controller to invoker, with package notation.
      * @param   string    $params       JSON string holding the payload to relay to the controller.
+     * @param   boolean   $recurring    Flag to mark the task as recurring.
      */
     public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {
         $orm = $this->container->get('orm');
@@ -91,7 +89,7 @@ class Scheduler extends Service {
     }
 
     /**
-     * Cancel (delete) a scheduled task.
+     * Cancels (delete) a scheduled task.
      * #memo - Scheduler always operates as root user.
      *
      * @param   string    $name         Name of the task to cancel.

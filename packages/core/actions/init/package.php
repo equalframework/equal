@@ -24,10 +24,20 @@ list($params, $providers) = announce([
             'in'            => array_values($packages),
             'default'       => 'core'
         ],
+        'cascade' => [
+            'description'   => 'Cascade initialisation of the packages marked as dependencies.',
+            'type'          => 'boolean',
+            'default'       => true
+        ],
         'import' => [
-            'description'   => 'Flag to import the initial data.',
+            'description'   => 'Request for importing initial data.',
             'type'          => 'boolean',
             'default'       => false
+        ],
+        'import_cascade' => [
+            'description'   => 'Import initial data for dependencies as well.',
+            'type'          => 'boolean',
+            'default'       => true
         ],
         'compile' => [
             'description'   => 'Flag to compile the apps.',
@@ -49,35 +59,46 @@ if(strlen($json)) {
     exit(1);
 }
 // retrieve connection object
-$db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
+$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 
-// 1) Checks in the manifest.json, if it needs to instantiate other packages before
+// 1) Check in manifest.json for prerequisite initialisation
 
 if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'])) {
-    $GLOBALS['QN_INIT_DEPENDENCIES'] = [$params['package'] => true];
+    $GLOBALS['QN_INIT_DEPENDENCIES'] = [];
 }
 
-// checking if the manifest.json file exists
+// mark current package as being initialised (to prevent recursion)
+$GLOBALS['QN_INIT_DEPENDENCIES'][$params['package']] = true;
+
+// retrieve manifest of target package, if any
+$package_manifest = [];
 if(file_exists("packages/{$params['package']}/manifest.json")) {
-    $manifest_json = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
-    if(!$manifest_json) {
-        throw new Exception("invalid manifest for package {$params['package']}: ".json_last_error_msg(), QN_ERROR_UNKNOWN);
+    $package_manifest = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
+    if(!$package_manifest) {
+        throw new Exception("Invalid manifest for package {$params['package']}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
     }
-    // checking if there are dependencies
-    if(isset($manifest_json['depends_on'])) {
-        foreach($manifest_json['depends_on'] as $dependency) {
-            // initiate every dependency package before running the compile
-            if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'][$dependency])) {
-                // init package of sub packages
-                eQual::run('do', 'init_package', ['package' => $dependency, 'compile'=> $params['compile'], 'import' => $params['import']], true);
-            }
+}
+
+// checking if there are dependencies
+if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($package_manifest['depends_on'])) {
+    foreach($package_manifest['depends_on'] as $dependency) {
+        // initiate every dependency package before running the compile
+        if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'][$dependency])) {
+            // init package of sub packages
+            eQual::run('do', 'init_package', [
+                    'package'           => $dependency,
+                    'cascade'           => $params['cascade'],
+                    'import'            => $params['import'] && $params['import_cascade'],
+                    'compile'           => $params['compile'],
+                ],
+                true);
         }
     }
 }
 
 
-/* PASS-ONE : init DB with SQL schema */
+/* pass-1 : init DB with SQL schema */
 
 
 // 1) retrieve schema for given package
@@ -100,7 +121,7 @@ foreach($queries as $query) {
 }
 
 
-/* PASS-TWO: check for missing columns */
+/* pass-2: check for missing columns */
 
 // for classes with inheritance, we must check against non yet created fields
 $queries = [];
@@ -169,7 +190,6 @@ foreach($classes as $class) {
 //    }
 }
 
-
 // 3) add missing relation tables, if any
 foreach($m2m_tables as $table => $columns) {
     $query = "CREATE TABLE IF NOT EXISTS `{$table}` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci (";
@@ -190,7 +210,6 @@ foreach($m2m_tables as $table => $columns) {
 
 
 // #todo : make distinction between mandatory initial data and demo data
-
 
 // 4) populate tables with predefined data
 $data_folder = "packages/{$params['package']}/init/data";
@@ -246,7 +265,6 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     }
 }
 
-
 // 5) if a `bin` folder exists, copy its content to /bin/<package>/
 $bin_folder = "packages/{$params['package']}/init/bin";
 if(file_exists($bin_folder) && is_dir($bin_folder)) {
@@ -260,97 +278,63 @@ if(file_exists($route_folder) && is_dir($route_folder)) {
     exec("cp -r $route_folder/* config/routing");
 }
 
-// 8) Export the compiled (if not yet compiled, compile) to the public folder
-$apps_folder = "packages/{$params['package']}/apps";
+// 7) Export the compiled apps to related public folders
+if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
 
-$manifest_json = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
+    foreach($package_manifest['apps'] as $app) {
 
-foreach($manifest_json['apps'] as $app => $value){
+        // path of the app
+        $app_path = "packages/{$params['package']}/apps/$app";
 
-    $output = [];
-    $retval = 0;
+        if(!file_exists($app_path) || !file_exists($app_path.'/web.app')) {
+            // ignore apps not relating to an actual folder inside {package}/apps
+            continue;
+        }
 
-    // path of the app
-    $filepath = "$apps_folder/$app";
-    try {
-        // Checks if the folder exists or not
-        if(file_exists("public\\$app")){
+        $app_manifest = [];
+
+        if(file_exists("$app_path/manifest.json")) {
+            $app_manifest = json_decode(file_get_contents("$app_path/manifest.json"), true);
+            if(!$package_manifest) {
+                throw new Exception("Invalid manifest for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+            }
+        }
+
+        // checks wether the folder exists or not
+        if(file_exists("public/$app")) {
             // remove existing folder, if present
-           exec("rm -rf public\\$app 2>&1", $output, $retval);
-           if($retval>=1) {
-                $message = reset($output);
+            if(!rmdir("public/$app")) {
                 // trigger_error("QN_DEBUG_PHP::error removing folder : $message", QN_REPORT_DEBUG);
                 // throw new Exception('fs_removing_file_failure', QN_ERROR_UNKNOWN);
-
             }
         }
 
         // (re)create the (empty) folder
-        exec("mkdir public\\$app 2>&1", $output, $retval);
-        if($retval>=1) {
-            $message = reset($output);
+        if(!mkdir("public/$app")) {
             // trigger_error("QN_DEBUG_PHP::error moving file : $message", QN_REPORT_DEBUG);
             // throw new Exception('fs_moving_file_failure', QN_ERROR_UNKNOWN);
         }
 
-        // checks if the file was compiled before (should we keep the file exist condition, maybe compile everytime)
-        if(!file_exists($filepath."/dist/symbiose") && $params['compile']){
-
-            if(!file_exists("packages/core/apps/shared-modules/dist/sb-shared-lib")) {
-                if(!file_exists("packages/core/apps/shared-modules/node_modules")) {
-                    exec("cd packages/core/apps/shared-modules && npm i 2>&1", $output, $retval);
-                    if($retval>=1) {
-                        // $message = reset($output);
-                        // trigger_error("QN_DEBUG_PHP:: npm error : $message", QN_REPORT_DEBUG);
-                        // throw new Exception('npm_error', QN_ERROR_UNKNOWN);
-                    }
-                }
-                exec("cd packages/core/apps/shared-modules/ && compile.bat 2>&1", $output, $retval);
-                if($retval>=1) {
-                    // $message = reset($output);
-                    // trigger_error("QN_DEBUG_PHP::compile error : $message", QN_REPORT_DEBUG);
-                    // throw new Exception('compile error', QN_ERROR_UNKNOWN);
-                }
-            }
-            if(!file_exists($filepath."/node_modules")) {
-                exec("cd $filepath && npm i 2>&1", $output, $retval);
-                // if there is an error, the exec function returns >= 1
-                if($retval>=1) {
-                    // $message = reset($output);
-                    // trigger_error("QN_DEBUG_PHP:: npm error : $message", QN_REPORT_DEBUG);
-                    // throw new Exception('npm_error', QN_ERROR_UNKNOWN);
-                }
-            }
-            exec("cd $filepath && sh build.sh 2>&1", $output, $retval);
-            if($retval>=1) {
-                // $message = reset($output);
-                // trigger_error("QN_DEBUG_PHP::build error : $message", QN_REPORT_DEBUG);
-                // throw new Exception('build error', QN_ERROR_UNKNOWN);
+        // verify the checksum
+        if(isset($app_manifest['checksum'])) {
+            $md5 = md5_file("$app_path/web.app");
+            if($md5 != $app_manifest['checksum']) {
+                // #todo - not required for now, would increase version identification
+                // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
             }
         }
 
-        // move the content of the dist folder to the public folder
-        if (file_exists($filepath."/dist/symbiose")){
-            exec("cp -a $filepath/dist/symbiose/* public\\$app 2>&1", $output, $retval);
-            if($retval>=1) {
-                $message = reset($output);
-                // trigger_error("QN_DEBUG_PHP::error copying file : $message", QN_REPORT_DEBUG);
-                // throw new Exception('fs_copy_failure', QN_ERROR_UNKNOWN);
-            }
-            // copy manifest.json inside the apps public folder
-            exec("cp packages/{$params['package']}/manifest.json public\\$app 2>&1", $output, $retval);
-            if($retval>=1){
-                $message = reset($output);
-                // trigger_error("QN_DEBUG_PHP::error copying file : $message", QN_REPORT_DEBUG);
-                // throw new Exception('fs_copy_failure', QN_ERROR_UNKNOWN);
-            }
+        // extract the app archive
+        $zip = new ZipArchive;
+        if (!$zip->open("$app_path/web.app")) {
+            throw new Exception("Unable to export app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
         }
-    }
-    catch(Exception $e) {
-        // unexpected error
+        // export to public folder
+        $zip->extractTo("public/$app/");
+        $zip->close();
     }
 }
 
 $context->httpResponse()
-    ->status(201)
-    ->send();
+        ->status(201)
+        ->send();

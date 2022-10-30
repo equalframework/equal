@@ -25,13 +25,10 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $manifests_map = [];
 
 // search and read manifest.json inside App folders within /public
-foreach(glob("public/*", GLOB_ONLYDIR) as $app_name) {
-    if(file_exists("$app_name/manifest.json")) {
-        $manifest = json_decode(file_get_contents("$app_name/manifest.json"), true);
-        if(isset($manifest['apps'])) {
-            foreach($manifest['apps'] as $app => $descriptor) {
-                $manifests_map[$app] = $descriptor;
-            }
+foreach(glob("public/*", GLOB_ONLYDIR) as $app_path) {
+    if(file_exists("$app_path/manifest.json")) {
+        if($manifest = json_decode(file_get_contents("$app_path/manifest.json"), true)) {
+            $manifests_map[basename($app_path)] = $manifest;
         }
     }
 }

@@ -5,18 +5,18 @@
         "data": [
             {
                 "id": 1,
-                "name": "root",
-                "display_name": null,
-                "description": null,
+                "name": "admin",
+                "display_name": "Administrators",
+                "description": "Group for users with admin privileges.",
                 "users_ids": [
                     "1"
                 ]
             },
             {
                 "id": 2,
-                "name": "default",
-                "display_name": null,
-                "description": null,
+                "name": "users",
+                "display_name": "All Users",
+                "description": "Default group for users.",
                 "users_ids": [
                     "1",
                     "2"

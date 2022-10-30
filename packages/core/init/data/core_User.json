@@ -9,7 +9,7 @@
                 "password": "secure_password",
                 "firstname": "root",
                 "lastname": "@system",
-                "language": "en",                
+                "language": "en",
                 "validated": true,
                 "groups_ids": [1, 2]
             },
