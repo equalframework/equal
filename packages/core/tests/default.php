@@ -268,7 +268,7 @@ $tests = [
                     'expected'          =>  array('2'),
                     'test'              =>  function (){
                                                 $om = &ObjectManager::getInstance();
-                                                return $om->search('core\Group', array(array(array('name', 'ilike', '%Default%'))));
+                                                return $om->search('core\Group', array(array(array('name', 'ilike', '%Users%'))));
                                             }
                     ),
     '2502' => array(
