@@ -14,9 +14,9 @@ class Service extends Singleton {
     public $container;
 
     /**
-     * Returns a list of constant names that the service expect to be available
+     * Returns a list of constant names that the service expects to be available.
      *
-     * @returns array
+     * @return array
      */
     public static function constants() { return []; }
 

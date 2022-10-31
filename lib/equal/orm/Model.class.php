@@ -8,10 +8,10 @@ namespace equal\orm;
 
 
 /**
- * Root Model for all objects.
- * This class holds the description of an object (and not the object itself)
+ * Root Model for all Object definitions.
+ * This class holds the description of an object along with the values of the currently assigned fields.
  *
- * Static methods for building new Collection objects (accessed through magic methods):
+ * List of static methods for building new Collection objects (accessed through magic methods):
  *
  * @method \equal\orm\Collection id($id)
  * @method \equal\orm\Collection ids(array $ids=[])
@@ -163,6 +163,17 @@ class Model implements \ArrayAccess, \Iterator {
         return $res;
     }
 
+
+    /**
+     * Returns a list of constant names that the entity expects to be available.
+     * This method must be overridden by children classes.
+     *
+     * @return array
+     */
+    public static function constants() {
+        return [];
+    }
+
     /**
      * Return the static part of the schema (common to all objects).
      * #memo - 'name' field is set in constructor if not defined in getColumns method
@@ -206,16 +217,16 @@ class Model implements \ArrayAccess, \Iterator {
         return $special_columns;
     }
 
-    // #todo - deprecate : this method shouldn't be used
     /**
+     * #todo - deprecate : this method should no longer be used
      * @deprecated
      */
     public final function setField($field, $value) {
         $this->values[$field] = $value;
     }
 
-    // #todo - deprecate : this method doesn't seem to be used
     /**
+     * #todo - deprecate : this method doesn't seem to be used
      * @deprecated
      */
     public final function setColumn($column, array $description) {
@@ -223,10 +234,9 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Get Model class name.
+     * Gets the Model full name (class including namespace).
      * Return the name of the current class (same as declaration) with its full namespace.
      *
-     * @access public
      * @return string
      */
     public static function getType() {
@@ -234,7 +244,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Get Model readable name.
+     * Gets the Model readable name (meant for UI).
      * This method is meant to be overridden by children classes to define their own name.
      *
      * @access public
@@ -245,7 +255,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Get the URL associated with the class (for UI to browse main form of a single object).
+     * Gets the URL associated with the class (for UI to browse main form of a single object).
      *
      * @return string
      */
@@ -254,7 +264,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Get Model description.
+     * Gets the Model description.
      * This method is meant to be overridden by children classes.
      *
      * @access public
@@ -265,7 +275,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Get object schema
+     * Gets the object schema.
      *
      * @access public
      * @return array
@@ -298,7 +308,6 @@ class Model implements \ArrayAccess, \Iterator {
      * Provide the final field targeted by a field (handle aliases)
      * This method should be used for type comparisons and when checking field structure validity.
      *
-     * @access public
      * @deprecated
      */
     public final function field($field) {
@@ -313,18 +322,15 @@ class Model implements \ArrayAccess, \Iterator {
     /**
      * Returns values of static instance (default values)
      *
-     * @access public
      */
     public final function getValues() {
         return $this->values;
     }
 
     /**
-      * Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
+     * Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
      * This method must be overridden by children classes.
      *
-     * @access public
-     * @static
      */
     public static function getColumns() {
         return [];
@@ -523,7 +529,9 @@ class Model implements \ArrayAccess, \Iterator {
 
     public static function ids($ids) {
         if(is_callable('equal\orm\Collections::getInstance')) {
+            /** @var Collections */
             $factory = Collections::getInstance();
+            /** @var Collection */
             $collection = $factory->create(get_called_class());
             return $collection->ids($ids);
         }
@@ -534,7 +542,9 @@ class Model implements \ArrayAccess, \Iterator {
     public static function search(array $domain=[], array $params=[], $lang=null) {
         $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
+            /** @var Collections */
             $factory = Collections::getInstance();
+            /** @var Collection */
             $collection = $factory->create(get_called_class());
             return $collection->search($domain, $params, $lang);
         }
@@ -544,7 +554,9 @@ class Model implements \ArrayAccess, \Iterator {
     public static function create(array $values=null, $lang=null) {
         $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
+            /** @var Collections */
             $factory = Collections::getInstance();
+            /** @var Collection */
             $collection = $factory->create(get_called_class());
             return $collection->create($values, $lang);
         }
