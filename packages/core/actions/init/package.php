@@ -38,11 +38,6 @@ list($params, $providers) = announce([
             'description'   => 'Import initial data for dependencies as well.',
             'type'          => 'boolean',
             'default'       => true
-        ],
-        'compile' => [
-            'description'   => 'Flag to compile the apps.',
-            'type'          => 'boolean',
-            'default'       => false
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -80,33 +75,34 @@ if(file_exists("packages/{$params['package']}/manifest.json")) {
     }
 }
 
-// checking if there are dependencies
+// check if there are dependencies
 if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($package_manifest['depends_on'])) {
+    // initiate dependency packages that are not yet processed, if requested
     foreach($package_manifest['depends_on'] as $dependency) {
-        // initiate every dependency package before running the compile
         if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'][$dependency])) {
-            // init package of sub packages
+            // init package of sub packages (perform as root script)
             eQual::run('do', 'init_package', [
                     'package'           => $dependency,
                     'cascade'           => $params['cascade'],
-                    'import'            => $params['import'] && $params['import_cascade'],
-                    'compile'           => $params['compile'],
+                    'import'            => $params['import'] && $params['import_cascade']
                 ],
                 true);
         }
     }
 }
 
+// 1) Init DB with SQL schema
 
-/* pass-1 : init DB with SQL schema */
+/*  start-tables_init */
 
-
-// 1) retrieve schema for given package
+// retrieve schema for given package
 $json = run('get', 'utils_sql-schema', ['package'=>$params['package']]);
 // decode json into an array
 $data = json_decode($json, true);
 if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
+    foreach($data['errors'] as $name => $message) {
+        throw new Exception($message, qn_error_code($name));
+    }
 }
 // join all lines
 $schema = str_replace(["\r","\n"], "", $data['result']);
@@ -120,23 +116,19 @@ foreach($queries as $query) {
     }
 }
 
-
-/* pass-2: check for missing columns */
-
-// for classes with inheritance, we must check against non yet created fields
+// check for missing columns (for classes with inheritance, we must check against non-yet created fields)
 $queries = [];
 
-
-// 2) retrieve classes listing
+// retrieve classes listing
 $json = run('get', 'config_classes', ['package' => $params['package']]);
 $data = json_decode($json, true);
 if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
-}
-else {
-    $classes = $data;
+    foreach($data['errors'] as $name => $message) {
+        throw new Exception($message, qn_error_code($name));
+    }
 }
 
+$classes = $data;
 
 $m2m_tables = array();
 
@@ -146,51 +138,50 @@ foreach($classes as $class) {
     $entity = $params['package'].'\\'.$class;
     $model = $orm->getModel($entity);
 
-//    if(basename(get_parent_class($model)) == 'Model') {
-        $table_name = $orm->getObjectTableName($entity);
-        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
-        $res = $db->sendQuery($query);
-        $columns = [];
-        while ($row = $db->fetchArray($res)) {
-            // maintain ids order provided by the SQL sort
-            $columns[] = $row['COLUMN_NAME'];
-        }
-        // retrieve fields that need to be added
-        $schema = $model->getSchema();
-        // retrieve list of fields that must be added to the schema
-        $diff = array_diff(array_keys(array_filter($schema, function($a) use($orm) {return in_array($a['type'], $orm::$simple_types); })), $columns);
+    $table_name = $orm->getObjectTableName($entity);
+    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
+    $res = $db->sendQuery($query);
+    $columns = [];
+    while ($row = $db->fetchArray($res)) {
+        // maintain ids order provided by the SQL sort
+        $columns[] = $row['COLUMN_NAME'];
+    }
+    // retrieve fields that need to be added
+    $schema = $model->getSchema();
+    // retrieve list of fields that must be added to the schema
+    $diff = array_diff(array_keys(array_filter($schema, function($a) use($orm) {return in_array($a['type'], $orm::$simple_types); })), $columns);
 
-        // init result array
-        $result = [];
-        foreach($diff as $field) {
-            $description = $schema[$field];
-            if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
-                $type = ObjectManager::$types_associations[$description['type']];
-                // if a SQL type is associated to field 'usage', it prevails over the type association
-                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                    $type = ObjectManager::$usages_associations[$description['usage']];
-                }
-                $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
+    // init result array
+    $result = [];
+    foreach($diff as $field) {
+        $description = $schema[$field];
+        if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
+            $type = ObjectManager::$types_associations[$description['type']];
+            // if a SQL type is associated to field 'usage', it prevails over the type association
+            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+                $type = ObjectManager::$usages_associations[$description['usage']];
             }
-            else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
-                $type = ObjectManager::$types_associations[$description['result_type']];
-                // if a SQL type is associated to field 'usage', it prevails over the type association
-                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                    $type = ObjectManager::$usages_associations[$description['usage']];
-                }
-                $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN  `{$field}` {$type} DEFAULT NULL";
-            }
-            else if($description['type'] == 'many2many') {
-                if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
-            }
+            $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
         }
-        if(count($result)) {
-            $queries = array_merge($queries, $result);
+        else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
+            $type = ObjectManager::$types_associations[$description['result_type']];
+            // if a SQL type is associated to field 'usage', it prevails over the type association
+            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+                $type = ObjectManager::$usages_associations[$description['usage']];
+            }
+            $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN  `{$field}` {$type} DEFAULT NULL";
         }
-//    }
+        else if($description['type'] == 'many2many') {
+            if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+        }
+    }
+    if(count($result)) {
+        $queries = array_merge($queries, $result);
+    }
+
 }
 
-// 3) add missing relation tables, if any
+// add missing relation tables, if any
 foreach($m2m_tables as $table => $columns) {
     $query = "CREATE TABLE IF NOT EXISTS `{$table}` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci (";
     $key = '';
@@ -208,10 +199,11 @@ foreach($m2m_tables as $table => $columns) {
     $queries[] = $query;
 }
 
+/*  end-tables_init */
 
 // #todo : make distinction between mandatory initial data and demo data
 
-// 4) populate tables with predefined data
+// 2) Populate tables with predefined data
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     // handle SQL files
@@ -265,20 +257,20 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     }
 }
 
-// 5) if a `bin` folder exists, copy its content to /bin/<package>/
+// 3) If a `bin` folder exists, copy its content to /bin/<package>/
 $bin_folder = "packages/{$params['package']}/init/bin";
-if(file_exists($bin_folder) && is_dir($bin_folder)) {
+if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
     exec("cp -r $bin_folder bin/{$params['package']}");
     exec("chown www-data:www-data -R bin/{$params['package']}");
 }
 
-// 6) if a `routes` folder exists, copy its content to /config/routing/
+// 4) If a `routes` folder exists, copy its content to /config/routing/
 $route_folder = "packages/{$params['package']}/init/routes";
 if(file_exists($route_folder) && is_dir($route_folder)) {
     exec("cp -r $route_folder/* config/routing");
 }
 
-// 7) Export the compiled apps to related public folders
+// 5) Export the compiled apps to related public folders
 if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
 
     foreach($package_manifest['apps'] as $app) {
@@ -319,7 +311,7 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         if(isset($app_manifest['checksum'])) {
             $md5 = md5_file("$app_path/web.app");
             if($md5 != $app_manifest['checksum']) {
-                // #todo - not required for now, would increase version identification
+                // #todo - not required for now, nice to have: would increase version identification
                 // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
             }
         }

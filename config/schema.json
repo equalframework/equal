@@ -1,7 +1,7 @@
 {
     "CIPHER_KEY": {
         "type": "string",
-        "description": "Private key to use for secrets decryption. In order to allow decryption, if required, this property should be defined first.",
+        "description": "Private key to use for secrets decryption. This property should be defined before any encryption/decryption operation.",
         "instant": true,
         "environment": "EQ_CIPHER_KEY",
         "example": "this is a secret key"
