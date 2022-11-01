@@ -80,7 +80,7 @@ class UsageAmount extends Usage {
         ];
     }
 
-    public function export($value, $lang=DEFAULT_LANG): string {
+    public function export($value, $lang='en'): string {
         $decimal_length = intval($this->getLength());
         // get numbers.thousands_separator and numbers.decimal_separator from locale
         $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $lang);

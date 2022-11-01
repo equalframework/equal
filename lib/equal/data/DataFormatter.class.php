@@ -17,7 +17,7 @@ namespace equal\data;
 class DataFormatter {
 
 
-    public static function format($value, $usage, $locale=DEFAULT_LANG) {
+    public static function format($value, $usage, $locale='en') {
         switch($usage) {
             case 'phone':
                 return self::format_phone($value);

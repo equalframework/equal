@@ -38,7 +38,7 @@ class Lang extends Model {
      * @param   string      $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_term(string $package, string $term, $default=null, string $lang=DEFAULT_LANG) {
+    public static function get_term(string $package, string $term, $default=null, string $lang='en') {
         $result = $default;
 
         $schema = [];
@@ -83,7 +83,7 @@ class Lang extends Model {
      * @param   string      $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_format(string $package, string $format, $default=null, string $lang=DEFAULT_LANG) {
+    public static function get_format(string $package, string $format, $default=null, string $lang='en') {
         $result = $default;
 
         $schema = [];

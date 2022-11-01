@@ -39,10 +39,11 @@ list($params, $providers) = announce([
         'lang' =>  [
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
-    'access' => [
+    'constants'     => ['DEFAULT_LANG'],
+    'access'        => [
         'visibility'        => 'protected'
     ],
     'response'      => [

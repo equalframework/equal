@@ -39,9 +39,10 @@ list($params, $providers) = announce([
         'language' => [
             'description'   => 'User language.',
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
 ]);
 

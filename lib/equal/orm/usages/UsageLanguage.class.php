@@ -43,7 +43,7 @@ class UsageLanguage extends Usage {
         }
     }
 
-    public function export($value, $lang=DEFAULT_LANG): string {
+    public function export($value, $lang='en'): string {
         return $value;
     }
 

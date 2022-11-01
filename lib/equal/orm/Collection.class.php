@@ -73,11 +73,17 @@ class Collection implements \Iterator, \Countable {
     }
 
     // #todo - deprecate : this method doesn't seem to be used
+    /**
+     * @deprecated
+     */
     public function extend($column, $description) {
         $this->model->setColumn($column, $description);
     }
 
     // #todo - deprecate : this method doesn't seem to be used
+    /**
+     * @deprecated
+     */
     public function set($fields) {
         $fields = (array) $fields;
         foreach($this->objects as $id => $object) {
@@ -312,7 +318,7 @@ class Collection implements \Iterator, \Countable {
      * @throws Exception    if encounters something not convertible.
      * @return Collection       current instance
      */
-    public function adapt($to='txt', $lang=DEFAULT_LANG) {
+    public function adapt($to='txt', $lang='en') {
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
@@ -376,7 +382,7 @@ class Collection implements \Iterator, \Countable {
     /**
      *
      */
-    public function search(array $domain=[], array $params=[], $lang=DEFAULT_LANG) {
+    public function search(array $domain=[], array $params=[], $lang='en') {
         $defaults = [
             'sort'  => ['id' => 'asc']
         ];
@@ -438,7 +444,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::id(5)->clone()->first();
      */
-    public function clone($lang=DEFAULT_LANG) {
+    public function clone($lang='en') {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
@@ -527,7 +533,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::create(['name'=>'test','code'=>3])->first();
      */
-    public function create(array $values=null, $lang=DEFAULT_LANG) {
+    public function create(array $values=null, $lang='en') {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
@@ -577,7 +583,7 @@ class Collection implements \Iterator, \Countable {
      * @param $lang
      * @return Collection   Returns the current collection.
      */
-    public function read($fields, $lang=DEFAULT_LANG) {
+    public function read($fields, $lang='en') {
 
         if(count($this->objects)) {
             // retrieve current user id
@@ -701,7 +707,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
-    public function update(array $values, $lang=DEFAULT_LANG) {
+    public function update(array $values, $lang='en') {
         if(count($this->objects)) {
 
             // 1) sanitize and retrieve necessary values

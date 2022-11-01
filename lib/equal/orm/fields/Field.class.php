@@ -47,7 +47,7 @@ abstract class Field {
      * @return mixed
      * @throws Exception        In case a value is not convertible to the targeted language.
      */
-    final public function adapt($to='php', $lang=DEFAULT_LANG): Field {
+    final public function adapt($to='php', $lang='en'): Field {
         switch($to) {
             case 'json':
                 $this->adaptToJson();
@@ -113,7 +113,7 @@ abstract class Field {
     /**
      * Unlike toJson, this method provides support for the locale.
      */
-    abstract protected function adaptToTxt($lang=DEFAULT_LANG): void;
+    abstract protected function adaptToTxt($lang='en'): void;
 
     /**
      * Retrieves all constraints for the field, according to its type.

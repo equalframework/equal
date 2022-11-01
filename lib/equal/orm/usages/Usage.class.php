@@ -53,6 +53,6 @@ abstract class Usage {
      *
      * @return mixed     Returns the value adapted to the usage, according to a specific locale, if given.
      */
-    abstract public function export($value, $lang=DEFAULT_LANG): string;
+    abstract public function export($value, $lang='en'): string;
 
 }

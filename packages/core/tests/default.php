@@ -65,7 +65,7 @@ $tests = [
                 ),
 
     //21xx : calls related to the read method
-    // @signature   function read($uid, $class, $ids, $fields=NULL, $lang=DEFAULT_LANG)
+    // @signature   function read($uid, $class, $ids, $fields=NULL, $lang='en')
     // @return      mixed (int or array) error code OR resulting associative array
 
     '2100' => array(
@@ -260,7 +260,7 @@ $tests = [
                     ),
 
     //25xx : calls related to the search method
-    // @signature : public function search($object_class, $domain=NULL, $order='id', $sort='asc', $start='0', $limit='0', $lang=DEFAULT_LANG) {
+    // @signature : public function search($object_class, $domain=NULL, $order='id', $sort='asc', $start='0', $limit='0', $lang='en') {
     // @return : mixed (integer or array)
     '2501' => array(
                     'description'       =>  "Search an object with valid clause 'ilike'",

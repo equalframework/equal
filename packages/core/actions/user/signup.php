@@ -11,7 +11,7 @@ use equal\html\HtmlTemplate;
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([	
+list($params, $providers) = announce([
     'description'	=>	"Attempt to register a new user.",
     'params' 		=>	[
         'login' => [
@@ -25,33 +25,34 @@ list($params, $providers) = announce([
             'type'          => 'string',
             'usage'         => 'password/nist',
             'required'      => true
-        ],        
+        ],
         'firstname' => [
             'description'   => 'User\'s firstname.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'lastname' => [
             'description'   => 'User\'s lastname.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => ''
         ],
         'language' => [
             'description'   => 'User\'s preferred language.',
-            'type'          => 'string', 
-            'default'       => DEFAULT_LANG
+            'type'          => 'string',
+            'default'       => constant('DEFAULT_LANG')
         ],
         'send_confirm' => [
             'description'   => 'Flag telling if we need to send a confirmation email.',
-            'type'          => 'boolean', 
+            'type'          => 'boolean',
             'default'       => true
         ]
     ],
+    'constants'     => ['DEFAULT_LANG', 'AUTH_ACCESS_TOKEN_VALIDITY', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_PORT', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME', 'EMAIL_SMTP_ACCOUNT_USERNAME', 'EMAIL_SMTP_ACCOUNT_PASSWORD'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],        
+    ],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
@@ -61,9 +62,9 @@ list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $provid
 
 
 
-list($login, $password, $firstname, $lastname, $language, $send_confirm) = [ 
+list($login, $password, $firstname, $lastname, $language, $send_confirm) = [
     strtolower(trim($params['login'])),
-    $params['password'],    
+    $params['password'],
     $params['firstname'],
     $params['lastname'],
     $params['language'],
@@ -72,8 +73,8 @@ list($login, $password, $firstname, $lastname, $language, $send_confirm) = [
 
 // try to create a new user account
 $json = run('do', 'user_create', [
-            'login'         => $login, 
-            'password'      => $password, 
+            'login'         => $login,
+            'password'      => $password,
             'firstname'     => $firstname,
             'lastname'      => $lastname,
             'language'      => $language
@@ -93,14 +94,14 @@ if(isset($data['errors'])) {
 // we received an array describing a User object
 $user = $data;
 // generate access_token
-$access_token = $auth->token($user['id'], AUTH_ACCESS_TOKEN_VALIDITY);
+$access_token = $auth->token($user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
-    
+
 if($send_confirm) {
 
     // we need the original password to generate confirmation code in the email
     $user['password'] = $password;
-    
+
     // subject of the email should be defined in the template, as a <var> tag holding a 'title' attribute
     $subject = '';
     // read template according to user prefered language
@@ -124,9 +125,9 @@ if($send_confirm) {
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {
-                                return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
+                                return constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME');
                             }
-    ], 
+    ],
     $user);
 
     // parse template as html
@@ -134,22 +135,22 @@ if($send_confirm) {
 
 
     // send message
-    $transport = new Swift_SmtpTransport(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT /*, 'ssl'*/);
+    $transport = new Swift_SmtpTransport(constant('EMAIL_SMTP_HOST'), constant('EMAIL_SMTP_PORT') /*, 'ssl'*/);
 
-    $transport->setUsername(EMAIL_SMTP_ACCOUNT_USERNAME)
-              ->setPassword(EMAIL_SMTP_ACCOUNT_PASSWORD);                   
-                        
+    $transport->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
+              ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+
     $message = new Swift_Message();
     $message->setTo($user['login'])
             ->setSubject($subject)
             ->setContentType("text/html")
             ->setBody($body)
-            ->setFrom([EMAIL_SMTP_ACCOUNT_USERNAME => EMAIL_SMTP_ACCOUNT_DISPLAYNAME]);
+            ->setFrom([constant('EMAIL_SMTP_ACCOUNT_USERNAME') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
     $mailer = new Swift_Mailer($transport);
-    $result = $mailer->send($message);    
+    $result = $mailer->send($message);
 }
-                 
+
 $context->httpResponse()
         // store token in cookie
         ->cookie('access_token', $access_token)

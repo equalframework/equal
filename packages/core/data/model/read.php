@@ -25,7 +25,7 @@ list($params, $providers) = announce([
         'lang' =>  [
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ],
         'order' => [
             'description'   => 'Column to use for sorting results.',
@@ -38,6 +38,7 @@ list($params, $providers) = announce([
             'default'       => 'asc'
         ]
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

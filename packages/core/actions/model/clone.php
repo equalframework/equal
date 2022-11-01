@@ -20,9 +20,10 @@ list($params, $providers) = announce([
         'lang' => [
             'description '  => 'Language of target object (applied to multilang fields).',
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',

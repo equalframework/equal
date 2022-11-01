@@ -41,7 +41,7 @@ class FieldBoolean extends Field {
         $this->value = ($this->value)?'1':'0';
     }
 
-    protected function adaptToTxt($lang=DEFAULT_LANG): void {
+    protected function adaptToTxt($lang='en'): void {
         if($this->value) {
             $$this->value = Locale::get_term('core', 'bool.true', 'true', $lang);
         }

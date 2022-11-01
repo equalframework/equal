@@ -91,7 +91,7 @@ class UsageNumeric extends Usage {
         }
     }
 
-    public function export($value, $lang=DEFAULT_LANG): string {
+    public function export($value, $lang='en'): string {
         $decimal_length = 0;
         if($this->getSubtype() == 'real') {
             // explode precision.scale

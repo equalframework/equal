@@ -64,7 +64,7 @@ class FieldInteger extends Field {
     protected function adaptToSql(): void {
     }
 
-    protected function adaptToTxt($lang=DEFAULT_LANG): void {
+    protected function adaptToTxt($lang='en'): void {
         if($this->hasUsage()) {
             $usage = $this->getUsage();
             if($usage) {
