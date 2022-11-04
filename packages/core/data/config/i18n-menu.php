@@ -20,9 +20,10 @@ list($params, $providers) = announce([
         'lang' =>  [
             'description'   => "Language for which values are requested (iso639 code expected).",
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ]
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

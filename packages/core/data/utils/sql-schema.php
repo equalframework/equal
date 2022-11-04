@@ -27,11 +27,11 @@ list($params, $providers) = announce([
             'default'       => false
         ]
     ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm']
 ]);
 
@@ -48,7 +48,7 @@ if(strlen($json)) {
     exit(1);
 }
 // retrieve connection object
-$db = DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS)->connect();
+$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 
 $result = array();
@@ -94,7 +94,7 @@ foreach($classes as $class) {
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
 
     // fetch existing column
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
+    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
     $res = $db->sendQuery($query);
 
     $columns = [];

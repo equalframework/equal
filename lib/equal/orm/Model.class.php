@@ -43,17 +43,10 @@ class Model implements \ArrayAccess, \Iterator {
 
 
     /**
-     * Default language to use for CRUD calls.
-     * @var string
-     */
-    private $default_lang;
-
-    /**
      * Constructor: initiliases members vars and set fields to values, if given.
      *
      */
     public final function __construct($values=[]) {
-        $this->default_lang = (defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en';
         $this->values = [];
         $this->fields = [];
         // build the schema based on current class and ancestors
@@ -540,7 +533,6 @@ class Model implements \ArrayAccess, \Iterator {
 
 
     public static function search(array $domain=[], array $params=[], $lang=null) {
-        $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
             /** @var Collections */
             $factory = Collections::getInstance();
@@ -552,7 +544,6 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     public static function create(array $values=null, $lang=null) {
-        $lang = ($lang)?$lang:((defined('DEFAULT_LANG'))?constant('DEFAULT_LANG'):'en');
         if(is_callable('equal\orm\Collections::getInstance')) {
             /** @var Collections */
             $factory = Collections::getInstance();

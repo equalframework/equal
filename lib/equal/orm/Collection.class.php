@@ -296,7 +296,7 @@ class Collection implements \Iterator, \Countable {
             if($check_readonly) {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                    return (isset($schema[$field]['readonly']))?$schema[$field]['readonly']:false;
+                    return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
                 });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // log a notice about discarded readonly fields
@@ -318,7 +318,7 @@ class Collection implements \Iterator, \Countable {
      * @throws Exception    if encounters something not convertible.
      * @return Collection       current instance
      */
-    public function adapt($to='txt', $lang='en') {
+    public function adapt($to='txt', $lang=null) {
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
@@ -382,7 +382,7 @@ class Collection implements \Iterator, \Countable {
     /**
      *
      */
-    public function search(array $domain=[], array $params=[], $lang='en') {
+    public function search(array $domain=[], array $params=[], $lang=null) {
         $defaults = [
             'sort'  => ['id' => 'asc']
         ];
@@ -444,7 +444,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::id(5)->clone()->first();
      */
-    public function clone($lang='en') {
+    public function clone($lang=null) {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
@@ -533,7 +533,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::create(['name'=>'test','code'=>3])->first();
      */
-    public function create(array $values=null, $lang='en') {
+    public function create(array $values=null, $lang=null) {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
@@ -583,7 +583,7 @@ class Collection implements \Iterator, \Countable {
      * @param $lang
      * @return Collection   Returns the current collection.
      */
-    public function read($fields, $lang='en') {
+    public function read($fields, $lang=null) {
 
         if(count($this->objects)) {
             // retrieve current user id
@@ -707,7 +707,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
      */
-    public function update(array $values, $lang='en') {
+    public function update(array $values, $lang=null) {
         if(count($this->objects)) {
 
             // 1) sanitize and retrieve necessary values

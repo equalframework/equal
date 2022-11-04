@@ -60,10 +60,12 @@ list($params, $providers) = announce([
 // initalise local vars with inputs
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
+// cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
+// #memo - email might still be invalid (a validation check is made in User class)
+$parts = explode('@', strtolower(trim($params['login'])));
+$login = substr($parts[0], 0, strpos($parts[0], '+')).'@'.$parts[1];
 
-
-list($login, $password, $firstname, $lastname, $language, $send_confirm) = [
-    strtolower(trim($params['login'])),
+list($password, $firstname, $lastname, $language, $send_confirm) = [
     $params['password'],
     $params['firstname'],
     $params['lastname'],
@@ -73,12 +75,12 @@ list($login, $password, $firstname, $lastname, $language, $send_confirm) = [
 
 // try to create a new user account
 $json = run('do', 'user_create', [
-            'login'         => $login,
-            'password'      => $password,
-            'firstname'     => $firstname,
-            'lastname'      => $lastname,
-            'language'      => $language
-        ]);
+        'login'         => $login,
+        'password'      => $password,
+        'firstname'     => $firstname,
+        'lastname'      => $lastname,
+        'language'      => $language
+    ]);
 
 
 // decode json into an array

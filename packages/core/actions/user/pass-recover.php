@@ -20,7 +20,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
-    'constants'     => ['ROOT_APP_URL'],
+    'constants'     => ['ROOT_APP_URL', 'EMAIL_SMTP_ABUSE_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -81,10 +81,10 @@ try {
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {
-                                return EMAIL_SMTP_ACCOUNT_DISPLAYNAME;
+                                return constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME');
                             },
         'abuse'         =>  function($params, $attributes) {
-                                return "<a href=\"mailto:".EMAIL_SMTP_ABUSE_EMAIL."\">".EMAIL_SMTP_ABUSE_EMAIL."</a>";
+                                return "<a href=\"mailto:".constant('EMAIL_SMTP_ABUSE_EMAIL')."\">".constant('EMAIL_SMTP_ABUSE_EMAIL')."</a>";
                             }
         ],
         [

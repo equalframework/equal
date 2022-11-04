@@ -187,7 +187,7 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-        return ['UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY'];
+        return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY'];
     }
 
     public function getDB() {
@@ -647,7 +647,7 @@ class ObjectManager extends Service {
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
                     // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != 'en' && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                    if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                         $fields_lists['multilang'][] = $field;
                     }
                     // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
@@ -877,8 +877,9 @@ class ObjectManager extends Service {
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
                     // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != 'en' && isset($schema[$field]['multilang']) && $schema[$field]['multilang'])
+                    if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                         $fields_lists['multilang'][] = $field;
+                    }
                     // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
                     else $fields_lists['simple'][] = $field;
                 }
@@ -909,10 +910,11 @@ class ObjectManager extends Service {
      * @param   array     $signature        List of parameters to relay to target method (required if differing from default).
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
-    public function callonce($class, $method, $ids, $values=[], $lang='en', $signature=['ids', 'values', 'lang']) {
+    public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
         $called_class = $class;
         $called_method = $method;
 
@@ -979,10 +981,11 @@ class ObjectManager extends Service {
      * @param array     $values
      * @param array     $signature  List of parameters to relay to target method (required if differing from default).
      */
-    public function call($class, $method, $ids, $values=[], $lang='en', $signature=['ids', 'values', 'lang']) {
+    public function call($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
         $called_class = $class;
         $called_method = $method;
 
@@ -1277,10 +1280,11 @@ class ObjectManager extends Service {
      *
      * @return integer      The result is an identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
-    public function create($class, $fields=NULL, $lang='en', $use_draft=true) {
+    public function create($class, $fields=NULL, $lang=null, $use_draft=true) {
         $res = 0;
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
             $object = $this->getStaticInstance($class, $fields);
@@ -1379,7 +1383,7 @@ class ObjectManager extends Service {
      * Alias for update()
      * @deprecated
      */
-    public function write($class, $ids=NULL, $fields=NULL, $lang='en', $create=false) {
+    public function write($class, $ids=NULL, $fields=NULL, $lang=null, $create=false) {
         return $this->update($class, $ids, $fields, $lang, $create);
     }
 
@@ -1394,11 +1398,12 @@ class ObjectManager extends Service {
      *
      * @return  int|array Returns an array of updated ids, or an error code (int) in case an error occured.
      */
-    public function update($class, $ids=NULL, $fields=NULL, $lang='en', $create=false) {
+    public function update($class, $ids=NULL, $fields=NULL, $lang=null, $create=false) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
         $this->getDBHandler();
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
             // 1) pre-processing - $ids sanitization
@@ -1540,11 +1545,12 @@ class ObjectManager extends Service {
      *
      * @return  int|array  Error code OR resulting associative array
      */
-    public function read($class, $ids=NULL, $fields=NULL, $lang='en') {
+    public function read($class, $ids=NULL, $fields=NULL, $lang=null) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
-        $this->getDBHandler();
+        $db = $this->getDBHandler();
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
 
@@ -1747,14 +1753,14 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be deleted
 
-            $candelete = $this->call($class, 'candelete', $ids, [], 'en', ['ids']);
+            $candelete = $this->call($class, 'candelete', $ids, [], null, ['ids']);
             if(!empty($candelete)) {
                 throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
             }
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
 
-            $this->callonce($class, 'ondelete', $ids, [], 'en', ['ids']);
+            $this->callonce($class, 'ondelete', $ids, [], null, ['ids']);
 
             // 4) cascade deletions / relations updates
 
@@ -1783,7 +1789,7 @@ class ObjectManager extends Service {
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
                             if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], 'en', ['ids']);
+                                $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], null, ['ids']);
                                 // for unknown method, check special keywords 'cascade' and 'null'
                                 if($call_res < 0) {
                                     switch($rel_schema[$def['foreign_field']]['ondelete']) {
@@ -1831,7 +1837,7 @@ class ObjectManager extends Service {
 
             // 4) call 'onafterdelete' hook
 
-            $this->callonce($class, 'onafterdelete', $ids, [], 'en', ['ids']);
+            $this->callonce($class, 'onafterdelete', $ids, [], null, ['ids']);
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), E_USER_ERROR);
@@ -1854,8 +1860,9 @@ class ObjectManager extends Service {
      */
     // #todo - use same signature than other CRUD
     // #todo - when cloning, all multilang values should be duplicated as well
-    public function clone($class, $id, $values=[], $lang='en', $parent_field='') {
+    public function clone($class, $id, $values=[], $lang=null, $parent_field='') {
         $res = 0;
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
             $object = $this->getStaticInstance($class);
@@ -1950,9 +1957,10 @@ class ObjectManager extends Service {
      *
      * @return  integer|array
      */
-    public function search($class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang='en') {
+    public function search($class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
+        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
             if(empty($sort)) {
@@ -2087,7 +2095,7 @@ class ObjectManager extends Service {
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
-                                if($lang != 'en' && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                                if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                                     $translation_table_alias = $add_table('core_translation');
                                     // add join conditions
                                     $conditions[$j][] = array($table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`');
@@ -2157,7 +2165,7 @@ class ObjectManager extends Service {
                     $sort_field = $schema[$sort_field]['alias'];
                 }
                 // we might need to request more than the id field (for example, for sorting purpose)
-                if($lang != 'en' && isset($schema[$sort_field]['multilang']) && $schema[$sort_field]['multilang']) {
+                if($lang != constant('DEFAULT_LANG') && isset($schema[$sort_field]['multilang']) && $schema[$sort_field]['multilang']) {
                     // #todo : validate this code (we should probably add join conditions in some cases)
                     $translation_table_alias = $add_table('core_translation');
                     $select_fields[] = $translation_table_alias.'.value';

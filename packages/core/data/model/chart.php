@@ -19,7 +19,7 @@ list($params, $providers) = announce([
         'lang' =>  [
             'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
-            'default'       => DEFAULT_LANG
+            'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
             'description'   => 'Criterias that results have to match (serie of conjunctions)',
@@ -75,6 +75,7 @@ list($params, $providers) = announce([
             'default'       => 'chart'
         ]
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

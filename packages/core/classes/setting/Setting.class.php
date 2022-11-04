@@ -10,6 +10,10 @@ use equal\orm\Model;
 
 class Setting extends Model {
 
+    public static function constants() {
+        return ['DEFAULT_LANG'];
+    }
+
     public static function getName() {
         return 'Configuration parameter';
     }
@@ -220,7 +224,7 @@ class Setting extends Model {
                 // #memo - there should be exactly one setting matching the criterias
                 $setting = array_pop($settings);
 
-                $values_lang = 'en';
+                $values_lang = constant('DEFAULT_LANG');
                 if($setting['is_multilang']) {
                     $values_lang = $lang;
                 }

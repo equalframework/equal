@@ -25,9 +25,9 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],    
+    ],
     'providers'     => ['context', 'auth', 'orm'],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']    
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
 ]);
 
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
@@ -37,7 +37,12 @@ if($validation < 0 || count($validation)) {
     throw new Exception('invalid_credentials', QN_ERROR_INVALID_PARAM);
 }
 
-$auth->authenticate($params['login'], $params['password']);
+// cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
+// #memo - email might still be invalid (a validation check is made in User class)
+$parts = explode('@', strtolower(trim($params['login'])));
+$login = substr($parts[0], 0, strpos($parts[0], '+')).'@'.$parts[1];
+
+$auth->authenticate($login, $params['password']);
 
 $user_id = $auth->userId();
 
@@ -52,19 +57,19 @@ if(!$user || !$user['validated']) {
 }
 
 // generate a JWT access token
-$access_token  = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
-$refresh_token = $auth->token($user_id, AUTH_REFRESH_TOKEN_VALIDITY);
+$access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$refresh_token = $auth->token($user_id, constant('AUTH_REFRESH_TOKEN_VALIDITY'));
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [
-            'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY, 
-            'httponly'  => true, 
-            'secure'    => AUTH_TOKEN_HTTPS
+            'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+            'httponly'  => true,
+            'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
         ->cookie('refresh_token', $refresh_token, [
-            'expires'   => time() + AUTH_REFRESH_TOKEN_VALIDITY, 
-            'httponly'  => true, 
-            'secure'    => AUTH_TOKEN_HTTPS
+            'expires'   => time() + constant('AUTH_REFRESH_TOKEN_VALIDITY'),
+            'httponly'  => true,
+            'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
         ->status(204)
         ->send();
