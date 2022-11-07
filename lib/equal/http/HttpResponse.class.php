@@ -66,7 +66,7 @@ class HttpResponse extends HttpMessage {
             $domain = (isset($params['domain']))?$params['domain']:$hostname;
             $secure = (isset($params['secure']))?$params['secure']:false;
             $httponly = (isset($params['httponly']))?$params['httponly']:false;
-// #todo handle samesite (as of PHP 7.3)
+            // #todo - handle samesite (as of PHP 7.3)
             $samesite = (isset($params['samesite']))?$params['samesite']:false;
             setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
@@ -82,6 +82,9 @@ class HttpResponse extends HttpMessage {
             case 'application/x-json':
             case 'application/json':
                 $body = json_encode($body, JSON_PRETTY_PRINT);
+                if($body === false) {
+                    throw new \Exception('invalid_json_input', QN_ERROR_UNKNOWN);
+                }
                 break;
             case 'application/javascript':
             case 'text/javascript':

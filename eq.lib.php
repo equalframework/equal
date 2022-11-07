@@ -228,6 +228,8 @@ namespace {
             }
         }
     }
+    // #todo - deprecate
+    // support for legacy config
     if(file_exists(QN_BASEDIR.'/config/config.inc.php')) {
         include_once(QN_BASEDIR.'/config/config.inc.php');
     }
