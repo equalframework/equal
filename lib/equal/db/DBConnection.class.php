@@ -16,9 +16,9 @@ class DBConnection extends Service {
     private $dbConnection;
 
     protected function __construct() {
-        switch(DB_DBMS) {
+        switch(constant('DB_DBMS')) {
             case 'MYSQL' :
-                $this->dbConnection = new DBManipulatorMySQL(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD);
+                $this->dbConnection = new DBManipulatorMySQL(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
                 break;
             /*
             // insert handling of other DBMS here
@@ -42,12 +42,12 @@ class DBConnection extends Service {
     }
 
     public static function constants() {
-        return ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'];
+        return ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS', 'DB_CHARSET', 'DB_COLLATION'];
     }
 
     public function addReplicaMember($host, $port, $db, $user, $pass) {
         $member = null;
-        switch(DB_DBMS) {
+        switch(constant('DB_DBMS')) {
             case 'MYSQL' :
                 $member = new DBManipulatorMySQL($host, $port, $db, $user, $pass);
                 break;

@@ -84,6 +84,10 @@ class Domain {
      * Add a condition at the Domain level : the condition is added to each clause of the Domain
      */
     public function addCondition($condition) {
+        if(!count($this->clauses)) {
+            $clause = new DomainClause();
+            $this->addClause($clause);
+        }
         foreach($this->clauses as $clause) {
             $clause->addCondition($condition);
         }
@@ -210,10 +214,10 @@ class Domain {
                     $cc_res = !in_array($operand, $value);
                 }
                 else if($operator == 'like') {
-                    $cc_res = strpos($operand, str_replace('%', '', $value));
+                    $cc_res = (strpos($operand, str_replace('%', '', $value)) !== false);
                 }
                 else if($operator == 'ilike') {
-                    $cc_res = stripos($operand, str_replace('%', '', $value));
+                    $cc_res = (stripos($operand, str_replace('%', '', $value)) !== false);
                 }
                 else {
                     $c_condition = "return ( '".$operand."' ".$operator." '".$value."');";

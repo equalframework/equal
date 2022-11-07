@@ -53,8 +53,8 @@ class DBManipulatorMySQL extends DBManipulator {
             if($auto_select) {
                 if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
                     if($result = $this->select($this->db_name)) {
-                        $query = 'set names '.DB_CHARSET;
-                        $query .= (defined('DB_COLLATION'))?' collate '.DB_COLLATION:'';
+                        $query = 'set names '.constant('DB_CHARSET');
+                        $query .= (defined('DB_COLLATION'))?' collate '.constant('DB_COLLATION'):'';
                         mysqli_query($this->dbms_handler, $query);
                         $result = true;
                     }

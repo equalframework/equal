@@ -20,7 +20,7 @@ class Dispatcher extends Service {
     }
 
     public static function constants() {
-        return ['QN_ROOT_USER_ID'];
+        return [];
     }
 
     /**
@@ -34,9 +34,11 @@ class Dispatcher extends Service {
      * @param   string    $controller       Controller to invoker, with package notation.
      * @param   array     $params           Array holding the payload to relay to the controller.
      * @param   array     $links            Array holding a list of links (md format) to objects somehow related to the message.
+     * @param   integer   $user_id          Identifier of the user recipient of the message, if any.
+     * @param   integer   $group_id         Identifier of the group recipient of the message, if any.
      *
      */
-    public function dispatch($message_model, $object_class, $object_id, $severity='notice', $controller=null, $params=[], $links=[]) {
+    public function dispatch($message_model, $object_class, $object_id, $severity='notice', $controller=null, $params=[], $links=[], $user_id=null, $group_id=null) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         trigger_error("QN_DEBUG_PHP::dispatching message", QN_REPORT_DEBUG);
@@ -53,7 +55,9 @@ class Dispatcher extends Service {
                 'severity'          => $severity,
                 'controller'        => $controller,
                 'params'            => json_encode($params),
-                'links'             => json_encode($links)
+                'links'             => json_encode($links),
+                'user_id'           => $user_id,
+                'group_id'          => $group_id
             ];
 
             if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {

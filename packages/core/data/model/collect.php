@@ -30,7 +30,7 @@ list($params, $providers) = announce([
             'default'       => []
         ],
         'order' => [
-            'description'   => 'Column to use for sorting results.',
+            'description'   => 'Column(s) to use for sorting results.',
             'type'          => 'string',
             'default'       => 'id'
         ],

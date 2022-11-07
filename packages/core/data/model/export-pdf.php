@@ -47,7 +47,8 @@ list($params, $providers) = announce([
         'visibility'        => 'protected'
     ],
     'response'      => [
-        'accept-origin' => '*'
+        'accept-origin'     => '*',
+        'content-type'      => 'application/pdf'
     ],
     'providers'     => ['context', 'orm']
 ]);
@@ -304,7 +305,7 @@ while(true) {
     }
 }
 
-// 3) handle 'operations' propoerty, if set
+// 3) handle 'operations' property, if set
 // #todo
 
 $html = $doc->saveHTML();
@@ -327,13 +328,13 @@ $options = new DompdfOptions();
 $options->set('isRemoteEnabled', true);
 $dompdf = new Dompdf($options);
 
-$dompdf->setPaper('A4', 'portrait');
+$dompdf->setPaper('A4', 'landscape');
 $dompdf->loadHtml((string) $html);
 $dompdf->render();
 
 $canvas = $dompdf->getCanvas();
 $font = $dompdf->getFontMetrics()->getFont("helvetica", "regular");
-$canvas->page_text(550, $canvas->get_height() - 35, "{PAGE_NUM} / {PAGE_COUNT}", $font, 9, array(0,0,0));
+$canvas->page_text($canvas->get_width() - 70, $canvas->get_height() - 35, "{PAGE_NUM} / {PAGE_COUNT}", $font, 9, array(0,0,0));
 $canvas->page_text(30, $canvas->get_height() - 35, "Export - ".$view_legend, $font, 9, array(0,0,0));
 
 $canvas->page_text(30, 30, $view_title, $font, 14, array(0,0,0));
@@ -346,8 +347,6 @@ $canvas->page_text(30, 30, $view_title, $font, 14, array(0,0,0));
 $output = $dompdf->output();
 
 $context->httpResponse()
-        ->header('Content-Type', 'application/pdf')
-        // ->header('Content-Disposition', 'attachment; filename="document.pdf"')
         ->header('Content-Disposition', 'inline; filename="document.pdf"')
         ->body($output)
         ->send();

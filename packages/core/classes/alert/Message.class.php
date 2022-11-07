@@ -82,10 +82,23 @@ class Message extends Model {
                 'type'              => 'string',
                 'description'       => "JSON list holding links (md format) to objects that relate to the message.",
                 'default'           => ''
-            ]
+            ],
 
             // #memo
             // priority = age / 10 * weight
+
+            'user_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\User',
+                'description'       => 'User recipient of the message, if any'
+            ],
+
+            'group_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\Group',
+                'description'       => 'Group reciplient of the message, if any.'
+            ]
+
         ];
     }
 
