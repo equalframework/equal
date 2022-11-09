@@ -465,6 +465,8 @@ class Collection implements \Iterator, \Countable {
 
         $res = $this->orm->read($this->class, $ids, $fields, $lang);
 
+        // #todo - this should be done in ObjectManager
+
         // 3) duplicate each object of the collection
         foreach($res as $id => $obj) {
             $original = is_array($obj) ? $obj : $obj->toArray();
@@ -496,7 +498,7 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
-            if(isset($schema['name']) && $schema['name']['type'] == 'string') {
+            if(isset($schema['name']['type']) && $schema['name']['type'] == 'string') {
                 $original['name'] = $original['name'].' - copy';
             }
 

@@ -1851,10 +1851,11 @@ class ObjectManager extends Service {
      * Create a recursive copy of an object.
      * This method does not check unique constrainsts. If creation fails, it returns an arror code.
      *
-     * @param   string    $class    Class name of the object to clone.
-     * @param   integer   $id       Unique identifier of the object to clone.
-     * @param   array     $values   Map of fields to override orinal object values.
-     * @param   string    $lang     Language under which return fields values (only relevant for multilang fields).
+     * @param   string    $class            Class name of the object to clone.
+     * @param   integer   $id               Unique identifier of the object to clone.
+     * @param   array     $values           Map of fields to override original object values.
+     * @param   string    $lang             Language under which return fields values (only relevant for multilang fields).
+     * @param   string    $parent_field     Name of foreign_field from parent to prevent losing relation with new children.
      *
      * @return  int|array  Error code OR resulting associative array.
      */
@@ -1888,7 +1889,12 @@ class ObjectManager extends Service {
             foreach($original as $field => $value) {
                 $def = $schema[$field];
                 if(!in_array($def['type'], ['one2many', 'many2many']) && !in_array($field, ['id', $parent_field])) {
-                    $new_values[$field] = $value;
+                    if(isset($values[$field])) {
+                        $new_values[$field] = $values[$field];
+                    }
+                    else {
+                        $new_values[$field] = $value;
+                    }
                 }
             }
 
