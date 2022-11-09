@@ -91,5 +91,5 @@ class DBConnection extends Service {
 
         return call_user_func_array([$this->dbConnection, $name], $arguments);
     }
-    
+
 }

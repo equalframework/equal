@@ -146,7 +146,7 @@
         "type": "string",
         "description": "Password for authentifying on DB host.",
         "instant": true,
-        "environment": "EQ_DB_PASS",
+        "environment": "EQ_DB_PASSWORD",
         "default": "test"
     },
     "DB_NAME": {

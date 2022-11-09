@@ -10,28 +10,52 @@ class HTMLToText {
     /**
      * Converts an HTML string to non-formatted text
      *
-     * @param $value        string  HTML string
-     * @param $linebreaks   bool    indicates if line breaks are to be preserved
+     * @param $value                string  HTML string (UTF-8)
+     * @param $strip_linebreaks     bool    indicates if line breaks are to be preserved
      * @return string
      */
-    public static function convert($value, $linebreaks=true) {
+    public static function convert($value, $strip_linebreaks=true) {
         // convert unbreakable spaces to whitespaces
         $value = str_replace(" ", ' ', $value);
-        $lineseparator = ($linebreaks)?"\n":' ';
+        $lineseparator = ($strip_linebreaks)?"\n":' ';
+
+        // create a new DomDocument object
+        $doc = new \DOMDocument();
+
+        // load the HTML into the DomDocument object (this would be your source HTML)
+        $doc->loadHTML($value);
+
+        self::removeElementsByTagName('script', $doc);
+        self::removeElementsByTagName('style', $doc);
+        self::removeElementsByTagName('link', $doc);
+
+        // output cleaned html
+        $value = $doc->saveHtml();
+
         // add spaces to closing tags that imply line-return (block nodes)
         $value = preg_replace(['/<br \/>/', '/<hr \/>/', '/<\/h[1-6]>/', '/<\/p>/', '/<\/ul>/', '/<\/ol>/', '/<\/li>/', '/<\/td>/', '/<\/tr>/', '/<\/table>/'], $lineseparator.'\1', $value);
         // remove all HTML (convert to text)
-        // remove HTML tags 
         $value = strip_tags($value);
-        if($linebreaks) {
+        if($strip_linebreaks) {
             // strip multiple horizontal whitespaces (preserve carriage returns)
             $value = preg_replace('/\h+/u', ' ', $value);
+            // strip redundant linebreaks
+            $value = preg_replace('/\n\s*\n\s*\n/', "\n", $value);
         }
         else {
             // strip multiple spaces (including carriage returns)
-            $value = preg_replace('/\s+/u', ' ', $value);            
+            $value = preg_replace('/\s+/u', ' ', $value);
         }
+        $value = html_entity_decode($value, ENT_COMPAT, 'UTF-8');
         return $value;
+    }
+
+    function removeElementsByTagName($tagName, $document) {
+        $nodeList = $document->getElementsByTagName($tagName);
+        for ($index = $nodeList->length; --$index >= 0; ) {
+            $node = $nodeList->item($index);
+            $node->parentNode->removeChild($node);
+        }
     }
 
 }

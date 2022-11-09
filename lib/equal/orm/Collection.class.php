@@ -496,10 +496,8 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
-            if(!count($uniques)) {
-                if($schema['name']['type'] == 'string') {
-                    $original['name'] = $original['name'].' - copy';
-                }
+            if(isset($schema['name']) && $schema['name']['type'] == 'string') {
+                $original['name'] = $original['name'].' - copy';
             }
 
             // set current user as creator

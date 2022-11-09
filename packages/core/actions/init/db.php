@@ -27,7 +27,7 @@ if(strlen($json)) {
 
 // create Master database
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect(false);
-$query = "CREATE DATABASE IF NOT EXISTS ".DB_NAME." CHARACTER SET ".DB_CHARSET;
+$query = "CREATE DATABASE IF NOT EXISTS ".constant('DB_NAME')." CHARACTER SET ".constant('DB_CHARSET');
 
 // #todo - append collation : "COLLATE utf8mb4_unicode_ci"
 $db->sendQuery($query.';');
@@ -36,7 +36,7 @@ $db->sendQuery($query.';');
 if(defined('DB_REPLICATION') && constant('DB_REPLICATION') != 'NO') {
     $i = 1;
     while(defined('DB_'.$i.'_HOST') && defined('DB_'.$i.'_PORT') && defined('DB_'.$i.'_USER') && defined('DB_'.$i.'_PASSWORD') && defined('DB_'.$i.'_NAME')) {
-        $db = DBConnection::getInstance(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'), DB_DBMS)->connect(false);
+        $db = DBConnection::getInstance(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'), constant('DB_DBMS'))->connect(false);
         $db->sendQuery("CREATE DATABASE IF NOT EXISTS ".constant('DB_'.$i.'_NAME').";");
         ++$i;
     }

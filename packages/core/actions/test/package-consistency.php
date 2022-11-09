@@ -13,7 +13,6 @@ $packages = json_decode($json, true);
 
 // announce script and fetch parameters values
 list($params, $providers) = announce([
-
     'description'	=>	"This script tests the given package and returns a report about found errors (if any).",
     'params' 		=>	[
         'package'	=>  [
@@ -29,6 +28,7 @@ list($params, $providers) = announce([
             'default'       => '*'
         ]
     ],
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
@@ -370,7 +370,7 @@ foreach($classes as $class) {
 if(is_file('packages/'.$params['package'].'/config.inc.php')) include('packages/'.$params['package'].'/config.inc.php');
 // reminder: constants already exported : cannot redefine constants using config\export_config()
 
-$db = &DBConnection::getInstance(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_DBMS);
+$db = &DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
 
 if(!$db->connected()) {
     if($db->connect() == false) {
