@@ -1472,6 +1472,8 @@ class ObjectManager extends Service {
 
             // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
 
+            // #todo - split the tests with status check against the object workflow
+
             $this->callonce($class, 'onupdate', $ids, $fields, $lang);
 
 
