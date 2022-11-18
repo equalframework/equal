@@ -139,7 +139,7 @@ foreach($classes as $class) {
     $model = $orm->getModel($entity);
 
     $table_name = $orm->getObjectTableName($entity);
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".DB_NAME."';";
+    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
     $res = $db->sendQuery($query);
     $columns = [];
     while ($row = $db->fetchArray($res)) {
