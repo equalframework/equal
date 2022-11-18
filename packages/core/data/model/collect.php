@@ -119,8 +119,11 @@ $schema = $entity->getSchema();
 
 // adapt received fields names for dot notation support
 $fields = [];
-foreach($params['fields'] as $field) {
+foreach($params['fields'] as $key => $field) {
     if(gettype($field) != 'string') {
+        if(!is_numeric($key)) {
+            $fields[$key] = (array) $field;
+        }
         continue;
     }
     // handle dot notation: convert to array notation
