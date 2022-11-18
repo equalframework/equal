@@ -500,11 +500,11 @@ class ObjectManager extends Service {
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
-                    // force assignment to NULL if no result was returned by the SQL query
+                    // force assignment to null if no result was returned by the SQL query
                     foreach($ids as $oid) {
                         foreach($fields as $field) {
                             if(!isset($om->cache[$table_name][$oid][$lang][$field])) {
-                                $om->cache[$table_name][$oid][$lang][$field] = NULL;
+                                $om->cache[$table_name][$oid][$lang][$field] = null;
                             }
                         }
                     }
@@ -558,7 +558,7 @@ class ObjectManager extends Service {
                         $result = $om->db->getRecords(
                             $om->getObjectTableName($schema[$field]['foreign_object']),
                             array('id', $schema[$field]['foreign_field'], $order),
-                            NULL,
+                            null,
                             $domain,
                             'id',
                             [$order => $sort]
@@ -580,7 +580,7 @@ class ObjectManager extends Service {
                         $result = $om->db->getRecords(
                             array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']),
                             array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']),
-                            NULL,
+                            null,
                             array(array(
                                     // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
                                     array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
@@ -669,7 +669,7 @@ class ObjectManager extends Service {
                 $oids = array();
                 // if store attribute is set and no result was found, we need to compute the value
                 // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
-                // (this implies that the DB schema has 'DEFAULT NULL' for columns associated to computed fields)
+                // (this implies that the DB schema has 'DEFAULT null' for columns associated to computed fields)
                 foreach($ids as $oid) {
                     if(is_null($this->cache[$table_name][$oid][$lang][$field])) {
                         $oids[] = $oid;
@@ -745,7 +745,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $type = $schema[$field]['type'];
                         $value = $om->cache[$table_name][$oid][$lang][$field];
-                        // adapt values except for NULL of computed fields (marked as to be re-computed)
+                        // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $type != 'computed') {
                             // support computed fields (handled as simple fields according to result type)
                             if($type == 'computed') {
@@ -1266,21 +1266,21 @@ class ObjectManager extends Service {
 
 
     /**
-     * Create a new instance of given class.
-     * Upon creation, the objecft remains in 'draft' state until it has been written:
+     * Creates a new instance of given class and, if given, assigns values to targeted fields.
      *
+     * Upon creation, the objecft remains in 'draft' state until it has been written:
      * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model;
      * - if $field contains some values, object is created and its state is set to 'instance', unless `state` is explicitely set (@see write method).
      *
      *
      * @param  string       $class        Class of the object to create.
-     * @param  array        $fields       Map holding values assigned to each field.
+     * @param  array        $fields       Associative array mapping each field to its assigned value.
      * @param  string       $lang         Language in which to store multilang fields.
      * @param  boolean      $use_draft    If set to false, disables the re-use of outdated drafts (objects created but not saved afterward).
      *
      * @return integer      The result is an identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
-    public function create($class, $fields=NULL, $lang=null, $use_draft=true) {
+    public function create($class, $fields=null, $lang=null, $use_draft=true) {
         $res = 0;
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
@@ -1383,12 +1383,12 @@ class ObjectManager extends Service {
      * Alias for update()
      * @deprecated
      */
-    public function write($class, $ids=NULL, $fields=NULL, $lang=null, $create=false) {
+    public function write($class, $ids=null, $fields=null, $lang=null, $create=false) {
         return $this->update($class, $ids, $fields, $lang, $create);
     }
 
     /**
-     * Updates specifield fields of seleced objects and stores changes into database
+     * Updates specified fields of seleced objects and stores changes into database.
      *
      * @param   string    $class        Class of the objects to write.
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
@@ -1396,9 +1396,9 @@ class ObjectManager extends Service {
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
      * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
      *
-     * @return  int|array Returns an array of updated ids, or an error code (int) in case an error occured.
+     * @return  int|array Returns an array of updated ids, or an error identifier in case an error occured.
      */
-    public function update($class, $ids=NULL, $fields=NULL, $lang=null, $create=false) {
+    public function update($class, $ids=null, $fields=null, $lang=null, $create=false) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
@@ -1537,17 +1537,16 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Returns either an error code or an associative array containing, for each requested object id, an array maping each selected field to its value.
-     * Note : The process maintains order inside $ids and $fields arrays.
+     * Reads a collection of objects from a given class, based on a list of identfiers.
      *
      * @param   string     $class       Class of the objects to retrieve.
      * @param   mixed      $ids         Identifier(s) of the object(s) to retrieve (accepted types: array, integer, string).
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|array  Error code OR resulting associative array
+     * @return  int|array  Returns an associative array containing, for each requested object id, an array maping each selected field to its value (order inside $ids and $fields arrays is maintaind), or error identifier is an error occurred.
      */
-    public function read($class, $ids=NULL, $fields=NULL, $lang=null) {
+    public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
         $res = [];
         // get DB handler (init DB connection if necessary)
@@ -1724,14 +1723,13 @@ class ObjectManager extends Service {
 
 
     /**
-     * Delete an object permanently or put it in the "trash bin" (i.e. setting the 'deleted' flag to 1).
-     * The returned structure is an associative array containing ids of the objects actually deleted.
+     * Deletes an object permanently or put it in the "trash bin" (i.e. setting the 'deleted' flag to 1).
      *
      * @param   string  $class          Class of the object to delete.
      * @param   array   $ids            Array of ids of the objects to delete.
-     * @param   boolean $permanent      Flag for soft- (mark as deleted) or hard-deletion (remove from DB).
+     * @param   boolean $permanent      Flag for soft deleted (marked as deleted) or hard deletion (removed from DB).
      *
-     * @return  integer|array   Error code OR array of ids of deleted objects
+     * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occured.
      */
     public function delete($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
@@ -1947,8 +1945,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Search for the objects corresponding to the domain criteria.
-     * This method essentially generates an SQL query and returns an array of matching objects ids.
+     * Searches for the objects that comply with the domain (series of criteria).
      *
      * The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
      * Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
@@ -1957,15 +1954,15 @@ class ObjectManager extends Service {
      * Accepted operators are : '=', '<', '>',' <=', '>=', '<>', 'like' (case-sensitive), 'ilike' (case-insensitive), 'in', 'contains'
      * Example : array( array( array('title', 'like', '%foo%'), array('id', 'in', array(1,2,18)) ) )
      *
-     * @param   string     $class
-     * @param   array      $domain
-     * @param   array      $sort        Array of fields which result have to be sorted on, possibly precedded by sign (+ for 'asc', - for 'desc').
-     * @param   integer    $start
-     * @param   string     $limit
+     * @param   string     $class       Class of the objects to search for.
+     * @param   array      $domain      Domain (disjunction of conjunctions) defining the criteria the objects have to match.
+     * @param   array      $sort        Associative array mapping fields and orders on which result have to be sorted.
+     * @param   integer    $start       The offset at which to start the segment of the list of matching objects.
+     * @param   string     $limit       The maximum number of results/identifiers to return.
      *
-     * @return  integer|array
+     * @return  integer|array   Returns an array of matching objects ids.
      */
-    public function search($class, $domain=NULL, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
+    public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -2022,7 +2019,7 @@ class ObjectManager extends Service {
                         $operator     = strtolower($domain[$j][$i][1]);
 
                         // force operator 'is' for null values
-                        if(is_null($value) || $value === 'NULL') {
+                        if(is_null($value) || $value === 'null') {
                             if( $operator == '=') {
                                 $operator = 'is';
                             }
@@ -2190,7 +2187,7 @@ class ObjectManager extends Service {
                 $order_clause[$table_alias.'.id'] = 'ASC';
             }
             // get the matching records by generating the resulting SQL query
-            $res = $db->getRecords($tables, $select_fields, NULL, $conditions, $table_alias.'.id', $order_clause, $start, $limit);
+            $res = $db->getRecords($tables, $select_fields, null, $conditions, $table_alias.'.id', $order_clause, $start, $limit);
             while ($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
                 $res_list[] = $row['id'];
