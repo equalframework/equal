@@ -19,7 +19,7 @@ class DataAdapter extends Service {
 
     private $config;
 
-    public static function constants() { return ['UPLOAD_MAX_FILE_SIZE']; }
+    public static function constants() { return ['UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE']; }
 
     protected function __construct(/* no dependency */) {
         // initial configuration
@@ -535,12 +535,12 @@ class DataAdapter extends Service {
                 'sql'  => [
                     'php' => function($value) {
                         // read from DB
-                        if(FILE_STORAGE_MODE == 'DB') {
+                        if(constant('FILE_STORAGE_MODE') == 'DB') {
                             // fields of type file/binary are stored as binary value (MEDIUMBLOB)
                             $res = $value;
                         }
                         // read the content from filestore, filename is the received value
-                        else if(FILE_STORAGE_MODE == 'FS') {
+                        else if(constant('FILE_STORAGE_MODE') == 'FS') {
                             $filename = $value;
                             if(strlen($filename) && file_exists(QN_BASEDIR.'/bin/'.$filename)) {
                                 $res = file_get_contents(QN_BASEDIR.'/bin/'.$filename);
@@ -564,12 +564,12 @@ class DataAdapter extends Service {
                         }
 
                         // store binary data to database
-                        if(FILE_STORAGE_MODE == 'DB') {
+                        if(constant('FILE_STORAGE_MODE') == 'DB') {
                             // convert to hexadecimal string and mark for being stored as binary
                             $res = 'h0x'.bin2hex($value);
                         }
                         // store binary data to a file which name is based on object details, and store filename to database
-                        else if(FILE_STORAGE_MODE == 'FS') {
+                        else if(constant('FILE_STORAGE_MODE') == 'FS') {
                             // build a unique name  `package/class/field/oid.lang`
                             $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
                             $file = sprintf("%011d.%s", $oid, $lang);
