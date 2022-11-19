@@ -12,14 +12,14 @@ namespace equal\html;
  *
  */
 class HtmlTemplate {
-	protected $template;	// string containing some html 
+	protected $template;	// string containing some html
 	protected $renderer;	// array of functions for rendering template (functions associated with var tags ids)
 	protected $params;		// array containing values required by rendering functions
-	
+
 	/**
 	 * Returns html part specified by $attributes, given some additional parameters.
-	 * This method is called for each 'var' tag. As parameter, it should receive an array with tag attributes (at least 'id'). 
-	 * Return value should be a string containing html. 
+	 * This method is called for each 'var' tag. As parameter, it should receive an array with tag attributes (at least 'id').
+	 * Return value should be a string containing html.
 	 * To customize its behavior, this method might be overriden in inherited classes
 	 *
 	 * @param array $attributes	tag attributes
@@ -49,7 +49,7 @@ class HtmlTemplate {
             else {
                 // handle 'dot' notation
                 $array = $this->params;
-                $key = $attributes['id'];                
+                $key = $attributes['id'];
                 while(strpos($key, '.')) {
                     list($key, $remain) = explode('.', $key, 2);
                     if(!isset($array[$key])) return '';
@@ -64,13 +64,13 @@ class HtmlTemplate {
         }
 		return $result;
 	}
-	
+
 	public function __construct($template, $renderer, $params=null) {
 		$this->setTemplate($template);
 		$this->setRenderer($renderer);
-		$this->setParams($params);	
+		$this->setParams($params);
 	}
-	
+
 	public function setTemplate($template) {
 		$this->template = $template;
 	}
@@ -83,13 +83,13 @@ class HtmlTemplate {
 		$this->params = $params;
 	}
 
-	
+
 	/**
 	 * Replaces 'var' tags with content specified by the decorator method.
 	 *
 	 *
 	 * @param  string $template	Some HTML to parse
-	 * @return string        	HTML resulting from the processed template 
+	 * @return string        	HTML resulting from the processed template
 	 */
 	public function getHtml() {
 		$previous_pos = 0;
@@ -102,10 +102,10 @@ class HtmlTemplate {
             $innerHTML = trim($matches[2][$i][0]);
             // 1) get tag attributes
             preg_match_all('/([^ ]*)="([^"]*)"/iU', $matches[1][$i][0], $matches2);
-			$attributes = array();            
+			$attributes = array();
             for($k = 0, $l = count($matches2[0]); $k < $l; ++$k) {
                 $attribute = $matches2[1][$k];
-                $attributes[$attribute] = $matches2[2][$k];                
+                $attributes[$attribute] = $matches2[2][$k];
             }
 			// 2) get content pointed by var tag
 			$pos = $matches[0][$i][1];
@@ -117,5 +117,5 @@ class HtmlTemplate {
 		// add trailer
 		$html .= substr($this->template, $previous_pos);
 		return trim($html);
-	}	
+	}
 }
