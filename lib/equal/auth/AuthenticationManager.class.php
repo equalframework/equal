@@ -164,12 +164,12 @@ class AuthenticationManager extends Service {
                 $this->user_id = $payload['id'];
                 // if access token was refreshed, send back a new access token
                 if(!$request->cookie('access_token')) {
-                    $token = $this->token($this->user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+                    $token = $this->token($this->user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
                     $context->httpResponse()
                     ->cookie('access_token', $token, [
-                        'expires'   => time() + AUTH_ACCESS_TOKEN_VALIDITY,
+                        'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
                         'httponly'  => true,
-                        'secure'    => AUTH_TOKEN_HTTPS
+                        'secure'    => constant('AUTH_TOKEN_HTTPS')
                     ]);
                 }
             }
