@@ -1062,6 +1062,7 @@ namespace config {
                     }
                 }
 
+                // #todo - remove this: L10N_TIMEZONE must be used in controllers producing front-end data
                 // set Localisation prefs
                 if(defined('L10N_TIMEZONE')) {
                     // this is only relevant for data controllers (involving some output impacted by localization)

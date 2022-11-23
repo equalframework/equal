@@ -53,15 +53,21 @@
     },
     "EMAIL_SMTP_HOST": {
         "type": "string",
-        "description": "",
+        "description": "Hostname of the SMTP server to use for sending emails.",
         "instant": true,
         "default": "SSL0.PROVIDER.NET"
     },
     "EMAIL_SMTP_PORT": {
         "type": "string",
-        "description": "",
+        "description": "Port to use for SMTP connections.",
         "instant": true,
         "default": "2525"
+    },
+    "EMAIL_SMTP_ENCRYPT": {
+        "type": "string",
+        "description": "Encryption layer to use for SMTP connections ('tls' or 'ssl', false for SMTP with no encryption)",
+        "instant": true,
+        "default": "tls"
     },
     "EMAIL_SMTP_ACCOUNT_DISPLAYNAME": {
         "type": "string",
@@ -71,19 +77,19 @@
     },
     "EMAIL_SMTP_ACCOUNT_USERNAME": {
         "type": "string",
-        "description": "",
+        "description": "Account name (or email address) to use to authentify to SMTP server.",
         "instant": true,
         "default": "account.username"
     },
     "EMAIL_SMTP_ACCOUNT_PASSWORD": {
         "type": "string",
-        "description": "",
+        "description": "Password to use to authentify to SMTP server.",
         "instant": true,
         "default": "password"
     },
     "EMAIL_SMTP_ACCOUNT_EMAIL": {
         "type": "string",
-        "description": "",
+        "description": "Email address to use as sender (must be allowed by SMTP server).",
         "instant": true,
         "default": "email.to.send.from@provider.com"
     },
@@ -164,6 +170,7 @@
     },
     "L10N_TIMEZONE": {
         "type": "string",
+        "instant": true,
         "description": "Locale params are only relevant for data controllers involving some output impacted by localization. By convention, timezone is always set to UTC for script processing (using `date_default_timezone_set('UTC');`).",
         "default": "Europe/Brussels"
     },
@@ -205,7 +212,7 @@
     },
     "AUTH_TOKEN_HTTPS":{
         "type": "boolean",
-        "description": "FLag for limiting the sending of auth token to HTTPS.",
+        "description": "Flag for limiting the sending of auth token to HTTPS.",
         "instant": true,
         "default": false
     },

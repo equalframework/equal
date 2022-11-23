@@ -322,9 +322,15 @@ class Collection implements \Iterator, \Countable {
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
+                // value is a child Collection
                 if($value instanceof Collection) {
                     $value->adapt($to, $lang);
                 }
+                // value is an object
+                elseif($value instanceof Model) {
+                    // #todo
+                }
+                // value is a field
                 else {
                     $type = $schema[$field]['type'];
                     if($type == 'computed' && isset($schema[$field]['result_type'])) {

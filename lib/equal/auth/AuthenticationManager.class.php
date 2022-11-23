@@ -101,7 +101,9 @@ class AuthenticationManager extends Service {
         }
 
         // return user_id member, if already resolved
-        if($this->user_id > 0) return $this->user_id;
+        if($this->user_id > 0) {
+            return $this->user_id;
+        }
 
         // init JWT
         $jwt = $token;
@@ -133,10 +135,6 @@ class AuthenticationManager extends Service {
         // no token found : fallback to cookie
         if(!$jwt) {
             $jwt = $request->cookie('access_token');
-            // no access token provided, but refresh token found (which means that the access token has expired)
-            if(!$jwt && $request->cookie('refresh_token')) {
-                $jwt = $request->cookie('refresh_token');
-            }
         }
 
         // decode and verify token, if found
@@ -162,15 +160,16 @@ class AuthenticationManager extends Service {
                     throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
                 }
                 $this->user_id = $payload['id'];
-                // if access token was refreshed, send back a new access token
-                if(!$request->cookie('access_token')) {
-                    $token = $this->token($this->user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
-                    $context->httpResponse()
-                    ->cookie('access_token', $token, [
-                        'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-                        'httponly'  => true,
-                        'secure'    => constant('AUTH_TOKEN_HTTPS')
-                    ]);
+                // make sure token remains valid for the upcoming hour
+                if($payload['exp'] < time() + 3600) {
+                    $token = $this->token($this->user_id, 3600);
+                    $context
+                        ->httpResponse()
+                        ->cookie('access_token', $token, [
+                            'expires'   => time() + 3600,
+                            'httponly'  => true,
+                            'secure'    => constant('AUTH_TOKEN_HTTPS')
+                        ]);
                 }
             }
         }
@@ -179,7 +178,7 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * @throws Exception    Raises an excetpion in case the credentials are not related to a user.
+     * @throws Exception    Raises an exception in case the credentials are not related to a user.
      */
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');

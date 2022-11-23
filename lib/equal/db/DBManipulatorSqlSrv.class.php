@@ -37,8 +37,8 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     /**
-     * This method has no effect.
-     * There is no distinction between select and conenct.
+     * This method has no effect with SQL SRV.
+     * There is no distinction between select and connect.
      */
     public function select($db_name) {
         return $this->db;
