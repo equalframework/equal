@@ -79,8 +79,13 @@ $tests = [
                                               )
                                         ),
                 'test'              =>  function (){
-                                            $om = &ObjectManager::getInstance();
-                                            return $om->read('core\User', [QN_ROOT_USER_ID], array('language','firstname','lastname'));
+                                            $res = [];
+                                            $om = ObjectManager::getInstance();
+                                            $objects = $om->read('core\User', [QN_ROOT_USER_ID], array('id', 'language','firstname','lastname'));
+                                            foreach($objects as $oid => $object) {
+                                                $res[$oid] = $object->toArray();
+                                            }
+                                            return $res;
                                         },
                 ),
 
@@ -95,8 +100,13 @@ $tests = [
                                                   )
                                             ),
                     'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
                                             },
                     ),
     '2102' => array(
@@ -110,8 +120,13 @@ $tests = [
                                                   )
                                             ),
                     'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', (string) QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', (string) QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
                                             },
                     ),
 
@@ -120,7 +135,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
                     'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                                                $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', 0, array('language','firstname','lastname'));
                                              },
                     ),
@@ -135,9 +150,15 @@ $tests = [
                                                     'lastname'  => '@system'
                                                    ]
                                             ),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', array(0, QN_ROOT_USER_ID), array('language','firstname','lastname'));
+                    'test'              =>  function () {
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', array(0, QN_ROOT_USER_ID), array('language','firstname','lastname'));
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
+
                                             },
                     ),
 
@@ -145,8 +166,8 @@ $tests = [
                     'description'       =>  "Call ObjectManager::read with empty value for \$ids parameter : empty array",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', array(), array('language','firstname','lastname'));
                                             },
                     ),
@@ -155,8 +176,8 @@ $tests = [
                     'description'       =>  "Call ObjectManager::read with missing \$ids parameters",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  [],
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->read('core\User');
                                             },
                     ),
@@ -164,8 +185,8 @@ $tests = [
                     'description'       =>  "Call ObjectManager::read with wrong \$ids parameters",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', 0);
                                             },
                     ),
@@ -173,8 +194,8 @@ $tests = [
                     'description'       =>  "Call ObjectManager::read some unexisting object from non-existing class",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  QN_ERROR_UNKNOWN_OBJECT,
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->read('core\Foo', array('1'), array('bar'));
                                             },
                     ),
@@ -187,9 +208,14 @@ $tests = [
                                                     'firstname' => 'root'
                                                   )
                                             ),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', array('1'), 'firstname');
+                    'test'              =>  function () {
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', array('1'), 'firstname');
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
                                             },
                     ),
     '2150' => array(
@@ -198,18 +224,28 @@ $tests = [
                     'expected'          =>  [
                                                 '1' => []
                                             ],
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', array('1'), array('foo'));
+                    'test'              =>  function () {
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', array('1'), array('foo'));
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
                                             },
                     ),
     '2151' => array(
                     'description'       =>  "Call ObjectManager::read with wrong \$fields value : unexisting field name",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array('1' => array('firstname' => 'root') ),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
-                                                return $om->read('core\User', array('1'), array('foo', 'firstname'));
+                    'test'              =>  function () {
+                                                $res = [];
+                                                $om = ObjectManager::getInstance();
+                                                $objects = $om->read('core\User', array('1'), array('foo', 'firstname'));
+                                                foreach($objects as $oid => $object) {
+                                                    $res[$oid] = $object->toArray();
+                                                }
+                                                return $res;
                                             },
                     ),
 
@@ -220,7 +256,7 @@ $tests = [
                     'return'            =>  array('integer'),
                     'test'              =>  function () {
                                                 global $dummy_user_id;
-                                                $om = &ObjectManager::getInstance();
+                                                $om = ObjectManager::getInstance();
                                                 $dummy_user_id = $om->create('core\User', [
                                                                                 'login'     => 'dummy@example.com',
                                                                                 'password'  => md5('test'),
@@ -235,7 +271,7 @@ $tests = [
                     'description'       =>  "Create a group (no validation)",
                     'return'            =>  array('integer'),
                     'test'              =>  function () {
-                                                $om = &ObjectManager::getInstance();
+                                                $om = ObjectManager::getInstance();
                                                 $group_id = $om->create('core\Group', ['id' => 3, 'name' => 'test']);
                                                 return $group_id;
                                             },
@@ -254,7 +290,7 @@ $tests = [
                     'expected'          =>  array(&$GLOBALS['dummy_user_id']),
                     'test'              =>  function () {
                                                 global $dummy_user_id;
-                                                $om = &ObjectManager::getInstance();
+                                                $om = ObjectManager::getInstance();
                                                 return $om->remove('core\User', $dummy_user_id, true);
                                             },
                     ),
@@ -266,8 +302,8 @@ $tests = [
                     'description'       =>  "Search an object with valid clause 'ilike'",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array('2'),
-                    'test'              =>  function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->search('core\Group', array(array(array('name', 'ilike', '%Users%'))));
                                             }
                     ),
@@ -275,8 +311,8 @@ $tests = [
                     'description'       => "Search an object with invalid clause 'ilike' (non-existing field)",
                     'return'            => array('integer', 'array'),
                     'expected'          => QN_ERROR_INVALID_PARAM,
-                    'test'              => function (){
-                                                $om = &ObjectManager::getInstance();
+                    'test'              => function () {
+                                                $om = ObjectManager::getInstance();
                                                 return $om->search('core\Group', array(array(array('badname', 'ilike', '%Default%'))));
                                             }
                     ),
@@ -293,7 +329,7 @@ $tests = [
                     'description'       =>  "Search for some object : clause 'contains' on one2many field (using a foreign key different from 'id')",
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
-                    'test'              =>  function (){
+                    'test'              =>  function () {
 // todo
                                                 return true;
                                             }
@@ -302,7 +338,7 @@ $tests = [
                     'description'       =>  "Search for some object : clause 'contains' on many2one field",
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
-                    'test'              =>  function (){
+                    'test'              =>  function () {
 // todo
                                                 return true;
                                             }
@@ -390,7 +426,6 @@ $tests = [
 
                                                 $access1 = $providers['context']->container->get('access');
                                                 $access2 = $providers['access'];
-
 
                                                 return ( $auth1 == $auth2 && $access1 == $access2);
                                             }

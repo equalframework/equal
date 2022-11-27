@@ -1544,7 +1544,7 @@ class ObjectManager extends Service {
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|array  Returns an associative array containing, for each requested object id, an array maping each selected field to its value (order inside $ids and $fields arrays is maintaind), or error identifier is an error occurred.
+     * @return  int|Model[]  Returns an associative array mapping an instance for each requested id ($ids order is maintaind). If an error occurs, it returns the related error identifier.
      */
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
