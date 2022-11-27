@@ -182,8 +182,7 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = reset($this->objects);
-        return $this->get_raw_object($object, $to_array);
-        // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
+        return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
 
     /**
@@ -199,7 +198,7 @@ class Collection implements \Iterator, \Countable {
         }
         $object = end($this->objects);
         return $this->get_raw_object($object, $to_array);
-        // return ($to_array)?$this->get_raw_object($object, $to_array):$object;
+        return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
 
     /**

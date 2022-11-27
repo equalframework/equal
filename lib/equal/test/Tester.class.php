@@ -55,7 +55,9 @@ class Tester {
                     $res = false;
                 }
             }
-            if(!$res) break;
+            if(!$res) {
+                break;
+            }
         }
         return $res;
     }

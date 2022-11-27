@@ -176,7 +176,7 @@
     },
     "L10N_LOCALE": {
         "type": "string",
-        "description": "Locale params are only relevant for data controllers involving some output impacted by localization.",
+        "description": "Preferred locale for controllers that generate static output. Locale params are only relevant for data controllers involving some output impacted by localization.",
         "default" : "fr"
     },
     "LOGGING_ENABLED": {
