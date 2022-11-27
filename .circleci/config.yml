@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   build:
     docker:
-    - image: php:7.3-apache
+    - image: php:7.4-apache
 
     - image: mysql:5.7
       environment:
