@@ -195,7 +195,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Provide the db handler (DBoOnnection instance).
+     * Provide the db handler (DBConnection instance).
      * If the connection hasn't been established yet, tries to connect to DBMS.
      * @return DBConnection
      */
