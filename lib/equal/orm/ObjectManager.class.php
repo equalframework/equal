@@ -113,7 +113,7 @@ class ObjectManager extends Service {
         'integer'       => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'float'         => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'string'        => array('like', 'ilike', 'in', 'not in', '=', '<>', 'is', 'is not'),
-        'text'          => array('like', 'ilike', '=', 'is', 'is not'),
+        'text'          => array('is', 'is not'),
         'date'          => array('=', '<>', '<', '>', '<=', '>=', 'like', 'is', 'is not'),
         'time'          => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'datetime'      => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
@@ -135,6 +135,7 @@ class ObjectManager extends Service {
         'time'          => 'time',
         'datetime'      => 'datetime',
         'timestamp'     => 'timestamp',
+        /* #deprecated */
         'file'          => 'longblob',
         'binary'        => 'longblob',
         'many2one'      => 'int(11)'
@@ -176,7 +177,7 @@ class ObjectManager extends Service {
     }
 
     public function __clone() {
-        trigger_error("ObjectManager::__clone: instance is being copied.", E_USER_ERROR);
+        trigger_error("ObjectManager::__clone: instance is being copied.", QN_REPORT_ERROR);
     }
 
     public function __destruct() {
@@ -207,7 +208,7 @@ class ObjectManager extends Service {
                 trigger_error(  'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
                                 'unable to establish connection to database: check connection parameters '.
                                 '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
-                                E_USER_ERROR);
+                                QN_REPORT_ERROR);
             }
         }
         return $this->db;
@@ -298,7 +299,7 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             return $e->getCode();
         }
         return $result;
@@ -496,7 +497,7 @@ class ObjectManager extends Service {
                         $oid = $row['object_id'];
                         $field = $row['object_field'];
                         // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                        $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
+                        $value = $this->container->get('adapt')->adapt($row['value'], 'binary', 'php', 'sql', $class, $oid, $field, $lang);
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
@@ -683,14 +684,14 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to load object fields', $e->getCode());
         }
     }
 
     /**
      * Stores specified fields of selected objects into database.
-     * .
+     *
      * @param string $class     Class name of the objects to be stored.
      * @param array  $ids       List of identifiers of the objects to store.
      * @param array  $fields    List of fields names to store (values are read from `$cache`).
@@ -727,8 +728,11 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $values_array[] = [
-                            $lang, $class, $field, $oid,
-                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
+                            $lang,
+                            $class,
+                            $field,
+                            $oid,
+                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], 'binary', 'sql', 'php', $class, $oid, $field, $lang)
                         ];
                     }
                 }
@@ -816,7 +820,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($value)) {
-                            trigger_error("wrong value for field '$field' of class '$class', should be an array", E_USER_ERROR);
+                            trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                             continue;
                         }
                         $ids_to_remove = array();
@@ -892,7 +896,7 @@ class ObjectManager extends Service {
 
         }
         catch (Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to store object fields', $e->getCode());
         }
     }
@@ -1033,7 +1037,7 @@ class ObjectManager extends Service {
             $model = $this->getStaticInstance($class);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             // #todo - validate (this is the only public method in ORM that raises an Exception)
             throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
@@ -1372,7 +1376,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1528,7 +1532,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1703,7 +1707,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $res = $e->getCode();
         }
         return $res;
@@ -1838,7 +1842,7 @@ class ObjectManager extends Service {
             $this->callonce($class, 'onafterdelete', $ids, [], null, ['ids']);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1935,7 +1939,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2198,7 +2202,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $res_list = $e->getCode();
         }
         return $res_list;

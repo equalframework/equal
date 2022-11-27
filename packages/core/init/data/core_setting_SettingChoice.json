@@ -3,37 +3,37 @@
         "name": "core\\setting\\SettingChoice",
         "lang": "fr",
         "data": [
-            {                
+            {
                 "id": 101,
                 "setting_id":1,
                 "name":"virgule",
                 "value":","
             },
-            {                
+            {
                 "id": 102,
                 "setting_id":1,
                 "name":"point",
                 "value":"."
             },
-            {                
+            {
                 "id": 201,
                 "setting_id":2,
                 "name":"avant",
                 "value":"before"
             },
-            {                
+            {
                 "id": 202,
                 "setting_id":2,
                 "name":"après",
                 "value":"after"
             },
-            {                
+            {
                 "id": 301,
                 "setting_id":3,
                 "name":"",
                 "value":"1"
             },
-            {                
+            {
                 "id": 302,
                 "setting_id":3,
                 "name":"",
@@ -184,14 +184,14 @@
                 "value":"111"
             },
             {
-                
+
                 "id": 1901,
                 "setting_id":19,
                 "name":"",
                 "value":"111"
             },
             {
-                
+
                 "id": 2001,
                 "setting_id":20,
                 "name":"",
@@ -204,7 +204,7 @@
                 "value":"2021"
             },
             {
-                "id": 2101,
+                "id": 2201,
                 "setting_id":21,
                 "name":"",
                 "value":"2022"
@@ -262,7 +262,7 @@
                 "setting_id":32,
                 "name":"",
                 "value":"10"
-            }          
+            }
         ]
     }
 ]
