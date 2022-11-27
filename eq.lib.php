@@ -1062,12 +1062,12 @@ namespace config {
                     }
                 }
 
-                // #todo - remove this: L10N_TIMEZONE must be used in controllers producing front-end data
-                // set Localisation prefs
+                // #todo - remove this: L10N_TIMEZONE must be used in controllers producing front-end data (involving some output impacted by localization)
                 if(defined('L10N_TIMEZONE')) {
-                    // this is only relevant for data controllers (involving some output impacted by localization)
                     date_default_timezone_set(constant('L10N_TIMEZONE'));
                 }
+                // #todo - we should run this instead - in the meanwhile, value is the one set in schema.json
+                // date_default_timezone_set('UTC');
 
                 if(!$root) {
                     // include and execute requested script
