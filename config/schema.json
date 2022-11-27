@@ -171,7 +171,7 @@
     "L10N_TIMEZONE": {
         "type": "string",
         "instant": true,
-        "description": "Locale params are only relevant for data controllers involving some output impacted by localization. By convention, timezone is always set to UTC for script processing (using `date_default_timezone_set('UTC');`).",
+        "description": "Preferred timezone for controllers that generate a static output. Locale params are only relevant for data controllers involving some output impacted by localization. By convention, timezone is always set to UTC for script processing (using `date_default_timezone_set('UTC');`).",
         "default": "UTC"
     },
     "L10N_LOCALE": {
