@@ -1569,9 +1569,7 @@ class ObjectManager extends Service {
             }
             // init resulting array
             foreach($ids as $oid) {
-                // #todo - when ready to deal directly with objects
-                // $res[$oid] = clone $model;
-                $res[$oid] = [];
+                $res[$oid] = clone $model;
             }
 
             // 2) pre-processing: $fields sanitization
