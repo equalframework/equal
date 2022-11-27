@@ -201,9 +201,15 @@ class Mail extends Model {
         // setup SMTP settings
         $mailer = new \Swift_Mailer($transport);
 
+        $max = 10;
+        $i = 0;
         // loop through messages
         foreach($queue as $file => $message) {
-
+            ++$i;
+            // prevent handling handling more than $max messages
+            if($i > $max) {
+                break;
+            }
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 
@@ -246,6 +252,8 @@ class Mail extends Model {
                     if(isset($message['id'])) {
                         self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
                     }
+                    // prevent flooding the SMTP
+                    usleep(100 *1000);
                 }
                 catch(\Exception $e) {
                     // sending failed:

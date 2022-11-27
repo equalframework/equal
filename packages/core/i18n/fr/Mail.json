@@ -8,6 +8,11 @@
             "description": "Destinataire principal du courriel",
             "help":"Destinataire repris dans le champ `to`."
         },
+        "reply_to":{
+            "label":"Réponse à",
+            "description": "Adresse de réponse.",
+            "help":"Adresse reprise dans le champ `reply-to` et à laquelle adresser les emails de réponse."
+        },
         "status":{
             "label":"Statut",
             "selection": {
