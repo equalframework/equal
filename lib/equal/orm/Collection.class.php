@@ -299,7 +299,7 @@ class Collection implements \Iterator, \Countable {
                 });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // log a notice about discarded readonly fields
-                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_WARNING);
+                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
             }
             // discard special fields
             // #memo - `state` is left allowed for draft creation

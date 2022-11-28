@@ -8,9 +8,7 @@ use equal\orm\ObjectManager;
 use equal\db\DBConnection;
 
 // get listing of existing packages
-$json = run('get', 'config_packages');
-$packages = json_decode($json, true);
-
+$packages = eQual::run('get', 'config_packages');
 
 list($params, $providers) = announce([
     'description'	=> "Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
@@ -32,13 +30,12 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $adapt) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 $params['package'] = strtolower($params['package']);
-
 
 $json = run('do', 'test_db-access');
 if(strlen($json)) {
@@ -50,20 +47,15 @@ if(strlen($json)) {
 // retrieve connection object
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
+if(!$db) {
+    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
+}
 
+$db_class = get_class($db);
 $result = array();
 
 // get classes listing
-$json = run('get', 'config_classes', ['package' => $params['package']]);
-$data = json_decode($json, true);
-// relay error if any
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
-}
-else {
-    $classes = $data;
-}
-
+$classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
 $m2m_tables = array();
 
@@ -94,120 +86,89 @@ foreach($classes as $class) {
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
 
     // fetch existing column
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
-    $res = $db->sendQuery($query);
-
-    $columns = [];
-    while ($row = $db->fetchArray($res)) {
-        $columns[] = $row['COLUMN_NAME'];
-    }
+    $columns = $db->getTableColumns($table_name);
 
     // if some columns already exist (we are enriching a table related to a class from which the current class inherits),
     // then we append only the columns that do not exit yet
-    if(!empty($columns) && !$params['full']) {
-        $columns_diff = array_diff(array_keys($schema), $columns);
-        foreach($columns_diff as $field) {
-            $description = $schema[$field];
-            if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
-                $type = ObjectManager::$types_associations[$description['type']];
-                // if a SQL type is associated to field 'usage', it prevails over the type association
-                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                    $type = ObjectManager::$usages_associations[$description['usage']];
-                }
-                if($field == 'id') {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} NOT NULL AUTO_INCREMENT;";
-                }
-                elseif(in_array($field, array('creator','modifier','published','deleted'))) {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} NOT NULL DEFAULT '0';";
-                }
-                else {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type};";
-                }
-            }
-            else if( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
-                $type = ObjectManager::$types_associations[$description['result_type']];
-                // if a SQL type is associated to field 'usage', it prevails over the type association
-                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                    $type = ObjectManager::$usages_associations[$description['usage']];
-                }
-                $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} DEFAULT NULL;";
-            }
-            else if($description['type'] == 'many2many') {
-                if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+    $result[] = $db->getQueryCreateTable($table_name);
+    $columns_diff = ($params['full'])?array_keys($schema):array_diff(array_keys($schema), $columns);
+    foreach($columns_diff as $field) {
+        $description = $schema[$field];
+        if(in_array($description['type'], array_keys($db_class::$types_associations))) {
+            $type = $db->getSqlType($description['type']);
+
+            $column_descriptor = [
+                    'type'      => $type,
+                    'null'      => true
+            ];
+
+            // if a SQL type is associated to field 'usage', it prevails over the type association
+            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+                // $type = ObjectManager::$usages_associations[$description['usage']];
             }
 
+            if(isset($description['default']) && !is_callable($description['default'])) {
+                $column_descriptor['default'] = $adapt->adapt($description['default'], $type, 'sql', 'php');
+            }
+
+            if($field == 'id') {
+                continue;
+                // #memo - id column is added at table creation (auto_increment + primary key)
+            }
+            elseif(in_array($field, array('creator','modifier'))) {
+                $column_descriptor['null'] = false;
+            }
+            // generate SQL for column creation
+            $result[] = $db->getQueryAddColumn($table_name, $field, $column_descriptor);
+        }
+        elseif($description['type'] == 'computed') {
+            if(!isset($description['store']) || !$description['store']) {
+                // skip non-stored computed fields
+                continue;
+            }
+            $result[] = $db->getQueryAddColumn($table_name, $field, [
+                'type'      => $db->getSqlType($description['result_type']),
+                'null'      => true,
+                'default'   => null
+            ]);
+        }
+        elseif($description['type'] == 'many2many') {
+            if(!isset($m2m_tables[$description['rel_table']])) {
+                $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+            }
         }
     }
-    // if no columns were found, the table is either empty or do not exist yet
-    // in this case, we create the table and add all the columns
-    else {
-        $result[] = "CREATE TABLE IF NOT EXISTS `{$table_name}` (";
 
-        foreach($schema as $field => $description) {
-            if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
-                $type = ObjectManager::$types_associations[$description['type']];
-
-                // if a SQL type is associated to field 'usage', it prevails over the type association
-                if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                    $type = ObjectManager::$usages_associations[$description['usage']];
-                }
-
-                if($field == 'id') {
-                    $result[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
-                }
-                elseif(in_array($field, array('creator','modifier','published','deleted'))) {
-                    $result[] = "`{$field}` {$type} NOT NULL DEFAULT '0',";
-                }
-                else {
-                    $result[] = "`{$field}` {$type} DEFAULT NULL,";
-                }
-            }
-            else if( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
-                $type = ObjectManager::$types_associations[$description['result_type']];
-                $result[] = "`{$field}` {$type} DEFAULT NULL,";
-            }
-            else if($description['type'] == 'many2many') {
-                if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
-            }
-        }
-        $result[] = "PRIMARY KEY (`id`)";
-
-        if(method_exists($model, 'getUnique')) {
-            $list = $model->getUnique();
-            foreach($list as $unique) {
-                $parts = [];
-                foreach($unique as $field) {
-                    $part = "`{$field}`";
-                    // limit index size to 20 bytes for strings
-                    if(in_array($schema[$field]['type'], ['string', 'text'])) {
-                        $part .= "(25)";
-                    }
-                    $parts[] = $part;
-                }
-                // #todo - deprecate
-                // #memo - Classes are allowed to override the getUnique method. Therefore, we cannot apply parent unicity constraints to parent table (which also applies on all inherited classes)
-                // $result[] = ",UNIQUE KEY `".implode('_', $unique)."` (".implode(',', $parts).")";
-            }
-        }
-
-        $result[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";
+    if(method_exists($model, 'getUnique')) {
+        // #memo - Classes are allowed to override the getUnique method from their parent class.
+        // Therefore, we cannot apply parent unicity constraints on parent table since it would also applies on all inherited classes.
     }
 
 }
 
 foreach($m2m_tables as $table => $columns) {
-    $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
-    $key = '';
-    foreach($columns as $column) {
-        $result[] = "`{$column}` int(11) NOT NULL,";
-        $key .= "`$column`,";
+    $constraint_name = implode('_', $columns);
+    $existing_constraints = $db->getTableConstraints($table);
+    if(in_array($constraint_name, $existing_constraints)) {
+        continue;
     }
-    $key = rtrim($key, ",");
-    $result[] = "PRIMARY KEY ({$key})";
-    $result[] = ");";
+    // fetch existing columns
+    $existing_columns = $db->getTableColumns($table);
+    // create table if not exist
+    $result[] = $db->getQueryCreateTable($table);
+    foreach($columns as $column) {
+        if(in_array($column, $existing_columns)) {
+            continue;
+        }
+        $type = $db->getSqlType('integer');
+        $result[] = $db->getQueryAddColumn($table, $column, [
+            'type'      => $type,
+            'null'      => false
+        ]);
+    }
+    $result[] = $db->getQueryAddConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)
-    $result[] = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
-    $result[]= '('.implode(',', array_fill(0, count($columns), 0)).");";
+    $result[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
 }
 
 // send json result

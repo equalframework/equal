@@ -182,8 +182,7 @@ class Model implements \ArrayAccess, \Iterator {
             'creator' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'readonly'          => true,
-                'default'           => 1
+                'default'           => QN_ROOT_USER_ID
             ],
             'created' => [
                 'type'              => 'datetime',
@@ -193,7 +192,7 @@ class Model implements \ArrayAccess, \Iterator {
             'modifier' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'default'           => 1
+                'default'           => QN_ROOT_USER_ID
             ],
             'modified' => [
                 'type'              => 'datetime',

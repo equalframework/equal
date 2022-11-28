@@ -15,18 +15,16 @@ class DBManipulatorMySQL extends DBManipulator {
 
 
     public static $types_associations = [
-        'boolean'       => 'tinyint(4)',
-        'integer'       => 'int(11)',
-        'float'         => 'decimal(10,2)',
-        'string'        => 'varchar(255)',
-        'text'          => 'text',
-        'date'          => 'date',
-        'time'          => 'time',
-        'datetime'      => 'datetime',
-        'timestamp'     => 'timestamp',
-        'file'          => 'longblob',
-        'binary'        => 'longblob',
-        'many2one'      => 'int(11)'
+        'boolean'       => 'tinyint(4)',        // 1 byte
+        'integer'       => 'int(11)',           // 4 bytes
+        'float'         => 'decimal(10,2)',     // 5 bytes
+        'string'        => 'varchar(255)',      // 255 bytes
+        'text'          => 'longtext',          // max 4 GB
+        'date'          => 'date',              // 3 bytes
+        'time'          => 'time',              // 3 bytes
+        'datetime'      => 'datetime',          // 8 bytes
+        'binary'        => 'longblob',          // max 4GB
+        'many2one'      => 'int(11)'            // 4 bytes
     ];
 
     public function getSqlType($type) {
@@ -96,6 +94,108 @@ class DBManipulatorMySQL extends DBManipulator {
         return true;
     }
 
+    public function createDatabase($db_name) {
+        $query = "CREATE DATABASE IF NOT EXISTS $db_name CHARACTER SET ".constant('DB_CHARSET')." COLLATE ".constant('DB_COLLATION').';';
+        $this->sendQuery($query);
+    }
+
+    public function getTableColumns($table_name) {
+        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
+        $res = $this->sendQuery($query);
+
+        $columns = [];
+        while ($row = $this->fetchArray($res)) {
+            $columns[] = $row['COLUMN_NAME'];
+        }
+        return $columns;
+    }
+
+    public function getTableConstraints($table_name) {
+        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
+        $res = $this->sendQuery($query);
+        $constraints = [];
+        while ($row = $this->fetchArray($res)) {
+            $constraint = $row['CONSTRAINT_NAME'];
+            $constraints[] = $constraint;
+        }
+        return $constraints;
+    }
+
+    public function getQueryCreateTable($table_name) {
+        // #memo - we must add at least one column, so as a convention we add the id column
+        return "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY) DEFAULT CHARSET=".constant('DB_CHARSET')." COLLATE=".constant('DB_COLLATION').";";
+    }
+
+    /**
+     * Generates one or more SQL queries related to a column creation, according to given column definition.
+     *
+     * $def structure:
+     * [
+     *      'type'             => int(11),
+     *      'null'             => false,
+     *      'default'          => 0,
+     *      'auto_incremnt'    => false,
+     *      'primary'          => false,
+     *      'index'            => false
+     * ]
+     */
+    public function getQueryAddColumn($table_name, $column_name, $def) {
+        $sql = "ALTER TABLE `{$table_name}` ADD COLUMN `{$column_name}` {$def['type']}";
+        if(isset($def['null']) || !$def['null']) {
+            $sql .= ' NOT NULL';
+        }
+        if(isset($def['auto_increment']) && $def['auto_increment']) {
+            $sql .= ' AUTO_INCREMENT';
+        }
+        // #memo - default is supported by ORM, not DBMS
+        if(isset($def['null']) && !$def['null']) {
+            if(isset($def['default'])) {
+                $sql .= " DEFAULT '".$def['default']."'";
+            }
+        }
+        else {
+            // unless specified otherwise, all columns can be null (even if having a default value)
+            $sql .= ' DEFAULT NULL';
+        }
+
+        $sql .= ';';
+
+        if(isset($def['primary']) && $def['primary']) {
+            "ALTER TABLE `{$table_name}` ADD PRIMARY KEY (`{$column_name}`);";
+        }
+        return $sql;
+    }
+
+    public function getQueryAddConstraint($table_name, $columns) {
+        return "ALTER TABLE `{$table_name}` ADD CONSTRAINT ".implode('_', $columns)." UNIQUE (`".implode('`,`', $columns)."`);";
+    }
+
+    public function getQueryAddRecords($table, $fields, $values) {
+        $sql = '';
+        if (!is_array($fields) || !is_array($values)) {
+            throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
+        }
+        $cols = '';
+        $vals = '';
+        foreach ($fields as $field) {
+            $cols .= "`$field`,";
+        }
+        $cols = rtrim($cols, ',');
+        foreach ($values as $val_array) {
+            $vals .= '(';
+            foreach($val_array as $val) {
+                $vals .= $this->escapeString($val).',';
+            }
+            $vals = rtrim($vals, ',').'),';
+        }
+        $vals = rtrim($vals, ',');
+        if(strlen($cols) > 0 && strlen($vals) > 0) {
+            // #memo - we ignore duplicate enties, if any
+            $sql = "INSERT IGNORE INTO `$table` ($cols) VALUES $vals;";
+        }
+        return $sql;
+    }
+
     /**
      * Sends a SQL query.
      *
@@ -103,8 +203,13 @@ class DBManipulatorMySQL extends DBManipulator {
      *
      * @return resource Returns a resource identifier or -1 if the query was not executed correctly.
      */
-    function sendQuery($query) {
+    public function sendQuery($query) {
         trigger_error("QN_DEBUG_SQL::$query", E_USER_NOTICE);
+
+        if(!strlen($query)) {
+            trigger_error("QN_DEBUG_SQL::ignoring empty query", QN_REPORT_DEBUG);
+            return;
+        }
 
         if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
             throw new \Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', QN_ERROR_SQL);
@@ -229,8 +334,8 @@ class DBManipulatorMySQL extends DBManipulator {
                 // adjust the field syntax (if necessary)
                 $cond[0] = self::escapeFieldName($cond[0]);
                 // operator 'in' having a single value as right operand
-                if(strcasecmp($cond[1], 'in') == 0 && !is_array($cond[2])) {
-                    $cond[2] = array($cond[2]);
+                if((strcasecmp($cond[1], 'in') == 0 || strcasecmp($cond[1], 'not in') == 0) && !is_array($cond[2])) {
+                    $cond[2] = (array) $cond[2];
                 }
                 // case-sensitive comparison ('like' operator)
                 if(strcasecmp($cond[1], 'like') == 0) {
@@ -241,7 +346,7 @@ class DBManipulatorMySQL extends DBManipulator {
                 // ilike operator does not exist in MySQL
                 if(strcasecmp($cond[1], 'ilike') == 0) {
                     // force mysql to handle the field as a char (necessary for translations that are stored in a binary field)
-                    $cond[0] = ' CAST('.$cond[0].' AS CHAR )';
+                    $cond[0] = 'CAST('.$cond[0].' AS CHAR )';
                     $cond[1] = 'LIKE';
                 }
                 // format the value operand
@@ -382,30 +487,11 @@ class DBManipulatorMySQL extends DBManipulator {
      * @return	resource reference to query resource
      */
     public function addRecords($table, $fields, $values) {
-        $result = false;
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
         }
-        $cols = '';
-        $vals = '';
-        foreach ($fields as $field) {
-            $cols .= "`$field`,";
-        }
-        $cols = rtrim($cols, ',');
-        foreach ($values as $val_array) {
-            $vals .= '(';
-            foreach($val_array as $val) {
-                $vals .= $this->escapeString($val).',';
-            }
-            $vals = rtrim($vals, ',').'),';
-        }
-        $vals = rtrim($vals, ',');
-        if(strlen($cols) > 0 && strlen($vals) > 0) {
-            // note: we ignore duplicate enties, if any
-            $sql = "INSERT IGNORE INTO `$table` ($cols) VALUES $vals;";
-            $result = $this->sendQuery($sql);
-        }
-        return $result;
+        $sql = $this->getQueryAddRecords($table, $fields, $values);
+        return $this->sendQuery($sql);
     }
 
     public function deleteRecords($table, $ids, $conditions=null, $id_field='id') {

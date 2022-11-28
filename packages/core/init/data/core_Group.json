@@ -26,106 +26,91 @@
                 "id": 8,
                 "name": "sales.catalog.administrators",
                 "display_name": "Sales \/ Catalog \/ Administrators",
-                "description": "Updating products and adding new products to the catalog.",
-                "users_ids": []
+                "description": "Updating products and adding new products to the catalog."
             },
             {
                 "id": 9,
                 "name": "sales.price_list.users",
                 "display_name": "Sales \/ Pricelists \/ Users",
-                "description": "Consulting pricelists.",
-                "users_ids": []
+                "description": "Consulting pricelists."
             },
             {
                 "id": 10,
                 "name": "sales.price_list.administrators",
                 "display_name": "Sales \/ Pricelists \/ Administrators",
-                "description": "Updating prices and fares.",
-                "users_ids": []
+                "description": "Updating prices and fares."
             },
             {
                 "id": 11,
                 "name": "sales.reductions.users",
                 "display_name": "Sales \/ Discount \/ Users",
-                "description": "Consultating discounts and discount lists.",
-                "users_ids": []
+                "description": "Consultating discounts and discount lists."
             },
             {
                 "id": 12,
                 "name": "sales.reductions.administrators",
                 "display_name": "Sales \/ Discount \/ Administrators",
-                "description": "Creating and updating discount lists.",
-                "users_ids": []
+                "description": "Creating and updating discount lists."
             },
             {
                 "id": 13,
                 "name": "sales.seasons.users",
                 "display_name": "Sales \/ Saisons \/ Utilisateurs",
-                "description": "Consultation des saisons et listes de saisons.",
-                "users_ids": []
+                "description": "Consultation des saisons et listes de saisons."
             },
             {
                 "id": 14,
                 "name": "sales.seasons.administrators",
                 "display_name": "Sales \/ Seasons \/ Administrators",
-                "description": "Creating and updating Seasons.",
-                "users_ids": []
+                "description": "Creating and updating Seasons."
             },
             {
                 "id": 15,
                 "name": "point_of_sale.administrators",
                 "display_name": "Point of Sale \/ Administrators",
-                "description": "Managing and configuring PoS.",
-                "users_ids": []
+                "description": "Managing and configuring PoS."
             },
             {
                 "id": 16,
                 "name": "point_of_sale.users",
                 "display_name": "Point of Sale \/ Users",
-                "description": "Encodaging PoS orders.",
-                "users_ids": []
+                "description": "Encodaging PoS orders."
             },
             {
                 "id": 17,
                 "name": "settings",
                 "display_name": "Configuration Settings",
-                "description": "Updating global configuration.",
-                "users_ids": []
+                "description": "Updating global configuration."
             },
             {
                 "id": 18,
                 "name": "sales.bookings.users",
                 "display_name": "Sales \/ Booking \/ Users",
-                "description": "Creating and consulting bookings.",
-                "users_ids": []
+                "description": "Creating and consulting bookings."
             },
             {
                 "id": 19,
                 "name": "sales.catalog.users",
                 "display_name": "Sales \/ Catalog \/ Userrs",
-                "description": "Consulting products catalog.",
-                "users_ids": []
+                "description": "Consulting products catalog."
             },
             {
                 "id": 20,
                 "name": "accounting.administrators",
                 "display_name": "Accounting \/ Administrators",
-                "description": "Updating settings related to accounting.",
-                "users_ids": []
+                "description": "Updating settings related to accounting."
             },
             {
                 "id": 21,
                 "name": "accounting.invoicing.administrators",
                 "display_name": "Accounting \/ Invoicing \/ Administrators",
-                "description": "Creating, updating and sending invoices and credit notess.",
-                "users_ids": []
+                "description": "Creating, updating and sending invoices and credit notess."
             },
             {
                 "id": 22,
                 "name": "accounting.invoicing.users",
                 "display_name": "Accounting \/ Invoicing \/ Users",
-                "description": "Generating and sending invoices to customers.",
-                "users_ids": []
+                "description": "Generating and sending invoices to customers."
             }
         ]
     },

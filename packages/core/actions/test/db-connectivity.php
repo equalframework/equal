@@ -13,7 +13,7 @@ $params = announce([
 ]);
 
 // retrieve connection object
-$db = &DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
+$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
 
 // 1) test access to DBMS service
 if(!$db->canConnect()) {
@@ -21,7 +21,6 @@ if(!$db->canConnect()) {
 }
 // 2) try to connect to DBMS
 if(!$db->connected()) {
-
     if($db->connect(false) == false) {
         throw new Exception('Unable to establish connection to DBMS host (wrong credentials).', QN_ERROR_INVALID_CONFIG);
     }

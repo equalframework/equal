@@ -1,8 +1,13 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 namespace equal\fs;
 
 class FSManipulator {
-    
+
     public static $mime_types = [
         "3dml"			=>	"text/vnd.in3d.3dml",
         "3g2"			=>	"video/3gpp2",
@@ -692,79 +697,97 @@ class FSManipulator {
         "zip"			=>	"application/zip",
         "zir"			=>	"application/vnd.zul",
         "zmm"			=>	"application/vnd.handheld-entertainment+xml"
-	];
-    
+    ];
+
     public static function assertPath($path) {
         $parts = explode('/', str_replace('\\', '/', $path));
         $path = $parts[0];
         for($i = 1, $n = count($parts); $i < $n; ++$i) {
-            $path .= '/'.$parts[$i];            
-       		if (!is_dir($path)) {
+            $path .= '/'.$parts[$i];
+               if (!is_dir($path)) {
                 @mkdir($path, 0777, true);
             }
         }
     }
-    
-	public static function getSanitizedName($file_name) {
+
+    public static function getSanitizedName($file_name) {
         // note: remember to maintain current file charset to UTF-8 !
         $ascii = array(
             'Š'=>'S', 'š'=>'s', 'Ð'=>'Dj','Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A',
             'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I',
-            'Ï'=>'I', 'Ñ'=>'N', 'Ń'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U', 
-            'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss','à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 
-            'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 
+            'Ï'=>'I', 'Ñ'=>'N', 'Ń'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
+            'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss','à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a',
+            'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i',
             'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ń'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o', 'ö'=>'o',
             'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ü'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y', 'ƒ'=>'f',
             'ă'=>'a', 'î'=>'i', 'â'=>'a', 'ș'=>'s', 'ț'=>'t', 'Ă'=>'A', 'Î'=>'I', 'Â'=>'A', 'Ș'=>'S', 'Ț'=>'T'
-        );        
+        );
         $value = str_replace(array_keys($ascii), array_values($ascii), $file_name);
         // remove all non-quote-space-alphanum-dash chars
         $value = preg_replace('/[^\'\s-a-z0-9]/i', '', $value);
         // replace spaces, dashes and quotes with underscores
-        $value = preg_replace('/[\s-\']+/', '_', $value);           
+        $value = preg_replace('/[\s-\']+/', '_', $value);
         // trim the end of the string
         $value = trim($value, '.-_');
 
-        return strtolower($value);   
-	}
-    
-	public static function getDirListing($dir_name) {
-		if(!is_dir($dir_name)) return null;
-		if(($dir = opendir($dir_name)) === false) return null;
-		$d_pos = 0;
-		$f_pos = 0;
-		$list_directoies = array();
-		$list_files = array();
-		while ($node = readdir($dir)) {
-			if ($node != '.' && $node != '..') {
-				if (is_dir($dir_name.'/'.$node)) {
-					$list_directoies[$d_pos] = $node;
-					++$d_pos;
-				}
-				else{
-					$list_files[$f_pos] = $node;
-					++$f_pos;
-				}
-			}
-		}
-		closedir($dir);
-		sort($list_directoies);
-		sort($list_files);
-		return array_merge($list_directoies, $list_files);
-	}
+        return strtolower($value);
+    }
 
-	public static function getFileStat($file_name) {
-		$fp = fopen($file_name, "r");
-		$fstat = fstat($fp);
-		fclose($fp);
-		return $fstat;
-	}
-    
+    public static function getDirListing($dir_name) {
+        if(!is_dir($dir_name)) return null;
+        if(($dir = opendir($dir_name)) === false) return null;
+        $d_pos = 0;
+        $f_pos = 0;
+        $list_directoies = array();
+        $list_files = array();
+        while ($node = readdir($dir)) {
+            if ($node != '.' && $node != '..') {
+                if (is_dir($dir_name.'/'.$node)) {
+                    $list_directoies[$d_pos] = $node;
+                    ++$d_pos;
+                }
+                else{
+                    $list_files[$f_pos] = $node;
+                    ++$f_pos;
+                }
+            }
+        }
+        closedir($dir);
+        sort($list_directoies);
+        sort($list_files);
+        return array_merge($list_directoies, $list_files);
+    }
+
+    public static function removeDir($dir_name) {
+        if (file_exists($dir_name)) {
+            if (!is_dir($dir_name)) {
+                return unlink($dir_name);
+            }
+            foreach (scandir($dir_name) as $file) {
+                if (in_array($file, ['.', '..'])) {
+                    continue;
+                }
+                if (!self::removeDir($dir_name . DIRECTORY_SEPARATOR . $file)) {
+                    return false;
+                }
+            }
+            return rmdir($dir_name);
+        }
+        return true;
+    }
+
+    public static function getFileStat($file_name) {
+        $fp = fopen($file_name, "r");
+        $fstat = fstat($fp);
+        fclose($fp);
+        return $fstat;
+    }
+
     public static function getExtension($file_name) {
         $parts = explode('.', $file_name);
         return (count($parts) > 1)?strtolower($parts[count($parts)-1]):'';
     }
-    
+
     public static function getExtensionFromMime($mime_type) {
         $extension = '';
         $mime_extensions = array_flip(self::$mime_types);
@@ -772,27 +795,27 @@ class FSManipulator {
             $extension = $mime_extensions[$mime_type];
         }
         return $extension;
-	}
+    }
 
-	public static function getLastChange($file_name) {
-		$fstat = self::getFileStat($file_name);
-		return $fstat['mtime'];
-	}
+    public static function getLastChange($file_name) {
+        $fstat = self::getFileStat($file_name);
+        return $fstat['mtime'];
+    }
 
-	public static function getFileContent($file_name) {
-		$handle = fopen($file_name, 'rb');
-		$content = fread($handle, filesize($file_name));
-		fclose($handle);
-		return $content;
-	}
+    public static function getFileContent($file_name) {
+        $handle = fopen($file_name, 'rb');
+        $content = fread($handle, filesize($file_name));
+        fclose($handle);
+        return $content;
+    }
 
-	public static function getTempName($file_name) {
-		for($ext = 0;;$ext++) {
-			$temp_name = $file_name.sprintf("%03d", $ext);
-			if(!is_file($temp_name)) break;
-		}
-		return $temp_name;
-	}
+    public static function getTempName($file_name) {
+        for($ext = 0;;$ext++) {
+            $temp_name = $file_name.sprintf("%03d", $ext);
+            if(!is_file($temp_name)) break;
+        }
+        return $temp_name;
+    }
 
     public function getMimeType($file_name) {
         $mime_type = '';
