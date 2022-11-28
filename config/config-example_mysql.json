@@ -7,7 +7,6 @@
     "DEFAULT_LANG": "fr",
     "DB_REPLICATION": "NO",
     "DB_DBMS": "MYSQL",
-    "DB_CHARSET": "UTF8",
     "DB_HOST": "127.0.0.1",
     "DB_PORT": "3306",
     "DB_USER": "root",

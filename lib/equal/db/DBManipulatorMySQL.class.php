@@ -100,9 +100,8 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function getTableColumns($table_name) {
-        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
+        $query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='{$this->db_name}' AND TABLE_NAME = '$table_name';";
         $res = $this->sendQuery($query);
-
         $columns = [];
         while ($row = $this->fetchArray($res)) {
             $columns[] = $row['COLUMN_NAME'];
@@ -111,7 +110,7 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function getTableConstraints($table_name) {
-        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
+        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
         $res = $this->sendQuery($query);
         $constraints = [];
         while ($row = $this->fetchArray($res)) {
@@ -141,7 +140,7 @@ class DBManipulatorMySQL extends DBManipulator {
      */
     public function getQueryAddColumn($table_name, $column_name, $def) {
         $sql = "ALTER TABLE `{$table_name}` ADD COLUMN `{$column_name}` {$def['type']}";
-        if(isset($def['null']) || !$def['null']) {
+        if(isset($def['null']) && !$def['null']) {
             $sql .= ' NOT NULL';
         }
         if(isset($def['auto_increment']) && $def['auto_increment']) {

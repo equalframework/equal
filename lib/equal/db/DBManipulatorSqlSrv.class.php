@@ -118,7 +118,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function getTableColumns($table_name) {
-        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+        $query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_CATALOG = '{$this->db_name}' AND  TABLE_NAME = '$table_name';";
         $res = $this->sendQuery($query);
         $columns = [];
         while ($row = $this->fetchArray($res)) {
@@ -128,7 +128,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function getTableConstraints($table_name) {
-        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
+        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
         $res = $this->sendQuery($query);
         $constraints = [];
         while ($row = $this->fetchArray($res)) {

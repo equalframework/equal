@@ -118,7 +118,7 @@ $queries = [];
 // retrieve classes listing
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
-$m2m_tables = array();
+$m2m_tables = [];
 
 // tables have been created, but fields in inherited classes might still be missing
 foreach($classes as $class) {
@@ -170,15 +170,7 @@ foreach($classes as $class) {
     }
 }
 
-
-// send each query to the DBMS
-foreach($queries as $query) {
-    $db->sendQuery($query);
-}
-
-
 // add missing relation tables, if any
-/*
 foreach($m2m_tables as $table => $columns) {
     $constraint_name = implode('_', $columns);
     $existing_constraints = $db->getTableConstraints($table);
@@ -190,19 +182,25 @@ foreach($m2m_tables as $table => $columns) {
     // create table if not exist
     $queries[] = $db->getQueryCreateTable($table);
     foreach($columns as $column) {
-        if(!in_array($column, $existing_columns)) {
-            $type = $db->getSqlType('integer');
-            $queries[] = $db->getQueryAddColumn($table, $column, [
-                'type'      => $type,
-                'null'      => false
-            ]);
+        if(in_array($column, $existing_columns)) {
+            continue;
         }
+        $type = $db->getSqlType('integer');
+        $queries[] = $db->getQueryAddColumn($table, $column, [
+            'type'      => $type,
+            'null'      => false
+        ]);
     }
     $queries[] = $db->getQueryAddConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)
     $queries[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
 }
-*/
+
+// send each query to the DBMS
+foreach($queries as $query) {
+    $db->sendQuery($query);
+}
+
 
 /*  end-tables_init */
 

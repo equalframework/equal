@@ -52,12 +52,12 @@ if(!$db) {
 }
 
 $db_class = get_class($db);
-$result = array();
+$result = [];
 
 // get classes listing
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
-$m2m_tables = array();
+$m2m_tables = [];
 
 // remember tables used by inherited classes (can only be overriden by children, not by ancestor)
 $parent_tables = [];
