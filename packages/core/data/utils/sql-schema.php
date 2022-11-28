@@ -103,11 +103,12 @@ foreach($classes as $class) {
             ];
 
             // if a SQL type is associated to field 'usage', it prevails over the type association
-            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+            // #todo
+            if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
 
-            if(isset($description['default']) && !is_callable($description['default'])) {
+            if(isset($description['default']) && !is_callable($description['default']) && !in_array($field, ['created', 'modified'])) {
                 $column_descriptor['default'] = $adapt->adapt($description['default'], $type, 'sql', 'php');
             }
 
