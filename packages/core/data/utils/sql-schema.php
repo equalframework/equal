@@ -108,9 +108,12 @@ foreach($classes as $class) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
 
-            if(isset($description['default']) && !is_callable($description['default']) && !in_array($field, ['created', 'modified'])) {
+            /*
+            // #memo - default is supported by ORM, not DBMS
+            if(isset($description['default']) && !is_callable($description['default'])) {
                 $column_descriptor['default'] = $adapt->adapt($description['default'], $type, 'sql', 'php');
             }
+            */
 
             if($field == 'id') {
                 continue;

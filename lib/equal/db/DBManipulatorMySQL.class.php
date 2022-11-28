@@ -148,12 +148,7 @@ class DBManipulatorMySQL extends DBManipulator {
             $sql .= ' AUTO_INCREMENT';
         }
         // #memo - default is supported by ORM, not DBMS
-        if(isset($def['null']) && !$def['null']) {
-            if(isset($def['default'])) {
-                $sql .= " DEFAULT '".$def['default']."'";
-            }
-        }
-        else {
+        if(!isset($def['null']) || $def['null']) {
             // unless specified otherwise, all columns can be null (even if having a default value)
             $sql .= ' DEFAULT NULL';
         }
