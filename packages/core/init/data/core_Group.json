@@ -25,107 +25,92 @@
             {
                 "id": 8,
                 "name": "sales.catalog.administrators",
-                "display_name": "Sales \/ Catalogue \/ Administrateurs",
-                "description": "Modification de produits et ajout de nouveaux produits au catalogue.",
-                "users_ids": []
+                "display_name": "Sales \/ Catalog \/ Administrators",
+                "description": "Updating products and adding new products to the catalog."
             },
             {
                 "id": 9,
                 "name": "sales.price_list.users",
-                "display_name": "Sales \/ Listes de prix \/ Utilisateurs",
-                "description": "Consultation des listes de prix.",
-                "users_ids": []
+                "display_name": "Sales \/ Pricelists \/ Users",
+                "description": "Consulting pricelists."
             },
             {
                 "id": 10,
                 "name": "sales.price_list.administrators",
-                "display_name": "Sales \/ Listes de prix \/ Administrateurs",
-                "description": "Modification des prix et tarifs.",
-                "users_ids": []
+                "display_name": "Sales \/ Pricelists \/ Administrators",
+                "description": "Updating prices and fares."
             },
             {
                 "id": 11,
                 "name": "sales.reductions.users",
-                "display_name": "Sales \/ R\u00e9ductions \/ Utilisateurs",
-                "description": "Consultation des r\u00e9ductions et liste de r\u00e9ductions.",
-                "users_ids": []
+                "display_name": "Sales \/ Discount \/ Users",
+                "description": "Consultating discounts and discount lists."
             },
             {
                 "id": 12,
                 "name": "sales.reductions.administrators",
-                "display_name": "Sales \/ R\u00e9ductions \/ Administrateurs",
-                "description": "Cr\u00e9ation et modification des listes de r\u00e9ductionss.",
-                "users_ids": []
+                "display_name": "Sales \/ Discount \/ Administrators",
+                "description": "Creating and updating discount lists."
             },
             {
                 "id": 13,
                 "name": "sales.seasons.users",
                 "display_name": "Sales \/ Saisons \/ Utilisateurs",
-                "description": "Consultation des saisons et listes de saisons.",
-                "users_ids": []
+                "description": "Consultation des saisons et listes de saisons."
             },
             {
                 "id": 14,
                 "name": "sales.seasons.administrators",
-                "display_name": "Sales \/ Saisons \/ Administrateurs",
-                "description": "Modification et cr\u00e9ation des saisons.",
-                "users_ids": []
+                "display_name": "Sales \/ Seasons \/ Administrators",
+                "description": "Creating and updating Seasons."
             },
             {
                 "id": 15,
                 "name": "point_of_sale.administrators",
-                "display_name": "Point of Sale \/ Administrateurs",
-                "description": "Gestion de la configuration de la caisse.",
-                "users_ids": []
+                "display_name": "Point of Sale \/ Administrators",
+                "description": "Managing and configuring PoS."
             },
             {
                 "id": 16,
                 "name": "point_of_sale.users",
-                "display_name": "Point of Sale \/ Utilisateurs",
-                "description": "Encodage des consommation avec la caisse.",
-                "users_ids": []
+                "display_name": "Point of Sale \/ Users",
+                "description": "Encodaging PoS orders."
             },
             {
                 "id": 17,
                 "name": "settings",
                 "display_name": "Configuration Settings",
-                "description": "Modification de la configuration globale.",
-                "users_ids": []
+                "description": "Updating global configuration."
             },
             {
                 "id": 18,
                 "name": "sales.bookings.users",
-                "display_name": "Sales \/ R\u00e9servations \/ Utilisateurs",
-                "description": "Cr\u00e9ation et consultation des r\u00e9servations.",
-                "users_ids": []
+                "display_name": "Sales \/ Booking \/ Users",
+                "description": "Creating and consulting bookings."
             },
             {
                 "id": 19,
                 "name": "sales.catalog.users",
-                "display_name": "Sales \/ Catalogue \/ Utilisateurs",
-                "description": "Consultation du catalogue de produits.",
-                "users_ids": []
+                "display_name": "Sales \/ Catalog \/ Userrs",
+                "description": "Consulting products catalog."
             },
             {
                 "id": 20,
                 "name": "accounting.administrators",
-                "display_name": "Accounting \/ Administrateurs",
-                "description": "Modification des param\u00e8tres li\u00e9s \u00e0 la compta (r\u00e8gles comptables; plan comptable; r\u00e8gles de TVA; ...).",
-                "users_ids": []
+                "display_name": "Accounting \/ Administrators",
+                "description": "Updating settings related to accounting."
             },
             {
                 "id": 21,
                 "name": "accounting.invoicing.administrators",
-                "display_name": "Accounting \/ Facturation \/ Administrateurs",
-                "description": "Cr\u00e9ation, modification et suppression de factures et notes de cr\u00e9dit, envoi de factures aux clients.",
-                "users_ids": []
+                "display_name": "Accounting \/ Invoicing \/ Administrators",
+                "description": "Creating, updating and sending invoices and credit notess."
             },
             {
                 "id": 22,
                 "name": "accounting.invoicing.users",
-                "display_name": "Accounting \/ Facturation \/ Utilisateurs",
-                "description": "G\u00e9n\u00e9ration et envoi des factures aux clients.",
-                "users_ids": []
+                "display_name": "Accounting \/ Invoicing \/ Users",
+                "description": "Generating and sending invoices to customers."
             }
         ]
     },
@@ -133,6 +118,16 @@
         "name": "core\\Group",
         "lang": "fr",
         "data": [
+            {
+                "id": 1,
+                "display_name": "Administrateurs",
+                "description": "Group for users with admin privileges."
+            },
+            {
+                "id": 2,
+                "display_name": "Tous les utilisateurs",
+                "description": "Groupe par défaut pour les utilisateurs."
+            },
             {
                 "id": 8,
                 "display_name": "Ventes \/ Catalogue \/ Administrateurs",

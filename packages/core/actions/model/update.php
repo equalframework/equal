@@ -58,7 +58,7 @@ list($params, $providers) = announce([
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 $result = [];
 
-if( empty($params['ids']) ) {
+if(empty($params['ids'])) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
         throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
     }
@@ -74,13 +74,15 @@ if(!$model) {
 $schema = $model->getSchema();
 // remove unknown fields
 $fields = array_filter($params['fields'], function($field) use ($schema){
-    return isset($schema[$field]);
-}, ARRAY_FILTER_USE_KEY);
+            return isset($schema[$field]);
+        },
+        ARRAY_FILTER_USE_KEY
+    );
 
 
 foreach($fields as $field => $value) {
     $type = $schema[$field]['type'];
-    // drop empty fields (allow reset to null)
+    // drop empty fields (but allow reset to null)
     if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value) ) {
         unset($fields[$field]);
         continue;
@@ -106,7 +108,7 @@ foreach($fields as $field => $value) {
 
 if(count($fields)) {
     // we're updating a single object: enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
-    if( count($params['ids']) == 1) {
+    if(count($params['ids']) == 1) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
             $object = $params['entity']::ids($params['ids'])->read(['state'])->first(true);

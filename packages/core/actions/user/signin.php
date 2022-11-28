@@ -30,11 +30,16 @@ list($params, $providers) = announce([
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
 ]);
 
+/**
+ * @var equal\php\Context                   $context
+ * @var equal\orm\ObjectManager             $om
+ * @var equal\auth\AuthenticationManager    $auth
+ */
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
 
 $validation = $om->validate('core\User', [], $params);
 if($validation < 0 || count($validation)) {
-    throw new Exception('invalid_credentials', QN_ERROR_INVALID_PARAM);
+    throw new Exception(serialize($validation), QN_ERROR_INVALID_PARAM);
 }
 
 // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
@@ -53,6 +58,7 @@ if(!$user_id) {
 }
 
 $user = User::id($user_id)->read(['validated'])->first(true);
+
 if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", QN_ERROR_NOT_ALLOWED);
 }

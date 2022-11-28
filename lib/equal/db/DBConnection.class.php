@@ -17,15 +17,19 @@ class DBConnection extends Service {
 
     protected function __construct() {
         switch(constant('DB_DBMS')) {
+            case 'MARIADB':
             case 'MYSQL' :
                 $this->dbConnection = new DBManipulatorMySQL(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
                 break;
-            /*
-            // insert handling of other DBMS here
-            case 'XYZ' :
-                $this->dbConnection = new DBManipulatorXyz(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD);
+            case 'SQLSRV' :
+                $this->dbConnection = new DBManipulatorSqlSrv(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
                 break;
-            */
+            case 'POSTGRE' :
+                // #todo
+                break;
+            case 'ORACLE' :
+                // #todo
+                break;
             default:
                 $this->dbConnection = null;
         }

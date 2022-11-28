@@ -299,7 +299,7 @@ class Collection implements \Iterator, \Countable {
                 });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // log a notice about discarded readonly fields
-                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_WARNING);
+                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
             }
             // discard special fields
             // #memo - `state` is left allowed for draft creation
@@ -507,8 +507,9 @@ class Collection implements \Iterator, \Countable {
                 $original['name'] = $original['name'].' - copy';
             }
 
-            // set current user as creator
+            // set current user as creator and modifier
             $original['creator'] = $user_id;
+            $original['modifier'] = $user_id;
 
             // validate : check unique keys
             $this->validate($original, [], true);
@@ -558,8 +559,9 @@ class Collection implements \Iterator, \Countable {
         // 3) validate : check required fields accordingly
         // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
         $this->validate($values, [], false, $check_required);
-        // set current user as creator
+        // set current user as creator and modifier
         $values['creator'] = $user_id;
+        $values['modifier'] = $user_id;
 
         // 4) create the new object
         $res = $this->orm->create($this->class, $values, $lang);

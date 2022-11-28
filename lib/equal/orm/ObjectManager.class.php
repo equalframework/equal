@@ -113,13 +113,14 @@ class ObjectManager extends Service {
         'integer'       => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'float'         => array('in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'string'        => array('like', 'ilike', 'in', 'not in', '=', '<>', 'is', 'is not'),
-        'text'          => array('like', 'ilike', '=', 'is', 'is not'),
+        'text'          => array('is', 'is not'),
         'date'          => array('=', '<>', '<', '>', '<=', '>=', 'like', 'is', 'is not'),
         'time'          => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
         'datetime'      => array('=', '<>', '<', '>', '<=', '>=', 'is', 'is not'),
+        /* #deprecated - use binary */
         'file'          => array('like', 'ilike', '=', 'is', 'is not'),
         'binary'        => array('like', 'ilike', '=', 'is', 'is not'),
-        // for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
+        // #memo - for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
         'many2one'      => array('is', 'is not', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'      => array('contains'),
         'many2many'     => array('contains'),
@@ -135,6 +136,7 @@ class ObjectManager extends Service {
         'time'          => 'time',
         'datetime'      => 'datetime',
         'timestamp'     => 'timestamp',
+        /* #deprecated */
         'file'          => 'longblob',
         'binary'        => 'longblob',
         'many2one'      => 'int(11)'
@@ -176,7 +178,7 @@ class ObjectManager extends Service {
     }
 
     public function __clone() {
-        trigger_error("ObjectManager::__clone: instance is being copied.", E_USER_ERROR);
+        trigger_error("ObjectManager::__clone: instance is being copied.", QN_REPORT_ERROR);
     }
 
     public function __destruct() {
@@ -207,7 +209,7 @@ class ObjectManager extends Service {
                 trigger_error(  'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
                                 'unable to establish connection to database: check connection parameters '.
                                 '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
-                                E_USER_ERROR);
+                                QN_REPORT_ERROR);
             }
         }
         return $this->db;
@@ -298,7 +300,7 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             return $e->getCode();
         }
         return $result;
@@ -496,7 +498,7 @@ class ObjectManager extends Service {
                         $oid = $row['object_id'];
                         $field = $row['object_field'];
                         // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                        $value = $this->container->get('adapt')->adapt($row['value'], $schema[$field]['type'], 'php', 'sql', $class, $oid, $field, $lang);
+                        $value = $this->container->get('adapt')->adapt($row['value'], 'binary', 'php', 'sql', $class, $oid, $field, $lang);
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
@@ -575,20 +577,23 @@ class ObjectManager extends Service {
                 },
                 'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     foreach($fields as $field) {
-                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        }
                         // obtain the ids by searching inside relation table
                         $result = $om->db->getRecords(
                             array('t0' => $om->getObjectTableName($schema[$field]['foreign_object']), 't1' => $schema[$field]['rel_table']),
                             array('t1.'.$schema[$field]['rel_foreign_key'], 't1.'.$schema[$field]['rel_local_key']),
                             null,
-                            array(array(
+                            [
+                                [
                                     // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
                                     array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
                                     array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
                                     array('t0.state', '=', 'instance'),
                                     array('t0.deleted', '=', '0'),
-                                )
-                            ),
+                                ]
+                            ],
                             't0.id'
                         );
                         $lists = array();
@@ -683,14 +688,14 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to load object fields', $e->getCode());
         }
     }
 
     /**
      * Stores specified fields of selected objects into database.
-     * .
+     *
      * @param string $class     Class name of the objects to be stored.
      * @param array  $ids       List of identifiers of the objects to store.
      * @param array  $fields    List of fields names to store (values are read from `$cache`).
@@ -727,17 +732,41 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $values_array[] = [
-                            $lang, $class, $field, $oid,
-                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], $schema[$field]['type'], 'sql', 'php', $class, $oid, $field, $lang)
+                            $lang,
+                            $class,
+                            $field,
+                            $oid,
+                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], 'binary', 'sql', 'php', $class, $oid, $field, $lang),
+                            // creator
+                            QN_ROOT_USER_ID,
+                            // created
+                            $this->container->get('adapt')->adapt(time(), 'datetime', 'sql', 'php'),
+                            // modifier
+                            QN_ROOT_USER_ID,
+                            // modified
+                            $this->container->get('adapt')->adapt(time(), 'datetime', 'sql', 'php'),
+                            // state
+                            'instance',
+                            // deleted
+                            0
                         ];
                     }
                 }
-                $om->db->addRecords(
-                    'core_translation',
-                    array('language', 'object_class', 'object_field', 'object_id', 'value'),
-                    $values_array
-                );
-
+                $om->db->addRecords('core_translation', [
+                            'language',
+                            'object_class',
+                            'object_field',
+                            'object_id',
+                            'value',
+                            'creator',
+                            'created',
+                            'modifier',
+                            'modified',
+                            'state',
+                            'deleted'
+                        ],
+                        $values_array
+                    );
             },
             'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
@@ -814,39 +843,39 @@ class ObjectManager extends Service {
             'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
-                        $value = $om->cache[$table_name][$oid][$lang][$field];
-                        if(!is_array($value)) {
-                            trigger_error("wrong value for field '$field' of class '$class', should be an array", E_USER_ERROR);
+                        $rel_ids = $om->cache[$table_name][$oid][$lang][$field];
+                        if(!is_array($rel_ids)) {
+                            trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                             continue;
                         }
-                        $ids_to_remove = array();
-                        $values_array = array();
-                        foreach($value as $id) {
+                        $values = [];
+                        foreach($rel_ids as $index => $id) {
                             $id = intval($id);
-                            if($id < 0) $ids_to_remove[] = abs($id);
-                            if($id > 0) $values_array[] = array($oid, $id);
+                            // ignore ids to remove
+                            if($id > 0) {
+                                $values[] = array($oid, $id);
+                            }
+                            $rel_ids[$index] = abs($id);
                         }
-                        // delete relations of ids having a '-'(minus) prefix
-                        if(count($ids_to_remove)) {
-                            $om->db->deleteRecords(
-                                $schema[$field]['rel_table'],
-                                array($oid),
+                        // delete all targeted relations
+                        $om->db->deleteRecords(
+                            $schema[$field]['rel_table'],
+                            array($oid),
+                            array(
                                 array(
-                                    array(
-                                        array($schema[$field]['rel_foreign_key'], 'in', $ids_to_remove)
-                                    )
-                                ),
-                                $schema[$field]['rel_local_key']
-                            );
-                        }
-                        // create relations for other ids
+                                    array($schema[$field]['rel_foreign_key'], 'in', $rel_ids)
+                                )
+                            ),
+                            $schema[$field]['rel_local_key']
+                        );
+                        // re-create only relations with positive id as value
                         $om->db->addRecords(
                             $schema[$field]['rel_table'],
                             array(
                                 $schema[$field]['rel_local_key'],
                                 $schema[$field]['rel_foreign_key']
                             ),
-                            $values_array
+                            $values
                         );
                         // invalidate cache (field partially loaded)
                         unset($om->cache[$table_name][$oid][$lang][$field]);
@@ -892,7 +921,7 @@ class ObjectManager extends Service {
 
         }
         catch (Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to store object fields', $e->getCode());
         }
     }
@@ -1033,7 +1062,7 @@ class ObjectManager extends Service {
             $model = $this->getStaticInstance($class);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             // #todo - validate (this is the only public method in ORM that raises an Exception)
             throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
@@ -1288,35 +1317,32 @@ class ObjectManager extends Service {
 
         try {
             $object = $this->getStaticInstance($class, $fields);
-
             $table_name = $this->getObjectTableName($class);
+            $special_fields = Model::getSpecialColumns();
 
             // 1) define default values
-            $creation_array = [
-                'creator'   => QN_ROOT_USER_ID,
-                'created'   => date("Y-m-d H:i:s"),
-                'state'     => (isset($fields['state']))?$fields['state']:'instance'
-            ];
+            $creation_array = [];
+            foreach($special_fields as $special_field => $descr) {
+                if(isset($object[$special_field])) {
+                    $creation_array[$special_field] = $this->container->get('adapt')->adapt($object[$special_field], $descr['type'], 'sql', 'php');
+                }
+            }
 
             // set creation array according to received fields: `id` and `creator` can be set to force resulting object
             if(!empty($fields)) {
                 // use given id field as identifier, if any and valid
-                if(isset($fields['id'])) {
-                    if(is_numeric($fields['id'])) {
-                        $creation_array['id'] = (int) $fields['id'];
-                    }
+                if(isset($fields['id']) && is_numeric($fields['id'])) {
+                    $creation_array['id'] = (int) $fields['id'];
                 }
                 // use given creator id, if any and valid
-                if(isset($fields['creator'])) {
-                    if(is_numeric($fields['creator'])) {
-                        $creation_array['creator'] = (int) $fields['creator'];
-                    }
+                if(isset($fields['creator']) && is_numeric($fields['creator'])) {
+                    $creation_array['creator'] = (int) $fields['creator'];
                 }
             }
 
             // 2) make sure objects in the collection can be updated
 
-            $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $object::getSpecialColumns()), $lang, ['values', 'lang']);
+            $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $special_fields), $lang, ['values', 'lang']);
             if(!empty($cancreate)) {
                 throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
             }
@@ -1329,7 +1355,13 @@ class ObjectManager extends Service {
             if(!isset($creation_array['id'])) {
                 if($use_draft) {
                     // list ids of records having creation date older than DRAFT_VALIDITY
-                    $ids = $this->search($class, [['state', '=', 'draft'], ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]], ['id' => 'asc']);
+                    $ids = $this->search($class, [
+                                ['state', '=', 'draft'],
+                                // #todo - update search() so that we still use PHP timestamps at this stage
+                                ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]
+                            ],
+                            ['id' => 'asc']
+                        );
                     if(count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];
@@ -1342,7 +1374,9 @@ class ObjectManager extends Service {
             }
             else {
                 $ids = $this->filterValidIdentifiers($class, [$creation_array['id']]);
-                if(!empty($ids)) throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
+                if(!empty($ids)) {
+                    throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
+                }
                 $oid = (int) $creation_array['id'];
             }
 
@@ -1365,14 +1399,16 @@ class ObjectManager extends Service {
             // request an object update (mark call as 'from_create')
             $res_w = $this->update($class, $oid, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
-            if($res_w < 0) $res = $res_w;
+            if($res_w < 0) {
+                $res = $res_w;
+            }
 
             // call 'oncreate' hook
             $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1430,19 +1466,12 @@ class ObjectManager extends Service {
             $schema = $object->getSchema();
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
-            // prevent updating id field (reserved)
-            if(isset($fields['id'])) {
-                unset($fields['id']);
-            }
-            // remove unknown fields
-            foreach($fields as $field => $values) {
-                // remove fields not defined in related schema
-                if(!isset($schema[$field])) {
-                    unset($fields[$field]);
-                    trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in fields arg", QN_REPORT_WARNING);
-                }
-            }
-
+            // remove unknown fields and prevent updating reserved fields (id, creator, created)
+            $fields = array_filter($fields, function($field) use ($schema) {
+                        return isset($schema[$field]) && !in_array($field, ['id', 'creator', 'created']);
+                    },
+                    ARRAY_FILTER_USE_KEY
+                );
             // stack current state of object_methods map (we'll restore current state at the end of the update cycle)
             $object_methods_state = $this->object_methods;
 
@@ -1528,7 +1557,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1703,7 +1732,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $res = $e->getCode();
         }
         return $res;
@@ -1838,7 +1867,7 @@ class ObjectManager extends Service {
             $this->callonce($class, 'onafterdelete', $ids, [], null, ['ids']);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1935,7 +1964,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2092,7 +2121,7 @@ class ObjectManager extends Service {
                             default:
                                 // adapt value
                                 if(!is_array($value)) {
-                                    // #todo - json to php conversion should be done in Collection class (at this stage, we should be dealing with PHP values only)
+                                    // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
                                     // adapt value to SQL
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
@@ -2198,7 +2227,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
+            trigger_error($e->getMessage(), QN_REPORT_ERROR);
             $res_list = $e->getCode();
         }
         return $res_list;

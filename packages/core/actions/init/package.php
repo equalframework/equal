@@ -6,14 +6,10 @@
 */
 use equal\orm\ObjectManager;
 use equal\db\DBConnection;
+use equal\fs\FSManipulator as FS;
 
 // get listing of existing packages
-$json = run('get', 'config_packages');
-$data = json_decode($json, true);
-if($data && isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) throw new Exception($message, qn_error_code($name));
-}
-$packages = $data;
+$packages = eQual::run('get', 'config_packages');
 
 list($params, $providers) = announce([
     'description'   => 'Initialise database for given package. If no package is given, initialize core package.',
@@ -44,6 +40,11 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt'],
 ]);
 
+/**
+ * @var equal\php\Context                   $context
+ * @var equal\orm\ObjectManager             $orm
+ * @var equal\data\DataAdapter              $adapter
+ */
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 $json = run('do', 'test_db-access');
@@ -56,6 +57,11 @@ if(strlen($json)) {
 // retrieve connection object
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
+if(!$db) {
+    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
+}
+
+$db_class = get_class($db);
 
 // 1) Check in manifest.json for prerequisite initialisation
 
@@ -96,41 +102,23 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
 /*  start-tables_init */
 
 // retrieve schema for given package
-$json = run('get', 'utils_sql-schema', ['package'=>$params['package']]);
-// decode json into an array
-$data = json_decode($json, true);
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
-}
-// join all lines
-$schema = str_replace(["\r","\n"], "", $data['result']);
-// push each line/query into an array
-$queries = explode(';', $schema);
+$data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package']]);
 
-// send each query to the DBMS
+// push each line/query into an array
+$queries = explode(";", $data['result']);
+
+// send first batch of queries to the DBMS
 foreach($queries as $query) {
-    if(strlen($query)) {
-        $db->sendQuery($query.';');
-    }
+    $db->sendQuery($query);
 }
 
 // check for missing columns (for classes with inheritance, we must check against non-yet created fields)
 $queries = [];
 
 // retrieve classes listing
-$json = run('get', 'config_classes', ['package' => $params['package']]);
-$data = json_decode($json, true);
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
-}
+$classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
-$classes = $data;
-
-$m2m_tables = array();
+$m2m_tables = [];
 
 // tables have been created, but fields in inherited classes might still be missing
 foreach($classes as $class) {
@@ -139,65 +127,80 @@ foreach($classes as $class) {
     $model = $orm->getModel($entity);
 
     $table_name = $orm->getObjectTableName($entity);
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
-    $res = $db->sendQuery($query);
-    $columns = [];
-    while ($row = $db->fetchArray($res)) {
-        // maintain ids order provided by the SQL sort
-        $columns[] = $row['COLUMN_NAME'];
-    }
+
+    // fetch existing column
+    $existing_columns = $db->getTableColumns($table_name);
+
     // retrieve fields that need to be added
     $schema = $model->getSchema();
     // retrieve list of fields that must be added to the schema
-    $diff = array_diff(array_keys(array_filter($schema, function($a) use($orm) {return in_array($a['type'], $orm::$simple_types); })), $columns);
+    $diff = array_diff(array_keys(array_filter($schema, function($a) use($orm) {return in_array($a['type'], $orm::$simple_types); })), $existing_columns);
 
-    // init result array
-    $result = [];
     foreach($diff as $field) {
+        if(in_array($field, $existing_columns)) {
+            continue;
+        }
         $description = $schema[$field];
-        if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
-            $type = ObjectManager::$types_associations[$description['type']];
-            // if a SQL type is associated to field 'usage', it prevails over the type association
-            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                $type = ObjectManager::$usages_associations[$description['usage']];
-            }
-            $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
-        }
-        else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
-            $type = ObjectManager::$types_associations[$description['result_type']];
-            // if a SQL type is associated to field 'usage', it prevails over the type association
-            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                $type = ObjectManager::$usages_associations[$description['usage']];
-            }
-            $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN  `{$field}` {$type} DEFAULT NULL";
-        }
-        else if($description['type'] == 'many2many') {
-            if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
-        }
-    }
-    if(count($result)) {
-        $queries = array_merge($queries, $result);
-    }
+        if(in_array($description['type'], array_keys($db_class::$types_associations))) {
+            $type = $db->getSqlType($description['type']);
 
+            // if a SQL type is associated to field 'usage', it prevails over the type association
+            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
+                // $type = ObjectManager::$usages_associations[$description['usage']];
+            }
+            $queries[] = $db->getQueryAddColumn($table_name, $field, [
+                'type'      => $type,
+                'null'      => true,
+                'default'   => null
+            ]);
+        }
+        elseif($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
+            $type = $db->getSqlType($description['result_type']);
+            $queries[] = $db->getQueryAddColumn($table_name, $field, [
+                'type'      => $type,
+                'null'      => true,
+                'default'   => null
+            ]);
+        }
+        elseif($description['type'] == 'many2many') {
+            if(!isset($m2m_tables[$description['rel_table']])) {
+                $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+            }
+        }
+    }
 }
 
 // add missing relation tables, if any
 foreach($m2m_tables as $table => $columns) {
-    $query = "CREATE TABLE IF NOT EXISTS `{$table}` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci (";
-    $key = '';
-    foreach($columns as $column) {
-        $query .= "`{$column}` int(11) NOT NULL,";
-        $key .= "`$column`,";
+    $constraint_name = implode('_', $columns);
+    $existing_constraints = $db->getTableConstraints($table);
+    if(in_array($constraint_name, $existing_constraints)) {
+        continue;
     }
-    $key = rtrim($key, ",");
-    $query .= "PRIMARY KEY ({$key})";
-    $query .= ")";
-    $queries[] = $query;
-    // add an empty records (mandatory for JOIN conditions on empty tables)
-    $query = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
-    $query .= '('.implode(',', array_fill(0, count($columns), 0)).");\n";
-    $queries[] = $query;
+    // fetch existing columns
+    $existing_columns = $db->getTableColumns($table);
+    // create table if not exist
+    $queries[] = $db->getQueryCreateTable($table);
+    foreach($columns as $column) {
+        if(in_array($column, $existing_columns)) {
+            continue;
+        }
+        $type = $db->getSqlType('integer');
+        $queries[] = $db->getQueryAddColumn($table, $column, [
+            'type'      => $type,
+            'null'      => false
+        ]);
+    }
+    $queries[] = $db->getQueryAddConstraint($table, $columns);
+    // add an empty record (required for JOIN conditions on empty tables)
+    $queries[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
 }
+
+// send each query to the DBMS
+foreach($queries as $query) {
+    $db->sendQuery($query);
+}
+
 
 /*  end-tables_init */
 
@@ -207,6 +210,7 @@ foreach($m2m_tables as $table => $columns) {
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     // handle SQL files
+    /*
     foreach (glob($data_folder."/*.sql") as $data_sql) {
         $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
     }
@@ -216,6 +220,7 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
             $db->sendQuery($query.';');
         }
     }
+    */
 
     // handle JSON files
     foreach (glob($data_folder."/*.json") as $json_file) {
@@ -233,19 +238,24 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
                 foreach($odata as $field => $value) {
                     $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
                 }
-                $res = $orm->create($entity, $odata, $lang);
-                if($res == QN_ERROR_CONFLICT_OBJECT) {
-                    $id = $odata['id'];
-                    // object already exist, but either values or language differs
-                    $res = $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
+                if(isset($odata['id'])) {
+                    $res = $orm->search($entity, ['id', '=', $odata['id']]);
+                    if($res > 0 && count($res)) {
+                        // object already exist, but either values or language might differ
+                        $id = $odata['id'];
+                        $res = $orm->update($entity, $id, $odata, $lang);
+                        $objects_ids[] = $id;
+                    }
+                    else {
+                        $objects_ids[] = $orm->create($entity, $odata, $lang);
+                    }
                 }
                 else {
-                    $objects_ids[] = $res;
+                    $objects_ids[] = $orm->create($entity, $odata, $lang);
                 }
             }
 
-            // force a first computation of computed fields, if any
+            // force a first generation of computed fields, if any
             $computed_fields = [];
             foreach($schema as $field => $def) {
                 if($def['type'] == 'computed') {
@@ -295,7 +305,7 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         // checks wether the folder exists or not
         if(file_exists("public/$app")) {
             // remove existing folder, if present
-            if(!rmdir("public/$app")) {
+            if(FS::removeDir("public/$app")) {
                 // trigger_error("QN_DEBUG_PHP::error removing folder : $message", QN_REPORT_DEBUG);
                 // throw new Exception('fs_removing_file_failure', QN_ERROR_UNKNOWN);
             }

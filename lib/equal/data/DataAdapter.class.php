@@ -536,7 +536,7 @@ class DataAdapter extends Service {
                     'php' => function($value) {
                         // read from DB
                         if(constant('FILE_STORAGE_MODE') == 'DB') {
-                            // fields of type file/binary are stored as binary value (MEDIUMBLOB)
+                            // fields of type file/binary are stored as binary value
                             $res = $value;
                         }
                         // read the content from filestore, filename is the received value
