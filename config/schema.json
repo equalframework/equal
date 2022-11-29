@@ -125,7 +125,7 @@
         "description": "Collation to apply on SQL queries. Possible values are: 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases.",
         "instant": true,
         "default": "utf8mb4_unicode_ci",
-        "example": "MARIADB"
+        "example": "utf8_unicode_ci"
     },
     "DB_HOST": {
         "type": "string",
@@ -136,7 +136,7 @@
     },
     "DB_PORT": {
         "type": "integer",
-        "description": "TCP/IP port for connecting to DB host.",
+        "description": "TCP/IP port for connecting to DB host. Defaut ports: MYSQL 3306, SQLSRV 1433",
         "instant": true,
         "environment": "EQ_DB_PORT",
         "default": "3306"
