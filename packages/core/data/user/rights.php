@@ -7,7 +7,7 @@
 use core\User;
 
 list($params, $providers) = announce([
-    'description'   => 'Grant additional privilege to given user.',
+    'description'   => 'Retrieve current permission that a user has on a given entity.',
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
