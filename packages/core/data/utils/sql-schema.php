@@ -64,7 +64,7 @@ $processed_columns = [];
 foreach($classes as $class) {
     // get the full class name
     $entity = $params['package'].'\\'.$class;
-    // retrieve the static instance of the entityt
+    // retrieve the static instance of the entity
     $model = $orm->getModel($entity);
 
     if(!is_object($model)) {
@@ -158,10 +158,12 @@ foreach($classes as $class) {
 }
 
 foreach($m2m_tables as $table => $columns) {
-    $constraint_name = implode('_', $columns);
-    $existing_constraints = $db->getTableConstraints($table);
-    if(in_array($constraint_name, $existing_constraints)) {
-        continue;
+    if(!$params['full']) {
+        $constraint_name = implode('_', $columns);
+        $existing_constraints = $db->getTableConstraints($table);
+        if(in_array($constraint_name, $existing_constraints)) {
+            continue;
+        }
     }
     // fetch existing columns
     $existing_columns = $db->getTableColumns($table);
