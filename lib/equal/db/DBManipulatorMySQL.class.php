@@ -156,7 +156,7 @@ class DBManipulatorMySQL extends DBManipulator {
         $sql .= ';';
 
         if(isset($def['primary']) && $def['primary']) {
-            "ALTER TABLE `{$table_name}` ADD PRIMARY KEY (`{$column_name}`);";
+            $sql .= "ALTER TABLE `{$table_name}` ADD PRIMARY KEY (`{$column_name}`);";
         }
         return $sql;
     }
