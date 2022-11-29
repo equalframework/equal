@@ -6,6 +6,8 @@
 */
 namespace equal\access;
 
+use equal\orm\ObjectManager;
+use equal\orm\Model;
 use equal\organic\Service;
 use equal\services\Container;
 
@@ -140,8 +142,8 @@ class AccessController extends Service {
                 if(count($acl_ids)) {
                     // get the user permissions
                     $values = $orm->read('core\Permission', $acl_ids, ['rights']);
-                    foreach($values as $acl_id => $row) {
-                        $user_rights |= $row['rights'];
+                    foreach($values as $aid => $acl) {
+                        $user_rights |= $acl['rights'];
                     }
                 }
 
@@ -343,16 +345,20 @@ class AccessController extends Service {
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
-     * @param array<string> $object_fields    (optional) List of fields name on which the operation must be granted.
-     * @param array<int>    $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param string[]      $object_fields    (optional) List of fields name on which the operation must be granted.
+     * @param int[]         $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 
         // grant all rights when using CLI
-        if(php_sapi_name() === 'cli') return true;
+        if(php_sapi_name() === 'cli') {
+            return true;
+        }
 
         // check operation against default rights
-		if($this->default_rights & $operation) return true;
+		if($this->default_rights & $operation) {
+            return true;
+        }
 
         $allowed = false;
 
@@ -413,6 +419,7 @@ class AccessController extends Service {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') return $object_ids;
 
+        /** @var ObjectManager */
         $orm = $this->container->get('orm');
 
         // retrieve current user identifier
@@ -422,15 +429,20 @@ class AccessController extends Service {
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
-        // user always has READ rights on its own object
-        if($orm::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+        // user has some rights on its own object
+        if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+            // user always has READ rights on its own object
             $user_rights |= QN_R_READ;
+            // user can update some fields on its own object
+            $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
+            // if, after removing special fiels, there are only fields that user can update, then we grant the WRITE right
+            if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
+                $user_rights |= QN_R_WRITE;
+            }
         }
 		else if($operation == QN_R_READ) {
             // this is a special case of a generic feature (we should add this in the init data)
-
             // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
-
             $objects = $orm->read($object_class, $object_ids, ['creator']);
             $user_ids = [];
             foreach($objects as $oid => $odata) {
