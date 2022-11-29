@@ -6,6 +6,8 @@
 */
 namespace equal\access;
 
+use equal\orm\ObjectManager;
+use equal\orm\Model;
 use equal\organic\Service;
 use equal\services\Container;
 
@@ -34,15 +36,15 @@ class AccessController extends Service {
     }
 
     protected function getUserGroups($user_id) {
-		$groups_ids = [];
-		if(!isset($this->groupsTable[$user_id])) {
+        $groups_ids = [];
+        if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
             $this->groupsTable[$user_id] = [(string) QN_DEFAULT_GROUP_ID];
 
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
-			if($values > 0 && isset($values[$user_id])) {
-				$this->groupsTable[$user_id] = array_unique(array_merge($this->groupsTable[$user_id], $values[$user_id]['groups_ids']));
+            if($values > 0 && isset($values[$user_id])) {
+                $this->groupsTable[$user_id] = array_unique(array_merge($this->groupsTable[$user_id], $values[$user_id]['groups_ids']));
             }
         }
         $groups_ids = $this->groupsTable[$user_id];
@@ -50,12 +52,12 @@ class AccessController extends Service {
     }
 
     protected function getGroupUsers($group_id) {
-		$users_ids = [];
-		if(!isset($this->usersTable[$group_id])) {
+        $users_ids = [];
+        if(!isset($this->usersTable[$group_id])) {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\Group', $group_id, ['users_ids']);
-			if($values > 0 && isset($values[$group_id])) {
-				$this->usersTable[$group_id] = $values[$group_id]['users_ids'];
+            if($values > 0 && isset($values[$group_id])) {
+                $this->usersTable[$group_id] = $values[$group_id]['users_ids'];
             }
             else {
                 $this->usersTable[$group_id] = [];
@@ -80,14 +82,14 @@ class AccessController extends Service {
      *  => performed during filter
      */
     protected function getUserRights($user_id, $object_class, $object_fields=[], $object_ids=[]) {
-		// all users are at least granted the default permissions
-		$user_rights = $this->default_rights;
+        // all users are at least granted the default permissions
+        $user_rights = $this->default_rights;
 
         // if we did already compute user rights then we're done!
-		if(isset($this->permissionsTable[$user_id][$object_class])) {
+        if(isset($this->permissionsTable[$user_id][$object_class])) {
             $user_rights = $this->permissionsTable[$user_id][$object_class];
         }
-		else {
+        else {
             // root user always has full rights
             if($user_id == QN_ROOT_USER_ID) {
                 return QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
@@ -107,7 +109,7 @@ class AccessController extends Service {
                     }
                 }
                 else {
-					$orm = $this->container->get('orm');
+                    $orm = $this->container->get('orm');
 
                     $domains = [];
                     // add parent classes to the domain (when a right is granted on a class, it is also granted on children classes)
@@ -140,8 +142,8 @@ class AccessController extends Service {
                 if(count($acl_ids)) {
                     // get the user permissions
                     $values = $orm->read('core\Permission', $acl_ids, ['rights']);
-                    foreach($values as $acl_id => $row) {
-                        $user_rights |= $row['rights'];
+                    foreach($values as $aid => $acl) {
+                        $user_rights |= $acl['rights'];
                     }
                 }
 
@@ -149,14 +151,14 @@ class AccessController extends Service {
                 // #todo - first element ([0]) of the class-related array could be used to store the user permissions for the whole class
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
-		}
+        }
 
-		return $user_rights;
-	}
+        return $user_rights;
+    }
 
 
     protected function getUserAcls($user_id, $object_class) {
-		$acls = [];
+        $acls = [];
 
         // get user groups
         $groups_ids = $this->getUserGroups($user_id);
@@ -202,8 +204,8 @@ class AccessController extends Service {
             $acls = $orm->read('core\Permission', $acl_ids, ['rights']);
         }
 
-		return $acls;
-	}
+        return $acls;
+    }
 
 
     /**
@@ -343,16 +345,20 @@ class AccessController extends Service {
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
-     * @param array<string> $object_fields    (optional) List of fields name on which the operation must be granted.
-     * @param array<int>    $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param string[]      $object_fields    (optional) List of fields name on which the operation must be granted.
+     * @param int[]         $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 
         // grant all rights when using CLI
-        if(php_sapi_name() === 'cli') return true;
+        if(php_sapi_name() === 'cli') {
+            return true;
+        }
 
         // check operation against default rights
-		if($this->default_rights & $operation) return true;
+        if($this->default_rights & $operation) {
+            return true;
+        }
 
         $allowed = false;
 
@@ -360,10 +366,10 @@ class AccessController extends Service {
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
 
-		// force cast ids to array (passing a single id is accepted)
-		if(!is_array($object_ids)) {
-			$object_ids = (array) $object_ids;
-		}
+        // force cast ids to array (passing a single id is accepted)
+        if(!is_array($object_ids)) {
+            $object_ids = (array) $object_ids;
+        }
 
         //  permission query is for class and/or fields only (no specific objects)
         if(!count($object_ids)) {
@@ -413,6 +419,7 @@ class AccessController extends Service {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') return $object_ids;
 
+        /** @var ObjectManager */
         $orm = $this->container->get('orm');
 
         // retrieve current user identifier
@@ -422,15 +429,20 @@ class AccessController extends Service {
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
-        // user always has READ rights on its own object
-        if($orm::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+        // user has some rights on its own object
+        if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
+            // user always has READ rights on its own object
             $user_rights |= QN_R_READ;
+            // user can update some fields on its own object
+            $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
+            // if, after removing special fields, there are only fields that user can update, then we grant the WRITE right
+            if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
+                $user_rights |= QN_R_WRITE;
+            }
         }
-		else if($operation == QN_R_READ) {
+        else if($operation == QN_R_READ) {
             // this is a special case of a generic feature (we should add this in the init data)
-
             // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
-
             $objects = $orm->read($object_class, $object_ids, ['creator']);
             $user_ids = [];
             foreach($objects as $oid => $odata) {
@@ -440,7 +452,7 @@ class AccessController extends Service {
             if(count($user_ids) == 1 && array_keys($user_ids)[0] == $user_id) {
                 $user_rights |= QN_R_READ;
             }
-		}
+        }
 
 
         /*
@@ -454,6 +466,6 @@ class AccessController extends Service {
         validate id as soon as an ACL condition is met
         */
 
-		return ((bool)($user_rights & $operation))?$object_ids:[];
+        return ((bool)($user_rights & $operation))?$object_ids:[];
     }
 }

@@ -142,8 +142,8 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function getQueryCreateTable($table_name) {
-        // #memo - we must add at least one column, so as a convention we add the id column
-        return "IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{$table_name}'))\n
+        // #memo - we must add at least one column for the query to be valid, so as a convention we add the id column
+        return "IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '{$table_name}'))\n
             BEGIN\n
                 CREATE TABLE [{$table_name}] ([id] int IDENTITY(1, 1) NOT NULL)\n
             END;";
@@ -167,14 +167,13 @@ class DBManipulatorSqlSrv extends DBManipulator {
         if(isset($def['null']) && !$def['null']) {
             $sql .= ' NOT NULL';
         }
-
+        // set query according to primary key property
         if(isset($def['primary']) && $def['primary']) {
             $sql .= ' IDENTITY';
             if(isset($def['auto_increment']) && $def['auto_increment']) {
                 $sql .= '(1,1)';
             }
         }
-
         // #memo - default is supported by ORM, not DBMS
         if(!isset($def['null']) || $def['null']) {
             // unless specified otherwise, all columns can be null (even if having a default value)
@@ -234,16 +233,11 @@ class DBManipulatorSqlSrv extends DBManipulator {
         }
 
         if(($result = sqlsrv_query($this->dbms_handler, $query)) === false) {
-            $error_str = '';
             if( ($errors = sqlsrv_errors() ) != null) {
-                $error_str = implode(',',reset($errors));
-                /*
-                foreach( $errors as $error ) {
-                    $error_str .= implode(',', $error);
-                }
-                */
+                $errors = reset($errors);
+                $errors = ((isset($errors['code']))?'('.$errors['code'].') ':'').((isset($errors['message']))?$errors['message']:'');
             }
-            throw new \Exception(__METHOD__.' : query failure. '.$error_str.'. For query: "'.$query.'"', QN_ERROR_SQL);
+            throw new \Exception(__METHOD__.' : query failure. '.$errors.'. For query: "'.$query.'"', QN_ERROR_SQL);
         }
         // everything went well: perform additional operations (replication & info about query result)
         else {

@@ -20,10 +20,6 @@ class User extends Model {
                 'type'              => 'alias',
                 'alias'             => 'login'
             ],
-            'test' => [
-                'type'              => 'alias',
-                'alias'             => 'login'
-            ],
 
             'login' => [
                 'type'              => 'string',
@@ -39,7 +35,6 @@ class User extends Model {
                 'required'          => true
             ],
 
-            // #todo - deprecate firstname and lastname fields (use only `login` to refer to a user)
             'firstname' => [
                 'type'              => 'string'
             ],
@@ -53,7 +48,7 @@ class User extends Model {
                 'type'              => 'string',
                 'usage'             => 'language/iso-639',
                 'default'           => 'en',
-                'description'       => "Prefered locale for user interfaces.",
+                'description'       => "Preferred locale for user interfaces.",
             ],
 
             'validated' => [

@@ -1,8 +1,14 @@
 {
-    "production": true,
-    "parent_domain":  "equal.local",
-    "backend_url":  "http://equal.local",
-    "rest_api_url": "http://equal.local/v1",
-    "lang":           "en",
-    "locale":         "en"
+    "production":       true,
+    "parent_domain":    "equal.local",
+    "backend_url":      "http://equal.local",
+    "rest_api_url":     "http://equal.local/v1",
+    "lang":             "en",
+    "locale":           "en",
+    "company_name":     "YesBabylon SRL",
+    "company_url":      "https://yesbabylon.com",
+    "app_name":         "Symbiose",
+    "version":          "1.0",
+    "license":          "AGPL",
+    "license_url":      "https://www.gnu.org/licenses/agpl-3.0.en.html"
 }
