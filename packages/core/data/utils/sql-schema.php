@@ -53,46 +53,52 @@ if(!$db) {
 
 $db_class = get_class($db);
 $result = [];
+$m2m_tables = [];
 
 // get classes listing
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
-$m2m_tables = [];
-
-// remember tables used by inherited classes (can only be overriden by children, not by ancestor)
-$parent_tables = [];
+// associative array with 2 levels, mapping tables with their list of columns
+$processed_columns = [];
 
 foreach($classes as $class) {
     // get the full class name
-    $class_name = $params['package'].'\\'.$class;
-    $model = $orm->getModel($class_name);
-    if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
+    $entity = $params['package'].'\\'.$class;
+    // retrieve the static instance of the entityt
+    $model = $orm->getModel($entity);
 
-    // get the SQL table name
-    $table_name = $orm->getObjectTableName($class_name);
-    $direct_name = strtolower(str_replace('\\', '_', $class_name));
-    // handle inherited classes
-    if($table_name != $direct_name) {
-        // table name is the table of an ancestor
-        $parent_tables[] = $table_name;
+    if(!is_object($model)) {
+        throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
     }
 
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
-    // init result array
+    // get the SQL table name
+    $table = $orm->getObjectTableName($entity);
+
+    if(!isset($processed_columns[$table])) {
+        $processed_columns[$table] = [];
+    }
 
     // #memo - deleting tables prevents keeping data across inherited classes
     // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
 
     // fetch existing column
-    $columns = $db->getTableColumns($table_name);
+    $columns = $db->getTableColumns($table);
 
     // if some columns already exist (we are enriching a table related to a class from which the current class inherits),
     // then we append only the columns that do not exit yet
-    $result[] = $db->getQueryCreateTable($table_name);
+    $result[] = $db->getQueryCreateTable($table);
+
+    // retrieve list of fields that must be added to the schema
     $columns_diff = ($params['full'])?array_keys($schema):array_diff(array_keys($schema), $columns);
+
     foreach($columns_diff as $field) {
+        // prevent processing a same column more than once
+        if(isset($processed_columns[$table][$field])) {
+            continue;
+        }
         $description = $schema[$field];
         if(in_array($description['type'], array_keys($db_class::$types_associations))) {
             $type = $db->getSqlType($description['type']);
@@ -100,7 +106,7 @@ foreach($classes as $class) {
             $column_descriptor = [
                     'type'      => $type,
                     'null'      => true
-            ];
+                ];
 
             // if a SQL type is associated to field 'usage', it prevails over the type association
             // #todo
@@ -123,24 +129,25 @@ foreach($classes as $class) {
                 $column_descriptor['null'] = false;
             }
             // generate SQL for column creation
-            $result[] = $db->getQueryAddColumn($table_name, $field, $column_descriptor);
+            $result[] = $db->getQueryAddColumn($table, $field, $column_descriptor);
         }
         elseif($description['type'] == 'computed') {
             if(!isset($description['store']) || !$description['store']) {
                 // skip non-stored computed fields
                 continue;
             }
-            $result[] = $db->getQueryAddColumn($table_name, $field, [
-                'type'      => $db->getSqlType($description['result_type']),
-                'null'      => true,
-                'default'   => null
-            ]);
+            $result[] = $db->getQueryAddColumn($table, $field, [
+                    'type'      => $db->getSqlType($description['result_type']),
+                    'null'      => true,
+                    'default'   => null
+                ]);
         }
         elseif($description['type'] == 'many2many') {
             if(!isset($m2m_tables[$description['rel_table']])) {
                 $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
             }
         }
+        $processed_columns[$table][$field] = true;
     }
 
     if(method_exists($model, 'getUnique')) {
