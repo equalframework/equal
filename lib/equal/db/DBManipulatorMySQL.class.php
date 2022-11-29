@@ -143,6 +143,7 @@ class DBManipulatorMySQL extends DBManipulator {
         if(isset($def['null']) && !$def['null']) {
             $sql .= ' NOT NULL';
         }
+        // set query according to primary key property
         if(isset($def['auto_increment']) && $def['auto_increment']) {
             $sql .= ' AUTO_INCREMENT';
         }
