@@ -73,20 +73,20 @@ class ObjectManager extends Service {
 
     public static $valid_attributes = [
         'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
-        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'unique'),
-        'float'         => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'precision'),
-        'string'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang', 'selection', 'unique'),
-        'text'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'date'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
-        'time'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'onupdate'),
-        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate'),
-        'file'          => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'required', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
-        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
-        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'multilang', 'selection', 'foreign_object')
+        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
+        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'unique'),
+        'float'         => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'precision'),
+        'string'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang', 'selection', 'unique'),
+        'text'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'date'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
+        'time'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'onupdate'),
+        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
+        'file'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
+        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
+        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
+        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
@@ -1549,10 +1549,24 @@ class ObjectManager extends Service {
 
 
             // 8) handle the resetting of the dependent computed fields
-            // #todo $dependencies
 
             if(count($dependencies)) {
+                // remember fields that must be re-computed instantly
+                $instant_fields = [];
                 foreach($dependencies as $dependency) {
+                    if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
+                        if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
+                            $instant_fields[] = $dependency;
+                        }
+                        foreach($ids as $oid) {
+                            $this->cache[$table_name][$oid][$lang][$dependency] = null;
+                        }
+                    }
+                }
+                $this->store($class, $ids, $dependencies, $lang);
+                if(count($instant_fields)) {
+                    // re-compute 'instant' computed field
+                    $this->read($class, $ids, $instant_fields, $lang);
                 }
             }
         }
