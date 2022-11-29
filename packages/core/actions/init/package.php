@@ -114,30 +114,44 @@ foreach($queries as $query) {
 
 // check for missing columns (for classes with inheritance, we must check against non-yet created fields)
 $queries = [];
+$m2m_tables = [];
 
 // retrieve classes listing
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
-$m2m_tables = [];
+// associative array with 2 levels, mapping tables with their list of columns
+$processed_columns = [];
 
 // tables have been created, but fields in inherited classes might still be missing
 foreach($classes as $class) {
     // get the full class name
     $entity = $params['package'].'\\'.$class;
+    // retrieve the static instance of the entityt
     $model = $orm->getModel($entity);
 
-    $table_name = $orm->getObjectTableName($entity);
-
-    // fetch existing column
-    $existing_columns = $db->getTableColumns($table_name);
+    if(!is_object($model)) {
+        throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
+    }
 
     // retrieve fields that need to be added
     $schema = $model->getSchema();
-    // retrieve list of fields that must be added to the schema
-    $diff = array_diff(array_keys(array_filter($schema, function($a) use($orm) {return in_array($a['type'], $orm::$simple_types); })), $existing_columns);
 
-    foreach($diff as $field) {
-        if(in_array($field, $existing_columns)) {
+    // get the SQL table name
+    $table = $orm->getObjectTableName($entity);
+
+    if(!isset($processed_columns[$table])) {
+        $processed_columns[$table] = [];
+    }
+
+    // fetch existing column
+    $columns = $db->getTableColumns($table);
+
+    // retrieve list of fields that must be added to the schema
+    $columns_diff = array_diff(array_keys($schema), $columns);
+
+    foreach($columns_diff as $field) {
+        // prevent processing a same column more than once
+        if(isset($processed_columns[$table][$field])) {
             continue;
         }
         $description = $schema[$field];
@@ -148,7 +162,7 @@ foreach($classes as $class) {
             if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
-            $queries[] = $db->getQueryAddColumn($table_name, $field, [
+            $queries[] = $db->getQueryAddColumn($table, $field, [
                 'type'      => $type,
                 'null'      => true,
                 'default'   => null
@@ -156,7 +170,7 @@ foreach($classes as $class) {
         }
         elseif($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
             $type = $db->getSqlType($description['result_type']);
-            $queries[] = $db->getQueryAddColumn($table_name, $field, [
+            $queries[] = $db->getQueryAddColumn($table, $field, [
                 'type'      => $type,
                 'null'      => true,
                 'default'   => null
@@ -167,6 +181,7 @@ foreach($classes as $class) {
                 $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
             }
         }
+        $processed_columns[$table][$field] = true;
     }
 }
 
