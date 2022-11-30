@@ -19,7 +19,7 @@ list($params, $providers) = announce([
         'accept-origin' => '*',
         'cacheable'     => true
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 
@@ -29,7 +29,7 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $json = run('get', 'config_classes', ['package' => $params['package']]);
 $classes = json_decode($json, true);
 
-    
+
 $src = <<<EOD
 <?xml version="1.0" encoding="utf-8" ?>
 <sql>
@@ -45,7 +45,7 @@ $src = <<<EOD
     </group>
     <group label="Binary" color="rgb(170,238,238)">
         <type label="Binary" quote="" sql="MEDIUMBLOB" length="0" re="BLOB"/>
-    </group>        
+    </group>
     <group label="Date &amp; Time" color="rgb(200,255,200)">
         <type label="Time" quote="" sql="TIME" length="0"/>
         <type label="Datetime" quote="" sql="DATETIME" length="0"/>
@@ -57,24 +57,24 @@ $src = <<<EOD
 </sql>
 EOD;
 
- 
+
 
 $types_associations = array(
 	'boolean' 		=> 'TINYINT(4)',
 	'integer' 		=> 'INT(11)',
 	'float' 		=> 'DECIMAL(10,2)',
-    
+
 	'string' 		=> 'VARCHAR(255)',
 	'text' 			=> 'MEDIUMTEXT',
-	'html' 			=> 'MEDIUMTEXT',    
-    
+	'html' 			=> 'MEDIUMTEXT',
+
 	'date' 			=> 'DATETIME',
 	'time' 			=> 'TIME',
 	'datetime' 		=> 'DATETIME',
-    
-	'file' 		    => 'MEDIUMBLOB',    
+
+	'file' 		    => 'MEDIUMBLOB',
 	'binary' 		=> 'MEDIUMBLOB',
-    
+
 	'many2one' 		=> 'BIGINT(11)',
 	'many2many'  	=> 'BIGINT(11)'    // convention : add/update  rel_table
 );
@@ -96,33 +96,33 @@ foreach($classes as $class) {
 
 
     $new_table = $xml->addChild('table');
-    $new_table->addAttribute('name', $class_name);	
+    $new_table->addAttribute('name', $class_name);
 
     foreach($schema as $field => $definition) {
-        
-        $type = $definition['type'];        
-        
+
+        $type = $definition['type'];
+
         if(in_array($type, ['one2many', 'alias'])) {
             // skip for now
             continue;
         }
 
-        $new_row = $new_table->addChild('row');        
+        $new_row = $new_table->addChild('row');
 
         if($type == 'function') {
             $type = $definition['result_type'];
         }
         else if(in_array($type, ['many2one', 'many2many'])) {
-            $new_relation = $new_row->addChild('relation');            
-            
+            $new_relation = $new_row->addChild('relation');
+
             if($type == 'many2many') {
                 // create a new relation table
                 if(!isset($relations[$definition['rel_table']])) {
                     $relations[$definition['rel_table']] = true;
-                    /* append table to XML doc */                                        
+                    /* append table to XML doc */
                     $new_rel_table = $xml->addChild('table');
                     $new_rel_table->addAttribute('name', $definition['rel_table']);
-                    
+
                     $new_rel_row = $new_rel_table->addChild('row');
                     $new_rel_row->addAttribute('name', $definition['rel_foreign_key']);
                     $new_rel_row->addAttribute('null', 0);
@@ -136,24 +136,24 @@ foreach($classes as $class) {
                     $new_rel_row->addAttribute('autoincrement', 0);
                     $new_rel_row->addChild('datatype', $types_associations['many2one']);
                     $new_rel_row->addChild('default', 'NULL');
-                    
-        
+
+
                     $new_key = $new_rel_table->addChild('key');
                     $new_key->addAttribute('type', 'PRIMARY');
                     $new_key->addAttribute('name', '');
                     $new_key->addChild('part', $definition['rel_foreign_key']);
-                    $new_key->addChild('part', $definition['rel_local_key']);    
+                    $new_key->addChild('part', $definition['rel_local_key']);
                 }
                 // create relation node
                 $new_relation->addAttribute('table', $definition['rel_table']);
                 $new_relation->addAttribute('row', $definition['rel_local_key']);
             }
             else {
-                // create relation node                
+                // create relation node
                 $new_relation->addAttribute('table', $definition['foreign_object']);
                 $new_relation->addAttribute('row', 'id');
-            }            
-        }        
+            }
+        }
 
         $new_row->addAttribute('name', $field);
         $new_row->addAttribute('null', 0);
@@ -161,7 +161,7 @@ foreach($classes as $class) {
         $new_row->addChild('datatype', $types_associations[$type]);
         $new_row->addChild('default', 'NULL');
     }
-        
+
     $new_key = $new_table->addChild('key');
     $new_key->addAttribute('type', 'PRIMARY');
     $new_key->addAttribute('name', '');
