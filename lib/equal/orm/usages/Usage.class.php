@@ -21,6 +21,9 @@ abstract class Usage {
 
     abstract public function getSqlType(): string;
 
+    /**
+     * Provides the generic (display) name of the type.
+     */
     abstract public function getType(): string;
 
     abstract public function getConstraints(): array;
