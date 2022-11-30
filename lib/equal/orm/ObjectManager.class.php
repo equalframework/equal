@@ -126,43 +126,45 @@ class ObjectManager extends Service {
         'many2many'     => array('contains'),
     ];
 
+    /**
+     * Mapping of ORM types with their sized notations.
+     *
+     * Size is expressed this way: type[(length|precision[,scale])]
+     * and focus on the storage, in bytes, to allocate (rather than what value range can actually be stored).
+     *
+     * Each DBManipulator Service is in charge of converting ORM types matching its own native type.
+     * Types that are ambiguous regarding their size (string, text, binary) or require additional info (decimal place for real numbers representations).
+     * All ORM types have an equivalent in SQL.
+     */
     public static $types_associations = [
-        'boolean'       => 'tinyint(4)',
-        'integer'       => 'int(11)',
-        'float'         => 'decimal(10,2)',
-        'string'        => 'varchar(255)',
-        'text'          => 'text',
-        'date'          => 'date',
-        'time'          => 'time',
-        'datetime'      => 'datetime',
-        'timestamp'     => 'timestamp',
-        /* #deprecated */
-        'file'          => 'longblob',
-        'binary'        => 'longblob',
-        'many2one'      => 'int(11)'
+        'integer'       => 'integer(4)',        // 4 bytes integer
+        'float'         => 'float(10,4)',       // 10 digits float holding 4 decimal digits
+        'string'        => 'string(255)',       // 255 bytes string
+        'text'          => 'string(32000)',     // 32 kilobytes string
+        'binary'        => 'binary(64000000)'   // 64MB binary value
     ];
 
     public static $usages_associations = [
-        'amount/percent'            => 'decimal(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
-        'amount/rate'               => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/rate:4'             => 'decimal(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/money'              => 'decimal(15,2)',
-        'amount/money:2'            => 'decimal(15,2)',
-        'amount/money:4'            => 'decimal(13,4)',         // GAAP compliant
-        'coordinate'                => 'decimal(9,6)',          // any float value from -180 to 180 with 6 decimal digits
-        'coordinate/decimal'        => 'decimal(9,6)',
-        'country/iso-3166.numeric'  => 'int',                   // 3-digits country code (ISO 3166-1)
-        'country/iso-3166:2'        => 'char(2)',               // '2-letters country code (ISO 3166-1)
-        'country/iso-3166:3'        => 'char(3)',               // '3-letters country code (ISO 3166-1)
-        'currency/iso-4217'         => 'char(3)',
-        'language/iso-639'          => 'char(5)',               // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
-        'language/iso-639:2'        => 'char(2)',               // languages codes alpha 2 (ISO 639-1)
-        'language/iso-639:3'        => 'char(3)',               // languages codes alpha 3 (ISO 639-3)
-        'markup/html'               => 'mediumtext',
-        'text/html'                 => 'mediumtext',
-        'text/plain'                => 'text',                  // 64k chars
-        'email'                     => 'varchar(255)',
-        'phone'                     => 'varchar(20)'
+        'amount/percent'            => 'float(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
+        'amount/rate'               => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
+        'amount/rate:4'             => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
+        'amount/money'              => 'float(15,2)',
+        'amount/money:2'            => 'float(15,2)',
+        'amount/money:4'            => 'float(13,4)',         // GAAP compliant
+        'coordinate'                => 'float(9,6)',          // any float value from -180 to 180 with 6 decimal digits
+        'coordinate/decimal'        => 'float(9,6)',
+        'country/iso-3166.numeric'  => 'integer(1)',          // 3-digits country code (ISO 3166-1)
+        'country/iso-3166:2'        => 'string(2)',           // 2-letters country code (ISO 3166-1)
+        'country/iso-3166:3'        => 'string(3)',           // 3-letters country code (ISO 3166-1)
+        'currency/iso-4217'         => 'string(3)',
+        'language/iso-639'          => 'string(5)',           // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
+        'language/iso-639:2'        => 'string(2)',           // languages codes alpha 2 (ISO 639-1)
+        'language/iso-639:3'        => 'string(3)',           // languages codes alpha 3 (ISO 639-3)
+        'markup/html'               => 'string(64000)',       // 64k chars html
+        'text/html'                 => 'string(64000)',
+        'text/plain'                => 'string(64000)',       // 64k chars text
+        'email'                     => 'string(255)',
+        'phone'                     => 'string(20)'
     ];
 
     /**
