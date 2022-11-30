@@ -102,7 +102,7 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
 /*  start-tables_init */
 
 // retrieve schema for given package
-$data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package']]);
+$data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
 // push each line/query into an array
 $queries = explode(";", $data['result']);
