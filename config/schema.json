@@ -108,14 +108,14 @@
     },
     "DB_DBMS": {
         "type": "string",
-        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRE', 'ORACLE'",
+        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRESQL', 'ORACLE'",
         "instant": true,
         "default": "MYSQL",
         "example": "MARIADB"
     },
     "DB_CHARSET": {
         "type": "string",
-        "description": "Charset to use when manipulating strings with DBMS. Possible values are: 'utf8' (3 bytes) or 'utf8mb4' (4 bytes).",
+        "description": "Charset encoding to use when manipulating strings with DBMS. Possible values are: 'utf8' (3 bytes) or 'utf8mb4' (4 bytes).",
         "instant": true,
         "default": "utf8mb4",
         "example": "utf8"
