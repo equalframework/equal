@@ -350,7 +350,7 @@ namespace config {
     }
 
     /**
-     * Retrieve a configuraiton parameter as a constant.
+     * Retrieve a configuration parameter as a constant.
      */
     function constant($name, $default=null) {
         return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
