@@ -395,7 +395,6 @@ $allowed_types_associations = [
     'date' 			=> array('date', 'datetime'),
     'time' 			=> array('time'),
     'datetime' 		=> array('datetime'),
-    'timestamp' 	=> array('timestamp'),
     'selection' 	=> array('char', 'varchar'),
     'file'  		=> array('blob', 'mediumblob', 'longblob'),
     'binary' 		=> array('blob', 'mediumblob', 'longblob'),
