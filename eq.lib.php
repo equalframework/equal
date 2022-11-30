@@ -803,7 +803,7 @@ namespace config {
                     // convert value from input format + validate type and usage constraints
                     $f = Fields::create($config);
                     // raises an Exception if assignment is not possible
-                    $f->set($body[$param], 'json');
+                    $f->set($body[$param], 'json'); // not explicit type, but Content-Type from HTTP REQUEST
                     try {
                         $f->validate();
                         $result[$param] = $f->get();
