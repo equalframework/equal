@@ -1009,7 +1009,7 @@ namespace config {
             if(count($parts) > 0) {
                 // use first part as package name
                 $resolved['package'] = array_shift($parts);
-                // use reamining parts to build script path
+                // use remaining parts to build script path
                 if(count($parts) > 0) {
                     $resolved['script'] = implode('/', $parts).'.php';
                 }
@@ -1062,12 +1062,8 @@ namespace config {
                     }
                 }
 
-                // #todo - remove this: L10N_TIMEZONE must be used in controllers producing front-end data (involving some output impacted by localization)
-                if(defined('L10N_TIMEZONE')) {
-                    date_default_timezone_set(constant('L10N_TIMEZONE'));
-                }
-                // #todo - we should run this instead - in the meanwhile, value is the one set in schema.json
-                // date_default_timezone_set('UTC');
+                // force timezone to UTC
+                date_default_timezone_set('UTC');
 
                 if(!$root) {
                     // include and execute requested script
@@ -1128,7 +1124,7 @@ namespace config {
                 // mark class as being loaded
                 $GLOBALS['eQual_loading_classes'][$class_name] = true;
                 $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
-                // use 'class.php' extention
+                // use 'class.php' extension
                 if(file_exists($file_path.'.class.php')) {
                     $result = include_once $file_path.'.class.php';
                 }
