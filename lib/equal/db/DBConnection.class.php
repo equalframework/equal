@@ -19,12 +19,28 @@ class DBConnection extends Service {
         switch(constant('DB_DBMS')) {
             case 'MARIADB':
             case 'MYSQL' :
-                $this->dbConnection = new DBManipulatorMySQL(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
+                $this->dbConnection = new DBManipulatorMySQL(
+                        constant('DB_HOST'),
+                        constant('DB_PORT'),
+                        constant('DB_NAME'),
+                        constant('DB_USER'),
+                        constant('DB_PASSWORD'),
+                        constant('DB_CHARSET'),
+                        constant('DB_COLLATION')
+                    );
                 break;
             case 'SQLSRV' :
-                $this->dbConnection = new DBManipulatorSqlSrv(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
+                $this->dbConnection = new DBManipulatorSqlSrv(
+                        constant('DB_HOST'),
+                        constant('DB_PORT'),
+                        constant('DB_NAME'),
+                        constant('DB_USER'),
+                        constant('DB_PASSWORD'),
+                        constant('DB_CHARSET'),
+                        constant('DB_COLLATION')
+                    );
                 break;
-            case 'POSTGRE' :
+            case 'POSTGRESQL' :
                 // #todo
                 break;
             case 'ORACLE' :
@@ -38,8 +54,19 @@ class DBConnection extends Service {
             // add replica members, if any
             $i = 1;
 
-            while(defined('DB_'.$i.'_HOST') && defined('DB_'.$i.'_PORT') && defined('DB_'.$i.'_USER') && defined('DB_'.$i.'_PASSWORD') && defined('DB_'.$i.'_NAME')) {
-                $this->addReplicaMember(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'));
+            while(defined('DB_'.$i.'_HOST')
+                && defined('DB_'.$i.'_PORT')
+                && defined('DB_'.$i.'_USER')
+                && defined('DB_'.$i.'_PASSWORD')
+                && defined('DB_'.$i.'_NAME')) {
+
+                $this->addReplicaMember(
+                    constant('DB_'.$i.'_HOST'),
+                    constant('DB_'.$i.'_PORT'),
+                    constant('DB_'.$i.'_NAME'),
+                    constant('DB_'.$i.'_USER'),
+                    constant('DB_'.$i.'_PASSWORD')
+                );
                 ++$i;
             }
         }
@@ -79,9 +106,8 @@ class DBConnection extends Service {
         return $this->dbConnection->disconnect();
     }
 
-
     /**
-     * Magic overloading method: catch any call and relay it to dbConnection object
+     * Magic overloading method: catch any call and relay it to DBConnection object
      *
      * @param  string                 $name
      * @param  array                  $arguments

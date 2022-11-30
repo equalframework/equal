@@ -51,8 +51,8 @@ class DBManipulatorMySQL extends DBManipulator {
             if($auto_select) {
                 if($this->dbms_handler = mysqli_connect($this->host, $this->user_name, $this->password, $this->db_name, $this->port)) {
                     if($result = $this->select($this->db_name)) {
-                        $query = 'set names '.constant('DB_CHARSET');
-                        $query .= (defined('DB_COLLATION'))?' collate '.constant('DB_COLLATION'):'';
+                        $query = 'set names '.$this->charset;
+                        $query .= ($this->collation)?' collate '.$this->collation:'';
                         mysqli_query($this->dbms_handler, $query);
                         $result = true;
                     }
@@ -95,7 +95,7 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function createDatabase($db_name) {
-        $query = "CREATE DATABASE IF NOT EXISTS $db_name CHARACTER SET ".constant('DB_CHARSET')." COLLATE ".constant('DB_COLLATION').';';
+        $query = "CREATE DATABASE IF NOT EXISTS $db_name CHARACTER SET ".$this->charset." COLLATE ".$this->collation.';';
         $this->sendQuery($query);
     }
 
@@ -122,7 +122,7 @@ class DBManipulatorMySQL extends DBManipulator {
 
     public function getQueryCreateTable($table_name) {
         // #memo - we must add at least one column, so as a convention we add the id column
-        return "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY) DEFAULT CHARSET=".constant('DB_CHARSET')." COLLATE=".constant('DB_COLLATION').";";
+        return "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY) DEFAULT CHARSET=".$this->charset." COLLATE=".$this->collation.";";
     }
 
     /**
@@ -133,7 +133,7 @@ class DBManipulatorMySQL extends DBManipulator {
      *      'type'             => int(11),
      *      'null'             => false,
      *      'default'          => 0,
-     *      'auto_incremnt'    => false,
+     *      'auto_increment'   => false,
      *      'primary'          => false,
      *      'index'            => false
      * ]

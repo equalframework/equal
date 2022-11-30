@@ -9,62 +9,65 @@ namespace equal\db;
 class DBManipulator {
 
     /**
-     * DB server hostname
+     * DB server hostname.
      *
      * @var		string
-     * @access	protected
      */
     protected $host;
 
     /**
-     * DB server connection port
+     * DB server TCP connection port.
      *
      * @var		integer
-     * @access	protected
      */
     protected $port;
 
     /**
-     * DB name
+     * DB name to use for SQL queries.
      *
      * @var		string
-     * @access	protected
      */
     protected $db_name;
 
+    /**
+     * Charset encoding to use for communications with DBMS.
+     *
+     * @var		string
+     */
+    protected $charset;
+
+    /**
+     * Collation to use for storing data (applied on new tables and columns).
+     *
+     * @var		string
+     */
+    protected $collation;
 
     /**
      * DB user
      *
      * @var		string
-     * @access	protected
      */
     protected $user_name;
-
 
     /**
      * DB password
      *
      * @var		string
-     * @access	protected
      */
     protected $password;
-
 
     /**
      * Latest error id
      *
      * @var		integer
-     * @access	protected
      */
     protected $last_id;
-
 
     /**
      * Number of rows affected by last query
      *
      * @var		integer
-     * @access	protected
      */
     protected $affected_rows;
 
@@ -72,12 +75,11 @@ class DBManipulator {
      * Latest query
      *
      * @var		string
-     * @access	protected
      */
     protected $last_query;
 
     /**
-     * @var \mysqli
+     * @var     mixed
      */
     protected $dbms_handler;
 
@@ -96,21 +98,23 @@ class DBManipulator {
      * Initialize the DBMS data for SQL transactions
      *
      * @access   public
-      * @param    string    DB server hostname
+     * @param    string    DB server hostname
      * @param    string    DB name
      * @param    string    Username to use for the connection
      * @param    string    Password to use for the connection
-      * @return   void
+     * @return   void
      */
-    public final function __construct($host, $port, $db, $user, $pass) {
+    public final function __construct($host, $port, $db, $user, $pass, $charset=null, $collation=null) {
         $this->host         = $host;
         $this->port         = $port;
         $this->db_name      = $db;
         $this->user_name    = $user;
         $this->password     = $pass;
-        $this->dbms_handler = null;
+        $this->charset      = $charset;
+        $this->collation    = $collation;
 
-        $this->members = [];
+        $this->dbms_handler = null;
+        $this->members      = [];
     }
 
 
