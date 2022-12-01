@@ -51,15 +51,21 @@ class HttpResponse extends HttpMessage {
         $headers = $this->getHeaders(true);
         foreach($headers as $header => $value) {
             // we'll set content length afterward
-            if($header == 'Content-Length') continue;
+            if($header == 'Content-Length') {
+                continue;
+            }
             // cookies are handled in a second pass
-            if($header == 'Cookie') continue;
+            if($header == 'Cookie') {
+                continue;
+            }
             header($header.': '.$value);
         }
 
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
             $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
+            // make sure the hostname does not contain a port number
+            $hostname = substr($hostname.':', 0, strpos($hostname.':', ':'));
             $params = $this->headers()->getCookieParams($cookie);
             $expires = (isset($params['expires']))?$params['expires']:time()+60*60*24*365;
             $path = (isset($params['path']))?$params['path']:'/';
