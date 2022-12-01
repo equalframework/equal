@@ -303,6 +303,10 @@ class Context extends Service {
             $auth .= '@';
         }
         $host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
+        // make sure host does not contain a port number (strip if any)
+        $host .= ':';
+        $host = substr($host, 0, strpos($host, ':'));
+
         $port = isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:80;
         // fallback to current script name (using CLI, REQUEST_URI is not set), i.e. '/index.php'
         $uri = '/'.$_SERVER['SCRIPT_NAME'];
