@@ -1,4 +1,3 @@
-
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
