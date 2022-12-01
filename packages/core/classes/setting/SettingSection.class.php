@@ -1,3 +1,4 @@
+
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
@@ -50,11 +51,10 @@ class SettingSection extends Model {
     }
 
     public static function onupdateCode($om, $ids, $values, $lang) {
-
-        $sections = $om->read(__CLASS__, $ids, ['settings_ids'], $lang);
+        $sections = $om->read(self::getType(), $ids, ['settings_ids'], $lang);
         if($sections > 0 && count($sections)) {
             foreach($sections as $oid => $odata) {
-                $om->update('core\setting\Setting', $odata['settings_ids'], ['name' => null], $lang);
+                $om->update(Setting::getType(), $odata['settings_ids'], ['name' => null, 'section' => null], $lang);
             }
         }
 
