@@ -63,13 +63,13 @@ if(!$db) {
 
 $db_class = get_class($db);
 
-// 1) Check in manifest.json for prerequisite initialisation
+// 1) Check in manifest.json for prerequisite initialization
 
 if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'])) {
     $GLOBALS['QN_INIT_DEPENDENCIES'] = [];
 }
 
-// mark current package as being initialised (to prevent recursion)
+// mark current package as being initialized (to prevent recursion)
 $GLOBALS['QN_INIT_DEPENDENCIES'][$params['package']] = true;
 
 // retrieve manifest of target package, if any
@@ -86,13 +86,18 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
     // initiate dependency packages that are not yet processed, if requested
     foreach($package_manifest['depends_on'] as $dependency) {
         if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'][$dependency])) {
-            // init package of sub packages (perform as root script)
-            eQual::run('do', 'init_package', [
-                    'package'           => $dependency,
-                    'cascade'           => $params['cascade'],
-                    'import'            => $params['import'] && $params['import_cascade']
-                ],
-                true);
+            try {
+                // init package of sub packages (perform as root script)
+                eQual::run('do', 'init_package', [
+                        'package'           => $dependency,
+                        'cascade'           => $params['cascade'],
+                        'import'            => $params['import'] && $params['import_cascade']
+                    ],
+                    true);
+            }
+            catch(Exception $e) {
+                throw new Exception("Unable to initialize dependency package {$dependency}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+            }
         }
     }
 }
