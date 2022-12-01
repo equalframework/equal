@@ -79,14 +79,8 @@ $response = $context->httpResponse();
 if(strlen($params['token'])) {
     // generate a JWT access token
     $access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
-    $refresh_token = $auth->token($user_id, constant('AUTH_REFRESH_TOKEN_VALIDITY'));
     $response->cookie('access_token',  $access_token, [
         'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        'httponly'  => true,
-        'secure'    => constant('AUTH_TOKEN_HTTPS')
-    ])
-    ->cookie('refresh_token', $refresh_token, [
-        'expires'   => time() + constant('AUTH_REFRESH_TOKEN_VALIDITY'),
         'httponly'  => true,
         'secure'    => constant('AUTH_TOKEN_HTTPS')
     ]);
