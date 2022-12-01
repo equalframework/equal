@@ -19,7 +19,7 @@ class Setting extends Model {
     }
 
     public static function getDescription() {
-        return "Configurations parameters may be used by any package and provide specfic information about current installation.";
+        return "Configurations parameters may be used by any package and provide specific information about current installation.";
     }
 
     public static function getColumns() {
@@ -134,42 +134,48 @@ class Setting extends Model {
     }
 
     public static function onupdateCode($om, $ids, $values, $lang) {
-        $om->update(__CLASS__, $ids, ['name' => null], $lang);
+        $om->update(self::getType(), $ids, ['name' => null], $lang);
+        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
+        foreach($settings as $oid => $setting) {
+            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
+        }
     }
 
     public static function onupdateSectionId($om, $ids, $values, $lang) {
-        $om->update(__CLASS__, $ids, ['name' => null, 'section' => null], $lang);
+        $om->update(self::getType(), $ids, ['name' => null, 'section' => null], $lang);
+        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
+        foreach($settings as $oid => $setting) {
+            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
+        }
     }
 
     public static function onupdatePackage($om, $ids, $values, $lang) {
-        $om->update(__CLASS__, $ids, ['name' => null], $lang);
+        $om->update(self::getType(), $ids, ['name' => null], $lang);
+        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
+        foreach($settings as $oid => $setting) {
+            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
+        }
     }
 
     public static function calcSection($om, $oids, $lang) {
         $result = [];
-
-        $settings = $om->read(__CLASS__, $oids, ['section_id.code'], $lang);
-
+        $settings = $om->read(self::getType(), $oids, ['section_id.code'], $lang);
         if($settings > 0 && count($settings)) {
             foreach($settings as $oid => $odata) {
                 $result[$oid] = $odata['section_id.code'];
             }
         }
-
         return $result;
     }
 
     public static function calcName($om, $oids, $lang) {
         $result = [];
-
-        $settings = $om->read(__CLASS__, $oids, ['package', 'section', 'code'], $lang);
-
+        $settings = $om->read(self::getType(), $oids, ['package', 'section', 'code'], $lang);
         if($settings > 0 && count($settings)) {
             foreach($settings as $oid => $odata) {
                 $result[$oid] = $odata['package'].'.'.$odata['section'].'.'.$odata['code'];
             }
         }
-
         return $result;
     }
 

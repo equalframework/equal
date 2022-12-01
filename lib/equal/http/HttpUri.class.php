@@ -29,7 +29,7 @@ class HttpUri {
  *
  */
 
- 
+
     /** @var string $parts stores the parts of current URI */
     private $parts = null;
 
@@ -41,7 +41,7 @@ class HttpUri {
         'https' => 443
     ];
 
-        
+
     public function __construct($uri='') {
         // init $parts member to allow further methods calls even if provided URI is not valid
         $this->parts = [
@@ -54,11 +54,11 @@ class HttpUri {
             'user'      => null,
             'pass'      => null
         ];
-   
+
         $this->setUri($uri);
-    }    
-    
-    
+    }
+
+
     /**
      *
      * re-build final URI from parts
@@ -76,22 +76,22 @@ class HttpUri {
         return $this->getScheme().'://'.$this->getAuthority().$this->getPath().$query;
     }
 
-    // retrieve parameters associative array from current query string    
+    // retrieve parameters associative array from current query string
     public function getParams() {
         $params = [];
         // retrieve parameters associative array from current query string
         parse_str($this->getQuery(), $params);
         return $params;
     }
-    
+
     /**
      * Get the value of specified param from the query string, fallback to $default if not found.
      *
      *
-     * @return mixed If $param is an array of parameters names, returns an assiociative array containing values for each given parameter, otherwise returns the value of a single parameter. If given parameter is not found, returns specified default value (fallback to null)     
+     * @return mixed If $param is an array of parameters names, returns an assiociative array containing values for each given parameter, otherwise returns the value of a single parameter. If given parameter is not found, returns specified default value (fallback to null)
      */
     public function get($param, $default=null) {
-        // retrieve parameters associative array from current query string        
+        // retrieve parameters associative array from current query string
         $params = $this->getParams();
         // bulk get : $param is an array of parameters names
         if(is_array($param)) {
@@ -110,18 +110,18 @@ class HttpUri {
             $res = $default;
             if(isset($params[$param])) $res = $params[$param];
         }
-        return $res;        
+        return $res;
     }
 
     /**
      * Assign a new parameter to URI query string, or update an existing one to a new value.
      * This method overwrites existing parameter(s) from query string, if any.
-     * 
+     *
      * @param   $param  mixed(string|array)    For single assignement, $param is the name of the parameter to be set. In case of bulk assign, $param is an associative array with keys and values respectively holding parameters names and values.
      * @param   $value  mixed   If $param is an array, $value is not taken under account (this argument is therefore optional)
      * @return  HttpUri Returns current instance
-     */    
-    public function set($param, $value=null) {    
+     */
+    public function set($param, $value=null) {
         $params = [];
         // retrieve parameters associative array from current query string
         parse_str($this->getQuery(), $params);
@@ -135,10 +135,10 @@ class HttpUri {
             $params[$param] = $value;
         }
         // update query string
-        $this->setQuery(http_build_query($params)); 
+        $this->setQuery(http_build_query($params));
         return $this;
     }
-    
+
     public function setUri($uri) {
         if(self::isValid($uri)) {
             $this->parts = parse_url($uri);
@@ -150,7 +150,7 @@ class HttpUri {
         $this->parts['scheme'] = strtolower($scheme);
         return $this;
     }
-    
+
     public function setHost($host) {
         $this->parts['host'] = strtolower($host);
         return $this;
@@ -175,7 +175,7 @@ class HttpUri {
         $this->parts['fragment'] = $fragment;
         return $this;
     }
-    
+
     public function setUser($user) {
         $this->parts['user'] = $user;
         return $this;
@@ -185,7 +185,7 @@ class HttpUri {
         $this->parts['pass'] = $password;
         return $this;
     }
-    
+
     /**
      * Checks validity of provided URI
      * with support for internationalized domain name (IDN) support (non-ASCII chars)
@@ -228,11 +228,11 @@ class HttpUri {
         }
         return $this->setScheme(...$args);
     }
-    
+
     public function getHost() {
         return isset($this->parts['host'])?$this->parts['host']:'';
     }
-    
+
     public function host() {
         $args = func_get_args();
         if(count($args) < 1) {
@@ -264,10 +264,10 @@ class HttpUri {
             $port = '';
         }
         else $port = ':'.$port;
-        
+
         return $user_info.$this->getHost().$port;
     }
-    
+
     public function getPath() {
         return isset($this->parts['path'])?$this->parts['path']:'';
     }
@@ -279,7 +279,7 @@ class HttpUri {
     public function getFragment() {
         return isset($this->parts['fragment'])?$this->parts['fragment']:'';
     }
-    
+
     public function getUser() {
         return isset($this->parts['user'])?$this->parts['user']:'';
     }
@@ -289,7 +289,7 @@ class HttpUri {
     }
 
     public function getBasePath() {
-        return str_replace(DIRECTORY_SEPARATOR, '/', dirname($this->parts['path']));        
+        return str_replace(DIRECTORY_SEPARATOR, '/', dirname($this->parts['path']));
     }
 
     public function query() {
@@ -301,5 +301,5 @@ class HttpUri {
             $query = $args[0];
             return $this->setQuery($query);
         }
-    }    
+    }
 }

@@ -72,7 +72,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
 
             if($auto_select) {
                 $connection_info['Database'] = $this->db_name;
-                $connection_info['CharacterSet'] = constant('DB_CHARSET');
+                $connection_info['CharacterSet'] = $this->charset;
             }
 
             if($this->dbms_handler = sqlsrv_connect($this->host, $connection_info)) {
@@ -113,7 +113,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function createDatabase($db_name) {
-        $query = "USE master; CREATE DATABASE $db_name COLLATE ".constant('DB_COLLATION').";";
+        $query = "USE master; CREATE DATABASE $db_name COLLATE ".$this->collation.";";
         $this->sendQuery($query, 'create');
     }
 
@@ -157,7 +157,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
      *      'type'             => int(11),
      *      'null'             => false,
      *      'default'          => 0,
-     *      'auto_incremnt'    => false,
+     *      'auto_increment'   => false,
      *      'primary'          => false,
      *      'index'            => false
      * ]
@@ -183,7 +183,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         $sql .= ';';
 
         if(isset($def['primary']) && $def['primary']) {
-            $sql .= "ALTER TABLE [{$table_name}] ADD CONSTRAINT  PK_{$column_name} PRIMARY KEY({$def['type']});";
+            $sql .= "ALTER TABLE [{$table_name}] ADD CONSTRAINT PK_{$column_name} PRIMARY KEY({$def['type']});";
         }
 
         return $sql;

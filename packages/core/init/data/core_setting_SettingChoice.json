@@ -1,7 +1,7 @@
 [
     {
         "name": "core\\setting\\SettingChoice",
-        "lang": "fr",
+        "lang": "en",
         "data": [
             {
                 "id": 101,
@@ -18,37 +18,37 @@
             {
                 "id": 201,
                 "setting_id":2,
-                "name":"avant",
+                "name":"before",
                 "value":"before"
             },
             {
                 "id": 202,
                 "setting_id":2,
-                "name":"après",
+                "name":"after",
                 "value":"after"
             },
             {
                 "id": 301,
                 "setting_id":3,
-                "name":"",
+                "name":"1",
                 "value":"1"
             },
             {
                 "id": 302,
                 "setting_id":3,
-                "name":"",
+                "name":"2",
                 "value":"2"
             },
             {
                 "id": 303,
                 "setting_id":3,
-                "name":"",
+                "name":"3",
                 "value":"3"
             },
             {
                 "id": 401,
                 "setting_id":4,
-                "name":"virgule",
+                "name":"comma",
                 "value":","
             },
             {
@@ -60,67 +60,67 @@
             {
                 "id": 501,
                 "setting_id":5,
-                "name":"",
+                "name":"1",
                 "value":"1"
             },
             {
                 "id": 502,
                 "setting_id":5,
-                "name":"",
+                "name":"2",
                 "value":"2"
             },
             {
                 "id": 503,
                 "setting_id":5,
-                "name":"",
+                "name":"3",
                 "value":"3"
             },
             {
                 "id": 601,
                 "setting_id":6,
-                "name":"",
+                "name":"d/m/Y",
                 "value":"d/m/Y"
             },
             {
                 "id": 602,
                 "setting_id":6,
-                "name":"",
+                "name":"Y-m-d",
                 "value":"Y-m-d"
             },
             {
                 "id": 603,
                 "setting_id":6,
-                "name":"",
+                "name":"m/d/Y",
                 "value":"m/d/Y"
             },
             {
                 "id": 701,
                 "setting_id":7,
-                "name":"",
+                "name":"H:i",
                 "value":"H:i"
             },
             {
                 "id": 801,
                 "setting_id":8,
-                "name":"",
+                "name":"1",
                 "value":"1"
             },
             {
                 "id": 901,
                 "setting_id":9,
-                "name":"21,59 x 27,74",
+                "name":"21.59 x 27.74",
                 "value":"US"
             },
             {
                 "id": 902,
                 "setting_id":9,
-                "name":"21 x 29,7",
+                "name":"21 x 29.7",
                 "value":"A4"
             },
             {
                 "id": 903,
                 "setting_id":9,
-                "name":"29,7 x 41,99",
+                "name":"29.7 x 41.99",
                 "value":"A3"
             },
             {
@@ -144,124 +144,140 @@
             {
                 "id": 1401,
                 "setting_id":14,
-                "name":"mètre",
+                "name":"meter",
                 "value":"m"
             },
             {
                 "id": 1501,
                 "setting_id":15,
-                "name":"kilogramme",
+                "name":"kilograms",
                 "value":"kg"
             },
             {
                 "id": 1601,
                 "setting_id":16,
-                "name":"mètre cube",
+                "name":"cubic meter",
                 "value":"m3"
             },
             {
                 "id": 1701,
                 "setting_id":17,
-                "name":"mètre carré",
+                "name":"square meter",
                 "value":"m2"
+            }
+        ]
+    },
+    {
+        "name": "core\\setting\\SettingChoice",
+        "lang": "fr",
+        "data": [
+            {
+                "id": 101,
+                "name":"virgule"
             },
             {
-                "id": 2201,
-                "setting_id":22,
-                "name":"",
-                "value":"%4d(year)-%02d(org)-%03d(sequence)"
+                "id": 102,
+                "name":"point"
             },
             {
-                "id": 2301,
-                "setting_id":23,
-                "name":"",
-                "value":"%1d{center}%05d{sequence}"
+                "id": 201,
+                "name":"avant"
             },
             {
-                "id": 1801,
-                "setting_id":18,
-                "name":"",
-                "value":"111"
+                "id": 202,
+                "name":"après"
             },
             {
-
-                "id": 1901,
-                "setting_id":19,
-                "name":"",
-                "value":"111"
+                "id": 301,
+                "name":"1"
             },
             {
-
-                "id": 2001,
-                "setting_id":20,
-                "name":"",
-                "value":"111"
+                "id": 302,
+                "name":"1"
             },
             {
-                "id": 2101,
-                "setting_id":21,
-                "name":"",
-                "value":"2021"
+                "id": 303,
+                "name":"3"
             },
             {
-                "id": 2201,
-                "setting_id":21,
-                "name":"",
-                "value":"2022"
+                "id": 401,
+                "name":"virgule"
             },
             {
-                "id": 2401,
-                "setting_id":24,
-                "name":"",
-                "value":"11117"
+                "id": 402,
+                "name":"point"
             },
             {
-                "id": 2501,
-                "setting_id":25,
-                "name":"",
-                "value":"11111"
+                "id": 501,
+                "name":"1"
             },
             {
-                "id": 2601,
-                "setting_id":26,
-                "name":"",
-                "value":"11111"
+                "id": 502,
+                "name":"2"
             },
             {
-                "id": 2701,
-                "setting_id":27,
-                "name":"",
-                "value":"11113"
+                "id": 503,
+                "name":"3"
             },
             {
-                "id": 2801,
-                "setting_id":28,
-                "name":"",
-                "value":"11112"
+                "id": 601,
+                "name":"d/m/Y"
             },
             {
-                "id": 2901,
-                "setting_id":29,
-                "name":"",
-                "value":"11111"
+                "id": 602,
+                "name":"Y-m-d"
             },
             {
-                "id": 3001,
-                "setting_id":30,
-                "name":"",
-                "value":"11111"
+                "id": 603,
+                "name":"m/d/Y"
             },
             {
-                "id": 3101,
-                "setting_id":31,
-                "name":"",
-                "value":"11111"
+                "id": 701,
+                "name":"H:i"
             },
             {
-                "id": 3201,
-                "setting_id":32,
-                "name":"",
-                "value":"10"
+                "id": 801,
+                "name":"1"
+            },
+            {
+                "id": 901,
+                "name":"21,59 x 27,74"
+            },
+            {
+                "id": 902,
+                "name":"21 x 29,7"
+            },
+            {
+                "id": 903,
+                "name":"29,7 x 41,99"
+            },
+            {
+                "id": 904,
+                "name":"14,8 x 21"
+            },
+            {
+                "id": 1301,
+                "name":"USD"
+            },
+            {
+                "id": 1302,
+                "name":"EUR"
+            },
+            {
+                "id": 1401,
+                "name":"mètre"
+            },
+            {
+                "id": 1501,
+                "name":"kilogramme"
+            },
+            {
+                "id": 1601,
+                "name":"mètre cube"
+            },
+            {
+                "id": 1701,
+                "name":"mètre carré"
             }
         ]
     }

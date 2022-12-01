@@ -33,10 +33,11 @@ class HttpResponse extends HttpMessage {
         }
 
     }
+
     /**
-     * Sends a HTTP response to the output stream (stdout)
-     * This method can only be used with PHP context
-     * and is used as a helper to build the actual response of the current request
+     * Sends a HTTP response to the output stream (stdout).
+     * This method is meant to be used in conjunction with PHP context,
+     * and serves as helper to build the actual response of the current request.
      *
      */
     public function send() {
@@ -51,26 +52,43 @@ class HttpResponse extends HttpMessage {
         $headers = $this->getHeaders(true);
         foreach($headers as $header => $value) {
             // we'll set content length afterward
-            if($header == 'Content-Length') continue;
+            if($header == 'Content-Length') {
+                continue;
+            }
             // cookies are handled in a second pass
-            if($header == 'Cookie') continue;
+            if($header == 'Cookie') {
+                continue;
+            }
             header($header.': '.$value);
         }
 
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
             $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
+            // make sure the hostname does not contain a port number
+            $hostname = substr($hostname.':', 0, strpos($hostname.':', ':'));
             $params = $this->headers()->getCookieParams($cookie);
             $expires = (isset($params['expires']))?$params['expires']:time()+60*60*24*365;
             $path = (isset($params['path']))?$params['path']:'/';
             $domain = (isset($params['domain']))?$params['domain']:$hostname;
             $secure = (isset($params['secure']))?$params['secure']:false;
             $httponly = (isset($params['httponly']))?$params['httponly']:false;
-            // #todo - handle samesite (as of PHP 7.3)
-            $samesite = (isset($params['samesite']))?$params['samesite']:false;
-            setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
+            setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
+            // #todo - handle samesite (as of PHP 7.3)
+            /*
+            $samesite = (isset($params['samesite']) && in_array($params['samesite'], ['None', 'Lax', 'Strict']))?$params['samesite']:'None';
+            setcookie($name, $value, [
+                'expires'   => $expires,
+                'path'      => $path,
+                'domain'    => $domain,
+                'secure'    => $secure,
+                'httponly'  => $httponly,
+                'samesite'  => 'None',
+            ]);
+            */
         }
+
         // retrieve body
         $body = $this->body();
 

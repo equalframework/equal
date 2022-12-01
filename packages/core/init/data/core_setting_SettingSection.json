@@ -1,43 +1,57 @@
 [
+	{
+        "name": "core\\setting\\SettingSection",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "code": "locale",
+                "name": "Locale",
+                "description": "Regional settings"
+            },
+            {
+                "id": 2,
+                "code": "main",
+                "name": "Main",
+                "description": "General settings & Formats"
+            },
+            {
+                "id": 3,
+                "code": "security",
+                "name": "Security",
+                "description": "Security settings"
+            },
+            {
+                "id": 4,
+                "code": "units",
+                "name": "Units",
+                "description": "Measures and system units"
+            }
+       ]
+    },
     {
         "name": "core\\setting\\SettingSection",
         "lang": "fr",
         "data": [
             {
                 "id": 1,
-                "code": "locale",
                 "name": "Locale",
                 "description": "Paramètres régioniaux"
             },
             {
                 "id": 2,
-                "code": "main",
                 "name": "Général",
                 "description": "Paramètres généraux et de formats"
             },
             {
                 "id": 3,
-                "code": "security",
                 "name": "Sécurité",
                 "description": "Paramètres de sécurité"
             },
             {
                 "id": 4,
-                "code": "units",
                 "name": "Unités",
                 "description": "Unités de mesures et systèmes d'unités"
-            },
-            {
-                "id": 5,
-                "code": "invoice",
-                "name": "Facturation",
-                "description": "Paramètres pour la création des factures"
-            },
-            {
-                "id": 6,
-                "code": "booking",
-                "name": "Réservation",
-                "description": "Paramètres pour la création des réservations"
             }
        ]
     }

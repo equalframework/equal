@@ -144,7 +144,7 @@ foreach($classes as $class) {
         }
         elseif($description['type'] == 'many2many') {
             if(!isset($m2m_tables[$description['rel_table']])) {
-                $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+                $m2m_tables[$description['rel_table']] = array(str_replace('_', '', $description['rel_foreign_key']), str_replace('_', '', $description['rel_local_key']));
             }
         }
         $processed_columns[$table][$field] = true;
@@ -159,9 +159,8 @@ foreach($classes as $class) {
 
 foreach($m2m_tables as $table => $columns) {
     if(!$params['full']) {
-        $constraint_name = implode('_', $columns);
         $existing_constraints = $db->getTableConstraints($table);
-        if(in_array($constraint_name, $existing_constraints)) {
+        if(count(array_diff($columns, explode('_', $existing_constraints))) <= 0) {
             continue;
         }
     }

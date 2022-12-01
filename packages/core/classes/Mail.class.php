@@ -201,9 +201,16 @@ class Mail extends Model {
         // setup SMTP settings
         $mailer = new \Swift_Mailer($transport);
 
+        // #todo - store as setting
+        $max = 10;
+        $i = 0;
         // loop through messages
         foreach($queue as $file => $message) {
-
+            ++$i;
+            // prevent handling handling more than $max messages
+            if($i > $max) {
+                break;
+            }
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 
@@ -239,13 +246,15 @@ class Mail extends Model {
                     }
                     // send email
                     $mailer->send($envelope);
-                    // upon sucessful sending, remove the mail from the outbox
+                    // upon successful sending, remove the mail from the outbox
                     $filename = self::MESSAGE_FOLDER.'/'.$file;
                     unlink($filename);
                     // if the message is linked to a core\Mail object, update the latter's status
                     if(isset($message['id'])) {
                         self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
                     }
+                    // prevent flooding the SMTP
+                    usleep(100 *1000);
                 }
                 catch(\Exception $e) {
                     // sending failed:
