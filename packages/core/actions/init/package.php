@@ -96,7 +96,9 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
                     true);
             }
             catch(Exception $e) {
-                throw new Exception("Unable to initialize dependency package {$dependency}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+                if($e->getCode()) {
+                    throw new Exception("Unable to initialize dependency package {$dependency}: ".$e->getMessage(), QN_ERROR_UNKNOWN);
+                }
             }
         }
     }
