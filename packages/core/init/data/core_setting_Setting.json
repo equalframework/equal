@@ -1,5 +1,5 @@
 [
-{
+    {
         "name": "core\\setting\\Setting",
         "lang": "en",
         "data": [
@@ -87,7 +87,7 @@
                 "package": "core",
                 "form_control": "select",
                 "section_id": 2,
-                "description":"Installation mother company",
+                "description":"Installation main company",
                 "help": "Identifier of the main company of the current installation.",
                 "type": "integer"
             },
@@ -105,7 +105,7 @@
             {
                 "id": 10,
                 "code": "account_creation",
-                "title": "Création de compte",
+                "title": "Account creation",
                 "package": "core",
                 "form_control": "toggle",
                 "section_id": 3,
@@ -120,8 +120,8 @@
                 "package": "core",
                 "form_control": "toggle",
                 "section_id": 3,
-                "description":"Autoriser l'importation",
-                "help": "Autoriser les utilisateurs \u00e0 importer des donn\u00e9es depuis des fichiers  (CSV\/XLS\/XLSX\/ODS).",
+                "description":"Allow import",
+                "help": "Allow users to import data from files (CSV\/XLS\/XLSX\/ODS).",
                 "type": "boolean"
             },
             {
@@ -131,8 +131,8 @@
                 "package": "core",
                 "form_control": "toggle",
                 "section_id": 3,
-                "description":"Autoriser l'exportation",
-                "help": "Autoriser les utilisateurs \u00e0 exporter des donn\u00e9es vers des fichiers (CSV\/XLS\/PDF).",
+                "description":"Allow export",
+                "help": "Allow users to export data by downloading files (CSV\/XLS\/PDF).",
                 "type": "boolean"
             },
             {
@@ -143,7 +143,7 @@
                 "form_control": "select",
                 "section_id": 4,
                 "description":"Prices currency",
-                "help": "Devise \u00e0 utiliser pour les champs \u00e0 usage 'Price' (ISO 4217).",
+                "help": "Currency to use for fields of usage 'Price' (ISO 4217).",
                 "type": "string"
             },
             {
@@ -154,7 +154,7 @@
                 "form_control": "select",
                 "section_id": 4,
                 "description":"Length unit",
-                "help": "Unit\u00e9 par d\u00e9faut pour les mesures de longueur.",
+                "help": "Default unit for length measures.",
                 "type": "string"
             },
             {
@@ -165,7 +165,7 @@
                 "form_control": "select",
                 "section_id": 4,
                 "description":"Weight unit",
-                "help": "Unit\u00e9 par d\u00e9faut pour les mesures de poids (e.g. 'kg' kilogram, 'lb' pound).",
+                "help": "Default unit for weight measures (e.g. 'kg' kilogram, 'lb' pound).",
                 "type": "string"
             },
             {
@@ -176,7 +176,7 @@
                 "form_control": "select",
                 "section_id": 4,
                 "description":"Volume unit",
-                "help": "Unit\u00e9 par d\u00e9faut pour les unit\u00e9s de volume (e.g. 'm3' cubic meter, 'ft3' cubic foot).",
+                "help": "Default unit for volume measures (e.g. 'm3' cubic meter, 'ft3' cubic foot).",
                 "type": "string"
             },
             {
@@ -187,7 +187,7 @@
                 "form_control": "select",
                 "section_id": 4,
                 "description":"Surface unit",
-                "help": "Unit\u00e9 par d\u00e9faut pour les unit\u00e9s de surface (e.g. 'm2' square meter, 'ft2' square foot).",
+                "help": "Default unit for surface measures (e.g. 'm2' square meter, 'ft2' square foot).",
                 "type": "string"
             }
         ]
@@ -242,7 +242,7 @@
                 "id": 8,
                 "title": "Entreprise",
                 "description":"Entreprise de l'installation",
-                "help": "Identifiant de l'entreprise mère pour l'installation courante."
+                "help": "Identifiant de l'entreprise principale pour l'installation courante."
             },
             {
                 "id": 9,
