@@ -1,0 +1,14 @@
+{
+    "name": "Apps",
+    "description": "",
+    "checksum": "f3b85b67f6bad1de2ca0a8de965f4b3c",
+    "url": "/apps",
+    "icon": "",
+    "color": "",
+    "access": {
+        "groups": [
+            "users"
+        ]
+    },
+    "show_in_apps": false
+}

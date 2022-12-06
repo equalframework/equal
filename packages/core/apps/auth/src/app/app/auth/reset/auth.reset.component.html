@@ -1,0 +1,54 @@
+<div class="container">
+    <mat-card>
+        <mat-card-header>
+            <div mat-card-avatar><mat-icon>login</mat-icon></div>
+            <mat-card-title>{{'AUTH_RESET_TITLE' | translate}}</mat-card-title>
+            <mat-card-subtitle>{{'AUTH_RESET_SUBTITLE' | translate}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+                <div class="form-row">
+                    <mat-form-field appearance="fill" class="password">
+                        <mat-label>{{'AUTH_RESET_PASSWORD' | translate}}</mat-label>
+                        <input [type]="(hidepass)?'password':'text'" matInput formControlName="password" />
+                        <mat-icon matSuffix (click)="hidepass = !hidepass">{{(hidepass)?'visibility_off':'visibility'}}</mat-icon>
+                        <mat-error *ngIf="f.password.errors">{{'AUTH_ERROR_INVALID_PASSWORD' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                    <mat-form-field appearance="fill" class="password">
+                        <mat-label>{{'AUTH_RESET_CONFIRM' | translate}}</mat-label>
+                        <input [type]="(hideconfirm)?'password':'text'" matInput formControlName="confirm" />
+                        <mat-icon matSuffix (click)="hideconfirm = !hideconfirm">{{(hideconfirm)?'visibility_off':'visibility'}}</mat-icon>
+                        <mat-error *ngIf="f.confirm.errors">{{'AUTH_ERROR_CONFIRM_MISMATCH' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="actions" >
+                    <button mat-flat-button [class.spinner]="loading"  [disabled]="loading" color="primary">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        {{'AUTH_RESET_ACTION_SUBMIT' | translate}}
+                    </button>
+                    <button *ngIf="false" mat-flat-button >Register</button>
+                </div>
+
+                <div class="messages" *ngIf="submitted && signin_error">
+                    <div class="message" ><mat-icon>not_interested</mat-icon> <span>{{'AUTH_ERROR_INVALID_USERNAME_OR_PASSWORD' | translate}}</span></div>
+                </div>
+                <div class="messages" *ngIf="submitted && server_error">
+                    <div class="message" ><mat-icon>not_interested</mat-icon> <span>{{'AUTH_ERROR_SERVER_ERROR' | translate}}</span></div>
+                </div>
+
+                <div class="options">
+                    <span class="recover" (click)="onSignin()">{{'AUTH_RESET_ACTION_SIGNIN' | translate}}</span>
+                </div>
+
+            </form>
+        </mat-card-content>
+    </mat-card>
+    <div>
+        <div class="sb-logo"></div>
+    </div>
+</div>

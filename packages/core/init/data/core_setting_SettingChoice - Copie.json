@@ -1,0 +1,268 @@
+[
+    {
+        "name": "core\\setting\\SettingChoice",
+        "lang": "fr",
+        "data": [
+            {
+                "id": 101,
+                "setting_id":1,
+                "name":"virgule",
+                "value":","
+            },
+            {
+                "id": 102,
+                "setting_id":1,
+                "name":"point",
+                "value":"."
+            },
+            {
+                "id": 201,
+                "setting_id":2,
+                "name":"avant",
+                "value":"before"
+            },
+            {
+                "id": 202,
+                "setting_id":2,
+                "name":"après",
+                "value":"after"
+            },
+            {
+                "id": 301,
+                "setting_id":3,
+                "name":"",
+                "value":"1"
+            },
+            {
+                "id": 302,
+                "setting_id":3,
+                "name":"",
+                "value":"2"
+            },
+            {
+                "id": 303,
+                "setting_id":3,
+                "name":"",
+                "value":"3"
+            },
+            {
+                "id": 401,
+                "setting_id":4,
+                "name":"virgule",
+                "value":","
+            },
+            {
+                "id": 402,
+                "setting_id":4,
+                "name":"point",
+                "value":"."
+            },
+            {
+                "id": 501,
+                "setting_id":5,
+                "name":"",
+                "value":"1"
+            },
+            {
+                "id": 502,
+                "setting_id":5,
+                "name":"",
+                "value":"2"
+            },
+            {
+                "id": 503,
+                "setting_id":5,
+                "name":"",
+                "value":"3"
+            },
+            {
+                "id": 601,
+                "setting_id":6,
+                "name":"",
+                "value":"d/m/Y"
+            },
+            {
+                "id": 602,
+                "setting_id":6,
+                "name":"",
+                "value":"Y-m-d"
+            },
+            {
+                "id": 603,
+                "setting_id":6,
+                "name":"",
+                "value":"m/d/Y"
+            },
+            {
+                "id": 701,
+                "setting_id":7,
+                "name":"",
+                "value":"H:i"
+            },
+            {
+                "id": 801,
+                "setting_id":8,
+                "name":"",
+                "value":"1"
+            },
+            {
+                "id": 901,
+                "setting_id":9,
+                "name":"21,59 x 27,74",
+                "value":"US"
+            },
+            {
+                "id": 902,
+                "setting_id":9,
+                "name":"21 x 29,7",
+                "value":"A4"
+            },
+            {
+                "id": 903,
+                "setting_id":9,
+                "name":"29,7 x 41,99",
+                "value":"A3"
+            },
+            {
+                "id": 904,
+                "setting_id":9,
+                "name":"14,8 x 21",
+                "value":"A5"
+            },
+            {
+                "id": 1301,
+                "setting_id":13,
+                "name":"USD",
+                "value":"$"
+            },
+            {
+                "id": 1302,
+                "setting_id":13,
+                "name":"EUR",
+                "value":"€"
+            },
+            {
+                "id": 1401,
+                "setting_id":14,
+                "name":"mètre",
+                "value":"m"
+            },
+            {
+                "id": 1501,
+                "setting_id":15,
+                "name":"kilogramme",
+                "value":"kg"
+            },
+            {
+                "id": 1601,
+                "setting_id":16,
+                "name":"mètre cube",
+                "value":"m3"
+            },
+            {
+                "id": 1701,
+                "setting_id":17,
+                "name":"mètre carré",
+                "value":"m2"
+            },
+            {
+                "id": 2201,
+                "setting_id":22,
+                "name":"",
+                "value":"%4d(year)-%02d(org)-%03d(sequence)"
+            },
+            {
+                "id": 2301,
+                "setting_id":23,
+                "name":"",
+                "value":"%1d{center}%05d{sequence}"
+            },
+            {
+                "id": 1801,
+                "setting_id":18,
+                "name":"",
+                "value":"111"
+            },
+            {
+
+                "id": 1901,
+                "setting_id":19,
+                "name":"",
+                "value":"111"
+            },
+            {
+
+                "id": 2001,
+                "setting_id":20,
+                "name":"",
+                "value":"111"
+            },
+            {
+                "id": 2101,
+                "setting_id":21,
+                "name":"",
+                "value":"2021"
+            },
+            {
+                "id": 2201,
+                "setting_id":21,
+                "name":"",
+                "value":"2022"
+            },
+            {
+                "id": 2401,
+                "setting_id":24,
+                "name":"",
+                "value":"11117"
+            },
+            {
+                "id": 2501,
+                "setting_id":25,
+                "name":"",
+                "value":"11111"
+            },
+            {
+                "id": 2601,
+                "setting_id":26,
+                "name":"",
+                "value":"11111"
+            },
+            {
+                "id": 2701,
+                "setting_id":27,
+                "name":"",
+                "value":"11113"
+            },
+            {
+                "id": 2801,
+                "setting_id":28,
+                "name":"",
+                "value":"11112"
+            },
+            {
+                "id": 2901,
+                "setting_id":29,
+                "name":"",
+                "value":"11111"
+            },
+            {
+                "id": 3001,
+                "setting_id":30,
+                "name":"",
+                "value":"11111"
+            },
+            {
+                "id": 3101,
+                "setting_id":31,
+                "name":"",
+                "value":"11111"
+            },
+            {
+                "id": 3201,
+                "setting_id":32,
+                "name":"",
+                "value":"10"
+            }
+        ]
+    }
+]
