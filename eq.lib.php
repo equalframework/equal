@@ -906,7 +906,7 @@ namespace config {
                         if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
                             $value = decrypt(substr($value, 7));
                         }
-                        \define($name, $value);
+                        export($name, $value);
                     }
                     if(!\defined($name)) {
                         throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
