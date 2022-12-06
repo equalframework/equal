@@ -18,6 +18,12 @@
         "instant": true,
         "default": "core"
     },
+    "DEFAULT_APP": {
+        "type": "string",
+        "description": "Default App to request from default package.",
+        "instant": true,
+        "default": "welcome"
+    },
     "ROUTING_METHOD": {
         "type": "string",
         "description": "Method to use for parsing the URIs. Possible values are: 'ORM' or 'JSON' (router.json).",
@@ -136,21 +142,21 @@
     },
     "DB_PORT": {
         "type": "integer",
-        "description": "TCP/IP port for connecting to DB host. Defaut ports: MYSQL 3306, SQLSRV 1433",
+        "description": "TCP/IP port for connecting to DB host. Default ports: MYSQL 3306, SQLSRV 1433",
         "instant": true,
         "environment": "EQ_DB_PORT",
         "default": "3306"
     },
     "DB_USER": {
         "type": "string",
-        "description": "Login for authentifying on DB host.",
+        "description": "Login for authenticating on DB host.",
         "instant": true,
         "environment": "EQ_DB_USER",
         "default": "root"
     },
     "DB_PASSWORD": {
         "type": "string",
-        "description": "Password for authentifying on DB host.",
+        "description": "Password for authenticating on DB host.",
         "instant": true,
         "environment": "EQ_DB_PASSWORD",
         "default": "test"

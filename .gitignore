@@ -1,8 +1,8 @@
 vendor/
 log/*
-!log/.gitkeep 
+!log/.gitkeep
 cache/*
-!cache/.gitkeep 
+!cache/.gitkeep
 spool/*
 !spool/.gitkeep
 bin/*
@@ -22,3 +22,4 @@ public/*
 !public/index.php
 !public/console.php
 !public/assets
+public/assets/env/config.json
