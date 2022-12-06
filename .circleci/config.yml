@@ -16,7 +16,7 @@ jobs:
     steps:
       # install dependencies
       - run: apt-get update && apt-get -y install git
-      - run: docker-php-ext-install pdo pdo_mysql mysqli
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
       - run: docker-php-ext-enable mysqli
 
       - checkout:
