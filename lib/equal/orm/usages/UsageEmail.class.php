@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageEmail extends Usage {
 
-    public function getType(): string {
-        return 'email';
-    }
-
-    public function getSqlType(): string {
-        return 'varchar(255)';
-    }
-
     /**
      *
      *        supports:

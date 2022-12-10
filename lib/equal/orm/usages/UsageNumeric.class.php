@@ -10,32 +10,24 @@ use equal\locale\Locale;
 
 class UsageNumeric extends Usage {
 
-    public function getType(): string {
-        return 'numeric';
-    }
-
-    public function getSqlType(): string {
-        $len = $this->getLength();
-        switch($this->getSubtype()) {
-            case 'integer':
-                return ($len)?'int('.$len.')':'int(11)';
-            case 'real':
-                $parts = explode('.', $len);
-                $precision = (isset($parts[0]))?$parts[0]:10;
-                $scale = (isset($parts[1]))?$parts[1]:2;
-                return 'decimal('.$precision.','.$scale.')';
-            case 'hexadecimal':
-                return ($len)?'varchar('.$len.')':'varchar(255)';
-        }
-        return 'varchar(255)';
-    }
-
     public function getConstraints(): array {
         switch($this->getSubtype()) {
+            case 'boolean':
+                return [
+                    'not_integer' => [
+                        'message'   => 'Value is not a boolean.',
+                        'function'  =>  function($value) {
+                            if(!preg_match('/^[0-1]$/', (string) $value)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    ]
+                ];
             case 'integer':
                 return [
-                    'broken_usage' => [
-                        'message'   => 'Number does not match usage or length constraint.',
+                    'not_integer' => [
+                        'message'   => 'Value is not an integer.',
                         'function'  =>  function($value) {
                             $len = intval($this->getLength());
                             // if length is empty, default to 18 (max)
@@ -56,14 +48,12 @@ class UsageNumeric extends Usage {
                         0.00
                 */
                 return [
-                    'broken_usage' => [
-                        'message'   => 'Number does not match usage or length constraint.',
+                    'not_real' => [
+                        'message'   => 'Value does not comply with real number format.',
                         'function'  =>  function($value) {
-                            $len = intval($this->getLength());
                             // expected len format is `precision.scale`
-                            $parts = explode('.', $len);
-                            $scale = isset($parts[1])?$parts[1]:0;
-                            $integers = $parts[0] - $scale;
+                            $scale = $this->getScale();
+                            $integers = $this->getPrecision() - $scale;
                             if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $value)) {
                                 return false;
                             }

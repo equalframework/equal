@@ -13,34 +13,6 @@ class UsageText extends Usage {
         return 'text';
     }
 
-    public function getSqlType(): string {
-        $len = $this->getLength();
-        if($len == 'short') {
-            $len = 255;
-        }
-        if($len == 'medium') {
-            $len = 16777215;
-        }
-        else if($len == 'long') {
-            $len = 4294967295;
-        }
-        if(is_numeric($len)) {
-            if($len <= 255) {
-                return 'varchar('.$len.')';
-            }
-            else if($len <= 65535) {
-                return 'text';
-            }
-            else if($len <= 16777215) {
-                return 'mediumtext';
-            }
-            else if($len <= 4294967295) {
-                return 'longtext';
-            }
-        }
-        return 'text';
-    }
-
     public function getConstraints(): array {
         return [
             'size_exceeded' => [

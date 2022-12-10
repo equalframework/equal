@@ -6,7 +6,7 @@
 */
 namespace equal\db;
 
-class DBManipulator {
+class DBManipulator implements \equal\data\DataAdapterInterface {
 
     /**
      * DB server hostname.
@@ -156,7 +156,7 @@ class DBManipulator {
 
     /**
      * Returns the SQL type to use for a given ORM type.
-     * This method is meant to be overloaded by specific DBManipulator classes.
+     * This method is meant to be overloaded in children DBManipulator classes.
     */
     public function getSqlType($type) {
         return '';
@@ -218,4 +218,20 @@ class DBManipulator {
         $this->last_query = $query;
     }
 
+
+    /* Methods from DataAdapterInterface */
+
+    /**
+     * This method is meant to be overloaded in children DBManipulator classes.
+     */
+    public function adaptIn($value, $usage) {
+
+    }
+
+    /**
+     * This method is meant to be overloaded in children DBManipulator classes.
+     */
+    public function adaptOut($value, $usage) {
+
+    }
 }

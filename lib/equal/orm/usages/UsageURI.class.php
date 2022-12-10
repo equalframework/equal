@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageUri extends Usage {
 
-    public function getType(): string {
-        return 'uri';
-    }
-
-    public function getSqlType(): string {
-            return 'text';
-    }
-
     public function getConstraints(): array {
         switch($this->getSubtype()) {
             /*

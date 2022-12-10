@@ -11,33 +11,6 @@ use core\setting\Setting;
 
 class UsageDate extends Usage {
 
-    public function getType(): string {
-        return 'date';
-    }
-
-    public function getSqlType(): string {
-        $len = $this->getLength();
-        $type = 'INT';
-        switch($this->getSubtype()) {
-            case 'day':
-                // 2 digits
-                $type = 'TINYINT';
-                break;
-            case 'month':
-                // 2 digits
-                $type = 'TINYINT';
-                break;
-            case 'year':
-                // 4 digits
-                $type = 'SMALLINT';
-                break;
-            default:
-                // full date (no time)
-                $type = 'DATE';
-        }
-        return $type;
-    }
-
     /**
      */
     public function getConstraints(): array {

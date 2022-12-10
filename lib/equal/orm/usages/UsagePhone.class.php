@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsagePhone extends Usage {
 
-    public function getType(): string {
-        return 'phone';
-    }
-
-    public function getSqlType(): string {
-        return 'varchar(40)';
-    }
-
     public function getConstraints(): array {
         return [
             'invalid_phone' => [

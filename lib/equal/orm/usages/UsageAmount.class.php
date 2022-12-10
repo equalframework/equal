@@ -11,11 +11,7 @@ use core\setting\Setting;
 
 class UsageAmount extends Usage {
 
-    public function getType(): string {
-        return 'amount';
-    }
-
-    private function getScale() {
+    public function getScale(): int {
         $scale = intval($this->getLength());
         switch($this->getSubtype()) {
             case 'money':
@@ -29,26 +25,6 @@ class UsageAmount extends Usage {
                 break;
         }
         return $scale;
-    }
-
-    public function getSqlType(): string {
-        $precision = 10;
-        $scale = $this->getScale();
-        switch($this->getSubtype()) {
-            case 'money':
-                // default to decimal(13,4)
-                $precision = 17 - $scale;
-                break;
-            case 'percent':
-                // default to decimal(7,6)
-                $precision = $scale + 1;
-                break;
-            case 'rate':
-                // default to decimal(10,4)
-                $precision = 14 - $scale;
-                break;
-        }
-        return 'decimal('.$precision.','.$scale.')';
     }
 
     /**

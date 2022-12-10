@@ -7,28 +7,45 @@
 namespace equal\orm\usages;
 
 
+/**
+ * Abstract class from which all Usages inherit.
+ */
 abstract class Usage {
 
     /** @var string */
-    private $def = '';
+    private $usage_str = '';
 
-    /** @var string */
-    // subtype is a tree (ex: node1.node2.node3)
+    /**
+     * Usage main type.
+     * @var string
+     */
+    private $type = '';
+
+    /**
+     * Usage subtype.
+     * Subtype might have several nodes (ex: node1.node2.node3)
+     * @var string
+     */
     private $subtype = '';
 
     /** @var string */
     private $length = '';
 
-    abstract public function getSqlType(): string;
+    /** @var int */
+    private $scale = 0;
+
+
+    abstract public function getConstraints(): array;
+
 
     /**
      * Provides the generic (display) name of the type.
      */
-    abstract public function getType(): string;
+    final public function getType(): string {
+        return $this->type;
+    }
 
-    abstract public function getConstraints(): array;
-
-    final public function getSubtype() {
+    final public function getSubtype(): string {
         return $this->subtype;
     }
 
@@ -37,25 +54,50 @@ abstract class Usage {
     }
 
     /**
+     * Precision is a naming convention that only makes sense if Usage targets a number with floating point number.
+     * In such situation precision is expected to be an integer value completed with a scale (that defaults to 0).
+     * In all other situations, precision and length are synonyms and scale is always 0.
+     *
+     */
+    final public function getPrecision(): string {
+        return $this->length;
+    }
+
+    /**
+     * Provides the scale assigned to the usage instance.
+     * This method can be overloaded by children classes for handling subtypes with implicit scale.
+     */
+    public function getScale(): int {
+        return $this->scale;
+    }
+
+    /**
      * Associative array mapping accepted subtypes
      * @var array */
     private $variations = [];
 
-    final public function __construct(string $def) {
-        $this->def = $def;
-        // extract subtype and length
-        $parts = explode(':', $def);
-        $this->subtype = $parts[0];
-        // accepts various formats (single int ('255'), precision.scale ('5:3')), defaults to '0'.
-        $this->length = isset($parts[1])?$parts[1]:'0';
-    }
 
     /**
-     * Export a given value following the usage definition, according to given locale.
-     * If necessary, format is retrieved from the locale.json file of the core package.
-     *
-     * @return mixed     Returns the value adapted to the usage, according to a specific locale, if given.
-     */
-    abstract public function export($value, $lang='en'): string;
+     * @param string $usage_str   Usage string: string describing the usage.
+    */
+    public function __construct(string $usage_str) {
+
+        // check usage string consistency
+        if(!preg_match('/([a-z]+)\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
+            // error
+        }
+        else {
+            // store original usage string
+            $this->usage_str = $usage_str;
+
+            $this->type = $matches[1];
+            $this->subtype = $matches[2];
+            $tree = isset($matches[4])?$matches[4]:'';
+            // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+            $this->length = isset($matches[7])?$matches[7]:0;
+            $this->scale = isset($matches[8])?$matches[8]:0;
+        }
+
+    }
 
 }

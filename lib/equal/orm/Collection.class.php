@@ -197,7 +197,6 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = end($this->objects);
-        return $this->get_raw_object($object, $to_array);
         return ($to_array)?$this->get_raw_object($object, $to_array):$object;
     }
 
@@ -205,7 +204,7 @@ class Collection implements \Iterator, \Countable {
      * Provide the whole collection as a map (by default) or as an array.
      *
      * @param   $to_array   boolean    Flag to force conversion to an array (instead of a map). If set, the returned result is an of objects with keys holding indexes (and no ids).
-     * @return  array       (Associative) array holding objects of the colletion. If $to_array is set to true, sub-collections are recursively converted to arrays as well. If the collection is empty, an empty array is returned.
+     * @return  array       (Associative) array holding objects of the collection. If $to_array is set to true, sub-collections are recursively converted to arrays as well. If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
@@ -231,9 +230,10 @@ class Collection implements \Iterator, \Countable {
                 $result[$field] = $value->get($to_array);
             }
             elseif($value instanceof Model) {
-                $result[$field] = $value->toArray();
+                $result[$field] = $this->get_raw_object($value, $to_array);
             }
             else {
+                // #todo  - data adaption should occur here
                 $result[$field] = $value;
             }
         }
@@ -246,7 +246,7 @@ class Collection implements \Iterator, \Countable {
 
     /**
      * Initialize an empty Collection based on a given id.
-     * This is an alias of the `ids()` method for conenience when a single id is passed.
+     * This is an alias of the `ids()` method for convenience when a single id is passed.
      *
      * @return Collection Returns the Collection with a single empty object.
      */
@@ -318,16 +318,36 @@ class Collection implements \Iterator, \Countable {
      * @return Collection       current instance
      */
     public function adapt($to='txt', $lang=null) {
+        // this method should only set the adapter for adaptOut conversion
+        // actual conversion must not be done at this stage but only within the get() first() last() methods
+
+
+        /*
+            foreach($this->objects as $id => $object) {
+                $this->objects[$id][$field] = $this->adapt_object($object, $to, $lang);
+            }
+            return $this;
+        */
+        
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
-                // value is a child Collection
+                // value is a child Collection (relational field)
                 if($value instanceof Collection) {
                     $value->adapt($to, $lang);
                 }
                 // value is an object
                 elseif($value instanceof Model) {
                     // #todo
+                    /*
+                    $this->objects[$id][$field] = $this->adapt_object($value, $to, $lang);
+                    we shouldn't deal with Model but Collection with single item instead
+                    use another method adapt($object, to, lang)
+                    foreach($value as $field => $val) {
+                        $f = $value->getField($field);
+                        $value[$field] = $this->adapter->adaptOut($val, $f->getUsage());
+                    }
+                    */
                 }
                 // value is a field
                 else {
@@ -336,19 +356,25 @@ class Collection implements \Iterator, \Countable {
                         $type = $schema[$field]['result_type'];
                     }
 /*
+                    default adapter is for 'application/json'
+
                     // #todo
-                    $f = $this->orm->getField($this->class, $field); // retrieve descriptor from schema
+                    $f = $this->model->getField($field); // retrieve descriptor from schema
                     if(!$f) {
                         throw new Exception("missing_field", QN_ERROR_UNKNOWN);
                     }
                     // raises an Exception if field is invalid or cannot be adapted
-                    $this->objects[$id][$field] = $f->set($value)->adapt($to, $lang)->get();
+                    $this->objects[$id][$field] = $this->adapter->adaptOut($val, $f->getUsage());
 */
                     $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
                 }
             }
         }
         return $this;
+    }
+
+    private function adapt_object() {
+        
     }
 
     /**
@@ -648,7 +674,7 @@ class Collection implements \Iterator, \Countable {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
             }
 
-            // 4) remove deleted items, if `deleted` field was not explicitely requested
+            // 4) remove deleted items, if `deleted` field was not explicitly requested
             if(!in_array('deleted', $fields)) {
                 foreach($res as $oid => $odata) {
                     if($odata['deleted']) {
@@ -671,7 +697,7 @@ class Collection implements \Iterator, \Countable {
                 if(is_numeric($field)) {
                     continue;
                 }
-                // #todo - use orm::getField()
+                // #todo - use model::getField()
                 $target = $this->model->field($field);
                 $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
                 if(!in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
@@ -694,7 +720,7 @@ class Collection implements \Iterator, \Countable {
                     /** @var Collection */
                     $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
                     if($target_type == 'many2one') {
-                        // #memo - result might be null
+                        // #memo - result might be null or contain sub-collections
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
@@ -712,7 +738,7 @@ class Collection implements \Iterator, \Countable {
      * @param   string      $lang     Language for multilang fields.
      *
      * @return  Collection  returns the current instance (allowing calls chaining)
-     * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
+     * @throws  Exception   if some value could not be validated against class constraints (see {class}::getConstraints method)
      */
     public function update(array $values, $lang=null) {
         if(count($this->objects)) {
@@ -741,7 +767,7 @@ class Collection implements \Iterator, \Countable {
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
             if(!isset($values['state']) || $values['state'] == 'draft') {
-                // unless explicitely assigned (to another value than 'draft'), update operation always sets state to 'instance'
+                // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
                 $values['state'] = 'instance';
             }
             $res = $this->orm->update($this->class, $ids, $values, $lang);

@@ -22,7 +22,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Complete object schema: an associative array mapping fields names with their definition.
-     * Schema is the concatenation of spcecial-columns and custom-defined columns.
+     * Schema is the concatenation of special-columns and custom-defined columns.
      * @var array
      */
     private $schema;
@@ -43,7 +43,7 @@ class Model implements \ArrayAccess, \Iterator {
 
 
     /**
-     * Constructor: initiliases members vars and set fields to values, if given.
+     * Constructor: initializes members vars and set fields to values, if given.
      *
      */
     public final function __construct($values=[]) {
@@ -281,16 +281,21 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Returns fields as Field objects.
-     * #memo - $fields member might be uncomplete (fields isntances are created when requested for the first time)
+     * #memo - $fields member might be incomplete (fields instances are created when requested for the first time)
      *
      * @return Field[]    Associative array mapping fields names with their related Field instances.
-     * #deprecated
+     * @deprecated
      */
     public final function getFields() {
         return $this->fields;
     }
 
     public final function getField($field) {
+        $type = $this->schema[$field]['type'];
+        while($type == 'alias') {
+            $field = $this->schema[$field]['alias'];
+            $type = $this->schema[$field]['type'];
+        }
         if(!isset($this->fields[$field])) {
             if(isset($this->schema[$field])) {
                 $this->fields[$field] = Fields::create($this->schema[$field]);
@@ -365,7 +370,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Provide the list of unique rules (array of combinations of fields).
-     * This method can be overriden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
+     * This method can be overridden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
      *
      */
     public function getUnique() {
@@ -532,7 +537,6 @@ class Model implements \ArrayAccess, \Iterator {
         }
         return null;
     }
-
 
     public static function search(array $domain=[], array $params=[], $lang=null) {
         if(is_callable('equal\orm\Collections::getInstance')) {

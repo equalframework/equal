@@ -39,7 +39,6 @@ if(!$model) {
 
 $schema = $model->getSchema();
 
-
 $fields = [];
 
 foreach($schema as $field => $descr) {
@@ -51,7 +50,7 @@ foreach($schema as $field => $descr) {
 
 $output = [];
 
-$serie = [
+$series = [
     "name" => $entity,
     "lang" => $params['lang'],
     "data" => []
@@ -63,10 +62,10 @@ $values = $params['entity']::search([])
         ->get();
 
 foreach($values as $oid => $odata) {
-    $serie["data"][] = $odata;
+    $series["data"][] = $odata;
 }
 
-$output[] = $serie;
+$output[] = $series;
 
 $context->httpResponse()
         ->body($output)

@@ -1125,7 +1125,7 @@ class ObjectManager extends Service {
         //         /** @var \equal\orm\fields\Field */
         //         $f = $model->getField($class);
         //         $usage = $f->getUsage();
-        //         $constaints = $f->getConstraints();
+        //         $constraints = $f->getConstraints();
         //         foreach($constraints as $error_id => $constraint) {
         //             $fn = $constraint['function'];
         //             if(is_callable($fn)) {
