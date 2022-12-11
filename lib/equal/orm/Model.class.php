@@ -70,7 +70,7 @@ class Model implements \ArrayAccess, \Iterator {
         // get default values, set fields for default language, and mark fields as modified
         foreach($fields as $field) {
             // init related field instance
-            $this->fields[$field] = Fields::create($this->schema[$field]);
+            $this->fields[$field] = new Field($this->schema[$field]);
         }
         // set fields to default values
         $this->setDefaults($values);
@@ -298,7 +298,7 @@ class Model implements \ArrayAccess, \Iterator {
         }
         if(!isset($this->fields[$field])) {
             if(isset($this->schema[$field])) {
-                $this->fields[$field] = Fields::create($this->schema[$field]);
+                $this->fields[$field] = new Field($this->schema[$field]);
             }
         }
         return (isset($this->fields[$field]))?$this->fields[$field]:null;
