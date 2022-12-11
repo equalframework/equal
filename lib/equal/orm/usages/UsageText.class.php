@@ -9,10 +9,6 @@ namespace equal\orm\usages;
 
 class UsageText extends Usage {
 
-    public function getType(): string {
-        return 'text';
-    }
-
     public function getConstraints(): array {
         return [
             'size_exceeded' => [

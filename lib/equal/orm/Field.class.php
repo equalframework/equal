@@ -4,21 +4,18 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace equal\orm\fields;
+namespace equal\orm;
 
-use equal\orm\Usages;
+use equal\orm\UsageFactory;
 use equal\orm\usages\Usage;
 
-abstract class Field {
+class Field {
 
     /**
      * Descriptor of the field, as returned by Model::getColumns()
      * @var array
      */
     private $descriptor = [];
-
-    /** @var mixed */
-    private $value = null;
 
     /** @var Usage */
     private $usage = null;
@@ -62,34 +59,16 @@ abstract class Field {
 
     final protected function getUsage(): Usage {
         if(is_null($this->usage)) {
-            // use usage string if present
+            // use usage string from the descriptor if present
             if(isset($this->descriptor['usage'])) {
-                $this->usage = Usages::create($this->descriptor['usage']);
+                $this->usage = UsageFactory::create($this->descriptor['usage']);
             }
-            // otherwise, use the usage of which the field type is an alias
+            // otherwise, use the usage string of which the field type is an alias
             else {
-                $this->usage = Usages::create($this->getUsageString());
+                $this->usage = UsageFactory::create($this->getUsageString());
             }
         }
         return $this->usage;
-    }
-
-    /**
-     * Return the value of the field (PHP-typed var).
-     * @return mixed
-     */
-    final public function get() {
-        return $this->value;
-    }
-
-    /**
-     * @param mixed $value      Value to be assigned to the field.
-     * @return Field
-     * @throws Exception        In case given value is not compatible with targeted type.
-     */
-    final public function set($value): Field {
-        $this->value = $value;
-        return $this;
     }
 
     /**

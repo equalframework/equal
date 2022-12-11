@@ -10,11 +10,9 @@ use equal\organic\Service;
 use equal\fs\FSManipulator;
 
 
-class IntegerAdapter {
-    public function adapt($to, $from) {
-
-    }
-}
+/**
+ * #todo - deprecate (replace with DataAdapterProvider mechanism)
+ */
 class DataAdapter extends Service {
 
     private $config;
