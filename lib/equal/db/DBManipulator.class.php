@@ -6,7 +6,7 @@
 */
 namespace equal\db;
 
-class DBManipulator implements \equal\data\DataAdapterInterface {
+class DBManipulator {
 
     /**
      * DB server hostname.
@@ -218,20 +218,4 @@ class DBManipulator implements \equal\data\DataAdapterInterface {
         $this->last_query = $query;
     }
 
-
-    /* Methods from DataAdapterInterface */
-
-    /**
-     * This method is meant to be overloaded in children DBManipulator classes.
-     */
-    public function adaptIn($value, $usage) {
-
-    }
-
-    /**
-     * This method is meant to be overloaded in children DBManipulator classes.
-     */
-    public function adaptOut($value, $usage) {
-
-    }
 }

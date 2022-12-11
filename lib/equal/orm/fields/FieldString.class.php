@@ -11,14 +11,14 @@ use equal\locale\Locale;
 class FieldString extends Field {
 
     public function getConstraints(): array {
-        return array_merge(parent::getConstraints(), [
+        return  [
             'not_string_type' => [
                 'message'   => 'Value is not a string.',
                 'function'  =>  function($value) {
                     return (gettype($value) == 'string');
                 }
             ]
-        ]);
+        ];
     }
 
     protected function adaptFromSql($value): void {

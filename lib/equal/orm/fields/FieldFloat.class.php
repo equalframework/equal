@@ -14,14 +14,14 @@ class FieldFloat extends Field {
      * Parent method is in charge of fetching the constraints from the usage, if any.
      */
     public function getConstraints(): array {
-        return array_merge(parent::getConstraints(), [
+        return [
             'not_float_type' => [
                 'message'   => 'Value is not a floating point number.',
                 'function'  =>  function($value) {
                     return (gettype($value) == 'double');
                 }
             ]
-        ]);
+        ];
     }
 
     protected function adaptToTxt($lang='en'): void {

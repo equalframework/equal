@@ -6,19 +6,32 @@
 */
 namespace equal\orm;
 
-use equal\orm\usages\UsageCurrency;
-use equal\orm\usages\UsageText;
+use equal\orm\usages\{
+        Usage,
+        UsageAmount,
+        UsageCountry,
+        UsageCurrency,
+        UsageDate,
+        UsageEmail,
+        UsageImage,
+        UsageLanguage,
+        UsageNumeric,
+        UsagePassword,
+        UsagePhone,
+        UsageText
+    };
+
 
 /**
  * Factory for providing Usage instances.
  *
  */
-class Usages {
+class UsageFactory {
 
     public function __construct() {
     }
 
-    public static function create(string $usage_str) {
+    public static function create(string $usage_str): Usage {
 
         // check usage string consistency
         if(!preg_match('/([a-z]+)\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
@@ -66,7 +79,6 @@ class Usages {
             case 'uri':
                 break;
         }
-
         return null;
     }
 

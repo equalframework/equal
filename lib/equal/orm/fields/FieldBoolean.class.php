@@ -10,19 +10,15 @@ use equal\locale\Locale;
 
 class FieldBoolean extends Field {
 
-    public function getSqlType(): string {
-        return 'tinyint(4)';
-    }
-
     public function getConstraints(): array {
-        return array_merge(parent::getConstraints(), [
+        return [
             'not_bool_type' => [
                 'message'   => 'Value is not a bool number.',
                 'function'  =>  function($value) {
                     return (gettype($value) == 'boolean');
                 }
             ]
-        ]);
+        ];
     }
 
     protected function adaptFromSql($value): void {
