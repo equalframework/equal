@@ -56,7 +56,7 @@ class ObjectManager extends Service {
     private $packages;
 
     /**
-     * String holding the serialized value of the latest error that occured (to be used in addition with error codes)
+     * String holding the serialized value of the latest error that occurred (to be used in addition with error codes)
      * @var string
      */
     private $last_error;
@@ -96,7 +96,6 @@ class ObjectManager extends Service {
         'float'         => array('type'),
         'string'        => array('type'),
         'text'          => array('type'),
-        'html'          => array('type'),
         'date'          => array('type'),
         'time'          => array('type'),
         'datetime'      => array('type'),
