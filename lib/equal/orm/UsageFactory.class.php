@@ -15,7 +15,7 @@ use equal\orm\usages\{
         UsageEmail,
         UsageImage,
         UsageLanguage,
-        UsageNumeric,
+        UsageNumber,
         UsagePassword,
         UsagePhone,
         UsageText
@@ -34,20 +34,17 @@ class UsageFactory {
     public static function create(string $usage_str): Usage {
 
         // check usage string consistency
-        if(!preg_match('/([a-z]+)\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
             // error
         }
 
         $type = $matches[1];
-        $subtype = $matches[2];
-        $tree = isset($matches[4])?$matches[4]:'';
-        $length = isset($matches[7])?$matches[7]:'';
-        $scale = isset($matches[8])?$matches[8]:'';
+        $subtype = $matches[4];
 
         switch($type) {
-            case 'amount':
-                return new UsageAmount($usage_str);
             // string usages
+            case 'text':
+                return new UsageText($usage_str);
             case 'coordinate':
                 break;
             case 'country':
@@ -65,15 +62,15 @@ class UsageFactory {
                 return new UsageImage($usage_str);
             case 'language':
                 return new UsageLanguage($usage_str);
-            // number usages
-            case 'numeric':
-                return new UsageNumeric($usage_str);
+            // numeric usages
+            case 'amount':
+                return new UsageAmount($usage_str);
+            case 'number':
+                return new UsageNumber($usage_str);
             case 'password':
                 return new UsagePassword($usage_str);
             case 'phone':
                 return new UsagePhone($usage_str);
-            case 'text':
-                return new UsageText($usage_str);
             case 'time':
                 break;
             case 'uri':
