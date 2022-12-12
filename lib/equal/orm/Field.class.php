@@ -43,16 +43,16 @@ class Field {
      */
     protected function getUsageString(): string {
         static $map = [
-            'boolean'       => 'numeric/boolean',
-            'integer'       => 'numeric/integer:9',
-            'float'         => 'numeric/real:10.2',
+            'boolean'       => 'number/boolean',
+            'integer'       => 'number/integer:9',
+            'float'         => 'number/real:10.2',
             'string'        => 'text/plain:255',
             'text'          => 'text/plain:32000',
             'date'          => 'date/plain',
-            'time'          => 'numeric/integer:9',
+            'time'          => 'number/integer:9',
             'datetime'      => 'date/plain',
             'binary'        => 'binary/plain:64000000',
-            'many2one'      => 'numeric/integer:9'
+            'many2one'      => 'number/integer:9'
         ];
         return $map[$this->type];
     }
