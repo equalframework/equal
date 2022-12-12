@@ -801,7 +801,7 @@ namespace config {
                     $result[$param] = $adapter->adapt($body[$param], $config['type']);
                     /*
                     // convert value from input format + validate type and usage constraints
-                    $f = Fields::create($config);
+                    $f = new Field($config);
                     // raises an Exception if assignment is not possible
                     $f->set($body[$param], 'json'); // not explicit type, but Content-Type from HTTP REQUEST
                     try {
