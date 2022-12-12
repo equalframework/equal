@@ -27,7 +27,7 @@ class Scheduler extends Service {
      * Runs a batch of scheduled tasks.
      *
      * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
-     * For recurring tasks we update the moment field to the next time, accoring to repeat axis and repeat step.
+     * For recurring tasks we update the moment field to the next time, according to repeat axis and repeat step.
      * Non-recurring tasks are deleted once they've been run.
      *
      * #memo - Scheduler always operates as root user.
@@ -35,7 +35,7 @@ class Scheduler extends Service {
     public function run() {
         $orm = $this->container->get('orm');
 
-        $tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['id' => 'asc'], 0, 10);
+        $tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['moment' => 'asc'], 0, 10);
 
         if($tasks_ids > 0) {
             $now = time();
@@ -48,7 +48,7 @@ class Scheduler extends Service {
                         \eQual::run('do', $task['controller'], $body, true);
                     }
                     catch(\Exception $e) {
-                        // error occured during execution
+                        // error occurred during execution
                     }
                     // update task, if recurring
                     if($task['is_recurring']) {
