@@ -8,7 +8,7 @@ namespace equal\orm\usages;
 
 use equal\locale\Locale;
 
-class UsageNumeric extends Usage {
+class UsageNumber extends Usage {
 
     public function getConstraints(): array {
         switch($this->getSubtype()) {
