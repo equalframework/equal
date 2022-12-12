@@ -12,7 +12,7 @@ class FieldInteger extends Field {
 
     public function __construct(array $descriptor) {
         $this->type = 'integer';
-        parent::__construct($descriptor);
+        // parent::__construct($descriptor);
     }
 
 
