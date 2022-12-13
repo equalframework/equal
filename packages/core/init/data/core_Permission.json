@@ -2,7 +2,7 @@
     {
         "name": "core\\Permission",
         "lang": "en",
-		"description": "assign READ on common objects",
+		"description": "Assign READ on common objects.",
         "data": [
             {
                 "class_name": "core\\*",
