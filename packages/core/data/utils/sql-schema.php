@@ -144,7 +144,7 @@ foreach($classes as $class) {
         }
         elseif($description['type'] == 'many2many') {
             if(!isset($m2m_tables[$description['rel_table']])) {
-                $m2m_tables[$description['rel_table']] = array(str_replace('_', '', $description['rel_foreign_key']), str_replace('_', '', $description['rel_local_key']));
+                $m2m_tables[$description['rel_table']] = [ $description['rel_foreign_key'],  $description['rel_local_key'] ];
             }
         }
         $processed_columns[$table][$field] = true;
@@ -152,7 +152,7 @@ foreach($classes as $class) {
 
     if(method_exists($model, 'getUnique')) {
         // #memo - Classes are allowed to override the getUnique method from their parent class.
-        // Therefore, we cannot apply parent unicity constraints on parent table since it would also applies on all inherited classes.
+        // Therefore, we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
     }
 
 }
