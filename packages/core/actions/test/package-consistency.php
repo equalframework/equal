@@ -381,16 +381,15 @@ if(!$db) {
 $tables_map = array_fill_keys($db->getTables(), true);
 
 $allowed_types_associations = [
-    'boolean' 		=> array('bool', 'tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
+    'boolean' 		=> array('bool', 'bit', 'tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
     'integer' 		=> array('tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
-    'float' 		=> array('float', 'decimal'),
-    'string' 		=> array('char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'blob', 'mediumblob'),
+    'float' 		=> array('float', 'decimal', 'real'),
+    'string' 		=> array('char', 'varchar', 'nvarchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'blob', 'mediumblob'),
     'text' 			=> array('tinytext', 'text', 'mediumtext', 'longtext', 'blob'),
     'html' 			=> array('tinytext', 'text', 'mediumtext', 'longtext', 'blob'),
     'date' 			=> array('date', 'datetime'),
     'time' 			=> array('time'),
-    'datetime' 		=> array('datetime'),
-    'selection' 	=> array('char', 'varchar'),
+    'datetime' 		=> array('datetime', 'datetime2'),
     'file'  		=> array('blob', 'mediumblob', 'longblob'),
     'binary' 		=> array('blob', 'mediumblob', 'longblob'),
     'many2one' 		=> array('int')
