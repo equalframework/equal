@@ -75,21 +75,19 @@ class Scheduler extends Service {
      */
     public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {
         $orm = $this->container->get('orm');
-        trigger_error("scheduling job", E_USER_WARNING);
+        trigger_error("scheduling job", QN_REPORT_INFO);
 
-        if($moment > time()) {
-            $orm->create('core\Task', [
-                'name'          => $name,
-                'moment'        => $moment,
-                'controller'    => $controller,
-                'params'        => json_encode($params),
-                'is_recurring'  => $recurring
-            ]);
-        }
+        $orm->create('core\Task', [
+            'name'          => $name,
+            'moment'        => $moment,
+            'controller'    => $controller,
+            'params'        => json_encode($params),
+            'is_recurring'  => $recurring
+        ]);
     }
 
     /**
-     * Cancels (delete) a scheduled task.
+     * Cancels a scheduled task (by deleting it).
      * #memo - Scheduler always operates as root user.
      *
      * @param   string    $name         Name of the task to cancel.
