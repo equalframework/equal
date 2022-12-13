@@ -158,12 +158,6 @@ foreach($classes as $class) {
 }
 
 foreach($m2m_tables as $table => $columns) {
-    if(!$params['full']) {
-        $existing_constraints = $db->getTableConstraints($table);
-        if(count($existing_constraints) && count(array_diff($columns, explode('_', $existing_constraints))) <= 0) {
-            continue;
-        }
-    }
     // fetch existing columns
     $existing_columns = $db->getTableColumns($table);
     // create table if not exist
