@@ -35,14 +35,11 @@ list($params, $providers) = announce([
 
 $result = [];
 
-// 2) populate core_user table with demo data
 $failed = false;
 $tests_path = "packages/{$params['package']}/tests";
 
 if(is_dir($tests_path)) {
-
     foreach (glob($tests_path."/*.php") as $filename) {
-
         include($filename);
         $tester = new Tester($tests);
         $body = $tester->test($params['test_id'])->toArray();

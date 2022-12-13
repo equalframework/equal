@@ -25,8 +25,7 @@ $tests = [
                                             ]);
                                             $auth = $providers['equal\auth\AuthenticationManager'];
                                             return ( is_object($auth) && ($auth instanceof equal\auth\AuthenticationManager) );
-                                        },
-
+                                        }
                 ),
     '0102' => array(
                 'description'       =>  "Get auth provider using custom registered name",
@@ -38,7 +37,7 @@ $tests = [
                                             ]);
                                             $auth = $providers['@@testAuth'];
                                             return ( is_object($auth) && ($auth instanceof equal\auth\AuthenticationManager));
-                                        },
+                                        }
 
                 ),
 
@@ -50,7 +49,7 @@ $tests = [
                 'test'              => function (){
                                             $om = &ObjectManager::getInstance();
                                             return (is_object($om) && ($om instanceof equal\orm\ObjectManager));
-                                        },
+                                        }
                 ),
 
     '1100' => array(
@@ -61,7 +60,7 @@ $tests = [
                                             $om1 = &ObjectManager::getInstance();
                                             $om2 = &ObjectManager::getInstance();
                                             return ($om1 === $om2);
-                                        },
+                                        }
                 ),
 
     //21xx : calls related to the read method
@@ -86,7 +85,7 @@ $tests = [
                                                 $res[$oid] = $object->toArray();
                                             }
                                             return $res;
-                                        },
+                                        }
                 ),
 
     '2101' => array(
@@ -107,10 +106,10 @@ $tests = [
                                                     $res[$oid] = $object->toArray();
                                                 }
                                                 return $res;
-                                            },
+                                            }
                     ),
     '2102' => array(
-                    'description'       =>  "Requesting User object by pasing a string as id",
+                    'description'       =>  "Requesting User object by passing a string as id",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => array(
@@ -127,7 +126,7 @@ $tests = [
                                                     $res[$oid] = $object->toArray();
                                                 }
                                                 return $res;
-                                            },
+                                            }
                     ),
 
     '2103' => array(
@@ -137,7 +136,7 @@ $tests = [
                     'test'              =>  function (){
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', 0, array('language','firstname','lastname'));
-                                             },
+                                            }
                     ),
 
     '2104' => array(
@@ -159,7 +158,7 @@ $tests = [
                                                 }
                                                 return $res;
 
-                                            },
+                                            }
                     ),
 
     '2105' => array(
@@ -169,7 +168,7 @@ $tests = [
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', array(), array('language','firstname','lastname'));
-                                            },
+                                            }
                     ),
 
     '2110' => array(
@@ -179,7 +178,7 @@ $tests = [
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\User');
-                                            },
+                                            }
                     ),
     '2120' => array(
                     'description'       =>  "Call ObjectManager::read with wrong \$ids parameters",
@@ -188,16 +187,16 @@ $tests = [
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\User', 0);
-                                            },
+                                            }
                     ),
     '2130' => array(
-                    'description'       =>  "Call ObjectManager::read some unexisting object from non-existing class",
+                    'description'       =>  "Call ObjectManager::read some non-existing object from non-existing class",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  QN_ERROR_UNKNOWN_OBJECT,
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\Foo', array('1'), array('bar'));
-                                            },
+                                            }
                     ),
 
     '2140' => array(
@@ -216,10 +215,10 @@ $tests = [
                                                     $res[$oid] = $object->toArray();
                                                 }
                                                 return $res;
-                                            },
+                                            }
                     ),
     '2150' => array(
-                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : unexisting field name",
+                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  [
                                                 '1' => []
@@ -232,10 +231,10 @@ $tests = [
                                                     $res[$oid] = $object->toArray();
                                                 }
                                                 return $res;
-                                            },
+                                            }
                     ),
     '2151' => array(
-                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : unexisting field name",
+                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array('1' => array('firstname' => 'root') ),
                     'test'              =>  function () {
@@ -258,13 +257,13 @@ $tests = [
                                                 global $dummy_user_id;
                                                 $om = ObjectManager::getInstance();
                                                 $dummy_user_id = $om->create('core\User', [
-                                                                                'login'     => 'dummy@example.com',
-                                                                                'password'  => md5('test'),
-                                                                                'firstname' => 'foo',
-                                                                                'lastname'  => 'bar'
-                                                                                ]);
+                                                        'login'     => 'dummy@example.com',
+                                                        'password'  => md5('test'),
+                                                        'firstname' => 'foo',
+                                                        'lastname'  => 'bar'
+                                                    ]);
                                                 return $dummy_user_id;
-                                            },
+                                            }
                     ),
 
     '2220' => array(
@@ -287,12 +286,14 @@ $tests = [
     '2401' => array(
                     'description'       =>  "Remove a user (no validation)",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array(&$GLOBALS['dummy_user_id']),
-                    'test'              =>  function () {
-                                                global $dummy_user_id;
-                                                $om = ObjectManager::getInstance();
-                                                return $om->remove('core\User', $dummy_user_id, true);
+                    'assert'            =>  function($result) {
+                                                return ($result > 0);
                                             },
+                    'test'              =>  function () {
+                                                $om = ObjectManager::getInstance();
+                                                $dummy_user_id = $om->search('core\Group', ['login', '=', 'dummy@example.com']);
+                                                return $om->remove('core\User', $dummy_user_id, true);
+                                            }
                     ),
 
     //25xx : calls related to the search method
@@ -308,10 +309,10 @@ $tests = [
                                             }
                     ),
     '2502' => array(
-                    'description'       => "Search an object with invalid clause 'ilike' (non-existing field)",
-                    'return'            => array('integer', 'array'),
-                    'expected'          => QN_ERROR_INVALID_PARAM,
-                    'test'              => function () {
+                    'description'       =>  "Search an object with invalid clause 'ilike' (non-existing field)",
+                    'return'            =>  array('integer', 'array'),
+                    'expected'          =>  QN_ERROR_INVALID_PARAM,
+                    'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->search('core\Group', array(array(array('badname', 'ilike', '%Default%'))));
                                             }
