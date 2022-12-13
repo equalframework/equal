@@ -160,7 +160,7 @@ foreach($classes as $class) {
 foreach($m2m_tables as $table => $columns) {
     if(!$params['full']) {
         $existing_constraints = $db->getTableConstraints($table);
-        if(count(array_diff($columns, explode('_', $existing_constraints))) <= 0) {
+        if(count($existing_constraints) && count(array_diff($columns, explode('_', $existing_constraints))) <= 0) {
             continue;
         }
     }
