@@ -370,20 +370,15 @@ foreach($classes as $class) {
 if(is_file('packages/'.$params['package'].'/config.inc.php')) include('packages/'.$params['package'].'/config.inc.php');
 // reminder: constants already exported : cannot redefine constants using config\export_config()
 
-$db = &DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
+// retrieve connection object
+$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
-if(!$db->connected()) {
-    if($db->connect() == false) {
-        die('FATAL - Unable to connect to database');
-    }
+if(!$db) {
+    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
 }
 
 // load database tables
-$tables = array();
-$res = $db->sendQuery("show tables;");
-while($row = $db->fetchRow($res)) {
-    $tables[$row[0]] = true;
-}
+$tables_map = array_fill_keys($db->getTables(), true);
 
 $allowed_types_associations = [
     'boolean' 		=> array('bool', 'tinyint', 'smallint', 'mediumint', 'int', 'bigint'),
@@ -416,30 +411,30 @@ foreach($classes as $class) {
     $table = $orm->getObjectTableName($entity);
 
     // 1) verify that the DB table exists
-    if(!isset($tables[$table])) {
+    if(!isset($tables_map[$table])) {
         $result[] = "ERROR - DBM - Class $class: Associated table ({$table}) does not exist in database ($class_filename)";
         $is_error = true;
         continue;
     }
 
     // load DB schema
-    $db_schema = array();
-    $res = $db->sendQuery("show full columns from `{$table}`;");
-    while($row = $db->fetchArray($res)) {
-        // we dont need the length, if present
-        $db_type = explode('(', $row['Type']);
-        $db_schema[$row['Field']] = array('type'=>$db_type[0]);
-    }
+    $db_schema = $db->getTableSchema($table);
 
     $simple_fields = array();
     $m2m_fields = array();
     foreach($schema as $field => $description) {
-        if(in_array($description['type'], $orm::$simple_types)) $simple_fields[] = $field;
-        // handle the 'store' attrbute
-        else if(in_array($description['type'], array('computed', 'related'))) {
-            if(isset($description['store']) && $description['store']) $simple_fields[] = $field;
+        if(in_array($description['type'], $orm::$simple_types)) {
+            $simple_fields[] = $field;
         }
-        else if($description['type'] == 'many2many') $m2m_fields[] = $field;
+        // handle the 'store' attribute
+        elseif(in_array($description['type'], array('computed', 'related'))) {
+            if(isset($description['store']) && $description['store']) {
+                $simple_fields[] = $field;
+            }
+        }
+        elseif($description['type'] == 'many2many') {
+            $m2m_fields[] = $field;
+        }
 
         if(isset($description['onupdate'])) {
             $parts = explode('::', $description['onupdate']);
@@ -484,7 +479,7 @@ foreach($classes as $class) {
         // 4) verify that the DB table exists
         $table_name = $schema[$field]['rel_table'];
 
-        if(!isset($tables[$table_name])) {
+        if(!isset($tables_map[$table_name])) {
             $result[] = "ERROR - DBM - Class $class: Relational table ($table_name) specified by field {$field} does not exist in database ($class_filename)";
             $is_error = true;
         }
