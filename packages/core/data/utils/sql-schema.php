@@ -162,6 +162,9 @@ foreach($m2m_tables as $table => $columns) {
     $existing_columns = $db->getTableColumns($table);
     // create table if not exist
     $result[] = $db->getQueryCreateTable($table);
+    if(!$params['full'] && count($existing_columns) && count(array_diff($columns, $existing_columns)) <= 0) {
+        continue;
+    }
     foreach($columns as $column) {
         if(in_array($column, $existing_columns)) {
             continue;
