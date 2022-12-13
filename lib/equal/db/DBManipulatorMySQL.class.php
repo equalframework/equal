@@ -99,6 +99,33 @@ class DBManipulatorMySQL extends DBManipulator {
         $this->sendQuery($query);
     }
 
+    public function getTables() {
+        $tables = [];
+        $query = "SHOW TABLES;";
+        $res = $this->sendQuery($query);
+        while ($row = $this->fetchRow($res)) {
+            $tables[] = $row[0];
+        }
+        return $tables;
+    }
+
+    public function getTableSchema($table_name) {
+        $schema = [];
+        // expected properties: Field, Type, Collation, Null, Default (not used: Key, Extra, Privileges, Comment)
+        $query = "SHOW FULL COLUMNS FROM `{$table_name}`;";
+        $res = $this->sendQuery($query);
+        while($row = $this->fetchArray($res)) {
+            $field = $row['Field'];
+            $schema[$field] = [
+                'type'          => substr($row['Type'], 0, strpos($row['Type'].'(', '(')),
+                'collation'     => $row['Collation'],
+                'nullable'      => $row['Null'],
+                'default'       => $row['Default']
+            ];
+        }
+        return $schema;
+    }
+
     public function getTableColumns($table_name) {
         $query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='{$this->db_name}' AND TABLE_NAME = '$table_name';";
         $res = $this->sendQuery($query);

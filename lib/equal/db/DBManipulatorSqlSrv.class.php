@@ -117,6 +117,33 @@ class DBManipulatorSqlSrv extends DBManipulator {
         $this->sendQuery($query, 'create');
     }
 
+    public function getTables() {
+        $tables = [];
+        $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';";
+        $res = $this->sendQuery($query);
+        while ($row = $this->fetchArray($res)) {
+            $tables[] = $row['TABLE_NAME'];
+        }
+        return $tables;
+    }
+
+    public function getTableSchema($table_name) {
+        $schema = [];
+        // expected properties: COLUMN_NAME, DATA_TYPE, COLLATION_NAME, IS_NULLABLE, COLUMN_DEFAULT
+        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+        $res = $this->sendQuery($query);
+        while($row = $this->fetchArray($res)) {
+            $field = $row['COLUMN_NAME'];
+            $schema[$field] = [
+                'type'          => $row['DATA_TYPE'],
+                'collation'     => $row['COLLATION_NAME'],
+                'nullable'      => $row['IS_NULLABLE'],
+                'default'       => $row['COLUMN_DEFAULT']
+            ];
+        }
+        return $schema;
+    }
+
     public function getTableColumns($table_name) {
         $query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_CATALOG = '{$this->db_name}' AND  TABLE_NAME = '$table_name';";
         $res = $this->sendQuery($query);
