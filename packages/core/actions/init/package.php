@@ -121,7 +121,7 @@ foreach($queries as $query) {
 
 // check for missing columns (for classes with inheritance, we must check against non-yet created fields)
 
-/*
+
 $queries = [];
 $m2m_tables = [];
 
@@ -224,7 +224,7 @@ foreach($m2m_tables as $table => $columns) {
 foreach($queries as $query) {
     $db->sendQuery($query);
 }
-*/
+
 
 /*  end-tables_init */
 
