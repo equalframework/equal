@@ -1063,6 +1063,8 @@ namespace config {
                 }
 
                 // force timezone to UTC
+                // #memo - this is to (avoid being impacted by daylight saving offset
+                // #memo - we expect the DBMS to store dates in UTC as well
                 date_default_timezone_set('UTC');
 
                 if(!$root) {
