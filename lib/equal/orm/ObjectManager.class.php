@@ -613,7 +613,7 @@ class ObjectManager extends Service {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
 
-                        if($res = $this->call($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
+                        if($res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
