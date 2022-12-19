@@ -205,6 +205,13 @@ class DataAdapter extends Service {
                                     else {
                                         // convert ISO8601 to timestamp
                                         $value = strtotime($value);
+                                        $offset = date('H', $value)*3600 + date('i', $value)*60 + date('s', $value);
+                                        // if timestamp holds and offset (not midgnight), then adapt it to match the target date
+                                        if($offset > 12*3600) {
+                                            // we don't mind about the time and want the actual UTC date
+                                            $diff = 24*3600 - $offset;
+                                            $value += $diff;
+                                        }
                                         if($value === false) {
                                             // throw new \Exception(serialize(["not_valid_date" => "Format inconvertible to date."]), QN_ERROR_INVALID_PARAM);
                                             return null;
@@ -219,7 +226,7 @@ class DataAdapter extends Service {
                                     if(is_null($value)) {
                                         return null;
                                     }
-                                    // return date as a ISO 8601 formatted string
+                                    // return date as a ISO 8601 formatted string (UTC)
                                     return date("c", $value);
                                 },
                     'sql' =>    function ($value) {
@@ -234,13 +241,9 @@ class DataAdapter extends Service {
                                     if(is_null($value)) {
                                         return null;
                                     }
-                                    // return date as a timestamp
-                                    $tz = date_default_timezone_get();
-                                    date_default_timezone_set('UTC');
+                                    // return date as a timestamp (UTC) of the target date at midnight
                                     list($year, $month, $day) = sscanf($value, "%d-%d-%d");
-                                    $res = mktime(0, 0, 0, $month, $day, $year);
-                                    date_default_timezone_set($tz);
-                                    return $res;
+                                    return mktime(0, 0, 0, $month, $day, $year);
                                 }
                 ]
             ],
@@ -285,13 +288,8 @@ class DataAdapter extends Service {
                                         return null;
                                     }
                                     // return SQL date as a timestamp
-                                    // avoid being impacted by daylight saving offset, if any
-                                    $tz = date_default_timezone_get();
-                                    date_default_timezone_set('UTC');
                                     list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
-                                    $res = mktime($hour, $minute, $second, $month, $day, $year);
-                                    date_default_timezone_set($tz);
-                                    return $res;
+                                    return mktime($hour, $minute, $second, $month, $day, $year);
                                 }
                 ]
             ],
@@ -610,19 +608,19 @@ class DataAdapter extends Service {
         ];
     }
 
-    private function &getMethod($from, $to, $type) {
+	private function &getMethod($from, $to, $type) {
         if( !isset($this->config[$type][$from][$to]) ) {
             $this->config[$type][$from][$to] = function ($value) { return $value; };
         }
-        return $this->config[$type][$from][$to];
-    }
+		return $this->config[$type][$from][$to];
+	}
 
     /**
      * Override a given adaptation method.
      *
      *
      */
-    public function setMethod($from, $to, $type, $method) {
+	public function setMethod($from, $to, $type, $method) {
         if(!is_callable($method)) {
             // warning QN_ERROR_INVALID_PARAM
         }
@@ -637,10 +635,10 @@ class DataAdapter extends Service {
             $this->config[$type][$from][$to] = $method;
         }
         return $this;
-    }
+	}
 
 
-    public function adapt($value, $type, $to='php', $from='txt', ...$extra) {
+	public function adapt($value, $type, $to='php', $from='txt', ...$extra) {
         if($type == 'double') $type = 'float';
         else if($type == 'int') $type = 'integer';
         else if($type == 'bool') $type = 'boolean';
@@ -674,6 +672,6 @@ class DataAdapter extends Service {
         }
 
         return call_user_func_array( $method, array_merge([$value], $extra) );
-    }
+	}
 
 }
