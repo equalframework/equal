@@ -394,7 +394,7 @@ namespace config {
         // retrieve current value
         $value = constant($property);
         // handle shorthand notations
-        if($constants_schema[$property]['type'] == 'integer') {
+        if(isset($constants_schema[$property]) && $constants_schema[$property]['type'] == 'integer') {
             // handle binary masks on arbitrary values or pre-defined constants
             if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
                 try {
@@ -408,7 +408,7 @@ namespace config {
                 $value = strtoint($value);
             }
         }
-        // handle crypted values
+        // handle encrypted values
         elseif(is_string($value) && substr($value, 0, 7) == 'cipher:') {
             $value = decrypt(substr($value, 7));
         }
