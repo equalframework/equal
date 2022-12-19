@@ -506,7 +506,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         // SET clause
         $sql .= ' SET ';
         foreach ($fields as $key => $value) {
-            $sql .= "$key={$this->escapeString($value)}, ";
+            $sql .= "[$key]={$this->escapeString($value)}, ";
         }
         $sql = rtrim($sql, ', ');
 
