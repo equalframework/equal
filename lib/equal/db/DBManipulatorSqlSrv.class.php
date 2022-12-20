@@ -62,12 +62,14 @@ class DBManipulatorSqlSrv extends DBManipulator {
             // prevent warnings from raising errors
             sqlsrv_configure('WarningsReturnAsErrors', 0);
             $connection_info = [
-                    'UID'                   => $this->user_name,
-                    'PWD'                   => $this->password,
+                    'UID'                       => $this->user_name,
+                    'PWD'                       => $this->password,
                     // prevent conversion of dates to DateTime objects
-                    'ReturnDatesAsStrings'  => true,
+                    'ReturnDatesAsStrings'      => true,
                     // allow connection to server with self signed SSL certificate
-                    "TrustServerCertificate"=> true
+                    'TrustServerCertificate'    => true,
+                    // enable Transparent Network IP Resolution
+                    'MultiSubnetFailover'       => true
                 ];
 
             if($auto_select) {
