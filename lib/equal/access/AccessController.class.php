@@ -95,6 +95,7 @@ class AccessController extends Service {
                 return QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
             }
             else {
+				$orm = $this->container->get('orm');
 
                 // get user groups
                 $groups_ids = $this->getUserGroups($user_id);
@@ -109,7 +110,6 @@ class AccessController extends Service {
                     }
                 }
                 else {
-					$orm = $this->container->get('orm');
 
                     $domains = [];
                     // add parent classes to the domain (when a right is granted on a class, it is also granted on children classes)
