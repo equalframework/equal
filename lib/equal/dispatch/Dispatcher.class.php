@@ -62,6 +62,8 @@ class Dispatcher extends Service {
 
             if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
                 $orm->create('core\alert\Message', $values);
+                // if targeted object has an 'alert' field (computed as convention), reset it
+                $orm->update($object_class, $object_id, ['alert' => null]);
             }
 
         }
