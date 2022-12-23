@@ -638,10 +638,31 @@ namespace config {
                 if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
-                    list($auth) = $container->get(['auth']);
                     // compute the cache ID
-                    // #todo - implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
-                    $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
+                    /*
+                        Vary:
+                            uri (default),
+                            user,
+                            origin,
+                            body
+
+                            Each element is compound of items for which a change of value implies a distinct cache-id, independently from the order of the items.
+                            So should not use those items directly unless we make sure their order for a same logical request remains the same.
+                    */
+                    $request_id = $request->uri();
+                    if(isset($announcement['response']['cache-vary'])) {
+                        $vary = (array) $announcement['response']['cache-vary'];
+                        if(in_array('user', $vary)) {
+                            list($auth) = $container->get(['auth']);
+                            $request_id .= '-'.$auth->userId();
+                        }
+                        if(in_array('origin', $vary)) {
+                            $request_id .= '-'.$request->header('origin');
+                        }
+                        if(in_array('body', $vary)) {
+                            $request_id .= '-'.$request->body();
+                        }
+                    }
                     $cache_id = md5($request_id);
                     // obtain related filename
                     $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
@@ -661,30 +682,38 @@ namespace config {
                             $serve_from_cache = false;
                         }
                     }
+                    if(isset($body['cache']) && !$body['cache']) {
+                        $serve_from_cache = false;
+                    }
                     // request is already present in cache and is valid : serve from cache
-                    if(file_exists($cache_filename) && $serve_from_cache) {
-                        // handle client cache expiry (no change)
-                        if($request->header('If-None-Match') == $cache_id) {
-                            // send "304 Not Modified"
+                    if(file_exists($cache_filename)) {
+                        if(!$serve_from_cache) {
+                            unlink($cache_filename);
+                        }
+                        else {
+                            // handle client cache expiry (no change)
+                            if($request->header('If-None-Match') == $cache_id) {
+                                // send "304 Not Modified"
+                                $response
+                                ->status(304)
+                                ->send();
+                                throw new \Exception('', 0);
+                            }
+                            $reporter->debug("serving from cache");
+                            list($headers, $result) = unserialize(file_get_contents($cache_filename));
+                            // build response with cached headers
+                            foreach($headers as $header => $value) {
+                                $response->header($header, $value);
+                            }
                             $response
-                            ->status(304)
+                            // inject raw body
+                            ->body($result, true)
+                            // set status and body according to raised exception
+                            ->status(200)
+                            // send HTTP response
                             ->send();
-                            throw new \Exception('', 0);
+                            exit();
                         }
-                        $reporter->debug("serving from cache");
-                        list($headers, $result) = unserialize(file_get_contents($cache_filename));
-                        // build response with cached headers
-                        foreach($headers as $header => $value) {
-                            $response->header($header, $value);
-                        }
-                        $response
-                        // inject raw body
-                        ->body($result, true)
-                        // set status and body according to raised exception
-                        ->status(200)
-                        // send HTTP response
-                        ->send();
-                        exit();
                     }
                 }
             }
