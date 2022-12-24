@@ -629,21 +629,36 @@ namespace config {
                     $response->header('Content-Disposition', $announcement['response']['content-disposition']);
                 }
 
-                // handle caching options, if any
+ // handle caching options, if any
                 /*
                     Caching is only available for GET methods,
                     and offers support at URL level only (params in body are not considered).
+                    Controllers can use cache-vary to tell which elements influence their resulting content.
+                    Accepted values for cache-vary array : uri (default), user, origin, body.
+
                     // #todo export this part of the logic to a cache manager
                 */
                 if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
-                    list($auth) = $container->get(['auth']);
                     // compute the cache ID
-                    // #todo - implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
-                    $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
+                    // remove 'cache' param from URI, if present
+                    $request_id = trim(preg_replace('/&cache=[^&]*&/', '&', $request->uri().'&'), '&');
+                    if(isset($announcement['response']['cache-vary'])) {
+                        $vary = (array) $announcement['response']['cache-vary'];
+                        if(in_array('user', $vary)) {
+                            list($auth) = $container->get(['auth']);
+                            $request_id .= '-'.$auth->userId();
+                        }
+                        if(in_array('origin', $vary)) {
+                            $request_id .= '-'.$request->header('origin');
+                        }
+                        if(in_array('body', $vary)) {
+                            $request_id .= '-'.$request->body();
+                        }
+                    }
                     $cache_id = md5($request_id);
-                    // obtain related filename
+                    // retrieve related filename
                     $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
@@ -658,33 +673,51 @@ namespace config {
                         $expires = intval($announcement['response']['expires']);
                         $age = time() - filemtime(realpath($cache_filename));
                         if($age >= $expires) {
+                            $reporter->debug("expired cache-id {$cache_id}");
                             $serve_from_cache = false;
                         }
                     }
-                    // request is already present in cache and is valid : serve from cache
-                    if(file_exists($cache_filename) && $serve_from_cache) {
-                        // handle client cache expiry (no change)
-                        if($request->header('If-None-Match') == $cache_id) {
-                            // send "304 Not Modified"
+                    // handle manual request for invalidating the cache
+                    if(isset($body['cache'])) {
+                        if(in_array($body['cache'], [null, false, 0, '0'])) {
+                            $reporter->debug("manual reset cache-id {$cache_id}");
+                            $serve_from_cache = false;
+                        }
+                        // cache is a reserved parameter: no further process
+                        unset($body['cache']);
+                    }
+                    // request is already present in cache
+                    if(file_exists($cache_filename)) {
+                        // cache was invalidated: remove related file
+                        if(!$serve_from_cache) {
+                            $reporter->debug("invalidating cache-id {$cache_id}");
+                            unlink($cache_filename);
+                        }
+                        // cache is still valid: serve from cache
+                        else {
+                            // handle client cache expiry (no change)
+                            if($request->header('If-None-Match') == $cache_id) {
+                                // send "304 Not Modified"
+                                $response
+                                    ->status(304)
+                                    ->send();
+                                throw new \Exception('', 0);
+                            }
+                            $reporter->debug("serving from cache-id {$cache_id}");
+                            list($headers, $result) = unserialize(file_get_contents($cache_filename));
+                            // build response with cached headers
+                            foreach($headers as $header => $value) {
+                                $response->header($header, $value);
+                            }
                             $response
-                            ->status(304)
-                            ->send();
-                            throw new \Exception('', 0);
+                                // inject raw body
+                                ->body($result, true)
+                                // set status and body according to raised exception
+                                ->status(200)
+                                // send HTTP response
+                                ->send();
+                            exit();
                         }
-                        $reporter->debug("serving from cache");
-                        list($headers, $result) = unserialize(file_get_contents($cache_filename));
-                        // build response with cached headers
-                        foreach($headers as $header => $value) {
-                            $response->header($header, $value);
-                        }
-                        $response
-                        // inject raw body
-                        ->body($result, true)
-                        // set status and body according to raised exception
-                        ->status(200)
-                        // send HTTP response
-                        ->send();
-                        exit();
                     }
                 }
             }
