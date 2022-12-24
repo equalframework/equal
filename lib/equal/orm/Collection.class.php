@@ -639,7 +639,7 @@ class Collection implements \Iterator, \Countable {
             // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
             // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` state in order to know if object needs to be in the result set or not.
             // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
-            $mandatory_fields = ['id', /*'name'*/, 'state', 'deleted', 'modified'];
+            $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
 
             foreach($fields as $key => $val ) {
                 // handle array notation
