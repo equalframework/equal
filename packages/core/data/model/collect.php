@@ -148,6 +148,9 @@ foreach($params['fields'] as $key => $field) {
     }
 }
 
+// make sure 'name' is always requested
+$fields[] = 'name';
+
 $domain = $params['domain'];
 
 // if `deleted` field is requested, we need to force searching amongst deleted objects as well

@@ -91,15 +91,18 @@ foreach($params['fields'] as $field) {
     }
 }
 
+// make sure 'name' is always requested
+$fields[] = 'name';
+
 // get a sorted collection of objects
 $collection = $params['entity']::search([['id', 'in', $params['ids']], ['state', '<>', 'unknown']], [ 'sort' => [ $params['order'] => $params['sort'] ] ]);
 
 $result = $collection
-          ->read($fields, $params['lang'])
-          ->adapt('txt')
-          // return result as an array
-          // #memo - JSON objects handled by ES2015+ might have their keys order altered
-          ->get(true);
+            ->read($fields, $params['lang'])
+            ->adapt('txt')
+            // return result as an array
+            // #memo - JSON objects handled by ES2015+ might have their keys order altered
+            ->get(true);
 
 $context->httpResponse()
         ->body($result)
