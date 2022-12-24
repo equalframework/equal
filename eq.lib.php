@@ -635,6 +635,7 @@ namespace config {
                     and offers support at URL level only (params in body are not considered).
                     Controllers can use cache-vary to tell which elements influence their resulting content.
                     Accepted values for cache-vary array : uri (default), user, origin, body.
+
                     // #todo export this part of the logic to a cache manager
                 */
                 if( $method == 'GET'
