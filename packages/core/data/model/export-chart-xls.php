@@ -100,6 +100,10 @@ if(isset($body['range_to'])) {
     $body['range_to'] = date('c', $ref->getDate());
 }
 
+foreach($params['params'] as $param => $value) {
+    $body[$param] = $value;
+}
+
 $values = eQual::run('get', $controller, $body);
 
 
