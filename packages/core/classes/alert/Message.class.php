@@ -62,7 +62,7 @@ class Message extends Model {
                     'notice',           // weight = 1, might lead to a warning
                     'warning',          // weight = 2, might be important, might require an action
                     'important',        // weight = 3, requires an action
-                    'error'             // weight = 4, requires immediate action
+                    'error'             // weight = 4, requires immediate fix
                 ],
                 'description'       => "Importance of the notification."
             ],
