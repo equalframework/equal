@@ -49,14 +49,34 @@ list($params, $providers) = announce([
 
 list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
 
-// retrieve target entity
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+$is_controller_entity = false;
+
+/*
+    Handle controller entities
+*/
+$parts = explode('\\', $params['entity']);
+$file = array_pop($parts);
+if(ctype_lower(substr($file, 0, 1))) {
+    $is_controller_entity = true;
+    $data = eQual::run('get', 'model_schema', [
+            'entity'        => $params['entity']
+        ]);
+    $schema = $data['fields'];
+}
+/*
+    Handle Model entities
+*/
+else {
+    // retrieve target entity
+    $entity = $orm->getModel($params['entity']);
+    if(!$entity) {
+        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    }
+
+    // get the complete schema of the object (including special fields)
+    $schema = $entity->getSchema();
 }
 
-// get the complete schema of the object (including special fields)
-$schema = $entity->getSchema();
 
 // retrieve view schema
 $view_schema = eQual::run('get', 'model_view', [
@@ -69,18 +89,12 @@ if(!isset($view_schema['layout']['items'])) {
 }
 
 // #todo - add support for group_by directive
-
 $view_fields = [];
 foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
         $view_fields[] = $item;
     }
 }
-
-
-/*
-    Read targeted objects
-*/
 
 $fields_to_read = [];
 
@@ -96,14 +110,35 @@ foreach($view_fields as $item) {
     }
 }
 
-$limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-$start = (isset($params['params']['start']))?$params['params']['start']:0;
-$order = (isset($params['params']['order']))?$params['params']['order']:'id';
-$sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
-if(is_array($order)) {
-    $order = $order[0];
+// entity is a controller (distinct from collect)
+if($is_controller_entity) {
+    // get data from controller
+    $values = eQual::run('get', str_replace('\\', '_', $params['entity']), $params['params']);
 }
-$values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+// entity is a Model
+else {
+    $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
+    $start = (isset($params['params']['start']))?$params['params']['start']:0;
+    $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+    $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+    if(is_array($order)) {
+        $order = $order[0];
+    }
+
+    // fetch data through model_collect controller
+    $values = eQual::run('get', 'model_collect', [
+                'entity'        => $params['entity'],
+                'fields'        => $fields_to_read,
+                'lang'          => $params['lang'],
+                'domain'        => $params['domain'],
+                'order'         => $order,
+                'sort'          => $sort,
+                'start'         => $start,
+                'limit'         => $limit
+            ]);
+}
+
+
 
 /*
     Retrieve translation data, if any
