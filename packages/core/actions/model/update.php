@@ -126,7 +126,7 @@ if(count($fields)) {
         // handle instances edition
         else if(isset($fields['modified']) ) {
             $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
-            // a changed occured in the meantime
+            // a changed occurred in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
                 throw new Exception("concurrent_change", QN_ERROR_CONFLICT_OBJECT);
             }
