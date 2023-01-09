@@ -104,8 +104,8 @@ foreach($params['params'] as $param => $value) {
     $body[$param] = $value;
 }
 
-$values = eQual::run('get', $controller, $body);
-
+// #memo - we run the controller under root context to use cache, if present
+$values = eQual::run('get', $controller, $body, true);
 
 
 // generate a virtual layout
