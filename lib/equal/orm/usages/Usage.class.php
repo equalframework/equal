@@ -105,6 +105,16 @@ abstract class Usage {
             // error
         }
         else {
+            /*
+                group 1 = type
+                group 3 = array size
+                group 4 = subtype
+                group 6 = subtype tree
+                group 8 = length
+                group 9 = precision
+                group 10 = scale
+            */
+
             // store original usage string
             $this->usage_str = $usage_str;
             $this->type = $matches[1];

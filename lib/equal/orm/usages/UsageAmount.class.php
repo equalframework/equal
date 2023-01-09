@@ -56,6 +56,8 @@ class UsageAmount extends Usage {
         ];
     }
 
+
+    // this has to be called by dataadatper to TXT
     public function export($value, $lang='en'): string {
         $decimal_length = intval($this->getLength());
         // get numbers.thousands_separator and numbers.decimal_separator from locale

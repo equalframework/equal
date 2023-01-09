@@ -17,30 +17,29 @@ class DataAdapterProvider extends Service {
      * application/xml
      * text/plain
      *
-     * When adaptation implies more specific distinction, we use subtype tree for distinguishing adapters :
+     * When adaptation implies more specific distinction, we use subtype tree for distinguishing adapters.
+     * Example:
      * application/sql.t-sql
      *
-     * In any case we follow the Content-Type syntax: type/subtype;parameter=value
+     * In any case we support the Content-Type syntax: type/subtype;parameter=value
      */
     public function get($content_type): DataAdapter {
         /** @var DataAdapter */
         $adapter = null;
-        if(!preg_match('/([a-z]+)\/([-+.a-z0-9]+)(;(.+))*/', $content_type, $matches)) {
+        if(!preg_match('/([a-zA-Z]+)\/?([-+.a-z0-9]+)?(;(.+))*/', $content_type, $matches)) {
             // error
         }
         $type = $matches[1];
         $subtype = $matches[2];
         $params = $matches[4];
-        if($type == 'application') {
-            if($subtype == 'json') {
-                return new DataAdapterJson();
-            }
-            elseif($subtype == 'sql') {
-
-            }
+        if( ($type == 'application' && $subtype == 'json') || $type == 'JSON') {
+            return new DataAdapterJson();
         }
-        elseif($type == 'text') {
-
+        else if( ($type == 'application' && $subtype == 'sql') || $type == 'SQL' ) {
+            return new DataAdapterSql();
+        }
+        elseif($type == 'text' || $type == 'TXT') {
+            return new DataAdapterTxt();
         }
         return $adapter;
     }

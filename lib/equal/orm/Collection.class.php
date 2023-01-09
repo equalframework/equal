@@ -218,10 +218,10 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Recursively generate a copy of an object from current collection,
-     * by replacing Collection instances with either a map or an array.
+     * Recursively generate an array-version of an object from current collection,
+     * handling sub-Collection instances either as maps or arrays.
      *
-     * @param   $to_array   boolean    Flag to ask conversion of sub-objects to arrays (instead of a maps)
+     * @param   $to_array   boolean    Flag for requesting sub-collections as arrays (instead of a maps)
      */
     private function get_raw_object($object, $to_array=false) {
         $result = [];

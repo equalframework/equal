@@ -52,9 +52,17 @@ class Field {
             'time'          => 'number/integer:9',
             'datetime'      => 'date/plain',
             'binary'        => 'binary/plain:64000000',
-            'many2one'      => 'number/integer:9'
+            'many2one'      => 'number/integer:9',
+            'array'         => 'array'
         ];
-        return $map[$this->type];
+        $type = $this->type;
+        if($this->type == 'computed') {
+            $type = $this->descriptor['result_type'];
+        }
+        if(!isset($map[$type])) {
+            throw new \Exception('unknown_type', QN_ERROR_INVALID_CONFIG);
+        }
+        return $map[$type];
     }
 
     final protected function getUsage(): Usage {

@@ -71,7 +71,7 @@ class DataAdapter implements DataAdapterInterface {
      * x -> PHP
      *
      */
-	public function adaptIn($value, $usage) {
+	public function adaptIn($value, $usage, $lang='en') {
         return $this->adaptDefault($value);
     }
 
@@ -81,7 +81,7 @@ class DataAdapter implements DataAdapterInterface {
      * PHP -> x
      *
      */
-    public function adaptOut($value, $usage) {
+    public function adaptOut($value, $usage, $lang='en') {
         return $this->adaptDefault($value);
     }
 

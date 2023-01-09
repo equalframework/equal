@@ -16,7 +16,7 @@ interface DataAdapterInterface {
      * @param Usage|string  $usage
      * @return mixed
      */
-	public function adaptIn($value, $usage);
+	public function adaptIn($value, $usage, $lang='en');
 
     /**
      * Routes the adaptation request to the appropriate method.
@@ -26,5 +26,5 @@ interface DataAdapterInterface {
      * @param Usage|string  $usage
      * @return mixed
      */
-    public function adaptOut($value, $usage);
+    public function adaptOut($value, $usage, $lang='en');
 }

@@ -33,10 +33,19 @@ class UsageFactory {
 
     public static function create(string $usage_str): Usage {
 
-        // check usage string consistency
+        // split parts and check usage string consistency
         if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
             // error
         }
+
+        /*
+            group 1 = type
+            group 3 = array size
+            group 4 = subtype
+            group 8 = length
+            group 9 = precision
+            group 10 = scale
+        */
 
         $type = $matches[1];
         $subtype = $matches[4];
@@ -54,6 +63,9 @@ class UsageFactory {
             // datetime usages
             case 'date':
                 return new UsageDate($usage_str);
+            case 'time':
+            case 'datetime':
+                break;
             case 'email':
                 return new UsageEmail($usage_str);
             case 'hash':

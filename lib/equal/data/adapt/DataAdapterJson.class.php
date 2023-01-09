@@ -17,7 +17,7 @@ class DataAdapterJson extends DataAdapter {
      * This method is meant to be overloaded by children classes and called as fallback.
      *
      */
-	public function adaptIn($value, $usage) {
+	public function adaptIn($value, $usage, $lang='en') {
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -67,6 +67,9 @@ class DataAdapterJson extends DataAdapter {
                 return self::jsonToOne2Many($value);
             case 'many2many':
                 return self::jsonToMany2Many($value);
+            case 'array':
+                return self::jsonToArray($value);
+
         }
         return parent::adaptIn($value, $usage);
     }
@@ -77,7 +80,7 @@ class DataAdapterJson extends DataAdapter {
      * PHP -> x
      *
      */
-    public function adaptOut($value, $usage) {
+    public function adaptOut($value, $usage, $lang='en') {
         return parent::adaptOut($value, $usage);
     }
 
@@ -106,7 +109,6 @@ class DataAdapterJson extends DataAdapter {
         }
         return $value;
     }
-
 
     private static function jsonToBinary($value) {
         /*
@@ -167,6 +169,21 @@ class DataAdapterJson extends DataAdapter {
         return $value;
     }
 
+    private static function jsonToTime($value) {
+        $count = substr_count($value, ':');
+        list($hour, $minute, $second) = [0,0,0];
+        if($count == 2) {
+            list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+        }
+        else if($count == 1) {
+            list($hour, $minute) = sscanf($value, "%d:%d");
+        }
+        else if($count == 0) {
+            $hour = $value;
+        }
+        return ($hour * 3600) + ($minute * 60) + $second;
+    }
+
     private static function jsonToMany2one($value) {
         // consider empty string as null
         if(is_string($value) && (!strlen($value) || $value == 'null')) {
@@ -187,21 +204,6 @@ class DataAdapterJson extends DataAdapter {
             $value = null;
         }
         return $value;
-    }
-
-    private static function jsonToTime($value) {
-        $count = substr_count($value, ':');
-        list($hour, $minute, $second) = [0,0,0];
-        if($count == 2) {
-            list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
-        }
-        else if($count == 1) {
-            list($hour, $minute) = sscanf($value, "%d:%d");
-        }
-        else if($count == 0) {
-            $hour = $value;
-        }
-        return ($hour * 3600) + ($minute * 60) + $second;
     }
 
     private static function jsonToOne2Many($value) {
@@ -229,4 +231,113 @@ class DataAdapterJson extends DataAdapter {
         return $value;
     }
 
+    private static function jsonToArray($value) {
+        // try to resolve value as JSON
+        $data = @json_decode($value, true);
+        if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
+            $value = $data;
+        }
+        $to_array = function ($value) use(&$to_array) {
+            $result = [];
+            $current = "";
+            $current_key = '';
+            $find_closing_bracket = function ($value, $offset, $open_bracket='[', $close_bracket=']') {
+                $count = 0;
+                for($i = $offset, $n = strlen($value); $i < $n; ++$i) {
+                    $c = substr($value, $i, 1);
+                    if($c == $open_bracket) {
+                        ++$count;
+                    }
+                    else if($c == $close_bracket) {
+                        --$count;
+                        if($count <= 0) {
+                            return $i;
+                        }
+                    }
+                }
+                return false;
+            };
+
+            for($i = 0, $n = strlen($value); $i < $n; ++$i) {
+                $c = substr($value, $i, 1);
+                // handle array notation
+                if($c == '[') {
+                    $pos = $find_closing_bracket($value, $i);
+                    if($pos === false ) {
+                        // malformed array
+                        return array($value);
+                    }
+                    $sub = substr($value, $i+1, $pos-$i-1);
+                    $current = '';
+                    $res = $to_array($sub);
+                    $result[] = $res;
+                    $i = $pos;
+                    continue;
+                }
+                // handle sub-object notation
+                if($c == '{') {
+                    $pos = $find_closing_bracket($value, $i, '{', '}');
+                    if($pos === false ) {
+                        // malformed array
+                        return array($value);
+                    }
+                    $sub = substr($value, $i+1, $pos-$i-1);
+                    $current = '';
+                    $res = $to_array($sub);
+                    if(strlen($current_key)){
+                        $result[trim($current_key)] = $res;
+                    }
+                    else {
+                        $result[] = $res;
+                    }
+                    $current_key = '';
+                    $i = $pos;
+                    continue;
+                }
+                // handle map attribute assignment
+                if($c == ':') {
+                    $current_key = $current;
+                    $current = '';
+                    continue;
+                }
+                // handle separator (next value or next attribute)
+                if($c == ',') {
+                    if(strlen($current)) {
+                        if(strlen($current_key)) {
+                            $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                        }
+                        else {
+                            $result[] = json_decode("[\"$current\"]")[0];
+                        }
+                    }
+                    $current_key = '';
+                    $current = '';
+                    continue;
+                }
+                // handle double quote notation: keys and values delimited by double-quotes
+                if($c == '"') {
+                    $pos = strpos($value, '"', $i+1);
+                    $sub = substr($value, $i+1, $pos-$i-1);
+                    $current .= $sub;
+                    $i = $pos;
+                    continue;
+                }
+                $current .= $c;
+            }
+            if(strlen($current)) {
+                if(strlen($current_key)) {
+                    $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                }
+                else {
+                    $result[] = json_decode("[\"$current\"]")[0];
+                }
+            }
+            return $result;
+        };
+        if(!is_array($value)) {
+            $res = $to_array($value);
+            $value = array_pop($res);
+        }
+        return (array) $value;
+    }
 }
