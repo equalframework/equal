@@ -253,7 +253,7 @@ foreach($values as $oid => $odata) {
         else if($type == 'date') {
             // #todo - convert using PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel
             $align = 'center';
-            $value = date($settings['date_format'], $value);
+            $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($value);
         }
         else if($type == 'time') {
             $align = 'center';
@@ -261,7 +261,7 @@ foreach($values as $oid => $odata) {
         }
         else if($type == 'datetime') {
             $align = 'center';
-            $value = date($settings['date_format'].' '.$settings['time_format'], $value);
+            $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($value);
         }
         else {
             if($type == 'string') {
