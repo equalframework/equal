@@ -134,7 +134,10 @@ else {
             'entity'    => $params['entity'],
             'domain'    => $params['domain'],
             'fields'    => [],
-            'limit'     => 25,
+            'limit'     => (isset($params['params']['limit']))?$params['params']['limit']:25,
+            'start'     => (isset($params['params']['start']))?$params['params']['start']:0,
+            'order'     => (isset($params['params']['order']))?$params['params']['order']:'id',
+            'sort'      => (isset($params['params']['sort']))?$params['params']['sort']:'asc',
             'lang'      => $params['lang']
         ] + $params['params'];
     // retrieve objects collection using the target controller
