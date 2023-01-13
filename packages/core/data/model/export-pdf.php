@@ -134,12 +134,22 @@ else {
             'entity'    => $params['entity'],
             'domain'    => $params['domain'],
             'fields'    => [],
-            'limit'     => (isset($params['params']['limit']))?$params['params']['limit']:25,
-            'start'     => (isset($params['params']['start']))?$params['params']['start']:0,
-            'order'     => (isset($params['params']['order']))?$params['params']['order']:'id',
-            'sort'      => (isset($params['params']['sort']))?$params['params']['sort']:'asc',
+            'limit'     => 25,
+            'start'     => 0,
+            'order'     => 'id',
+            'sort'      => 'asc',
             'lang'      => $params['lang']
-        ] + $params['params'];
+        ];
+
+    foreach($params['params'] as $param => $value) {
+        if($param == 'order' && is_array($value)) {
+            $body['order'] = $value[0];
+        }
+        else {
+            $body[$param] = $value;
+        }
+    }
+
     // retrieve objects collection using the target controller
     $data = eQual::run('get', $params['controller'], $body);
     // extract objects ids
