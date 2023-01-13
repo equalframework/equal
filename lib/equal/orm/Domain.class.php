@@ -393,7 +393,13 @@ class Domain {
         if(!self::conditionCheck($condition)) return $domain;
 
         $domain = self::normalize($domain);
-        // add contion to all clauses
+
+        // create an empty clause if none yet
+        if(count($domain) == 0) {
+            $domain[] = [];
+        }
+
+        // add condition to all clauses
         for($i = 0, $j = count($domain); $i < $j; ++$i) {
             $domain[$i] = self::clauseConditionAdd($domain[$i], $condition);
         }
