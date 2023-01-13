@@ -131,6 +131,8 @@ if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
 }
 else {
     $body = [
+            'entity'    => $params['entity'],
+            'domain'    => $params['domain'],
             'fields'    => [],
             'limit'     => 25,
             'start'     => 0,
@@ -140,7 +142,12 @@ else {
         ];
 
     foreach($params['params'] as $param => $value) {
-        $body[$param] = $value;
+        if($param == 'order' && is_array($value)) {
+            $body['order'] = $value[0];
+        }
+        else {
+            $body[$param] = $value;
+        }
     }
 
     // retrieve objects collection using the target controller

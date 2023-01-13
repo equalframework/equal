@@ -28,6 +28,11 @@ list($params, $providers) = announce([
             'type'          => 'array',
             'default'       => []
         ],
+        'controller' => [
+            'description'   => 'Data controller to use to retrieve objects to print.',
+            'type'          => 'string',
+            'default'       => 'core_model_collect'
+        ],
         'params' => [
             'description'   => 'Additional params to relay to the data controller.',
             'type'          => 'array',
@@ -117,28 +122,45 @@ if($is_controller_entity) {
 }
 // entity is a Model
 else {
-    $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-    $start = (isset($params['params']['start']))?$params['params']['start']:0;
-    $order = (isset($params['params']['order']))?$params['params']['order']:'id';
-    $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
-    if(is_array($order)) {
-        $order = $order[0];
+    if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
+        $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
+        $start = (isset($params['params']['start']))?$params['params']['start']:0;
+        $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+        $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+        if(is_array($order)) {
+            $order = $order[0];
+        }
+        $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
     }
+    else {
+        $body = [
+                'entity'    => $params['entity'],
+                'domain'    => $params['domain'],
+                'fields'    => [],
+                'limit'     => 25,
+                'start'     => 0,
+                'order'     => 'id',
+                'sort'      => 'asc',
+                'lang'      => $params['lang']
+            ];
 
-    // fetch data through model_collect controller
-    $values = eQual::run('get', 'model_collect', [
-                'entity'        => $params['entity'],
-                'fields'        => $fields_to_read,
-                'lang'          => $params['lang'],
-                'domain'        => $params['domain'],
-                'order'         => $order,
-                'sort'          => $sort,
-                'start'         => $start,
-                'limit'         => $limit
-            ]);
+        foreach($params['params'] as $param => $value) {
+            if($param == 'order' && is_array($value)) {
+                $body['order'] = $value[0];
+            }
+            else {
+                $body[$param] = $value;
+            }
+        }
+
+        // retrieve objects collection using the target controller
+        $data = eQual::run('get', $params['controller'], $body);
+        // extract objects ids
+        $objects_ids = array_map(function ($a) { return $a['id']; }, $data);
+        // retrieve objects required fields
+        $values = $params['entity']::ids($objects_ids)->read($fields_to_read)->get();
+    }
 }
-
-
 
 /*
     Retrieve translation data, if any
@@ -214,6 +236,7 @@ foreach($view_fields as $item) {
     ++$column;
 }
 
+
 foreach($values as $oid => $odata) {
     ++$row;
     $column = 'A';
@@ -253,7 +276,7 @@ foreach($values as $oid => $odata) {
         else if($type == 'date') {
             // #todo - convert using PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel
             $align = 'center';
-            $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($value);
+            $value = date($settings['date_format'], $value);
         }
         else if($type == 'time') {
             $align = 'center';
@@ -261,7 +284,7 @@ foreach($values as $oid => $odata) {
         }
         else if($type == 'datetime') {
             $align = 'center';
-            $value = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($value);
+            $value = date($settings['date_format'].' '.$settings['time_format'], $value);
         }
         else {
             if($type == 'string') {
