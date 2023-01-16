@@ -52,10 +52,16 @@
                                                 "width": "50%",
                                                 "label": "Validated",
                                                 "help": "Status of validation of this account."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "password",
+                                                "width": "50%",
+                                                "help": "Enter a new value to update."
                                             }
                                         ]
                                     },
-                                    {                                            
+                                    {
                                         "width": "33%",
                                         "align": "left",
                                         "items": [
@@ -97,17 +103,12 @@
                                                 }
                                             }
                                         ]
-                                    }    
+                                    }
                                 ]
-                            }                            
+                            }
                         ]
-                    }
-                ]
-            },
-            {
-                "id": "group.sections",
-                "sections": [
-                    {
+                    },
+{
                         "label": "Preferences",
                         "id": "section.preferences",
                         "rows": [
@@ -126,7 +127,7 @@
                                         ]
                                     }
                                 ]
-                            }                            
+                            }
                         ]
                     },
                     {
@@ -146,14 +147,14 @@
                                                 "width": "100%",
                                                 "widget": {
                                                     "view": "list.selection"
-                                                }                                                
+                                                }
                                             }
                                         ]
                                     }
                                 ]
                             }
                         ]
-                    }                    
+                    }
                 ]
             }
         ]
