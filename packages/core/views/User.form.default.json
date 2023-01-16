@@ -17,22 +17,6 @@
                                         "align": "left",
                                         "items": [
                                             {
-                                                "type": "label",
-                                                "id": "id.details",
-                                                "value": "Contact details",
-                                                "width": "50%"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "columns": [
-                                    {
-                                        "width": "33%",
-                                        "align": "left",
-                                        "items": [
-                                            {
                                                 "type": "field",
                                                 "value": "id",
                                                 "width": "50%",
