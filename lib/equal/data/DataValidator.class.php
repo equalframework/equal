@@ -368,7 +368,7 @@ class DataValidator extends Service {
                     }
                 }
                 else {
-                    // error : unhandled value type for contraint 'max'
+                    // error : unhandled value type for constraint 'max'
                     continue 2;
                 }
                 if(in_array($value, $constraint['rule'])) {
