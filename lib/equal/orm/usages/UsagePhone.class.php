@@ -20,8 +20,4 @@ class UsagePhone extends Usage {
         ];
     }
 
-    public function export($value, $lang='en'): string {
-        return $value;
-    }
-
 }

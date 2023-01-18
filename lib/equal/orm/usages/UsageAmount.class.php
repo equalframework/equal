@@ -11,6 +11,7 @@ use core\setting\Setting;
 
 class UsageAmount extends Usage {
 
+
     public function getScale(): int {
         $scale = intval($this->getLength());
         switch($this->getSubtype()) {
@@ -54,37 +55,6 @@ class UsageAmount extends Usage {
                 }
             ]
         ];
-    }
-
-
-    // this has to be called by dataadatper to TXT
-    public function export($value, $lang='en'): string {
-        $decimal_length = intval($this->getLength());
-        // get numbers.thousands_separator and numbers.decimal_separator from locale
-        $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $lang);
-        $decimal_separator = Locale::get_format('core', 'numbers.decimal_separator', '.', $lang);
-
-        $number = number_format($value, $decimal_length, $decimal_separator, $thousands_separator);
-
-        switch($this->getSubtype()) {
-            case 'money':
-                $currency_symbol_position = Locale::get_format('core', 'currency.symbol_position', 'before', $lang);
-                $currency_symbol_separator = Locale::get_format('core', 'currency.symbol_separator', '', $lang);
-                $currency_symbol = Setting::get_value('core', 'units', 'currency', '$');
-                if($currency_symbol_position == 'before') {
-                    $number = $currency_symbol.$currency_symbol_separator.$number;
-                }
-                else {
-                    $number = $number.$currency_symbol_separator.$currency_symbol;
-                }
-                break;
-            case 'percent':
-                $number = $number.'%';
-                break;
-            case 'rate':
-                break;
-        }
-        return $number;
     }
 
 }

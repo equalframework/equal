@@ -11,11 +11,11 @@ use equal\orm\usages\Usage;
 
 class DataAdapterJson extends DataAdapter {
 
-   /**
+    /**
      * Adapts the input value from external type to PHP type (x -> PHP).
      * If necessary (non trivial) Routes the adaptation request to the appropriate method.
      * This method is meant to be overloaded by children classes and called as fallback.
-     *
+     * x -> PHP
      */
 	public function adaptIn($value, $usage, $lang='en') {
         if(!($usage instanceof Usage)) {
@@ -81,6 +81,48 @@ class DataAdapterJson extends DataAdapter {
      *
      */
     public function adaptOut($value, $usage, $lang='en') {
+        if(!($usage instanceof Usage)) {
+            $usage = UsageFactory::create($usage);
+        }
+        $type = $usage->getType();
+        $subtype = $usage->getSubtype();
+        switch($type) {
+            case 'number':
+                switch($subtype) {
+                    case 'boolean':
+                        return (bool) $value;
+                    case 'natural':
+                    case 'integer':
+                        return (int) $value;
+                    case 'real':
+                        return (float) $value;
+                }
+                break;
+            case 'text':
+                break;
+            case 'time':
+                return self::timeToJson($value);
+            case 'date':
+                switch($subtype) {
+                    case 'plain':
+                        return self::datetimeToJson($value);
+                    case 'year':
+                        // date/year:4 (integer 0-9999)
+                    case 'month':
+                        // date/month	(integer 1-12, ISO-8601)
+                        // date/weekday.mon (ISO-8601: 1 to 7, 1 is Monday)
+                        // date/weekday.sun (0 to 6, 0 is Sunday)
+                        // date/monthday (ISO-8601)
+                        // date/yearweek
+                        // date/yearday (ISO-8601)
+                }
+                break;
+            case 'datetime':
+                return self::datetimeToJson($value);
+            case 'image':
+            case 'binary':
+                return self::binaryToJson($value);
+        }
         return parent::adaptOut($value, $usage);
     }
 
@@ -340,4 +382,23 @@ class DataAdapterJson extends DataAdapter {
         }
         return (array) $value;
     }
+
+
+    private static function binaryToJson($value) {
+        return base64_encode($value);
+    }
+
+    /**
+     * Returns date as a ISO 8601 formatted string
+     */
+    private static function datetimeToJson($value) {
+        return (is_null($value))?null:date("c", $value);
+    }
+
+    private static function timeToJson($value) {
+        $hours = floor($value / 3600);
+        $minutes = floor(($value % 3600) / 60);
+        return sprintf("%02d:%02d", $hours, $minutes);
+    }
+
 }

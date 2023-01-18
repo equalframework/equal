@@ -18,7 +18,7 @@ class UsageDate extends Usage {
         date/weekday.mon (ISO-8601: 1 to 7, 1 is Monday)
         date/weekday.sun (0 to 6, 0 is Sunday)
         date/monthday (ISO-8601)
-        date/yearweek 
+        date/yearweek
         date/yearday (ISO-8601)
         datetime (ISO 8601)
         time/plain (h:m:s)
@@ -65,11 +65,6 @@ class UsageDate extends Usage {
                     ]
                 ];
         }
-    }
-
-    public function export($value, $lang='en'): string {
-       // #todo
-        return $value;
     }
 
 }

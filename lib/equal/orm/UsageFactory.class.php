@@ -31,6 +31,10 @@ class UsageFactory {
     public function __construct() {
     }
 
+    /**
+     * Creates an instance of a Usage object based on a usage string descriptor.
+     * @param string $usage_str     String representation of the usage (not an Usage instance).
+     */
     public static function create(string $usage_str): Usage {
 
         // split parts and check usage string consistency

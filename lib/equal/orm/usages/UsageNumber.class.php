@@ -81,17 +81,4 @@ class UsageNumber extends Usage {
         }
     }
 
-    public function export($value, $lang='en'): string {
-        $decimal_length = 0;
-        if($this->getSubtype() == 'real') {
-            // explode precision.scale
-            $parts = explode('.', $this->getLength());
-            $decimal_length = isset($parts[1])?$parts[1]:0;
-        }
-        // get numbers.thousands_separator and numbers.decimal_separator from locale
-        $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $lang);
-        $decimal_separator = Locale::get_format('core', 'numbers.decimal_separator', '.', $lang);
-        return number_format($value, $decimal_length, $decimal_separator, $thousands_separator);
-    }
-
 }
