@@ -85,7 +85,7 @@ if(ctype_lower(substr($file, 0, 1))) {
     $data = eQual::run('get', $operation, ['announce' => true]);
     $controller_schema = isset($data['announcement']['params'])?$data['announcement']['params']:[];
     $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
-    // generata a virtual (emtpy) object
+    // generate a virtual (emtpy) object
     $object = ['id' => 0];
     foreach($requested_fields as $field) {
         if(!isset($controller_schema[$field])) {
