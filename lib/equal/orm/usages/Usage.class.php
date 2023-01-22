@@ -72,8 +72,8 @@ abstract class Usage {
     }
 
     /**
-     * Precision is a naming convention that only makes sense if Usage targets a number with floating point number.
-     * In such situation precision is expected to be an integer value completed with a scale (that defaults to 0).
+     * The precision indicates the number of digits of a floating number.
+     * It is expected to be an integer value completed with a scale (that defaults to 0).
      * In all other situations, precision and length are synonyms and scale is always 0.
      *
      */
@@ -83,6 +83,7 @@ abstract class Usage {
 
     /**
      * Provides the scale assigned to the usage instance.
+     * For floating numbers, the scale indicates the number of digits of the decimal part.
      * This method can be overloaded by children classes for handling subtypes with implicit scale.
      */
     public function getScale(): int {

@@ -14,7 +14,6 @@ class DataAdapterJson extends DataAdapter {
     /**
      * Adapts the input value from external type to PHP type (x -> PHP).
      * If necessary (non trivial) Routes the adaptation request to the appropriate method.
-     * This method is meant to be overloaded by children classes and called as fallback.
      * x -> PHP
      */
 	public function adaptIn($value, $usage, $lang='en') {
@@ -76,7 +75,6 @@ class DataAdapterJson extends DataAdapter {
 
     /**
      * Routes the adaptation request to the appropriate method.
-     * This method is meant to be overloaded by children classes and called as fallback.
      * PHP -> x
      *
      */
@@ -86,7 +84,10 @@ class DataAdapterJson extends DataAdapter {
         }
         $type = $usage->getType();
         $subtype = $usage->getSubtype();
+        // #memo - non listed types means there's nothing to do and value will be returned as is
         switch($type) {
+            case 'amount':
+                return (float) $value;
             case 'number':
                 switch($subtype) {
                     case 'boolean':
@@ -98,8 +99,6 @@ class DataAdapterJson extends DataAdapter {
                         return (float) $value;
                 }
                 break;
-            case 'text':
-                break;
             case 'time':
                 return self::timeToJson($value);
             case 'date':
@@ -108,8 +107,10 @@ class DataAdapterJson extends DataAdapter {
                         return self::datetimeToJson($value);
                     case 'year':
                         // date/year:4 (integer 0-9999)
+                        return intval(date('Y', $value));
                     case 'month':
                         // date/month	(integer 1-12, ISO-8601)
+                        return date('n', $value);
                         // date/weekday.mon (ISO-8601: 1 to 7, 1 is Monday)
                         // date/weekday.sun (0 to 6, 0 is Sunday)
                         // date/monthday (ISO-8601)
@@ -125,7 +126,6 @@ class DataAdapterJson extends DataAdapter {
         }
         return parent::adaptOut($value, $usage);
     }
-
 
 
     /* private methods holding the adaptation logic */
@@ -382,7 +382,6 @@ class DataAdapterJson extends DataAdapter {
         }
         return (array) $value;
     }
-
 
     private static function binaryToJson($value) {
         return base64_encode($value);
