@@ -266,7 +266,7 @@ class Model implements \ArrayAccess, \Iterator {
      * @return array
      */
     public static function getDescription() {
-        return 'Interface for model defintion classes.';
+        return 'Interface for model definition classes.';
     }
 
     /**

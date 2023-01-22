@@ -6,6 +6,8 @@
 */
 namespace equal\orm;
 
+use equal\data\adapt\DataAdapterProvider;
+
 class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */
@@ -57,6 +59,10 @@ class Collection implements \Iterator, \Countable {
         $this->orm = $objectManager;
         $this->ac = $accessController;
         $this->am = $authenticationManager;
+        /*
+        $this->adapter = null;
+        $this->dataAdapterProvider = dataAdapterProvider;
+        */
         $this->adapter = $dataAdapter;
         $this->logger = $logger;
         // check mandatory services
@@ -234,12 +240,26 @@ class Collection implements \Iterator, \Countable {
             }
             else {
                 // #todo  - data adaption should occur here
+                /*
+                if($this->adapter) {
+                    $f = $this->model->getField($field);
+                    if(!$f) {
+                        // log an error and ignore field
+                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving field $field", QN_REPORT_INFO);
+                        continue;
+                    }
+                    $result[$field] = $this->adapter->adaptOut($value, $f->getUsage());
+                }
+                */
                 $result[$field] = $value;
             }
         }
         return $result;
     }
 
+    /**
+     * Provide the while collection as an array.
+    */
     public function toArray() {
         return $this->get(true);
     }
@@ -279,7 +299,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names by discarding special fields; fields marked as readonly; and fields unknonwn to the current class.
+     * Filters a map of fields-values entries or an array of fields names by discarding special fields; fields marked as readonly; and fields unknown to the current class.
      *
      * @param   array   $fields             Associative array mapping field names with their values.
      * @param   bool    $check_readonly     If set to true, readonly fields are discarded.
@@ -320,13 +340,8 @@ class Collection implements \Iterator, \Countable {
     public function adapt($to='txt', $lang=null) {
         // this method should only set the adapter for adaptOut conversion
         // actual conversion must not be done at this stage but only within the get() first() last() methods
-
-
         /*
-            foreach($this->objects as $id => $object) {
-                $this->objects[$id][$field] = $this->adapt_object($object, $to, $lang);
-            }
-            return $this;
+            $this->adapter = $this->dataAdapterProvider->get($to);
         */
 
         $schema = $this->model->getSchema();
@@ -338,16 +353,6 @@ class Collection implements \Iterator, \Countable {
                 }
                 // value is an object
                 elseif($value instanceof Model) {
-                    // #todo
-                    /*
-                    $this->objects[$id][$field] = $this->adapt_object($value, $to, $lang);
-                    we shouldn't deal with Model but Collection with single item instead
-                    use another method adapt($object, to, lang)
-                    foreach($value as $field => $val) {
-                        $f = $value->getField($field);
-                        $value[$field] = $this->adapter->adaptOut($val, $f->getUsage());
-                    }
-                    */
                 }
                 // value is a field
                 else {
@@ -355,17 +360,6 @@ class Collection implements \Iterator, \Countable {
                     if($type == 'computed' && isset($schema[$field]['result_type'])) {
                         $type = $schema[$field]['result_type'];
                     }
-/*
-                    default adapter is for 'application/json'
-
-                    // #todo
-                    $f = $this->model->getField($field); // retrieve descriptor from schema
-                    if(!$f) {
-                        throw new Exception("missing_field", QN_ERROR_UNKNOWN);
-                    }
-                    // raises an Exception if field is invalid or cannot be adapted
-                    $this->objects[$id][$field] = $this->adapter->adaptOut($val, $f->getUsage());
-*/
                     $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
                 }
             }
@@ -373,14 +367,10 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
-    private function adapt_object() {
-        
-    }
-
     /**
      *
      * @param $fields   array   associative array holding values and their related fields as keys
-     * @throws  Exception   if some value could not be validated against class contraints (see {class}::getConstraints method)
+     * @throws  Exception   if some value could not be validated against class constraints (see {class}::getConstraints method)
      */
     private function validate(array $fields, $ids=[], $check_unique=false, $check_required=false) {
         $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
@@ -634,11 +624,10 @@ class Collection implements \Iterator, \Countable {
             $requested_fields = [];
 
             // 'id': we might access an object directly by giving its `id`.
-            // #memo - we cannot add 'name' since it might be a computed field (circular dependency)
-            // 'name': as a convention the name is always provided.
             // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
             // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` state in order to know if object needs to be in the result set or not.
             // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
+            // #memo - we cannot add 'name' by default since it might be a computed field (that could lead to a circular dependency)
             $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
 
             foreach($fields as $key => $val ) {
@@ -698,6 +687,10 @@ class Collection implements \Iterator, \Countable {
                     continue;
                 }
                 // #todo - use model::getField()
+                /*
+                    $targetField = $this->model->getField();
+                    $target = $targetField->getDescriptor();
+                */
                 $target = $this->model->field($field);
                 $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
                 if(!in_array($target_type, ['one2many', 'many2one', 'many2many'])) {

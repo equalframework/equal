@@ -87,4 +87,9 @@ class Field {
     public function getConstraints(): array {
         return $this->getUsage()->getConstraints();
     }
+
+
+    public function getDescriptor(): array {
+        return $this->descriptor;
+    }
 }
