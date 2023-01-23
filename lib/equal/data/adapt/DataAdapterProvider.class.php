@@ -32,13 +32,13 @@ class DataAdapterProvider extends Service {
         $type = $matches[1];
         $subtype = $matches[2];
         $params = $matches[4];
-        if( ($type == 'application' && $subtype == 'json') || $type == 'JSON') {
+        if( ($type == 'application' && $subtype == 'json') || strcasecmp($type, 'JSON') == 0 ) {
             return new DataAdapterJson();
         }
-        else if( ($type == 'application' && $subtype == 'sql') || $type == 'SQL' ) {
+        else if( ($type == 'application' && $subtype == 'sql') || strcasecmp($type, 'SQL') == 0 ) {
             return new DataAdapterSql();
         }
-        elseif($type == 'text' || $type == 'TXT') {
+        elseif($type == 'text' || strcasecmp($type, 'TXT') == 0) {
             return new DataAdapterTxt();
         }
         return $adapter;
