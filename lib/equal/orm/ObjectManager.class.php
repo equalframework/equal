@@ -417,12 +417,11 @@ class ObjectManager extends Service {
      * @param   $ids
      */
     private function filterValidIdentifiers($class, $ids) {
-        $valid_ids = [];
         // sanitize $ids
         if(!is_array($ids)) {
             $ids = (array) $ids;
         }
-        // ensure ids are positive integer values
+        // pass-1 : ensure ids are positive integer values
         foreach($ids as $i => $oid) {
             $id = intval($oid);
             if(!is_numeric($oid) || $id <= 0) {
@@ -433,19 +432,27 @@ class ObjectManager extends Service {
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
-        $table_name = $this->getObjectTableName($class);
         // process remaining identifiers
+        $valid_ids = [];
         if(!empty($ids)) {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDBHandler();
+            $table_name = $this->getObjectTableName($class);
             // get all records at once
             $result = $db->getRecords($table_name, 'id', $ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
-                $valid_ids[] = (int) $row['id'];
+                $oid = (int) $row['id'];
+                $valid_ids[$oid] = true;
             }
         }
-        return $valid_ids;
+        // pass-2 : remove ids not found in DB
+        foreach($ids as $i => $oid) {
+            if(!isset($valid_ids[$oid])) {
+                unset($ids[$i]);
+            }
+        }
+        return $ids;
     }
 
     /**
