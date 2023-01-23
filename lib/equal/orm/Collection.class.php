@@ -53,6 +53,7 @@ class Collection implements \Iterator, \Countable {
     public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
         // init objects map
         $this->objects = [];
+        // #todo - remove ?
         $this->cursor = 0;
         // assign private members
         $this->class = $class;
