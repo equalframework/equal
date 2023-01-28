@@ -59,10 +59,7 @@ class Field {
         if($this->type == 'computed') {
             $type = $this->descriptor['result_type'];
         }
-        if(!isset($map[$type])) {
-            throw new \Exception('unknown_type', QN_ERROR_INVALID_CONFIG);
-        }
-        return $map[$type];
+        return isset($map[$type])?$map[$type]:$type;
     }
 
     public function getUsage(): Usage {
