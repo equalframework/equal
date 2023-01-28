@@ -7,6 +7,7 @@
 use equal\orm\ObjectManager;
 use equal\db\DBConnection;
 use equal\fs\FSManipulator as FS;
+use equal\orm\Field;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -41,11 +42,14 @@ list($params, $providers) = announce([
 ]);
 
 /**
- * @var equal\php\Context                   $context
- * @var equal\orm\ObjectManager             $orm
- * @var equal\data\DataAdapter              $adapter
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
  */
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 $json = run('do', 'test_db-access');
 if(strlen($json)) {
@@ -260,7 +264,8 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
 
             foreach($class['data'] as $odata) {
                 foreach($odata as $field => $value) {
-                    $odata[$field] = $adapter->adapt($value, $schema[$field]['type']);
+                    $f = new Field($schema[$field]);
+                    $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
                 }
                 if(isset($odata['id'])) {
                     $res = $orm->search($entity, ['id', '=', $odata['id']]);

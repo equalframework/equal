@@ -4,6 +4,9 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use equal\orm\Field;
+
 list($params, $providers) = announce([
     'description'   => "Update (fully or partially) the given object.",
     'params'        => [
@@ -51,11 +54,15 @@ list($params, $providers) = announce([
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
- * @var \equal\data\DataAdapter     $adapter
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
  */
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
+
 $result = [];
 
 if(empty($params['ids'])) {
@@ -70,7 +77,7 @@ if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-// adapt received values for parameter 'fields' (which are still formated as text)
+// adapt received values for parameter 'fields' (which are still formatted as text)
 $schema = $model->getSchema();
 // remove unknown fields
 $fields = array_filter($params['fields'], function($field) use ($schema){
@@ -87,12 +94,10 @@ foreach($fields as $field => $value) {
         unset($fields[$field]);
         continue;
     }
-    if($type == 'computed') {
-        $type = $schema[$field]['result_type'];
-    }
     try {
         // adapt received values based on their type (as defined in schema)
-        $fields[$field] = $adapter->adapt($value, $type);
+        $f = new Field($schema[$field]);
+        $fields[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
     catch(Exception $e) {
         $msg = $e->getMessage();

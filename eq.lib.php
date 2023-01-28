@@ -254,7 +254,7 @@ namespace {
 }
 namespace config {
     use equal\services\Container;
-    use equal\orm\Fields;
+    use equal\orm\Field;
 
     /*
      * This section adds some config-utility functions to the 'config' namespace.
@@ -463,20 +463,20 @@ namespace config {
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
-                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instanciated.', QN_REPORT_FATAL);
+                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', QN_REPORT_FATAL);
             }
-            // instanciate service container
+            // instantiate service container
             $container = Container::getInstance();
 
             // register names for common services and assign default classes
-            // (these can be overriden in the `config.inc.php` of invoked package)
+            // (these can be overridden in the `config.inc.php` of invoked package)
             $container->register([
                 'report'    => 'equal\error\Reporter',
                 'auth'      => 'equal\auth\AuthenticationManager',
                 'access'    => 'equal\access\AccessController',
                 'context'   => 'equal\php\Context',
                 'validate'  => 'equal\data\DataValidator',
-                'adapt'     => 'equal\data\DataAdapter',
+                'adapt'     => 'equal\data\adapt\DataAdapterProvider',
                 'orm'       => 'equal\orm\ObjectManager',
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
@@ -825,7 +825,11 @@ namespace config {
             // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
             $invalid_params = [];
-            $adapter = $container->get('adapt');
+            /** @var \equal\data\adapt\DataAdapterProvider */
+            $dap = $container->get('adapt');
+            // #todo - we should use the adapter based on content-type header, if any
+            /** @var \equal\data\adapt\DataAdapter */
+            $adapter = $dap->get('json');
             foreach($announcement['params'] as $param => $config) {
                 // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
@@ -835,14 +839,11 @@ namespace config {
                     // ignore optional params without default value (this allows PATCH of objects on specific fields only)
                 }
                 else {
-                    // prevent type confusion while converting data from text
-                    // all inputs are handled as text, conversion is made based on expected type
-                    $result[$param] = $adapter->adapt($body[$param], $config['type']);
+                    $f = new Field($config);
+                    $result[$param] = $adapter->adaptIn($body[$param], $f->getUsage());
+                    // #todo - check value validity according to Usage
                     /*
                     // convert value from input format + validate type and usage constraints
-                    $f = new Field($config);
-                    // raises an Exception if assignment is not possible
-                    $f->set($body[$param], 'json'); // not explicit type, but Content-Type from HTTP REQUEST
                     try {
                         $f->validate();
                         $result[$param] = $f->get();
@@ -888,7 +889,7 @@ namespace config {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
-                            $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
+                            $reporter->warning("invalid value {$value} for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
                             $result[$param] = $config['default'];
                         }
                         else {

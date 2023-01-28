@@ -14,6 +14,10 @@ use equal\locale\Locale;
 
 class DataAdapterTxt extends DataAdapter {
 
+    public function __construct() {
+        $this->type = 'txt';
+    }
+
    /**
      * This Adapter is for adaptOut only (txt has no formal input format)
      *

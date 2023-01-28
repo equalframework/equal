@@ -290,6 +290,11 @@ class Model implements \ArrayAccess, \Iterator {
         return $this->fields;
     }
 
+    /**
+     * Returns a Field object that corresponds to the descriptor of the given field (from schema).
+     *
+     * @return Field        Associative array mapping fields names with their related Field instances.
+     */
     public final function getField($field) {
         $type = $this->schema[$field]['type'];
         while($type == 'alias') {

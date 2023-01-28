@@ -18,7 +18,8 @@ use equal\orm\usages\{
         UsageNumber,
         UsagePassword,
         UsagePhone,
-        UsageText
+        UsageText,
+        UsageArray
     };
 
 
@@ -38,8 +39,8 @@ class UsageFactory {
     public static function create(string $usage_str): Usage {
 
         // split parts and check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
-            // error
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
+            throw new \Exception("invalid_usage for $usage_str", QN_ERROR_INVALID_PARAM);
         }
 
         /*
@@ -52,7 +53,7 @@ class UsageFactory {
         */
 
         $type = $matches[1];
-        $subtype = $matches[4];
+        // $subtype = $matches[4];
 
         switch($type) {
             // string usages
@@ -74,6 +75,8 @@ class UsageFactory {
                 return new UsageEmail($usage_str);
             case 'hash':
                 break;
+            case 'file':
+            case 'binary':
             case 'image':
                 return new UsageImage($usage_str);
             case 'language':
@@ -91,8 +94,12 @@ class UsageFactory {
                 break;
             case 'uri':
                 break;
+            case 'array':
+                return new UsageArray($usage_str);
+                break;
+
         }
-        return null;
+        return new Usage($usage_str);
     }
 
 }

@@ -14,7 +14,7 @@ list($params, $providers) = announce([
     'params'        => [
         'schema' =>  [
             'description'   => 'Entity definition .',
-            'type'          => 'array', 
+            'type'          => 'array',
             'required'      => true
 
         ],
@@ -22,14 +22,14 @@ list($params, $providers) = announce([
             'description'   => 'Package in which entity is declared.',
             'type'          => 'string',
             'required'      => true
-        ],		
+        ],
 		'entity'	=> [
             'description'   => 'Name of the entity (class).',
             'type'          => 'string',
             'required'      => true
         ],
     ],
-    'providers'     => ['context', 'orm', 'adapt'] 
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
@@ -48,7 +48,7 @@ foreach($params['schema']['fields'] as $fld_item) {
 	if(isset($fld_item['attributes'])) {
 		foreach($fld_item['attributes'] as $attr_name => $attr) {
 			if(in_array($attr_name, ['multilang', 'store'])) {
-				$attr['value'] = $adapter->adapt($attr['value'], 'boolean');
+				$attr['value'] = (bool) $attr['value'];
 				if($attr['value'] === false) continue;
 			}
 			if($attr_name == 'selection' && empty($attr['value'])) continue;
@@ -59,7 +59,7 @@ foreach($params['schema']['fields'] as $fld_item) {
 
 
 // default for parent is 'equal\orm\Model'
-if($parent != 'equal\orm\Model') {	
+if($parent != 'equal\orm\Model') {
 	$parentModel = $orm->getModel($parent);
 
 	$parent_schema = $parentModel->getSchema();

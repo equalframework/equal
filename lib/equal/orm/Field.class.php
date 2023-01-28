@@ -65,10 +65,10 @@ class Field {
         return $map[$type];
     }
 
-    final protected function getUsage(): Usage {
+    public function getUsage(): Usage {
         if(is_null($this->usage)) {
             // use usage string from the descriptor if present
-            if(isset($this->descriptor['usage'])) {
+            if(isset($this->descriptor['usage']) && strlen($this->descriptor['usage']) > 0) {
                 $this->usage = UsageFactory::create($this->descriptor['usage']);
             }
             // otherwise, use the usage string of which the field type is an alias

@@ -8,8 +8,9 @@ namespace equal\data\adapt;
 
 
 interface DataAdapterInterface {
+
     /**
-     * Routes the adaptation request to the appropriate method.
+     * Handles the conversion to the PHP type equivalent.
      * Conversion: x -> PHP
      *
      * @param mixed         $value
@@ -19,7 +20,7 @@ interface DataAdapterInterface {
 	public function adaptIn($value, $usage, $lang='en');
 
     /**
-     * Routes the adaptation request to the appropriate method.
+     * Handles the conversion to the type targeted by the DataAdapter.
      * Conversion: PHP -> x
      *
      * @param mixed         $value

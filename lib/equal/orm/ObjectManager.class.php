@@ -495,8 +495,12 @@ class ObjectManager extends Service {
                     while($row = $om->db->fetchArray($result)) {
                         $oid = $row['object_id'];
                         $field = $row['object_field'];
-                        // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                        $value = $this->container->get('adapt')->adapt($row['value'], 'binary', 'php', 'sql', $class, $oid, $field, $lang);
+                        // do some pre-treatment if necessary (this step is symmetrical to the one in store method)
+                        /** @var \equal\data\adapt\DataAdapterProvider */
+                        $dap = $this->container->get('adapt');
+                        /** @var \equal\data\adapt\DataAdapter */
+                        $adapter = $dap->get('sql');
+                        $value = $adapter->adaptIn($row['value'], 'binary');
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
                     }
@@ -520,14 +524,15 @@ class ObjectManager extends Service {
                         // retrieve the id of the object associated with current record
                         $oid = $row['id'];
                         foreach($row as $field => $value) {
-                            // do some pre-treatment if necessary (this step is symetrical to the one in store method)
-                            $type = $schema[$field]['type'];
-                            if(isset($schema[$field]['result_type'])) $type = $schema[$field]['result_type'];
-
+                            // do some pre-treatment if necessary (this step is symmetrical to the one in store method)
                             if(!is_null($value)) {
-                                $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'sql', $class, $oid, $field, $lang);
+                                /** @var \equal\data\adapt\DataAdapterProvider */
+                                $dap = $this->container->get('adapt');
+                                /** @var \equal\data\adapt\DataAdapter */
+                                $adapter = $dap->get('sql');
+                                $f = new Field($schema[$field]);
+                                $value = $adapter->adaptIn($value, $f->getUsage());
                             }
-
                             // update the internal buffer with fetched value
                             $om->cache[$table_name][$oid][$lang][$field] = $value;
                         }
@@ -632,7 +637,7 @@ class ObjectManager extends Service {
 
             // build an associative array ordering given fields by their type
             $fields_lists = array();
-            // remember computed fields having store attibute set (we need this as $type will hold the $schema['result_type'] value)
+            // remember computed fields having store attribute set (we need this as $type will hold the $schema['result_type'] value)
             $stored_fields = array();
 
             // 1) retrieve fields types
@@ -726,6 +731,11 @@ class ObjectManager extends Service {
                     ),
                     'object_id'
                 );
+                /** @var \equal\data\adapt\DataAdapterProvider */
+                $dap = $this->container->get('adapt');
+                /** @var \equal\data\adapt\DataAdapter */
+                $adapter = $dap->get('sql');
+
                 $values_array = [];
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
@@ -734,15 +744,15 @@ class ObjectManager extends Service {
                             $class,
                             $field,
                             $oid,
-                            $this->container->get('adapt')->adapt($om->cache[$table_name][$oid][$lang][$field], 'binary', 'sql', 'php', $class, $oid, $field, $lang),
+                            $adapter->adaptOut($om->cache[$table_name][$oid][$lang][$field], 'binary'),
                             // creator
                             QN_ROOT_USER_ID,
                             // created
-                            $this->container->get('adapt')->adapt(time(), 'datetime', 'sql', 'php'),
+                            $adapter->adaptOut(time(), 'datetime'),
                             // modifier
                             QN_ROOT_USER_ID,
                             // modified
-                            $this->container->get('adapt')->adapt(time(), 'datetime', 'sql', 'php'),
+                            $adapter->adaptOut(time(), 'datetime'),
                             // state
                             'instance',
                             // deleted
@@ -767,6 +777,8 @@ class ObjectManager extends Service {
                     );
             },
             'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                /** @var \equal\data\adapt\DataAdapterProvider */
+                $dap = $this->container->get('adapt');
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
@@ -774,13 +786,11 @@ class ObjectManager extends Service {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $type != 'computed') {
-                            // support computed fields (handled as simple fields according to result type)
-                            if($type == 'computed') {
-                                $type = $schema[$field]['result_type'];
-                            }
-                            // #todo - this breaks the collection pattern
-                            // #memo - we do this in order to handle oid in filname for binaries stored as files)
-                           $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php', $class, $oid, $field, $lang);
+                            /** @var \equal\data\adapt\DataAdapter */
+                            $adapter = $dap->get('sql');
+                            $f = new Field($schema[$field]);
+                            // adapt value to SQL
+                            $value = $adapter->adaptOut($value, $f->getUsage());
                         }
                         $fields_values[$field] = $value;
                     }
@@ -1315,14 +1325,16 @@ class ObjectManager extends Service {
 
         try {
             $object = $this->getStaticInstance($class, $fields);
+            // retrieve schema
+            $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
             $special_fields = Model::getSpecialColumns();
 
-            // 1) define default values
+            // 1) define default values (in SQL)
             $creation_array = [];
-            foreach($special_fields as $special_field => $descr) {
-                if(isset($object[$special_field])) {
-                    $creation_array[$special_field] = $this->container->get('adapt')->adapt($object[$special_field], $descr['type'], 'sql', 'php');
+            foreach($special_fields as $field => $descr) {
+                if(isset($object[$field])) {
+                    $creation_array[$field] = $object[$field];
                 }
             }
 
@@ -1379,8 +1391,17 @@ class ObjectManager extends Service {
             }
 
             // 4) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
-
-            $db->addRecords($table_name, array_keys($creation_array), [ array_values($creation_array) ]);
+            $sql_values = [];
+            /** @var \equal\data\adapt\DataAdapterProvider */
+            $dap = $this->container->get('adapt');
+            foreach($creation_array as $field => $value) {
+                /** @var \equal\data\adapt\DataAdapter */
+                $adapter = $dap->get('sql');
+                $f = new Field($schema[$field]);
+                // adapt value to SQL
+                $sql_values[$field] = $adapter->adaptOut($value, $f->getUsage());
+            }
+            $db->addRecords($table_name, array_keys($sql_values), [ array_values($sql_values) ]);
 
             if($oid <= 0) {
                 // id field is auto-increment: retrieve last value
@@ -1390,7 +1411,7 @@ class ObjectManager extends Service {
             // in any case, we return the object id
             $res = $oid;
 
-            // 5) update new object with given fiels values, if any
+            // 5) update new object with given fields values, if any
 
             // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
@@ -1458,7 +1479,7 @@ class ObjectManager extends Service {
 
             // 2) pre-processing - $fields sanitization
 
-            // get stattic instance (checks that given class exists)
+            // get static instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
             // retrieve schema
             $schema = $object->getSchema();
@@ -2134,9 +2155,16 @@ class ObjectManager extends Service {
                                 // adapt value
                                 if(!is_array($value)) {
                                     // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
-                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'json');
+                                    /** @var \equal\data\adapt\DataAdapterProvider */
+                                    $dap = $this->container->get('adapt');
+                                    /** @var \equal\data\adapt\DataAdapter */
+                                    $adapterSql = $dap->get('sql');
+                                    /** @var \equal\data\adapt\DataAdapter */
+                                    $adapterJson = $dap->get('json');
+                                    $f = new Field($schema[$field]);
+                                    $value = $adapterJson->adaptIn($value, $f->getUsage());
                                     // adapt value to SQL
-                                    $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
+                                    $value = $adapterSql->adaptOut($value, $f->getUsage());
                                 }
                                 // add some conditions if field is multilang (and the search is made on another language than the default one)
                                 if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
