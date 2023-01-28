@@ -70,7 +70,7 @@ $instance = User::id($target_user_id)
     ->update([
         'password' => $params['password']
     ])
-    ->adapt('txt')
+    ->adapt('json')
     ->first(true);
 
 $response = $context->httpResponse();

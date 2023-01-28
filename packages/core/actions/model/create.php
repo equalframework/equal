@@ -97,8 +97,8 @@ catch(Exception $e) {
 
 // fields for which no value has been given are set to default value (set in Model)
 $instance = $params['entity']::create($params['fields'], $params['lang'])
-            ->adapt('txt')
-            ->first(true);
+    ->adapt('json')
+    ->first(true);
 
 $result = [
     'entity' => $params['entity'],

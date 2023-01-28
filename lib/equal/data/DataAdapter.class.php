@@ -72,7 +72,7 @@ class DataAdapter extends Service {
     private function init() {
         $this->config = [
             'boolean' => [
-                'txt' => [
+                'json' => [
                     'php' =>    function ($value) {
                                     if(in_array($value, ['TRUE', 'true', '1', 1, true], true)) return true;
                                     return false;
@@ -84,7 +84,7 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php' => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     //return ($value)?'true':'false';
                                     return (bool) $value;
                                 },
@@ -94,7 +94,7 @@ class DataAdapter extends Service {
                 ]
             ],
             'integer' => [
-                'txt' => [
+                'json' => [
                     'php' =>    function ($value) {
                                     $value = self::strToInteger($value);
                                     if(!is_int($value) && !is_null($value)) {
@@ -112,7 +112,7 @@ class DataAdapter extends Service {
                 ]
             ],
             'float' => [
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     if(is_string($value) && $value == 'null') {
                                         $value = null;
@@ -134,7 +134,7 @@ class DataAdapter extends Service {
                 ]
             ],
             'string' => [
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     // #memo - urldecoding (and any pre-treatment) should not occur here
                                     return $value;
@@ -153,7 +153,7 @@ class DataAdapter extends Service {
             ],
             'time' => [
                 // string times are expected to be ISO 8601 formatted times (hh:mm:ss)
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     $count = substr_count($value, ':');
                                     list($hour, $minute, $second) = [0,0,0];
@@ -172,7 +172,7 @@ class DataAdapter extends Service {
                 ],
                 // internally, times are handled as relative timestamps (number of seconds since the beginning of the day)
                 'php'   => [
-                    'txt' =>    function($value)  {
+                    'json' =>    function($value)  {
                                     $hours = (int) ($value / (60*60));
                                     $minutes = (int) (($value % (60*60)) / 60);
                                     $seconds = $value % (60);
@@ -194,7 +194,7 @@ class DataAdapter extends Service {
             ],
             'date' => [
                 // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     if(is_numeric($value)) {
                                         // value is a timestamp, keep it
@@ -213,7 +213,7 @@ class DataAdapter extends Service {
                 ],
                 // internally, we handle dates as timestamps
                 'php'   => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     if(is_null($value)) {
                                         return null;
                                     }
@@ -240,7 +240,7 @@ class DataAdapter extends Service {
             ],
             'datetime' => [
                 // string dates are expected to be UTC timestamps or ISO 8601 formatted dates
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     if(is_numeric($value)) {
                                         // value is a timestamp, keep it
@@ -259,7 +259,7 @@ class DataAdapter extends Service {
                 ],
                 // internally, we handle dates as timestamps
                 'php'   => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     if(is_null($value)) {
                                         return null;
                                     }
@@ -287,7 +287,7 @@ class DataAdapter extends Service {
 
             // 'array' is a type only used in announce() method
             'array' => [
-                'txt'   => [
+                'json'   => [
                     'php' =>    function ($value) {
                                     // try to resolve value as JSON
                                     $data = @json_decode($value, true);
@@ -399,13 +399,13 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php'   => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     return (array) $value;
                                 }
                 ]
             ],
             'many2one'  => [
-                'txt' => [
+                'json' => [
                     'php' =>    function ($value) {
                                     // consider empty string as null
                                     if(is_string($value) && (!strlen($value) || $value == 'null')) {
@@ -435,7 +435,7 @@ class DataAdapter extends Service {
                 ]
             ],
             'one2many'  => [
-                'txt' => [
+                'json' => [
                     'php' =>    function ($value) {
                                     if(is_string($value)) {
                                         $value = array_filter(explode(',', $value), function ($a) { return is_numeric($a); });
@@ -444,13 +444,13 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php'   => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     return (array) $value;
                                 }
                 ]
             ],
             'many2many' => [
-                'txt' => [
+                'json' => [
                     'php' =>    function($value) {
                                     // we got a string: convert to array
                                     if(is_string($value)) {
@@ -470,13 +470,13 @@ class DataAdapter extends Service {
                                 }
                 ],
                 'php'   => [
-                    'txt' =>    function ($value) {
+                    'json' =>    function ($value) {
                                     return (array) $value;
                                 }
                 ]
             ],
             'html' => [
-                'txt' => [
+                'json' => [
                     'php' => function ($value) {
                         // clean HTML input html
                         // strip all attributes
@@ -485,7 +485,7 @@ class DataAdapter extends Service {
                 ]
             ],
             'binary' => [
-                'txt' => [
+                'json' => [
                     'php' => function($value) {
                         /*
                          $value is expected to be either a base64 string,
@@ -590,7 +590,7 @@ class DataAdapter extends Service {
                         }
                         return $res;
                     },
-                    'txt' => function($value) {
+                    'json' => function($value) {
                         return base64_encode($value);
                     }
                  ]
@@ -629,7 +629,7 @@ class DataAdapter extends Service {
 	}
 
 
-	public function adapt($value, $type, $to='php', $from='txt', ...$extra) {
+	public function adapt($value, $type, $to='php', $from='json', ...$extra) {
         if($type == 'double') $type = 'float';
         else if($type == 'int') $type = 'integer';
         else if($type == 'bool') $type = 'boolean';
@@ -637,18 +637,18 @@ class DataAdapter extends Service {
 
         // #transition - accept json as txt
         if($from == 'json') {
-            $from = 'txt';
+            $from = 'json';
         }
         if($to == 'json') {
-            $to = 'txt';
+            $to = 'json';
         }
 
-        if(!in_array($from, ['txt', 'php', 'sql'])) {
+        if(!in_array($from, ['json', 'php', 'sql'])) {
             // in case of unknown origin, fallback to raw text
-            $from = 'txt';
+            $from = 'json';
             // todo: issue a warning
         }
-        if(!in_array($to, ['txt', 'php', 'sql'])) {
+        if(!in_array($to, ['json', 'php', 'sql'])) {
             // in case of unknown destination, fallback to PHP
             $to = 'php';
             // todo: issue a warning

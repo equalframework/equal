@@ -93,7 +93,7 @@ if(ctype_lower(substr($file, 0, 1))) {
         }
         $value = null;
         if(isset($controller_schema[$field]['default'])) {
-            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'txt', 'php');
+            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'json', 'php');
         }
         $object[$field] = $value;
     }
@@ -195,12 +195,13 @@ $total = count($collection->ids());
 
 // retrieve list
 $result = $collection
-          ->shift($params['start'])
-          ->limit($params['limit'])
-          ->read($fields, $params['lang'])
-          ->adapt('txt')
-          // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
-          ->get(true);
+    ->shift($params['start'])
+    ->limit($params['limit'])
+    ->read($fields, $params['lang'])
+    ->adapt('json')
+    // return result as an array
+    // #memo - JSON objects handled by ES2015+ might have their keys order altered
+    ->get(true);
 
 $context->httpResponse()
         ->header('X-Total-Count', $total)

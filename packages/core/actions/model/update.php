@@ -116,10 +116,10 @@ if(count($fields)) {
             if($object['state'] != 'draft') {
                 // create object as draft to avoid a missing_mandatory error, and then update it
                 $instance = $params['entity']::create(['state' => 'draft'])
-                                             ->update($fields, $params['lang'])
-                                             ->read(['id'])
-                                             ->adapt('txt')
-                                             ->first(true);
+                    ->update($fields, $params['lang'])
+                    ->read(['id'])
+                    ->adapt('json')
+                    ->first(true);
                 $params['ids'] = [$instance['id']];
             }
         }
@@ -134,11 +134,11 @@ if(count($fields)) {
     }
 
     $result = $params['entity']::ids($params['ids'])
-                            // update with received values (with validation - submit `state` if received)
-                            ->update($fields, $params['lang'])
-                            ->read(['id', 'state', 'name', 'modified'])
-                            ->adapt('txt')
-                            ->get(true);
+        // update with received values (with validation - submit `state` if received)
+        ->update($fields, $params['lang'])
+        ->read(['id', 'state', 'name', 'modified'])
+        ->adapt('json')
+        ->get(true);
 }
 
 $context->httpResponse()

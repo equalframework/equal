@@ -2134,7 +2134,7 @@ class ObjectManager extends Service {
                                 // adapt value
                                 if(!is_array($value)) {
                                     // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
-                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
+                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'json');
                                     // adapt value to SQL
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }

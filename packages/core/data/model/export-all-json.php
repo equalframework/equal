@@ -56,12 +56,12 @@ $series = [
     "data" => []
 ];
 
-$values = $params['entity']::search([])
-        ->read($fields)
-        ->adapt('txt')
-        ->get();
+$values = $params['entity']::search()
+    ->read($fields)
+    ->adapt('json')
+    ->get(true);
 
-foreach($values as $oid => $odata) {
+foreach($values as $odata) {
     $series["data"][] = $odata;
 }
 

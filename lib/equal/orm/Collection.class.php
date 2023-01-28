@@ -181,7 +181,7 @@ class Collection implements \Iterator, \Countable {
      * Return the first object present in the collection.
      * (This method does not alter the collection.)
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map). If set to true, the object is also adapted using the current DataAdapter.
      * @return array|null  If current queue is not empty, returns the first object, otherwise returns null.
      */
     public function first($to_array=false) {
@@ -210,8 +210,8 @@ class Collection implements \Iterator, \Countable {
     /**
      * Provide the whole collection as a map (by default) or as an array.
      *
-     * @param   $to_array   boolean    Flag to force conversion to an array (instead of a map). If set, the returned result is an of objects with keys holding indexes (and no ids).
-     * @return  array       (Associative) array holding objects of the collection. If $to_array is set to true, sub-collections are recursively converted to arrays as well. If the collection is empty, an empty array is returned.
+     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is an of objects with keys holding indexes (and no ids).
+     * @return  array                   Returns an array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays. If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
@@ -225,10 +225,11 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Recursively generate an array-version of an object from current collection,
+     * Recursively generate an array representation of an object from current collection,
      * handling sub-Collection instances either as maps or arrays.
      *
-     * @param   $to_array   boolean    Flag for requesting sub-collections as arrays (instead of a maps)
+     * @param   Model   $object         Object to be converted to an array representation.
+     * @param   boolean $to_array       Flag for requesting sub-collections as arrays (instead of a maps)
      */
     private function get_raw_object($object, $to_array=false) {
         $result = [];
@@ -240,7 +241,12 @@ class Collection implements \Iterator, \Countable {
                 $result[$field] = $this->get_raw_object($value, $to_array);
             }
             else {
-                // #todo  - data adaption should occur here
+                if($to_array) {
+                    // #todo  - data adaption should occur here
+                }
+                else {
+
+                }
                 /*
                 if($this->adapter) {
                     $f = $this->model->getField($field);
@@ -338,7 +344,7 @@ class Collection implements \Iterator, \Countable {
      * @throws Exception    if encounters something not convertible.
      * @return Collection       current instance
      */
-    public function adapt($to='txt', $lang=null) {
+    public function adapt($to='json', $lang=null) {
         // this method should only set the adapter for adaptOut conversion
         // actual conversion must not be done at this stage but only within the get() first() last() methods
         /*

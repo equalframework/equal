@@ -48,7 +48,7 @@ $instance = User::id($params['id'])
         'lastname'  => $params['lastname'],
         'language'  => $params['language']
     ])
-    ->adapt('txt')
+    ->adapt('json')
     ->first(true);
 
 $context->httpResponse()
