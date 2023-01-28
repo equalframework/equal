@@ -338,11 +338,12 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Convert values to specified context (txt, php, sql, orm) based on their type
+     * Mark Collection to be converted using the DataAdapter matching the target type (specific content-type or 'json', 'sql', 'txt').
+     * Conversion is asynchronous. It is performed at Collection export (`first(true)` or `get(true)`) and is based on field types.
      *
-     * @param $to       string  might be a map associating fields with their values, or a map association ids with objects
-     * @throws Exception    if encounters something not convertible.
-     * @return Collection       current instance
+     * @param   string      $to     Target string  might be a map associating fields with their values, or a map association ids with objects
+     * @throws  Exception           if encounters something not convertible.
+     * @return  Collection          current instance
      */
     public function adapt($to='json', $lang=null) {
         // this method should only set the adapter for adaptOut conversion

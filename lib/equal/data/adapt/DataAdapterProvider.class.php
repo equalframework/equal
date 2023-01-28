@@ -11,17 +11,20 @@ use equal\organic\Service;
 class DataAdapterProvider extends Service {
 
     /**
-     * We try as much as possible to use standard Content-Types as defined by RFC7231 and listed by IANA (https://www.iana.org/assignments/media-types/media-types.xhtml)
-     * application/json
-     * application/sql
-     * application/xml
-     * text/plain
+     * Provides a DataAdapter object according to given type.
+     * This method supports the Content-Type syntax (type/subtype;parameter=value) along with major types aliases (JSON, SQL, TXT)
      *
+     * @param   string      $content_type   The content type or the type-alias for which the DataAdapter has to be returned.
+     * We try as much as possible to use standard Content-Types as defined by RFC7231 and listed by IANA (https://www.iana.org/assignments/media-types/media-types.xhtml).
      * When adaptation implies more specific distinction, we use subtype tree for distinguishing adapters.
-     * Example:
-     * application/sql.t-sql
      *
-     * In any case we support the Content-Type syntax: type/subtype;parameter=value
+     * @example
+     *  application/json
+     *  application/sql
+     *  application/xml
+     *  text/plain
+     *  application/sql.t-sql
+     *
      */
     public function get($content_type): DataAdapter {
         /** @var DataAdapter */
