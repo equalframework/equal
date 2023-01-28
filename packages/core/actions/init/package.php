@@ -13,7 +13,7 @@ use equal\orm\Field;
 $packages = eQual::run('get', 'config_packages');
 
 list($params, $providers) = announce([
-    'description'   => 'Initialise database for given package. If no package is given, initialize core package.',
+    'description'   => 'Initialize database for given package. If no package is given, initialize core package.',
     'params'        => [
         'package' => [
             'description'   => 'Package for which we want SQL schema.',
@@ -22,7 +22,7 @@ list($params, $providers) = announce([
             'default'       => 'core'
         ],
         'cascade' => [
-            'description'   => 'Cascade initialisation of the packages marked as dependencies.',
+            'description'   => 'Cascade initialization of the packages marked as dependencies.',
             'type'          => 'boolean',
             'default'       => true
         ],
@@ -46,7 +46,7 @@ list($params, $providers) = announce([
  * @var \equal\orm\ObjectManager         $orm
  * @var \equal\data\DataAdapterProvider  $dap
  */
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
