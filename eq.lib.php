@@ -729,8 +729,9 @@ namespace config {
                     if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
                         throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
                     }
-                    if($announcement['access']['visibility'] == 'protected' && $auth->userId() <= 0)  {
-                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                    if($announcement['access']['visibility'] == 'protected')  {
+                        // #memo - regular rules will apply (non identified user shouldn't be granted unless DEFAULT_RIGHTS allow it)
+                        // throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
                     }
                 }
                 if(isset($announcement['access']['users'])) {
