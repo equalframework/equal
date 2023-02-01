@@ -23,6 +23,8 @@ $group = Group::create(['name' => 'test group'])->first(true);
 
 */
 
+use equal\orm\Field;
+
 list($params, $providers) = announce([
     'description'   => "Create a new object using given fields values.",
     'params'        => [
@@ -54,7 +56,15 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+/**
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
+ */
+list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 // fields and values have been received as a raw array : adapt received values according to schema
 $entity = $orm->getModel($params['entity']);
@@ -71,17 +81,8 @@ try {
             unset($params['fields'][$field]);
             continue;
         }
-        /*
-        $f = $orm->getField($params['entity'], $field);
-        if(!$f) {
-            throw new Exception("missing_field", QN_ERROR_UNKNOWN);
-        }
-        // raises an Exception if value is not convertible or breaks the usage
-        $params['fields'][$field] = $f->set($value, 'json')
-                                      ->validate()
-                                      ->get();
-        */
-        $params['fields'][$field] = $adapter->adapt($value, $schema[$field]['type']);
+        $f = new Field($schema[$field]);
+        $params['fields'][$field] = $adapter->adaptIn($value, $f->getUsage());
     }
 }
 catch(Exception $e) {

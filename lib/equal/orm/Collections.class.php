@@ -18,7 +18,7 @@ class Collections extends Service {
     }
 
     public function create($class) {
-        // instanciate a new collection and give it access to available services through the container instance member
+        // instantiate a new collection and give it access to available services through the container instance member
         return new Collection($class,
             $this->container->get('orm'),
             $this->container->get('access'),
