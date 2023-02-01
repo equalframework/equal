@@ -13,6 +13,9 @@ use equal\locale\Locale;
 
 class DataAdapterSql extends DataAdapter {
 
+    public function __construct() {
+        $this->type = 'sql';
+    }
 
     /**
      * Routes the adaptation request to the appropriate method.

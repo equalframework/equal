@@ -59,16 +59,13 @@ class Field {
         if($this->type == 'computed') {
             $type = $this->descriptor['result_type'];
         }
-        if(!isset($map[$type])) {
-            throw new \Exception('unknown_type', QN_ERROR_INVALID_CONFIG);
-        }
-        return $map[$type];
+        return isset($map[$type])?$map[$type]:$type;
     }
 
-    final protected function getUsage(): Usage {
+    public function getUsage(): Usage {
         if(is_null($this->usage)) {
             // use usage string from the descriptor if present
-            if(isset($this->descriptor['usage'])) {
+            if(isset($this->descriptor['usage']) && strlen($this->descriptor['usage']) > 0) {
                 $this->usage = UsageFactory::create($this->descriptor['usage']);
             }
             // otherwise, use the usage string of which the field type is an alias

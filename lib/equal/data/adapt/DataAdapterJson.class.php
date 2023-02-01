@@ -11,6 +11,10 @@ use equal\orm\usages\Usage;
 
 class DataAdapterJson extends DataAdapter {
 
+    public function __construct() {
+        $this->type = 'json';
+    }
+
     /**
      * Adapts the input value from external type to PHP type (x -> PHP).
      * If necessary (non trivial) Routes the adaptation request to the appropriate method.

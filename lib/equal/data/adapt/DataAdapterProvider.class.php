@@ -30,11 +30,11 @@ class DataAdapterProvider extends Service {
         /** @var DataAdapter */
         $adapter = null;
         if(!preg_match('/([a-zA-Z]+)\/?([-+.a-z0-9]+)?(;(.+))*/', $content_type, $matches)) {
-            // error
+            throw new \Exception('invalid_content_type', QN_ERROR_INVALID_PARAM);
         }
         $type = $matches[1];
-        $subtype = $matches[2];
-        $params = $matches[4];
+        $subtype = (isset($matches[2]))?$matches[2]:'';
+        // $params = $matches[4];
         if( ($type == 'application' && $subtype == 'json') || strcasecmp($type, 'JSON') == 0 ) {
             return new DataAdapterJson();
         }

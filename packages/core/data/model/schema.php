@@ -4,6 +4,9 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use equal\orm\Field;
+
 list($params, $providers) = announce([
     'description'   => "Returns the schema of given class (model) in JSON",
     'params'        => [
@@ -21,8 +24,15 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
+/**
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
+ */
+list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
-list($context, $orm, $adapt) = [$providers['context'], $providers['orm'], $providers['adapt']];
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 
 $data = [];
@@ -89,9 +99,8 @@ if(!count($data)) {
             if(is_callable($defaults[$field])) {
                 $default = call_user_func($defaults[$field], $orm);
             }
-            $type = $schema[$field]['type'];
-            $adapted = $adapt->adapt($default, $type, 'json', 'php');
-            $data['fields'][$field]['default'] = $adapted;
+            $f = new Field($schema[$field]);
+            $data['fields'][$field]['default'] = $adapter->adaptOut($default, $f->getUsage());
         }
     }
 

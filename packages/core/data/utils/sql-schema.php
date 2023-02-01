@@ -30,10 +30,10 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'providers'     => ['context', 'orm', 'adapt']
+    'providers'     => ['context', 'orm']
 ]);
 
-list($context, $orm, $adapt) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $params['package'] = strtolower($params['package']);
 
@@ -114,12 +114,7 @@ foreach($classes as $class) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
 
-            /*
             // #memo - default is supported by ORM, not DBMS
-            if(isset($description['default']) && !is_callable($description['default'])) {
-                $column_descriptor['default'] = $adapt->adapt($description['default'], $type, 'sql', 'php');
-            }
-            */
 
             if($field == 'id') {
                 continue;

@@ -9,7 +9,14 @@ namespace equal\data\adapt;
 
 class DataAdapter implements DataAdapterInterface {
 
+    /** @var string */
+    protected $type = '';
+
     public function __construct() {
+    }
+
+    public function getType() {
+        return $this->type;
     }
 
     public static function strToInteger($value) {
@@ -66,9 +73,9 @@ class DataAdapter implements DataAdapterInterface {
     }
 
     /**
-     * Routes the adaptation request to the appropriate method.
+     * Handles the conversion to the PHP type equivalent.
      * This method is meant to be overloaded by children classes and called as fallback.
-     * x -> PHP
+     * Conversion: x -> PHP
      *
      */
 	public function adaptIn($value, $usage, $lang='en') {
@@ -76,9 +83,9 @@ class DataAdapter implements DataAdapterInterface {
     }
 
     /**
-     * Routes the adaptation request to the appropriate method.
+     * Handles the conversion to the type targeted by the DataAdapter.
      * This method is meant to be overloaded by children classes and called as fallback.
-     * PHP -> x
+     * Conversion: PHP -> x
      *
      */
     public function adaptOut($value, $usage, $lang='en') {

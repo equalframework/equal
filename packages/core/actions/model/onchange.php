@@ -4,6 +4,9 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use equal\orm\Field;
+
 list($params, $providers) = announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
     'response'      => [
@@ -41,11 +44,14 @@ list($params, $providers) = announce([
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
- * @var \equal\data\DataAdapter     $adapter
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
  */
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 $result = [];
 
@@ -54,7 +60,7 @@ if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-// adapt received values for parameter 'values' and 'changes' (which are still formated as text)
+// adapt received values for parameter 'values' and 'changes' (which are still formatted as text)
 $schema = $model->getSchema();
 
 // keep only known and non-empty fields (allow null values)
@@ -70,13 +76,10 @@ $changes = array_filter($params['changes'], function($val, $field) use ($schema)
 
 // adapt fields in values array
 foreach($values as $field => $value) {
-    $type = $schema[$field]['type'];
-    if($type == 'computed') {
-        $type = $schema[$field]['result_type'];
-    }
     try {
+        $f = new Field($schema[$field]['type']);
         // adapt received values based on their type (as defined in schema)
-        $values[$field] = $adapter->adapt($value, $type);
+        $values[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
     catch(Exception $e) {
         // ignore invalid fields
@@ -85,13 +88,10 @@ foreach($values as $field => $value) {
 }
 // adapt fields in changes array
 foreach($changes as $field => $value) {
-    $type = $schema[$field]['type'];
-    if($type == 'computed') {
-        $type = $schema[$field]['result_type'];
-    }
     try {
+        $f = new Field($schema[$field]['type']);
         // adapt received values based on their type (as defined in schema)
-        $changes[$field] = $adapter->adapt($value, $type);
+        $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
     catch(Exception $e) {
         $msg = $e->getMessage();
@@ -109,12 +109,9 @@ $result = $model::onchange($orm, $changes, $values, $params['lang']);
 
 // adapt resulting values to json
 foreach($result as $field => $value) {
-    $type = $schema[$field]['type'];
-    if($type == 'computed') {
-        $type = $schema[$field]['result_type'];
-    }
+    $f = new Field($schema[$field]['type']);
     // adapt received values based on their type (as defined in schema)
-    $result[$field] = $adapter->adapt($value, $type, 'json', 'php');
+    $result[$field] = $adapter->adaptOut($value, $f->getUsage());
 }
 
 $context->httpResponse()

@@ -19,17 +19,29 @@ class Collection implements \Iterator, \Countable {
     /** @var \equal\auth\AuthenticationManager */
     private $am;
 
-    /* DataAdapter */
+    /** @var \equal\data\adapt\DataAdapterProvider */
+    private $dap;
+
+    /** @var \equal\data\adapt\DataAdapter */
     private $adapter;
+
+    /** @var string */
+    private $lang;
 
     /** @var \equal\log\Logger */
     private $logger;
 
-    /* Target class */
+    /**
+     * Name of the class targeted by the Collection.
+     * @var string
+     */
     private $class;
 
-    /* Instance of target class (used for retrieving fields and schema; inherits from Model class) */
-    /** @var \equal\orm\Model */
+
+    /**
+     * Instance of targeted class (used for retrieving fields and schema; inherits from Model class.
+     * @var \equal\orm\Model
+     */
     private $model;
 
     /* map associating objects with their values with identifiers as keys */
@@ -50,21 +62,22 @@ class Collection implements \Iterator, \Countable {
      * Collections service is a factory that creates Collection instances when requested
      * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
      */
-    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapter, $logger) {
+    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapterProvider, $logger) {
         // init objects map
         $this->objects = [];
-        // #todo - remove ?
-        $this->cursor = 0;
+
         // assign private members
         $this->class = $class;
         $this->orm = $objectManager;
         $this->ac = $accessController;
         $this->am = $authenticationManager;
-        /*
+        $this->dap = $dataAdapterProvider;
         $this->adapter = null;
-        $this->dataAdapterProvider = dataAdapterProvider;
-        */
-        $this->adapter = $dataAdapter;
+        // $this->adapter = $dataAdapter;
+
+        // default to 'en' version of the content
+        $this->lang = 'en';
+
         $this->logger = $logger;
         // check mandatory services
         if(!$this->orm || !$this->ac) {
@@ -162,7 +175,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     *  Shift out the n first objects of the collection
+     *  Shift out the n first objects of the collection.
      *
      */
     public function shift($offset=1) {
@@ -235,30 +248,30 @@ class Collection implements \Iterator, \Countable {
         $result = [];
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
+                if($this->adapter) {
+                    $value->adapt($this->adapter->getType());
+                }
                 $result[$field] = $value->get($to_array);
             }
             elseif($value instanceof Model) {
                 $result[$field] = $this->get_raw_object($value, $to_array);
             }
             else {
-                if($to_array) {
-                    // #todo  - data adaption should occur here
-                }
-                else {
-
-                }
-                /*
-                if($this->adapter) {
+                if($to_array && $this->adapter) {
+                    /** @var \equal\orm\Field */
                     $f = $this->model->getField($field);
                     if(!$f) {
-                        // log an error and ignore field
-                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving field $field", QN_REPORT_INFO);
+                        // log an error and ignore adaptation
+                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving Field object for $field", QN_REPORT_INFO);
+                        $result[$field] = $value;
                         continue;
                     }
-                    $result[$field] = $this->adapter->adaptOut($value, $f->getUsage());
+                    // #todo - make a distinction between lang and locale (the latter should be used here)
+                    $result[$field] = $this->adapter->adaptOut($value, $f->getUsage(), $this->lang);
                 }
-                */
-                $result[$field] = $value;
+                else {
+                    $result[$field] = $value;
+                }
             }
         }
         return $result;
@@ -339,39 +352,15 @@ class Collection implements \Iterator, \Countable {
 
     /**
      * Mark Collection to be converted using the DataAdapter matching the target type (specific content-type or 'json', 'sql', 'txt').
-     * Conversion is asynchronous. It is performed at Collection export (`first(true)` or `get(true)`) and is based on field types.
+     * Conversion is asynchronous. It is performed at Collection export (`get(true)`, `first(true)` or `last(true)`) and is based on field types.
      *
      * @param   string      $to     Target string  might be a map associating fields with their values, or a map association ids with objects
-     * @throws  Exception           if encounters something not convertible.
-     * @return  Collection          current instance
+     * @param   string      $lang   Deprecated, use method `Collection->lang($lang)`.
+     * @return  Collection          Returns the current Collection instance.
      */
     public function adapt($to='json', $lang=null) {
-        // this method should only set the adapter for adaptOut conversion
-        // actual conversion must not be done at this stage but only within the get() first() last() methods
-        /*
-            $this->adapter = $this->dataAdapterProvider->get($to);
-        */
-
-        $schema = $this->model->getSchema();
-        foreach($this->objects as $id => $object) {
-            foreach($object as $field => $value) {
-                // value is a child Collection (relational field)
-                if($value instanceof Collection) {
-                    $value->adapt($to, $lang);
-                }
-                // value is an object
-                elseif($value instanceof Model) {
-                }
-                // value is a field
-                else {
-                    $type = $schema[$field]['type'];
-                    if($type == 'computed' && isset($schema[$field]['result_type'])) {
-                        $type = $schema[$field]['result_type'];
-                    }
-                    $this->objects[$id][$field] = $this->adapter->adapt($value, $type, $to, 'php');
-                }
-            }
-        }
+        // set the adapter to be used for adaptOut conversion
+        $this->adapter = $this->dap->get($to);
         return $this;
     }
 
@@ -694,12 +683,10 @@ class Collection implements \Iterator, \Countable {
                 if(is_numeric($field)) {
                     continue;
                 }
-                // #todo - use model::getField()
-                /*
-                    $targetField = $this->model->getField();
-                    $target = $targetField->getDescriptor();
-                */
-                $target = $this->model->field($field);
+                // #memo - using Field object guarantees support for `alias` and `computed` fields
+                $targetField = $this->model->getField($field);
+                $target = $targetField->getDescriptor();
+
                 $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
                 if(!in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
                     continue;

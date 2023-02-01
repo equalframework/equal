@@ -5,6 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Domain;
+use equal\orm\Field;
 
 list($params, $providers) = announce([
     'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
@@ -25,7 +26,7 @@ list($params, $providers) = announce([
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (serie of conjunctions)',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
             'default'       => []
         ],
@@ -62,12 +63,14 @@ list($params, $providers) = announce([
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
- * @var \equal\data\DataAdapter     $adapter
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ * @var \equal\data\DataAdapterProvider  $dap
  */
-list($context, $orm, $adapter) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
+list($context, $orm, $dap) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
 
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 /*
     Handle controller entities
@@ -81,11 +84,11 @@ if(ctype_lower(substr($file, 0, 1))) {
         throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
     }
     $operation = str_replace('\\', '_', $params['entity']);
-    // retrieve announcement of target contoller
+    // retrieve announcement of target controller
     $data = eQual::run('get', $operation, ['announce' => true]);
     $controller_schema = isset($data['announcement']['params'])?$data['announcement']['params']:[];
     $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
-    // generate a virtual (emtpy) object
+    // generate a virtual (empty) object
     $object = ['id' => 0];
     foreach($requested_fields as $field) {
         if(!isset($controller_schema[$field])) {
@@ -93,11 +96,12 @@ if(ctype_lower(substr($file, 0, 1))) {
         }
         $value = null;
         if(isset($controller_schema[$field]['default'])) {
-            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'json', 'php');
+            $f = new Field($controller_schema[$field]);
+            $value = $adapter->adaptOut($controller_schema[$field]['default'], $f->getUsage());
         }
         $object[$field] = $value;
     }
-    // send single-itel collection as response
+    // send single-item collection as response
     $context->httpResponse()
             ->header('X-Total-Count', 1)
             ->body([$object])

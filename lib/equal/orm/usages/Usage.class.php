@@ -8,9 +8,9 @@ namespace equal\orm\usages;
 
 
 /**
- * Abstract class from which all Usages inherit.
+ * Default class from which all Usages inherit.
  */
-abstract class Usage {
+class Usage {
 
     /** @var string */
     private $usage_str = '';
@@ -46,7 +46,9 @@ abstract class Usage {
      */
     private $size = 0;
 
-    abstract public function getConstraints(): array;
+    public function getConstraints(): array {
+        return [];
+    }
 
     /**
      * Provides the generic (display) name of the type.
@@ -102,7 +104,7 @@ abstract class Usage {
     public function __construct(string $usage_str) {
 
         // check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
             // error
         }
         else {
@@ -118,14 +120,14 @@ abstract class Usage {
 
             // store original usage string
             $this->usage_str = $usage_str;
-            $this->type = $matches[1];
-            $this->is_array = strlen($matches[2]);
-            $this->size = strlen($matches[3])?intval($matches[3]):0;
-            $this->subtype = $matches[4];
-            $tree = $matches[6];
+            $this->type = isset($matches[1])?$matches[1]:'';
+            $this->is_array = isset($matches[2]) && strlen($matches[2]);
+            $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;
+            $this->subtype = isset($matches[4])?$matches[4]:'';
+            $tree = isset($matches[6])?$matches[6]:'';
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-            $this->length = strlen($matches[9])?$matches[9]:0;
-            $this->scale = strlen($matches[10])?$matches[10]:0;
+            $this->length = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
+            $this->scale = (isset($matches[10]) && strlen($matches[10]))?$matches[10]:0;
         }
 
     }
