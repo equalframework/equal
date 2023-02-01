@@ -9,7 +9,7 @@ use equal\orm\DomainCondition;
 use equal\orm\Operation;
 
 list($params, $providers) = announce([
-    'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
+    'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
@@ -22,7 +22,7 @@ list($params, $providers) = announce([
             'default'       => constant('DEFAULT_LANG')
         ],
         'domain' => [
-            'description'   => 'Criterias that results have to match (serie of conjunctions)',
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
             'type'          => 'array',
             'default'       => []
         ],
@@ -56,7 +56,7 @@ list($params, $providers) = announce([
             'default'       => time() + (30 * 86400)
         ],
         'range_interval' => [
-            'description'   => 'Time interval for grouping absciss values.',
+            'description'   => 'Time interval for grouping abscissa values.',
             'type'          => 'string',
             'selection'     => [
                 'week',
@@ -79,7 +79,10 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
-        'accept-origin' => '*'
+        'accept-origin' => '*',
+        'cacheable'     => true,
+        'cache-vary'    => ['uri'],
+        'expires'       => 30 * (60*60*24)
     ],
     'providers'     => [ 'context' ]
 ]);
@@ -97,8 +100,8 @@ Configuration of a view with a list of datasets
 
 The chart layout depends on the selected chart type
 
-LINE, BAR : plusieurs datasets, chaque dataset correspond à une valeur pour un interval donné : group_by range
-POLAR, DOUGHNUT, PIE : 1 seul dataset, chaque valeur correspond à un segment => group_by field: les labels sont les valeurs de groupes, les valeurs sont les operations sur les groupes
+LINE, BAR : several datasets, each dataset corresponds to a value for a specific interval : group_by range
+POLAR, DOUGHNUT, PIE : a single dataset, each value corresponds to a segment => group_by field: labels are the groups values, values are the operations on groups
 
     group_by = 'field' or 'range'
 
@@ -265,7 +268,7 @@ if($params['mode'] == 'grid') {
             foreach($result['datasets'] as $dataset) {
                 $values[] = $dataset[$i];
             }
-            $res[] = array_combine($keys, $values);            
+            $res[] = array_combine($keys, $values);
         }
     }
 

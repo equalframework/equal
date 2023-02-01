@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsagePassword extends Usage {
 
-    public function getType(): string {
-        return 'password';
-    }
-
-    public function getSqlType(): string {
-            return 'varchar(255)';
-    }
-
     public function getConstraints(): array {
         switch($this->getSubtype()) {
             case 'enisa':
@@ -42,10 +34,6 @@ class UsagePassword extends Usage {
                     ]
                 ];
         }
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

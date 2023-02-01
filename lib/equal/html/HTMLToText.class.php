@@ -20,8 +20,10 @@ class HTMLToText {
         $lineseparator = ($strip_linebreaks)?"\n":' ';
 
         // create a new DomDocument object
-        $doc = new \DOMDocument();
+        $doc = new \DOMDocument('1.0', 'utf-8');
 
+        // use htmlentities for all utf-8 characters having an equivalent
+        $value = mb_convert_encoding($value, 'HTML-ENTITIES', 'UTF-8');
         // load the HTML into the DomDocument object (this would be your source HTML)
         $doc->loadHTML($value);
 
@@ -50,7 +52,7 @@ class HTMLToText {
         return $value;
     }
 
-    function removeElementsByTagName($tagName, $document) {
+    private static function removeElementsByTagName($tagName, $document) {
         $nodeList = $document->getElementsByTagName($tagName);
         for ($index = $nodeList->length; --$index >= 0; ) {
             $node = $nodeList->item($index);

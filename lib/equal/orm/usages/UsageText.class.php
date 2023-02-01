@@ -9,40 +9,14 @@ namespace equal\orm\usages;
 
 class UsageText extends Usage {
 
-    public function getType(): string {
-        return 'text';
-    }
-
-    public function getSqlType(): string {
-        $len = $this->getLength();
-        if($len == 'short') {
-            $len = 255;
-        }
-        if($len == 'medium') {
-            $len = 16777215;
-        }
-        else if($len == 'long') {
-            $len = 4294967295;
-        }
-        if(is_numeric($len)) {
-            if($len <= 255) {
-                return 'varchar('.$len.')';
-            }
-            else if($len <= 65535) {
-                return 'text';
-            }
-            else if($len <= 16777215) {
-                return 'mediumtext';
-            }
-            else if($len <= 4294967295) {
-                return 'longtext';
-            }
-        }
-        return 'text';
-    }
-
     public function getConstraints(): array {
         return [
+            'not_string_type' => [
+                'message'   => 'Value is not a string.',
+                'function'  =>  function($value) {
+                    return (gettype($value) == 'string');
+                }
+            ],
             'size_exceeded' => [
                 'message'   => 'String exceeds usage length constraint.',
                 'function'  =>  function($value) {
@@ -61,7 +35,10 @@ class UsageText extends Usage {
                         case 'plain':
                             break;
                         case 'html':
-                            // #todo - check HTML validity
+                            $doc = new DOMDocument();
+                            libxml_use_internal_errors(true);
+                            $doc->loadHTML($value);
+                            return (empty(libxml_get_errors()));
                             break;
                         case 'xml':
                             // #todo - check XML validity
@@ -80,10 +57,6 @@ class UsageText extends Usage {
                 }
             ]
         ];
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

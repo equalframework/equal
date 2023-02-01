@@ -1,0 +1,84 @@
+<!-- Package -->
+
+<div class="import-header">{{ 'SETTINGS_LIST_SETTING' | translate }} <span> › </span> {{
+  'SETTINGS_LIST_PERMISSIONUPDATE' | translate }} [{{permission_id}}] </div>
+<div style="height: 4rem;">
+  <button class="headerButton" mat-raised-button color="accent"  (click)="onSubmit()" *ngIf="save == true">Save</button>
+  <button class="headerButton" mat-raised-button color="primary">Cancel</button>
+</div>
+
+
+<div class="container">
+
+  <mat-card class="example-card" style="width: 37.5%;">
+    <mat-card-header>
+      <mat-card-title>Name of target</mat-card-title>
+      <mat-card-subtitle>Give a name to the new Permission</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-permission-class-name
+        style="display: flex; justify-content: space-evenly; flex-direction: column; width: 75%; margin: auto;"
+        [className]="className" (change)="onClassNameChange($event)"></app-permission-class-name>
+    </mat-card-content>
+  </mat-card>
+
+
+  <mat-card class="example-card" style="width: 37.5%;">
+
+    <mat-card-header>
+      <mat-card-title>Choose Group or User</mat-card-title>
+      <mat-card-subtitle>
+        <mat-slide-toggle [(ngModel)]="isChecked">
+          {{!isChecked ? "Group" : "User"}}</mat-slide-toggle>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content style="display: flex; justify-content: center; flex-direction: column;">
+      <!-- Dropdown avec personnes -->
+      <mat-form-field class="example-full-width" appearance="standard" [class]="{hidden: isChecked}">
+        <mat-label>Group</mat-label>
+        <input  type="text" placeholder="Pick one" aria-label="Group" matInput [formControl]="controlGroup"
+          [matAutocomplete]="group">
+        <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="controlGroup.reset()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-autocomplete (optionSelected)="onGroupChange()" autoActiveFirstOption #group="matAutocomplete">
+          <mat-option *ngFor="let option of filteredOptionsGroups | async | slice:1:5" [value]="option.name">
+            {{option.name}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+
+      <mat-form-field class="example-full-width" appearance="standard" [class]="{hidden: !isChecked}">
+        <mat-label>User</mat-label>
+        <input type="text" placeholder="Pick one" aria-label="User" matInput [formControl]="controlUser"
+          [matAutocomplete]="user">
+        <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="controlUser.reset()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-autocomplete (optionSelected)="onUserChange()" autoActiveFirstOption #user="matAutocomplete">
+          <mat-option *ngFor="let option of filteredOptionsUsers | async | slice:1:5" [value]="option.login">
+            {{option.login}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </mat-card-content>
+    
+  </mat-card>
+
+  <!-- Checkboxes -->
+
+  <mat-card class="example-card" style="width: 25%;">
+    <mat-card-header >
+
+      <mat-card-title >Rights</mat-card-title>
+      <mat-card-subtitle >Choose the rights</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content style="display: flex; justify-content: space-evenly;">
+      <app-permission-rights [rights]="rights" (change)="onRightsChange($event)"></app-permission-rights>
+    </mat-card-content>
+  </mat-card>
+
+</div>

@@ -156,7 +156,7 @@ class DBManipulator {
 
     /**
      * Returns the SQL type to use for a given ORM type.
-     * This method is meant to be overloaded by specific DBManipulator classes.
+     * This method is meant to be overloaded in children DBManipulator classes.
     */
     public function getSqlType($type) {
         return '';

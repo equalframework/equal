@@ -8,6 +8,9 @@ namespace equal\db;
 
 use equal\organic\Service;
 
+/**
+ * Service implementing factory pattern for DBManipulator instances.
+ */
 class DBConnection extends Service {
 
     /**

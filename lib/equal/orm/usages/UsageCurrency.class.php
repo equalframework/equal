@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageCurrency extends Usage {
 
-    public function getType(): string {
-        return 'currency';
-    }
-
-    public function getSqlType(): string {
-            return 'varchar(3)';
-    }
-
     public function getConstraints(): array {
         if($this->getSubtype() == 'iso-4217.numeric') {
             return [
@@ -42,10 +34,6 @@ class UsageCurrency extends Usage {
                     ]
                 ];
         }
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

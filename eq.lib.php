@@ -394,7 +394,7 @@ namespace config {
         // retrieve current value
         $value = constant($property);
         // handle shorthand notations
-        if($constants_schema[$property]['type'] == 'integer') {
+        if(isset($constants_schema[$property]) && $constants_schema[$property]['type'] == 'integer') {
             // handle binary masks on arbitrary values or pre-defined constants
             if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
                 try {
@@ -408,7 +408,7 @@ namespace config {
                 $value = strtoint($value);
             }
         }
-        // handle crypted values
+        // handle encrypted values
         elseif(is_string($value) && substr($value, 0, 7) == 'cipher:') {
             $value = decrypt(substr($value, 7));
         }
@@ -580,7 +580,7 @@ namespace config {
                 }
             }
 
-            // set response headers
+            // check response headers
             if(isset($announcement['response'])) {
                 if(isset($announcement['response']['location']) && !isset($body['announce'])) {
                     header('Location: '.$announcement['response']['location']);
@@ -633,17 +633,32 @@ namespace config {
                 /*
                     Caching is only available for GET methods,
                     and offers support at URL level only (params in body are not considered).
+                    Controllers can use cache-vary to tell which elements influence their resulting content.
+                    Accepted values for cache-vary array : uri (default), user, origin, body.
+
                     // #todo export this part of the logic to a cache manager
                 */
                 if( $method == 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']) {
-                    list($auth) = $container->get(['auth']);
                     // compute the cache ID
-                    // #todo - implement 'Vary' support -  Vary: User, Uri, Cookie, User-Agent
-                    $request_id = $auth->userId().'::'.$request->header('origin').'::'.$request->uri();
+                    // remove 'cache' param from URI, if present
+                    $request_id = trim(preg_replace('/&cache=[^&]*&/', '&', $request->uri().'&'), '&');
+                    if(isset($announcement['response']['cache-vary'])) {
+                        $vary = (array) $announcement['response']['cache-vary'];
+                        if(in_array('user', $vary)) {
+                            list($auth) = $container->get(['auth']);
+                            $request_id .= '-'.$auth->userId();
+                        }
+                        if(in_array('origin', $vary)) {
+                            $request_id .= '-'.$request->header('origin');
+                        }
+                        if(in_array('body', $vary)) {
+                            $request_id .= '-'.$request->body();
+                        }
+                    }
                     $cache_id = md5($request_id);
-                    // obtain related filename
+                    // retrieve related filename
                     $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
@@ -658,33 +673,51 @@ namespace config {
                         $expires = intval($announcement['response']['expires']);
                         $age = time() - filemtime(realpath($cache_filename));
                         if($age >= $expires) {
+                            $reporter->debug("expired cache-id {$cache_id}");
                             $serve_from_cache = false;
                         }
                     }
-                    // request is already present in cache and is valid : serve from cache
-                    if(file_exists($cache_filename) && $serve_from_cache) {
-                        // handle client cache expiry (no change)
-                        if($request->header('If-None-Match') == $cache_id) {
-                            // send "304 Not Modified"
+                    // handle manual request for invalidating the cache
+                    if(isset($body['cache'])) {
+                        if(in_array($body['cache'], [null, false, 0, '0'])) {
+                            $reporter->debug("manual reset cache-id {$cache_id}");
+                            $serve_from_cache = false;
+                        }
+                        // cache is a reserved parameter: no further process
+                        unset($body['cache']);
+                    }
+                    // request is already present in cache
+                    if(file_exists($cache_filename)) {
+                        // cache was invalidated: remove related file
+                        if(!$serve_from_cache) {
+                            $reporter->debug("invalidating cache-id {$cache_id}");
+                            unlink($cache_filename);
+                        }
+                        // cache is still valid: serve from cache
+                        else {
+                            // handle client cache expiry (no change)
+                            if($request->header('If-None-Match') == $cache_id) {
+                                // send "304 Not Modified"
+                                $response
+                                    ->status(304)
+                                    ->send();
+                                throw new \Exception('', 0);
+                            }
+                            $reporter->debug("serving from cache-id {$cache_id}");
+                            list($headers, $result) = unserialize(file_get_contents($cache_filename));
+                            // build response with cached headers
+                            foreach($headers as $header => $value) {
+                                $response->header($header, $value);
+                            }
                             $response
-                            ->status(304)
-                            ->send();
-                            throw new \Exception('', 0);
+                                // inject raw body
+                                ->body($result, true)
+                                // set status and body according to raised exception
+                                ->status(200)
+                                // send HTTP response
+                                ->send();
+                            exit();
                         }
-                        $reporter->debug("serving from cache");
-                        list($headers, $result) = unserialize(file_get_contents($cache_filename));
-                        // build response with cached headers
-                        foreach($headers as $header => $value) {
-                            $response->header($header, $value);
-                        }
-                        $response
-                        // inject raw body
-                        ->body($result, true)
-                        // set status and body according to raised exception
-                        ->status(200)
-                        // send HTTP response
-                        ->send();
-                        exit();
                     }
                 }
             }
@@ -742,7 +775,9 @@ namespace config {
 
             // build mandatory fields array
             foreach($announcement['params'] as $param => $config) {
-                if(isset($config['required']) && $config['required']) $mandatory_params[] = $param;
+                if(isset($config['required']) && $config['required']) {
+                    $mandatory_params[] = $param;
+                }
             }
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
@@ -750,23 +785,27 @@ namespace config {
                 || isset($body['announce'])
                 || $method == 'OPTIONS' ) {
                 // no feedback about services
-                if(isset($announcement['providers'])) unset($announcement['providers']);
+                if(isset($announcement['providers'])) {
+                    unset($announcement['providers']);
+                }
                 // no feedback about constants
-                if(isset($announcement['constants'])) unset($announcement['constants']);
+                if(isset($announcement['constants'])) {
+                    unset($announcement['constants']);
+                }
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     // user asked for the announcement or browser requested fingerprint
                     $response->status(200)
-                    // allow browser to cache the response for 1 year
-                    ->header('Cache-Control', 'max-age=31536000')
-                    // default content type and disposition
-                    ->header('Content-Type', 'application/json')
-                    ->header('Content-Disposition', 'inline')
-                    // mandatory headers for CORS validation (OPTIONS request must have Content-Type explicitely set)
-                    ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
-                    //->header('Access-Control-Allow-Headers', '*')
-                    ->send();
+                        // allow browser to cache the response for 1 year
+                        ->header('Cache-Control', 'max-age=31536000')
+                        // default content type and disposition
+                        ->header('Content-Type', 'application/json')
+                        ->header('Content-Disposition', 'inline')
+                        // mandatory headers for CORS validation (OPTIONS request must have Content-Type explicitly set)
+                        ->header('Access-Control-Allow-Headers', 'Access-Control-Request-Method, Access-Control-Request-Headers, Origin, Content-Type, Accept, X-Requested-With, Referrer-Policy, Referer, Cookie')
+                        //->header('Access-Control-Allow-Headers', '*')
+                        ->send();
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
@@ -801,7 +840,7 @@ namespace config {
                     $result[$param] = $adapter->adapt($body[$param], $config['type']);
                     /*
                     // convert value from input format + validate type and usage constraints
-                    $f = Fields::create($config);
+                    $f = new Field($config);
                     // raises an Exception if assignment is not possible
                     $f->set($body[$param], 'json'); // not explicit type, but Content-Type from HTTP REQUEST
                     try {
@@ -902,11 +941,11 @@ namespace config {
                 foreach($announcement['constants'] as $name) {
                     if(defined($name) && !\defined($name)) {
                         $value = constant($name);
-                        // handle crypted values
+                        // handle encrypted values
                         if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
                             $value = decrypt(substr($value, 7));
                         }
-                        \define($name, $value);
+                        export($name, $value);
                     }
                     if(!\defined($name)) {
                         throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
@@ -1063,6 +1102,8 @@ namespace config {
                 }
 
                 // force timezone to UTC
+                // #memo - this is to (avoid being impacted by daylight saving offset
+                // #memo - we expect the DBMS to store dates in UTC as well
                 date_default_timezone_set('UTC');
 
                 if(!$root) {
@@ -1083,6 +1124,8 @@ namespace config {
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
                         file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
+                        $reporter = $container->get('report');
+                        $reporter->debug("stored cache-id {$cache_id}");
                     }
                 }
                 trigger_error("QN_DEBUG_PHP::result - $result", QN_REPORT_DEBUG);
@@ -1202,6 +1245,10 @@ namespace {
                 }
             }
             return $data;
+        }
+
+        public static function announce(array $announcement) {
+            return config\eQual::announce($announcement);
         }
 
         public static function inject(array $providers) {

@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageCountry extends Usage {
 
-    public function getType(): string {
-        return 'country';
-    }
-
-    public function getSqlType(): string {
-            return 'varchar(3)';
-    }
-
     public function getConstraints(): array {
         if($this->getSubtype() == 'country.numeric') {
             return [
@@ -52,10 +44,6 @@ class UsageCountry extends Usage {
                 ];
 
         }
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

@@ -1,0 +1,13 @@
+{
+    "name": "Authentication",
+    "description": "",
+    "url": "/auth",
+    "icon": "",
+    "color": "",
+    "access": {
+        "groups": [
+            "users"
+        ]
+    },
+    "show_in_apps": false
+}

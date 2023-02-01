@@ -73,8 +73,7 @@ foreach($collection as $oid => $odata) {
 }
 
 $collection = SettingValue::ids($setting_values_ids)
-                          ->read(['setting_id' => [ 'id', 'name', 'package', 'section'], 'value', 'user_id'])
-                          ->adapt('txt')
+                          ->read(['setting_id' => [ 'id', 'name', 'type', 'package', 'section'], 'value', 'user_id'])
                           ->get();
 
 $result = [];
@@ -85,6 +84,7 @@ foreach($collection as $oid => $odata) {
     }
     $setting_id = $odata['setting_id']['id'];
     if(!isset($res[$setting_id]) || $odata['user_id'] == $user_id) {
+        settype($odata['value'], $odata['setting_id']['type']);
         $res[$setting_id] = [
             'name'      => $odata['setting_id']['name'],
             'package'   => $odata['setting_id']['package'],

@@ -1,0 +1,10 @@
+.container {
+    width: 100%;
+    height: calc(100vh - 75px);
+}
+
+mat-spinner {
+    position: relative;
+    top: calc(50vh - 50px);
+    margin: auto;
+}

@@ -120,6 +120,8 @@ foreach($queries as $query) {
 }
 
 // check for missing columns (for classes with inheritance, we must check against non-yet created fields)
+
+/*
 $queries = [];
 $m2m_tables = [];
 
@@ -133,7 +135,7 @@ $processed_columns = [];
 foreach($classes as $class) {
     // get the full class name
     $entity = $params['package'].'\\'.$class;
-    // retrieve the static instance of the entityt
+    // retrieve the static instance of the entity
     $model = $orm->getModel($entity);
 
     if(!is_object($model)) {
@@ -222,7 +224,7 @@ foreach($m2m_tables as $table => $columns) {
 foreach($queries as $query) {
     $db->sendQuery($query);
 }
-
+*/
 
 /*  end-tables_init */
 

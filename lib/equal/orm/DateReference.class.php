@@ -8,10 +8,10 @@ namespace equal\orm;
 
 /**
  *
- *   - soit une chaine ISO
- *   - soit une description au format relatif à NOW
+ *   - either a string representing a date in ISO format (ISO 8601)
+ *   - either a string representing the description of a date, wit a format relating to NOW
  *
- *   Result of the parsing is always a date.
+ *   Result of the parsing is always a timestamp.
  *
  *
  *   Syntax:

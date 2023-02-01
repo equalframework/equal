@@ -101,7 +101,7 @@ foreach($changes as $field => $value) {
             $msg = $data;
         }
         throw new \Exception(serialize([$field => $msg]), $e->getCode());
-    }        
+    }
 }
 
 
@@ -114,7 +114,7 @@ foreach($result as $field => $value) {
         $type = $schema[$field]['result_type'];
     }
     // adapt received values based on their type (as defined in schema)
-    $result[$field] = $adapter->adapt($value, $type, 'txt', 'php');
+    $result[$field] = $adapter->adapt($value, $type, 'json', 'php');
 }
 
 $context->httpResponse()

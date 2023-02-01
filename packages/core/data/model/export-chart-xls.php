@@ -100,8 +100,12 @@ if(isset($body['range_to'])) {
     $body['range_to'] = date('c', $ref->getDate());
 }
 
-$values = eQual::run('get', $controller, $body);
+foreach($params['params'] as $param => $value) {
+    $body[$param] = $value;
+}
 
+// #memo - we run the controller under root context to use cache, if present
+$values = eQual::run('get', $controller, $body, true);
 
 
 // generate a virtual layout
@@ -109,7 +113,7 @@ $first = reset($values);
 $fields = array_keys($first);
 $view_fields = array_map(function($a) { return ['value' => $a]; }, $fields);
 
-// generate a virtaul schema
+// generate a virtual schema
 // fields descriptors
 $descriptors = array_merge( [['type' => 'string']], array_fill(0, count($fields)-1, ['type' => 'float']));
 $schema = array_combine($fields, $descriptors);

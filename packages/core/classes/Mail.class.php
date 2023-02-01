@@ -70,7 +70,7 @@ class Mail extends Model {
 
             'object_id' => [
                 'type'              => 'integer',
-                'description'       => 'Identifier of the object the email origintates from.'
+                'description'       => 'Identifier of the object the email originates from.'
             ],
 
             'response_status' => [

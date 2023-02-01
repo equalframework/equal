@@ -39,7 +39,6 @@ if(!$model) {
 
 $schema = $model->getSchema();
 
-
 $fields = [];
 
 foreach($schema as $field => $descr) {
@@ -51,22 +50,22 @@ foreach($schema as $field => $descr) {
 
 $output = [];
 
-$serie = [
+$series = [
     "name" => $entity,
     "lang" => $params['lang'],
     "data" => []
 ];
 
-$values = $params['entity']::search([])
-        ->read($fields)
-        ->adapt('txt')
-        ->get();
+$values = $params['entity']::search()
+    ->read($fields)
+    ->adapt('json')
+    ->get(true);
 
-foreach($values as $oid => $odata) {
-    $serie["data"][] = $odata;
+foreach($values as $odata) {
+    $series["data"][] = $odata;
 }
 
-$output[] = $serie;
+$output[] = $series;
 
 $context->httpResponse()
         ->body($output)

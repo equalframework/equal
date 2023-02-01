@@ -11,11 +11,8 @@ use core\setting\Setting;
 
 class UsageAmount extends Usage {
 
-    public function getType(): string {
-        return 'amount';
-    }
 
-    private function getScale() {
+    public function getScale(): int {
         $scale = intval($this->getLength());
         switch($this->getSubtype()) {
             case 'money':
@@ -29,26 +26,6 @@ class UsageAmount extends Usage {
                 break;
         }
         return $scale;
-    }
-
-    public function getSqlType(): string {
-        $precision = 10;
-        $scale = $this->getScale();
-        switch($this->getSubtype()) {
-            case 'money':
-                // default to decimal(13,4)
-                $precision = 17 - $scale;
-                break;
-            case 'percent':
-                // default to decimal(7,6)
-                $precision = $scale + 1;
-                break;
-            case 'rate':
-                // default to decimal(10,4)
-                $precision = 14 - $scale;
-                break;
-        }
-        return 'decimal('.$precision.','.$scale.')';
     }
 
     /**
@@ -78,35 +55,6 @@ class UsageAmount extends Usage {
                 }
             ]
         ];
-    }
-
-    public function export($value, $lang='en'): string {
-        $decimal_length = intval($this->getLength());
-        // get numbers.thousands_separator and numbers.decimal_separator from locale
-        $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $lang);
-        $decimal_separator = Locale::get_format('core', 'numbers.decimal_separator', '.', $lang);
-
-        $number = number_format($value, $decimal_length, $decimal_separator, $thousands_separator);
-
-        switch($this->getSubtype()) {
-            case 'money':
-                $currency_symbol_position = Locale::get_format('core', 'currency.symbol_position', 'before', $lang);
-                $currency_symbol_separator = Locale::get_format('core', 'currency.symbol_separator', '', $lang);
-                $currency_symbol = Setting::get_value('core', 'units', 'currency', '$');
-                if($currency_symbol_position == 'before') {
-                    $number = $currency_symbol.$currency_symbol_separator.$number;
-                }
-                else {
-                    $number = $number.$currency_symbol_separator.$currency_symbol;
-                }
-                break;
-            case 'percent':
-                $number = $number.'%';
-                break;
-            case 'rate':
-                break;
-        }
-        return $number;
     }
 
 }

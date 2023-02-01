@@ -62,12 +62,14 @@ class DBManipulatorSqlSrv extends DBManipulator {
             // prevent warnings from raising errors
             sqlsrv_configure('WarningsReturnAsErrors', 0);
             $connection_info = [
-                    'UID'                   => $this->user_name,
-                    'PWD'                   => $this->password,
+                    'UID'                       => $this->user_name,
+                    'PWD'                       => $this->password,
                     // prevent conversion of dates to DateTime objects
-                    'ReturnDatesAsStrings'  => true,
+                    'ReturnDatesAsStrings'      => true,
                     // allow connection to server with self signed SSL certificate
-                    "TrustServerCertificate"=> true
+                    'TrustServerCertificate'    => true,
+                    // enable Transparent Network IP Resolution
+                    'MultiSubnetFailover'       => true
                 ];
 
             if($auto_select) {
@@ -115,6 +117,33 @@ class DBManipulatorSqlSrv extends DBManipulator {
     public function createDatabase($db_name) {
         $query = "USE master; CREATE DATABASE $db_name COLLATE ".$this->collation.";";
         $this->sendQuery($query, 'create');
+    }
+
+    public function getTables() {
+        $tables = [];
+        $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';";
+        $res = $this->sendQuery($query);
+        while ($row = $this->fetchArray($res)) {
+            $tables[] = $row['TABLE_NAME'];
+        }
+        return $tables;
+    }
+
+    public function getTableSchema($table_name) {
+        $schema = [];
+        // expected properties: COLUMN_NAME, DATA_TYPE, COLLATION_NAME, IS_NULLABLE, COLUMN_DEFAULT
+        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+        $res = $this->sendQuery($query);
+        while($row = $this->fetchArray($res)) {
+            $field = $row['COLUMN_NAME'];
+            $schema[$field] = [
+                'type'          => $row['DATA_TYPE'],
+                'collation'     => $row['COLLATION_NAME'],
+                'nullable'      => $row['IS_NULLABLE'],
+                'default'       => $row['COLUMN_DEFAULT']
+            ];
+        }
+        return $schema;
     }
 
     public function getTableColumns($table_name) {
@@ -479,7 +508,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         // SET clause
         $sql .= ' SET ';
         foreach ($fields as $key => $value) {
-            $sql .= "$key={$this->escapeString($value)}, ";
+            $sql .= "[$key]={$this->escapeString($value)}, ";
         }
         $sql = rtrim($sql, ', ');
 

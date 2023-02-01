@@ -1,0 +1,103 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    align-items: center;
+    height: 100%;
+    background: rgba(0,0,0,0.03);    
+}
+
+.sb-logo {
+    background: url('/auth/assets/img/brand/symbiose.png');
+    height: 100px;
+    width: 100px;
+    background-size: cover;
+}
+
+mat-card {
+    flex: 0 1 auto;
+    margin: auto;    
+    min-width: 360px;
+    max-width: 450px;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.form-row {
+    padding-bottom: 8px;
+}
+
+form button {
+    flex: 1 0;
+}
+
+form .actions {
+    display: flex;
+}
+
+form .actions > button:last-child:not(:first-child) {
+    margin-left: 20px;
+}
+
+
+.messages {
+    width: 100%;
+    margin-top: 10px;
+
+}
+
+.messages .message {
+    display: flex;
+    padding: 10px;
+    background: #e4ffe1;
+}
+
+.messages .message span {
+    line-height: 24px;
+    margin-left: 10px;
+}
+
+.messages .message span.recover {
+    flex: 1;
+    align-self: flex-end;
+    text-align: right;    
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.options {
+    width: 100%;
+    margin: 40px 0px 20px 0px;
+    display: flex;
+}
+
+.options .signin {
+    flex: 1;
+    color: var(--mdc-theme-primary);
+    text-decoration: underline;
+    text-align: center;
+    cursor: pointer;
+}
+
+@keyframes spinner {
+    to {transform: rotate(360deg);}
+}
+   
+.spinner::before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    border-top-color: #000000;
+    animation: spinner .8s linear infinite;
+}

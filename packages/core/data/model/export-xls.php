@@ -28,6 +28,11 @@ list($params, $providers) = announce([
             'type'          => 'array',
             'default'       => []
         ],
+        'controller' => [
+            'description'   => 'Data controller to use to retrieve objects to print.',
+            'type'          => 'string',
+            'default'       => 'core_model_collect'
+        ],
         'params' => [
             'description'   => 'Additional params to relay to the data controller.',
             'type'          => 'array',
@@ -49,14 +54,34 @@ list($params, $providers) = announce([
 
 list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
 
-// retrieve target entity
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+$is_controller_entity = false;
+
+/*
+    Handle controller entities
+*/
+$parts = explode('\\', $params['entity']);
+$file = array_pop($parts);
+if(ctype_lower(substr($file, 0, 1))) {
+    $is_controller_entity = true;
+    $data = eQual::run('get', 'model_schema', [
+            'entity'        => $params['entity']
+        ]);
+    $schema = $data['fields'];
+}
+/*
+    Handle Model entities
+*/
+else {
+    // retrieve target entity
+    $entity = $orm->getModel($params['entity']);
+    if(!$entity) {
+        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    }
+
+    // get the complete schema of the object (including special fields)
+    $schema = $entity->getSchema();
 }
 
-// get the complete schema of the object (including special fields)
-$schema = $entity->getSchema();
 
 // retrieve view schema
 $view_schema = eQual::run('get', 'model_view', [
@@ -69,18 +94,12 @@ if(!isset($view_schema['layout']['items'])) {
 }
 
 // #todo - add support for group_by directive
-
 $view_fields = [];
 foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
         $view_fields[] = $item;
     }
 }
-
-
-/*
-    Read targeted objects
-*/
 
 $fields_to_read = [];
 
@@ -96,14 +115,52 @@ foreach($view_fields as $item) {
     }
 }
 
-$limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-$start = (isset($params['params']['start']))?$params['params']['start']:0;
-$order = (isset($params['params']['order']))?$params['params']['order']:'id';
-$sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
-if(is_array($order)) {
-    $order = $order[0];
+// entity is a controller (distinct from collect)
+if($is_controller_entity) {
+    // get data from controller
+    $values = eQual::run('get', str_replace('\\', '_', $params['entity']), $params['params']);
 }
-$values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+// entity is a Model
+else {
+    if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
+        $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
+        $start = (isset($params['params']['start']))?$params['params']['start']:0;
+        $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+        $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+        if(is_array($order)) {
+            $order = $order[0];
+        }
+        $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+    }
+    else {
+        $body = [
+                'entity'    => $params['entity'],
+                'domain'    => $params['domain'],
+                'fields'    => [],
+                'limit'     => 25,
+                'start'     => 0,
+                'order'     => 'id',
+                'sort'      => 'asc',
+                'lang'      => $params['lang']
+            ];
+
+        foreach($params['params'] as $param => $value) {
+            if($param == 'order' && is_array($value)) {
+                $body['order'] = $value[0];
+            }
+            else {
+                $body[$param] = $value;
+            }
+        }
+
+        // retrieve objects collection using the target controller
+        $data = eQual::run('get', $params['controller'], $body);
+        // extract objects ids
+        $objects_ids = array_map(function ($a) { return $a['id']; }, $data);
+        // retrieve objects required fields
+        $values = $params['entity']::ids($objects_ids)->read($fields_to_read)->get();
+    }
+}
 
 /*
     Retrieve translation data, if any
@@ -178,6 +235,7 @@ foreach($view_fields as $item) {
     $sheet->getStyle($column.$row)->getFont()->setBold(true);
     ++$column;
 }
+
 
 foreach($values as $oid => $odata) {
     ++$row;

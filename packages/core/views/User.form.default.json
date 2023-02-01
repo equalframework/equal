@@ -17,22 +17,6 @@
                                         "align": "left",
                                         "items": [
                                             {
-                                                "type": "label",
-                                                "id": "id.details",
-                                                "value": "Contact details",
-                                                "width": "50%"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "columns": [
-                                    {
-                                        "width": "33%",
-                                        "align": "left",
-                                        "items": [
-                                            {
                                                 "type": "field",
                                                 "value": "id",
                                                 "width": "50%",
@@ -52,27 +36,19 @@
                                                 "width": "50%",
                                                 "label": "Validated",
                                                 "help": "Status of validation of this account."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "password",
+                                                "width": "50%",
+                                                "help": "Enter a new value to update."
                                             }
                                         ]
                                     },
-                                    {                                            
+                                    {
                                         "width": "33%",
                                         "align": "left",
                                         "items": [
-                                            {
-                                                "type": "field",
-                                                "value": "created",
-                                                "width": "50%",
-                                                "label": "Creation date",
-                                                "help": "Creation date"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "modifier",
-                                                "width": "50%",
-                                                "label": "Modifier"
-                                            },
-
                                             {
                                                 "type": "field",
                                                 "value": "firstname",
@@ -84,8 +60,7 @@
                                                 "type": "field",
                                                 "value": "lastname",
                                                 "width": "50%",
-                                                "label": "User family name",
-                                                "visible": [ ["firstname", "<>", "root"], ["language", "=", "en"] ]
+                                                "label": "User family name"
                                             },
                                             {
                                                 "type": "field",
@@ -97,16 +72,11 @@
                                                 }
                                             }
                                         ]
-                                    }    
+                                    }
                                 ]
-                            }                            
+                            }
                         ]
-                    }
-                ]
-            },
-            {
-                "id": "group.sections",
-                "sections": [
+                    },
                     {
                         "label": "Preferences",
                         "id": "section.preferences",
@@ -114,19 +84,17 @@
                             {
                                 "columns": [
                                     {
-                                        "width": "33%",
-                                        "align": "left",
+                                        "width": "100%",
                                         "items": [
                                             {
-                                                "type": "label",
-                                                "id": "id.details",
-                                                "value": "Contact details",
-                                                "width": "50%"
+                                                "type": "field",
+                                                "value": "setting_values_ids",
+                                                "width": "100%"
                                             }
                                         ]
                                     }
                                 ]
-                            }                            
+                            }
                         ]
                     },
                     {
@@ -146,14 +114,14 @@
                                                 "width": "100%",
                                                 "widget": {
                                                     "view": "list.selection"
-                                                }                                                
+                                                }
                                             }
                                         ]
                                     }
                                 ]
                             }
                         ]
-                    }                    
+                    }
                 ]
             }
         ]

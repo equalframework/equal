@@ -85,7 +85,7 @@ if(ctype_lower(substr($file, 0, 1))) {
     $data = eQual::run('get', $operation, ['announce' => true]);
     $controller_schema = isset($data['announcement']['params'])?$data['announcement']['params']:[];
     $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
-    // generata a virtual (emtpy) object
+    // generate a virtual (emtpy) object
     $object = ['id' => 0];
     foreach($requested_fields as $field) {
         if(!isset($controller_schema[$field])) {
@@ -93,7 +93,7 @@ if(ctype_lower(substr($file, 0, 1))) {
         }
         $value = null;
         if(isset($controller_schema[$field]['default'])) {
-            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'txt', 'php');
+            $value = $adapter->adapt($controller_schema[$field]['default'], $controller_schema[$field]['type'], 'json', 'php');
         }
         $object[$field] = $value;
     }
@@ -148,6 +148,9 @@ foreach($params['fields'] as $key => $field) {
     }
 }
 
+// make sure 'name' is always requested
+$fields[] = 'name';
+
 $domain = $params['domain'];
 
 // if `deleted` field is requested, we need to force searching amongst deleted objects as well
@@ -192,12 +195,13 @@ $total = count($collection->ids());
 
 // retrieve list
 $result = $collection
-          ->shift($params['start'])
-          ->limit($params['limit'])
-          ->read($fields, $params['lang'])
-          ->adapt('txt')
-          // return result as an array (since JSON objects handled by ES2015+ might have their keys order altered)
-          ->get(true);
+    ->shift($params['start'])
+    ->limit($params['limit'])
+    ->read($fields, $params['lang'])
+    ->adapt('json')
+    // return result as an array
+    // #memo - JSON objects handled by ES2015+ might have their keys order altered
+    ->get(true);
 
 $context->httpResponse()
         ->header('X-Total-Count', $total)

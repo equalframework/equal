@@ -1,7 +1,7 @@
 <?php
 namespace config;
 
-define('DEFAULT_APP', 'welcome');
+
 
 /**
 * Constants defined in this section are mandatory but can be modified/re-defined in customs config.inc.php (i.e.: packages/[package_name]/config.inc.php)

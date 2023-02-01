@@ -10,22 +10,15 @@ use equal\locale\Locale;
 
 class FieldString extends Field {
 
-    public function getSqlType(): string {
-        if($this->hasUsage()) {
-            return $this->getUsage()->getSqlType();
-        }
-        return 'varchar(255)';
-    }
-
     public function getConstraints(): array {
-        return array_merge(parent::getConstraints(), [
+        return  [
             'not_string_type' => [
                 'message'   => 'Value is not a string.',
                 'function'  =>  function($value) {
                     return (gettype($value) == 'string');
                 }
             ]
-        ]);
+        ];
     }
 
     protected function adaptFromSql($value): void {
@@ -49,12 +42,6 @@ class FieldString extends Field {
     }
 
     protected function adaptToTxt($lang='en'): void {
-        if($this->hasUsage()) {
-            $usage = $this->getUsage();
-            if($usage) {
-                $this->value = $usage->export($this->value, $lang);
-            }
-        }
     }
 
 }

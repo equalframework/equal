@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageLanguage extends Usage {
 
-    public function getType(): string {
-        return 'language';
-    }
-
-    public function getSqlType(): string {
-            return 'varchar(3)';
-    }
-
     public function getConstraints(): array {
         // subtype is expected to be iso-639
         switch($this->getLength()) {
@@ -41,10 +33,6 @@ class UsageLanguage extends Usage {
                     ]
                 ];
         }
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

@@ -1,0 +1,21 @@
+<div class="container">
+    <div class="container-header" style="width: 300px;">
+        <button mat-button [matMenuTriggerFor]="auth_menu"><strong>{{user.name}}</strong> ({{user.login}})</button>
+        <mat-menu #auth_menu="matMenu" class="auth-menu" backdropClass="auth-menu">
+            <button mat-menu-item (click)="onclickDisconnect()">Se déconnecter</button>
+        </mat-menu>
+    </div>
+    <div class="box">
+        <ng-container *ngFor="let app of getApps()">
+            <div class="app" *ngIf="isGranted(app)">
+                <button mat-raised-button
+                        [ngClass]="app"
+                        color="primary"
+                        [style]="'background-color: '+apps[app].color"
+                        (click)="onSelect(app)">
+                    <mat-icon>{{apps[app].icon}}</mat-icon> {{apps[app].name | translate}}
+                </button>
+            </div>
+        </ng-container>
+    </div>
+</div>

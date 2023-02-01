@@ -90,7 +90,7 @@ if(!count($data)) {
                 $default = call_user_func($defaults[$field], $orm);
             }
             $type = $schema[$field]['type'];
-            $adapted = $adapt->adapt($default, $type, 'txt', 'php');
+            $adapted = $adapt->adapt($default, $type, 'json', 'php');
             $data['fields'][$field]['default'] = $adapted;
         }
     }

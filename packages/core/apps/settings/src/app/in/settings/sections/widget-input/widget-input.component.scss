@@ -1,0 +1,60 @@
+.mat-card {
+    display: flex;
+    height: 135px;
+    margin:0.3rem;
+
+    .hidden {
+        display: none;
+    }
+
+    form {
+        flex: 1 0 50%;
+        display: flex;
+        flex-direction: column;
+
+        .mat-form-field {
+            flex: 1;
+            padding: 0.2rem;
+            margin:0.2rem;
+            
+            ::ng-deep .mat-form-field-infix {
+                width: auto;
+            }
+        }
+
+        button.mat-fab {
+            margin-top: 10px;
+            transform: scale(0.8);
+        }
+
+    }
+
+    .titleBox {
+        display: flex; 
+        flex-direction: column;
+    
+        flex: 0 1 50%;
+        border-right:0.5px solid black;
+        padding: 0.2rem;
+        overflow: hidden;
+        width:50%;
+        min-width:50%;
+
+        .mat-card-title {
+            font-size: 1rem;
+        }
+
+        .mat-card-subtitle {
+            font-size: 0.8rem;
+            margin-bottom: 0;
+        }
+
+        .settingName {
+            text-align: left;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            margin-top: auto;
+            font-size: 0.9em;
+        }
+
+    }
+}

@@ -9,29 +9,21 @@ namespace equal\orm\usages;
 
 class UsageUri extends Usage {
 
-    public function getType(): string {
-        return 'uri';
-    }
-
-    public function getSqlType(): string {
-            return 'text';
-    }
-
     public function getConstraints(): array {
         switch($this->getSubtype()) {
-            /*
-                https://www.goo-gle.com:80/path/sub/?test&a=b#fragment
-                //www.google.com.ua
-                https://mail.google.com
-                http://mail.google.com
-                ldap://localhost:389/ou=people,o=myOrganization
-                https://a.b.com:80/path/sub/?query=test&a=b#fragment
-                ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/
-                dns://192.168.1.1/ftp.example.org?type=A
-                file://localhost/path
-                ircs://irc.example.com:6697/#channel1,#channel2
-            */
             case 'url':
+                /*
+                    https://www.goo-gle.com:80/path/sub/?test&a=b#fragment
+                    //www.google.com.ua
+                    https://mail.google.com
+                    http://mail.google.com
+                    ldap://localhost:389/ou=people,o=myOrganization
+                    https://a.b.com:80/path/sub/?query=test&a=b#fragment
+                    ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/
+                    dns://192.168.1.1/ftp.example.org?type=A
+                    file://localhost/path
+                    ircs://irc.example.com:6697/#channel1,#channel2
+                */
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid URL.',
@@ -77,10 +69,6 @@ class UsageUri extends Usage {
                     ]
                 ];
         }
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

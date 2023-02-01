@@ -1,0 +1,22 @@
+<!-- MatCheckBox -->
+<section class="example-section" style="margin-top: 0.5rem;">
+  <span class="example-list-section" style="font-size: 1.05rem;">
+    <mat-checkbox class="example-margin" [checked]="rights == 31" [indeterminate]="someComplete()"
+      (change)="setAll($event.checked)">
+      All
+    </mat-checkbox>
+  </span>
+  <span class="example-list-section">
+    <ul>
+      <li *ngFor="let key of keys" style="font-size: 1.05rem;">
+        <mat-checkbox [(ngModel)]="permissionRights[key].completed" (ngModelChange)="updateAllComplete()">
+          {{key}}
+        </mat-checkbox>
+
+      </li>
+    </ul>
+  </span>
+</section>
+
+
+<!-- Dropdown avec groupes -->

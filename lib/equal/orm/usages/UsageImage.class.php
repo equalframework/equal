@@ -9,14 +9,6 @@ namespace equal\orm\usages;
 
 class UsageImage extends Usage {
 
-    public function getType(): string {
-        return 'image';
-    }
-
-    public function getSqlType(): string {
-        return 'longblob';
-    }
-
     public function getConstraints(): array {
         return [
             'size_exceeded' => [
@@ -28,10 +20,6 @@ class UsageImage extends Usage {
                 }
             ]
         ];
-    }
-
-    public function export($value, $lang='en'): string {
-        return $value;
     }
 
 }

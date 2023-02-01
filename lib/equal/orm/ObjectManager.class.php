@@ -56,7 +56,7 @@ class ObjectManager extends Service {
     private $packages;
 
     /**
-     * String holding the serialized value of the latest error that occured (to be used in addition with error codes)
+     * String holding the serialized value of the latest error that occurred (to be used in addition with error codes)
      * @var string
      */
     private $last_error;
@@ -96,7 +96,6 @@ class ObjectManager extends Service {
         'float'         => array('type'),
         'string'        => array('type'),
         'text'          => array('type'),
-        'html'          => array('type'),
         'date'          => array('type'),
         'time'          => array('type'),
         'datetime'      => array('type'),
@@ -418,45 +417,42 @@ class ObjectManager extends Service {
      * @param   $ids
      */
     private function filterValidIdentifiers($class, $ids) {
-        $valid_ids = [];
         // sanitize $ids
         if(!is_array($ids)) {
             $ids = (array) $ids;
         }
-        // ensure ids are positive integer values
-        foreach($ids as $index => $oid) {
+        // pass-1 : ensure ids are positive integer values
+        foreach($ids as $i => $oid) {
             $id = intval($oid);
             if(!is_numeric($oid) || $id <= 0) {
-                unset($ids[$index]);
+                unset($ids[$i]);
                 continue;
             }
-            $ids[$index] = $id;
+            $ids[$i] = $id;
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
-        $table_name = $this->getObjectTableName($class);
-        // remove already loaded objects from missing list
-        $missing_ids = $ids;
-        foreach($ids as $index => $id) {
-            if(isset($this->identifiers[$table_name][$id]) || isset($this->cache[$table_name][$id])) {
-                $valid_ids[] = $id;
-                unset($missing_ids[$index]);
-            }
-        }
         // process remaining identifiers
-        if(!empty($missing_ids)) {
+        $valid_ids = [];
+        if(!empty($ids)) {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDBHandler();
+            $table_name = $this->getObjectTableName($class);
             // get all records at once
-            $result = $db->getRecords($table_name, 'id', $missing_ids);
+            $result = $db->getRecords($table_name, 'id', $ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
-                $valid_ids[] = (int) $row['id'];
-                // remember valid identifiers
-                $this->identifiers[$table_name][$row['id']] = true;
+                $oid = (int) $row['id'];
+                $valid_ids[$oid] = true;
             }
         }
-        return $valid_ids;
+        // pass-2 : remove ids not found in DB
+        foreach($ids as $i => $oid) {
+            if(!isset($valid_ids[$oid])) {
+                unset($ids[$i]);
+            }
+        }
+        return $ids;
     }
 
     /**
@@ -614,7 +610,7 @@ class ObjectManager extends Service {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
 
-                        if($res = $this->call($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
+                        if($res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
@@ -1125,7 +1121,7 @@ class ObjectManager extends Service {
         //         /** @var \equal\orm\fields\Field */
         //         $f = $model->getField($class);
         //         $usage = $f->getUsage();
-        //         $constaints = $f->getConstraints();
+        //         $constraints = $f->getConstraints();
         //         foreach($constraints as $error_id => $constraint) {
         //             $fn = $constraint['function'];
         //             if(is_callable($fn)) {
@@ -2138,7 +2134,7 @@ class ObjectManager extends Service {
                                 // adapt value
                                 if(!is_array($value)) {
                                     // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
-                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'txt');
+                                    $value = $this->container->get('adapt')->adapt($value, $type, 'php', 'json');
                                     // adapt value to SQL
                                     $value = $this->container->get('adapt')->adapt($value, $type, 'sql', 'php');
                                 }
@@ -2237,10 +2233,6 @@ class ObjectManager extends Service {
             }
             // remove duplicates, if any
             $res_list = array_unique($res_list);
-            // mark resulting identifiers as safe (matching existing objets)
-            foreach($res_list as $object_id) {
-                $this->identifiers[$table_name][$object_id] = true;
-            }
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);

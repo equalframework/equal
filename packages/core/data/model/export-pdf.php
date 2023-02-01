@@ -135,8 +135,21 @@ else {
             'domain'    => $params['domain'],
             'fields'    => [],
             'limit'     => 25,
+            'start'     => 0,
+            'order'     => 'id',
+            'sort'      => 'asc',
             'lang'      => $params['lang']
-        ] + $params['params'];
+        ];
+
+    foreach($params['params'] as $param => $value) {
+        if($param == 'order' && is_array($value)) {
+            $body['order'] = $value[0];
+        }
+        else {
+            $body[$param] = $value;
+        }
+    }
+
     // retrieve objects collection using the target controller
     $data = eQual::run('get', $params['controller'], $body);
     // extract objects ids

@@ -1,0 +1,41 @@
+<div class="container">
+
+    <mat-card>
+        <mat-card-header>
+            <div mat-card-avatar><mat-icon>sync</mat-icon></div>
+            <mat-card-title>{{'AUTH_RECOVER_TITLE' | translate}}</mat-card-title>
+            <mat-card-subtitle>{{'AUTH_RECOVER_SUBTITLE' | translate}}</mat-card-subtitle>
+        </mat-card-header>    
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="form-row">
+                    <mat-form-field appearance="fill">
+                        <mat-label>{{'AUTH_RECOVER_EMAIL' | translate}}</mat-label>
+                        <input type="text" matInput formControlName="email" [readonly]="loading || submitted"/>
+                        <mat-error *ngIf="f.email.errors">{{'AUTH_ERROR_MISSING_EMAIL' | translate}}</mat-error>
+                    </mat-form-field>                
+                </div>             
+            
+                <div class="actions" >
+                    <button mat-flat-button [class.spinner]="loading" [disabled]="loading || submitted" color="primary">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        {{'AUTH_RECOVER_ACTION_RECOVER' | translate}}
+                    </button>
+                    <!-- <button *ngIf="false" mat-flat-button >Register</button> --> 
+                </div>
+
+                <div class="messages" *ngIf="submitted">
+                    <div class="message">{{'AUTH_RECOVER_MESSAGE_SUBMITTED' | translate}}</div>
+                </div>
+
+                <div class="options">
+                    <span class="signin" (click)="onSignin()">{{'AUTH_RECOVER_ACTION_SIGNIN' | translate}}</span>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+    <div>
+        <div class="sb-logo"></div>
+    </div>
+</div>

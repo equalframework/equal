@@ -70,7 +70,15 @@ class User extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\Permission',
                 'foreign_field'     => 'user_id'
+            ],
+
+            'setting_values_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\setting\SettingValue',
+                'foreign_field'     => 'user_id',
+                'description'       => 'List of settings that relate to the user.'
             ]
+
         ];
     }
 

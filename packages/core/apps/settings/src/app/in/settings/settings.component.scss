@@ -1,0 +1,104 @@
+:host {
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+
+
+    .container {
+        width: 100%;
+        background-color: #fafafa;
+
+
+        .import-header {
+            width: 100%;
+            padding-left: 12px;
+            height: 48px;
+            line-height: 48px;
+            font-size: 22px;
+        }
+
+
+        .import-body::-webkit-scrollbar {
+            width: 6px;
+            overflow-y: scroll;
+            background: transparent;
+        }
+
+        .import-body::-webkit-scrollbar-thumb {
+            background: var(--mdc-theme-primary, #6200ee);
+            border-radius: 10px;
+        }
+
+        .import-body {
+            overflow-y: scroll;
+            overflow-x: hidden;
+
+            height: calc(100vh - 123px);
+            width: 100%;
+            padding: 12px;
+
+
+            mat-expansion-panel {
+
+                mat-expansion-panel-header {
+                    mat-panel-title {
+                        text-transform: capitalize;
+                        flex: 0 0 18%;
+                    }
+                    mat-panel-description {
+                        flex: 1 1 50%;
+                    }
+                    .sectionName {
+                        margin-left: auto;
+                        margin-right: 40px;
+                        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                        font-size: 0.9em;            
+                    }
+                }
+
+                .wrapper {
+                    margin-left: 1em;
+                    margin-right: 1em;
+                    display: grid;
+                    grid-template-rows: auto;
+                    grid-template-columns: repeat(3, 1fr);
+                    grid-row-gap: 1em;
+                    grid-column-gap: 1em;
+                    justify-items: center;
+
+                    @media screen and (max-width: 1245px) {
+                    margin-left: 1em;
+                    margin-right: 1em;
+                    display: grid;
+                    grid-template-rows: auto;
+                    grid-template-columns: repeat(2, 1fr) ;
+                    grid-row-gap: 1em;
+                    grid-column-gap: 1em;
+                    justify-items: center;
+                    }
+
+                    @media screen and (max-width: 940px) {
+                    margin-left: 1em;
+                    margin-right: 1em;
+                    display: grid;
+                    grid-template-rows: auto;
+                    grid-template-columns: repeat(1, 1fr);
+                    grid-row-gap: 1em;
+                    grid-column-gap: 1em;
+                    justify-items: center;
+
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+    }
+}
+
