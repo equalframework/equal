@@ -124,7 +124,12 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     public function offsetUnset($field): void {
-        unset($this->values[$field]);
+        if(isset($this->fields[$field])) {
+            unset($this->fields[$field]);
+        }
+        if(isset($this->values[$field])) {
+            unset($this->values[$field]);
+        }
     }
 
     public function offsetGet($field) {
@@ -296,14 +301,16 @@ class Model implements \ArrayAccess, \Iterator {
      * @return Field        Associative array mapping fields names with their related Field instances.
      */
     public final function getField($field) {
-        $type = $this->schema[$field]['type'];
-        while($type == 'alias') {
-            $field = $this->schema[$field]['alias'];
+        if(isset($this->schema[$field])) {
             $type = $this->schema[$field]['type'];
-        }
-        if(!isset($this->fields[$field])) {
-            if(isset($this->schema[$field])) {
-                $this->fields[$field] = new Field($this->schema[$field]);
+            while($type == 'alias') {
+                $field = $this->schema[$field]['alias'];
+                $type = $this->schema[$field]['type'];
+            }
+            if(!isset($this->fields[$field])) {
+                if(isset($this->schema[$field])) {
+                    $this->fields[$field] = new Field($this->schema[$field]);
+                }
             }
         }
         return (isset($this->fields[$field]))?$this->fields[$field]:null;

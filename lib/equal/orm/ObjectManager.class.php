@@ -1305,9 +1305,9 @@ class ObjectManager extends Service {
     /**
      * Creates a new instance of given class and, if given, assigns values to targeted fields.
      *
-     * Upon creation, the objecft remains in 'draft' state until it has been written:
+     * Upon creation, the object remains in 'draft' state until it has been written:
      * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model;
-     * - if $field contains some values, object is created and its state is set to 'instance', unless `state` is explicitely set (@see write method).
+     * - if $field contains some values, object is created and its state is set to 'instance', unless `state` is explicitly set (@see write method).
      *
      *
      * @param  string       $class        Class of the object to create.
@@ -1315,7 +1315,7 @@ class ObjectManager extends Service {
      * @param  string       $lang         Language in which to store multilang fields.
      * @param  boolean      $use_draft    If set to false, disables the re-use of outdated drafts (objects created but not saved afterward).
      *
-     * @return integer      The result is an identfier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
+     * @return integer      The result is an identifier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
     public function create($class, $fields=null, $lang=null, $use_draft=true) {
         $res = 0;
@@ -1443,7 +1443,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Updates specified fields of seleced objects and stores changes into database.
+     * Updates specified fields of selected objects and stores changes into database.
      *
      * @param   string    $class        Class of the objects to write.
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
@@ -1451,7 +1451,7 @@ class ObjectManager extends Service {
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
      * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
      *
-     * @return  int|array Returns an array of updated ids, or an error identifier in case an error occured.
+     * @return  int|array Returns an array of updated ids, or an error identifier in case an error occurred.
      */
     public function update($class, $ids=null, $fields=null, $lang=null, $create=false) {
         // init result
@@ -1599,14 +1599,14 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Reads a collection of objects from a given class, based on a list of identfiers.
+     * Reads a collection of objects from a given class, based on a list of identifiers.
      *
      * @param   string     $class       Class of the objects to retrieve.
      * @param   mixed      $ids         Identifier(s) of the object(s) to retrieve (accepted types: array, integer, string).
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|Model[]  Returns an associative array mapping an instance for each requested id ($ids order is maintaind). If an error occurs, it returns the related error identifier.
+     * @return  int|Model[]  Returns an associative array mapping an instance for each requested id ($ids order is maintained). If an error occurs, it returns the related error identifier.
      */
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
@@ -1617,10 +1617,17 @@ class ObjectManager extends Service {
 
         try {
 
-            // 1) pre-processing: $ids sanitization
+            // 1) pre-processing: params sanitization
+
+            // cast fields to an array (passing a single field is accepted)
+            // #memo - duplicate fields are allowed in $fields array: the value will be loaded once and returned as many times as requested
+            if(!is_array($fields)) {
+                $fields = (array) $fields;
+            }
 
             // get static instance (check that given class exists)
             $model = $this->getStaticInstance($class);
+            $schema = $model->getSchema();
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // keep only valid objects identifiers
@@ -1631,19 +1638,21 @@ class ObjectManager extends Service {
             }
             // init resulting array
             foreach($ids as $oid) {
+                // #memo - $model is a Model instance with default values
                 $res[$oid] = clone $model;
+                // discard fields that weren't requested
+                foreach($schema as $field => $descriptor) {
+                    if(!in_array($field, $fields)) {
+                        unset($res[$oid][$field]);
+                    }
+                }
             }
 
-            // 2) pre-processing: $fields sanitization
+            // 2) pre-processing: $fields preparation
 
-            $schema = $model->getSchema();
             $requested_fields = [];
             $dot_fields = [];
-            // cast fields to an array (passing a single field is accepted)
-            // #memo - duplicate fields are allowed in $fields array: the value will be loaded once and returned as many times as requested
-            if(!is_array($fields)) {
-                $fields = (array) $fields;
-            }
+
             // check fields validity
             foreach($fields as $key => $field) {
                 // handle fields with 'dot' notation
@@ -1669,7 +1678,7 @@ class ObjectManager extends Service {
 
             // #memo - there is no canread(), since it would be redundant with access::isAllowed()
 
-            // 3) check among requested fields wich ones are not yet present in the internal buffer
+            // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 
             if(count($requested_fields)) {
                 // if internal buffer is empty, query the DB to load all fields from requested objects
@@ -1683,7 +1692,7 @@ class ObjectManager extends Service {
                     $fields_missing = array();
                     foreach($requested_fields as $key => $field) {
                         foreach($ids as $oid) {
-                            // prevent using cache for one2many fields : cache can become unconsistent in case of cross updates
+                            // prevent using cache for one2many fields : cache can become inconsistent in case of cross updates
                             // #todo - use the cache for m2m relations (using the rel table)
                             if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$lang][$field])) {
                                 $fields_missing[] = $field;
@@ -1719,7 +1728,6 @@ class ObjectManager extends Service {
             // 5) handle dot fields
 
             foreach($dot_fields as $field) {
-
                 // extract sub field and remainder
                 $parts = explode('.', $field, 2);
                 // left side of the first dot
@@ -1734,7 +1742,9 @@ class ObjectManager extends Service {
                 // read the field values
                 $values = $this->read($class, $ids, (array) $path_field, $lang);
 
-                if($values < 0) continue;
+                if($values < 0) {
+                    continue;
+                }
 
                 // recursively read sub objects
                 foreach($ids as $oid) {
@@ -1789,7 +1799,7 @@ class ObjectManager extends Service {
      * @param   array   $ids            Array of ids of the objects to delete.
      * @param   boolean $permanent      Flag for soft deleted (marked as deleted) or hard deletion (removed from DB).
      *
-     * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occured.
+     * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occurred.
      */
     public function delete($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
@@ -1909,7 +1919,7 @@ class ObjectManager extends Service {
 
     /**
      * Create a recursive copy of an object.
-     * This method does not check unique constrainsts. If creation fails, it returns an arror code.
+     * This method does not check unique constraints. If creation fails, it returns an error code.
      *
      * @param   string    $class            Class name of the object to clone.
      * @param   integer   $id               Unique identifier of the object to clone.
@@ -2037,22 +2047,28 @@ class ObjectManager extends Service {
             else if($domain) {
                 // valid format : [[['field', 'operator', 'value']]]
                 // accepted shortcuts: [['field', 'operator', 'value']], ['field', 'operator', 'value']
-                if( !is_array($domain[0]) ) $domain = array(array($domain));
-                else if( isset($domain[0][0]) && !is_array($domain[0][0]) ) $domain = array($domain);
+                if( !is_array($domain[0]) ) {
+                    $domain = array(array($domain));
+                }
+                elseif( isset($domain[0][0]) && !is_array($domain[0][0]) ) {
+                    $domain = array($domain);
+                }
             }
 
-            $res_list = array();
+            $res_list = [];
 
-            $conditions = array(array());
-            // join conditions that have to be additionaly applied to all clauses
-            $join_conditions = array();
-            $tables = array();
+            $conditions = [[]];
+            // join conditions that have to be additionally applied to all clauses
+            $join_conditions = [];
+            $tables = [];
 
             $table_name = $this->getObjectTableName($class);
 
             // we use a nested closure to define a function that stores original table names and returns corresponding aliases
             $add_table = function ($table_name) use (&$tables) {
-                if(in_array($table_name, $tables)) return array_search($table_name, $tables);
+                if(in_array($table_name, $tables)) {
+                    return array_search($table_name, $tables);
+                }
                 $table_alias = 't'.count($tables);
                 $tables[$table_alias] = $table_name;
                 return $table_alias;
@@ -2069,14 +2085,18 @@ class ObjectManager extends Service {
 
                 for($j = 0, $max_j = count($domain); $j < $max_j; ++$j) {
                     // #todo : join conditions should be set at clause level (but at some history point it was set at domain level) - to confirm
-                    $join_conditions = array();
+                    $join_conditions = [];
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
-                        if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
-                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
-                        $field        = $domain[$j][$i][0];
-                        $value        = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
-                        $operator     = strtolower($domain[$j][$i][1]);
+                        if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) {
+                            throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
+                        }
+                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) {
+                            throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
+                        }
+                        $field    = $domain[$j][$i][0];
+                        $value    = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
+                        $operator = strtolower($domain[$j][$i][1]);
 
                         // force operator 'is' for null values
                         if(is_null($value) || $value === 'null') {
@@ -2090,13 +2110,13 @@ class ObjectManager extends Service {
 
                         // check field validity
                         if(!in_array($field, array_keys($schema))) {
-                            throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            throw new Exception("invalid domain, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // get final target field
                         while($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
                             if(!in_array($field, array_keys($schema))) {
-                                throw new Exception("invalid schema, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                                throw new Exception("invalid schema, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                             }
                         }
                         // get final type
@@ -2108,29 +2128,43 @@ class ObjectManager extends Service {
                             $type = $schema[$field]['result_type'];
                         }
                         // check the validity of the field name and the operator
-                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                            throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        }
+                        if(!in_array($operator, self::$valid_operators[$type])) {
+                            throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                        }
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
-                        if(isset($special_fields[$field])) unset($special_fields[$field]);
+                        if(isset($special_fields[$field])) {
+                            unset($special_fields[$field]);
+                        }
 
                         // note: we don't test user permissions on foreign objects here
                         switch($type) {
                             case 'many2one':
                                 // use operator '=' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = '=';
+                                if($operator == 'contains') {
+                                    $operator = '=';
+                                }
                                 $field = $table_alias.'.'.$field;
                                 break;
                             case 'one2many':
                                 // add foreign table to sql query
-                                $foreign_table_alias =  $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
+                                $foreign_table_alias = $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
                                 // add the join condition
                                 $join_conditions[] = array($foreign_table_alias.'.'.$schema[$field]['foreign_field'], '=', '`'.$table_alias.'`.`id`');
                                 // as comparison field, use foreign table's 'foreign_key' if any, 'id' otherwise
-                                if(isset($schema[$field]['foreign_key'])) $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
-                                else $field = $foreign_table_alias.'.id';
+                                if(isset($schema[$field]['foreign_key'])) {
+                                    $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
+                                }
+                                else {
+                                    $field = $foreign_table_alias.'.id';
+                                }
                                 // use operator 'in' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = 'in';
+                                if($operator == 'contains') {
+                                    $operator = 'in';
+                                }
                                 break;
                             case 'many2many':
                                 // add related table to sql query
@@ -2149,7 +2183,9 @@ class ObjectManager extends Service {
                                     $field = $rel_table_alias.'.'.$schema[$field]['rel_foreign_key'];
                                 }
                                 // use operator 'in' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = 'in';
+                                if($operator == 'contains') {
+                                    $operator = 'in';
+                                }
                                 break;
                             default:
                                 // adapt value
@@ -2176,17 +2212,23 @@ class ObjectManager extends Service {
                                     $field = $translation_table_alias.'.value';
                                 }
                                 // simple fields always match table fields
-                                else $field = $table_alias.'.'.$field;
+                                else {
+                                    $field = $table_alias.'.'.$field;
+                                }
                                 break;
                         }
                         // handle particular cases involving arrays
                         // if(in_array($type, ['many2one', 'one2many', 'many2many'])) {
                             if( in_array($operator, ['in', 'not in']) ) {
-                                if(!is_array($value)) $value = array($value);
-                                if(!count($value))    $value = ['0'];
+                                if(!is_array($value)) {
+                                    $value = array($value);
+                                }
+                                if(!count($value)) {
+                                    $value = ['0'];
+                                }
                             }
                         // }
-                        $conditions[$j][] = array($field, $operator, $value);
+                        $conditions[$j][] = [$field, $operator, $value];
                     }
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
@@ -2223,7 +2265,9 @@ class ObjectManager extends Service {
             $order_table_alias = $table_alias;
             // build the ordering clause
             $order_clause = [];
-            if(!is_array($sort)) $sort = (array) $sort;
+            if(!is_array($sort)) {
+                $sort = (array) $sort;
+            }
 
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
@@ -2244,8 +2288,19 @@ class ObjectManager extends Service {
                     $order_table_alias = $translation_table_alias;
                     $sort_field = 'value';
                 }
-                else if($sort_field != 'id') {
-                    $select_fields[] = $table_alias.'.'.$sort_field;
+                elseif($sort_field != 'id') {
+                    // check the type of the field used for sorting : if it is a many2one, add the related table and use the field `name` instead of the id value
+                    if($schema[$sort_field]['type'] == 'many2one') {
+                        $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
+                        $related_table_alias = $add_table($related_table);
+                        $select_fields[] = $related_table_alias.'.name';
+                        $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
+                        $order_table_alias = $related_table_alias;
+                        $sort_field = 'name';
+                    }
+                    else {
+                        $select_fields[] = $table_alias.'.'.$sort_field;
+                    }
                 }
                 $order_clause[$order_table_alias.'.'.$sort_field] = $sort_order;
             }

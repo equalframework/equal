@@ -205,6 +205,9 @@ namespace {
                     config\define($property, $value);
                 }
             }
+            else {
+                die('Invalid config file.');
+            }
         }
         // pass-2 - process instant properties not present in config
         foreach($constants_schema as $property => $descriptor) {
