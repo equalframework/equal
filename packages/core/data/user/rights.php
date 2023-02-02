@@ -13,6 +13,7 @@ list($params, $providers) = announce([
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_RIGHTS'],
     'params'        => [
         'user' =>  [
             'description'   => 'login (email address) or ID of targeted user.',
@@ -30,20 +31,11 @@ list($params, $providers) = announce([
 
 list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
 
-
-$operations = [
-    QN_R_CREATE => 'create',
-    QN_R_READ   => 'read',
-    QN_R_WRITE  => 'update',
-    QN_R_DELETE => 'delete',
-    QN_R_MANAGE => 'manage'
-];
-
 // retrieve targeted user
 if(is_numeric($params['user'])) {
     $ids = User::search(['id', '=', $params['user']])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_user_id", QN_ERROR_UNKNOWN_OBJECT);
+        $rights = constant('DEFAULT_RIGHTS');
     }
 }
 else {
@@ -52,14 +44,19 @@ else {
     if(!count($ids)) {
         throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
     }
+    $user_id = array_shift($ids);
+    $rights = $ac->rights($user_id, $params['entity']);
 }
 
-$user_id = array_shift($ids);
-
-$rights = $ac->rights($user_id, $params['entity']);
-
+// convert ACL value to human string
 $rights_txt = [];
-
+$operations = [
+    QN_R_CREATE => 'create',
+    QN_R_READ   => 'read',
+    QN_R_WRITE  => 'update',
+    QN_R_DELETE => 'delete',
+    QN_R_MANAGE => 'manage'
+];
 foreach($operations as $id => $name) {
     if($rights & $id) {
         $rights_txt[] = $name;
