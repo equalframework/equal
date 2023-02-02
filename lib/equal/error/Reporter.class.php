@@ -124,7 +124,9 @@ class Reporter extends Service {
         }
         // retrieve instance and log error
         $instance = self::getInstance();
-        $instance->log($code, $errmsg, self::getTrace($depth));
+        for($i = 0; $i < $depth; ++$i) {
+            $instance->log($code, $errmsg, self::getTrace($i+1));
+        }
     }
 
     private function log($code, $msg, $trace) {
