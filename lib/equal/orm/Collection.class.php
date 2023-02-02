@@ -7,6 +7,7 @@
 namespace equal\orm;
 
 use equal\data\adapt\DataAdapterProvider;
+use stdClass;
 
 class Collection implements \Iterator, \Countable {
 
@@ -302,7 +303,7 @@ class Collection implements \Iterator, \Countable {
      *
      * @param array optional if given, sets current objects array, if not returns current ids
      *
-     * @return (Collection|array)  Setter version returns the Collection with a single empty object. Getter version returns an array with all objects identifiers.
+     * @return Collection  The setter version returns the Collection with a single empty object. The getter version returns an array with all objects identifiers.
      */
     public function ids() {
         $args = func_get_args();
@@ -313,7 +314,7 @@ class Collection implements \Iterator, \Countable {
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
             // init keys of 'objects' member (resulting in a map with keys but no values)
-            $this->objects = array_fill_keys($ids, []);
+            $this->objects = array_fill_keys($ids, new stdClass());
         }
         return $this;
     }
@@ -570,28 +571,23 @@ class Collection implements \Iterator, \Countable {
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
         // 3) validate : check required fields accordingly
-        // #memo - we cannot check unicity constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
+        // #memo - we cannot check unique constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
         $this->validate($values, [], false, $check_required);
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
 
         // 4) create the new object
-        $res = $this->orm->create($this->class, $values, $lang);
-        if($res <= 0) {
-            throw new \Exception($this->orm->getLastError(), $res);
+        $oid = $this->orm->create($this->class, $values, $lang);
+        if($oid <= 0) {
+            throw new \Exception($this->orm->getLastError(), $oid);
         }
-
-        $oid = $res;
 
         // log action (if enabled)
         $this->logger->log($user_id, 'create', $this->class, $oid);
 
-        // make sure the assigned id is present in the loaded object
-        $values['id'] = $oid;
-
-        // store new object in current collection
-        $this->objects[$oid] = $values;
+        // put new object in current collection
+        $this->id($oid)->read(['id']);
 
         return $this;
     }
