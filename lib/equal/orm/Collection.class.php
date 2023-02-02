@@ -262,7 +262,7 @@ class Collection implements \Iterator, \Countable {
                     $f = $this->model->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving Field object for $field", QN_REPORT_INFO);
+                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving Field object for $field ({$this->model->getType()})", QN_REPORT_INFO);
                         $result[$field] = $value;
                         continue;
                     }
