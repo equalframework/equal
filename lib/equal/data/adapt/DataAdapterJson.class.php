@@ -278,10 +278,12 @@ class DataAdapterJson extends DataAdapter {
     }
 
     private static function jsonToArray($value) {
-        // try to resolve value as JSON
-        $data = @json_decode($value, true);
-        if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
-            $value = $data;
+        if(!is_array($value)) {
+            // try to resolve value as JSON
+            $data = @json_decode($value, true);
+            if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
+                $value = $data;
+            }
         }
         $to_array = function ($value) use(&$to_array) {
             $result = [];
@@ -383,6 +385,12 @@ class DataAdapterJson extends DataAdapter {
         if(!is_array($value)) {
             $res = $to_array($value);
             $value = array_pop($res);
+        }
+        else {
+            foreach($value as $key => $val) {
+                $res = @json_decode($val, true);
+                $value[$key] = $res ? $res : $val;
+            }
         }
         return (array) $value;
     }
