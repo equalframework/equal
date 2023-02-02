@@ -119,13 +119,13 @@ class Reporter extends Service {
             case E_STRICT:
             case E_DEPRECATED:
                 $code = QN_REPORT_WARNING;
-                $depth = 5;
+                $depth = 10;
                 break;
         }
         // retrieve instance and log error
         $instance = self::getInstance();
         for($i = 0; $i < $depth; ++$i) {
-            $instance->log($code, $errmsg, self::getTrace($i+1));
+            $instance->log($code, $errmsg, self::getTrace($i));
         }
     }
 
