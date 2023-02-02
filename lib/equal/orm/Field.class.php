@@ -39,7 +39,7 @@ class Field {
 
     /**
      * Provides the usage string equivalent of the pseudo type of the Field instance.
-     * This method maps explicit usages to types (that are a form of implicit usages).
+     * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
         static $map = [

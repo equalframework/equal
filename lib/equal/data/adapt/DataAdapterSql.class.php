@@ -117,6 +117,8 @@ class DataAdapterSql extends DataAdapter {
                 return self::timeToSql($value);
             case 'date':
                 switch($subtype) {
+                    case 'time':
+                        return self::datetimeToSql($value);
                     case 'plain':
                         return self::dateToSql($value);
                     case 'year':
@@ -125,8 +127,6 @@ class DataAdapterSql extends DataAdapter {
                         return date('n', $value);
                 }
                 break;
-            case 'datetime':
-                return self::datetimeToSql($value, $usage, $lang);
             case 'image':
             case 'binary':
                 return self::binaryToSql($value);
