@@ -802,7 +802,13 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($value)) {
-                            throw new Exception("wrong value for field '$field' of class '$class', should be an array", QN_ERROR_INVALID_PARAM);
+                            if(is_numeric($value)) {
+                                $value = [intval($value)];
+                            }
+                            else {
+                                trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                continue;
+                            }
                         }
                         $ids_to_remove = array();
                         $ids_to_add = array();
@@ -853,8 +859,14 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $rel_ids = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($rel_ids)) {
-                            trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
-                            continue;
+                            if(is_numeric($rel_ids)) {
+                                $rel_ids = [intval($rel_ids)];
+                            }
+                            else {
+                                print_r($rel_ids);
+                                trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                continue;
+                            }
                         }
                         $values = [];
                         foreach($rel_ids as $index => $id) {
@@ -1473,7 +1485,7 @@ class ObjectManager extends Service {
             if(empty($ids)) {
                 return $res;
             }
-            // ids that are left are the ones of the objects that will be writen
+            // ids that are left are the ones of the objects that will be written
             $res = $ids;
 
 
@@ -1514,7 +1526,7 @@ class ObjectManager extends Service {
                 }
             }
 
-            // #memo - writing an object does not change its state, unless when explicitely set in $fields
+            // #memo - writing an object does not change its state, unless when explicitly set in $fields
             $fields['modified'] = time();
 
 
