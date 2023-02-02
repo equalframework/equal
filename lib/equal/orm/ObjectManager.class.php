@@ -2173,7 +2173,9 @@ class ObjectManager extends Service {
                                     $field = $rel_table_alias.'.'.$schema[$field]['rel_foreign_key'];
                                 }
                                 // use operator 'in' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = 'in';
+                                if($operator == 'contains') {
+                                    $operator = 'in';
+                                }
                                 break;
                             default:
                                 // adapt value
@@ -2284,6 +2286,7 @@ class ObjectManager extends Service {
                         $select_fields[] = $related_table_alias.'.name';
                         $order_table_alias = $related_table_alias;
                         $sort_field = 'name';
+                        $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
                     }
                     else {
                         $select_fields[] = $table_alias.'.'.$sort_field;
