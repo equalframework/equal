@@ -50,7 +50,7 @@ class Field {
             'text'          => 'text/plain:32000',
             'date'          => 'date/plain',
             'datetime'      => 'date/time',
-            'time'          => 'number/integer:9',
+            'time'          => 'time/plain',
             'binary'        => 'binary/plain:64000000',
             'many2one'      => 'number/integer:9',
             'array'         => 'array'

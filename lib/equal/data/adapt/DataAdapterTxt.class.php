@@ -65,6 +65,8 @@ class DataAdapterTxt extends DataAdapter {
                 return self::timeToTxt($value, $usage, $lang);
             case 'date':
                 switch($subtype) {
+                    case 'time':
+                        return self::datetimeToTxt($value, $usage, $lang);
                     case 'plain':
                         return self::dateToTxt($value, $usage, $lang);
                         case 'year':
@@ -72,8 +74,6 @@ class DataAdapterTxt extends DataAdapter {
                     case 'month':
                 }
                 break;
-            case 'datetime':
-                return self::datetimeToTxt($value, $usage, $lang);
             case 'image':
             case 'binary':
                 return self::binaryToTxt($value, $usage, $lang);

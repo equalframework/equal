@@ -726,7 +726,6 @@ class Collection implements \Iterator, \Countable {
      */
     public function update(array $values, $lang=null) {
         if(count($this->objects)) {
-
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
