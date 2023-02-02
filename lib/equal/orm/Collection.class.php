@@ -694,6 +694,10 @@ class Collection implements \Iterator, \Countable {
                     }
                 }
                 $children_fields = [];
+                if(!is_array($subfields)) {
+                    trigger_error("QN_DEBUG_ORM::unexpected value for field $field ({$this->model->getType()})", QN_REPORT_INFO);
+                    continue;
+                }
                 foreach($subfields as $key => $val) {
                     $children_fields[] = (!is_numeric($key))?$key:$val;
                 }
