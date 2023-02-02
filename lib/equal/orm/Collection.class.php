@@ -679,6 +679,8 @@ class Collection implements \Iterator, \Countable {
                 if(is_numeric($field)) {
                     continue;
                 }
+                // we accept single value as subfields
+                $subfields = (array) $subfields;
                 // #memo - using Field object guarantees support for `alias` and `computed` fields
                 $targetField = $this->model->getField($field);
                 $target = $targetField->getDescriptor();
@@ -694,10 +696,6 @@ class Collection implements \Iterator, \Countable {
                     }
                 }
                 $children_fields = [];
-                if(!is_array($subfields)) {
-                    trigger_error("QN_DEBUG_ORM::unexpected value for field $field ({$this->model->getType()})", QN_REPORT_INFO);
-                    continue;
-                }
                 foreach($subfields as $key => $val) {
                     $children_fields[] = (!is_numeric($key))?$key:$val;
                 }
