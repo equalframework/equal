@@ -313,7 +313,7 @@ class DataValidator extends Service {
                             if(count($value) < $constraint['rule']) return false;
                             break;
                         default:
-                            // error : unhandled value type for contraint 'min'
+                            // error : unhandled value type for constraint 'min'
                             break;
                     }
                     break;
@@ -333,7 +333,7 @@ class DataValidator extends Service {
                             if(count($value) > $constraint['rule']) return false;
                             break;
                         default:
-                            // error : unhandled value type for contraint 'max'
+                            // error : unhandled value type for constraint 'max'
                             break;
                     }
                     break;
