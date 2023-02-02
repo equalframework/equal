@@ -12,6 +12,7 @@ use core\setting\Setting;
 class UsageDate extends Usage {
 
     /*
+        date/time (ISO 8601 date and time)
         date/plain (ISO 8601 @ 00:00:00UTC)
         date/year:4 (integer 0-9999)
         date/month	(integer 1-12, ISO-8601)
