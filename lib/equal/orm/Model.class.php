@@ -124,7 +124,12 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     public function offsetUnset($field): void {
-        unset($this->values[$field]);
+        if(isset($this->fields[$field])) {
+            unset($this->fields[$field]);
+        }
+        if(isset($this->values[$field])) {
+            unset($this->values[$field]);
+        }
     }
 
     public function offsetGet($field) {
