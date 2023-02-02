@@ -2284,9 +2284,9 @@ class ObjectManager extends Service {
                         $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
                         $related_table_alias = $add_table($related_table);
                         $select_fields[] = $related_table_alias.'.name';
+                        $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
                         $order_table_alias = $related_table_alias;
                         $sort_field = 'name';
-                        $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
                     }
                     else {
                         $select_fields[] = $table_alias.'.'.$sort_field;
