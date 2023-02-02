@@ -1789,7 +1789,7 @@ class ObjectManager extends Service {
      * @param   array   $ids            Array of ids of the objects to delete.
      * @param   boolean $permanent      Flag for soft deleted (marked as deleted) or hard deletion (removed from DB).
      *
-     * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occured.
+     * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occurred.
      */
     public function delete($class, $ids, $permanent=false) {
         // get DB handler (init DB connection if necessary)
@@ -1909,7 +1909,7 @@ class ObjectManager extends Service {
 
     /**
      * Create a recursive copy of an object.
-     * This method does not check unique constrainsts. If creation fails, it returns an arror code.
+     * This method does not check unique constraints. If creation fails, it returns an error code.
      *
      * @param   string    $class            Class name of the object to clone.
      * @param   integer   $id               Unique identifier of the object to clone.
@@ -2037,22 +2037,28 @@ class ObjectManager extends Service {
             else if($domain) {
                 // valid format : [[['field', 'operator', 'value']]]
                 // accepted shortcuts: [['field', 'operator', 'value']], ['field', 'operator', 'value']
-                if( !is_array($domain[0]) ) $domain = array(array($domain));
-                else if( isset($domain[0][0]) && !is_array($domain[0][0]) ) $domain = array($domain);
+                if( !is_array($domain[0]) ) {
+                    $domain = array(array($domain));
+                }
+                elseif( isset($domain[0][0]) && !is_array($domain[0][0]) ) {
+                    $domain = array($domain);
+                }
             }
 
-            $res_list = array();
+            $res_list = [];
 
-            $conditions = array(array());
-            // join conditions that have to be additionaly applied to all clauses
-            $join_conditions = array();
-            $tables = array();
+            $conditions = [[]];
+            // join conditions that have to be additionally applied to all clauses
+            $join_conditions = [];
+            $tables = [];
 
             $table_name = $this->getObjectTableName($class);
 
             // we use a nested closure to define a function that stores original table names and returns corresponding aliases
             $add_table = function ($table_name) use (&$tables) {
-                if(in_array($table_name, $tables)) return array_search($table_name, $tables);
+                if(in_array($table_name, $tables)) {
+                    return array_search($table_name, $tables);
+                }
                 $table_alias = 't'.count($tables);
                 $tables[$table_alias] = $table_name;
                 return $table_alias;
@@ -2069,14 +2075,18 @@ class ObjectManager extends Service {
 
                 for($j = 0, $max_j = count($domain); $j < $max_j; ++$j) {
                     // #todo : join conditions should be set at clause level (but at some history point it was set at domain level) - to confirm
-                    $join_conditions = array();
+                    $join_conditions = [];
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
-                        if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
-                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
-                        $field        = $domain[$j][$i][0];
-                        $value        = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
-                        $operator     = strtolower($domain[$j][$i][1]);
+                        if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) {
+                            throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
+                        }
+                        if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) {
+                            throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
+                        }
+                        $field    = $domain[$j][$i][0];
+                        $value    = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
+                        $operator = strtolower($domain[$j][$i][1]);
 
                         // force operator 'is' for null values
                         if(is_null($value) || $value === 'null') {
@@ -2090,13 +2100,13 @@ class ObjectManager extends Service {
 
                         // check field validity
                         if(!in_array($field, array_keys($schema))) {
-                            throw new Exception("invalid domain, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            throw new Exception("invalid domain, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // get final target field
                         while($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
                             if(!in_array($field, array_keys($schema))) {
-                                throw new Exception("invalid schema, unexisting field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                                throw new Exception("invalid schema, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
                             }
                         }
                         // get final type
@@ -2108,29 +2118,43 @@ class ObjectManager extends Service {
                             $type = $schema[$field]['result_type'];
                         }
                         // check the validity of the field name and the operator
-                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
-                        if(!in_array($operator, self::$valid_operators[$type])) throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                        if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
+                            throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                        }
+                        if(!in_array($operator, self::$valid_operators[$type])) {
+                            throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                        }
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
-                        if(isset($special_fields[$field])) unset($special_fields[$field]);
+                        if(isset($special_fields[$field])) {
+                            unset($special_fields[$field]);
+                        }
 
                         // note: we don't test user permissions on foreign objects here
                         switch($type) {
                             case 'many2one':
                                 // use operator '=' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = '=';
+                                if($operator == 'contains') {
+                                    $operator = '=';
+                                }
                                 $field = $table_alias.'.'.$field;
                                 break;
                             case 'one2many':
                                 // add foreign table to sql query
-                                $foreign_table_alias =  $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
+                                $foreign_table_alias = $add_table($this->getObjectTableName($schema[$field]['foreign_object']));
                                 // add the join condition
                                 $join_conditions[] = array($foreign_table_alias.'.'.$schema[$field]['foreign_field'], '=', '`'.$table_alias.'`.`id`');
                                 // as comparison field, use foreign table's 'foreign_key' if any, 'id' otherwise
-                                if(isset($schema[$field]['foreign_key'])) $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
-                                else $field = $foreign_table_alias.'.id';
+                                if(isset($schema[$field]['foreign_key'])) {
+                                    $field = $foreign_table_alias.'.'.$schema[$field]['foreign_key'];
+                                }
+                                else {
+                                    $field = $foreign_table_alias.'.id';
+                                }
                                 // use operator 'in' instead of 'contains' (which is not sql standard)
-                                if($operator == 'contains') $operator = 'in';
+                                if($operator == 'contains') {
+                                    $operator = 'in';
+                                }
                                 break;
                             case 'many2many':
                                 // add related table to sql query
@@ -2176,17 +2200,23 @@ class ObjectManager extends Service {
                                     $field = $translation_table_alias.'.value';
                                 }
                                 // simple fields always match table fields
-                                else $field = $table_alias.'.'.$field;
+                                else {
+                                    $field = $table_alias.'.'.$field;
+                                }
                                 break;
                         }
                         // handle particular cases involving arrays
                         // if(in_array($type, ['many2one', 'one2many', 'many2many'])) {
                             if( in_array($operator, ['in', 'not in']) ) {
-                                if(!is_array($value)) $value = array($value);
-                                if(!count($value))    $value = ['0'];
+                                if(!is_array($value)) {
+                                    $value = array($value);
+                                }
+                                if(!count($value)) {
+                                    $value = ['0'];
+                                }
                             }
                         // }
-                        $conditions[$j][] = array($field, $operator, $value);
+                        $conditions[$j][] = [$field, $operator, $value];
                     }
                     // search only among non-draft and non-deleted records
                     // (unless at least one clause was related to those fields - and consequently corresponding key in array $special_fields has been unset in the code above)
@@ -2223,7 +2253,9 @@ class ObjectManager extends Service {
             $order_table_alias = $table_alias;
             // build the ordering clause
             $order_clause = [];
-            if(!is_array($sort)) $sort = (array) $sort;
+            if(!is_array($sort)) {
+                $sort = (array) $sort;
+            }
 
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
@@ -2244,8 +2276,18 @@ class ObjectManager extends Service {
                     $order_table_alias = $translation_table_alias;
                     $sort_field = 'value';
                 }
-                else if($sort_field != 'id') {
-                    $select_fields[] = $table_alias.'.'.$sort_field;
+                elseif($sort_field != 'id') {
+                    // check the type of the field used for sorting : if it is a many2one, add the related table and use the field `name` instead of the id value
+                    if($schema[$sort_field]['type'] == 'many2one') {
+                        $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
+                        $related_table_alias = $add_table($related_table);
+                        $select_fields[] = $related_table_alias.'.name';
+                        $order_table_alias = $related_table_alias;
+                        $sort_field = 'name';
+                    }
+                    else {
+                        $select_fields[] = $table_alias.'.'.$sort_field;
+                    }
                 }
                 $order_clause[$order_table_alias.'.'.$sort_field] = $sort_order;
             }
