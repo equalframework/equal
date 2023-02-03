@@ -5,6 +5,8 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use core\Group;
+use core\User;
+
 
 list($params, $providers) = announce([
     'description'   => 'Add a user to a given group (identified by name or id).',
