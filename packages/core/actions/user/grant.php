@@ -31,6 +31,9 @@ list($params, $providers) = announce([
             'default'       => '*'
         ]
     ],
+    'access'        => [
+        'visibility'        => 'private'
+    ],
     'providers'     => ['context', 'auth', 'access', 'orm']
 ]);
 
@@ -52,6 +55,7 @@ if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
 // retrieve targeted user
 
 if(is_numeric($params['user'])) {
+    // retrieve by id
     $user_id = $params['user'];
 
     $ids = User::search(['id', '=', $user_id])->ids();

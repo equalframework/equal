@@ -7,7 +7,6 @@
 namespace equal\orm;
 
 use equal\data\adapt\DataAdapterProvider;
-use stdClass;
 
 class Collection implements \Iterator, \Countable {
 
@@ -62,6 +61,13 @@ class Collection implements \Iterator, \Countable {
      * This is called through the Collections service, which retrieves the dependencies through its container.
      * Collections service is a factory that creates Collection instances when requested
      * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
+     *
+     * @var string                                  $class
+     * @var \equal\orm\ObjectManager                $objectManager
+     * @var \equal\access\AccessController          $accessController
+     * @var \equal\auth\AuthenticationManager       $authenticationManager
+     * @var \equal\data\adapt\DataAdapterProvider   $dataAdapterProvider
+     * @var \equal\log\Logger                       $logger
      */
     public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapterProvider, $logger) {
         // init objects map
@@ -69,6 +75,7 @@ class Collection implements \Iterator, \Countable {
 
         // assign private members
         $this->class = $class;
+        /** @var \equal\orm\ObjectManager */
         $this->orm = $objectManager;
         $this->ac = $accessController;
         $this->am = $authenticationManager;
@@ -303,7 +310,7 @@ class Collection implements \Iterator, \Countable {
      *
      * @param array optional if given, sets current objects array, if not returns current ids
      *
-     * @return Collection  The setter version returns the Collection with a single empty object. The getter version returns an array with all objects identifiers.
+     * @return Collection|array  The setter version returns the Collection as a map of identifiers with empty object. The getter version returns an array with all objects identifiers in the Collection.
      */
     public function ids() {
         $args = func_get_args();
@@ -314,7 +321,9 @@ class Collection implements \Iterator, \Countable {
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
             // init keys of 'objects' member (resulting in a map with keys but no values)
-            $this->objects = array_fill_keys($ids, new stdClass());
+            foreach($ids as $id) {
+                $this->objects[$id] = clone $this->model;
+            }
         }
         return $this;
     }
