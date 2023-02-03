@@ -7,11 +7,11 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([	
-    'description'	=>	"Validate a user subscription.",
+list($params, $providers) = announce([
+    'description'	=>	"Validate a user subscription. This controller is meant to be requested through a link sent by email.",
     'params' 		=>	[
         'code' => [
-            'description'   => 'Code for athenticating user.',
+            'description'   => 'Code for authenticating user.',
             'type'          => 'string',
             'usage'         => 'email',
             'required'      => true
@@ -21,12 +21,12 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],        
+    ],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
 
-// initalise local vars with inputs
+// initialize local vars with inputs
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 
@@ -36,7 +36,7 @@ list($login, $password) = explode(':', base64_decode($params['code']));
 
 // try to create a new user account
 $json = run('do', 'user_login', [
-            'login'         => $login, 
+            'login'         => $login,
             'password'      => $password
         ]);
 
@@ -58,7 +58,7 @@ $res = $om->write('core\User', $user['id'], ['validated' => true]);
 if($res < 0) {
     throw new Exception('unable to update user', QN_ERROR_UNKNOWN);
 }
-                 
+
 $context->httpResponse()
         ->body($user)
         ->send();

@@ -12,26 +12,29 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
-    ],    
+    ],
     'params'        => [
         'group' =>  [
             'description'   => 'name or ID of targeted group.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'right' =>  [
             'description'   => 'Operation to be granted.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'in'            => ['create','read','update','delete','manage'],
             'required'      => true
         ],
         'entity' =>  [
             'description'   => 'Entity on which operation is to be granted.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => '*'
-        ]        
+        ]
     ],
-    'providers'     => ['context', 'auth', 'access', 'orm'] 
+    'access'        => [
+        'visibility'        => 'private'
+    ],
+    'providers'     => ['context', 'auth', 'access', 'orm']
 ]);
 
 list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
@@ -49,13 +52,14 @@ if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
     throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 
-// retrieve targeted group 
+// 1) retrieve targeted group
 
 if(is_numeric($params['group'])) {
+    // retrieve by id
     $group_id = $params['group'];
 
     $ids = Group::search(['id', '=', $group_id])->ids();
-    if(!count($ids)) { 
+    if(!count($ids)) {
         throw new \Exception("unknown_group_id", QN_ERROR_UNKNOWN_OBJECT);
     }
 }
@@ -63,12 +67,14 @@ else {
     // retrieve by name
     $ids = Group::search(['name', '=', $params['group']])->ids();
 
-    if(!count($ids)) { 
+    if(!count($ids)) {
         throw new \Exception("unknown_group_name", QN_ERROR_UNKNOWN_OBJECT);
     }
 
-    $group_id = array_shift($ids);    
+    $group_id = array_shift($ids);
 }
+
+// 2) add requested right to the retrieved group
 
 $ac->grantGroups($group_id, $operations[$params['right']], $params['entity']);
 

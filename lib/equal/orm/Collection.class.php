@@ -303,7 +303,7 @@ class Collection implements \Iterator, \Countable {
      *
      * @param array optional if given, sets current objects array, if not returns current ids
      *
-     * @return Collection  The setter version returns the Collection with a single empty object. The getter version returns an array with all objects identifiers.
+     * @return Collection|array  The setter version returns the Collection as a map of identifiers with empty object. The getter version returns an array with all objects identifiers in the Collection.
      */
     public function ids() {
         $args = func_get_args();
