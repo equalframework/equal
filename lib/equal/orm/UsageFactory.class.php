@@ -12,6 +12,7 @@ use equal\orm\usages\{
         UsageCountry,
         UsageCurrency,
         UsageDate,
+        UsageTime,
         UsageEmail,
         UsageImage,
         UsageLanguage,
@@ -69,8 +70,7 @@ class UsageFactory {
             case 'date':
                 return new UsageDate($usage_str);
             case 'time':
-            case 'datetime':
-                break;
+                return new UsageTime($usage_str);
             case 'email':
                 return new UsageEmail($usage_str);
             case 'hash':

@@ -782,10 +782,9 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
-                        $type = $schema[$field]['type'];
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         // adapt values except for null of computed fields (marked as to be re-computed)
-                        if(!is_null($value) || $type != 'computed') {
+                        if(!is_null($value) || $schema[$field]['type'] != 'computed') {
                             /** @var \equal\data\adapt\DataAdapter */
                             $adapter = $dap->get('sql');
                             $f = new Field($schema[$field]);
@@ -1618,7 +1617,7 @@ class ObjectManager extends Service {
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|Model[]  Returns an associative array mapping an instance for each requested id ($ids order is maintained). If an error occurs, it returns the related error identifier.
+     * @return  int|Model[]  Returns an associative array mapping Model instances for each requested id ($ids order is maintained). If an error occurs, it returns the ID of the raised error.
      */
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
@@ -1792,7 +1791,6 @@ class ObjectManager extends Service {
         }
         return $res;
     }
-
 
 
     /**

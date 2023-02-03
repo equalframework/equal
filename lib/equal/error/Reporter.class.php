@@ -19,9 +19,9 @@ class Reporter extends Service {
     private $debug_level;
 
     /**
-    * Contructor defines which methods have to be called when errors and uncaught exceptions occur
-    *
-    */
+     * Constructor defines which methods have to be called when errors and uncaught exceptions occur
+     *
+     */
     public function __construct(Context $context) {
         $this->context = $context;
         $this->debug_mode = (defined('DEBUG_MODE'))?constant('DEBUG_MODE'):0;
@@ -119,11 +119,14 @@ class Reporter extends Service {
             case E_STRICT:
             case E_DEPRECATED:
                 $code = QN_REPORT_WARNING;
+                $depth = 10;
                 break;
         }
         // retrieve instance and log error
         $instance = self::getInstance();
-        $instance->log($code, $errmsg, self::getTrace($depth));
+        for($i = 0; $i < $depth; ++$i) {
+            $instance->log($code, $errmsg, self::getTrace($i));
+        }
     }
 
     private function log($code, $msg, $trace) {

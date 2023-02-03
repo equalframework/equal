@@ -46,6 +46,7 @@ class DataAdapterJson extends DataAdapter {
                 return self::jsonToTime($value);
             case 'date':
                 switch($subtype) {
+                    case 'time':
                     case 'plain':
                         return self::jsonToDatetime($value);
                     case 'year':
@@ -59,8 +60,6 @@ class DataAdapterJson extends DataAdapter {
                         // date/yearday (ISO-8601)
                 }
                 break;
-            case 'datetime':
-                return self::jsonToDatetime($value);
             case 'image':
             case 'binary':
                 return self::jsonToBinary($value);
@@ -107,6 +106,7 @@ class DataAdapterJson extends DataAdapter {
                 return self::timeToJson($value);
             case 'date':
                 switch($subtype) {
+                    case 'time':
                     case 'plain':
                         return self::datetimeToJson($value);
                     case 'year':
@@ -122,8 +122,6 @@ class DataAdapterJson extends DataAdapter {
                         // date/yearday (ISO-8601)
                 }
                 break;
-            case 'datetime':
-                return self::datetimeToJson($value);
             case 'image':
             case 'binary':
                 return self::binaryToJson($value);

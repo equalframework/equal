@@ -48,6 +48,8 @@ class DataAdapterSql extends DataAdapter {
                 return self::sqlToTime($value);
             case 'date':
                 switch($subtype) {
+                    case 'time':
+                        return self::sqlToDatetime($value);
                     case 'plain':
                         return self::sqlToDate($value);
                     case 'year':
@@ -61,8 +63,6 @@ class DataAdapterSql extends DataAdapter {
                         // date/yearday (ISO-8601)
                 }
                 break;
-            case 'datetime':
-                return self::sqlToDatetime($value);
             case 'image':
             case 'binary':
                 return self::sqlToBinary($value);
@@ -117,6 +117,8 @@ class DataAdapterSql extends DataAdapter {
                 return self::timeToSql($value);
             case 'date':
                 switch($subtype) {
+                    case 'time':
+                        return self::datetimeToSql($value);
                     case 'plain':
                         return self::dateToSql($value);
                     case 'year':
@@ -125,8 +127,6 @@ class DataAdapterSql extends DataAdapter {
                         return date('n', $value);
                 }
                 break;
-            case 'datetime':
-                return self::datetimeToSql($value, $usage, $lang);
             case 'image':
             case 'binary':
                 return self::binaryToSql($value);
@@ -141,6 +141,9 @@ class DataAdapterSql extends DataAdapter {
         return ($hour * 3600) + ($minute * 60) + $second;
     }
 
+    /**
+     * SQL date
+     */
     private function sqlToDate($value) {
         if(is_null($value)) {
             return null;

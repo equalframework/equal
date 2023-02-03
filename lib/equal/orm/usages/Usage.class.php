@@ -106,6 +106,7 @@ class Usage {
         // check usage string consistency
         if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
             // error
+            trigger_error("QN_DEBUG_ORM::invalid usage format $usage_str", QN_REPORT_WARNING);
         }
         else {
             /*

@@ -39,7 +39,7 @@ class Field {
 
     /**
      * Provides the usage string equivalent of the pseudo type of the Field instance.
-     * This method maps explicit usages to types (that are a form of implicit usages).
+     * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
         static $map = [
@@ -49,8 +49,8 @@ class Field {
             'string'        => 'text/plain:255',
             'text'          => 'text/plain:32000',
             'date'          => 'date/plain',
-            'time'          => 'number/integer:9',
-            'datetime'      => 'date/plain',
+            'datetime'      => 'date/time',
+            'time'          => 'time/plain',
             'binary'        => 'binary/plain:64000000',
             'many2one'      => 'number/integer:9',
             'array'         => 'array'

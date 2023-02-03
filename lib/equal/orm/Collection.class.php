@@ -679,6 +679,8 @@ class Collection implements \Iterator, \Countable {
                 if(is_numeric($field)) {
                     continue;
                 }
+                // we accept single value as subfields
+                $subfields = (array) $subfields;
                 // #memo - using Field object guarantees support for `alias` and `computed` fields
                 $targetField = $this->model->getField($field);
                 $target = $targetField->getDescriptor();
@@ -726,7 +728,6 @@ class Collection implements \Iterator, \Countable {
      */
     public function update(array $values, $lang=null) {
         if(count($this->objects)) {
-
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
