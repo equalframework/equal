@@ -320,7 +320,7 @@ class Collection implements \Iterator, \Countable {
         else {
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
-            // init keys of 'objects' member (resulting in a map with keys but no values)
+            // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
             foreach($ids as $id) {
                 $this->objects[$id] = clone $this->model;
             }
