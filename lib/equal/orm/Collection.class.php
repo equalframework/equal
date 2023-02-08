@@ -411,8 +411,12 @@ class Collection implements \Iterator, \Countable {
      *
      */
     public function search(array $domain=[], array $params=[], $lang=null) {
+        // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
+        // (and therefore, in  most situation, start() and limit() are chained to the Collection for that purpose)
         $defaults = [
-            'sort'  => ['id' => 'asc']
+            'sort'  => ['id' => 'asc'],
+            'limit' => 0,
+            'start' => 0
         ];
 
         // retrieve current user id
@@ -448,7 +452,7 @@ class Collection implements \Iterator, \Countable {
 
         // 3) perform search
         // we don't use the start and limit arguments here because the final result set depends on permissions
-        $ids = $this->orm->search($this->class, $domain, $params['sort'], 0, 0, $lang);
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang);
         // $ids is an error code
         if($ids < 0) {
             throw new \Exception(Domain::toString($domain), $ids);
