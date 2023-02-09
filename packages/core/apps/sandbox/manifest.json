@@ -9,5 +9,5 @@
             "users", "admin"
         ]
     },
-    "show_in_apps": true
+    "show_in_apps": false
 }
