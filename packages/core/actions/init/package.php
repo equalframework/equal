@@ -308,9 +308,9 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         }
 
         // verify the checksum
+        $version_md5 = md5_file("$app_path/web.app");
         if(isset($app_manifest['checksum'])) {
-            $md5 = md5_file("$app_path/web.app");
-            if($md5 != $app_manifest['checksum']) {
+            if($version_md5 != $app_manifest['checksum']) {
                 // #todo - not required for now, nice to have: would increase version identification
                 // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
             }
@@ -324,6 +324,11 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         // export to public folder
         $zip->extractTo("public/$app/");
         $zip->close();
+
+        // add a version file (holding md5 of the web.app archive)
+        if(file_exists("public/$app")) {
+            file_put_contents("public/$app/version", $version_md5);
+        }
     }
 }
 
