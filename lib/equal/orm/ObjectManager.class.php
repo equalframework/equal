@@ -674,7 +674,7 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                $oids = array();
+                $oids = [];
                 // if store attribute is set and no result was found, we need to compute the value
                 // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
                 // (this implies that the DB schema has 'DEFAULT null' for columns associated to computed fields)
@@ -685,8 +685,13 @@ class ObjectManager extends Service {
                 }
                 // compute field for incomplete objects
                 $load_fields['computed']($this, $oids, array($field));
-                // store newly computed fields to database ('store' attribute set to true)
-                $this->store($class, $oids, array($field), $lang);
+                try {
+                    // store newly computed fields to database ('store' attribute set to true)
+                    $this->store($class, $oids, array($field), $lang);
+                }
+                catch(Exception $e) {
+                    trigger_error('QN_DEBUG_ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                }
             }
 
         }
