@@ -49,7 +49,7 @@ class Container extends Service {
         return $name;
     }
 
-    // this is the only place where services are instanciated
+    // this is the only place where services are instantiated
     private function inject($dependency) {
         $instance = null;
         $unresolved_dependencies = [];
@@ -65,15 +65,15 @@ class Container extends Service {
             if(count($parameters)) {
                 foreach($parameters as $parameter) {
                     // #deprecated
-                    // $constructor_dependancy = $parameter->getClass()->getName();
-                    $constructor_dependancy = $parameter->getType()->getName();
-                    // #todo - no cyclic dependency check is done
-                    $res = $this->inject($constructor_dependancy);
+                    // $constructor_dependency = $parameter->getClass()->getName();
+                    $constructor_dependency = $parameter->getType()->getName();
+                    // #todo - missing cyclic dependency check
+                    $res = $this->inject($constructor_dependency);
                     if(count($res[1])) {
                         $unresolved_dependencies = array_merge($unresolved_dependencies, $res[1]);
                         continue;
                     }
-                    if($res[0] instanceof $constructor_dependancy) {
+                    if($res[0] instanceof $constructor_dependency) {
                         $dependencies_instances[] = $res[0];
                     }
                 }
@@ -81,7 +81,7 @@ class Container extends Service {
             // check if class owns a getInstance() method
             if(!is_callable($dependency.'::getInstance')) {
                 $unresolved_dependencies[] = $dependency;
-                trigger_error("Required method 'getInstance' is not defined for class '$dependency'.", E_USER_WARNING);
+                trigger_error("Required method 'getInstance' is not defined for class '$dependency'.", QN_REPORT_WARNING);
             }
             else {
                 // check for required constants availability
@@ -93,7 +93,7 @@ class Container extends Service {
                             \config\export($constant);
                         }
                         if(!defined($constant)) {
-                            trigger_error("Required constant '$constant' is not defined for service '$dependency'.", E_USER_WARNING);
+                            trigger_error("Required constant '$constant' is not defined for service '$dependency'.", QN_REPORT_WARNING);
                             break;
                         }
                         unset($constants[$i]);
@@ -102,7 +102,7 @@ class Container extends Service {
                 if(count($constants)) {
                     $unresolved_dependencies[] = $dependency;
                 }
-                // if all dependencies and constants are resolved, instanciate the provider
+                // if all dependencies and constants are resolved, instantiate the provider
                 if(!count($unresolved_dependencies)) {
                     $instance = call_user_func_array($dependency.'::getInstance', $dependencies_instances);
                     // make container available to all services instances
@@ -112,7 +112,7 @@ class Container extends Service {
         }
         catch(ReflectionException $e) {
             $unresolved_dependencies[] = $dependency;
-            trigger_error("Unable to autoload required dependency '$dependency'.", E_USER_WARNING);
+            trigger_error("Unable to autoload required dependency '$dependency'.", QN_REPORT_WARNING);
         }
         return [$instance, $unresolved_dependencies];
     }

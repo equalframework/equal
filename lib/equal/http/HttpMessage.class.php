@@ -94,8 +94,12 @@ class HttpMessage {
     *
     */
     public function __clone() {
-        if($this->uri)     $this->uri = clone $this->uri;
-        if($this->headers) $this->headers = clone $this->headers;
+        if($this->uri) {
+            $this->uri = clone $this->uri;
+        }
+        if($this->headers) {
+            $this->headers = clone $this->headers;
+        }
     }
 
     /**
@@ -123,7 +127,7 @@ class HttpMessage {
         '303' => 'See Other',
         '304' => 'Not Modified',
         '305' => 'Use Proxy',
-        '306' => '(aucun)',
+        '306' => '(none)',
         '307' => 'Temporary Redirect',
         '308' => 'Permanent Redirect',
         '310' => 'Too many Redirects',
@@ -231,7 +235,7 @@ class HttpMessage {
 
     public function setHeader($header, $value) {
         $this->headers->set($header, $value);
-        // maintain URI consitency
+        // maintain URI consistency
         if(strcasecmp($header, 'Host') === 0) {
             $this->uri->setHost($value);
         }
@@ -420,7 +424,7 @@ class HttpMessage {
      *
      * can be forced to cast to array using $as_array boolean
      *
-     * @return HttpHeaders, array
+     * @return HttpHeaders|array
      *
      */
     public function getHeaders($as_array=false) {
@@ -479,7 +483,7 @@ class HttpMessage {
     /**
      * Retrieve a value from message body based on a given param name
      *
-     * @return mixed If $param is an array of parameters names, returns an assiociative array containing values for each given parameter, otherwise returns the value of a single parameter. If given parameter is not found, returns specified default value (fallback to null)
+     * @return mixed If $param is an array of parameters names, returns an associative array containing values for each given parameter, otherwise returns the value of a single parameter. If given parameter is not found, returns specified default value (fallback to null)
      */
     public function get($param, $default=null) {
         if(is_array($param)) {
@@ -508,7 +512,7 @@ class HttpMessage {
      * Assign a new parameter to message body, or update an existing one to a new value.
      * This method overwrites raw string value, if any.
      *
-     * @param   $param  mixed(string|array)    For single assignement, $param is the name of the parameter to be set. In case of bulk assign, $param is an associative array with keys and values respectively holding parameters names and values.
+     * @param   $param  mixed(string|array)    For single assignment, $param is the name of the parameter to be set. In case of bulk assign, $param is an associative array with keys and values respectively holding parameters names and values.
      * @param   $value  mixed   If $param is an array, $value is not taken under account (this argument is therefore optional)
      * @return  HttpMessage Returns current instance
      */

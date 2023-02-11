@@ -81,7 +81,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
                 $result = true;
             }
             else if( ($errors = sqlsrv_errors()) != null) {
-                trigger_error("QN_DEBUG_SQL::".implode(';', array_map(function($a) {return "{$a['SQLSTATE']}, {$a['code']}, {$a['message']}";}, $errors)), E_USER_ERROR);
+                trigger_error("QN_DEBUG_SQL::".implode(';', array_map(function($a) {return "{$a['SQLSTATE']}, {$a['code']}, {$a['message']}";}, $errors)), QN_REPORT_ERROR);
             }
 
             foreach($this->members as $member) {
