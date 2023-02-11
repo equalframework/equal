@@ -21,22 +21,22 @@
 */
 use equal\php\Context;
 use equal\route\Router;
-/**
-*
-*  This is the root entry point and acts as dispatcher.
-*  Its role is to set up the context and handle the client request.
-*  Dispatching consists of resolving targeted operation and include related script file.
-*
-*
-*  Usage examples:
-*
-*    CLI
-*            equal.run --get=test_hello
-*    HTTP
-*            /?get=resiway_tests&id=1&test=2
-*    PHP
-*            run('get', 'utils_sql-schema', ['package'=>'core']);
-*
+
+/*
+
+   This is the root entry point and acts as dispatcher.
+   Its role is to set up the context and handle the client request.
+   Dispatching consists of resolving targeted operation and include related script file.
+
+   Usage examples:
+
+     CLI
+             equal.run --get=test_hello
+     HTTP
+             /?get=resiway_tests&id=1&test=2
+     PHP
+             run('get', 'utils_sql-schema', ['package'=>'core']);
+
 */
 
 /*
@@ -44,8 +44,9 @@ use equal\route\Router;
  (eQual library allows to include required files and classes)
 */
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
+
 if( (include($bootstrap)) === false ) {
-    die('eQual lib is missing');
+    die('eQual lib is missing.');
 }
 
 try {
@@ -163,8 +164,9 @@ catch(Throwable $e) {
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
         // retrieve info from HTTP request (we don't ask for $context->httpResponse() since it might have raised the current exception)
-        $request_method = $context->httpRequestMethod();
-        $request_headers = $context->httpRequestHeaders();
+        $request = $context->httpRequest();
+        $request_method = $request->getMethod();
+        $request_headers = $request->getHeaders(true);
         // get HTTP status code according to raised exception
         $http_status = qn_error_http($error_code);
         $http_allow_headers = '*';
@@ -184,23 +186,21 @@ catch(Throwable $e) {
         $response = $context->httpResponse();
         // adapt response and send it
         $response
-        // set HTTP status code
-        ->status($http_status)
-        // explicitly tell we're returning JSON
-        ->header('Content-Type', 'application/json')
-        ->header('Content-Disposition', 'inline')
-        // force allow-origin to actual origin, to make sure to go through CORS policy
-        // (response is defined in announce() and has been unstacked because of an exception)
-        ->header('Access-Control-Allow-Origin', $request_headers['Origin'])
-        ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
-        ->header('Access-Control-Allow-Headers', $http_allow_headers)
-        ->header('Access-Control-Allow-Credentials', 'true')
-        // append an 'error' section to response body
-        ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
-        // for debug purpose
-        // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log')])
-        ->send();
-        trigger_error("QN_DEBUG_PHP::{$request_headers['Origin']}".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
+            // set HTTP status code
+            ->status($http_status)
+            // explicitly tell we're returning JSON
+            ->header('Content-Type', 'application/json')
+            ->header('Content-Disposition', 'inline')
+            // force allow-origin to actual origin, to make sure to go through CORS policy
+            // (response is defined in announce() and has been unstacked because of an exception)
+            ->header('Access-Control-Allow-Origin', $request_headers['Origin'])
+            ->header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE')
+            ->header('Access-Control-Allow-Headers', $http_allow_headers)
+            ->header('Access-Control-Allow-Credentials', 'true')
+            // append an 'error' section to response body
+            ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
+            ->send();
+        trigger_error("QN_DEBUG_PHP::{$request_method} ".$request->getUri()." => ".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         // return an error code (for compliance under CLI environment)
         exit(1);
     }
