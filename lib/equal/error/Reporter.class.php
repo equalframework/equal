@@ -124,10 +124,10 @@ class Reporter extends Service {
             return;
         }
         // check reporting mode, if provided
-        $mode = QN_DEBUG_PHP;
+        $mode = QN_M_PHP;
         if(strpos($msg, '::') == 12) {
-            // default to mask QN_DEBUG_PHP
-            $source = QN_DEBUG_PHP;
+            // default to mask QN_M_PHP
+            $source = QN_M_PHP;
             $parts = explode('::', $msg, 2);
             if(count($parts) > 1) {
                 $source = (strlen($parts[0]))?$parts[0]:$source;
@@ -165,8 +165,8 @@ class Reporter extends Service {
             'thread_id'     => $this->thread_id,
             'time'          => date('c', $time_parts[1]),
             'mtime'         => substr($time_parts[0], 2, 6),
-            'error_code'    => qn_debug_code_name($code),
-            'error_mode'    => qn_debug_mode_name($mode),
+            'level'         => qn_debug_code_name($code),
+            'mode'          => qn_debug_mode_name($mode),
             'class'         => $trace['class'],
             'function'      => $trace['function'],
             'file'          => $trace['file'],

@@ -109,7 +109,7 @@ try {
 }
 catch(Exception $e) {
     // for security reasons, in case of error no details are relayed to client
-    trigger_error("QN_DEBUG_ORM::{$e->getMessage()}", QN_REPORT_ERROR);
+    trigger_error("QN_M_ORM::{$e->getMessage()}", QN_REPORT_ERROR);
 }
 
 $context->httpResponse()

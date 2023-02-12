@@ -335,14 +335,14 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         if(file_exists("public/$app")) {
             // remove existing folder, if present
             if(FS::removeDir("public/$app")) {
-                // trigger_error("QN_DEBUG_PHP::error removing folder : $message", QN_REPORT_DEBUG);
+                // trigger_error("QN_M_PHP::error removing folder : $message", QN_REPORT_DEBUG);
                 // throw new Exception('fs_removing_file_failure', QN_ERROR_UNKNOWN);
             }
         }
 
         // (re)create the (empty) folder
         if(!mkdir("public/$app")) {
-            // trigger_error("QN_DEBUG_PHP::error moving file : $message", QN_REPORT_DEBUG);
+            // trigger_error("QN_M_PHP::error moving file : $message", QN_REPORT_DEBUG);
             // throw new Exception('fs_moving_file_failure', QN_ERROR_UNKNOWN);
         }
 

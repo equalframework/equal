@@ -58,11 +58,11 @@ namespace {
     /**
      * Debugging modes and levels
      */
-    define('QN_DEBUG_PHP',          1);
-    define('QN_DEBUG_SQL',          2);
-    define('QN_DEBUG_ORM',          4);
-    define('QN_DEBUG_API',          8);
-    define('QN_DEBUG_APP',          16);
+    define('QN_M_PHP',          1);
+    define('QN_M_SQL',          2);
+    define('QN_M_ORM',          4);
+    define('QN_M_API',          8);
+    define('QN_M_APP',          16);
 
 
     define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
@@ -184,11 +184,11 @@ namespace {
 
     function qn_debug_mode_name($mode) {
         switch($mode) {
-            case QN_DEBUG_PHP:    return 'PHP';
-            case QN_DEBUG_SQL:    return 'SQL';
-            case QN_DEBUG_ORM:    return 'ORM';
-            case QN_DEBUG_API:    return 'API';
-            case QN_DEBUG_APP:    return 'APP';
+            case QN_M_PHP:    return 'PHP';
+            case QN_M_SQL:    return 'SQL';
+            case QN_M_ORM:    return 'ORM';
+            case QN_M_API:    return 'API';
+            case QN_M_APP:    return 'APP';
         }
         return 'UNKNOWN';
     }
@@ -990,7 +990,7 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("QN_DEBUG_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("QN_M_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
             global $last_context;
 
             $result = '';
@@ -1135,7 +1135,7 @@ namespace config {
                 }
 
                 // force timezone to UTC
-                // #memo - this is to (avoid being impacted by daylight saving offset
+                // #memo - this is to avoid being impacted by daylight saving offset
                 // #memo - we expect the DBMS to store dates in UTC as well
                 date_default_timezone_set('UTC');
 
@@ -1160,7 +1160,7 @@ namespace config {
                         $reporter->debug("stored cache-id {$cache_id}");
                     }
                 }
-                trigger_error("QN_DEBUG_PHP::result - $result", QN_REPORT_DEBUG);
+                trigger_error("QN_M_PHP::result: $result", QN_REPORT_DEBUG);
             }
 
             // restore context

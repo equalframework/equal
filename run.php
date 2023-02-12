@@ -200,7 +200,7 @@ catch(Throwable $e) {
             // append an 'error' section to response body
             ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
             ->send();
-        trigger_error("QN_DEBUG_PHP::{$request_method} ".$request->getUri()." => ".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
+        trigger_error("QN_M_PHP::{$request_method} ".$request->getUri()." => ".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         // return an error code (for compliance under CLI environment)
         exit(1);
     }

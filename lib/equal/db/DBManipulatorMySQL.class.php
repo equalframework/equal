@@ -226,10 +226,10 @@ class DBManipulatorMySQL extends DBManipulator {
      * @return resource Returns a resource identifier or -1 if the query was not executed correctly.
      */
     public function sendQuery($query) {
-        trigger_error("QN_DEBUG_SQL::$query", QN_REPORT_INFO);
+        trigger_error("QN_M_SQL::$query", QN_REPORT_DEBUG);
 
         if(!strlen($query)) {
-            trigger_error("QN_DEBUG_SQL::ignoring empty query", QN_REPORT_DEBUG);
+            trigger_error("QN_M_SQL::ignoring empty query", QN_REPORT_DEBUG);
             return;
         }
 
