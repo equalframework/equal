@@ -48,7 +48,7 @@
         "description": "Classes of report-messages to log (non-matching messages are ignored).",
         "instant": true,
         "default": 0,
-        "example": "QN_DEBUG_PHP | QN_DEBUG_ORM | QN_DEBUG_SQL"
+        "example": "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL"
     },
     "DEBUG_LEVEL": {
         "type": "integer",

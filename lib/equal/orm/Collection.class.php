@@ -270,7 +270,7 @@ class Collection implements \Iterator, \Countable {
                     $f = $object->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("QN_M_ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", QN_REPORT_INFO);
+                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", QN_REPORT_INFO);
                         $result[$field] = $value;
                         continue;
                     }
@@ -349,7 +349,7 @@ class Collection implements \Iterator, \Countable {
                 });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // log a notice about discarded readonly fields
-                trigger_error("QN_M_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
+                trigger_error("ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
             }
             // discard special fields
             // #memo - `state` is left allowed for draft creation

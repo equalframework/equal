@@ -516,7 +516,7 @@ class DataAdapter extends Service {
                         else {
                             if(!isset($value['tmp_name'])) {
                                 // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
-                                trigger_error("QN_M_ORM::binary data has not been received or cannot be retrieved", QN_REPORT_WARNING);
+                                trigger_error("ORM::binary data has not been received or cannot be retrieved", QN_REPORT_WARNING);
                                 $res = '';
                             }
                             else {

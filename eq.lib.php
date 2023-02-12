@@ -58,13 +58,14 @@ namespace {
     /**
      * Debugging modes and levels
      */
-    define('QN_M_PHP',          1);
-    define('QN_M_SQL',          2);
-    define('QN_M_ORM',          4);
-    define('QN_M_API',          8);
-    define('QN_M_APP',          16);
+    // debugging modes
+    define('QN_MODE_PHP',          1);
+    define('QN_MODE_SQL',          2);
+    define('QN_MODE_ORM',          4);
+    define('QN_MODE_API',          8);
+    define('QN_MODE_APP',          16);
 
-
+    // debugging levels
     define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
     define('QN_REPORT_INFO',        E_USER_NOTICE);         // 1024
     define('QN_REPORT_WARNING',     E_USER_WARNING);        // 512
@@ -184,11 +185,11 @@ namespace {
 
     function qn_debug_mode_name($mode) {
         switch($mode) {
-            case QN_M_PHP:    return 'PHP';
-            case QN_M_SQL:    return 'SQL';
-            case QN_M_ORM:    return 'ORM';
-            case QN_M_API:    return 'API';
-            case QN_M_APP:    return 'APP';
+            case QN_MODE_PHP:    return 'PHP';
+            case QN_MODE_SQL:    return 'SQL';
+            case QN_MODE_ORM:    return 'ORM';
+            case QN_MODE_API:    return 'API';
+            case QN_MODE_APP:    return 'APP';
         }
         return 'UNKNOWN';
     }
@@ -990,7 +991,7 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("QN_M_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
             global $last_context;
 
             $result = '';
@@ -1160,7 +1161,7 @@ namespace config {
                         $reporter->debug("stored cache-id {$cache_id}");
                     }
                 }
-                trigger_error("QN_M_PHP::result: $result", QN_REPORT_DEBUG);
+                trigger_error("PHP::result: $result", QN_REPORT_DEBUG);
             }
 
             // restore context
