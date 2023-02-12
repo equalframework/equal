@@ -212,6 +212,8 @@ class Reporter extends Service {
         $n = $offset + 1;
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $n+1);
 
+        $target = (array) (isset($backtrace[$n])?$backtrace[$n]:[]);
+
         // get last item from backtrace
         $trace = array_merge([
                 'function'  => '',
@@ -220,7 +222,7 @@ class Reporter extends Service {
                 'class'     => '',
                 'object'    => null,
                 'args'      => [],
-            ], $backtrace[$n]);
+            ], $target);
 
         // if trace refers to an included file, go one level up
         if(isset($trace['function']) && $n > 0 && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
