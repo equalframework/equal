@@ -124,13 +124,13 @@ class Reporter extends Service {
             return;
         }
         // check reporting mode, if provided
-        $mode = QN_M_PHP;
-        if(strpos($msg, '::') == 12) {
-            // default to mask QN_M_PHP
-            $source = QN_M_PHP;
+        $mode = QN_MODE_PHP;
+        if(strpos($msg, '::') == 3) {
+            // default to mask QN_MODE_PHP
+            $source = QN_MODE_PHP;
             $parts = explode('::', $msg, 2);
             if(count($parts) > 1) {
-                $source = (strlen($parts[0]))?$parts[0]:$source;
+                $source = (strlen($parts[0]))?('QN_MODE_'.$parts[0]):$source;
                 $msg = $parts[1];
             }
             if(!is_numeric($source) && @constant($source)) {
@@ -142,7 +142,6 @@ class Reporter extends Service {
         if(!($this->debug_mode & $mode)) {
             return;
         }
-
         // build error message
         $origin = '{main}()';
         if(isset($trace['function'])) {
@@ -183,7 +182,7 @@ class Reporter extends Service {
             $error_json['stack'] = $stack;
         }
 
-        // #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the http service to access it)
+        // #todo - when created using CLI, file is assigned with current uid (which might prevent the http service to access it)
         $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
 
         // by default, append content at the end of the log file
@@ -200,10 +199,7 @@ class Reporter extends Service {
         }
 
         // append message to log file (bypass if debug is disabled)
-        file_put_contents($filepath, $error, $flags);
-
-        file_put_contents(QN_LOG_STORAGE_DIR.'/eq_error.json', json_encode($error_json).PHP_EOL, FILE_APPEND);
-
+        file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 
     /**
@@ -226,16 +222,12 @@ class Reporter extends Service {
                 'args'      => [],
             ], $backtrace[$n]);
 
-        if(isset($trace['function'])) {
-            if(isset($trace['class']) && in_array($trace['function'], ['errorHandler', 'debug'])) {
-                $trace['function'] = '';
-            }
-            // if trace refers to an included file, go one level up
-            else if($n > 0 && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
-                $trace['function'] = '';
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
-            }
+        // if trace refers to an included file, go one level up
+        if(isset($trace['function']) && $n > 0 && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
+            --$n;
+            $trace['function'] = '';
+            $trace['file'] = $backtrace[$n]['file'];
+            $trace['line'] = $backtrace[$n]['line'];
         }
 
         if($n > 0 && !isset($trace['file'])) {
