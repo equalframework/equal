@@ -194,12 +194,12 @@ class Reporter extends Service {
             && file_exists($filepath) && filesize($filepath) > $maxsize ){
             for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
             copy($filepath, $filepath.'.'.$i);
-            // st flag to force upcoming call to `file_put_contents()` to overwrite existing data
+            // set flag to force upcoming call to `file_put_contents()` to overwrite existing data
             $flags = 0;
         }
 
         // append message to log file (bypass if debug is disabled)
-        file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
+        file_put_contents($filepath, json_encode($error_json).PHP_EOL, $flags | LOCK_EX);
     }
 
     /**
