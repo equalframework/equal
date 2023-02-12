@@ -198,9 +198,11 @@ catch(Throwable $e) {
             ->header('Access-Control-Allow-Headers', $http_allow_headers)
             ->header('Access-Control-Allow-Credentials', 'true')
             // append an 'error' section to response body
-            ->extendBody([ 'errors' => [ qn_error_name($error_code) => ($data)?$data:utf8_encode($msg) ] ])
+            ->extendBody([
+                    'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
+                ])
             ->send();
-        trigger_error("QN_M_PHP::{$request_method} ".$request->getUri()." => ".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
+        trigger_error("PHP::{$request_method} ".$request->getUri()." => $http_status ".qn_error_name($error_code).": ".$msg, QN_REPORT_WARNING);
         // return an error code (for compliance under CLI environment)
         exit(1);
     }
