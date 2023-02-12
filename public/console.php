@@ -257,6 +257,10 @@ foreach($map_threads as $thread => $lines) {
             <i class=\"chevron fa fa-chevron-right\"></i>
         ";
     foreach($lines as $line) {
+        // bypass invalid lines
+        if(!is_array($line) || !isset($line['level']) || !isset($line['class']) || !isset($line['function']) || !isset($line['message']) || !isset($line['stack'])) {
+            continue;
+        }
         list($type, $icon, $class) = get_level_class($line['level']);
 
         $origin = ((strlen($line['class']))?$line['class'].'::':'').$line['function'];
