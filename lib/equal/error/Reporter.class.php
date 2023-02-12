@@ -225,13 +225,14 @@ class Reporter extends Service {
             ], $target);
 
         // if trace refers to an included file, go one level up
-        if(isset($trace['function']) && $n > 0 && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
+        if($n > 0 && isset($trace['function']) && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
             --$n;
             $trace['function'] = '';
             $trace['file'] = $backtrace[$n]['file'];
             $trace['line'] = $backtrace[$n]['line'];
         }
 
+        // if file is missing, use the parent file
         if($n > 0 && !isset($trace['file'])) {
             if(isset($backtrace[$n-1]['file'])) {
                 $trace['file'] = $backtrace[$n-1]['file'];
