@@ -39,7 +39,7 @@ class DataAdapterSql extends DataAdapter {
                     case 'hexadecimal':
                         return is_null($value)?null:hexdec($value);
                     case 'real':
-                        return floatval($value);
+                        return self::sqlToFloat($value, $usage);
                 }
                 break;
             case 'text':
@@ -135,6 +135,9 @@ class DataAdapterSql extends DataAdapter {
         return parent::adaptOut($value, $usage);
     }
 
+    private function sqlToFloat($value, $usage) {
+        return round(floatval($value), $usage->getScale());
+    }
 
     private function sqlToTime($value) {
         list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
