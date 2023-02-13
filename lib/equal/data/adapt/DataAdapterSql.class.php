@@ -39,6 +39,7 @@ class DataAdapterSql extends DataAdapter {
                     case 'hexadecimal':
                         return is_null($value)?null:hexdec($value);
                     case 'real':
+                        // #memo - some DBMS convert float numbers according to the scale of the field definition (e.g. 4.8 might be returned as 4.800003559754)
                         return self::sqlToFloat($value, $usage);
                 }
                 break;
