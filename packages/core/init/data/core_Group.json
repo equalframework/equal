@@ -5,7 +5,7 @@
         "data": [
             {
                 "id": 1,
-                "name": "admin",
+                "name": "admins",
                 "display_name": "Administrators",
                 "description": "Group for users with admin privileges.",
                 "users_ids": [
@@ -21,7 +21,7 @@
                     "1",
                     "2"
                 ]
-            }            
+            }
         ]
     },
     {
@@ -37,7 +37,7 @@
                 "id": 2,
                 "display_name": "Tous les utilisateurs",
                 "description": "Groupe par défaut pour les utilisateurs."
-            }            
+            }
         ]
     }
 ]
