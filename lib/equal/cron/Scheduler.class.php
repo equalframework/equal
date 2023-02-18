@@ -42,6 +42,18 @@ class Scheduler extends Service {
             $tasks = $orm->read('core\Task', $tasks_ids, ['id', 'moment', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
                 if($task['moment'] <= $now) {
+                    // update task, if recurring
+                    // #memo - we must start by doing this because some controller might run for a long time (longer than the next `run()` call)
+                    if($task['is_recurring']) {
+                        $moment = $task['moment'];
+                        while($moment < $now) {
+                            $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $moment);
+                        }
+                        $orm->update('core\Task', $tid, ['moment' => $moment]);
+                    }
+                    else {
+                        $orm->remove('core\Task', $tid, true);
+                    }
                     // run
                     try {
                         $body = json_decode($task['params'], true);
@@ -49,14 +61,7 @@ class Scheduler extends Service {
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
-                    }
-                    // update task, if recurring
-                    if($task['is_recurring']) {
-                        $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $now);
-                        $orm->update('core\Task', $tid, ['moment' => $moment]);
-                    }
-                    else {
-                        $orm->remove('core\Task', $tid, true);
+                        trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
                     }
                 }
             }
@@ -75,7 +80,7 @@ class Scheduler extends Service {
      */
     public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {
         $orm = $this->container->get('orm');
-        trigger_error("scheduling job", QN_REPORT_INFO);
+        trigger_error("PHP::Scheduling job", QN_REPORT_INFO);
 
         $orm->create('core\Task', [
             'name'          => $name,
