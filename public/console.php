@@ -1,15 +1,20 @@
 <?php
-define('QN_LOG_FILE', '../log/eq_error.log');
 
-if(!file_exists(QN_LOG_FILE)) {
-    die('No log found.');
+define('LOG_FILE_NAME', 'eq_error.log');
+$data = '';
+
+// get log file, using variation from URL, if any
+$log_file = LOG_FILE_NAME.( (isset($_GET['f']))?('.'.$_GET['f']):'');
+
+if(file_exists('../log/'.$log_file)) {
+    // read raw data from log file
+    $data = file_get_contents('../log/'.$log_file);
 }
 
-// read raw data from log file
-$data = file_get_contents(QN_LOG_FILE);
-
-if(strlen($data) <= 0) {
-    die('Log file is empty.');
+// retrieve logs history (variations on filename)
+$log_variations = [];
+foreach(glob('../log/'.LOG_FILE_NAME.'.*') as $file) {
+    $log_variations[] = pathinfo($file, PATHINFO_EXTENSION);
 }
 
 // get query from URL, if any
@@ -124,6 +129,20 @@ div.thread_line div.trace_line {
     margin-left: 20px;
 }
 
+div.thread_line div.trace_line i.icon-copy {
+    position: absolute;
+    right: 21px;
+    top: 25px;
+    z-index: 2;
+    cursor: pointer;
+    height: 30px;
+    width: 50px;
+    background: #f5f5f5;
+    line-height: 30px;
+    text-align: right;
+    padding-right: 10px;
+}
+
 input.selector + div > div.trace_line,
 input.selector + div > div.thread_line
 {
@@ -157,8 +176,8 @@ function copy(node) {
 </head>
 <body>
 <input style="display: block; position: absolute; top: -100px;" id="clipboard" type="text">
-<div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; padding: 20px; background: #f1f1f1; z-index: 4;">
-    <form method="GET">
+<div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
+    <form method="GET" style="padding: 20px;background: #f1f1f1;margin: 5px;border: solid 1px grey;border-radius: 10px;">
         <div style="display: flex; align-items: flex-end;">
             <div style="display: flex; flex-direction: column;">
                 <label>Level:</label>
@@ -189,6 +208,13 @@ function copy(node) {
             </div>
             <div style="display: flex; flex-direction: column;">
                 <button type="submit" class="btn btn-info">Filter</button>
+            </div>
+            <div style="margin-left: auto;">
+                <label>File:</label>
+                <select style="height: 33px; margin-right: 25px;" name="f" onchange="this.form.submit()">
+                    <option value="">'.LOG_FILE_NAME.'</option>'.
+                    implode(PHP_EOL, array_map(function($a) {return '<option value="'.$a.'" '.((isset($_GET['f']) && $_GET['f'] == $a)?'selected':'').'>'.$a.'</option>';}, $log_variations)).'
+                </select>
             </div>
         </div>
     </form>
@@ -283,7 +309,7 @@ foreach($map_threads as $thread => $lines) {
         if($n || $m > 64) {
             $html .= "<i class=\"chevron fa fa-chevron-right\"></i>";
             if($m > 64) {
-                $html .= "<div class=\"trace_line\"><i style=\"position: absolute; left: -20px; z-index: 2; cursor: pointer;\" class=\"fa fa-clipboard\" onclick=\"copy(this)\"></i><pre>".$msg."</pre></div>";
+                $html .= "<div class=\"trace_line\"><i class=\"fa fa-clipboard icon-copy\" onclick=\"copy(this)\"></i><pre>".$msg."</pre></div>";
             }
             for($i = 0; $i < $n; ++$i) {
                 $trace = array_merge([
