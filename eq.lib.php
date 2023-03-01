@@ -961,10 +961,6 @@ namespace config {
                 foreach($announcement['constants'] as $name) {
                     if(defined($name) && !\defined($name)) {
                         $value = constant($name);
-                        // handle encrypted values
-                        if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
-                            $value = decrypt(substr($value, 7));
-                        }
                         export($name, $value);
                     }
                     if(!\defined($name)) {
