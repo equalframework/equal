@@ -9,7 +9,7 @@
                     "id": "header.selection.actions.run",
                     "label": "Run the task",
                     "icon": "play_arrow",
-                    "controller": "core_spool_run"
+                    "controller": "core_cron_run"
                 }
             ]
         }
