@@ -36,7 +36,7 @@ list($params, $providers) = announce([
 list($context, $cron, $am) = [$providers['context'], $providers['cron'], $providers['access']];
 
 if(!$am->hasGroup('admin')) {
-    throw new Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+    throw new Exception('admin_only', QN_ERROR_NOT_ALLOWED);
 }
 
 // run the scheduled tasks that require it
