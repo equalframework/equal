@@ -83,7 +83,10 @@
                                             {
                                                 "type": "field",
                                                 "value": "logs_ids",
-                                                "width": "100%"
+                                                "width": "100%",
+                                                "widget": {
+                                                    "height": 500
+                                                }
                                             }
                                         ]
                                     }
