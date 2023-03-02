@@ -73,7 +73,14 @@ class Task extends Model {
             'params' => [
                 'type'              => 'string',
                 'description'       => "JSON object holding the parameters to relay to the controller."
+            ],
+
+            'logs_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\TaskLog',
+                'foreign_field'     => 'task_id'
             ]
+
         ];
     }
 
