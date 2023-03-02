@@ -29,30 +29,40 @@ class Scheduler extends Service {
      * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
      * For recurring tasks we update the moment field to the next time, according to repeat axis and repeat step.
      * Non-recurring tasks are deleted once they've been run.
-     *
      * #memo - Scheduler always operates as root user.
+     *
+     * @param   integer $task_id    Optional identifier of the specific task to run.
+     *
      */
-    public function run() {
+    public function run($task_id=0) {
         $orm = $this->container->get('orm');
 
-        $tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['moment' => 'asc'], 0, 10);
+        if(!$task_id) {
+            $tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['moment' => 'asc'], 0, 10);
+        }
+        else {
+            $tasks_ids = (array) $task_id;
+        }
 
         if($tasks_ids > 0) {
             $now = time();
             $tasks = $orm->read('core\Task', $tasks_ids, ['id', 'moment', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
-                if($task['moment'] <= $now) {
-                    // update task, if recurring
-                    // #memo - we must start by updating the task because some controllers might run for a duration longer than the remaining time before the next `run()` call
-                    if($task['is_recurring']) {
-                        $moment = $task['moment'];
-                        while($moment < $now) {
-                            $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $moment);
+                // if due time has passed or if a specific task_id is given, execute the task
+                if($task['moment'] <= $now || $task_id > 0) {
+                    // if no specific task_id is given, update each task
+                    if(!$task_id) {
+                        // #memo - we must start by updating the task because some controllers might run for a duration longer than the remaining time before the next `run()` call
+                        if($task['is_recurring']) {
+                            $moment = $task['moment'];
+                            while($moment < $now) {
+                                $moment = strtotime("+{$task['repeat_step']} {$task['repeat_axis']}", $moment);
+                            }
+                            $orm->update('core\Task', $tid, ['moment' => $moment]);
                         }
-                        $orm->update('core\Task', $tid, ['moment' => $moment]);
-                    }
-                    else {
-                        $orm->remove('core\Task', $tid, true);
+                        else {
+                            $orm->remove('core\Task', $tid, true);
+                        }
                     }
 
                     list($status, $log) = ['', ''];

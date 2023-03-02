@@ -1,6 +1,19 @@
 {
     "name": "Tasks",
     "description": "All Scheduled tasks.",
+    "header": {
+        "selection": {
+            "default" : false,
+            "actions" : [
+                {
+                    "id": "header.selection.actions.run",
+                    "label": "Run the task",
+                    "icon": "play_arrow",
+                    "controller": "core_spool_run"
+                }
+            ]
+        }
+    },
     "layout": {
         "items": [
             {

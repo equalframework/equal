@@ -8,6 +8,11 @@
 list($params, $providers) = announce([
     'description'   => "Run a batch of scheduled task. Expected to be run with CLI `$ ./equal.run --do=cron_run`",
     'params'        => [
+        'id' =>  [
+            'type'          => 'integer',
+            'description'   => 'Optional identifier of the specific task to run. If not given, all due tasks are candidates to execution.',
+            'default'       => 0
+        ]
     ],
     'access' => [
         'visibility'   => 'private'
@@ -26,8 +31,9 @@ list($params, $providers) = announce([
  */
 list($context, $cron) = [$providers['context'], $providers['cron']];
 
+
 // run the scheduled tasks that require it
-$cron->run();
+$cron->run($params['id']);
 
 $context->httpResponse()
         ->status(204)
