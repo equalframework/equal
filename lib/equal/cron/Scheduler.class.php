@@ -43,7 +43,7 @@ class Scheduler extends Service {
             foreach($tasks as $tid => $task) {
                 if($task['moment'] <= $now) {
                     // update task, if recurring
-                    // #memo - we must start by doing this because some controller might run for a long time (longer than the next `run()` call)
+                    // #memo - we must start by updating the task because some controllers might run for a duration longer than the remaining time before the next `run()` call
                     if($task['is_recurring']) {
                         $moment = $task['moment'];
                         while($moment < $now) {
@@ -54,15 +54,28 @@ class Scheduler extends Service {
                     else {
                         $orm->remove('core\Task', $tid, true);
                     }
-                    // run
+
+                    list($status, $log) = ['', ''];
                     try {
                         $body = json_decode($task['params'], true);
-                        \eQual::run('do', $task['controller'], $body, true);
+                        // run the task
+                        $data = \eQual::run('do', $task['controller'], $body, true);
+                        $status = 'success';
+	                    $log = json_encode($data, JSON_PRETTY_PRINT);
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
                         trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
+                        $status = 'error';
+                        $msg = $e->getMessage();
+                        $data = @unserialize($msg);
+                        if(is_array($data)) {
+                            $data = json_encode($data, JSON_PRETTY_PRINT);
+                        }
+                        $log = ($data)?$data:$msg;
                     }
+                    // create a new TaskLog holding result
+                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log]);
                 }
             }
         }
