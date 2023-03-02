@@ -96,7 +96,14 @@
                                                 "type": "field",
                                                 "value": "users_ids",
                                                 "width": "100%",
-                                                "label": "Users"
+                                                "label": "Users",
+                                                "widget": {
+                                                    "header": {
+                                                        "actions": {
+                                                            "ACTION.SELECT": true
+                                                        }
+                                                    }
+                                                }
                                             }
                                         ]
                                     }
