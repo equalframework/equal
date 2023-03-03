@@ -48,11 +48,11 @@ list($params, $providers) = announce([
     'response'      => [
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context', 'orm', 'auth', 'adapt']
 ]);
 
 
-list($context, $orm, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
+list($context, $orm, $auth, $adapter) = [$providers['context'], $providers['orm'], $providers['auth'], $providers['adapt']];
 
 $is_controller_entity = false;
 
@@ -119,6 +119,15 @@ foreach($view_fields as $item) {
 if($is_controller_entity) {
     // get data from controller
     $values = eQual::run('get', str_replace('\\', '_', $params['entity']), $params['params']);
+    // convert JSON values to PHP
+    foreach($values as $index => $object) {
+        foreach($object as $field => $value) {
+            if(!isset($schema[$field]['type'])) {
+                continue;
+            }
+            $values[$index][$field] = $adapter->adapt($value, $schema[$field]['type']);
+        }
+    }
 }
 // entity is a Model
 else {
