@@ -6,7 +6,7 @@
     "color": "#FF9741",
     "access": {
         "groups": [
-            "admins"
+            "admin"
         ]
     },
     "show_in_apps": true

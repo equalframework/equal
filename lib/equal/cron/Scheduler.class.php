@@ -38,14 +38,14 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
 
         $selected_tasks_ids = $tasks_ids;
+        $now = time();
 
         if(!count($tasks_ids)) {
             // no specific task is requested, fetch all active tasks (limit to max 10 tasks per batch)
-            $selected_tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['moment' => 'asc'], 0, 10);
+            $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
-            $now = time();
             $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
                 // prevent concurrent execution
