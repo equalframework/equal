@@ -46,8 +46,15 @@ class Scheduler extends Service {
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
             $now = time();
-            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
+            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
+                // prevent concurrent execution
+                if($task['status'] != 'idle') {
+                    trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
+                    continue;
+                }
+                // mark the task as running
+                $orm->update('core\Task', $tid, ['status' => 'running']);
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
@@ -64,7 +71,6 @@ class Scheduler extends Service {
                             $orm->remove('core\Task', $tid, true);
                         }
                     }
-
                     list($status, $log) = ['', ''];
                     try {
                         $body = json_decode($task['params'], true);
@@ -86,6 +92,8 @@ class Scheduler extends Service {
                     }
                     // create a new TaskLog holding result
                     $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log]);
+                    // mark the task as idle (can be executed again)
+                    $orm->update('core\Task', $tid, ['status' => 'idle']);
                 }
             }
         }

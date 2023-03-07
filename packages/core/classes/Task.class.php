@@ -25,6 +25,16 @@ class Task extends Model {
                 'required'          => true
             ],
 
+            'status' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'idle',
+                    'running'
+                ],
+                'default'           => 'idle',
+                'description'       => 'current status of the processing (to avoid concurrent executions).'
+            ],
+
             'moment' => [
                 'type'              => 'datetime',
                 'description'       => 'Moment at which the task should be run for the next time.',
