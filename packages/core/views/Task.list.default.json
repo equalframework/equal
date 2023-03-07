@@ -24,6 +24,12 @@
             },
             {
                 "type": "field",
+                "value": "status",
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
                 "value": "moment",
                 "width": "15%",
                 "sortable": true
