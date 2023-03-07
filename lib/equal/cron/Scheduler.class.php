@@ -37,19 +37,18 @@ class Scheduler extends Service {
     public function run($tasks_ids=[]) {
         $orm = $this->container->get('orm');
 
+        $selected_tasks_ids = $tasks_ids;
+
         if(!count($tasks_ids)) {
             // no specific task is requested, fetch all active tasks (limit to max 10 tasks per batch)
             $selected_tasks_ids = $orm->search('core\Task', ['is_active', '=', true], ['moment' => 'asc'], 0, 10);
-        }
-        else {
-            $selected_tasks_ids = $tasks_ids;
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
             $now = time();
             $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
-                // if due time has passed or if a specific tasks_ids are given, execute the task
+                // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
                     if(!count($tasks_ids)) {
