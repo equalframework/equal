@@ -109,7 +109,7 @@ class DataValidator extends Service {
         }
 
         // with support for both bytes length and (multibytes) chars length (notation: chars_length.bytes_length)
-        // #todo - allow size notations ':medium' (16MB) and ':long' (4GB)
+        // #todo - allow size notations with metric suffixes (K, M, G)
         if(preg_match('/text\/plain(:([0-9]{1,5})(\.([0-9]{1,2}))?)?/', $usage, $out)) {
             $max = 65535;
             $chars_len = $max;
