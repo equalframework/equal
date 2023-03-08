@@ -20,7 +20,7 @@ foreach(glob('../log/'.LOG_FILE_NAME.'.*') as $file) {
 // get query from URL, if any
 $query = (isset($_GET['q']))?$_GET['q']:'';
 
-// 1) filtering : discard lines that do not match the query
+// adapt params
 if(isset($_GET['level']) && $_GET['level'] == '') {
     unset($_GET['level']);
 }
@@ -31,18 +31,19 @@ if(isset($_GET['date']) && $_GET['date'] == '') {
     unset($_GET['date']);
 }
 
-if(strlen($query) > 0) {
-    $lines = explode(PHP_EOL, $data);
-    $data = '';
-    foreach($lines as $line) {
-        if(stripos($line, $query) === false) {
-            continue;
-        }
-        $data .= $line.',';
+
+// 1) filtering : discard lines that do not match the query
+
+$lines = explode(PHP_EOL, $data);
+$data = '';
+foreach($lines as $line) {
+    if(strlen($line) <= 0) {
+        continue;
     }
-}
-else {
-    $data = str_replace(PHP_EOL, ',', $data);
+    if(strlen($query) > 0 && stripos($line, $query) === false) {
+        continue;
+    }
+    $data .= $line.',';
 }
 
 // 2) extract lines to be rendered
@@ -189,7 +190,7 @@ function copy(node) {
                 </select>
             </div>
             <div style="display: flex; flex-direction: column;">
-                <label>Mode:</label>
+                <label>Layer:</label>
                 <select style="height: 33px; margin-right: 25px;" name="mode">
                     <option value="">All</option>
                     <option value="PHP" '.((isset($_GET['mode']) && $_GET['mode'] == 'PHP')?'selected':'').'>PHP</option>

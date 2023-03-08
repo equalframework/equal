@@ -142,24 +142,9 @@ class Reporter extends Service {
         if(!($this->debug_mode & $mode)) {
             return;
         }
-        // build error message
-        $origin = '{main}()';
-        if(isset($trace['function'])) {
-            if(isset($trace['class'])) {
-                $origin = $trace['class'].'::'.$trace['function'].'()';
-            }
-            else {
-                $origin = $trace['function'].'()';
-            }
-        }
-
-        // $context = $this->getContainer()->get('context');
-        // $operation = $context->get('operation');
-        // $operation['operation']
 
         $time_parts = explode(" ", microtime());
-        $error = $this->thread_id.';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_debug_code_name($code).';'.$origin.';'.$trace['file'].';'.$trace['line'].';'.urlencode($msg).PHP_EOL;
-
+        // build error message
         $error_json = [
             'thread_id'     => $this->thread_id,
             'time'          => date('c', $time_parts[1]),
@@ -185,21 +170,10 @@ class Reporter extends Service {
         // #todo - when created using CLI, file is assigned with current uid (which might prevent the http service to access it)
         $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
 
-        // by default, append content at the end of the log file
-        $flags = FILE_APPEND;
-
-        // log rotator
-        $maxsize = 5242880;     // max size for log file
-        if( rand(1, 20) == 1    // set throttle to 5% (to reduce fs stat calls)
-            && file_exists($filepath) && filesize($filepath) > $maxsize ){
-            for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
-            copy($filepath, $filepath.'.'.$i);
-            // set flag to force upcoming call to `file_put_contents()` to overwrite existing data
-            $flags = 0;
-        }
+        // #memo - if logging level is set to E_ALL with all mode enabled the log file grows quickly
 
         // append message to log file (bypass if debug is disabled)
-        file_put_contents($filepath, json_encode($error_json).PHP_EOL, $flags | LOCK_EX);
+        file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 
     /**
