@@ -53,8 +53,8 @@ class Scheduler extends Service {
                     trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
                     continue;
                 }
-                // mark the task as running
-                $orm->update('core\Task', $tid, ['status' => 'running']);
+                // mark the task as running and update last_run
+                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now]);
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
@@ -92,7 +92,7 @@ class Scheduler extends Service {
                     }
                     // create a new TaskLog holding result
                     $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log]);
-                    // mark the task as idle (can be executed again)
+                    // mark the task as idle (so it can be executed again)
                     $orm->update('core\Task', $tid, ['status' => 'idle']);
                 }
             }

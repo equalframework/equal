@@ -36,6 +36,12 @@
             },
             {
                 "type": "field",
+                "value": "last_run",
+                "width": "15%",
+                "sortable": true
+            },
+            {
+                "type": "field",
                 "value": "controller",
                 "width": "25%"
             },

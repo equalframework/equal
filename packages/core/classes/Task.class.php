@@ -35,6 +35,11 @@ class Task extends Model {
                 'description'       => 'current status of the processing (to avoid concurrent executions).'
             ],
 
+            'last_run' => [
+                'type'              => 'datetime',
+                'description'       => 'Moment at which the task was last executed.'
+            ],
+
             'moment' => [
                 'type'              => 'datetime',
                 'description'       => 'Moment at which the task should be run for the next time.',
