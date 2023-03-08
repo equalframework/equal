@@ -85,7 +85,7 @@
                                                 "value": "logs_ids",
                                                 "width": "100%",
                                                 "widget": {
-                                                    "height": 500
+                                                    "height": 600
                                                 }
                                             }
                                         ]
