@@ -47,11 +47,6 @@
             },
             {
                 "type": "field",
-                "value": "params",
-                "width": "20%"
-            },
-            {
-                "type": "field",
                 "value": "is_active",
                 "width": "10%"
             },
