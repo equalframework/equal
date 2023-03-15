@@ -270,7 +270,7 @@ class Collection implements \Iterator, \Countable {
                     $f = $object->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("QN_DEBUG_ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", QN_REPORT_INFO);
+                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", QN_REPORT_INFO);
                         $result[$field] = $value;
                         continue;
                     }
@@ -320,7 +320,7 @@ class Collection implements \Iterator, \Countable {
         else {
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
-            // init keys of 'objects' member (resulting in a map with keys but no values)
+            // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
             foreach($ids as $id) {
                 $this->objects[$id] = clone $this->model;
             }
@@ -349,7 +349,7 @@ class Collection implements \Iterator, \Countable {
                 });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // log a notice about discarded readonly fields
-                trigger_error("QN_DEBUG_ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
+                trigger_error("ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
             }
             // discard special fields
             // #memo - `state` is left allowed for draft creation
@@ -411,8 +411,12 @@ class Collection implements \Iterator, \Countable {
      *
      */
     public function search(array $domain=[], array $params=[], $lang=null) {
+        // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
+        // (and therefore, in  most situation, start() and limit() are chained to the Collection for that purpose)
         $defaults = [
-            'sort'  => ['id' => 'asc']
+            'sort'  => ['id' => 'asc'],
+            'limit' => 0,
+            'start' => 0
         ];
 
         // retrieve current user id
@@ -448,7 +452,7 @@ class Collection implements \Iterator, \Countable {
 
         // 3) perform search
         // we don't use the start and limit arguments here because the final result set depends on permissions
-        $ids = $this->orm->search($this->class, $domain, $params['sort'], 0, 0, $lang);
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang);
         // $ids is an error code
         if($ids < 0) {
             throw new \Exception(Domain::toString($domain), $ids);

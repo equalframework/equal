@@ -1,0 +1,13 @@
+{
+    "name": "Sandbox",
+    "description": "This is a demo application to help learning how to use the Symbiose UI logic.",
+    "url": "/sandbox",
+    "icon": "edit_note",
+    "color": "#d2252c",
+    "access": {
+        "groups": [
+            "users", "admins"
+        ]
+    },
+    "show_in_apps": false
+}

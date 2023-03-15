@@ -18,8 +18,6 @@ class Context extends Service {
 
     private $pid;
 
-    private $time;
-
     private $httpRequest;
 
     private $httpResponse;
@@ -31,10 +29,8 @@ class Context extends Service {
      */
     protected function __construct() {
         $this->params = [];
-        // get PID from HTTP server / PHP cli
+        // get PID from HTTP server / PHP cli (all contexts from a same thread have the same pid)
         $this->pid = getmypid();
-        // get current unix time in microseconds
-        $this->time = microtime();
         $this->httpRequest = null;
         $this->httpResponse = null;
     }
@@ -45,9 +41,8 @@ class Context extends Service {
     }
 
     public function __toString() {
-        return 'This is the PHP context instance';
+        return 'This is the PHP context instance.';
     }
-
 
     public function get($var, $default=null) {
         if(isset($this->params[$var])) {
@@ -59,10 +54,6 @@ class Context extends Service {
     public function set($var, $value) {
         $this->params[$var] = $value;
         return $this;
-    }
-
-    public function getTime() {
-        return $this->time;
     }
 
     public function getPid() {
@@ -107,14 +98,6 @@ class Context extends Service {
     }
 
     // below are additional method using short name and get/set based on arguments
-
-    public function httpRequestMethod() {
-        return $this->getHttpMethod();
-    }
-
-    public function httpRequestHeaders() {
-        return $this->getHttpRequestHeaders();
-    }
 
     public function httpRequest() {
         $args = func_get_args();
@@ -437,7 +420,7 @@ class Context extends Service {
         }
         // in some cases, PHP consumes the input to populate $_REQUEST and $_FILES (i.e. with multipart/form-data content-type)
         if(empty($body) || (is_string($body) && strlen($body) < 3) ) { // we could have received a formatted empty body (e.g.: {})
-            $uri  = $this->getHttpUri();
+            $uri = $this->getHttpUri();
             // for GET methods, PHP improperly fills $_GET and $_REQUEST with query string parameters
             // we allow this only when there's nothing from php://input
             if(isset($_FILES) && !empty($_FILES)) {
@@ -446,7 +429,7 @@ class Context extends Service {
             else {
                 $body = $_REQUEST;
             }
-            // mimic PHP behaviour: inject query string args to the body (only for args not already present in the body)
+            // mimic PHP behavior: inject query string args to the body (only for args not already present in the body)
             if(strlen($uri)) {
                 $parts = parse_url($uri);
                 if($parts != false && isset($parts['query'])) {

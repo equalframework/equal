@@ -10,13 +10,13 @@
     form {
         flex: 1 0 50%;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
 
         .mat-form-field {
             flex: 1;
             padding: 0.2rem;
             margin:0.2rem;
-            
+
             ::ng-deep .mat-form-field-infix {
                 width: auto;
             }
@@ -24,15 +24,15 @@
 
         button.mat-fab {
             margin-top: 10px;
-            transform: scale(0.8);
+            transform: scale(0.6);
         }
 
     }
 
     .titleBox {
-        display: flex; 
+        display: flex;
         flex-direction: column;
-    
+
         flex: 0 1 50%;
         border-right:0.5px solid black;
         padding: 0.2rem;

@@ -6,6 +6,8 @@
             {
                 "sections": [
                     {
+                        "id": "section.config",
+                        "label": "Parameters",
                         "rows": [
                             {
                                 "columns": [
@@ -61,6 +63,30 @@
                                                 "type": "field",
                                                 "value": "is_active",
                                                 "width": "33%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.logs",
+                        "label": "Logs",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "logs_ids",
+                                                "width": "100%",
+                                                "widget": {
+                                                    "height": 600
+                                                }
                                             }
                                         ]
                                     }

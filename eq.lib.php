@@ -58,13 +58,14 @@ namespace {
     /**
      * Debugging modes and levels
      */
-    define('QN_DEBUG_PHP',          1);
-    define('QN_DEBUG_SQL',          2);
-    define('QN_DEBUG_ORM',          4);
-    define('QN_DEBUG_API',          8);
-    define('QN_DEBUG_APP',          16);
+    // debugging modes
+    define('QN_MODE_PHP',          1);
+    define('QN_MODE_SQL',          2);
+    define('QN_MODE_ORM',          4);
+    define('QN_MODE_API',          8);
+    define('QN_MODE_APP',          16);
 
-
+    // debugging levels
     define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
     define('QN_REPORT_INFO',        E_USER_NOTICE);         // 1024
     define('QN_REPORT_WARNING',     E_USER_WARNING);        // 512
@@ -111,7 +112,7 @@ namespace {
     */
 
     /**
-     * Mapper from internal eror codes to string constants
+     * Mapper from internal error codes to string constants
      */
     function qn_error_name($error_id) {
         switch($error_id) {
@@ -130,7 +131,7 @@ namespace {
     }
 
     /**
-     * Mapper from string constants to internal eror codes
+     * Mapper from string constants to internal error codes
      */
     function qn_error_code($error_name) {
         switch($error_name) {
@@ -149,14 +150,14 @@ namespace {
     }
 
     /**
-     * Mapper from internal eror codes to HTTP codes
+     * Mapper from internal error codes to HTTP codes
      */
     function qn_error_http($error_id) {
         switch($error_id) {
             case 0:                         return 200;
             case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
             case QN_ERROR_INVALID_PARAM:    return 400;
-            case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario happend and operation could not be performed
+            case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario append and operation could not be performed
             case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'              user has not enough privilege to perform requested operation (includes method not allowed-
             case QN_ERROR_UNKNOWN_OBJECT:   return 404;     // 'Not Found'              object or route does not exist
             case QN_ERROR_LOCKED_OBJECT:    return 423;     // 'Locked'                 resource is currently locked
@@ -171,14 +172,24 @@ namespace {
         return 500;
     }
 
-
-
-    function qn_report_name($code) {
+    function qn_debug_code_name($code) {
         switch($code) {
             case QN_REPORT_DEBUG:    return 'DEBUG';
+            case QN_REPORT_INFO:     return 'INFO';
             case QN_REPORT_WARNING:  return 'WARNING';
             case QN_REPORT_ERROR:    return 'ERROR';
             case QN_REPORT_FATAL:    return 'FATAL';
+        }
+        return 'UNKNOWN';
+    }
+
+    function qn_debug_mode_name($mode) {
+        switch($mode) {
+            case QN_MODE_PHP:    return 'PHP';
+            case QN_MODE_SQL:    return 'SQL';
+            case QN_MODE_ORM:    return 'ORM';
+            case QN_MODE_API:    return 'API';
+            case QN_MODE_APP:    return 'APP';
         }
         return 'UNKNOWN';
     }
@@ -381,7 +392,7 @@ namespace config {
     }
 
     /**
-     * Retrieve  a configuraiton parameter.
+     * Retrieve  a configuration parameter.
      * @deprecated
      */
     function config($name, $default=null) {
@@ -446,7 +457,7 @@ namespace config {
     class eQual {
 
         /**
-         * Initialise eQual.
+         * Initialize eQual.
          *
          * Adds the library folder to the include path (library folder should contain the Zend framework if required).
          * This is the bootstrap method for setting everything in place.
@@ -456,7 +467,7 @@ namespace config {
         public static function init() {
             chdir(QN_BASEDIR.'/');
 
-            // allow inclusion and autoloading of external classes
+            // enable inclusion and autoload of external classes
             if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
                 include_once(QN_BASEDIR.'/vendor/autoload.php');
             }
@@ -554,6 +565,10 @@ namespace config {
             // retrieve service container
             $container = Container::getInstance();
             // retrieve required services
+            /**
+             * @var \equal\php\Context      $context
+             * @var \equal\error\Reporter   $reporter
+             */
             list($context, $reporter) = $container->get(['context', 'report']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
@@ -928,7 +943,7 @@ namespace config {
                 $providers = [];
                 // inject dependencies
                 foreach($announcement['providers'] as $key => $name) {
-                    // handle custom name maping
+                    // handle custom name mapping
                     if(!is_numeric($key)) {
                         $container->register($key, $name);
                         $name = $key;
@@ -946,10 +961,6 @@ namespace config {
                 foreach($announcement['constants'] as $name) {
                     if(defined($name) && !\defined($name)) {
                         $value = constant($name);
-                        // handle encrypted values
-                        if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
-                            $value = decrypt(substr($value, 7));
-                        }
                         export($name, $value);
                     }
                     if(!\defined($name)) {
@@ -976,22 +987,22 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("QN_DEBUG_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
             global $last_context;
 
             $result = '';
             $resolved = [
-                'type'      => $type,       // 'do', 'get' or 'show'
-                'operation' => null,        // {package}_{script-path}
-                'visibility'=> 'public',    // 'public', 'protected', or 'private'
-                'package'   => null,        // {package}
-                'script'    => null         // {path/to/script.php}
+                'type'       => $type,       // 'do', 'get' or 'show'
+                'operation'  => null,        // {package}_{script-path}
+                'visibility' => 'public',    // 'public', 'protected', or 'private'
+                'package'    => null,        // {package}
+                'script'     => null         // {path/to/script.php}
             ];
             // define valid operations specifications
             $operations = [
-                'do'    => array('kind' => 'ACTION_HANDLER','dir' => 'actions'),    // do something server-side
-                'get'   => array('kind' => 'DATA_PROVIDER', 'dir' => 'data'),       // return some data
-                'show'  => array('kind' => 'APPLICATION',   'dir' => 'apps')        // output rendering information (UI)
+                'do'    => ['kind' => 'ACTION_HANDLER', 'dir' => 'actions'],    // do something server-side
+                'get'   => ['kind' => 'DATA_PROVIDER',  'dir' => 'data'   ],    // return some data
+                'show'  => ['kind' => 'APPLICATION',    'dir' => 'apps'   ]     // output rendering information (UI)
             ];
             $container = Container::getInstance();
 
@@ -1000,12 +1011,18 @@ namespace config {
                 // stack original container register
                 $register = $container->register();
                 // stack original context (request and response sub-objects are cloned as well)
+                /** @var \equal\php\Context */
                 $context = clone $context_orig;
+                // make new context service as the one to be returned when requested by global services
                 $container->set('context', $context);
             }
             else {
+                /** @var \equal\php\Context */
                 $context = $container->get('context');
             }
+
+            /** @var \equal\error\Reporter */
+            $reporter = $container->get('report');
 
             $getOperationOutput = function($script) use($context) {
                 ob_start();
@@ -1040,13 +1057,16 @@ namespace config {
                 return ob_get_clean();
             };
 
+            /** @var \equal\http\HttpRequest */
             $request = $context->httpRequest();
             $request->body($body);
 
             $operation = explode(':', $operation);
             if(count($operation) > 1) {
                 $visibility = array_shift($operation);
-                if($visibility == 'private') $resolved['visibility'] = $visibility;
+                if($visibility == 'private') {
+                    $resolved['visibility'] = $visibility;
+                }
             }
             $resolved['operation'] = $operation[0];
             $parts = explode('_', $resolved['operation']);
@@ -1059,6 +1079,11 @@ namespace config {
                 }
             }
 
+            $reporter->debug(json_encode([
+                    'uri'       => (string) $request->getUri(),
+                    'headers'   => $request->getHeaders(true),
+                    'body'      => $request->getBody()
+                ], JSON_PRETTY_PRINT));
 
             // load package custom configuration, if any
             if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.inc.php')) {
@@ -1107,7 +1132,7 @@ namespace config {
                 }
 
                 // force timezone to UTC
-                // #memo - this is to (avoid being impacted by daylight saving offset
+                // #memo - this is to avoid being impacted by daylight saving offset
                 // #memo - we expect the DBMS to store dates in UTC as well
                 date_default_timezone_set('UTC');
 
@@ -1129,11 +1154,10 @@ namespace config {
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
                         file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
-                        $reporter = $container->get('report');
                         $reporter->debug("stored cache-id {$cache_id}");
                     }
                 }
-                trigger_error("QN_DEBUG_PHP::result - $result", QN_REPORT_DEBUG);
+                trigger_error("PHP::result: $result", QN_REPORT_DEBUG);
             }
 
             // restore context

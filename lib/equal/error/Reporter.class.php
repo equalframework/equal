@@ -12,19 +12,19 @@ use equal\php\Context;
 
 class Reporter extends Service {
 
-    // PHP context instance
-    private $context;
-
     private $debug_mode;
     private $debug_level;
+
+    private $thread_id;
 
     /**
      * Constructor defines which methods have to be called when errors and uncaught exceptions occur
      *
      */
-    public function __construct(Context $context) {
-        $this->context = $context;
-        $this->debug_mode = (defined('DEBUG_MODE'))?constant('DEBUG_MODE'):0;
+    public function __construct() {
+        // #memo - $thread_id depends on the current PHP thread. A same thread can stack several contexts. In the console, logs are grouped based on their thread_id.
+        $this->thread_id = substr(md5(getmypid().';'.hrtime(true)), 0, 8);
+        $this->debug_mode  = (defined('DEBUG_MODE'))?constant('DEBUG_MODE'):0;
         $this->debug_level = (defined('DEBUG_LEVEL'))?constant('DEBUG_LEVEL'):0;
         // ::errorHandler() will deal with error and debug messages depending on debug source value
         ini_set('display_errors', 1);
@@ -42,20 +42,7 @@ class Reporter extends Service {
         return ['QN_LOG_STORAGE_DIR', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG', 'QN_REPORT_INFO', 'QN_REPORT_DEBUG'];
     }
 
-    public function getThreadId() {
-        static $thread_id = null;
-
-        if(!$thread_id) {
-            // assign a unique thread ID (using apache pid, current unix time, and invoked script with operation, if any)
-            $operation = $this->context->get('operation');
-            $op_name = ($operation && isset($operation['operation']))?$operation['operation']:'';
-            $data = md5($this->context->getPid().';'.$this->context->getTime().';'.$_SERVER['SCRIPT_NAME'].$op_name);
-            $thread_id = substr($data, 0, 8);
-        }
-        return $thread_id;
-    }
-
-     /**
+    /**
      * Handles uncaught exceptions, which include deliberately triggered fatal-error
      * In all cases, these are critical errors that cannot be recovered and need an immediate stop (fatal error)
      */
@@ -67,17 +54,17 @@ class Reporter extends Service {
         }
         // retrieve instance and log error
         $instance = self::getInstance();
-//        $instance->log($code, $msg, self::getTrace(1));
         $trace = $exception->getTrace();
         if(count($trace)) {
             $instance->log($code, $msg, $trace[0]);
         }
-        die();
+        // prevent processing
+        exit(1);
     }
 
     /**
     * Main method for error handling.
-    * This is invoked either in scripts using trigger_error calls or when a internal PHP error is raised.
+    * This is invoked either in scripts using `trigger_error()` calls or when a internal PHP error is raised.
     *
     * @param mixed $errno
     * @param mixed $errmsg
@@ -93,13 +80,14 @@ class Reporter extends Service {
         // adapt error code
         $code = $errno;
 
-        $depth = 1;
+        $depth = 0;
         switch($errno) {
             // handler was invoked using trigger_error()
             case QN_REPORT_DEBUG:       // E_USER_DEPRECATED
             case QN_REPORT_INFO:        // E_USER_NOTICE
             case QN_REPORT_WARNING:     // E_USER_WARNING
             case QN_REPORT_ERROR:       // E_USER_ERROR
+            // #memo - fatal errors always stop the script before reaching this point
             case QN_REPORT_FATAL:       // E_ERROR
                 $depth = 2;
                 break;
@@ -119,181 +107,136 @@ class Reporter extends Service {
             case E_STRICT:
             case E_DEPRECATED:
                 $code = QN_REPORT_WARNING;
-                $depth = 10;
                 break;
         }
         // retrieve instance and log error
         $instance = self::getInstance();
-        for($i = 0; $i < $depth; ++$i) {
-            $instance->log($code, $errmsg, self::getTrace($i));
-        }
+        $instance->log($code, $errmsg, self::getTrace($depth));
     }
 
+    /**
+     * Handler for debug messages requests.
+     * Appends one line to the log file.
+     */
     private function log($code, $msg, $trace) {
-        if(!$this->debug_mode) {
+        // discard non-applicable log requests
+        if($this->debug_mode == 0 || $this->debug_level == 0 || !($code & $this->debug_level))  {
             return;
         }
-        // check reporting level
-        if($code <= $this->debug_level) {
-            // handle debug messages
-            if($code == QN_REPORT_DEBUG) {
-                // default to arbitrary '1' mask debug info
-                $source = '1';
-                $parts = explode('::', $msg, 2);
-                if(count($parts) > 1) {
-                    $source = (strlen($parts[0]))?$parts[0]:$source;
-                    $msg = $parts[1];
-                }
-                if(!is_numeric($source) && @constant($source)) {
-                    $mask = constant($source);
-                }
-                else {
-                    $mask = (int) $source;
-                }
-                if(!($this->debug_mode & $mask)) return;
+        // check reporting mode, if provided
+        $mode = QN_MODE_PHP;
+        if(strpos($msg, '::') == 3) {
+            // default to mask QN_MODE_PHP
+            $source = QN_MODE_PHP;
+            $parts = explode('::', $msg, 2);
+            if(count($parts) > 1) {
+                $source = (strlen($parts[0]))?('QN_MODE_'.$parts[0]):$source;
+                $msg = $parts[1];
             }
-
-            // build error message
-            $origin = '{main}()';
-            if(isset($trace['function'])) {
-                if(isset($trace['class'])) {
-                    $origin = $trace['class'].'::'.$trace['function'].'()';
-                }
-                else $origin = $trace['function'].'()';
+            if(!is_numeric($source) && @constant($source)) {
+                $source = constant($source);
             }
-
-            $file = (isset($trace['file']))?$trace['file']:'';
-            $line = (isset($trace['line']))?$trace['line']:'';
-
-            // $utime = microtime(true);
-            // $time_parts = explode(".",$utime);
-            $time_parts = explode(" ", microtime());
-            $error =  $this->getThreadId().';'.sprintf("%s+%s", date("m-d-Y H:i:s", $time_parts[1]), $time_parts[0]).';'.qn_report_name($code).';'.$origin.';'.$file.';'.$line.';'.urlencode($msg).PHP_EOL;
-
-            // append backtrace if required (fatal errors)
-
-            if($code == QN_REPORT_FATAL) {
-                /*
-                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-                $n = count($backtrace);
-                if($n > 2) {
-                    for($i = 2; $i < $n; ++$i) {
-                        $trace = $backtrace[$i];
-                        $origin = '';
-                        if(isset($trace['class'])) $origin = $trace['class'].'::'.$trace['function'].'()';
-                        else if(isset($trace['function'])) $origin = $trace['function'].'()';
-                        $error .= "# $origin @ [{$trace['file']}:{$trace['line']}]".PHP_EOL;
-                    }
-                }
-                */
-            }
-
-            // #todo - using CLI, if file does not exist, it is created using the current uid (which might prevent the webservice to access it)
-            $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
-
-            // by default, append content at the end of the log file
-            $flags = FILE_APPEND;
-
-            // log rotator
-            $maxsize = 5242880;     // max size for log file
-            if( rand(1, 20) == 1    // set throttle to 5% (to reduce fs stat calls)
-                && file_exists($filepath) && filesize($filepath) > $maxsize ){
-                for( $i = 1; file_exists($filepath.'.'.$i); ++$i ) {}
-                copy($filepath, $filepath.'.'.$i);
-                // st flag to force next call to `file_put_contents()` to overwrite existing data
-                $flags = 0;
-            }
-
-            // write error message to log file (bypass if debug is disabled)
-            file_put_contents($filepath, $error, $flags);
+            $mode = (int) $source;
         }
+        // discard non-applicable log requests
+        if(!($this->debug_mode & $mode)) {
+            return;
+        }
+
+        $time_parts = explode(" ", microtime());
+        // build error message
+        $error_json = [
+            'thread_id'     => $this->thread_id,
+            'time'          => date('c', $time_parts[1]),
+            'mtime'         => substr($time_parts[0], 2, 6),
+            'level'         => qn_debug_code_name($code),
+            'mode'          => qn_debug_mode_name($mode),
+            'class'         => $trace['class'],
+            'function'      => $trace['function'],
+            'file'          => $trace['file'],
+            'line'          => $trace['line'],
+            'message'       => $msg,
+            'stack'         => []
+        ];
+
+        // append backtrace if required (fatal errors)
+        if(in_array($code, [QN_REPORT_WARNING, QN_REPORT_ERROR, QN_REPORT_FATAL])) {
+            $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+            // remove 2 calls related to Reporter Service
+            array_splice($stack, 0, 2);
+            $error_json['stack'] = $stack;
+        }
+
+        // #todo - when created using CLI, file is assigned with current uid (which might prevent the http service to access it)
+        $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
+
+        // #memo - if logging level is set to E_ALL with all mode enabled the log file grows quickly
+
+        // append message to log file (bypass if debug is disabled)
+        file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 
-    private static function getTrace($increment=0) {
-        // we need to go down 4 levels max
-        $limit = 2+$increment;
-
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $limit);
-
-        $trace = [];
-        // retrieve info from where the error was actually raised  ($backtrace[0] being related to current getTrace() call)
-        $n = 1+$increment;
-
-        if(count($backtrace) > $n) {
-            // get last item from backtrace
-            $trace = $backtrace[$n];
-
-            if(isset($trace['function']) && isset($trace['class']) && in_array($trace['function'], ['errorHandler', 'debug'])) {
-                unset($trace['function']);
-            }
-            else if(isset($trace['function']) && isset($trace['args']) && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
-                unset($trace['function']);
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
-            }
-            else if(!isset($trace['file']) && $n > 0) {
-                if(isset($backtrace[$n-1]['file'])) {
-                    $trace['file'] = $backtrace[$n-1]['file'];
-                }
-                if(isset($backtrace[$n-1]['line'])) {
-                    $trace['line'] = $backtrace[$n-1]['line'];
-                }
-            }
-        }
-/*
-        if($trace['function'] == 'trigger_error') {
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
-
-        }
-        if(in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
-            unset($trace['function']);
-            if(isset($backtrace[$n-1]['function']) && in_array($backtrace[$n-1]['function'], ['include', 'require', 'include_once', 'require_once'])) {
-                $trace['file'] = $backtrace[$n-2]['file'];
-                $trace['line'] = $backtrace[$n-2]['line'];
-            }
-            else {
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
-            }
-        }
-        else if(!isset($trace['function'])) {
-            if(isset($backtrace[$n-2]['file'])) {
-                $trace['file'] = $backtrace[$n-2]['file'];
-                $trace['line'] = $backtrace[$n-2]['line'];
-            }
-            else {
-                $trace['file'] = $backtrace[$n-1]['file'];
-                $trace['line'] = $backtrace[$n-1]['line'];
-            }
-        }
-        else if(!isset($trace['file'])) {
-            $trace['file'] = $backtrace[$n-1]['file'];
-            $trace['line'] = $backtrace[$n-1]['line'];
-        }
+    /**
+     * Returns the (n-offset)th line from current backtrace.
+     * Result is adapted depending on the scope the trace refers to.
+     *
      */
+    private static function getTrace($offset=0) {
+        // #memo - first trace is current call
+        $n = $offset + 1;
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $n+1);
+
+        $target = (array) (isset($backtrace[$n])?$backtrace[$n]:[]);
+
+        // get last item from backtrace
+        $trace = array_merge([
+                'function'  => '',
+                'line'      => 0,
+                'file'      => '',
+                'class'     => '',
+                'object'    => null,
+                'args'      => [],
+            ], $target);
+
+        // if trace refers to an included file, go one level up
+        if($n > 0 && isset($trace['function']) && in_array($trace['function'], ['include', 'require', 'include_once', 'require_once'])) {
+            --$n;
+            $trace['function'] = '';
+            $trace['file'] = $backtrace[$n]['file'];
+            $trace['line'] = $backtrace[$n]['line'];
+        }
+
+        // if file is missing, use the parent file
+        if($n > 0 && !isset($trace['file'])) {
+            if(isset($backtrace[$n-1]['file'])) {
+                $trace['file'] = $backtrace[$n-1]['file'];
+            }
+            if(isset($backtrace[$n-1]['line'])) {
+                $trace['line'] = $backtrace[$n-1]['line'];
+            }
+        }
         return $trace;
     }
 
     public function fatal($msg) {
-        $this->log(QN_REPORT_FATAL, $msg, self::getTrace());
+        $this->log(QN_REPORT_FATAL, $msg, self::getTrace(2));
         die();
     }
 
     public function error($msg) {
-        $this->log(QN_REPORT_ERROR, $msg, self::getTrace());
+        $this->log(QN_REPORT_ERROR, $msg, self::getTrace(2));
     }
 
     public function warning($msg) {
-        $this->log(QN_REPORT_WARNING, $msg, self::getTrace());
+        $this->log(QN_REPORT_WARNING, $msg, self::getTrace(2));
     }
 
     public function info($msg) {
-        $this->log(QN_REPORT_INFO, $msg, self::getTrace());
+        $this->log(QN_REPORT_INFO, $msg, self::getTrace(2));
     }
 
     public function debug($msg) {
-        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace());
+        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace(2));
     }
 
 }
