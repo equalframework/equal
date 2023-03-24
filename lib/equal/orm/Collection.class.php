@@ -571,7 +571,7 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
         // silently drop invalid fields (do not check readonly: all fields are allowed at creation)
-        $values = $this->filter($values, false);
+        $values = $this->filter((array) $values, false);
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
                 return is_numeric($key)?$value:$key;
