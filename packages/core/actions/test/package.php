@@ -18,10 +18,15 @@ list($params, $providers) = announce([
             'type'          =>  'string',
             'default'       =>  '*'
         ],
-        'test_id'   => [
+        'test'   => [
             'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
             'type'          =>  'integer',
             'default'       =>  0
+        ],
+        'set'   => [
+            'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
+            'type'          =>  'string',
+            'default'       =>  null
         ],
         'logs'      => [
             'description'   =>  "Embed logs in result",
@@ -40,13 +45,17 @@ $tests_path = "packages/{$params['package']}/tests";
 
 if(is_dir($tests_path)) {
     foreach (glob($tests_path."/*.php") as $filename) {
+        $set = basename($filename, '.php');
+        if($params['set'] && $params['set'] != $set) {
+            continue;
+        }
         include($filename);
         $tester = new Tester($tests);
-        $body = $tester->test($params['test_id'])->toArray();
+        $body = $tester->test($params['test'])->toArray();
         if(isset($body['failed'])) {
             $failed = true;
         }
-        $result[basename($filename, '.php')] = $body;
+        $result[$set] = $body;
     }
 }
 if($params['logs']) {

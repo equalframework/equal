@@ -571,9 +571,11 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
         // silently drop invalid fields (do not check readonly: all fields are allowed at creation)
-        $values = $this->filter($values, false);
+        $values = $this->filter((array) $values, false);
         // retrieve targeted fields names
-        $fields = array_keys($values);
+        $fields = array_map(function($value, $key) {
+                return is_numeric($key)?$value:$key;
+            }, $values, array_keys($values));
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
@@ -659,7 +661,7 @@ class Collection implements \Iterator, \Countable {
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
 
 			// 2) check that current user has enough privilege to perform READ operation
-			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $fields, $ids)) {
+			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $requested_fields, $ids)) {
                 throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
             }
 

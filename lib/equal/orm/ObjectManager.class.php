@@ -1589,6 +1589,7 @@ class ObjectManager extends Service {
                 // remember fields that must be re-computed instantly
                 $instant_fields = [];
                 foreach($dependencies as $dependency) {
+                    // #todo - add support for dot notation
                     if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
                         if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
                             $instant_fields[] = $dependency;

@@ -1,6 +1,8 @@
 {
     "name": "Task Logs",
     "description": "Logs of the scheduled task.",
+    "order": "created",
+    "sort": "desc",
     "layout": {
         "items": [
             {

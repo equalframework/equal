@@ -96,7 +96,7 @@ class Mail extends Model {
      * @param   Email   $email           Email message to be sent.
      * @param   string  $object_class    Class of the object associated with the sending (optional).
      * @param   string  $object_id       Identifier of the object associated with the sending (optional).
-     * @throws  Exception                This method raises an Exception in case of error.
+     * @throws  \Exception                This method raises an Exception in case of error.
      */
     public static function queue(Email $email, string $object_class='', int $object_id=0): void {
         // create an Object
@@ -127,12 +127,12 @@ class Mail extends Model {
         // convert to JSON
         $data = json_encode($values, JSON_PRETTY_PRINT);
         if($data === false) {
-            throw new Exception('failed_json_conversion', QN_ERROR_UNKNOWN);
+            throw new \Exception('failed_json_conversion', QN_ERROR_UNKNOWN);
         }
         // export to outbox
         $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
         if(file_put_contents($filename, $data) === false) {
-            throw new Exception('failed_file_creation', QN_ERROR_UNKNOWN);
+            throw new \Exception('failed_file_creation', QN_ERROR_UNKNOWN);
         }
     }
 
@@ -144,7 +144,7 @@ class Mail extends Model {
     public static function flush() {
         // load dependencies
         if(!file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-            throw new Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
+            throw new \Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
         }
 
         require_once(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');

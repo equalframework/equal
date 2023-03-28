@@ -97,7 +97,12 @@ class AccessController extends Service {
             else {
                 $orm = $this->container->get('orm');
 
-                // get user groups
+                // grant READ on system entities ('core' package)
+                if(ObjectManager::getObjectPackage(ObjectManager::getObjectRootClass($object_class)) == 'core') {
+                    $user_rights |= QN_R_READ;
+                }
+
+                // get all user's groups
                 $groups_ids = $this->getUserGroups($user_id);
 
                 // build array of ACL variants
@@ -429,18 +434,29 @@ class AccessController extends Service {
         // build final user rights
         $user_rights = $this->getUserRights($user_id, $object_class, $object_fields, $object_ids);
 
-        // user has some rights on its own object
-        if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $user_id == $object_ids[0]) {
-            // user always has READ rights on its own object
-            $user_rights |= QN_R_READ;
-            // user can update some fields on its own object
-            $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
-            // if, after removing special fields, there are only fields that user can update, then we grant the WRITE right
-            if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
-                $user_rights |= QN_R_WRITE;
+        // retrieve root class of filtered entity
+        $root_class = ObjectManager::getObjectRootClass($object_class);
+
+        if($root_class == 'core\Group') {
+            // members of a group have READ rights on it
+            $groups_ids = $this->getUserGroups($user_id);
+            if(count(array_diff($object_ids, $groups_ids)) <= 0) {
+                $user_rights |= QN_R_READ;
             }
         }
-        else if($operation == QN_R_READ) {
+        elseif($root_class == 'core\User') {
+            if(count($object_ids) == 1 && $user_id == $object_ids[0]) {
+                // user always has READ rights on its own object
+                $user_rights |= QN_R_READ;
+                // user is granted to update some fields on its own object
+                $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
+                // if, after removing special fields, there are only fields that user can update, then we grant the WRITE right
+                if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
+                    $user_rights |= QN_R_WRITE;
+                }
+            }
+        }
+        elseif($operation == QN_R_READ) {
             // this is a special case of a generic feature (we should add this in the init data)
             // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
             $objects = $orm->read($object_class, $object_ids, ['creator']);

@@ -3,9 +3,9 @@ LABEL   Description="Latest version of eQual with Apache UID and GUID injection"
         Maintainer="Cedric Francoys <cedric@equal.run>" \
         License="Apache License 2.0" \
         Version="1.0"
-ENV ACCEPT_EULA=Y				 
+ENV ACCEPT_EULA=Y
 RUN apt-get update && apt-get install -y \
-	gnupg2 \		
+	gnupg2 \
     git \
     procps \
     netcat \
@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y \
 COPY ./mpm_prefork.conf /etc/apache2/mods-available/
 COPY ./000-default.conf /etc/apache2/sites-available/
 # install sqlsrv using pecl
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - 
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 RUN curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
 RUN apt-get update
 RUN ACCEPT_EULA=Y apt-get -y --no-install-recommends install msodbcsql17 unixodbc-dev
-RUN pecl install sqlsrv pdo_sqlsrv						   								  
+RUN pecl install sqlsrv pdo_sqlsrv
 # install required PHP extensions
 RUN set -ex; \
         \
@@ -31,13 +31,13 @@ RUN set -ex; \
                 libwebp-dev \
                 libtidy-dev \
                 libzip-dev \
-				libicu-dev \							
+				libicu-dev \
                 zip \
         ; \
         \
         docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
         docker-php-ext-install gd mysqli opcache zip tidy; \
-		docker-php-ext-enable sqlsrv pdo_sqlsrv; \										  
+		docker-php-ext-enable sqlsrv pdo_sqlsrv; \
         \
 # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
         apt-mark auto '.*' > /dev/null; \
@@ -61,7 +61,7 @@ RUN set -ex; \
         chmod -R g+w bin; \
         chmod -R g+w cache; \
         chmod -R g+w config/routing
-		
+
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN { \

@@ -37,6 +37,11 @@
                                                 "type": "field",
                                                 "value": "repeat_step",
                                                 "width": "33%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "status",
+                                                "visible": false
                                             }
                                         ]
                                     },

@@ -14,7 +14,7 @@ class Version extends Model {
         return [
             /* override state field */
             'state' => [
-                'type'              => 'string', 
+                'type'              => 'string',
                 'selection'         => ['draft', 'version']
             ],
 
