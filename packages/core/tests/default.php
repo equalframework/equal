@@ -322,7 +322,7 @@ $tests = [
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function (){
-// todo
+    // todo
                                                 return true;
                                             },
                     ),
@@ -331,7 +331,7 @@ $tests = [
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function () {
-// todo
+    // todo
                                                 return true;
                                             }
                     ),
@@ -340,7 +340,7 @@ $tests = [
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function () {
-// todo
+    // todo
                                                 return true;
                                             }
                     ),
@@ -511,7 +511,7 @@ $tests = [
                                             },
                     'expected'          =>  ['id' => 4, 'login' => 'test@equal.run']
                     ),
-/*
+    /*
     '4101' => array(
                     'description'       =>  "HTTP basic auth",
                     'return'            =>  array('integer', 'array'),
