@@ -1,8 +1,8 @@
-[![Build Status](https://circleci.com/gh/cedricfrancoys/equal.svg?style=shield)](https://circleci.com/gh/cedricfrancoys/equal)
+[![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![Maintainer](https://img.shields.io/badge/maintainer-cedricfrancoys-blue)](https://github.com/cedricfrancoys)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/cedricfrancoys/equal/pulls)
-![eQual - Create great Apps, your way!](https://github.com/cedricfrancoys/equal/blob/master/public/assets/img/equal_logo.png?raw=true)
+![eQual - Create great Apps, your way!](https://github.com/equalframework/equal/blob/master/public/assets/img/equal_logo.png?raw=true)
 # Create great Apps, your way!
 
 eQual is a versatile, language-agnostic and web-oriented framework, aiming to elegantly manage interactions between front-end Apps and Business Logic involved in modern Web Applications.
@@ -42,11 +42,11 @@ eQual requires the following environment:
 
 Download code as ZIP:
 ```
-wget https://github.com/cedricfrancoys/equal/archive/master.zip
+wget https://github.com/equalframework/equal/archive/master.zip
 ```
 or clone with Git :
 ```
-git clone https://github.com/cedricfrancoys/equal.git
+git clone https://github.com/equalframework/equal.git
 ```
 
 For more info, see : [http://doc.equal.run/getting-started/installation](http://doc.equal.run/getting-started/installation/)
