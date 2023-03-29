@@ -1129,7 +1129,9 @@ class ObjectManager extends Service {
         $schema = $model->getSchema();
 
 
-        // 1) REQUIRED constraint check
+        /**
+         * 1) REQUIRED constraint check
+         */
 
         if($check_required) {
             foreach($schema as $field => $def) {
@@ -1144,7 +1146,10 @@ class ObjectManager extends Service {
         }
 
 
-        // 2) MODEL constraint check
+        /**
+         * 2) MODEL constraint check
+         */
+
 
         //     // #todo
         //     // check constraints implied by type and usage
@@ -1248,7 +1253,9 @@ class ObjectManager extends Service {
         }
 
 
-        // 3) UNIQUE constraint check
+        /**
+         * 3) UNIQUE constraint check
+         */
 
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
             $uniques = $model->getUnique();
@@ -1287,10 +1294,11 @@ class ObjectManager extends Service {
                             $value = $extra_values[$id][$field];
                         }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
-                        // map unique fields with the given values
-                        $domain[] = [$field, '=', $value];
-                        // make sure to ignore existing records with field left as null
-                        $domain[] = [$field, 'is not', null];
+                        if(!is_null($value)) {
+                            $domain[] = [$field, '=', $value];
+                            // make sure to ignore existing records with field left as null
+                            $domain[] = [$field, 'is not', null];
+                        }
                     }
                     // search for objects already set with unique values
                     if(count($domain)) {
