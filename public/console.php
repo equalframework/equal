@@ -4,7 +4,7 @@ define('LOG_FILE_NAME', 'eq_error.log');
 $data = '';
 
 // get log file, using variation from URL, if any
-$log_file = LOG_FILE_NAME.( (isset($_GET['f']))?('.'.$_GET['f']):'');
+$log_file = LOG_FILE_NAME.( (isset($_GET['f']) && strlen($_GET['f']))?('.'.$_GET['f']):'');
 
 if(file_exists('../log/'.$log_file)) {
     // read raw data from log file
@@ -178,7 +178,7 @@ function copy(node) {
 <body>
 <input style="display: block; position: absolute; top: -100px;" id="clipboard" type="text">
 <div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
-    <form method="GET" style="padding: 20px;background: #f1f1f1;margin: 5px;border: solid 1px grey;border-radius: 10px;">
+    <form method="GET" style="padding: 20px;background: #f1f1f1;margin: 5px;border: solid 1px grey;border-radius: 5px;">
         <div style="display: flex; align-items: flex-end;">
             <div style="display: flex; flex-direction: column;">
                 <label>Level:</label>
