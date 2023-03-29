@@ -1298,15 +1298,13 @@ class ObjectManager extends Service {
                         $domain[] = ['state', 'like', '%%'];
                         // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
                         $domain[] = ['deleted', 'in', ['0', '1']];
-                        if(count($ids)) {
-                            // ids are always unique
-                            $domain[] = ['id', 'not in', $ids];
+                        // object does not conflict with itself
+                        $domain[] = ['id', '<>', $id];
+                        $conflict_ids = $this->search($class, $domain);
+                        if($conflict_ids < 0) {
+                            // interrupt the process in case of system error (SQL)
+                            return $conflict_ids;
                         }
-                        $s_res = $this->search($class, $domain);
-                        if($s_res < 0) {
-                            return $s_res;
-                        }
-                        $conflict_ids = array_filter((array) $s_res, function($a) {return $a > 0;});
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
