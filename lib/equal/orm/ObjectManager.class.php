@@ -200,17 +200,19 @@ class ObjectManager extends Service {
     /**
      * Provide the db handler (DBConnection instance).
      * If the connection hasn't been established yet, tries to connect to DBMS.
+     *
      * @return DBConnection
      */
     private function getDBHandler() {
-        // open DB connection
+        // open DB connection, if not connected yet
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
                 // fatal error
-                trigger_error(  'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
-                                'unable to establish connection to database: check connection parameters '.
-                                '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
-                                QN_REPORT_ERROR);
+                trigger_error('Unable to establish connection to database: check connection parameters '.
+                        '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, DB offline, ...)',
+                        QN_REPORT_ERROR
+                    );
+                throw new Exception("connection_failed", QN_ERROR_INVALID_CONFIG);
             }
         }
         return $this->db;
@@ -402,7 +404,9 @@ class ObjectManager extends Service {
     * @return bool      Returns true if all attributes in $chek_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
-        if (!isset($schema) || !isset($schema[$field])) throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
+        if (!isset($schema) || !isset($schema[$field])) {
+            throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
+        }
         $attributes = $check_array[$schema[$field]['type']];
         return !(count(array_intersect($attributes, array_keys($schema[$field]))) < count($attributes));
     }
@@ -1088,7 +1092,7 @@ class ObjectManager extends Service {
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
             // #todo - validate (this is the only public method in ORM that raises an Exception)
-            throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
+            throw new Exception("unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
         return $model;
     }
@@ -1108,12 +1112,13 @@ class ObjectManager extends Service {
      *               }
      *            }
      *
-     * @param   string  $class          Entity name.
-     * @param   array   $ids            Array of objects identifiers.
-     * @param   array   $values         Associative array mapping fields names with values to be assigned to the object(s).
-     * @param   boolean $check_unique   Request check for unicity contraints (related to getUnique method).
-     * @param   boolean $check_required Request check for required fields (and _self constraints).
-     * @return  array   Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
+     * @param   string          $class          Entity name.
+     * @param   array           $ids            Array of objects identifiers.
+     * @param   array           $values         Associative array mapping fields names with values to be assigned to the object(s).
+     * @param   boolean         $check_unique   Request check for unicity contraints (related to getUnique method).
+     * @param   boolean         $check_required Request check for required fields (and _self constraints).
+     * @return  array|integer   Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
         // #todo : check relational fields consistency (make sure that target object(s) actually exist)
@@ -1278,7 +1283,7 @@ class ObjectManager extends Service {
                         if(isset($values[$field])) {
                             $value = $values[$field];
                         }
-                        else if(isset($extra_values[$id][$field])) {
+                        elseif(isset($extra_values[$id][$field])) {
                             $value = $extra_values[$id][$field];
                         }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
@@ -1297,7 +1302,11 @@ class ObjectManager extends Service {
                             // ids are always unique
                             $domain[] = ['id', 'not in', $ids];
                         }
-                        $conflict_ids = array_filter((array) $this->search($class, $domain), function($a) {return $a > 0;});
+                        $s_res = $this->search($class, $domain);
+                        if($s_res < 0) {
+                            return $s_res;
+                        }
+                        $conflict_ids = array_filter((array) $s_res, function($a) {return $a > 0;});
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
@@ -1309,7 +1318,9 @@ class ObjectManager extends Service {
                 }
 
                 // loop only if some field impacted by the 'unique' constraint are not present in the received $values
-                if(count($extra_fields) <= 0) break;
+                if(count($extra_fields) <= 0) {
+                    break;
+                }
             }
 
         }
@@ -2046,7 +2057,7 @@ class ObjectManager extends Service {
      * @param   integer    $start       The offset at which to start the segment of the list of matching objects.
      * @param   string     $limit       The maximum number of results/identifiers to return.
      *
-     * @return  integer|array   Returns an array of matching objects ids.
+     * @return  integer|array   Returns an array of matching objects ids, or a negative integer in case of error.
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         // get DB handler (init DB connection if necessary)
