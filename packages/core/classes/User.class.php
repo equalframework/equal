@@ -77,8 +77,37 @@ class User extends Model {
                 'foreign_object'    => 'core\setting\SettingValue',
                 'foreign_field'     => 'user_id',
                 'description'       => 'List of settings that relate to the user.'
-            ]
+            ],
 
+            // application logic related status of the object
+            'status' => [
+                'type'              => 'string',
+                'selection'         => ['created', 'validated', 'suspended'],
+                'default'           => 'created'
+            ]
+        ];
+    }
+
+    public static function getWorkflow() {
+        return [
+            'created' => [
+                'transitions' => [
+                    'validation' => [
+                        'depends_on'  => ['validated'],
+                        'domain'      => ['validated', '=', true],
+                        'description' => 'Update the user status based on the `validated` field.',
+                        'status'	  => 'validated'
+                    ]
+                ]
+            ],
+            'validated' => [
+                'transitions' => [
+                    'suspension' => [
+                        'description' => 'Set the user status as suspended.',
+                        'status'	  => 'suspended'
+                    ]
+                ]
+            ]
         ];
     }
 
