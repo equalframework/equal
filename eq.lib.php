@@ -414,7 +414,7 @@ namespace config {
                 try {
                     $value = eval("return $value;");
                 }
-                catch(Exception $e) {
+                catch(\Exception $e) {
                     // ignore parse errors
                 }
             }
@@ -917,7 +917,9 @@ namespace config {
                             unset($result[$param]);
                         }
                     }
-                    else $invalid_params[$param] = 'broken_constraint';
+                    else {
+                        $invalid_params[$param] = 'broken_constraint';
+                    }
                 }
             }
 
@@ -926,9 +928,13 @@ namespace config {
 
             if(count($invalid_params)) {
                 // no feedback about services
-                if(isset($announcement['providers'])) unset($announcement['providers']);
+                if(isset($announcement['providers'])) {
+                    unset($announcement['providers']);
+                }
                 // no feedback about constants
-                if(isset($announcement['constants'])) unset($announcement['constants']);
+                if(isset($announcement['constants'])) {
+                    unset($announcement['constants']);
+                }
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
                 foreach($invalid_params as $invalid_param => $error_id) {
