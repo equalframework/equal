@@ -204,10 +204,12 @@ class Model implements \ArrayAccess, \Iterator {
                 'default'           => time(),
                 'readonly'          => true
             ],
+            // #memo - when set to true, modifier points to the user who deleted the object and modified is the time of the deletion
             'deleted' => [
                 'type'              => 'boolean',
                 'default'           => false
             ],
+            // system related state of the object
             'state' => [
                 'type'              => 'string',
                 'selection'         => ['draft', 'instance', 'archive'],
@@ -215,22 +217,6 @@ class Model implements \ArrayAccess, \Iterator {
             ]
         ];
         return $special_columns;
-    }
-
-    /**
-     * #todo - deprecate : this method should no longer be used
-     * @deprecated
-     */
-    public final function setField($field, $value) {
-        $this->values[$field] = $value;
-    }
-
-    /**
-     * #todo - deprecate : this method doesn't seem to be used
-     * @deprecated
-     */
-    public final function setColumn($column, array $description) {
-        $this->schema[$column] = $description;
     }
 
     /**
@@ -345,6 +331,15 @@ class Model implements \ArrayAccess, \Iterator {
      *
      */
     public static function getColumns() {
+        return [];
+    }
+
+    /**
+     * Returns the workflow associated with the entity).
+     * This method is meant to be overridden by children classes.
+     *
+     */
+    public static function getworkflow() {
         return [];
     }
 
