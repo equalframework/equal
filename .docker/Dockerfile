@@ -13,11 +13,12 @@ RUN apt-get update && apt-get install -y \
 COPY ./mpm_prefork.conf /etc/apache2/mods-available/
 COPY ./000-default.conf /etc/apache2/sites-available/
 # install sqlsrv using pecl
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-RUN curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-RUN apt-get update
-RUN ACCEPT_EULA=Y apt-get -y --no-install-recommends install msodbcsql17 unixodbc-dev
-RUN pecl install sqlsrv pdo_sqlsrv
+#memo - latest version requires PHP 8
+# RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+# RUN curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+# RUN apt-get update
+# RUN ACCEPT_EULA=Y apt-get -y --no-install-recommends install msodbcsql17 unixodbc-dev
+# RUN pecl install sqlsrv pdo_sqlsrv
 # install required PHP extensions
 RUN set -ex; \
         \
@@ -37,7 +38,7 @@ RUN set -ex; \
         \
         docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
         docker-php-ext-install gd mysqli opcache zip tidy; \
-		docker-php-ext-enable sqlsrv pdo_sqlsrv; \
+#		docker-php-ext-enable sqlsrv pdo_sqlsrv; \
         \
 # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
         apt-mark auto '.*' > /dev/null; \
