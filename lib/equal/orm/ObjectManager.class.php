@@ -672,7 +672,9 @@ class ObjectManager extends Service {
 
             // 2) load fields values, grouping fields by type
             foreach($fields_lists as $type => $list) {
-                $load_fields[$type]($this, $ids, $list);
+                if(isset($load_fields[$type])) {
+                    $load_fields[$type]($this, $ids, $list);
+                }
             }
 
             // 3) check if some computed fields were not set in database
@@ -2044,6 +2046,86 @@ class ObjectManager extends Service {
             $res = $e->getCode();
         }
         return $res;
+    }
+
+    /**
+     * Returns the list of potentially transitions based on a list of updated fields.
+     */
+    private function getTransitionCandidates($class, $ids, $fields) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $workflow = $model->getWorkflow();
+        $objects = $this->read($class, $ids, ['status']);
+        foreach($objects as $id => $object) {
+            if(!isset($object['status'])) {
+                continue;
+            }
+            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if(isset($t_descr['depends_on']) && count(array_intersect($fields, $t_descr['depends_on'])) > 0 ) {
+                        $res[] = $t_name;
+                    }
+                }
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * Attempts to apply a transition to a series of objects.
+     * If no workflow is defined, the call is ignored.
+     * Otherwise, if there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     *
+     * @param   string      $class            Class name of the object to clone.
+     * @param   array       $ids              Array of ids of the objects to delete.
+     * @param   string      $transition       Name of the requested workflow transition (signal).
+     *
+     * @return  int         Error code OR an integer in case of success.
+     */
+    public function transition($class, $ids, $transition) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $workflow = $model->getWorkflow();
+        $objects = $this->read($class, $ids, ['status']);
+        foreach($objects as $id => $object) {
+            if(!isset($object['status'])) {
+                continue;
+            }
+            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                $match = false;
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if($t_name == $transition) {
+                        if(isset($t_descr['domain'])) {
+                            $domain = new Domain($t_descr['domain']);
+                            $fields = $domain->extractFields();
+                            $data = $this->read($class, $id, $fields);
+                            $object = reset($data);
+                            if(!$domain->evaluate($object)) {
+                                $match = true;
+                                $error_code = QN_ERROR_NOT_ALLOWED;
+                                $res[$transition] = ['forbidden_transition' => 'Current status does not comply with transition constraints.'];
+                                break;
+                            }
+                        }
+                        if(!isset($t_descr['status'])) {
+                            // invalid transition
+                            break;
+                        }
+                        $this->update($class, $id, ['status' => $t_descr['status']]);
+                        // #todo - if a 'function' is defined, call it
+                        $match = true;
+                        break;
+                    }
+                }
+                if(!$match) {
+                    $error_code = QN_ERROR_INVALID_CONFIG;
+                    $res[$transition] = ['unknown_transition' => "No transition '$transition' from status '{$object['status']}' is defined in workflow."];
+                }
+            }
+        }
+        return (count($res))?[$error_code => $res]:[];
     }
 
     /**
