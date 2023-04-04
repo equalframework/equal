@@ -104,14 +104,6 @@ class Collection implements \Iterator, \Countable {
     /**
      * @deprecated
      */
-    public function extend($column, $description) {
-        $this->model->setColumn($column, $description);
-    }
-
-    // #todo - deprecate : this method doesn't seem to be used
-    /**
-     * @deprecated
-     */
     public function set($fields) {
         $fields = (array) $fields;
         foreach($this->objects as $id => $object) {
@@ -432,7 +424,7 @@ class Collection implements \Iterator, \Countable {
             $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
-                throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);
+                throw new \Exception(serialize(['invalid_domain' => Domain::toString($domain)]), QN_ERROR_INVALID_PARAM);
             }
         }
 
