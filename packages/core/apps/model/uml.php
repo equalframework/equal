@@ -1,5 +1,13 @@
 <!DOCTYPE html>
 <!--
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+
+    http://equal.local/?show=core_model_uml&package=core
+-->
+
+<!--
 	WWW SQL Designer, (C) 2005-2015 Ondrej Zara, ondras@zarovi.cz
 	Version: 2.7
 	See license.txt for licencing information.
@@ -10,8 +18,8 @@
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1" />
  	<meta charset="utf-8" />
     <base href="/sqldesigner/">
-    
-	<link rel="stylesheet" href="styles/style.css" media="all" />     
+
+	<link rel="stylesheet" href="styles/style.css" media="all" />
 	<!--[if IE 6]><link rel="stylesheet" type="text/css" href="styles/ie6.css" /><![endif]-->
 	<!--[if IE 7]><link rel="stylesheet" type="text/css" href="styles/ie7.css" /><![endif]-->
 	<link rel="stylesheet" href="styles/print.css" type="text/css" media="print" />
@@ -35,8 +43,8 @@
 	<script src="js/window.js"></script>
 	<script src="js/options.js"></script>
 	<script src="js/wwwsqldesigner.js"></script>
-    
-    
+
+
 <script>
 
 var model;
@@ -44,7 +52,7 @@ var model;
 function load() {
     var request = new XMLHttpRequest();
     var selected_package = model;
-    
+
     request.onreadystatechange = function(event) {
         if (this.readyState === XMLHttpRequest.DONE) {
             if (this.status === 200) {
@@ -62,21 +70,21 @@ function load() {
                 if(!arranged) {
                     d.arrangeTables();
                 }
-            } 
+            }
             else {
                 console.log('error loading content');
             }
         }
     };
     request.open('GET', '/?get=utils_sqldesigner_schema&package='+selected_package, true);
-    request.send();    
+    request.send();
 }
 
 
 function save() {
 
     var xml = d.toXML();
-    console.log(xml);  
+    console.log(xml);
 
 
     var request = new XMLHttpRequest();
@@ -86,15 +94,15 @@ function save() {
         if (this.readyState === XMLHttpRequest.DONE) {
             if (this.status === 201) {
 
-            } 
+            }
             else {
                 console.log('error saving content');
             }
         }
     };
     request.open('POST', '/?do=utils_sqldesigner_update&package='+selected_package, true);
-    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");    
-    request.send('xml='+escape(xml));        
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.send('xml='+escape(xml));
 }
 
 (function init() {
@@ -105,13 +113,13 @@ function save() {
         console.log('no model found, stopping');
         return;
     }
-    setTimeout(function(){ 
-        load();    
-    }, 1000);    
+    setTimeout(function(){
+        load();
+    }, 1000);
 
 })();
 
-</script>    
+</script>
 </head>
 
 <body>
@@ -137,9 +145,9 @@ function save() {
 			<input type="button" id="removetable" />
 			<input type="button" id="aligntables" />
 			<input type="button" id="cleartables" />
-		
+
 			<hr/>
-		
+
 			<input type="button" id="addrow" />
 			<input type="button" id="editrow" />
 			<input type="button" id="uprow" class="small" /><input type="button" id="downrow" class="small"/>
@@ -147,19 +155,19 @@ function save() {
 			<input type="button" id="foreignconnect" />
 			<input type="button" id="foreigndisconnect" />
 			<input type="button" id="removerow" />
-		
+
 			<hr/>
-		
+
 			<input type="button" id="options" />
 			<a href="https://github.com/ondras/wwwsqldesigner/wiki" target="_blank"><input type="button" id="docs" value="" /></a>
 		</div>
-	
+
 		<div id="rubberband"></div>
 
 		<div id="minimap" style="display: none !important;"></div>
-	
+
 		<div id="background"></div>
-	
+
 		<div id="window">
 			<div id="windowtitle"><img id="throbber" src="images/throbber.gif" alt="" title=""/></div>
 			<div id="windowcontent"></div>
@@ -167,7 +175,7 @@ function save() {
 			<input type="button" id="windowcancel" />
 		</div>
 	</div> <!-- #controls -->
-	
+
 	<div id="opts">
 		<table>
 			<tbody>
@@ -181,7 +189,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						* <label id="db" for="optiondb"></label> 
+						* <label id="db" for="optiondb"></label>
 					</td>
 					<td>
 						<select id="optiondb"><option></option></select>
@@ -189,7 +197,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						<label id="snap" for="optionsnap"></label> 
+						<label id="snap" for="optionsnap"></label>
 					</td>
 					<td>
 						<input type="text" size="4" id="optionsnap" />
@@ -198,7 +206,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						<label id="pattern" for="optionpattern"></label> 
+						<label id="pattern" for="optionpattern"></label>
 					</td>
 					<td>
 						<input type="text" size="6" id="optionpattern" />
@@ -207,7 +215,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						<label id="hide" for="optionhide"></label> 
+						<label id="hide" for="optionhide"></label>
 					</td>
 					<td>
 						<input type="checkbox" id="optionhide" />
@@ -215,7 +223,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						* <label id="vector" for="optionvector"></label> 
+						* <label id="vector" for="optionvector"></label>
 					</td>
 					<td>
 						<input type="checkbox" id="optionvector" />
@@ -223,7 +231,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						* <label id="showsize" for="optionshowsize"></label> 
+						* <label id="showsize" for="optionshowsize"></label>
 					</td>
 					<td>
 						<input type="checkbox" id="optionshowsize" />
@@ -231,7 +239,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						* <label id="showtype" for="optionshowtype"></label> 
+						* <label id="showtype" for="optionshowtype"></label>
 					</td>
 					<td>
 						<input type="checkbox" id="optionshowtype" />
@@ -244,7 +252,7 @@ function save() {
 
 		* <span class="small" id="optionsnotice"></span>
 	</div>
-	
+
 	<div id="io">
 		<table>
 			<tbody>
@@ -253,7 +261,7 @@ function save() {
 						<fieldset>
 							<legend id="client"></legend>
 							<div id="singlerow">
-							<input type="button" id="clientsave" /> 
+							<input type="button" id="clientsave" />
 							<input type="button" id="clientload" />
 							</div>
 							<div id="singlerow">
@@ -275,11 +283,11 @@ function save() {
 							<legend id="server"></legend>
 							<label for="backend" id="backendlabel"></label> <select id="backend"><option></option></select>
 							<hr/>
-							<input type="button" id="serversave" /> 
-							<input type="button" id="quicksave" /> 
-							<input type="button" id="serverload" /> 
-							<input type="button" id="serverlist" /> 
-							<input type="button" id="serverimport" /> 
+							<input type="button" id="serversave" />
+							<input type="button" id="quicksave" />
+							<input type="button" id="serverload" />
+							<input type="button" id="serverlist" />
+							<input type="button" id="serverimport" />
 						</fieldset>
 					</td>
 				</tr>
@@ -294,10 +302,10 @@ function save() {
 			</tbody>
 		</table>
 	</div>
-	
+
 	<div id="keys">
 		<fieldset>
-			<legend id="keyslistlabel"></legend> 
+			<legend id="keyslistlabel"></legend>
 			<select id="keyslist"><option></option></select>
 			<input type="button" id="keyadd" />
 			<input type="button" id="keyremove" />
@@ -338,7 +346,7 @@ function save() {
 			</table>
 		</fieldset>
 	</div>
-	
+
 	<div id="table">
 		<table>
 			<tbody>
@@ -352,7 +360,7 @@ function save() {
 				</tr>
 				<tr>
 					<td>
-						<label id="tablecommentlabel" for="tablecomment"></label> 
+						<label id="tablecommentlabel" for="tablecomment"></label>
 					</td>
 					<td>
 						<textarea rows="5" cols="40" id="tablecomment"></textarea>
@@ -361,7 +369,7 @@ function save() {
 			</tbody>
 		</table>
 	</div>
-	
+
 	<script type="text/javascript">
 		var d = new SQL.Designer();
 	</script>
