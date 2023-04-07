@@ -405,13 +405,9 @@ class DataAdapterJson extends DataAdapter {
     }
 
     private static function timeToJson($value) {
-        $sign = ($value < 0)?'-':'';
-        $value = abs($value);
         $hours = floor($value / 3600);
         $minutes = floor(($value % 3600) / 60);
-        $seconds = $value % (60);
-        // #todo - add seconds in generated string (check for UI compatibility)
-        return sprintf("%s%02d:%02d:%02d", $sign, $hours, $minutes);
+        return sprintf("%02d:%02d", $hours, $minutes);
     }
 
 }
