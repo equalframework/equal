@@ -175,10 +175,12 @@ class DataAdapterSql extends DataAdapter {
     }
 
     private function timeToSql($value) {
+        $sign = ($value < 0)?'-':'';
+        $value = abs($value);
         $hours = (int) ($value / (60*60));
         $minutes = (int) (($value % (60*60)) / 60);
         $seconds = $value % (60);
-        return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
+        return sprintf("%s%02d:%02d:%02d", $sign, $hours, $minutes, $seconds);
     }
 
     private function dateToSql($value) {
