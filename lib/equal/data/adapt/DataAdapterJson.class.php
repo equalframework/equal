@@ -409,7 +409,9 @@ class DataAdapterJson extends DataAdapter {
         $value = abs($value);
         $hours = floor($value / 3600);
         $minutes = floor(($value % 3600) / 60);
-        return sprintf("%s%02d:%02d", $sign, $hours, $minutes);
+        $seconds = $value % (60);
+        // #todo - add seconds in generated string (check for UI compatibility)
+        return sprintf("%s%02d:%02d:%02d", $sign, $hours, $minutes);
     }
 
 }
