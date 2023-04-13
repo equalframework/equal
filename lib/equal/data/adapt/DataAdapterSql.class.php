@@ -202,6 +202,9 @@ class DataAdapterSql extends DataAdapter {
      * @param equal\orm\usages\Usage $usage  The Usage instance that applies on the value (from schema).
      */
     private function floatToSql($value, $usage) {
+        if(is_null($value)) {
+            return 'NULL';
+        }
         return number_format($value, $usage->getScale(), '.', '');
     }
 
