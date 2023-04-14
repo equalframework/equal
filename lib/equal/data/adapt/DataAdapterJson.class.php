@@ -41,7 +41,7 @@ class DataAdapterJson extends DataAdapter {
                 }
                 break;
             case 'text':
-                break;
+                return (string) $value;
             case 'time':
                 return self::jsonToTime($value);
             case 'date':
