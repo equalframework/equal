@@ -386,7 +386,7 @@ class DataAdapterJson extends DataAdapter {
         }
         else {
             foreach($value as $key => $val) {
-                $res = @json_decode($val, true);
+                $res = @json_decode($val, true, 512, JSON_BIGINT_AS_STRING);
                 $value[$key] = $res ? $res : $val;
             }
         }
