@@ -43,11 +43,11 @@ if($validation < 0 || count($validation)) {
 }
 
 // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
-// #memo - email might still be invalid (a validation check is made in User class)
 list($username, $domain) = explode('@', strtolower(trim($params['login'])));
 $username .= '+';
 $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
 
+// #memo - email might still be invalid (a validation check is made in User class)
 $auth->authenticate($login, $params['password']);
 
 $user_id = $auth->userId();

@@ -278,7 +278,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Provide the while collection as an array.
+     * Provide the whole collection as an array.
     */
     public function toArray() {
         return $this->get(true);
