@@ -1119,7 +1119,7 @@ class ObjectManager extends Service {
      * @param   array           $values         Associative array mapping fields names with values to be assigned to the object(s).
      * @param   boolean         $check_unique   Request check for unicity contraints (related to getUnique method).
      * @param   boolean         $check_required Request check for required fields (and _self constraints).
-     * @return  array|integer   Returns an associative array containing invalid fields with their associated error_message_id.
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
      *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
@@ -1495,6 +1495,7 @@ class ObjectManager extends Service {
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+
             // 1) pre-processing - $ids sanitization
 
             // cast fields to an array (passing a single field is accepted)
@@ -1562,14 +1563,9 @@ class ObjectManager extends Service {
             // 5) update objects
 
             $onupdate_fields = [];
-            $dependencies = [];
             // update internal buffer with given values
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers resetting computed fields
-                    if(isset($schema[$field]['dependencies'])) {
-                        $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
-                    }
                     // remember fields whose modification triggers an onupdate event
                     // #memo - computed fields assigned to null are meant to be re-computed without triggering onupdate
                     if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
@@ -1603,26 +1599,48 @@ class ObjectManager extends Service {
 
             // 8) handle the resetting of the dependent computed fields
 
-            if(count($dependencies)) {
-                // remember fields that must be re-computed instantly
-                $instant_fields = [];
-                foreach($dependencies as $dependency) {
-                    // #todo - add support for dot notation
-                    if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
-                        if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
-                            $instant_fields[] = $dependency;
-                        }
-                        foreach($ids as $oid) {
-                            $this->cache[$table_name][$oid][$lang][$dependency] = null;
-                        }
-                    }
-                }
-                $this->store($class, $ids, $dependencies, $lang);
-                if(count($instant_fields)) {
-                    // re-compute 'instant' computed field
-                    $this->read($class, $ids, $instant_fields, $lang);
+            $dependencies = [];
+            foreach($fields as $field => $value) {
+                // remember fields whose modification triggers resetting computed fields
+                if(isset($schema[$field]['dependencies'])) {
+                    $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
                 }
             }
+            // remember fields that must be re-computed instantly
+            $instant_fields = [];
+            foreach($dependencies as $dependency) {
+                // #todo - add support for dot notation
+                if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
+                    if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
+                        $instant_fields[] = $dependency;
+                    }
+                    foreach($ids as $oid) {
+                        $this->cache[$table_name][$oid][$lang][$dependency] = null;
+                    }
+                }
+            }
+            $this->store($class, $ids, $dependencies, $lang);
+            if(count($instant_fields)) {
+                // re-compute 'instant' computed field
+                $this->read($class, $ids, $instant_fields, $lang);
+            }
+
+
+            // 9) handle automatic transitions
+
+            foreach($ids as $object_id) {
+                // for each object, we must retrieve the status field
+                $transitions = $this->getTransitionCandidates($class, $object_id, array_keys($fields));
+                foreach($transitions as $transition) {
+                    $t_res = $this->transition($class, (array) $object_id, $transition);
+                    // transition succeeded
+                    if(count($t_res) == 0) {
+                        // there should be only one applicable transition, process next object
+                        break;
+                    }
+                }
+            }
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
@@ -1641,7 +1659,7 @@ class ObjectManager extends Service {
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|Model[]  Returns an associative array mapping Model instances for each requested id ($ids order is maintained). If an error occurs, it returns the ID of the raised error.
+     * @return  int|Model[]  Returns an associative array mapping Model instances for each requested id ($ids order is maintained). If an error occurs, the ID of the raised error is returned.
      */
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
@@ -2049,19 +2067,23 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Returns the list of potentially transitions based on a list of updated fields.
+     * Returns applicable transitions based on a list of updated fields, according to the dependencies defined in the related workflow descriptors.
+     * If no workflow is defined for the given class, an empty array is returned.
+     *
+     * @param string    $class
+     * @param int[]     $id         Identifier of the object for which applicable transitions are requested (transitions depend on individual status).
+     * @param string[]  $fields     List of field names.
+     * @return array    Returns a list of transition names (id) that must be tested in case one or more fields amongst the $feilds array is updated.
      */
-    private function getTransitionCandidates($class, $ids, $fields) {
+    private function getTransitionCandidates($class, $id, $fields) {
         /** @var array */
         $res = [];
         $model = $this->getStaticInstance($class);
         $workflow = $model->getWorkflow();
-        $objects = $this->read($class, $ids, ['status']);
-        foreach($objects as $id => $object) {
-            if(!isset($object['status'])) {
-                continue;
-            }
-            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+        $objects = $this->read($class, (array) $id, ['status']);
+        if($objects > 0 && count($objects)) {
+            $object = reset($objects);
+            if(isset($object['status']) && isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
                 foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
                     if(isset($t_descr['depends_on']) && count(array_intersect($fields, $t_descr['depends_on'])) > 0 ) {
                         $res[] = $t_name;
@@ -2073,23 +2095,27 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Attempts to apply a transition to a series of objects.
-     * If no workflow is defined, the call is ignored.
-     * Otherwise, if there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     * Attempts to apply a specific transition to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
      *
      * @param   string      $class            Class name of the object to clone.
      * @param   array       $ids              Array of ids of the objects to delete.
      * @param   string      $transition       Name of the requested workflow transition (signal).
      *
-     * @return  int         Error code OR an integer in case of success.
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function transition($class, $ids, $transition) {
         /** @var array */
         $res = [];
         $model = $this->getStaticInstance($class);
+        $table_name = $this->getObjectTableName($class);
         $workflow = $model->getWorkflow();
+        $lang = constant('DEFAULT_LANG');
         $objects = $this->read($class, $ids, ['status']);
         foreach($objects as $id => $object) {
+            // ignore models that do not have a status field
             if(!isset($object['status'])) {
                 continue;
             }
@@ -2113,7 +2139,9 @@ class ObjectManager extends Service {
                             // invalid transition
                             break;
                         }
-                        $this->update($class, $id, ['status' => $t_descr['status']]);
+                        // status field is always writeable (we don't call `update()` to bypass checks)
+                        $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
+                        $this->store($class, (array) $id, ['status'], $lang);
                         // #todo - if a 'function' is defined, call it
                         $match = true;
                         break;
