@@ -86,7 +86,6 @@ class DataAdapterSql extends DataAdapter {
 
         }
         return parent::adaptIn($value, $usage);
-        return $this->adaptDefault($value);
     }
 
 
@@ -98,7 +97,7 @@ class DataAdapterSql extends DataAdapter {
     public function adaptOut($value, $usage, $lang='en') {
         // by convention, all values are nullable
         if(is_null($value) || $value == 'null') {
-            return 'NULL';
+            return null;
         }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
