@@ -12,11 +12,21 @@ namespace equal\orm;
  * This class holds the description of an object along with the values of the currently assigned fields.
  *
  * List of static methods for building new Collection objects (accessed through magic methods):
- *
  * @method \equal\orm\Collection id($id)
  * @method \equal\orm\Collection ids(array $ids=[])
  * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=null)
  * @method \equal\orm\Collection create(array $values=null, $lang=null)
+ *
+ * List of static method with variable parameters:
+ * @method array cancreate($om, $values=[], $lang='en')
+ * @method array canupdate($om, $ids=[], $values=[], $lang='en')
+ * @method array canclone($om, $ids=[])
+ * @method array candelete($om, $ids=[])
+ * @method array onchange($om, $event=[], $values=[], $lang='en')
+ * @method void oncreate($om, $ids=[], $values=[], $lang='en')
+ * @method void onupdate($om, $ids=[], $values=[], $lang='en')
+ * @method void onclone($om, $ids=[])
+ * @method void ondelete($om, $ids=[])
  */
 class Model implements \ArrayAccess, \Iterator {
 
@@ -99,7 +109,9 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
 
-    /* Magic properties */
+    /**
+     * Magic properties
+     */
 
     public function __get($field) {
         return $this->values[$field];
@@ -110,7 +122,9 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
 
-    /* ArrayAccess methods */
+    /**
+     * ArrayAccess methods
+     */
 
     public function offsetSet($field, $value): void {
         if (!is_null($field)) {
@@ -137,7 +151,9 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
 
-    /* Iterator methods */
+    /**
+     * Iterator methods
+     */
 
     public function rewind() : void {
         reset($this->values);
@@ -339,7 +355,7 @@ class Model implements \ArrayAccess, \Iterator {
      * This method is meant to be overridden by children classes.
      *
      */
-    public static function getworkflow() {
+    public static function getWorkflow() {
         return [];
     }
 
@@ -363,6 +379,8 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
+     * Returns an associative array mapping field names with their default values.
+     * If overloaded, methods from children classes must merge their result with values returned from parent class.
      *
      */
     public function getDefaults() {
@@ -407,127 +425,6 @@ class Model implements \ArrayAccess, \Iterator {
         }
 
         return strtolower(str_replace('\\', '_', $entity));
-    }
-
-
-    /**
-     * Check wether an object can be created.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
-     */
-    public static function cancreate($om, $values, $lang) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be updated.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @param  array            $values     Associative array holding the new values to be assigned.
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canupdate($om, $oids, $values, $lang) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be cloned.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @return array            Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canclone($om, $oids) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be deleted.
-     * This method can be overriden to define a more precise set of tests.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
-     */
-    public static function candelete($om, $oids) {
-        return [];
-    }
-
-    /**
-     * Hook invoked after object creation for performing object-specific additional operations.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers. Should contain only the id of the object just created.
-     * @param  array            $values     Associative array holding the newly assigned values.
-     * @param  string           $lang       Language in which multilang fields are being created.
-     * @return void
-     */
-    public static function oncreate($om, $oids, $values, $lang) {
-    }
-
-    /**
-     * Hook invoked before object update for performing object-specific additional operations.
-     * Current values of the object can still be read for comparing with new values.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @param  array            $values     Associative array holding the new values that have been assigned.
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return void
-     */
-    public static function onupdate($om, $oids, $values, $lang) {
-        // upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
-        if(isset($values['state']) && $values['state'] != 'instance') {
-            $messages_ids = $om->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $oids] ] );
-            if($messages_ids) {
-                $om->delete('core\alert\Message', $messages_ids, true);
-            }
-        }
-    }
-
-    /**
-     * Hook invoked after object cloning for performing object-specific additional operations.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @return void
-     */
-    public static function onclone($om, $oids) {
-    }
-
-    /**
-     * Hook invoked before object deletion for performing object-specific additional operations.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @return void
-     */
-    public static function ondelete($om, $oids) {
-    }
-
-    /**
-     * Signature for single object values change in UI.
-     * This mehtod does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
-     *
-     * @param  ObjectManager    $om         ObjectManager instance.
-     * @param  array            $oids       List of objects identifiers.
-     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
-     * @param  array            $values     Copy of the current (partial) state of the object.
-     * @return array            Returns an associative array mapping fields with their resulting values.
-     */
-    public static function onchange($om, $event, $values, $lang) {
-        return [];
     }
 
     public static function id($id) {
