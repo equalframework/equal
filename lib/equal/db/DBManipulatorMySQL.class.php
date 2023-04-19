@@ -290,13 +290,13 @@ class DBManipulatorMySQL extends DBManipulator {
         if(gettype($value) == 'string' && strlen($value) == 0) {
             $result = "''";
         }
-        else if(in_array(gettype($value), ['integer', 'double'])) {
+        elseif(in_array(gettype($value), ['integer', 'double'])) {
             $result = $value;
         }
-        else if(gettype($value) == 'boolean') {
+        elseif(gettype($value) == 'boolean') {
             $result = ($value)?'1':'0';
         }
-        else if(is_null($value)) {
+        elseif(is_null($value)) {
             $result = 'NULL';
         }
         else {
@@ -306,7 +306,7 @@ class DBManipulatorMySQL extends DBManipulator {
                 $result = self::escapeFieldName($value);
             }
             // value represents NULL SQL value
-            else if($value == 'null' || $value == 'NULL') {
+            elseif($value == 'null' || $value == 'NULL') {
                 $result = 'NULL';
             }
             // value is any other kind of string
@@ -341,7 +341,9 @@ class DBManipulatorMySQL extends DBManipulator {
             $conditions = [[[]]];
         }
         for($j = 0, $max_j = count($conditions); $j < $max_j; ++$j) {
-            if($j > 0 && strlen($sql) > 0) $sql .= ') OR (';
+            if($j > 0 && strlen($sql) > 0) {
+                $sql .= ') OR (';
+            }
             if(!empty($ids)) {
                 $conditions[$j][] = array($id_field, 'in', $ids);
             }
