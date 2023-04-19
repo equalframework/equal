@@ -43,7 +43,14 @@ class User extends Model {
                 'type'              => 'string'
             ],
 
-            // #todo - rename to 'locale'
+            'fullname' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'function'          => 'calcFullname'
+            ],
+
+            // #todo - add a distinct field for 'locale'
+
             'language' => [
                 'type'              => 'string',
                 'usage'             => 'language/iso-639',
@@ -54,7 +61,9 @@ class User extends Model {
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,
-                'description'       => 'Flag telling if the User has validated its email address and can sign in.'
+                'description'       => 'Flag telling if the User has validated his email address.',
+                'help'              => "This fields is used at signin to prevent non-validated user to log in.",
+                'onupdate'          => 'onupdateValidated'
             ],
 
             'groups_ids' => [
@@ -82,8 +91,10 @@ class User extends Model {
             // application logic related status of the object
             'status' => [
                 'type'              => 'string',
-                'selection'         => ['created', 'validated', 'suspended'],
+                // initial status
                 'default'           => 'created'
+                // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
+                // onupdate is allowed but it is better practice to use the function properties in the workflow descriptor
             ]
         ];
     }
@@ -96,7 +107,9 @@ class User extends Model {
                         'depends_on'  => ['validated'],
                         'domain'      => ['validated', '=', true],
                         'description' => 'Update the user status based on the `validated` field.',
-                        'status'	  => 'validated'
+                        'help'        => "The `validated` field is set by a dedicated controller that handles email confirmation requests.",
+                        'status'	  => 'validated',
+                        'function'    => 'onValidated'
                     ]
                 ]
             ],
@@ -105,6 +118,28 @@ class User extends Model {
                     'suspension' => [
                         'description' => 'Set the user status as suspended.',
                         'status'	  => 'suspended'
+                    ],
+                    'confirmation' => [
+                        'domain'      => ['validated', '=', true],
+                        'description' => 'Update the user status based on the `confirmed` field.',
+                        'help'        => "The `confirmed` field is set by a dedicated controller that handles the account confirmation process (auto or manual).",
+                        'status'	  => 'confirmed'
+                    ]
+                ]
+            ],
+            'confirmed' => [
+                'transitions' => [
+                    'suspension' => [
+                        'description' => 'Set the user account as disabled (prevents signin).',
+                        'status'	  => 'suspended'
+                    ]
+                ]
+            ],
+            'suspended' => [
+                'transitions' => [
+                    'confirmation' => [
+                        'description' => 'Re-enable the user account.',
+                        'status'	  => 'confirmed'
                     ]
                 ]
             ]
@@ -113,8 +148,8 @@ class User extends Model {
 
     /**
      * Filter method for password updates.
-     * Make sure password is crypted when stored to DB.
-     * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     * Make sure password is encrypted when stored to DB.
+     * If not encrypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
      * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
      *
      * @param   $om     Object  Instance of the ObjectManager Service
@@ -144,4 +179,64 @@ class User extends Model {
         ];
     }
 
+    /**
+     * Compute the value of the fullname of the user (concatenate firstname and lastname).
+     *
+     * @param \equal\orm\Collection $self  An instance of a User collection.
+     *
+     */
+    public static function calcFullname($self) {
+        $result = [];
+        $self->read(['firstname', 'lastname']);
+        foreach($self as $id => $user) {
+            $result[$id] = $user['firstname'].' '.$user['lastname'];
+        }
+        return $result;
+    }
+
+    public static function onupdate($self) {
+
+    }
+
+    public static function onupdateValidated($self) {
+        $self->read(['id', 'name']);
+        foreach($self as $id => $object) {
+            $object['name'] = 'testtralala';
+        }
+    }
+
+    public static function onValidated($orm, $ids) {
+        return $orm->transition(self::getType(), $ids, 'confirmation');
+    }
+
+    public static function onchange($event, $values) {
+        $result = [];
+
+        if(isset($event['firstname']) || isset($event['lastname'])) {
+
+            if(isset($event['firstname'])) {
+                if(isset($event['lastname'])) {
+                    $result['fullname'] = $event['firstname'].' '.$event['lastname'];
+                }
+                else {
+                    if(isset($values['lastname'])) {
+                        $result['fullname'] = $event['firstname'].' '.$values['lastname'];
+                    }
+                    else {
+                        $result['fullname'] = $event['firstname'];
+                    }
+                }
+            }
+            else {
+                if(isset($values['firstname'])) {
+                    $result['fullname'] = $values['firstname'].' '.$event['lastname'];
+                }
+                else {
+                    $result['fullname'] = $event['lastname'];
+                }
+            }
+        }
+
+        return $result;
+    }
 }
