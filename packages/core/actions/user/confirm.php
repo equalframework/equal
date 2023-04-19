@@ -15,7 +15,17 @@ list($params, $providers) = announce([
             'type'          => 'string',
             'usage'         => 'email',
             'required'      => true
+        ],
+        'redirect' => [
+            'description'   => 'Relative URL to redirect user to, after successful authentication.',
+            'type'          => 'string',
+            'usage'         => 'url',
+            'default'       => 'auth/#/signin'
         ]
+    ],
+    'constants'     => ['ROOT_APP_URL'],
+    'access'        => [
+        'visibility'        => 'public'
     ],
     'response'      => [
         'content-type'      => 'application/json',
@@ -29,36 +39,35 @@ list($params, $providers) = announce([
 // initialize local vars with inputs
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
-
-
 list($login, $password) = explode(':', base64_decode($params['code']));
 
+$auth->su();
 
-// try to create a new user account
-$json = run('do', 'user_login', [
-            'login'         => $login,
-            'password'      => $password
-        ]);
+// received password is expected to be encrypted the same way it is stored
+$ids = $om->search('core\User', [['login', '=', $login]]);
 
-
-// decode json into an array
-$data = json_decode($json, true);
-
-// relay error if any
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
+if(!count($ids)) {
+    throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
 }
 
-// we received an array describing a User object
-$user = $data;
+$list = $om->read(User::getType(), $ids, ['id', 'login', 'password']);
+$user = reset($list);
 
-$res = $om->write('core\User', $user['id'], ['validated' => true]);
-if($res < 0) {
-    throw new Exception('unable to update user', QN_ERROR_UNKNOWN);
+if(!password_verify($password, $user['password'])) {
+    throw new \Exception('invalid_request', QN_ERROR_INVALID_USER);
+}
+
+// mark user as validated
+$om->update(User::getType(), $user['id'], ['validated' => true]);
+
+$response = $context->httpResponse();
+
+if(strlen($params['redirect'])) {
+    $url = rtrim(constant('ROOT_APP_URL'), '/').'/'.ltrim($params['redirect'], '/');
+    header('Location: '.$url);
+    exit();
 }
 
 $context->httpResponse()
-        ->body($user)
+        ->status(204)
         ->send();
