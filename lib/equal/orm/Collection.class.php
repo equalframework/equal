@@ -358,11 +358,24 @@ class Collection implements \Iterator, \Countable {
      *
      * @param   string      $to     Target string  might be a map associating fields with their values, or a map association ids with objects
      * @param   string      $lang   Deprecated, use method `Collection->lang($lang)`.
-     * @return  Collection          Returns the current Collection instance.
+     * @return  Collection          Returns the instance of the current Collection.
      */
     public function adapt($to='json', $lang=null) {
         // set the adapter to be used for adaptOut conversion
         $this->adapter = $this->dap->get($to);
+        return $this;
+    }
+
+    /**
+     * Set Collection to perform ongoing operations using a given language.
+     * Language switching can be performed several times on a same collection and is sequential (the lang that will be used is the one set by the last `lang()` call).
+     * #memo - the lang is set in constructor and defaults to 'en'.
+     *
+     * @param   string      $lang   ISO 639 code of the lang to use for further CRUD operations.
+     * @return  Collection          Returns the instance of the current Collection.
+     */
+    public function lang($lang) {
+        $this->lang = $lang;
         return $this;
     }
 
