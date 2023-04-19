@@ -1,22 +1,25 @@
 import { Component, OnInit, Input  } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ValidatorFn, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, AbstractControlOptions } from '@angular/forms';
 
 import { AuthService } from 'sb-shared-lib';
 
 
 
 @Component({
-    selector: 'auth-signin',
-    templateUrl: 'auth.signin.component.html',
-    styleUrls: ['auth.signin.component.scss']
+    selector: 'auth-signup',
+    templateUrl: 'auth.signup.component.html',
+    styleUrls: ['auth.signup.component.scss']
 })
-export class AuthSigninComponent implements OnInit {
+export class AuthSignupComponent implements OnInit {
     public form: FormGroup;
     public loading:boolean = false;
     public submitted:boolean = false;
-    public hidepass:boolean = true;
-    public signin_error:boolean = false;
+
+    public hide_password:boolean = true;
+    public hide_confirm:boolean = true;
+
+    public signup_error:boolean = false;
     public server_error:boolean = false;
 
     constructor(
@@ -34,10 +37,13 @@ export class AuthSigninComponent implements OnInit {
 
     public async ngOnInit() {
         // setup the form
+        const formOptions: AbstractControlOptions = {validators: PasswordValidator};
+
         this.form = <FormGroup>this.formBuilder.group({
             username: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$')]],
-            password: ['', Validators.required]
-        });
+            password: ['', [Validators.required, Validators.minLength(8)]],
+            confirm:  ['', Validators.required]
+        }, formOptions);
 
         this.form.get('username').valueChanges.subscribe( () => {
             this.submitted = false;
@@ -46,6 +52,11 @@ export class AuthSigninComponent implements OnInit {
         this.form.get('password').valueChanges.subscribe( () => {
             this.submitted = false;
         });
+
+        this.form.get('confirm').valueChanges.subscribe( () => {
+            this.submitted = false;
+        });
+
     }
 
     public async onSubmit() {
@@ -53,16 +64,15 @@ export class AuthSigninComponent implements OnInit {
         if (this.form.invalid) {
             return;
         }
-        this.signin_error = false;
+        this.signup_error = false;
         this.server_error = false;
         this.submitted = true;
         this.loading = true;
 
         try {
-            const data = await this.auth.signIn(this.f.username.value, this.f.password.value);
+            const data = await this.auth.signUp(this.f.username.value, this.f.password.value);
             // success: we should be able to authenticate
-            this.auth.authenticate();
-            // AppRootComponent should now redirect to /apps
+            this.router.navigate(['/signup/sent'],  { state: { username: this.f.username.value, password: this.f.password.value, message_id: data.message_id} });
         }
         catch(response:any) {
             console.log(response);
@@ -96,7 +106,7 @@ export class AuthSigninComponent implements OnInit {
                     this.server_error = true;
                 }
                 else {
-                    this.signin_error = true;
+                    this.signup_error = true;
                 }
             }
             // there was an error: stop loading indicator
@@ -104,12 +114,19 @@ export class AuthSigninComponent implements OnInit {
         }
     }
 
-    public onRecover() {
-        this.router.navigate(['/recover']);
+    public onSignin() {
+        this.router.navigate(['/signin']);
     }
 
-    public onRegister() {
-        this.router.navigate(['/signup']);
-    }
+}
 
+const PasswordValidator: ValidatorFn = (form: AbstractControl) => {
+    const password = form.get('password').value;
+    const confirm = form.get('confirm').value;
+    if(password !== null && confirm !== null && password != confirm) {
+        form.get('confirm').setErrors({mismatch: true});
+        return <ValidationErrors> {mismatch: true};
+    }
+    form.get('confirm').setErrors(null);
+    return null;
 }

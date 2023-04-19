@@ -18,11 +18,12 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthRecoverComponent } from './app/auth/recover/auth.recover.component';
 import { AuthSigninComponent } from './app/auth/signin/auth.signin.component';
 import { AuthResetComponent } from './app/auth/reset/auth.reset.component';
-
+import { AuthSignupComponent } from './app/auth/signup/auth.signup.component';
+import { AuthSignupSentComponent } from './app/auth/signup/sent/auth.signup.sent.component';
 
 @NgModule({
     declarations: [
-        AppRootComponent, AuthRecoverComponent, AuthSigninComponent, AuthResetComponent
+        AppRootComponent, AuthRecoverComponent, AuthSigninComponent, AuthResetComponent, AuthSignupComponent, AuthSignupSentComponent
     ],
     imports: [
         AppRoutingModule,
