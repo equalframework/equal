@@ -24,7 +24,7 @@ class DataAdapterSql extends DataAdapter {
      */
 	public function adaptIn($value, $usage, $lang='en') {
         // by convention, all values/types are nullable
-        if(is_null($value) || $value == 'null') {
+        if(is_null($value)) {
             return null;
         }
         if(!($usage instanceof Usage)) {
@@ -96,7 +96,8 @@ class DataAdapterSql extends DataAdapter {
      */
     public function adaptOut($value, $usage, $lang='en') {
         // by convention, all values are nullable
-        if(is_null($value) || $value == 'null') {
+        if(is_null($value)) {
+            // #memo - we should return the string 'NULL', but DBMS expect to receive a null value
             return null;
         }
         if(!($usage instanceof Usage)) {

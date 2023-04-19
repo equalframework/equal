@@ -22,7 +22,7 @@ class DataAdapterJson extends DataAdapter {
      */
 	public function adaptIn($value, $usage, $lang='en') {
         // by convention, all types/values are nullable
-        if(is_null($value) || $value == 'null') {
+        if(is_null($value)) {
             return null;
         }
         if(!($usage instanceof Usage)) {
@@ -86,7 +86,7 @@ class DataAdapterJson extends DataAdapter {
      *
      */
     public function adaptOut($value, $usage, $lang='en') {
-        if(is_null($value) || $value == 'null') {
+        if(is_null($value)) {
             return null;
         }
         if(!($usage instanceof Usage)) {
