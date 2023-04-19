@@ -873,7 +873,6 @@ class ObjectManager extends Service {
                                 $rel_ids = [intval($rel_ids)];
                             }
                             else {
-                                print_r($rel_ids);
                                 trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                                 continue;
                             }
@@ -966,7 +965,7 @@ class ObjectManager extends Service {
      * @param   string    $method
      * @param   int[]     $ids
      * @param   array     $values
-     * @param   array     $signature        List of parameters to relay to target method (required if differing from default).
+     * @param   array     $signature        (deprecated) List of parameters to relay to target method (required if differing from default).
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
@@ -991,16 +990,13 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            trigger_error("ORM::non-existing method '$method' for class '$class'", QN_REPORT_INFO);
-            return QN_ERROR_INVALID_PARAM;
+            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            return $result;
         }
 
-        $first_call = false;
-
-        // init object_method map if necessary
+        // init call stack
         if(!isset($this->object_methods[$called_class][$called_method])) {
             $this->object_methods[$called_class][$called_method] = [];
-            $first_call = true;
         }
 
         // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
@@ -1008,22 +1004,42 @@ class ObjectManager extends Service {
         $unprocessed_ids = array_diff((array) $ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
-        // only 'ids', 'values' and 'lang' are accepted
-        $params = [];
-        foreach($signature as $param) {
-            switch($param) {
-                case 'ids':     $params[] = $unprocessed_ids;
-                    break;
-                case 'values':  $params[] = $values;
-                    break;
-                case 'lang':    $params[] = $lang;
-                    break;
+        /** @var \ReflectionMethod */
+        $method = new \ReflectionMethod($called_class, $called_method);
+        /** @var \ReflectionParameter */
+        $params = $method->getParameters();
+
+        $args = [];
+        foreach($params as $param) {
+            $param_name = $param->getName();
+            if(in_array($param_name, ['om', 'orm'])) {
+                $args[] = $this;
+            }
+            elseif(in_array($param_name, ['ids', 'oids'])) {
+                $args[] = $unprocessed_ids;
+            }
+            elseif($param_name == 'values') {
+                $args[] = $values;
+            }
+            elseif($param_name == 'lang') {
+                $args[] = $lang;
+            }
+            elseif($param_name == 'self') {
+                $factory = Collections::getInstance();
+                $c = $factory->create($called_class);
+                $c->lang($lang)->ids($unprocessed_ids);
+                $args[] = $c;
             }
         }
 
-        if( (in_array('ids', $signature) && count($unprocessed_ids) > 0)
-         || (in_array('values', $signature) && $first_call) ) {
-            $result = $called_class::$called_method($this, ...$params);
+        try {
+            $res = $called_class::$called_method(...$args);
+            if($res !== null) {
+                $result = $res;
+            }
+        }
+        catch(\Exception $e) {
+            $result = $e->getCode();
         }
 
         return $result;
@@ -1038,7 +1054,7 @@ class ObjectManager extends Service {
      * @param string    $method
      * @param int[]     $ids
      * @param array     $values
-     * @param array     $signature  List of parameters to relay to target method (required if differing from default).
+     * @param array     $signature  (deprecated) List of parameters to relay to target method (required if differing from default).
      */
     public function call($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
@@ -1061,22 +1077,46 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            return $result;
         }
+        /** @var \ReflectionMethod */
+        $method = new \ReflectionMethod($called_class, $called_method);
+        /** @var \ReflectionParameter */
+        $params = $method->getParameters();
 
-        $params = [];
-        foreach($signature as $param) {
-            switch($param) {
-                case 'ids':     $params[] = $ids;
-                    break;
-                case 'values':  $params[] = $values;
-                    break;
-                case 'lang':    $params[] = $lang;
-                    break;
+        $args = [];
+        foreach($params as $param) {
+            $param_name = $param->getName();
+            if(in_array($param_name, ['om', 'orm'])) {
+                $args[] = $this;
+            }
+            elseif(in_array($param_name, ['ids', 'oids'])) {
+                $args[] = $ids;
+            }
+            elseif($param_name == 'values') {
+                $args[] = $values;
+            }
+            elseif($param_name == 'lang') {
+                $args[] = $lang;
+            }
+            elseif($param_name == 'self') {
+                $factory = Collections::getInstance();
+                $c = $factory->create($called_class);
+                $c->lang($lang)->ids($ids);
+                $args[] = $c;
             }
         }
 
-        $result = $called_class::$called_method($this, ...$params);
+        try {
+            $res = $called_class::$called_method(...$args);
+            if($res !== null) {
+                $result = $res;
+            }
+        }
+        catch(\Exception $e) {
+            $result = $e->getCode();
+        }
 
         return $result;
     }
@@ -1641,6 +1681,16 @@ class ObjectManager extends Service {
                 }
             }
 
+            // #todo - move this to a dedicated controller for CRON
+            // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+
+            if(isset($fields['state']) && $fields['state'] != 'instance') {
+                $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $ids] ] );
+                if($messages_ids) {
+                    $this->delete('core\alert\Message', $messages_ids, true);
+                }
+            }
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
@@ -2073,7 +2123,7 @@ class ObjectManager extends Service {
      * @param string    $class
      * @param int[]     $id         Identifier of the object for which applicable transitions are requested (transitions depend on individual status).
      * @param string[]  $fields     List of field names.
-     * @return array    Returns a list of transition names (id) that must be tested in case one or more fields amongst the $feilds array is updated.
+     * @return array    Returns a list of transition names (id) that must be tested in case one or more fields amongst the $fields array is updated.
      */
     private function getTransitionCandidates($class, $id, $fields) {
         /** @var array */
@@ -2139,11 +2189,14 @@ class ObjectManager extends Service {
                             // invalid transition
                             break;
                         }
+                        $match = true;
                         // status field is always writeable (we don't call `update()` to bypass checks)
                         $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
                         $this->store($class, (array) $id, ['status'], $lang);
-                        // #todo - if a 'function' is defined, call it
-                        $match = true;
+                        // if a 'function' is defined for applied transition, call it
+                        if(isset($t_descr['function'])) {
+                            $this->callonce($class, $t_descr['function'], $ids);
+                        }
                         break;
                     }
                 }
