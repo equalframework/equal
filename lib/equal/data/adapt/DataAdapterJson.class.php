@@ -21,6 +21,10 @@ class DataAdapterJson extends DataAdapter {
      * x -> PHP
      */
 	public function adaptIn($value, $usage, $lang='en') {
+        // by convention, all types/values are nullable
+        if(is_null($value) && $value == 'null') {
+            $value = null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -35,7 +39,7 @@ class DataAdapterJson extends DataAdapter {
                     case 'integer':
                         return self::strToInteger($value);
                     case 'hexadecimal':
-                        return is_null($value)?null:hexdec($value);
+                        return hexdec($value);
                     case 'real':
                         return self::jsonToFloat($value);
                 }
@@ -82,6 +86,9 @@ class DataAdapterJson extends DataAdapter {
      *
      */
     public function adaptOut($value, $usage, $lang='en') {
+        if(is_null($value) || $value == 'null') {
+            return null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -134,9 +141,6 @@ class DataAdapterJson extends DataAdapter {
 
 
     private static function jsonToFloat($value) {
-        if(is_string($value) && $value == 'null') {
-            $value = null;
-        }
         // arg represents a numeric value (either numeric type or string)
         if(is_numeric($value)) {
             $value = floatval($value);
@@ -229,10 +233,6 @@ class DataAdapterJson extends DataAdapter {
     }
 
     private static function jsonToMany2one($value) {
-        // consider empty string as null
-        if(is_string($value) && (!strlen($value) || $value == 'null')) {
-            $value = null;
-        }
         if(!is_null($value) && !is_numeric($value)) {
             if(is_array($value) && isset($value['id'])) {
                 $value = $value['id'];
@@ -401,7 +401,7 @@ class DataAdapterJson extends DataAdapter {
      * Returns date as a ISO 8601 formatted string
      */
     private static function datetimeToJson($value) {
-        return (is_null($value))?null:date("c", $value);
+        return date("c", $value);
     }
 
     private static function timeToJson($value) {
