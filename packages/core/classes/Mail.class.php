@@ -91,14 +91,15 @@ class Mail extends Model {
 
     /**
      * Add a message to the email outbox.
-     * This method is a suubstitute for the create() method.
+     * This method is a substitute for the create() method.
      *
      * @param   Email   $email           Email message to be sent.
      * @param   string  $object_class    Class of the object associated with the sending (optional).
      * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     * @return  int     Upon success, this method returns the id of the `core\Mail` object created for the sending.
      * @throws  \Exception                This method raises an Exception in case of error.
      */
-    public static function queue(Email $email, string $object_class='', int $object_id=0): void {
+    public static function queue(Email $email, string $object_class='', int $object_id=0): int {
         // create an Object
         $values = [
             'to'            => $email->to,
@@ -134,8 +135,35 @@ class Mail extends Model {
         if(file_put_contents($filename, $data) === false) {
             throw new \Exception('failed_file_creation', QN_ERROR_UNKNOWN);
         }
+
+        return $mail['id'];
     }
 
+    public static function isQueued(int $message_id) {
+        $files = scandir(self::MESSAGE_FOLDER);
+        foreach($files as $file) {
+            // skip special files
+            if(in_array($file, ['.', '..', '.gitkeep'])) {
+                continue;
+            }
+            // extract message details
+            $filename = self::MESSAGE_FOLDER.'/'.$file;
+            $data = file_get_contents($filename);
+            if(!$data) {
+                // ignore reading errors
+                continue;
+            }
+            $message = json_decode($data, true);
+            if(!$message) {
+                // ignore invalid messages
+                continue;
+            }
+            if($message['id'] == $message_id) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Send all messages currently in the outbox.
