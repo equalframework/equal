@@ -2238,8 +2238,10 @@ class ObjectManager extends Service {
             }
 
             // check and fix domain format
-            if($domain && !is_array($domain)) throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);
-            else if($domain) {
+            if($domain && !is_array($domain)) {
+                throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);
+            }
+            elseif($domain) {
                 // valid format : [[['field', 'operator', 'value']]]
                 // accepted shortcuts: [['field', 'operator', 'value']], ['field', 'operator', 'value']
                 if( !is_array($domain[0]) ) {
@@ -2385,7 +2387,6 @@ class ObjectManager extends Service {
                             default:
                                 // adapt value
                                 if(!is_array($value)) {
-                                    // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
                                     /** @var \equal\data\adapt\DataAdapterProvider */
                                     $dap = $this->container->get('adapt');
                                     /** @var \equal\data\adapt\DataAdapter */
@@ -2393,6 +2394,8 @@ class ObjectManager extends Service {
                                     /** @var \equal\data\adapt\DataAdapter */
                                     $adapterJson = $dap->get('json');
                                     $f = new Field($schema[$field]);
+                                    // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
+                                    // 2023-04 - do we still need this ?
                                     $value = $adapterJson->adaptIn($value, $f->getUsage());
                                     // adapt value to SQL
                                     $value = $adapterSql->adaptOut($value, $f->getUsage());
