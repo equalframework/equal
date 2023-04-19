@@ -22,8 +22,8 @@ class DataAdapterJson extends DataAdapter {
      */
 	public function adaptIn($value, $usage, $lang='en') {
         // by convention, all types/values are nullable
-        if(is_null($value) && $value == 'null') {
-            $value = null;
+        if(is_null($value) || $value == 'null') {
+            return null;
         }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
