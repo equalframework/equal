@@ -1404,7 +1404,7 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
             $special_fields = Model::getSpecialColumns();
 
-            // 1) define default values (in SQL)
+            // 1) define default values
             $creation_array = [];
             foreach($special_fields as $field => $descr) {
                 if(isset($object[$field])) {
