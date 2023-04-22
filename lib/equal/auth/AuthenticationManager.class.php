@@ -44,7 +44,7 @@ class AuthenticationManager extends Service {
             'id'    => ($user_id > 0)?$user_id:$this->user_id,
             'exp'   => time()+$validity
         ];
-        return $this->encode($payload);
+        return $this->createToken($payload);
     }
 
     /**
@@ -53,9 +53,13 @@ class AuthenticationManager extends Service {
      * @param  $payload array representation of the object to be encoded
      *
      * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
+     * @deprecated use createToken instead
      */
-
     public function encode(array $payload) {
+        return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
+    }
+
+    public function createToken(array $payload) {
         return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
     }
 
@@ -73,7 +77,9 @@ class AuthenticationManager extends Service {
 
     public function verifyToken($jwt, $key) {
         $parts = explode('.', $jwt, 3);
-        if(count($parts) < 3) return false;
+        if(count($parts) < 3) {
+            return false;
+        }
 
         list($headb64, $bodyb64, $sig64) = $parts;
 
