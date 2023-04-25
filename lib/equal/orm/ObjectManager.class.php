@@ -1196,7 +1196,7 @@ class ObjectManager extends Service {
         //     // #todo
         //     // check constraints implied by type and usage
         //     foreach($values as $field => $value) {
-        //         /** @var \equal\orm\fields\Field */
+        //         /** @var \equal\orm\Field */
         //         $f = $model->getField($class);
         //         $usage = $f->getUsage();
         //         $constraints = $f->getConstraints();
