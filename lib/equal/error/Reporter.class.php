@@ -220,7 +220,7 @@ class Reporter extends Service {
 
     public function fatal($msg) {
         $this->log(QN_REPORT_FATAL, $msg, self::getTrace(2));
-        die();
+        die('fatal_error');
     }
 
     public function error($msg) {
