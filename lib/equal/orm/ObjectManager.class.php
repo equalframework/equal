@@ -2129,6 +2129,10 @@ class ObjectManager extends Service {
         /** @var array */
         $res = [];
         $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        if(!isset($schema['status'])) {
+            return $res;
+        }
         $workflow = $model->getWorkflow();
         $objects = $this->read($class, (array) $id, ['status']);
         if($objects > 0 && count($objects)) {
@@ -2160,6 +2164,10 @@ class ObjectManager extends Service {
         /** @var array */
         $res = [];
         $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        if(!isset($schema['status'])) {
+            return $res;
+        }
         $table_name = $this->getObjectTableName($class);
         $workflow = $model->getWorkflow();
         $lang = constant('DEFAULT_LANG');
