@@ -66,8 +66,8 @@ $values = $params['entity']::search($params['domain'])
     ->adapt('json')
     ->get(true);
 
-foreach($values as $odata) {
-    $series["data"][] = $odata;
+foreach($values as $data) {
+    $series["data"][] = array_filter($data, function ($a) { return !is_null($a);});
 }
 
 $output[] = $series;
