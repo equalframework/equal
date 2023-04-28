@@ -65,7 +65,7 @@ else {
 $data = [];
 
 if(strlen($json)) {
-    $data = json_decode($json, true, JSON_BIGINT_AS_STRING);
+    $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
     if(is_null($data)) {
         throw new Exception('invalid json: '.json_last_error_msg(), QN_ERROR_INVALID_PARAM);
     }
