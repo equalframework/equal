@@ -34,6 +34,11 @@ list($params, $providers) = announce([
  */
 list($context, $orm, $ac, $dap) = [$providers['context'], $providers['orm'], $providers['access'], $providers['adapt']];
 
+/**
+ * This script is meant to be run using CLI, in conjunction with -i arg.
+ * In order to prevent the context service from consuming data from stdin.
+ * Example: ./equal.run -i --do=model_import <tmp.json
+ */
 $json = '';
 
 if($params['json']) {
@@ -42,7 +47,8 @@ if($params['json']) {
 else {
     $stdin = fopen('php://stdin','r');
     if(!stream_set_blocking($stdin, false)) {
-        throw new Exception('stream_unavailable', QN_ERROR_UNKNOWN);
+        // this doesn't work under Win64: if no json param is given, script will wait for an input
+        // throw new Exception('stream_unavailable', QN_ERROR_UNKNOWN);
     }
 
     $read = [$stdin];
