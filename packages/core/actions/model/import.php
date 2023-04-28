@@ -41,7 +41,9 @@ if($params['json']) {
 }
 else {
     $stdin = fopen('php://stdin','r');
-    stream_set_blocking($stdin, false);
+    if(!stream_set_blocking($stdin, false)) {
+        throw new Exception('stream_unavailable', QN_ERROR_UNKNOWN);
+    }
 
     $read = [$stdin];
     $write = null;
