@@ -249,6 +249,7 @@ class Collection implements \Iterator, \Countable {
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
                 if($this->adapter) {
+                    // set adapter of child collection
                     $value->adapt($this->adapter->getType());
                 }
                 $result[$field] = $value->get($to_array);
