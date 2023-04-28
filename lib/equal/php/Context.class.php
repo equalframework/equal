@@ -370,21 +370,44 @@ class Context extends Service {
 
     private function getHttpBody() {
         $body = '';
+
+        // #memo - stream `php://input` might contain more data than available memory
+        $max_req = min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
+        $max_mem = max(0, self::to_bytes(ini_get('memory_limit')) - memory_get_usage(true));
+        // #memo - we need to be able to continue the processing (vars will be adapted/copied), so we limit the input to 40% of remaining memory
+        $max_mem = (int) ($max_mem * 0.4);
+
+        // prevent consuming the stdin if 'i' arg is present
+        $options = getopt('i::');
+
         // CLI: script was invoked on command line interface
-        if(php_sapi_name() === 'cli' || defined('STDIN')) {
+        if((php_sapi_name() === 'cli' || defined('STDIN')) && !isset($options['i'])) {
             // Windows does not support non-blocking reading from STDIN
             $OS = strtoupper(substr(PHP_OS, 0, 3));
             $options = getopt('f::');
             // so we disable auto-feed from stdin unless there is a 'f' args (to force it)
             if ( $OS !== 'WIN' || isset($options['f'])) {
                 // fetch body from stdin
-                $body = '';
                 $stdin = fopen('php://stdin', "r");
-                $read  = array($stdin);
+                if(!stream_set_blocking($stdin, false)) {
+                    // #memo - non blocking is not supported under win64
+                    // throw new \Exception('stream_blocking_unavailable', QN_ERROR_UNKNOWN);
+                }
+
+                $read  = [$stdin];
                 $write = null;
                 $except = null;
-                if ( stream_select( $read, $write, $except, 0 ) === 1 ) {
-                    while ($line = fgets( $stdin )) {
+
+                $count = stream_select($read, $write, $except, 0, 1000);
+
+                if ($count !== false) {
+                    $length = 0;
+                    $chunk_size = 1024;
+                    while ($line = fgets($stdin, $chunk_size)) {
+                        $length += $chunk_size;
+                        if($length > $max_req || $length > $max_mem) {
+                            throw new \Exception('max_size_exceeded', QN_ERROR_INVALID_PARAM);
+                        }
                         $body .= $line;
                     }
                 }
@@ -393,21 +416,13 @@ class Context extends Service {
         // HTTP request: read raw content from input stream
         else {
             $headers = $this->getHttpRequestHeaders();
-            $body = '';
+
             if(isset($headers['Content-Length'])) {
                 $length = intval($headers['Content-Length']);
-                // #memo - stream `php://input` might contain more data than available memory
-                $max_req = min(self::to_bytes(ini_get('upload_max_filesize')), self::to_bytes(ini_get('post_max_size')));
-                $max_mem = max(0, self::to_bytes(ini_get('memory_limit')) - memory_get_usage(true));
-                // #memo - we need to be able to continue the processing (vars will be adapted/copied), so we limit the input to 40% of remaining memory
-                $max_mem = (int) ($max_mem * 0.4);
-                if($max_req <= 0 || $length > $max_req) {
-                    throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
-                }
                 if($length > 0) {
                     try {
-                        if($length > $max_mem) {
-                            throw new \Exception();
+                        if($length > $max_req || $length > $max_mem) {
+                            throw new \Exception("maximum_size_exceeded", QN_ERROR_NOT_ALLOWED);
                         }
                         $body = file_get_contents('php://input', false, null, 0, $length);
                     }
