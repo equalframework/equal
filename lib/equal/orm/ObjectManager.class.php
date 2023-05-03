@@ -2000,6 +2000,17 @@ class ObjectManager extends Service {
             else {
                 // delete targeted objects
                 $db->deleteRecords($table_name, $ids);
+
+                // remove translations, if any
+                $this->db->deleteRecords(
+                        'core_translation',
+                        $ids, [
+                            [
+                                ['object_class', '=', $class]
+                            ]
+                        ],
+                        'object_id'
+                    );
             }
 
             // remove objects from cache
