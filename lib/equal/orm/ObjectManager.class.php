@@ -1851,26 +1851,21 @@ class ObjectManager extends Service {
 
                 // recursively read sub objects
                 foreach($ids as $oid) {
-                    if(!isset($values[$oid][$path_field])) {
-                        $res[$oid][$field] = null;
-                    }
-                    else {
-                        $res[$oid][$field] = $values[$oid][$path_field];
-
-                        if(isset($schema[$path_field]['foreign_object'])) {
-                            $sub_class = $schema[$path_field]['foreign_object'];
-                            $sub_ids = $values[$oid][$path_field];
-                            $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                            if($sub_values > 0) {
-                                if($field_type == 'many2one') {
-                                    $odata = reset($sub_values);
-                                    if(is_array($odata) || is_a($odata, Model::getType())) {
-                                        $res[$oid][$field] = $odata[$parts[1]];
-                                    }
+                    // #memo - unreachable values are always set to null
+                    $res[$oid][$field] = null;
+                    if(isset($values[$oid][$path_field]) && isset($schema[$path_field]['foreign_object'])) {
+                        $sub_class = $schema[$path_field]['foreign_object'];
+                        $sub_ids = $values[$oid][$path_field];
+                        $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
+                        if($sub_values > 0) {
+                            if($field_type == 'many2one') {
+                                $odata = reset($sub_values);
+                                if(is_array($odata) || is_a($odata, Model::getType())) {
+                                    $res[$oid][$field] = $odata[$parts[1]];
                                 }
-                                else {
-                                    $res[$oid][$field] = $sub_values;
-                                }
+                            }
+                            else {
+                                $res[$oid][$field] = $sub_values;
                             }
                         }
                     }
