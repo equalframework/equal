@@ -1671,7 +1671,9 @@ class ObjectManager extends Service {
                 // read the field values
                 $values = $this->read($class, $ids, (array) $path_field, $lang);
 
-                if($values < 0) continue;
+                if($values < 0) {
+                    continue;
+                }
 
                 // recursively read sub objects
                 foreach($ids as $oid) {
@@ -1679,7 +1681,9 @@ class ObjectManager extends Service {
                         $res[$oid][$field] = null;
                     }
                     else {
-                        $res[$oid][$field] = $values[$oid][$path_field];
+                        // $res[$oid][$field] = $values[$oid][$path_field];
+                        // #memo - if field is unreachable, set to null
+                        $res[$oid][$field] = null;
 
                         if(isset($schema[$path_field]['foreign_object'])) {
                             $sub_class = $schema[$path_field]['foreign_object'];
