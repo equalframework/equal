@@ -368,6 +368,10 @@ class Context extends Service {
         return intval($val);
     }
 
+    /**
+     * #todo - we should provide a way to define content-type for CLI context
+     * ex.: --content_type=json
+     */
     private function getHttpBody() {
         $body = '';
 
@@ -377,7 +381,7 @@ class Context extends Service {
         // #memo - we need to be able to continue the processing (vars will be adapted/copied), so we limit the input to 40% of remaining memory
         $max_mem = (int) ($max_mem * 0.4);
 
-        // prevent consuming the stdin if 'i' arg is present
+        // prevent consuming the stdin if 'i' arg is present ("ignore stdin auto-feed")
         $options = getopt('i::');
 
         // CLI: script was invoked on command line interface
@@ -385,12 +389,12 @@ class Context extends Service {
             // Windows does not support non-blocking reading from STDIN
             $OS = strtoupper(substr(PHP_OS, 0, 3));
             $options = getopt('f::');
-            // so we disable auto-feed from stdin unless there is a 'f' args (to force it)
+            // #memo - non blocking is not supported under win64
+            // we disable auto-feed from stdin unless there is a 'f' args ("force using stdin")
             if ( $OS !== 'WIN' || isset($options['f'])) {
                 // fetch body from stdin
                 $stdin = fopen('php://stdin', "r");
                 if(!stream_set_blocking($stdin, false)) {
-                    // #memo - non blocking is not supported under win64
                     // throw new \Exception('stream_blocking_unavailable', QN_ERROR_UNKNOWN);
                 }
 
