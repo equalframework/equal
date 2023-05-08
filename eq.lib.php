@@ -439,7 +439,7 @@ namespace config {
         if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
             foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
                 if(!\defined($name)) {
-                    // handle crypted values
+                    // handle encrypted values
                     if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
                         $value = decrypt(substr($value, 7));
                     }
@@ -745,11 +745,13 @@ namespace config {
                 list($access, $auth) = $container->get(['access', 'auth']);
                 if(isset($announcement['access']['visibility'])) {
                     if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
-                        throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                        throw new \Exception('private_operation', QN_ERROR_NOT_ALLOWED);
                     }
                     if($announcement['access']['visibility'] == 'protected')  {
                         // #memo - regular rules will apply (non identified user shouldn't be granted unless DEFAULT_RIGHTS allow it)
-                        // throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                        if($auth->userId() <= 0) {
+                            throw new \Exception('protected_operation', QN_ERROR_NOT_ALLOWED);
+                        }
                     }
                 }
                 if(isset($announcement['access']['users'])) {
