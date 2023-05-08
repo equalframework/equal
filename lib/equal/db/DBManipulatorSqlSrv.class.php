@@ -27,7 +27,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         'date'          => 'date',              // 3 bytes
         'time'          => 'time',              // 5 byte
         'datetime'      => 'datetime2',         // max 8 Bytes
-        'binary'        => 'varbinary(4000)',   // max 2GB
+        'binary'        => 'varbinary(max)',    // max 2GB
         'many2one'      => 'int'                // 4 bytes
     ];
 
