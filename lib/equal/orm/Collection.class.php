@@ -835,7 +835,7 @@ class Collection implements \Iterator, \Countable {
     /**
      * Check wether an object can be created.
      * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a more precise set of tests.
+     * This method can be overridden to define a custom set of tests.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
@@ -852,7 +852,7 @@ class Collection implements \Iterator, \Countable {
     /**
      * Check wether an object can be updated.
      * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a more precise set of tests.
+     * This method can be overridden to define a custom set of tests.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
@@ -870,7 +870,7 @@ class Collection implements \Iterator, \Countable {
     /**
      * Check wether an object can be cloned.
      * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a more precise set of tests.
+     * This method can be overridden to define a custom set of tests.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
@@ -885,7 +885,7 @@ class Collection implements \Iterator, \Countable {
 
     /**
      * Check wether an object can be deleted.
-     * This method can be overridden to define a more precise set of tests.
+     * This method can be overridden to define a custom set of tests.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
