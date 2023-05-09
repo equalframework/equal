@@ -262,6 +262,26 @@ class Mail extends Model {
                         $envelope
                             ->setContentType('text/html')
                             ->setBody($body);
+                        // handle images, if any
+                        preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                            function ($matches) use (&$envelope) {
+                                $data = $matches[2];
+                                $parts = explode(':', $data);
+                                $scheme = $parts[0];
+                                if($scheme == 'data') {
+                                    list($content_type, $data) = explode(';', $parts[1]);
+                                    list($encoding, $raw) = explode(',', $data);
+                                    if($encoding == 'base64') {
+                                        $raw = base64_decode($raw);
+                                    }
+                                    list($type, $extension) = explode('/', $content_type);
+                                    $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                    $img->setDisposition('inline');
+                                    $cid = $envelope->embed($img);
+                                }
+                                return $matches[1].$cid.$matches[3];
+                            },
+                            $body);
                     }
                     else {
                         $envelope->setBody($body);
