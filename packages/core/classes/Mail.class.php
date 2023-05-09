@@ -262,8 +262,8 @@ class Mail extends Model {
                         $envelope
                             ->setContentType('text/html')
                             ->setBody($body);
-                        // handle images, if any
-                        preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                        // handle embedded images, if any
+                        $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
                             function ($matches) use (&$envelope) {
                                 $data = $matches[2];
                                 $parts = explode(':', $data);
