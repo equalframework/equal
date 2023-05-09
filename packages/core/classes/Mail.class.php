@@ -257,11 +257,10 @@ class Mail extends Model {
 
                     // add subject
                     $envelope->setSubject($subject);
-                    // add body
+
+                    // process body according to content type
                     if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
-                        $envelope
-                            ->setContentType('text/html')
-                            ->setBody($body);
+                        $envelope->setContentType('text/html');
                         // handle embedded images, if any
                         $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
                             function ($matches) use (&$envelope) {
@@ -283,9 +282,10 @@ class Mail extends Model {
                             },
                             $body);
                     }
-                    else {
-                        $envelope->setBody($body);
-                    }
+
+                    // add body
+                    $envelope->setBody($body);
+
                     // add attachments
                     if(isset($message['attachments']) && count($message['attachments'])) {
                         foreach($message['attachments'] as $key => $attachment) {
