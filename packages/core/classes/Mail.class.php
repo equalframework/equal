@@ -264,19 +264,20 @@ class Mail extends Model {
                         // handle embedded images, if any
                         $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
                             function ($matches) use (&$envelope) {
-                                $data = $matches[2];
-                                $parts = explode(':', $data);
-                                $scheme = $parts[0];
-                                if($scheme == 'data') {
-                                    list($content_type, $data) = explode(';', $parts[1]);
-                                    list($encoding, $raw) = explode(',', $data);
-                                    if($encoding == 'base64') {
-                                        $raw = base64_decode($raw);
+                                $cid = $matches[2];
+                                if(substr($cid, 4, 1) == ':') {
+                                    list($scheme, $data) = explode(':', $cid);
+                                    if($scheme == 'data') {
+                                        list($content_type, $data) = explode(';', $data);
+                                        list($encoding, $raw) = explode(',', $data);
+                                        if($encoding == 'base64') {
+                                            $raw = base64_decode($raw);
+                                        }
+                                        list($type, $extension) = explode('/', $content_type);
+                                        $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                        $img->setDisposition('inline');
+                                        $cid = $envelope->embed($img);
                                     }
-                                    list($type, $extension) = explode('/', $content_type);
-                                    $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
-                                    $img->setDisposition('inline');
-                                    $cid = $envelope->embed($img);
                                 }
                                 return $matches[1].$cid.$matches[3];
                             },
