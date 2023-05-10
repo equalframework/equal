@@ -69,7 +69,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
                     // allow connection to server with self signed SSL certificate
                     'TrustServerCertificate'    => true,
                     // enable Transparent Network IP Resolution
-                    'MultiSubnetFailover'       => true
+                    'MultiSubnetFailover'       => 'Yes'
                 ];
 
             if($auto_select) {
