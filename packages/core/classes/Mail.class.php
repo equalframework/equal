@@ -48,6 +48,11 @@ class Mail extends Model {
                 'description'       => 'Comma separated list of carbon-copy recipients.'
             ],
 
+            'bcc' => [
+                'type'              => 'string',
+                'description'       => 'Comma separated list of blind carbon-copy recipients.'
+            ],
+
             'subject' => [
                 'type'              => 'string'
             ],
@@ -103,7 +108,8 @@ class Mail extends Model {
         // create an Object
         $values = [
             'to'            => $email->to,
-            'cc'            => implode(',', $email->cc),
+            'cc'            => implode(',', (array) $email->cc),
+            'bcc'           => implode(',', (array) $email->bcc),
             'subject'       => $email->subject,
             // #todo - set DB to UTF8mb4 by default
             // remove utf8mb4 chars (emojis)
@@ -245,10 +251,11 @@ class Mail extends Model {
             if(isset($message['to']) && strlen($message['to']) > 0) {
                 $envelope = new \Swift_Message();
                 try {
-                    // set from and to
+                    // set sender and recipients
                     $envelope
                         ->setTo($message['to'])
                         ->setCc($message['cc'])
+                        ->setBcc($message['bcc'])
                         ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
                     if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {

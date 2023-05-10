@@ -35,6 +35,12 @@ class Email {
     public $cc;
 
     /**
+     * Array of one or more blind carbon-copy recipients email addresses.
+     * @var string[]
+     */
+    public $bcc;
+
+    /**
      * @var string
      */
     public $subject;
@@ -62,6 +68,7 @@ class Email {
         $this->to = '';
         $this->reply_to = '';
         $this->cc = [];
+        $this->bcc = [];
         $this->subject = '';
         $this->body = '';
         $this->content_type = 'text/html';
@@ -104,6 +111,11 @@ class Email {
         return $this;
     }
 
+    public function addBcc(string $bcc) {
+        $this->bcc[] = $bcc;
+        return $this;
+    }
+
     public function addAttachment(EmailAttachment $attachment) {
         $this->attachments[] = $attachment;
         return $this;
@@ -116,6 +128,7 @@ class Email {
             'to'            => $this->to,
             'reply_to'      => $this->reply_to,
             'cc'            => $this->cc,
+            'bcc'           => $this->bcc,
             'subject'       => $this->subject,
             'content-type'  => $this->content_type,
             'body'          => $this->body,
