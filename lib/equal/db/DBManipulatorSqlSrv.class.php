@@ -91,6 +91,9 @@ class DBManipulatorSqlSrv extends DBManipulator {
                 }
             }
         }
+        else {
+            trigger_error("SQL::DBMS host unreachable", QN_REPORT_ERROR);
+        }
         if(!$result) {
             return false;
         }
