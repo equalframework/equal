@@ -152,7 +152,7 @@ try {
     // 3) perform requested operation and output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
     // store access log
-    file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:$_SERVER['REMOTE_ADDR'].';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
+    file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ).';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
