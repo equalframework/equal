@@ -349,11 +349,12 @@ class DataAdapterJson extends DataAdapter {
                 // handle separator (next value or next attribute)
                 if($c == ',') {
                     if(strlen($current)) {
+                        $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                         if(strlen($current_key)) {
-                            $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                            $result[trim($current_key)] = $res;
                         }
                         else {
-                            $result[] = json_decode("[\"$current\"]")[0];
+                            $result[] = $res;
                         }
                     }
                     $current_key = '';
@@ -371,11 +372,12 @@ class DataAdapterJson extends DataAdapter {
                 $current .= $c;
             }
             if(strlen($current)) {
+                $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                 if(strlen($current_key)) {
-                    $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                    $result[trim($current_key)] = $res;
                 }
                 else {
-                    $result[] = json_decode("[\"$current\"]")[0];
+                    $result[] = $res;
                 }
             }
             return $result;
