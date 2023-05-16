@@ -278,7 +278,7 @@ class DataAdapterJson extends DataAdapter {
     private static function jsonToArray($value) {
         if(!is_array($value)) {
             // try to resolve value as JSON
-            $data = @json_decode($value, true);
+            $data = @json_decode($value, true, 512, JSON_BIGINT_AS_STRING);
             if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
                 $value = $data;
             }
@@ -387,7 +387,7 @@ class DataAdapterJson extends DataAdapter {
         else {
             foreach($value as $key => $val) {
                 $res = @json_decode($val, true, 512, JSON_BIGINT_AS_STRING);
-                $value[$key] = $res ? $res : $val;
+                $value[$key] = ($res)?$res:(($val === 'null')?null:$val);
             }
         }
         return (array) $value;
