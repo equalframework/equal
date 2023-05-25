@@ -224,7 +224,8 @@ class Collection implements \Iterator, \Countable {
      * Provide the whole collection as a map (by default) or as an array.
      *
      * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is an of objects with keys holding indexes (and no ids).
-     * @return  array                   Returns an array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays. If the collection is empty, an empty array is returned.
+     * @return  array                   Returns an associative array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays and keys are no longer mapping objects identifiers.
+     *                                  If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
