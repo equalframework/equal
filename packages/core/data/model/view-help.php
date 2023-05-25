@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => "Returns the JSON view related to an entity (class model), given a view ID (<type.name>).",
+    'description'   => "Returns the MD formatted help relating to a given entity (class model), given a view ID (<type.name>).",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
@@ -55,19 +55,29 @@ while(true) {
         $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.md";
     }
 
-    if(file_exists($file)) break;
+    if(file_exists($file)) {
+        break;
+    }
 
-    if(!$parent || $parent == 'equal\orm\Model') break;
+    if(!$parent || $parent == 'equal\orm\Model') {
+        break;
+    }
     $entity = $parent;
 }
 
-if(!file_exists($file)) {
-    throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
+// fallback to empty string
+$view = '';
+
+if(file_exists($file)) {
+    if( ($view = @file_get_contents($file)) === null) {
+        throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
+    }
+}
+else {
+    // ignore: unless an unexpected I/O error, this script always returns a value
+    // throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-if( ($view = @file_get_contents($file)) === null) {
-    throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
-}
 
 $context->httpResponse()
         ->body(json_encode(['result' => $view]))
