@@ -689,14 +689,16 @@ class ObjectManager extends Service {
                         $oids[] = $oid;
                     }
                 }
-                // compute field for incomplete objects
-                $load_fields['computed']($this, $oids, array($field));
-                try {
-                    // store newly computed fields to database ('store' attribute set to true)
-                    $this->store($class, $oids, array($field), $lang);
-                }
-                catch(Exception $e) {
-                    trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                if(count($oids)) {
+                    // compute field for incomplete objects
+                    $load_fields['computed']($this, $oids, array($field));
+                    try {
+                        // store newly computed fields to database ('store' attribute set to true)
+                        $this->store($class, $oids, array($field), $lang);
+                    }
+                    catch(Exception $e) {
+                        trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                    }
                 }
             }
 
