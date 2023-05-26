@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Accept",
-    "SB_DIALOG_SEND": "Send",
+    "SB_DIALOG_SEND": "Ok",
     "SB_DIALOG_CANCEL": "Cancel",
 
     "SB_PURPOSE_CREATE": "Create",
@@ -44,6 +44,9 @@
     "SB_ACTIONS_DELETION_CONFIRM": "Confirm removal",
     "SB_ACTIONS_DELETION_DIALOG_I_CONFIRM": "Yes, remove items.",
     "SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT": "Remove permanently?",
+
+    "SB_ACTIONS_NOTIFY_CHANGES_SAVED": "Changes saved.",
+    "SB_ACTIONS_NOTIFY_ACTION_SENT": "Action request sent.",
 
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Updates have been made and will be lost. Do you confirm?",
     "SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES": "Another user has made changes on this item while you were editing. Those changes might be overwritten by yours. Do you still want to save?",

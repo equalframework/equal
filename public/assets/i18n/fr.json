@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Valider",
-    "SB_DIALOG_SEND": "Exécuter",
+    "SB_DIALOG_SEND": "Ok",
     "SB_DIALOG_CANCEL": "Annuler",
 
     "SB_PURPOSE_CREATE": "Création",
@@ -44,6 +44,9 @@
     "SB_ACTIONS_DELETION_CONFIRM": "Confirmer la suppression",
     "SB_ACTIONS_DELETION_DIALOG_I_CONFIRM": "Oui, supprimer les éléments.",
     "SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT": "Supprimer définitivement ?",
+
+    "SB_ACTIONS_NOTIFY_CHANGES_SAVED": "Modifications enregistrées.",
+    "SB_ACTIONS_NOTIFY_ACTION_SENT": "Demande d'action envoyée.",
 
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
     "SB_ACTIONS_MESSAGE_ERASE_CONCURRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
