@@ -2171,7 +2171,7 @@ class ObjectManager extends Service {
         foreach($objects as $id => $object) {
             // ignore faulty objects
             if(!isset($object['status'])) {
-                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object {$id} is missing a status value."];
+                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object is missing a status value."];
                 continue;
             }
             if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
@@ -2185,7 +2185,7 @@ class ObjectManager extends Service {
                             $object = reset($data);
                             if(!$domain->evaluate($object)) {
                                 $match = true;
-                                $res[$id] = [QN_ERROR_NOT_ALLOWED => 'Current status does not comply with transition constraints.'];
+                                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object state does not comply with the constraints of transition '$transition'."];
                                 break;
                             }
                         }
@@ -2194,7 +2194,7 @@ class ObjectManager extends Service {
                     }
                 }
                 if(!$match) {
-                    $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from status '{$object['status']}' is defined in workflow."];
+                    $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from object status '{$object['status']}' is defined in workflow."];
                 }
             }
         }
