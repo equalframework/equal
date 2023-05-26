@@ -1686,7 +1686,7 @@ class ObjectManager extends Service {
             // #todo - move this to a dedicated controller for CRON
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
 
-            if(isset($fields['state']) && $fields['state'] != 'instance') {
+            if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
                 $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $ids] ] );
                 if($messages_ids) {
                     $this->delete('core\alert\Message', $messages_ids, true);
@@ -2150,6 +2150,51 @@ class ObjectManager extends Service {
                     if(isset($t_descr['depends_on']) && count(array_intersect($fields, $t_descr['depends_on'])) > 0 ) {
                         $res[] = $t_name;
                     }
+                }
+            }
+        }
+        return $res;
+    }
+
+    public function canTransition($class, $ids, $transition) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        // ignore models that do not have a status field
+        if(!isset($schema['status'])) {
+            trigger_error("ORM::invalid transition request on entity '$class' without status field.", QN_REPORT_WARNING);
+            return $res;
+        }
+        $workflow = $model->getWorkflow();
+        $objects = $this->read($class, $ids, ['status']);
+        foreach($objects as $id => $object) {
+            // ignore faulty objects
+            if(!isset($object['status'])) {
+                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object {$id} is missing a status value."];
+                continue;
+            }
+            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                $match = false;
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if($t_name == $transition) {
+                        if(isset($t_descr['domain'])) {
+                            $domain = new Domain($t_descr['domain']);
+                            $fields = $domain->extractFields();
+                            $data = $this->read($class, $id, $fields);
+                            $object = reset($data);
+                            if(!$domain->evaluate($object)) {
+                                $match = true;
+                                $res[$id] = [QN_ERROR_NOT_ALLOWED => 'Current status does not comply with transition constraints.'];
+                                break;
+                            }
+                        }
+                        $match = true;
+                        break;
+                    }
+                }
+                if(!$match) {
+                    $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from status '{$object['status']}' is defined in workflow."];
                 }
             }
         }
