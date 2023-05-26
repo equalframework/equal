@@ -2256,7 +2256,7 @@ class ObjectManager extends Service {
                         $this->store($class, (array) $id, ['status'], $lang);
                         // if a 'function' is defined for applied transition, call it
                         if(isset($t_descr['function'])) {
-                            $this->callonce($class, $t_descr['function'], $ids);
+                            $this->callonce($class, $t_descr['function'], $id);
                         }
                         break;
                     }
