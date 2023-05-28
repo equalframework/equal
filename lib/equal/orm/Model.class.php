@@ -62,14 +62,29 @@ class Model implements \ArrayAccess, \Iterator {
         // build the schema based on current class and ancestors
         $this->schema = self::getSpecialColumns();
         // piles up the getColumns methods from oldest ancestor to called class
-        $parent_class = get_parent_class(get_called_class());
-        $parents_classes = [get_called_class()];
-        while( $parent_class != __CLASS__) {
+        $called_class = get_called_class();
+        $parent_class = get_parent_class($called_class);
+        $parents_classes = [$called_class];
+        while($parent_class != __CLASS__) {
             array_unshift($parents_classes, $parent_class);
             $parent_class = get_parent_class($parent_class);
         }
+        // build schema
         foreach($parents_classes as $class) {
             $this->schema = array_merge($this->schema, (array) call_user_func_array([$class, 'getColumns'], []));
+        }
+        // inject dependencies (constants)
+        if(method_exists($called_class, 'constants')) {
+            $constants = $called_class::constants();
+            foreach($constants as $name) {
+                if(\config\defined($name) && !defined($name)) {
+                    $value = \config\constant($name);
+                    \config\export($name, $value);
+                }
+                if(!defined($name)) {
+                    throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
+                }
+            }
         }
         // make sure that a field 'name' is always defined
         if( !isset($this->schema['name']) ) {
