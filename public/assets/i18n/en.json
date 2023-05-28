@@ -76,7 +76,7 @@
 
     "AUTH_SIGNIN_TITLE": "Connection",
     "AUTH_SIGNIN_SIGNIN": "Sign in",
-    "AUTH_SIGNIN_USERNAME": "Username",
+    "AUTH_SIGNIN_USERNAME": "Username or email address",
     "AUTH_SIGNIN_PASSWORD": "Password",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connect",
     "AUTH_SIGNIN_ACTION_RECOVER": "Recover password",
