@@ -36,6 +36,11 @@ class User extends Model {
                 'unique'            => true
             ],
 
+            'username' => [
+                'type'              => 'string',
+                'unique'            => true
+            ],
+
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
@@ -44,7 +49,8 @@ class User extends Model {
             ],
 
             'nickname' => [
-                'type'              => 'string'
+                'type'              => 'alias',
+                'alias'             => 'username'
             ],
 
             'firstname' => [
