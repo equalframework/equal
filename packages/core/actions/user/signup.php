@@ -70,7 +70,7 @@ list($params, $providers) = announce([
  */
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
-// cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
+// cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
 list($username, $domain) = explode('@', strtolower(trim($params['email'])));
 $username .= '+';
 $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
@@ -91,7 +91,7 @@ $message_id = 0;
 $auth->su();
 
 // check the existence of the user account
-$ids = $om->search(User::gettype(), [['login', '=', $login]]);
+$ids = $om->search(User::getType(), [['login', '=', $login]]);
 
 if($params['resend']) {
     if(count($ids) <= 0) {
@@ -115,7 +115,7 @@ else {
             'firstname' => $firstname,
             'lastname'  => $lastname
         ])
-        ->read(['id', 'login', 'firstname', 'lastname', 'language'])
+        ->read(['id', 'login', 'username', 'firstname', 'lastname', 'language'])
         ->adapt('json')
         ->first(true);
 }
