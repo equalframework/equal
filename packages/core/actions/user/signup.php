@@ -132,6 +132,9 @@ if($send_confirm) {
                                     $subject = $attributes['title'];
                                     return '';
                                 },
+            'username'		=>	function ($params, $attributes) {
+                                    return $params['username'];
+                                },
             'confirm_url'	=>	function ($params, $attributes) use ($context) {
                                     $code = base64_encode($params['login'].':'.$params['password']);
                                     $uri = $context->getHttpRequest()->getUri();
