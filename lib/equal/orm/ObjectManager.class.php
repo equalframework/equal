@@ -167,7 +167,7 @@ class ObjectManager extends Service {
     ];
 
     /**
-     * @param DBConnection $db  Intance of the Service allowing connection to DBMS (connection might not be established yet).
+     * @param DBConnection $db  Instance of the Service allowing connection to DBMS (connection might not be established yet).
      */
     protected function __construct(DBConnection $db) {
         $this->db = &$db;
@@ -1279,7 +1279,7 @@ class ObjectManager extends Service {
                 foreach($constraints[$field] as $error_id => $constraint) {
                     if(isset($constraint['function']) ) {
                         $validation_func = $constraint['function'];
-                        // #todo - use a single arg (validation should be independant from context, otherwise use cancreate/canupdate)
+                        // #todo - use a single arg (validation should be independent from context, otherwise use cancreate/canupdate)
                         if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
                             if(!isset($constraint['message'])) {
                                 $constraint['message'] = 'Invalid field.';
