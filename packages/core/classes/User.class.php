@@ -10,6 +10,10 @@ use equal\orm\Model;
 
 class User extends Model {
 
+    public static function constants() {
+        return ['USER_ACCOUNT_DISPLAYNAME'];
+    }
+
     public static function getName() {
         return 'User';
     }
@@ -17,8 +21,12 @@ class User extends Model {
     public static function getColumns() {
         return [
             'name' => [
-                'type'              => 'alias',
-                'alias'             => 'login'
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'function'          => 'calcName',
+                'store'             => true,
+                'description'       => 'Display name used to refer to the user.',
+                'help'              => 'Depending on the configuration, can be either the login, the first name, the fullname, or a nickname.'
             ],
 
             'login' => [
@@ -33,6 +41,10 @@ class User extends Model {
                 'usage'             => 'password',
                 'onupdate'          => 'onupdatePassword',
                 'required'          => true
+            ],
+
+            'nickname' => [
+                'type'              => 'string'
             ],
 
             'firstname' => [
@@ -62,8 +74,7 @@ class User extends Model {
                 'type'              => 'boolean',
                 'default'           => false,
                 'description'       => 'Flag telling if the User has validated his email address.',
-                'help'              => "This fields is used at signin to prevent non-validated user to log in.",
-                'onupdate'          => 'onupdateValidated'
+                'help'              => "This fields is used at signin to prevent non-validated user to log in."
             ],
 
             'groups_ids' => [
@@ -94,7 +105,7 @@ class User extends Model {
                 // initial status
                 'default'           => 'created'
                 // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
-                // onupdate is allowed but it is better practice to use the function properties in the workflow descriptor
+                // onupdate is allowed but it is better practice to rely on transitions and related function properties in the workflow descriptor
             ]
         ];
     }
@@ -146,6 +157,20 @@ class User extends Model {
         ];
     }
 
+    public static function calcName($self) {
+        $result = [];
+        $mask = constant('USER_ACCOUNT_DISPLAYNAME');
+        $self->read(['id', 'login', 'nickname', 'firstname', 'lastname', 'fullname']);
+        foreach($self as $id => $user) {
+            $parts = explode(' ', str_replace('-', ' ', $user['firstname'].' '.$user['lastname']));
+            $initials = strtoupper(array_reduce($parts, function($c, $a) {return $c.substr($a, 0, 1);}, ''));
+            $res = str_replace(['id', 'nickname', 'mail', 'givenname', 'surname', 'initials'], [$id, $user['nickname'], $user['login'], $user['firstname'], $user['lastname'], $initials], $mask);
+            // fallback to user ID
+            $result[$id] = (strlen($res) > 0)?$res:$id;
+        }
+        return $result;
+    }
+
     /**
      * Filter method for password updates.
      * Make sure password is encrypted when stored to DB.
@@ -165,20 +190,6 @@ class User extends Model {
         }
     }
 
-    public static function getConstraints() {
-        return [
-            'login' =>  [
-                'invalid_email' => [
-                    'message'       => 'Login must be a valid email address.',
-                    'function'      => function ($login, $values) {
-                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
-                    }
-                ]
-            ]
-            // #memo - password constraints are applied based on the 'usage' attribute
-        ];
-    }
-
     /**
      * Compute the value of the fullname of the user (concatenate firstname and lastname).
      *
@@ -194,21 +205,22 @@ class User extends Model {
         return $result;
     }
 
-    public static function onupdate($self) {
-
-    }
-
-    public static function onupdateValidated($self) {
-        $self->read(['id', 'name']);
-        foreach($self as $id => $object) {
-            $object['name'] = 'testtralala';
-        }
-    }
-
+    /**
+     * Handler run after successful transition to 'validated' status
+     *
+     */
     public static function onValidated($orm, $ids) {
         return $orm->transition(self::getType(), $ids, 'confirmation');
     }
 
+    /**
+     * Handler for single object values change in UI.
+     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
+     *
+     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array            $values     Copy of the current (partial) state of the object.
+     * @return array            Returns an associative array mapping fields with their resulting values.
+     */
     public static function onchange($event, $values) {
         $result = [];
 
