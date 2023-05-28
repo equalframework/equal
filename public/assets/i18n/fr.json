@@ -88,7 +88,7 @@
     "AUTH_SIGNUP_CONFIRM": "Confirmation",
     "AUTH_SIGNUP_ACTION_SIGNUP": "S'inscrire",
     "AUTH_SIGNUP_SENT_TITLE": "Création de compte",
-    "AUTH_SIGNUP_SENT_SENT": "Demande de confirmation envoyée",
+    "AUTH_SIGNUP_SENT_SIGNUP": "Demande de confirmation envoyée",
     "AUTH_SIGNUP_SENT_MESSAGE": "Un message contenant un lien de verification a été envoyé à votre adresse email. Veuillez cliquer sur le lien de ce message pour continuer la création de votre compte.",
     "AUTH_SIGNUP_SENT_ACTION_RESEND": "Renvoyer le message de confirmation",
     "AUTH_RECOVER_MESSAGE_SUBMITTED": "Si l'adresse email correspond à un compte connu, les instructions de récupération de mot de passe y ont été envoyées.",

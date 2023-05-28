@@ -89,7 +89,7 @@
     "AUTH_SIGNUP_CONFIRM": "Confirmation",
     "AUTH_SIGNUP_ACTION_SIGNUP": "Sign up",
     "AUTH_SIGNUP_SENT_TITLE": "Account creation",
-    "AUTH_SIGNUP_SENT_SENT": "Confirmation request has been sent",
+    "AUTH_SIGNUP_SENT_SIGNUP": "Confirmation request has been sent",
     "AUTH_SIGNUP_SENT_MESSAGE": "A message with a verification link has been sent to your email address. Please click on the link of that message in order to continue the registration process. If you have not reveived the verification email, please check your \"Spam\" or \"Bulk Email\" folder. You can also click the resend button below to have another email sent to you.",
     "AUTH_SIGNUP_SENT_ACTION_RESEND": "Resend confirmation message",
     "AUTH_RECOVER_MESSAGE_SUBMITTED": "If the email address matches a known account, instructions for password recovery have been sent to it.",
