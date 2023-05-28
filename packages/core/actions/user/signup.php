@@ -63,8 +63,11 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
-
-// initialize local vars with inputs
+/**
+ * @var equal\php\Context                   $context
+ * @var equal\orm\ObjectManager             $om
+ * @var equal\auth\AuthenticationManager    $auth
+ */
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
