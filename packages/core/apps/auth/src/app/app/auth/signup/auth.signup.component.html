@@ -12,7 +12,16 @@
                         <mat-label>{{'AUTH_SIGNUP_USERNAME' | translate}}</mat-label>
                         <input type="text" matInput formControlName="username" />
                         <mat-error *ngIf="f.username.hasError('required')">{{'AUTH_ERROR_MISSING_USERNAME' | translate}}</mat-error>
-                        <mat-error *ngIf="f.username.hasError('pattern')">{{'AUTH_ERROR_INVALID_USERNAME' | translate}}</mat-error>
+                        <mat-error *ngIf="f.username.hasError('minlength')">{{'AUTH_ERROR_INVALID_USERNAME' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                    <mat-form-field appearance="fill">
+                        <mat-label>{{'AUTH_SIGNUP_EMAIL' | translate}}</mat-label>
+                        <input type="text" matInput formControlName="email" />
+                        <mat-error *ngIf="f.email.hasError('required')">{{'AUTH_ERROR_MISSING_EMAIL' | translate}}</mat-error>
+                        <mat-error *ngIf="f.email.hasError('pattern')">{{'AUTH_ERROR_INVALID_EMAIL' | translate}}</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -45,7 +54,7 @@
                 </div>
 
                 <div class="messages" *ngIf="submitted && signup_error">
-                    <div class="message" ><mat-icon>not_interested</mat-icon> <span>{{'AUTH_ERROR_INVALID_USERNAME_OR_PASSWORD' | translate}}</span></div>
+                    <div class="message" ><mat-icon>not_interested</mat-icon> <span>{{'AUTH_ERROR_EXISTING_USERNAME_OR_LOGIN' | translate}}</span></div>
                 </div>
                 <div class="messages" *ngIf="submitted && server_error">
                     <div class="message" ><mat-icon>not_interested</mat-icon> <span>{{'AUTH_ERROR_SERVER_ERROR' | translate}}</span></div>

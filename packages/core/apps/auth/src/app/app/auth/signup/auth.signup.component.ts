@@ -40,10 +40,15 @@ export class AuthSignupComponent implements OnInit {
         const formOptions: AbstractControlOptions = {validators: PasswordValidator};
 
         this.form = <FormGroup>this.formBuilder.group({
-            username: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$')]],
-            password: ['', [Validators.required, Validators.minLength(8)]],
-            confirm:  ['', Validators.required]
+            email:      ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$')]],
+            username:   ['', Validators.required, Validators.minLength(6)],
+            password:   ['', [Validators.required, Validators.minLength(8)]],
+            confirm:    ['', Validators.required]
         }, formOptions);
+
+        this.form.get('email').valueChanges.subscribe( () => {
+            this.submitted = false;
+        });
 
         this.form.get('username').valueChanges.subscribe( () => {
             this.submitted = false;
@@ -60,7 +65,7 @@ export class AuthSignupComponent implements OnInit {
     }
 
     public async onSubmit() {
-        // prevent sumit for invalid form
+        // prevent submission of invalid form
         if (this.form.invalid) {
             return;
         }
@@ -70,9 +75,9 @@ export class AuthSignupComponent implements OnInit {
         this.loading = true;
 
         try {
-            const data = await this.auth.signUp(this.f.username.value, this.f.password.value);
+            const data = await this.auth.signUp(this.f.username.value, this.f.email.value, this.f.password.value);
             // success: we should be able to authenticate
-            this.router.navigate(['/signup/sent'],  { state: { username: this.f.username.value, password: this.f.password.value, message_id: data.message_id} });
+            this.router.navigate(['/signup/sent'],  { state: { email: this.f.email.value, username: this.f.username.value, password: this.f.password.value, message_id: data.message_id} });
         }
         catch(response:any) {
             console.log(response);

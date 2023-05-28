@@ -8,10 +8,15 @@ use core\User;
 list($params, $providers) = announce([
     'description'	=>	"Attempt to register a new user.",
     'params' 		=>	[
-        'login' => [
+        'email' => [
             'description'   => 'Email address of the user.',
             'type'          => 'string',
             'usage'         => 'email',
+            'required'      => true
+        ],
+        'username' => [
+            'description'   => 'Nickname of the user.',
+            'type'          => 'string',
             'required'      => true
         ],
         'password' =>  [
@@ -63,7 +68,7 @@ list($params, $providers) = announce([
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
-list($username, $domain) = explode('@', strtolower(trim($params['login'])));
+list($username, $domain) = explode('@', strtolower(trim($params['email'])));
 $username .= '+';
 $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
 
@@ -100,7 +105,13 @@ else {
         throw new Exception('existing_user', QN_ERROR_INVALID_USER);
     }
     // #memo - email might still be invalid (a validation check is made in User class)
-    $user = User::create($params)
+    $user = User::create([
+            'login'     => $params['email'],
+            'nickname'  => $params['username'],
+            'password'  => $password,
+            'firstname' => $firstname,
+            'lastname'  => $lastname
+        ])
         ->read(['id', 'login', 'firstname', 'lastname', 'language'])
         ->adapt('json')
         ->first(true);
