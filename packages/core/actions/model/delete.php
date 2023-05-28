@@ -9,7 +9,7 @@ list($params, $providers) = announce([
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'id' =>  [
@@ -21,10 +21,10 @@ list($params, $providers) = announce([
             'description'   => 'List of Unique identifiers of the objects to update.',
             'type'          => 'array',
             'default'       => []
-        ],        
+        ],
         'permanent' => [
             'description '  => 'Flag for choosing either soft deletion (recycle bin) or hard deletion (removed from DB).',
-            'type'          => 'boolean', 
+            'type'          => 'boolean',
             'default'       => false
         ]
     ],
@@ -36,7 +36,7 @@ list($params, $providers) = announce([
     'access' => [
         'visibility'        => 'protected'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
@@ -57,8 +57,7 @@ if(!class_exists($params['entity'])) {
 }
 
 $params['entity']::ids($params['ids'])->delete($params['permanent']);
-                               
+
 $context->httpResponse()
         ->status(204)
-        ->body([])
         ->send();
