@@ -95,7 +95,7 @@ if($params['resend']) {
         throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
     }
     $user_id = reset($ids);
-    $user = User::id($user_id)->read(['login', 'firstname', 'lastname'])->first(true);
+    $user = User::id($user_id)->read(['login', 'username', 'firstname', 'lastname'])->first(true);
     $message_id = $params['resend'];
     // if message is still in pool : abort
     $send_confirm = !(Mail::isQueued($message_id));
@@ -107,7 +107,7 @@ else {
     // #memo - email might still be invalid (a validation check is made in User class)
     $user = User::create([
             'login'     => $params['email'],
-            'nickname'  => $params['username'],
+            'username'  => $params['username'],
             'password'  => $password,
             'firstname' => $firstname,
             'lastname'  => $lastname
@@ -131,9 +131,6 @@ if($send_confirm) {
             'subject'		=>	function ($params, $attributes) use (&$subject) {
                                     $subject = $attributes['title'];
                                     return '';
-                                },
-            'username'		=>	function ($params, $attributes) {
-                                    return $params['firstname'];
                                 },
             'confirm_url'	=>	function ($params, $attributes) use ($context) {
                                     $code = base64_encode($params['login'].':'.$params['password']);
