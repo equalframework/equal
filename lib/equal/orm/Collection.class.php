@@ -773,8 +773,8 @@ class Collection implements \Iterator, \Countable {
             // 4) update objects
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
+            // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
             if(!isset($values['state']) || $values['state'] == 'draft') {
-                // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
                 $values['state'] = 'instance';
             }
             $res = $this->orm->update($this->class, $ids, $values, $lang);
