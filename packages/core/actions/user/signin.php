@@ -37,15 +37,22 @@ list($params, $providers) = announce([
  */
 list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
 
-$validation = $om->validate('core\User', [], $params);
-if($validation < 0 || count($validation)) {
-    throw new Exception(serialize($validation), QN_ERROR_INVALID_PARAM);
-}
 
-// cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
-list($username, $domain) = explode('@', strtolower(trim($params['login'])));
-$username .= '+';
-$login = substr($username, 0, strpos($username, '+')).'@'.$domain;
+// we might have received either a login (email) or a username
+if(strpos($params['login'], '@') > 0) {
+    // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
+    list($username, $domain) = explode('@', strtolower(trim($params['login'])));
+    $username .= '+';
+    $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
+}
+else {
+    // find a user that matches the given username (there should be only one)
+    $user = User::search(['username', '=', $params['login']])->read(['login'])->first();
+    if(!$user) {
+        throw new Exception("user_not_found", QN_ERROR_INVALID_USER);
+    }
+    $login = $user['login'];
+}
 
 // #memo - email might still be invalid (a validation check is made in User class)
 $auth->authenticate($login, $params['password']);
