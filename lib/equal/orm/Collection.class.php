@@ -593,8 +593,8 @@ class Collection implements \Iterator, \Countable {
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
         // 3) validate : check required fields accordingly
-        // #memo - we cannot check unique constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
-        $this->validate($values, [], false, $check_required);
+        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
+        $this->validate($values, [], true, $check_required);
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
