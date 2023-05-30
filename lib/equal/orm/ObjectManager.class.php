@@ -1338,10 +1338,11 @@ class ObjectManager extends Service {
                             $value = $extra_values[$id][$field];
                         }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
-                        // ignore existing records with field left as null
-                        if(!is_null($value)) {
-                            $domain[] = [$field, '=', $value];
+                        if(is_null($value)) {
+                            // one of the value composing the key is null: allow (discard constraint)
+                            continue 2;
                         }
+                        $domain[] = [$field, '=', $value];
                     }
                     // search for objects already set with unique values
                     if(count($domain)) {
