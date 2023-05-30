@@ -8,7 +8,7 @@ use equal\orm\Domain;
 use equal\orm\Field;
 
 list($params, $providers) = announce([
-    'description'   => 'Returns a list of entites according to given domain (filter), start offset, limit and order.',
+    'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',

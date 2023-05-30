@@ -48,6 +48,11 @@ class Mail extends Model {
                 'description'       => 'Comma separated list of carbon-copy recipients.'
             ],
 
+            'bcc' => [
+                'type'              => 'string',
+                'description'       => 'Comma separated list of blind carbon-copy recipients.'
+            ],
+
             'subject' => [
                 'type'              => 'string'
             ],
@@ -91,18 +96,20 @@ class Mail extends Model {
 
     /**
      * Add a message to the email outbox.
-     * This method is a suubstitute for the create() method.
+     * This method is a substitute for the create() method.
      *
      * @param   Email   $email           Email message to be sent.
      * @param   string  $object_class    Class of the object associated with the sending (optional).
      * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     * @return  int     Upon success, this method returns the id of the `core\Mail` object created for the sending.
      * @throws  \Exception                This method raises an Exception in case of error.
      */
-    public static function queue(Email $email, string $object_class='', int $object_id=0): void {
+    public static function queue(Email $email, string $object_class='', int $object_id=0): int {
         // create an Object
         $values = [
             'to'            => $email->to,
-            'cc'            => implode(',', $email->cc),
+            'cc'            => implode(',', (array) $email->cc),
+            'bcc'           => implode(',', (array) $email->bcc),
             'subject'       => $email->subject,
             // #todo - set DB to UTF8mb4 by default
             // remove utf8mb4 chars (emojis)
@@ -134,8 +141,35 @@ class Mail extends Model {
         if(file_put_contents($filename, $data) === false) {
             throw new \Exception('failed_file_creation', QN_ERROR_UNKNOWN);
         }
+
+        return $mail['id'];
     }
 
+    public static function isQueued(int $message_id) {
+        $files = scandir(self::MESSAGE_FOLDER);
+        foreach($files as $file) {
+            // skip special files
+            if(in_array($file, ['.', '..', '.gitkeep'])) {
+                continue;
+            }
+            // extract message details
+            $filename = self::MESSAGE_FOLDER.'/'.$file;
+            $data = file_get_contents($filename);
+            if(!$data) {
+                // ignore reading errors
+                continue;
+            }
+            $message = json_decode($data, true);
+            if(!$message) {
+                // ignore invalid messages
+                continue;
+            }
+            if($message['id'] == $message_id) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Send all messages currently in the outbox.
@@ -217,10 +251,11 @@ class Mail extends Model {
             if(isset($message['to']) && strlen($message['to']) > 0) {
                 $envelope = new \Swift_Message();
                 try {
-                    // set from and to
+                    // set sender and recipients
                     $envelope
                         ->setTo($message['to'])
                         ->setCc($message['cc'])
+                        ->setBcc($message['bcc'])
                         ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
                     if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
@@ -229,15 +264,36 @@ class Mail extends Model {
 
                     // add subject
                     $envelope->setSubject($subject);
-                    // add body
+
+                    // process body according to content type
                     if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
-                        $envelope
-                            ->setContentType('text/html')
-                            ->setBody($body);
+                        $envelope->setContentType('text/html');
+                        // handle embedded images, if any
+                        $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                            function ($matches) use (&$envelope) {
+                                $cid = $matches[2];
+                                if(substr($cid, 4, 1) == ':') {
+                                    list($scheme, $data) = explode(':', $cid);
+                                    if($scheme == 'data') {
+                                        list($content_type, $data) = explode(';', $data);
+                                        list($encoding, $raw) = explode(',', $data);
+                                        if($encoding == 'base64') {
+                                            $raw = base64_decode($raw);
+                                        }
+                                        list($type, $extension) = explode('/', $content_type);
+                                        $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                        $img->setDisposition('inline');
+                                        $cid = $envelope->embed($img);
+                                    }
+                                }
+                                return $matches[1].$cid.$matches[3];
+                            },
+                            $body);
                     }
-                    else {
-                        $envelope->setBody($body);
-                    }
+
+                    // add body
+                    $envelope->setBody($body);
+
                     // add attachments
                     if(isset($message['attachments']) && count($message['attachments'])) {
                         foreach($message['attachments'] as $key => $attachment) {

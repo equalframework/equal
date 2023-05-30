@@ -104,14 +104,6 @@ class Collection implements \Iterator, \Countable {
     /**
      * @deprecated
      */
-    public function extend($column, $description) {
-        $this->model->setColumn($column, $description);
-    }
-
-    // #todo - deprecate : this method doesn't seem to be used
-    /**
-     * @deprecated
-     */
     public function set($fields) {
         $fields = (array) $fields;
         foreach($this->objects as $id => $object) {
@@ -232,7 +224,8 @@ class Collection implements \Iterator, \Countable {
      * Provide the whole collection as a map (by default) or as an array.
      *
      * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is an of objects with keys holding indexes (and no ids).
-     * @return  array                   Returns an array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays. If the collection is empty, an empty array is returned.
+     * @return  array                   Returns an associative array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays and keys are no longer mapping objects identifiers.
+     *                                  If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
@@ -257,6 +250,7 @@ class Collection implements \Iterator, \Countable {
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
                 if($this->adapter) {
+                    // set adapter of child collection
                     $value->adapt($this->adapter->getType());
                 }
                 $result[$field] = $value->get($to_array);
@@ -286,7 +280,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Provide the while collection as an array.
+     * Provide the whole collection as an array.
     */
     public function toArray() {
         return $this->get(true);
@@ -366,11 +360,24 @@ class Collection implements \Iterator, \Countable {
      *
      * @param   string      $to     Target string  might be a map associating fields with their values, or a map association ids with objects
      * @param   string      $lang   Deprecated, use method `Collection->lang($lang)`.
-     * @return  Collection          Returns the current Collection instance.
+     * @return  Collection          Returns the instance of the current Collection.
      */
     public function adapt($to='json', $lang=null) {
         // set the adapter to be used for adaptOut conversion
         $this->adapter = $this->dap->get($to);
+        return $this;
+    }
+
+    /**
+     * Set Collection to perform ongoing operations using a given language.
+     * Language switching can be performed several times on a same collection and is sequential (the lang that will be used is the one set by the last `lang()` call).
+     * #memo - the lang is set in constructor and defaults to 'en'.
+     *
+     * @param   string      $lang   ISO 639 code of the lang to use for further CRUD operations.
+     * @return  Collection          Returns the instance of the current Collection.
+     */
+    public function lang($lang) {
+        $this->lang = $lang;
         return $this;
     }
 
@@ -432,7 +439,7 @@ class Collection implements \Iterator, \Countable {
             $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
-                throw new \Exception(Domain::toString($domain), QN_ERROR_INVALID_PARAM);
+                throw new \Exception(serialize(['invalid_domain' => Domain::toString($domain)]), QN_ERROR_INVALID_PARAM);
             }
         }
 
@@ -586,8 +593,8 @@ class Collection implements \Iterator, \Countable {
         $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
 
         // 3) validate : check required fields accordingly
-        // #memo - we cannot check unique constraints at creation, since some fields might be null (not set yet) AND we must be able to create several draft objects
-        $this->validate($values, [], false, $check_required);
+        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
+        $this->validate($values, [], true, $check_required);
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
@@ -766,8 +773,8 @@ class Collection implements \Iterator, \Countable {
             // 4) update objects
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
+            // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
             if(!isset($values['state']) || $values['state'] == 'draft') {
-                // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
                 $values['state'] = 'instance';
             }
             $res = $this->orm->update($this->class, $ids, $values, $lang);
@@ -819,5 +826,148 @@ class Collection implements \Iterator, \Countable {
             $this->objects = [];
         }
         return $this;
+    }
+
+    /**
+     * Following methods are defined here because we want children classes to have arbitrary parameters (the only constraint is for multiple inheritance: children classes must implement a method the same way their parent does).
+     * In case these methods are invoked on the Model class, the code ends up here.
+     */
+
+    /**
+     * Check wether an object can be created.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
+     */
+    public static function cancreate($om, $values=[], $lang='en') {
+        return [];
+    }
+
+
+    /**
+     * Check wether an object can be updated.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values to be assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canupdate($om, $ids=[], $values=[], $lang='en') {
+        return [];
+    }
+
+
+    /**
+     * Check wether an object can be cloned.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return array            Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canclone($om, $ids=[]) {
+        return [];
+    }
+
+
+    /**
+     * Check wether an object can be deleted.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     */
+    public static function candelete($om, $ids=[]) {
+        return [];
+    }
+
+
+    /**
+     * Hook invoked after object creation for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers. Should contain only the id of the object just created.
+     * @param  array            $values     Associative array holding the newly assigned values.
+     * @param  string           $lang       Language in which multilang fields are being created.
+     * @return void
+     */
+    public static function oncreate($om, $ids=[], $values=[], $lang='en') {
+    }
+
+
+    /**
+     * Hook invoked before object update for performing object-specific additional operations.
+     * Current values of the object can still be read for comparing with new values.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values that have been assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return void
+     */
+    public static function onupdate($om, $ids=[], $values=[], $lang='en') {
+    }
+
+    /**
+     * Hook invoked after object cloning for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return void
+     */
+    public static function onclone($om, $ids=[]) {
+    }
+
+
+    /**
+     * Hook invoked before object deletion for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return void
+     */
+    public static function ondelete($om, $ids=[]) {
+    }
+
+
+    /**
+     * Signature for single object values change in UI.
+     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array            $values     Copy of the current (partial) state of the object.
+     * @return array            Returns an associative array mapping fields with their resulting values.
+     */
+    public static function onchange($om, $event=[], $values=[], $lang='en') {
+        return [];
     }
 }

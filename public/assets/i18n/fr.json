@@ -1,7 +1,7 @@
 {
 
     "SB_DIALOG_ACCEPT": "Valider",
-    "SB_DIALOG_SEND": "Exécuter",
+    "SB_DIALOG_SEND": "Ok",
     "SB_DIALOG_CANCEL": "Annuler",
 
     "SB_PURPOSE_CREATE": "Création",
@@ -45,6 +45,9 @@
     "SB_ACTIONS_DELETION_DIALOG_I_CONFIRM": "Oui, supprimer les éléments.",
     "SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT": "Supprimer définitivement ?",
 
+    "SB_ACTIONS_NOTIFY_CHANGES_SAVED": "Modifications enregistrées.",
+    "SB_ACTIONS_NOTIFY_ACTION_SENT": "Demande d'action envoyée.",
+
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
     "SB_ACTIONS_MESSAGE_ERASE_CONCURRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
 
@@ -56,7 +59,7 @@
     "SB_ERROR_ERROR": "Erreur",
     "SB_ERROR_UNKNOWN": "Une erreur non identifiée est survenue.",
     "SB_ERROR_SQL_ERROR": "Une erreur au niveau de la base de données empêche l'opération (doublon?).",
-	"SB_ERROR_UNKNOWN_OBJECT": "Appel sur un Objet inconnu.",
+    "SB_ERROR_UNKNOWN_OBJECT": "Appel sur un Objet inconnu.",
     "SB_ERROR_CONFLICT_OBJECT": "Un conflit empêche cette opération.",
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
     "SB_ERROR_DUPLICATE_INDEX": "Un doublon est présent.",
@@ -73,10 +76,21 @@
 
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier",
-    "AUTH_SIGNIN_USERNAME": "Nom d'utilisateur",
+    "AUTH_SIGNIN_USERNAME": "Nom d'utilisateur ou Adresse email",
     "AUTH_SIGNIN_PASSWORD": "Mot de passe",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connexion",
-    "AUTH_SIGNIN_ACTION_RECOVER": "mot de passe oublié ?",
+    "AUTH_SIGNIN_ACTION_RECOVER": "Mot de passe oublié ?",
+    "AUTH_SIGNIN_ACTION_REGISTER": "Créer un nouveau compte",
+    "AUTH_SIGNUP_TITLE": "Nouveau compte",
+    "AUTH_SIGNUP_SIGNUP": "S'inscrire",
+    "AUTH_SIGNUP_USERNAME": "Nom d'utilisateur",
+    "AUTH_SIGNUP_PASSWORD": "Mot de passe",
+    "AUTH_SIGNUP_CONFIRM": "Confirmation",
+    "AUTH_SIGNUP_ACTION_SIGNUP": "S'inscrire",
+    "AUTH_SIGNUP_SENT_TITLE": "Création de compte",
+    "AUTH_SIGNUP_SENT_SIGNUP": "Demande de confirmation envoyée",
+    "AUTH_SIGNUP_SENT_MESSAGE": "Un message contenant un lien de verification a été envoyé à votre adresse email. Veuillez cliquer sur le lien de ce message pour continuer la création de votre compte.",
+    "AUTH_SIGNUP_SENT_ACTION_RESEND": "Renvoyer le message de confirmation",
     "AUTH_RECOVER_MESSAGE_SUBMITTED": "Si l'adresse email correspond à un compte connu, les instructions de récupération de mot de passe y ont été envoyées.",
     "AUTH_RECOVER_TITLE": "Réinitialiser le mot de passe",
     "AUTH_RECOVER_SUBTITLE": "Mot de passe oublié ?",
@@ -90,12 +104,15 @@
     "AUTH_RESET_ACTION_SUBMIT": "Réinitialiser",
     "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
     "AUTH_ERROR_MISSING_USERNAME": "Nom d'utilisateur requis",
+    "AUTH_ERROR_INVALID_USERNAME": "Nom d'utilisateur invalide (min 6 car.)",
+    "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",
+    "AUTH_ERROR_INVALID_EMAIL": "Adresse email invalide",
     "AUTH_ERROR_MISSING_PASSWORD": "Mot de passe requis",
     "AUTH_ERROR_INVALID_PASSWORD": "Mot de passe invalide (min 8 car.)",
     "AUTH_ERROR_CONFIRM_MISMATCH": "Confirmation différente du mot de passe",
     "AUTH_ERROR_INVALID_USERNAME_OR_PASSWORD": "Nom d'utilisateur ou mot de passe invalide.",
+    "AUTH_ERROR_EXISTING_USERNAME_OR_LOGIN": "Un compte existe déjà avec ce nom d'utilisateur ou cette adresse email.",
     "AUTH_ERROR_SERVER_ERROR": "Une erreur s'est produite au niveau du serveur. Veuillez réessayer dans quelques minutes.",
-    "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",
 
     "APPS_APP_BOOKING": "Réservations",
     "APPS_APP_POS": "Point de vente",

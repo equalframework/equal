@@ -50,50 +50,62 @@ list($params, $providers) = announce([
         'accept-origin'     => '*',
         'content-type'      => 'application/pdf'
     ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context', 'orm', 'auth', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context                  $context
+ * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\auth\AuthenticationManager   $auth
+ * @var \equal\data\DataAdapter             $adapt
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+list($context, $orm, $auth, $adapter) = [$providers['context'], $providers['orm'], $providers['auth'], $providers['adapt']];
 
 
-// retrieve target entity
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+$is_controller_entity = false;
+
+/*
+    Handle controller entities
+*/
+$parts = explode('\\', $params['entity']);
+$file = array_pop($parts);
+if(ctype_lower(substr($file, 0, 1))) {
+    $is_controller_entity = true;
+    $data = eQual::run('get', 'model_schema', [
+            'entity'        => $params['entity']
+        ]);
+    $schema = $data['fields'];
+}
+/*
+    Handle Model entities
+*/
+else {
+    // retrieve target entity
+    $entity = $orm->getModel($params['entity']);
+    if(!$entity) {
+        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    }
+
+    // get the complete schema of the object (including special fields)
+    $schema = $entity->getSchema();
 }
 
-// get the complete schema of the object (including special fields)
-$schema = $entity->getSchema();
+/**
+ * retrieve view schema
+ */
 
-// retrieve view schema
-$json = run('get', 'model_view', [
+$view_schema = eQual::run('get', 'model_view', [
     'entity'        => $params['entity'],
     'view_id'       => $params['view_id']
 ]);
 
-// decode json into an array
-$data = json_decode($json, true);
-
-// relay error if any
-if(isset($data['errors'])) {
-    foreach($data['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
-}
-
-if(!isset($data['layout']['items'])) {
+if(!isset($view_schema['layout']['items'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
-$view_schema = $data;
 $group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
 
 $view_fields = [];
-
 foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
         $view_fields[] = $item;
@@ -101,9 +113,9 @@ foreach($view_schema['layout']['items'] as $item) {
 }
 
 
-/*
-    Read targeted objects
-*/
+/**
+ * Read targeted objects
+ */
 
 $fields_to_read = [];
 
@@ -119,45 +131,61 @@ foreach($view_fields as $item) {
     }
 }
 
-if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
-    $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-    $start = (isset($params['params']['start']))?$params['params']['start']:0;
-    $order = (isset($params['params']['order']))?$params['params']['order']:'id';
-    $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
-    if(is_array($order)) {
-        $order = $order[0];
+// entity is a controller (distinct from collect)
+if($is_controller_entity) {
+    // get data from controller
+    $values = eQual::run('get', str_replace('\\', '_', $params['entity']), $params['params']);
+    // convert JSON values to PHP
+    foreach($values as $index => $object) {
+        foreach($object as $field => $value) {
+            if(!isset($schema[$field]['type'])) {
+                continue;
+            }
+            $values[$index][$field] = $adapter->adapt($value, $schema[$field]['type']);
+        }
     }
-    $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
 }
+// entity is a Model
 else {
-    $body = [
-            'entity'    => $params['entity'],
-            'domain'    => $params['domain'],
-            'fields'    => [],
-            'limit'     => 25,
-            'start'     => 0,
-            'order'     => 'id',
-            'sort'      => 'asc',
-            'lang'      => $params['lang']
-        ];
-
-    foreach($params['params'] as $param => $value) {
-        if($param == 'order' && is_array($value)) {
-            $body['order'] = $value[0];
+    if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
+        $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
+        $start = (isset($params['params']['start']))?$params['params']['start']:0;
+        $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+        $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+        if(is_array($order)) {
+            $order = $order[0];
         }
-        else {
-            $body[$param] = $value;
-        }
+        $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
     }
+    else {
+        $body = [
+                'entity'    => $params['entity'],
+                'domain'    => $params['domain'],
+                'fields'    => [],
+                'limit'     => 25,
+                'start'     => 0,
+                'order'     => 'id',
+                'sort'      => 'asc',
+                'lang'      => $params['lang']
+            ];
 
-    // retrieve objects collection using the target controller
-    $data = eQual::run('get', $params['controller'], $body);
-    // extract objects ids
-    $objects_ids = array_map(function ($a) { return $a['id']; }, $data);
-    // retrieve objects required fields
-    $values = $params['entity']::ids($objects_ids)->read($fields_to_read)->get();
+        foreach($params['params'] as $param => $value) {
+            if($param == 'order' && is_array($value)) {
+                $body['order'] = $value[0];
+            }
+            else {
+                $body[$param] = $value;
+            }
+        }
+
+        // retrieve objects collection using the target controller
+        $data = eQual::run('get', $params['controller'], $body);
+        // extract objects ids
+        $objects_ids = array_map(function ($a) { return $a['id']; }, $data);
+        // retrieve objects required fields
+        $values = $params['entity']::ids($objects_ids)->read($fields_to_read)->get();
+    }
 }
-
 
 /*
     Retrieve Model translations
@@ -272,51 +300,138 @@ $row = createHeaderRow($doc, $view_fields, $translations);
 $table->appendChild($row);
 
 
-// 2) generate table lines (with group_by support)
+// 2) generate table lines
 
-// create initial stack of goups / objects
-$stack = [$values];
-if(count($group_by)) {
-    $groups = groupObjects($schema, $values, $group_by);
-    $stack = [$groups];
-}
-while(true) {
-    if(count($stack) == 0) break;
+if($is_controller_entity) {
+    // no group_by support
 
-    $elem = array_pop($stack);
-    $first = reset($elem);
+    foreach($values as $oid => $odata) {
+        // adapt value
+        foreach($view_fields as $item) {
+            $field = $item['value'];
+            $width = (isset($item['width']))?intval($item['width']):0;
+            if($width <= 0) {
+                // #todo - since group_by is not supported yet, we set the min with to 10%
+                $width = 10;
+                //continue;
+            }
 
-    if(is_array($elem) && isset($first['id'])) {
-        // group is an array of objects: render a row for each object
-        foreach($elem as $object) {
-            $row = createObjectRow($doc, $object, $view_fields, $translations, $schema, $settings);
-            $table->appendChild($row);
-        }
+            $value = $odata[$field];
 
-        // #todo - if operations are defined, add a line for each group
-    }
-    else if(isset($elem['_is_group'])) {
-        $row = createGroupRow($doc, $elem, $view_fields, $translations);
-        $table->appendChild($row);
-    }
-    else {
-        // #memo - keys must be strings
-        $keys = array_keys($elem);
-        sort($keys);
-        $keys = array_reverse( $keys );
-        foreach($keys as $key) {
-            if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) continue;
-            // add object or array
-            if(isset($elem[$key]['_data'])) {
-                $stack[] = $elem[$key]['_data'];
+            $type = $schema[$field]['type'];
+            // #todo - handle 'alias'
+            if($type == 'computed') {
+                $type = $schema[$field]['result_type'];
+            }
+
+            $usage = (isset($schema[$field]['usage']))?$schema[$field]['usage']:'';
+            $align = 'left';
+
+            // for relational fields, we need to check if the Model has been fetched
+            if(in_array($type, ['one2many', 'many2one', 'many2many'])) {
+                // by convention, `name` subfield is always loaded for relational fields
+                if($type == 'many2one' && isset($value['name'])) {
+                    $value = $value['name'];
+                }
+                else {
+                    $value = "...";
+                }
+                if(is_numeric($value)) {
+                    $align = 'right';
+                }
+            }
+            else if($type == 'date') {
+                $align = 'center';
+            }
+            else if($type == 'time') {
+                $align = 'center';
+                $value = date($settings['time_format'], strtotime('today') + $value);
+            }
+            else if($type == 'datetime') {
+                $align = 'center';
             }
             else {
-                $stack[] = $elem[$key];
+                if($type == 'string') {
+                    $align = 'center';
+                }
+                else {
+                    if(strpos($usage, 'amount/money') === 0) {
+                        $align = 'right';
+                        $value = $settings['format_currency']($value);
+                    }
+                    if(is_numeric($value)) {
+                        $align = 'right';
+                    }
+                }
             }
-            $stack[] = array_merge(['_is_group' => true], $elem[$key]);
+
+            // handle html content
+            if($type == 'string' && strlen($value) && $usage == 'text/html') {
+                $align = 'left';
+                $value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));
+            }
+            else {
+                // translate 'select' values
+                if($type == 'string' && isset($schema[$field]['selection'])) {
+                    if(isset($translations[$field]) && isset($translations[$field]['selection'])) {
+                        $value = $translations[$field]['selection'][$value];
+                    }
+                }
+            }
+            $odata[$field] =  $value;
+        }
+
+        $row = createObjectRow($doc, $odata, $view_fields, $translations, $schema, $settings);
+        $table->appendChild($row);
+    }
+}
+else {
+    // with group_by support
+    // create initial stack of goups / objects
+    $stack = [$values];
+    if(count($group_by) && !$is_controller_entity) {
+        $groups = groupObjects($schema, $values, $group_by);
+        $stack = [$groups];
+    }
+    while(true) {
+        if(count($stack) == 0) break;
+
+        $elem = array_pop($stack);
+        $first = reset($elem);
+
+        if(is_array($elem) && isset($first['id'])) {
+            // group is an array of objects: render a row for each object
+            foreach($elem as $object) {
+                $row = createObjectRow($doc, $object, $view_fields, $translations, $schema, $settings);
+                $table->appendChild($row);
+            }
+
+            // #todo - if operations are defined, add a line for each group
+        }
+        else if(isset($elem['_is_group'])) {
+            $row = createGroupRow($doc, $elem, $view_fields, $translations);
+            $table->appendChild($row);
+        }
+        else {
+            // #memo - keys must be strings
+            $keys = array_keys($elem);
+            sort($keys);
+            $keys = array_reverse( $keys );
+            foreach($keys as $key) {
+                if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) continue;
+                // add object or array
+                if(isset($elem[$key]['_data'])) {
+                    $stack[] = $elem[$key]['_data'];
+                }
+                else {
+                    $stack[] = $elem[$key];
+                }
+                $stack[] = array_merge(['_is_group' => true], $elem[$key]);
+            }
         }
     }
 }
+
 
 // 3) handle 'operations' property, if set
 // #todo

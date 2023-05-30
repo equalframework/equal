@@ -167,7 +167,7 @@ class ObjectManager extends Service {
     ];
 
     /**
-     * @param DBConnection $db  Intance of the Service allowing connection to DBMS (connection might not be established yet).
+     * @param DBConnection $db  Instance of the Service allowing connection to DBMS (connection might not be established yet).
      */
     protected function __construct(DBConnection $db) {
         $this->db = &$db;
@@ -200,17 +200,19 @@ class ObjectManager extends Service {
     /**
      * Provide the db handler (DBConnection instance).
      * If the connection hasn't been established yet, tries to connect to DBMS.
+     *
      * @return DBConnection
      */
     private function getDBHandler() {
-        // open DB connection
+        // open DB connection, if not connected yet
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
                 // fatal error
-                trigger_error(  'Error raised by '.__CLASS__.'::'.__METHOD__.'@'.__LINE__.' : '.
-                                'unable to establish connection to database: check connection parameters '.
-                                '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, ...)',
-                                QN_REPORT_ERROR);
+                trigger_error('Unable to establish connection to database: check connection parameters '.
+                        '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, DB offline, ...)',
+                        QN_REPORT_ERROR
+                    );
+                throw new Exception("connection_failed", QN_ERROR_INVALID_CONFIG);
             }
         }
         return $this->db;
@@ -402,7 +404,9 @@ class ObjectManager extends Service {
     * @return bool      Returns true if all attributes in $chek_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
-        if (!isset($schema) || !isset($schema[$field])) throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
+        if (!isset($schema) || !isset($schema[$field])) {
+            throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
+        }
         $attributes = $check_array[$schema[$field]['type']];
         return !(count(array_intersect($attributes, array_keys($schema[$field]))) < count($attributes));
     }
@@ -668,7 +672,9 @@ class ObjectManager extends Service {
 
             // 2) load fields values, grouping fields by type
             foreach($fields_lists as $type => $list) {
-                $load_fields[$type]($this, $ids, $list);
+                if(isset($load_fields[$type])) {
+                    $load_fields[$type]($this, $ids, $list);
+                }
             }
 
             // 3) check if some computed fields were not set in database
@@ -683,14 +689,16 @@ class ObjectManager extends Service {
                         $oids[] = $oid;
                     }
                 }
-                // compute field for incomplete objects
-                $load_fields['computed']($this, $oids, array($field));
-                try {
-                    // store newly computed fields to database ('store' attribute set to true)
-                    $this->store($class, $oids, array($field), $lang);
-                }
-                catch(Exception $e) {
-                    trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                if(count($oids)) {
+                    // compute field for incomplete objects
+                    $load_fields['computed']($this, $oids, array($field));
+                    try {
+                        // store newly computed fields to database ('store' attribute set to true)
+                        $this->store($class, $oids, array($field), $lang);
+                    }
+                    catch(Exception $e) {
+                        trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                    }
                 }
             }
 
@@ -867,7 +875,6 @@ class ObjectManager extends Service {
                                 $rel_ids = [intval($rel_ids)];
                             }
                             else {
-                                print_r($rel_ids);
                                 trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                                 continue;
                             }
@@ -960,7 +967,7 @@ class ObjectManager extends Service {
      * @param   string    $method
      * @param   int[]     $ids
      * @param   array     $values
-     * @param   array     $signature        List of parameters to relay to target method (required if differing from default).
+     * @param   array     $signature        (deprecated) List of parameters to relay to target method (required if differing from default).
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
@@ -985,16 +992,13 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            trigger_error("ORM::non-existing method '$method' for class '$class'", QN_REPORT_INFO);
-            return QN_ERROR_INVALID_PARAM;
+            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            return $result;
         }
 
-        $first_call = false;
-
-        // init object_method map if necessary
+        // init call stack
         if(!isset($this->object_methods[$called_class][$called_method])) {
             $this->object_methods[$called_class][$called_method] = [];
-            $first_call = true;
         }
 
         // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
@@ -1002,22 +1006,42 @@ class ObjectManager extends Service {
         $unprocessed_ids = array_diff((array) $ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
-        // only 'ids', 'values' and 'lang' are accepted
-        $params = [];
-        foreach($signature as $param) {
-            switch($param) {
-                case 'ids':     $params[] = $unprocessed_ids;
-                    break;
-                case 'values':  $params[] = $values;
-                    break;
-                case 'lang':    $params[] = $lang;
-                    break;
+        /** @var \ReflectionMethod */
+        $method = new \ReflectionMethod($called_class, $called_method);
+        /** @var \ReflectionParameter */
+        $params = $method->getParameters();
+
+        $args = [];
+        foreach($params as $param) {
+            $param_name = $param->getName();
+            if(in_array($param_name, ['om', 'orm'])) {
+                $args[] = $this;
+            }
+            elseif(in_array($param_name, ['ids', 'oids'])) {
+                $args[] = $unprocessed_ids;
+            }
+            elseif($param_name == 'values') {
+                $args[] = $values;
+            }
+            elseif($param_name == 'lang') {
+                $args[] = $lang;
+            }
+            elseif($param_name == 'self') {
+                $factory = Collections::getInstance();
+                $c = $factory->create($called_class);
+                $c->lang($lang)->ids($unprocessed_ids);
+                $args[] = $c;
             }
         }
 
-        if( (in_array('ids', $signature) && count($unprocessed_ids) > 0)
-         || (in_array('values', $signature) && $first_call) ) {
-            $result = $called_class::$called_method($this, ...$params);
+        try {
+            $res = $called_class::$called_method(...$args);
+            if($res !== null) {
+                $result = $res;
+            }
+        }
+        catch(\Exception $e) {
+            $result = $e->getCode();
         }
 
         return $result;
@@ -1032,7 +1056,7 @@ class ObjectManager extends Service {
      * @param string    $method
      * @param int[]     $ids
      * @param array     $values
-     * @param array     $signature  List of parameters to relay to target method (required if differing from default).
+     * @param array     $signature  (deprecated) List of parameters to relay to target method (required if differing from default).
      */
     public function call($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
@@ -1055,22 +1079,46 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            throw new Exception("ObjectManager::call: unknown method ($method, $class)");
+            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            return $result;
         }
+        /** @var \ReflectionMethod */
+        $method = new \ReflectionMethod($called_class, $called_method);
+        /** @var \ReflectionParameter */
+        $params = $method->getParameters();
 
-        $params = [];
-        foreach($signature as $param) {
-            switch($param) {
-                case 'ids':     $params[] = $ids;
-                    break;
-                case 'values':  $params[] = $values;
-                    break;
-                case 'lang':    $params[] = $lang;
-                    break;
+        $args = [];
+        foreach($params as $param) {
+            $param_name = $param->getName();
+            if(in_array($param_name, ['om', 'orm'])) {
+                $args[] = $this;
+            }
+            elseif(in_array($param_name, ['ids', 'oids'])) {
+                $args[] = $ids;
+            }
+            elseif($param_name == 'values') {
+                $args[] = $values;
+            }
+            elseif($param_name == 'lang') {
+                $args[] = $lang;
+            }
+            elseif($param_name == 'self') {
+                $factory = Collections::getInstance();
+                $c = $factory->create($called_class);
+                $c->lang($lang)->ids($ids);
+                $args[] = $c;
             }
         }
 
-        $result = $called_class::$called_method($this, ...$params);
+        try {
+            $res = $called_class::$called_method(...$args);
+            if($res !== null) {
+                $result = $res;
+            }
+        }
+        catch(\Exception $e) {
+            $result = $e->getCode();
+        }
 
         return $result;
     }
@@ -1088,7 +1136,7 @@ class ObjectManager extends Service {
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
             // #todo - validate (this is the only public method in ORM that raises an Exception)
-            throw new Exception("FATAL - unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
+            throw new Exception("unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
         }
         return $model;
     }
@@ -1108,12 +1156,13 @@ class ObjectManager extends Service {
      *               }
      *            }
      *
-     * @param   string  $class          Entity name.
-     * @param   array   $ids            Array of objects identifiers.
-     * @param   array   $values         Associative array mapping fields names with values to be assigned to the object(s).
-     * @param   boolean $check_unique   Request check for unicity contraints (related to getUnique method).
-     * @param   boolean $check_required Request check for required fields (and _self constraints).
-     * @return  array   Returns an associative array containing invalid fields with their associated error_message_id. An empty array means all fields are valid.
+     * @param   string          $class          Entity name.
+     * @param   array           $ids            Array of objects identifiers.
+     * @param   array           $values         Associative array mapping fields names with values to be assigned to the object(s).
+     * @param   boolean         $check_unique   Request check for unicity contraints (related to getUnique method).
+     * @param   boolean         $check_required Request check for required fields (and _self constraints).
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
         // #todo : check relational fields consistency (make sure that target object(s) actually exist)
@@ -1124,7 +1173,9 @@ class ObjectManager extends Service {
         $schema = $model->getSchema();
 
 
-        // 1) REQUIRED constraint check
+        /**
+         * 1) REQUIRED constraint check
+         */
 
         if($check_required) {
             foreach($schema as $field => $def) {
@@ -1139,12 +1190,15 @@ class ObjectManager extends Service {
         }
 
 
-        // 2) MODEL constraint check
+        /**
+         * 2) MODEL constraint check
+         */
+
 
         //     // #todo
         //     // check constraints implied by type and usage
         //     foreach($values as $field => $value) {
-        //         /** @var \equal\orm\fields\Field */
+        //         /** @var \equal\orm\Field */
         //         $f = $model->getField($class);
         //         $usage = $f->getUsage();
         //         $constraints = $f->getConstraints();
@@ -1225,7 +1279,7 @@ class ObjectManager extends Service {
                 foreach($constraints[$field] as $error_id => $constraint) {
                     if(isset($constraint['function']) ) {
                         $validation_func = $constraint['function'];
-                        // #todo - use a single arg (validation should be independant from context, otherwise use cancreate/canupdate)
+                        // #todo - use a single arg (validation should be independent from context, otherwise use cancreate/canupdate)
                         if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
                             if(!isset($constraint['message'])) {
                                 $constraint['message'] = 'Invalid field.';
@@ -1243,7 +1297,9 @@ class ObjectManager extends Service {
         }
 
 
-        // 3) UNIQUE constraint check
+        /**
+         * 3) UNIQUE constraint check
+         */
 
         if($check_unique && !count($res) && method_exists($model, 'getUnique')) {
             $uniques = $model->getUnique();
@@ -1278,14 +1334,15 @@ class ObjectManager extends Service {
                         if(isset($values[$field])) {
                             $value = $values[$field];
                         }
-                        else if(isset($extra_values[$id][$field])) {
+                        elseif(isset($extra_values[$id][$field])) {
                             $value = $extra_values[$id][$field];
                         }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
-                        // map unique fields with the given values
+                        if(is_null($value)) {
+                            // one of the value composing the key is null: allow (discard constraint)
+                            continue 2;
+                        }
                         $domain[] = [$field, '=', $value];
-                        // make sure to ignore existing records with field left as null
-                        $domain[] = [$field, 'is not', null];
                     }
                     // search for objects already set with unique values
                     if(count($domain)) {
@@ -1293,11 +1350,13 @@ class ObjectManager extends Service {
                         $domain[] = ['state', 'like', '%%'];
                         // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
                         $domain[] = ['deleted', 'in', ['0', '1']];
-                        if(count($ids)) {
-                            // ids are always unique
-                            $domain[] = ['id', 'not in', $ids];
+                        // object does not conflict with itself
+                        $domain[] = ['id', '<>', $id];
+                        $conflict_ids = $this->search($class, $domain);
+                        if($conflict_ids < 0) {
+                            // interrupt the process in case of system error (SQL)
+                            return $conflict_ids;
                         }
-                        $conflict_ids = array_filter((array) $this->search($class, $domain), function($a) {return $a > 0;});
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
@@ -1309,7 +1368,9 @@ class ObjectManager extends Service {
                 }
 
                 // loop only if some field impacted by the 'unique' constraint are not present in the received $values
-                if(count($extra_fields) <= 0) break;
+                if(count($extra_fields) <= 0) {
+                    break;
+                }
             }
 
         }
@@ -1346,7 +1407,7 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
             $special_fields = Model::getSpecialColumns();
 
-            // 1) define default values (in SQL)
+            // 1) define default values
             $creation_array = [];
             foreach($special_fields as $field => $descr) {
                 if(isset($object[$field])) {
@@ -1477,6 +1538,7 @@ class ObjectManager extends Service {
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+
             // 1) pre-processing - $ids sanitization
 
             // cast fields to an array (passing a single field is accepted)
@@ -1544,14 +1606,9 @@ class ObjectManager extends Service {
             // 5) update objects
 
             $onupdate_fields = [];
-            $dependencies = [];
             // update internal buffer with given values
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers resetting computed fields
-                    if(isset($schema[$field]['dependencies'])) {
-                        $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
-                    }
                     // remember fields whose modification triggers an onupdate event
                     // #memo - computed fields assigned to null are meant to be re-computed without triggering onupdate
                     if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
@@ -1585,26 +1642,58 @@ class ObjectManager extends Service {
 
             // 8) handle the resetting of the dependent computed fields
 
-            if(count($dependencies)) {
-                // remember fields that must be re-computed instantly
-                $instant_fields = [];
-                foreach($dependencies as $dependency) {
-                    // #todo - add support for dot notation
-                    if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
-                        if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
-                            $instant_fields[] = $dependency;
-                        }
-                        foreach($ids as $oid) {
-                            $this->cache[$table_name][$oid][$lang][$dependency] = null;
-                        }
-                    }
-                }
-                $this->store($class, $ids, $dependencies, $lang);
-                if(count($instant_fields)) {
-                    // re-compute 'instant' computed field
-                    $this->read($class, $ids, $instant_fields, $lang);
+            $dependencies = [];
+            foreach($fields as $field => $value) {
+                // remember fields whose modification triggers resetting computed fields
+                if(isset($schema[$field]['dependencies'])) {
+                    $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
                 }
             }
+            // remember fields that must be re-computed instantly
+            $instant_fields = [];
+            foreach($dependencies as $dependency) {
+                // #todo - add support for dot notation
+                if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
+                    if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
+                        $instant_fields[] = $dependency;
+                    }
+                    foreach($ids as $oid) {
+                        $this->cache[$table_name][$oid][$lang][$dependency] = null;
+                    }
+                }
+            }
+            $this->store($class, $ids, $dependencies, $lang);
+            if(count($instant_fields)) {
+                // re-compute 'instant' computed field
+                $this->read($class, $ids, $instant_fields, $lang);
+            }
+
+
+            // 9) handle automatic transitions
+
+            foreach($ids as $object_id) {
+                // for each object, we must retrieve the status field
+                $transitions = $this->getTransitionCandidates($class, $object_id, array_keys($fields));
+                foreach($transitions as $transition) {
+                    $t_res = $this->transition($class, (array) $object_id, $transition);
+                    // transition succeeded
+                    if(count($t_res) == 0) {
+                        // there should be only one applicable transition, process next object
+                        break;
+                    }
+                }
+            }
+
+            // #todo - move this to a dedicated controller for CRON
+            // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+
+            if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
+                $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $ids] ] );
+                if($messages_ids) {
+                    $this->delete('core\alert\Message', $messages_ids, true);
+                }
+            }
+
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
@@ -1623,7 +1712,7 @@ class ObjectManager extends Service {
      * @param   mixed      $fields      Name(s) of the field(s) to retrieve (accepted types: array, string).
      * @param   string     $lang        Language under which return fields values (only relevant for multilang fields).
      *
-     * @return  int|Model[]  Returns an associative array mapping Model instances for each requested id ($ids order is maintained). If an error occurs, it returns the ID of the raised error.
+     * @return  int|Model[]  Returns an associative array mapping Model instances for each requested id ($ids order is maintained). If an error occurs, the ID of the raised error is returned.
      */
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
@@ -1765,26 +1854,21 @@ class ObjectManager extends Service {
 
                 // recursively read sub objects
                 foreach($ids as $oid) {
-                    if(!isset($values[$oid][$path_field])) {
-                        $res[$oid][$field] = null;
-                    }
-                    else {
-                        $res[$oid][$field] = $values[$oid][$path_field];
-
-                        if(isset($schema[$path_field]['foreign_object'])) {
-                            $sub_class = $schema[$path_field]['foreign_object'];
-                            $sub_ids = $values[$oid][$path_field];
-                            $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                            if($sub_values > 0) {
-                                if($field_type == 'many2one') {
-                                    $odata = reset($sub_values);
-                                    if(is_array($odata) || is_a($odata, Model::getType())) {
-                                        $res[$oid][$field] = $odata[$parts[1]];
-                                    }
+                    // #memo - unreachable values are always set to null
+                    $res[$oid][$field] = null;
+                    if(isset($values[$oid][$path_field]) && isset($schema[$path_field]['foreign_object'])) {
+                        $sub_class = $schema[$path_field]['foreign_object'];
+                        $sub_ids = $values[$oid][$path_field];
+                        $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
+                        if($sub_values > 0) {
+                            if($field_type == 'many2one') {
+                                $odata = reset($sub_values);
+                                if(is_array($odata) || is_a($odata, Model::getType())) {
+                                    $res[$oid][$field] = $odata[$parts[1]];
                                 }
-                                else {
-                                    $res[$oid][$field] = $sub_values;
-                                }
+                            }
+                            else {
+                                $res[$oid][$field] = $sub_values;
                             }
                         }
                     }
@@ -1914,6 +1998,17 @@ class ObjectManager extends Service {
             else {
                 // delete targeted objects
                 $db->deleteRecords($table_name, $ids);
+
+                // remove translations, if any
+                $this->db->deleteRecords(
+                        'core_translation',
+                        $ids, [
+                            [
+                                ['object_class', '=', $class]
+                            ]
+                        ],
+                        'object_id'
+                    );
             }
 
             // remove objects from cache
@@ -2031,6 +2126,152 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Returns applicable transitions based on a list of updated fields, according to the dependencies defined in the related workflow descriptors.
+     * If no workflow is defined for the given class, an empty array is returned.
+     *
+     * @param string    $class
+     * @param int[]     $id         Identifier of the object for which applicable transitions are requested (transitions depend on individual status).
+     * @param string[]  $fields     List of field names.
+     * @return array    Returns a list of transition names (id) that must be tested in case one or more fields amongst the $fields array is updated.
+     */
+    private function getTransitionCandidates($class, $id, $fields) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        if(!isset($schema['status'])) {
+            return $res;
+        }
+        $workflow = $model->getWorkflow();
+        $objects = $this->read($class, (array) $id, ['status']);
+        if($objects > 0 && count($objects)) {
+            $object = reset($objects);
+            if(isset($object['status']) && isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if(isset($t_descr['depends_on']) && count(array_intersect($fields, $t_descr['depends_on'])) > 0 ) {
+                        $res[] = $t_name;
+                    }
+                }
+            }
+        }
+        return $res;
+    }
+
+    public function canTransition($class, $ids, $transition) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        // ignore models that do not have a status field
+        if(!isset($schema['status'])) {
+            trigger_error("ORM::invalid transition request on entity '$class' without status field.", QN_REPORT_WARNING);
+            return $res;
+        }
+        $workflow = $model->getWorkflow();
+        $objects = $this->read($class, $ids, ['status']);
+        foreach($objects as $id => $object) {
+            // ignore faulty objects
+            if(!isset($object['status'])) {
+                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object is missing a status value."];
+                continue;
+            }
+            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                $match = false;
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if($t_name == $transition) {
+                        if(isset($t_descr['domain'])) {
+                            $domain = new Domain($t_descr['domain']);
+                            $fields = $domain->extractFields();
+                            $data = $this->read($class, $id, $fields);
+                            $object = reset($data);
+                            if(!$domain->evaluate($object)) {
+                                $match = true;
+                                $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object state does not comply with the constraints of transition '$transition'."];
+                                break;
+                            }
+                        }
+                        $match = true;
+                        break;
+                    }
+                }
+                if(!$match) {
+                    $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from object status '{$object['status']}' is defined in workflow."];
+                }
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * Attempts to apply a specific transition to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     *
+     * @param   string      $class            Class name of the object to clone.
+     * @param   array       $ids              Array of ids of the objects to delete.
+     * @param   string      $transition       Name of the requested workflow transition (signal).
+     *
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
+     */
+    public function transition($class, $ids, $transition) {
+        /** @var array */
+        $res = [];
+        $model = $this->getStaticInstance($class);
+        $schema = $model->getSchema();
+        if(!isset($schema['status'])) {
+            return $res;
+        }
+        $table_name = $this->getObjectTableName($class);
+        $workflow = $model->getWorkflow();
+        $lang = constant('DEFAULT_LANG');
+        $objects = $this->read($class, $ids, ['status']);
+        foreach($objects as $id => $object) {
+            // ignore models that do not have a status field
+            if(!isset($object['status'])) {
+                continue;
+            }
+            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
+                $match = false;
+                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
+                    if($t_name == $transition) {
+                        if(isset($t_descr['domain'])) {
+                            $domain = new Domain($t_descr['domain']);
+                            $fields = $domain->extractFields();
+                            $data = $this->read($class, $id, $fields);
+                            $object = reset($data);
+                            if(!$domain->evaluate($object)) {
+                                $match = true;
+                                $error_code = QN_ERROR_NOT_ALLOWED;
+                                $res[$transition] = ['forbidden_transition' => 'Current status does not comply with transition constraints.'];
+                                break;
+                            }
+                        }
+                        if(!isset($t_descr['status'])) {
+                            // invalid transition
+                            break;
+                        }
+                        $match = true;
+                        // status field is always writeable (we don't call `update()` to bypass checks)
+                        $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
+                        $this->store($class, (array) $id, ['status'], $lang);
+                        // if a 'function' is defined for applied transition, call it
+                        if(isset($t_descr['function'])) {
+                            $this->callonce($class, $t_descr['function'], $id);
+                        }
+                        break;
+                    }
+                }
+                if(!$match) {
+                    $error_code = QN_ERROR_INVALID_CONFIG;
+                    $res[$transition] = ['unknown_transition' => "No transition '$transition' from status '{$object['status']}' is defined in workflow."];
+                }
+            }
+        }
+        return (count($res))?[$error_code => $res]:[];
+    }
+
+    /**
      * Searches for the objects that comply with the domain (series of criteria).
      *
      * The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
@@ -2046,7 +2287,7 @@ class ObjectManager extends Service {
      * @param   integer    $start       The offset at which to start the segment of the list of matching objects.
      * @param   string     $limit       The maximum number of results/identifiers to return.
      *
-     * @return  integer|array   Returns an array of matching objects ids.
+     * @return  integer|array   Returns an array of matching objects ids, or a negative integer in case of error.
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         // get DB handler (init DB connection if necessary)
@@ -2059,8 +2300,10 @@ class ObjectManager extends Service {
             }
 
             // check and fix domain format
-            if($domain && !is_array($domain)) throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);
-            else if($domain) {
+            if($domain && !is_array($domain)) {
+                throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);
+            }
+            elseif($domain) {
                 // valid format : [[['field', 'operator', 'value']]]
                 // accepted shortcuts: [['field', 'operator', 'value']], ['field', 'operator', 'value']
                 if( !is_array($domain[0]) ) {
@@ -2206,7 +2449,6 @@ class ObjectManager extends Service {
                             default:
                                 // adapt value
                                 if(!is_array($value)) {
-                                    // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
                                     /** @var \equal\data\adapt\DataAdapterProvider */
                                     $dap = $this->container->get('adapt');
                                     /** @var \equal\data\adapt\DataAdapter */
@@ -2214,6 +2456,8 @@ class ObjectManager extends Service {
                                     /** @var \equal\data\adapt\DataAdapter */
                                     $adapterJson = $dap->get('json');
                                     $f = new Field($schema[$field]);
+                                    // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
+                                    // 2023-04 - do we still need this ?
                                     $value = $adapterJson->adaptIn($value, $f->getUsage());
                                     // adapt value to SQL
                                     $value = $adapterSql->adaptOut($value, $f->getUsage());

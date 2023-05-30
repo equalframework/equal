@@ -9,7 +9,7 @@ use equal\http\HttpResponse;
 
 
 list($params, $providers) = announce([
-    'description'   => 'Downloads composer and runs it for installing depencies from composer.json.',
+    'description'   => 'Downloads composer and runs it for installing dependencies from composer.json.',
     'params'        => [],
     'access'        => [
         'visibility'    => 'private'

@@ -10,6 +10,10 @@ use equal\orm\Model;
 
 class User extends Model {
 
+    public static function constants() {
+        return ['USER_ACCOUNT_DISPLAYNAME'];
+    }
+
     public static function getName() {
         return 'User';
     }
@@ -17,14 +21,23 @@ class User extends Model {
     public static function getColumns() {
         return [
             'name' => [
-                'type'              => 'alias',
-                'alias'             => 'login'
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'function'          => 'calcName',
+                'store'             => true,
+                'description'       => 'Display name used to refer to the user.',
+                'help'              => 'Depending on the configuration, can be either the login, the first name, the fullname, or a nickname.'
             ],
 
             'login' => [
                 'type'              => 'string',
                 'usage'             => 'email',
                 'required'          => true,
+                'unique'            => true
+            ],
+
+            'username' => [
+                'type'              => 'string',
                 'unique'            => true
             ],
 
@@ -35,6 +48,11 @@ class User extends Model {
                 'required'          => true
             ],
 
+            'nickname' => [
+                'type'              => 'alias',
+                'alias'             => 'username'
+            ],
+
             'firstname' => [
                 'type'              => 'string'
             ],
@@ -43,7 +61,14 @@ class User extends Model {
                 'type'              => 'string'
             ],
 
-            // #todo - rename to 'locale'
+            'fullname' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'function'          => 'calcFullname'
+            ],
+
+            // #todo - add a distinct field for 'locale'
+
             'language' => [
                 'type'              => 'string',
                 'usage'             => 'language/iso-639',
@@ -54,7 +79,8 @@ class User extends Model {
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,
-                'description'       => 'Flag telling if the User has validated its email address and can sign in.'
+                'description'       => 'Flag telling if the User has validated his email address.',
+                'help'              => "This fields is used at signin to prevent non-validated user to log in."
             ],
 
             'groups_ids' => [
@@ -77,15 +103,84 @@ class User extends Model {
                 'foreign_object'    => 'core\setting\SettingValue',
                 'foreign_field'     => 'user_id',
                 'description'       => 'List of settings that relate to the user.'
-            ]
+            ],
 
+            // application logic related status of the object
+            'status' => [
+                'type'              => 'string',
+                // initial status
+                'default'           => 'created'
+                // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
+                // onupdate is allowed but it is better practice to rely on transitions and related function properties in the workflow descriptor
+            ]
         ];
+    }
+
+    public static function getWorkflow() {
+        return [
+            'created' => [
+                'transitions' => [
+                    'validation' => [
+                        'depends_on'  => ['validated'],
+                        'domain'      => ['validated', '=', true],
+                        'description' => 'Update the user status based on the `validated` field.',
+                        'help'        => "The `validated` field is set by a dedicated controller that handles email confirmation requests.",
+                        'status'	  => 'validated',
+                        'function'    => 'onValidated'
+                    ]
+                ]
+            ],
+            'validated' => [
+                'transitions' => [
+                    'suspension' => [
+                        'description' => 'Set the user status as suspended.',
+                        'status'	  => 'suspended'
+                    ],
+                    'confirmation' => [
+                        'domain'      => ['validated', '=', true],
+                        'description' => 'Update the user status based on the `confirmed` field.',
+                        'help'        => "The `confirmed` field is set by a dedicated controller that handles the account confirmation process (auto or manual).",
+                        'status'	  => 'confirmed'
+                    ]
+                ]
+            ],
+            'confirmed' => [
+                'transitions' => [
+                    'suspension' => [
+                        'description' => 'Set the user account as disabled (prevents signin).',
+                        'status'	  => 'suspended'
+                    ]
+                ]
+            ],
+            'suspended' => [
+                'transitions' => [
+                    'confirmation' => [
+                        'description' => 'Re-enable the user account.',
+                        'status'	  => 'confirmed'
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    public static function calcName($self) {
+        $result = [];
+        $mask = constant('USER_ACCOUNT_DISPLAYNAME');
+        $self->read(['id', 'login', 'nickname', 'firstname', 'lastname', 'fullname']);
+        foreach($self as $id => $user) {
+            $parts = explode(' ', str_replace('-', ' ', $user['firstname'].' '.$user['lastname']));
+            $initials = strtoupper(array_reduce($parts, function($c, $a) {return $c.substr($a, 0, 1);}, ''));
+            $res = str_replace(['id', 'nickname', 'mail', 'givenname', 'surname', 'initials'], [$id, $user['nickname'], $user['login'], $user['firstname'], $user['lastname'], $initials], $mask);
+            // fallback to user ID
+            $result[$id] = (strlen($res) > 0)?$res:$id;
+        }
+        return $result;
     }
 
     /**
      * Filter method for password updates.
-     * Make sure password is crypted when stored to DB.
-     * If not crypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     * Make sure password is encrypted when stored to DB.
+     * If not encrypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
      * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
      *
      * @param   $om     Object  Instance of the ObjectManager Service
@@ -101,18 +196,65 @@ class User extends Model {
         }
     }
 
-    public static function getConstraints() {
-        return [
-            'login' =>  [
-                'invalid_email' => [
-                    'message'       => 'Login must be a valid email address.',
-                    'function'      => function ($login, $values) {
-                        return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
-                    }
-                ]
-            ]
-            // #memo - password constraints are applied based on the 'usage' attribute
-        ];
+    /**
+     * Compute the value of the fullname of the user (concatenate firstname and lastname).
+     *
+     * @param \equal\orm\Collection $self  An instance of a User collection.
+     *
+     */
+    public static function calcFullname($self) {
+        $result = [];
+        $self->read(['firstname', 'lastname']);
+        foreach($self as $id => $user) {
+            $result[$id] = $user['firstname'].' '.$user['lastname'];
+        }
+        return $result;
     }
 
+    /**
+     * Handler run after successful transition to 'validated' status
+     *
+     */
+    public static function onValidated($orm, $ids) {
+        return $orm->transition(self::getType(), $ids, 'confirmation');
+    }
+
+    /**
+     * Handler for single object values change in UI.
+     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
+     *
+     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array            $values     Copy of the current (partial) state of the object.
+     * @return array            Returns an associative array mapping fields with their resulting values.
+     */
+    public static function onchange($event, $values) {
+        $result = [];
+
+        if(isset($event['firstname']) || isset($event['lastname'])) {
+
+            if(isset($event['firstname'])) {
+                if(isset($event['lastname'])) {
+                    $result['fullname'] = $event['firstname'].' '.$event['lastname'];
+                }
+                else {
+                    if(isset($values['lastname'])) {
+                        $result['fullname'] = $event['firstname'].' '.$values['lastname'];
+                    }
+                    else {
+                        $result['fullname'] = $event['firstname'];
+                    }
+                }
+            }
+            else {
+                if(isset($values['firstname'])) {
+                    $result['fullname'] = $values['firstname'].' '.$event['lastname'];
+                }
+                else {
+                    $result['fullname'] = $event['lastname'];
+                }
+            }
+        }
+
+        return $result;
+    }
 }

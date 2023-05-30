@@ -64,6 +64,11 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "fullname",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "language",
                                                 "width": "50%",
                                                 "widget": {

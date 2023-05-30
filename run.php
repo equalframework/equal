@@ -90,11 +90,10 @@ try {
 
         $router = Router::getInstance();
         // add routes providers according to current request
-        if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
         // translate preflight requests (OPTIONS) to be handled as GET, with announcement
-        // (so API does not have to explicitely define OPTIONS routes)
+        // (so API does not have to explicitly define OPTIONS routes)
         if($method == 'OPTIONS') {
             $params['announce'] = true;
             $methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE'];
@@ -152,6 +151,8 @@ try {
 
     // 3) perform requested operation and output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
+    // store access log
+    file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ).';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
@@ -203,6 +204,8 @@ catch(Throwable $e) {
                 ])
             ->send();
         trigger_error("PHP::{$request_method} ".$request->getUri()." => $http_status ".qn_error_name($error_code).": ".$msg, QN_REPORT_WARNING);
+        // store access log
+        file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:$_SERVER['REMOTE_ADDR'].';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
         // return an error code (for compliance under CLI environment)
         exit(1);
     }

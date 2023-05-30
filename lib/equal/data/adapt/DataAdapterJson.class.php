@@ -21,6 +21,10 @@ class DataAdapterJson extends DataAdapter {
      * x -> PHP
      */
 	public function adaptIn($value, $usage, $lang='en') {
+        // by convention, all types/values are nullable
+        if(is_null($value)) {
+            return null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -35,13 +39,13 @@ class DataAdapterJson extends DataAdapter {
                     case 'integer':
                         return self::strToInteger($value);
                     case 'hexadecimal':
-                        return is_null($value)?null:hexdec($value);
+                        return hexdec($value);
                     case 'real':
                         return self::jsonToFloat($value);
                 }
                 break;
             case 'text':
-                break;
+                return (string) $value;
             case 'time':
                 return self::jsonToTime($value);
             case 'date':
@@ -82,6 +86,9 @@ class DataAdapterJson extends DataAdapter {
      *
      */
     public function adaptOut($value, $usage, $lang='en') {
+        if(is_null($value)) {
+            return null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -134,9 +141,6 @@ class DataAdapterJson extends DataAdapter {
 
 
     private static function jsonToFloat($value) {
-        if(is_string($value) && $value == 'null') {
-            $value = null;
-        }
         // arg represents a numeric value (either numeric type or string)
         if(is_numeric($value)) {
             $value = floatval($value);
@@ -229,10 +233,6 @@ class DataAdapterJson extends DataAdapter {
     }
 
     private static function jsonToMany2one($value) {
-        // consider empty string as null
-        if(is_string($value) && (!strlen($value) || $value == 'null')) {
-            $value = null;
-        }
         if(!is_null($value) && !is_numeric($value)) {
             if(is_array($value) && isset($value['id'])) {
                 $value = $value['id'];
@@ -278,7 +278,7 @@ class DataAdapterJson extends DataAdapter {
     private static function jsonToArray($value) {
         if(!is_array($value)) {
             // try to resolve value as JSON
-            $data = @json_decode($value, true);
+            $data = @json_decode($value, true, 512, JSON_BIGINT_AS_STRING);
             if(json_last_error() === JSON_ERROR_NONE && is_array($data)) {
                 $value = $data;
             }
@@ -349,11 +349,12 @@ class DataAdapterJson extends DataAdapter {
                 // handle separator (next value or next attribute)
                 if($c == ',') {
                     if(strlen($current)) {
+                        $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                         if(strlen($current_key)) {
-                            $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                            $result[trim($current_key)] = $res;
                         }
                         else {
-                            $result[] = json_decode("[\"$current\"]")[0];
+                            $result[] = $res;
                         }
                     }
                     $current_key = '';
@@ -371,11 +372,12 @@ class DataAdapterJson extends DataAdapter {
                 $current .= $c;
             }
             if(strlen($current)) {
+                $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                 if(strlen($current_key)) {
-                    $result[trim($current_key)] = json_decode("[\"$current\"]")[0];
+                    $result[trim($current_key)] = $res;
                 }
                 else {
-                    $result[] = json_decode("[\"$current\"]")[0];
+                    $result[] = $res;
                 }
             }
             return $result;
@@ -386,8 +388,8 @@ class DataAdapterJson extends DataAdapter {
         }
         else {
             foreach($value as $key => $val) {
-                $res = @json_decode($val, true);
-                $value[$key] = $res ? $res : $val;
+                $res = @json_decode($val, true, 512, JSON_BIGINT_AS_STRING);
+                $value[$key] = ($res)?$res:(($val === 'null')?null:$val);
             }
         }
         return (array) $value;
@@ -401,7 +403,7 @@ class DataAdapterJson extends DataAdapter {
      * Returns date as a ISO 8601 formatted string
      */
     private static function datetimeToJson($value) {
-        return (is_null($value))?null:date("c", $value);
+        return date("c", $value);
     }
 
     private static function timeToJson($value) {

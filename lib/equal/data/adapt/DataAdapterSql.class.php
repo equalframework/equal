@@ -23,6 +23,10 @@ class DataAdapterSql extends DataAdapter {
      *
      */
 	public function adaptIn($value, $usage, $lang='en') {
+        // by convention, all values/types are nullable
+        if(is_null($value)) {
+            return null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -37,7 +41,7 @@ class DataAdapterSql extends DataAdapter {
                     case 'integer':
                         return intval($value);
                     case 'hexadecimal':
-                        return is_null($value)?null:hexdec($value);
+                        return hexdec($value);
                     case 'real':
                         // #memo - some DBMS convert float numbers according to the scale of the field definition (e.g. 4.8 might be returned as 4.800003559754)
                         return self::sqlToFloat($value, $usage);
@@ -82,7 +86,6 @@ class DataAdapterSql extends DataAdapter {
 
         }
         return parent::adaptIn($value, $usage);
-        return $this->adaptDefault($value);
     }
 
 
@@ -92,6 +95,11 @@ class DataAdapterSql extends DataAdapter {
      *
      */
     public function adaptOut($value, $usage, $lang='en') {
+        // by convention, all values are nullable
+        if(is_null($value)) {
+            // #memo - we should return the string 'NULL', but DBMS expect to receive a null value
+            return null;
+        }
         if(!($usage instanceof Usage)) {
             $usage = UsageFactory::create($usage);
         }
@@ -109,7 +117,7 @@ class DataAdapterSql extends DataAdapter {
                         // nothing to do
                         break 2;
                     case 'hexadecimal':
-                        return is_null($value)?null:hexdec($value);
+                        return hexdec($value);
                     case 'real':
                         return self::floatToSql($value, $usage);
                 }
@@ -149,18 +157,12 @@ class DataAdapterSql extends DataAdapter {
      * SQL date
      */
     private function sqlToDate($value) {
-        if(is_null($value)) {
-            return null;
-        }
         // return date as a timestamp
         list($year, $month, $day) = sscanf($value, "%d-%d-%d");
         return mktime(0, 0, 0, $month, $day, $year);
     }
 
     private function sqlToDatetime($value) {
-        if(is_null($value)) {
-            return null;
-        }
         // return SQL date as a timestamp
         list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
         return mktime($hour, $minute, $second, $month, $day, $year);
@@ -182,16 +184,10 @@ class DataAdapterSql extends DataAdapter {
     }
 
     private function dateToSql($value) {
-        if(is_null($value)) {
-            return 'NULL';
-        }
         return date('Y-m-d', $value);
     }
 
     private function datetimeToSql($value) {
-        if(is_null($value)) {
-            return 'NULL';
-        }
         return date('Y-m-d H:i:s', $value);
     }
 

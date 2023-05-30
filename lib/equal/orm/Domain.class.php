@@ -31,7 +31,7 @@ namespace equal\orm;
 
 
 class Domain {
-
+    /** @var DomainClause[] */
     private $clauses;
 
     public function __construct($domain=[]) {
@@ -94,6 +94,19 @@ class Domain {
         return $this;
     }
 
+    /**
+     * Retrieve all fields that are potentially involved in the domain.
+     * This is used byt the ORM to know what fields must been read before evaluating a domain.
+     */
+    public function extractFields() {
+        $fields = [];
+        foreach($this->clauses as $clause) {
+            foreach($clause->conditions as $condition) {
+                $fields[] = $condition->operand;
+            }
+        }
+        return $fields;
+    }
 
     /**
      * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.

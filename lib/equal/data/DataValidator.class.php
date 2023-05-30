@@ -279,10 +279,14 @@ class DataValidator extends Service {
                         }
                     }
                     // dates are handled as Unix timestamps
-                    else if($constraint['rule'] == 'date' || $constraint['rule'] == 'datetime') {
-                        if(!gettype($value) == 'integer') return false;
+                    elseif($constraint['rule'] == 'date' || $constraint['rule'] == 'datetime') {
+                        if(!gettype($value) == 'integer') {
+                            return false;
+                        }
                     }
-                    else if(gettype($value) != $constraint['rule']) return false;
+                    elseif(gettype($value) != $constraint['rule']) {
+                        return false;
+                    }
                     break;
                 case 'pattern':
                 case 'regex':

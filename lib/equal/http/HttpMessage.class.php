@@ -359,7 +359,7 @@ class HttpMessage {
                 case 'application/json':
                 case 'application/javascript':
                 case 'text/javascript':
-                    // convert to JSON (with type convertion + fallback to string)
+                    // convert to JSON (with type conversion + fallback to string)
                     $arr = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
                     if(!is_null($arr)) {
                         $body = $arr;
