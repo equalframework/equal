@@ -31,7 +31,7 @@ class ObjectManager extends Service {
     private $object_methods;
 
     /**
-     * Array for keeeping track of identifiers matching actual objects
+     * Array for keeping track of identifiers matching actual objects
      * Structure is defined this way: `$identifiers[$object_class][$object_id] = true;`
      * @var array
      */
@@ -1339,7 +1339,7 @@ class ObjectManager extends Service {
                         }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
                         if(is_null($value)) {
-                            // one of the value composing the key is null: allow (discard constraint)
+                            // if one of the value composing the key is null, we consider the object as valid (discard constraint)
                             continue 2;
                         }
                         $domain[] = [$field, '=', $value];
@@ -2175,8 +2175,8 @@ class ObjectManager extends Service {
                 $res[$id] = [QN_ERROR_CONFLICT_OBJECT => "Object is missing a status value."];
                 continue;
             }
+            $match = false;
             if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
-                $match = false;
                 foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
                     if($t_name == $transition) {
                         if(isset($t_descr['domain'])) {
@@ -2194,9 +2194,9 @@ class ObjectManager extends Service {
                         break;
                     }
                 }
-                if(!$match) {
-                    $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from object status '{$object['status']}' is defined in workflow."];
-                }
+            }
+            if(!$match) {
+                $res[$id] = [QN_ERROR_INVALID_CONFIG => "No transition '$transition' from object status '{$object['status']}' is defined in workflow."];
             }
         }
         return $res;
@@ -2216,59 +2216,29 @@ class ObjectManager extends Service {
      */
     public function transition($class, $ids, $transition) {
         /** @var array */
-        $res = [];
-        $model = $this->getStaticInstance($class);
-        $schema = $model->getSchema();
-        if(!isset($schema['status'])) {
+        $res = $this->canTransition($class, $ids, $transition);
+        // stop upon errors (all-or-nothing behavior)
+        if(count($res)) {
             return $res;
         }
         $table_name = $this->getObjectTableName($class);
+        $model = $this->getStaticInstance($class);
         $workflow = $model->getWorkflow();
         $lang = constant('DEFAULT_LANG');
+        // read status field for retrieved objects
         $objects = $this->read($class, $ids, ['status']);
         foreach($objects as $id => $object) {
-            // ignore models that do not have a status field
-            if(!isset($object['status'])) {
-                continue;
-            }
-            if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
-                $match = false;
-                foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
-                    if($t_name == $transition) {
-                        if(isset($t_descr['domain'])) {
-                            $domain = new Domain($t_descr['domain']);
-                            $fields = $domain->extractFields();
-                            $data = $this->read($class, $id, $fields);
-                            $object = reset($data);
-                            if(!$domain->evaluate($object)) {
-                                $match = true;
-                                $error_code = QN_ERROR_NOT_ALLOWED;
-                                $res[$transition] = ['forbidden_transition' => 'Current status does not comply with transition constraints.'];
-                                break;
-                            }
-                        }
-                        if(!isset($t_descr['status'])) {
-                            // invalid transition
-                            break;
-                        }
-                        $match = true;
-                        // status field is always writeable (we don't call `update()` to bypass checks)
-                        $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
-                        $this->store($class, (array) $id, ['status'], $lang);
-                        // if a 'function' is defined for applied transition, call it
-                        if(isset($t_descr['function'])) {
-                            $this->callonce($class, $t_descr['function'], $id);
-                        }
-                        break;
-                    }
-                }
-                if(!$match) {
-                    $error_code = QN_ERROR_INVALID_CONFIG;
-                    $res[$transition] = ['unknown_transition' => "No transition '$transition' from status '{$object['status']}' is defined in workflow."];
-                }
+            // reaching this part means all objects have a status and a workflow in which given transition is defined and valid for requested mutation
+            $t_descr = $workflow[$object['status']]['transitions'][$transition];
+            // status field is always writeable (we don't call `update()` to bypass checks)
+            $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
+            $this->store($class, (array) $id, ['status'], $lang);
+            // if a 'function' is defined for applied transition, call it
+            if(isset($t_descr['function'])) {
+                $this->callonce($class, $t_descr['function'], $id);
             }
         }
-        return (count($res))?[$error_code => $res]:[];
+        return [];
     }
 
     /**
