@@ -105,13 +105,20 @@ class Operation {
                     }
                     return $res;
                 case 'AVG':
-                    if(!$count) return 0;
+                    if(!$count) {
+                        return 0;
+                    }
                     return array_sum($operand) / $count;
-                case 'COUNT': return $count;
-                case 'MIN': return min($operand);
-                case 'MAX': return max($operand);
-                case 'DIFF': return array_reduce($operand, function ($c, $a) {return $c - $a;}, 0);
-                case 'SUM': return array_sum($operand);
+                case 'COUNT':
+                    return $count;
+                case 'MIN':
+                    return min($operand);
+                case 'MAX':
+                    return max($operand);
+                case 'DIFF':
+                    return array_reduce($operand, function ($c, $a) {return $c - $a;}, 0);
+                case 'SUM':
+                    return array_sum($operand);
             }
         }
         else if(in_array($this->operator, self::$binary_operators)) {
@@ -121,7 +128,7 @@ class Operation {
             $count = count($operand_a);
             $result = [];
             for($i = 0, $n = $count; $i < $n; ++$i) {
-                // try to use the symetrical value in operand_b,
+                // try to use the symmetrical value in operand_b,
                 // if no value is available at given index, use the first value
                 $j = (isset($operand_b[$i]))?$i:0;
                 switch($this->operator) {
