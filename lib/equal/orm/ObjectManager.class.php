@@ -1659,14 +1659,8 @@ class ObjectManager extends Service {
                     }
                     // allow cascade update
                     $this->update($class, $ids, [$dependency => null], $lang);
-                    /*
-                    foreach($ids as $oid) {
-                        $this->cache[$table_name][$oid][$lang][$dependency] = null;
-                    }
-                    */
                 }
             }
-            // $this->store($class, $ids, $dependencies, $lang);
             if(count($instant_fields)) {
                 // re-compute 'instant' computed field
                 $this->read($class, $ids, $instant_fields, $lang);
