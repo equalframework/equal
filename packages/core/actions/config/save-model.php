@@ -143,7 +143,6 @@ $context->httpResponse()
  * @return array    A new array without the properties already inherited from Model
  */
 function deleteModelProperty($properties) {
-    return $properties;
     $result = [];
     $specialColumns =  Model::getSpecialColumns();
     foreach($properties as $property => $descriptor) {
