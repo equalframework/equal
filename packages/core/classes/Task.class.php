@@ -46,16 +46,27 @@ class Task extends Model {
                 'default'           => time()
             ],
 
-            'is_active'          => [
+            'is_active' => [
                 'type'              => 'boolean',
                 'description'       => 'Mark the task as (temporarily) active or inactive.',
                 'default'           => true
             ],
 
-            'is_recurring'          => [
+            'is_recurring' => [
                 'type'              => 'boolean',
                 'description'       => 'Mark the task as recurring (to be run more than once).',
                 'default'           => true
+            ],
+
+            'after_execution' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'delete',
+                    'disable'
+                ],
+                'description'       => 'How to handle non-recurring task after execution.',
+                'default'           => 'delete',
+                'visible'           => ['is_recurring', '=', false]
             ],
 
             'repeat_axis' => [
