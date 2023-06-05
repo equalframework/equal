@@ -56,7 +56,7 @@ $php_scripts = function ($directory) use ($params){
 
 
 $result = [
-    'apps'      => $php_scripts('apps'),
+    // 'apps'      => $php_scripts('apps'),
     'actions'   => $php_scripts('actions'),
     'data'      => $php_scripts('data')
 ];
