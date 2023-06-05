@@ -382,15 +382,19 @@ class DataAdapterJson extends DataAdapter {
             }
             return $result;
         };
+        // if could not be converted using json_decode, parse the value
         if(!is_array($value)) {
             $res = $to_array($value);
             $value = array_pop($res);
         }
         else {
+            // #todo - is this still necessary ?
+            /*
             foreach($value as $key => $val) {
                 $res = @json_decode($val, true, 512, JSON_BIGINT_AS_STRING);
                 $value[$key] = ($res)?$res:(($val === 'null')?null:$val);
             }
+            */
         }
         return (array) $value;
     }
