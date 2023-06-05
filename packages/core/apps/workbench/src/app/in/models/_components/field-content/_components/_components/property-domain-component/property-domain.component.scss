@@ -1,0 +1,74 @@
+#container {
+    display: flex;
+    flex-direction: row;
+}
+#container > div {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+
+
+// tree view inspired https://codepen.io/willpower/pen/pJKdej?editors=1100
+$border: #ddd;
+$ident: 20px;
+$left: -($ident);
+
+.wtree {
+    margin: 10px;
+    padding: 16px;
+    padding-top: 0px;
+    margin-right: 0px;
+    padding-right: 0px;
+    .clause-container {
+        display: flex;
+        align-items: center;
+        transform: translateY(-5px);
+    }
+    .condition{
+        width: calc(100% - 40px);
+        .operand {
+            width: 25%;
+        }
+        .operator{
+            width: 18%;
+        }
+        .value{
+            width: 47%;
+        }
+        .delete-condition {
+            width: 10%;
+            .delete-condition-icon{
+                height: 20px;
+            }
+        }
+    }
+    li {
+        list-style-type: none;
+        margin:10px 0 10px 0px;
+        position: relative;
+        &:before {
+            content: "";
+            position: absolute;
+            top: 0px;
+            left:$left;
+            border-left: 1px solid $border;
+            border-bottom:1px solid $border;
+            width:$ident;
+            height:15px;
+        }
+        &:after {
+            position:absolute;
+        content:"";
+            top:15px;
+            left:$left;
+            border-left: 1px solid $border;
+            border-top:1px solid $border;
+            width:$ident;
+            height:100%;
+        }
+        &:last-child:after {
+            display:none;
+        }
+    }
+}

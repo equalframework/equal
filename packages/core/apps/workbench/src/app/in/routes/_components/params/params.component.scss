@@ -1,0 +1,55 @@
+.flex {
+    display: flex;
+}
+
+.card-content1 {
+    flex-direction: column;
+    width: 30%;
+}
+
+.card-content2 {
+    flex-direction: column;
+    width: 70%;
+    .params-description {
+        margin-bottom: 2px;
+    }
+}
+
+.params-mat-card {
+    margin-top: 5px;
+    height: fit-content;
+    padding: 5px 10px 0px 10px;
+}
+
+.params-mat-card ~ .params-mat-card {
+    margin-top: 10px;
+}
+
+.params-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    margin-top: -41px;
+
+    .card-container {
+        height: fit-content;
+    }
+    .params-buttons {
+        display: flex;
+        justify-content: flex-end;
+        height: max-content;
+        .params-button {
+            padding-left: 3px;
+            padding-right: 3px;
+            margin: 5px 3px 0px 3px;
+            .icon {
+                font-size: 130%;
+            }
+        }
+    }
+}
+
+.test {
+    background-color: black;
+}

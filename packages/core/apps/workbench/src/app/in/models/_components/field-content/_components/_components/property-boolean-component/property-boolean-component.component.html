@@ -1,0 +1,7 @@
+<mat-form-field class="boolean-component max-width">
+    <mat-slide-toggle [checked]="value" (change)="onChange($event)">
+        {{ name }}
+    </mat-slide-toggle>
+    <mat-hint>{{description}}</mat-hint>
+    <textarea matInput hidden></textarea>
+</mat-form-field>

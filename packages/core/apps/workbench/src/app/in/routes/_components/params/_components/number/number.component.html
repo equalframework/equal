@@ -1,0 +1,45 @@
+<ng-container *ngIf="selection == undefined">
+    <ng-container *ngIf="params_property['type'] == 'float'">
+        <mat-form-field class="max-width height-auto">
+            <div class="form-field-wrapper">
+                <input type="number" matInput step="0.1" placeholder="Value"
+                    [value]="tempValue"
+                    (change)="updateValue($event.target.value)"
+                    [required]="required"
+                    [disabled]="fixed">
+            </div>
+        </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf="params_property['type'] == 'integer'">
+        <mat-form-field class="max-width height-auto">
+            <div class="form-field-wrapper">
+                <input type="number" matInput step="1" placeholder="Value"
+                    [value]="tempValue"
+                    (change)="updateValue($event.target.value)"
+                    [required]="required"
+                    [disabled]="fixed">
+            </div>
+        </mat-form-field>
+    </ng-container>
+</ng-container>
+
+<ng-container *ngIf="selection != undefined">
+    <form class="max-width">
+        <mat-form-field class="max-width">
+            <mat-label>default</mat-label>
+            <input type="text"
+                [required]="required"
+                placeholder="Pick one"
+                matInput
+                [formControl]="autocompleteControl"
+                [matAutocomplete]="auto"
+                [value]="value">
+            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="onSelectDefault($event.option.value)">
+                <mat-option *ngFor="let default of filteredSelection | async" [value]="default">
+                    {{default}}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+    </form>
+</ng-container>

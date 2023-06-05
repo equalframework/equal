@@ -1,0 +1,54 @@
+<mat-form-field class="input search-bar">
+    <mat-icon matPrefix class="icon">filter_list</mat-icon>
+    <input matInput placeholder="Filter" (keyup)="onSearch($event.target.value)">
+</mat-form-field>
+
+<div class="data-action">
+    <div class="type-container">
+        <div class="type-controller" (click)="dataSelected(true)">Data</div>
+        <div class="type-controller" (click)="dataSelected(false)">Actions</div>
+    </div>
+    <div [class.lineLeft]="data_selected" [class.lineRight]="!data_selected"></div>
+</div>
+
+<mat-list class="list scrollable">
+    <mat-list-item *ngFor="let node of filteredData" class="scrollable">
+        <ng-container *ngIf="editingNode === node; else displayMode" class="node_container">
+            <div class="node_container">
+                <mat-form-field class="editedNode">
+                    <div style="display: flex;">
+                        <input matInput [(ngModel)]="editedNode" name="editedNode">
+                        <button *ngIf="editedNode != editingNode" mat-icon-button aria-label="Approve editing node">
+                            <mat-icon matSuffix (click)="onclickNodeUpdate(node)">check_circle</mat-icon>
+                        </button>
+                    </div>
+                </mat-form-field>
+                <button mat-icon-button aria-label="Cancel editing node">
+                    <mat-icon (click)="onCancelEdit()">cancel</mat-icon>
+                </button>
+            </div>
+        </ng-container>
+        <ng-template #displayMode>
+            <div class="node_container" [class.node-hover]="selected_node != node" [class.node-selected]="selected_node == node">
+                <div class="pointable node-text" (click)="onclickNodeSelect(node)">{{ node }}</div>
+                <div class="icons">
+                    <button mat-icon-button aria-label="Edit node button">
+                        <mat-icon (click)="onEditNode(node)">edit</mat-icon>
+                    </button>
+                    <button mat-icon-button aria-label="Delete node button">
+                        <mat-icon (click)="openDeleteConfirmationDialog(node)">delete</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </ng-template>
+    </mat-list-item>
+</mat-list>
+
+<div class="add_container">
+    <mat-form-field class="input search-bar">
+        <input matInput [(ngModel)]="inputValue">
+    </mat-form-field>
+    <button mat-icon-button class="add_button" aria-label="Add node">
+        <mat-icon class="icon pointable" (click)="onclickCreate()">add</mat-icon>
+    </button>
+</div>

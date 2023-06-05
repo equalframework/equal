@@ -1,0 +1,83 @@
+<span class="title">Clauses</span>
+<ul class="wtree">
+    <ng-container *ngIf="fields">
+        <li *ngFor="let clause of tempValue; index as i">
+        <!-- Remove Clause -->
+        <div class="clause-container">
+            <div>Clause {{i + 1}}</div>
+            <button mat-icon-button aria-label="Delete clause">
+                <mat-icon class="delete-condition-icon" (click)="removeClause(i)">delete</mat-icon>
+            </button>
+        </div>
+        <ul>
+            <li *ngFor="let condition of clause; index as j" class="condition">
+                <form style="display: flex; align-items: baseline;" class="leaf">
+                    <!-- Operand -->
+                    <app-auto-complete *ngIf="fields" class="operand"
+                        [label]="'Operand'"
+                        [options]="fields.fields"
+                        [value]="tempValue[i][j][0]"
+                        (updateValue)="updateOperand($event, i, j)">
+                    </app-auto-complete>
+                    <!-- Operator -->
+                    <mat-form-field *ngIf="tempValue[i][j][0] != '' && fields" appearance="fill" class="operator">
+                        <mat-label>Operator</mat-label>
+                        <mat-select [value]="tempValue[i][j][1]" (selectionChange)="selectOperator($event.value, i, j)"
+                            [disabled]="tempValue[i][j][0] == ''">
+                            <ng-container *ngIf="validOperators">
+                                <mat-option *ngFor="let operator of validOperators[fields.fields[tempValue[i][j][0]].type]"
+                                    [value]="operator">
+                                    {{operator}}
+                                </mat-option>
+                            </ng-container>
+                        </mat-select>
+                    </mat-form-field>
+                    <!-- Value -->
+                    <!-- If there is a selection for the field of the operand -->
+                    <ng-container *ngIf="fields && fields.fields[tempValue[i][j][0]] && fields.fields[tempValue[i][j][0]].selection != undefined">
+                        <app-value-selection class="value"
+                            [operand]="tempValue[i][j][0]"
+                            [type]="fields.fields[tempValue[i][j][0]].type"
+                            [operator]="tempValue[i][j][1]"
+                            [value]="tempValue[i][j][2]" [fields]="fields"
+                            (changeValue)="changeValue($event, i, j)">
+                        </app-value-selection>
+                    </ng-container>
+                    <!-- If there is not a selection for the field of the operand -->
+                    <ng-container *ngIf="fields && fields.fields[tempValue[i][j][0]] && !fields.fields[tempValue[i][j][0]].selection">
+                        <app-value class="value"
+                            [type]="fields.fields[tempValue[i][j][0]].type"
+                            [operator]="tempValue[i][j][1]"
+                            [value]="tempValue[i][j][2]"
+                            (changeValue)="changeValue($event, i, j)">
+                        </app-value>
+                    </ng-container>
+                    <!-- Delete Condition -->
+                    <div class="delete-condition">
+                        <mat-icon class="pointable delete-condition-icon" (click)="removeCondition(i, j)">
+                            delete
+                        </mat-icon>
+                    </div>
+                </form>
+            </li>
+            <li>
+            <!-- Add Condition -->
+            <button mat-button aria-label="Condition" (click)="addCondition(i)">
+                Add Condition
+            </button>
+            </li>
+        </ul>
+        </li>
+        <li>
+        <!-- Add Clause -->
+        <button mat-button aria-label="Clause " (click)="addClause()">
+            Add Clause
+        </button>
+        </li>
+    </ng-container>
+</ul>
+
+<ng-container *ngIf="!fields">
+    <p *ngIf="class">Invalid entity</p>
+    <p *ngIf="!class">No entity selected</p>
+</ng-container>

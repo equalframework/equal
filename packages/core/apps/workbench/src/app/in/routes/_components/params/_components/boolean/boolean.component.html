@@ -1,0 +1,13 @@
+<mat-form-field class="boolean-component max-width">
+    <mat-checkbox matPrefix class="padding-checkbox" *ngIf="!required"
+        [checked]="isDesired"
+        [disabled]="fixed"
+        (change)="changeDesired()">
+    </mat-checkbox>
+    <mat-slide-toggle
+        [checked]="copyValue"
+        (change)="onChange($event)"
+        [disabled]="!isDesired || fixed">
+    </mat-slide-toggle>
+    <textarea matInput hidden></textarea>
+</mat-form-field>

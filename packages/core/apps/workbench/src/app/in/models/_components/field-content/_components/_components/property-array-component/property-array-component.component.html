@@ -1,0 +1,46 @@
+<ng-container *ngIf="name != 'dependencies'">
+    <div class="position-relative">
+        <div class="form-field-wrapper">
+            <mat-form-field class="max-width">
+                <mat-label>{{name}}</mat-label>
+                <input type="text"
+                    placeholder="Add one"
+                    aria-label="foreign field"
+                    matInput
+                    [formControl]="myControl"
+                    [(ngModel)]="inputValue"
+                #input_array>
+                <button mat-button *ngIf="inputValue != ''" matSuffix mat-icon-button aria-label="Clear" (click)="inputValue=''">
+                    <mat-icon class="icon">clear</mat-icon>
+                </button>
+                <mat-icon matPrefix class="icon" (click)="addValue(myControl.value)">add</mat-icon>
+                <mat-hint>{{description}}</mat-hint>
+            </mat-form-field>
+        </div>
+        <div *ngFor="let element of tempValue" class="list-item">
+            <div class="delete-wrapper">
+                <div class="delete-value">{{element}}</div>
+                <mat-icon class="icon" (click)="removeValue(element)">delete</mat-icon>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<ng-container *ngIf="name == 'dependencies'">
+    <div style="display: flex; flex-direction: column;">
+        <mat-form-field class="max-width height-fit">
+            <mat-label>Fields</mat-label>
+            <mat-select (selectionChange)="addValue($event.value)">
+                <mat-option *ngFor="let field of fieldsNotIn" [value]="field">
+                    {{field}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <div *ngFor="let element of tempValue" class="list-item height-fit">
+            <div class="delete-wrapper">
+                <div class="delete-value">{{element}}</div>
+                <mat-icon class="icon" (click)="removeValue(element)">delete</mat-icon>
+            </div>
+        </div>
+    </div>
+</ng-container>

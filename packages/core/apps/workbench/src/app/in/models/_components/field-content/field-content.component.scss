@@ -1,0 +1,64 @@
+.form-container {
+    padding: 20px 20px 0px 20px;
+    height: fit-content;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* create a 3-column grid */
+    grid-gap: 6px;
+}
+
+.seventy-width {
+    width: 70%;
+}
+
+.col-1 {
+    grid-column: span 1;
+}
+
+.col-2 {
+    grid-column: span 2;
+}
+
+.col-4 {
+    grid-column: span 4;
+}
+
+.col-5 {
+    grid-column: span 5;
+}
+
+.col-6 {
+    grid-column: span 6;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    height: max-content;
+}
+
+.button-height {
+    height: 35px !important;
+    margin: 6px;
+}
+
+.scroll, .mat-tab-body-content, .mat-tab-body.mat-tab-body-active .mat-tab-body-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.mat-tab-body-wrapper{
+    height: calc(100% - 48.6px);
+}
+
+.description {
+    grid-column: span 2;
+}
+
+.mat-hint {
+    visibility: hidden;
+}
+
+.mat-form-field:hover .mat-hint {
+    visibility: visible;
+}

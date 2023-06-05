@@ -1,0 +1,77 @@
+{
+    "parent": "equal\\orm\\Model",
+    "root": "equal\\orm\\Model",
+    "table": "core_group",
+    "link": "",
+    "fields": {
+        "id": {
+            "type": "integer",
+            "readonly": true
+        },
+        "creator": {
+            "type": "many2one",
+            "foreign_object": "core\\User",
+            "default": 1
+        },
+        "created": {
+            "type": "datetime",
+            "default": "2023-02-10T08:58:34+00:00",
+            "readonly": true
+        },
+        "modifier": {
+            "type": "many2one",
+            "foreign_object": "core\\User",
+            "default": 1
+        },
+        "modified": {
+            "type": "datetime",
+            "default": "2023-02-10T08:58:34+00:00",
+            "readonly": true
+        },
+        "deleted": {
+            "type": "boolean",
+            "default": false
+        },
+        "state": {
+            "type": "string",
+            "selection": [
+                "draft",
+                "instance",
+                "archive"
+            ],
+            "default": "instance"
+        },
+        "name": {
+            "type": "string",
+            "unique": true
+        },
+        "display_name": {
+            "type": "string",
+            "multilang": true
+        },
+        "description": {
+            "type": "string",
+            "description": "Short presentation of the role assigned to members of the group.",
+            "multilang": true
+        },
+        "users_ids": {
+            "type": "many2many",
+            "foreign_object": "core\\User",
+            "foreign_field": "groups_ids",
+            "rel_table": "core_rel_group_user",
+            "rel_foreign_key": "user_id",
+            "rel_local_key": "group_id",
+            "description": "List of users that are members of the group."
+        },
+        "permissions_ids": {
+            "type": "one2many",
+            "foreign_object": "core\\Permission",
+            "foreign_field": "group_id"
+        }
+    },
+    "unique": [
+        [
+            "name"
+        ]
+    ]
+}

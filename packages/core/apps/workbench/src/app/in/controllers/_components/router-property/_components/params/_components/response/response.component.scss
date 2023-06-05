@@ -1,0 +1,38 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-top: -2vh;
+}
+
+pre {
+    width: calc(100% - 20px);
+    margin: 0 10px 4px 10px;
+    overflow-x: auto;
+    padding: 5px 5px 5px 5px;
+    border-radius: 3px;
+    background-color: ghostwhite;
+    border: 1px solid silver;
+    .json-key {
+        color: #a52a2a;
+    }
+
+    .json-string {
+        color: #808000
+    }
+}
+
+
+#schema > figure {
+    display: inline !important;
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+
+#schema {
+    overflow-y: auto;
+}
+
+.dialog-content {
+    height: 100%;
+    overflow-y: auto;
+}
