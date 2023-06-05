@@ -12,27 +12,39 @@ use core\Group;
 // todo : convert to AAA logic : Arrange, Act, Assert (, Restore)
 
 $tests = [
-    //0xxx : calls related to QN methods
-    '0101' => array(
-                'description'       =>  "Get cron provider",
-                'return'            =>  array('boolean'),
-                'expected'          =>  true,
-                'test'              =>  function () {
-                                            list($params, $providers) = announce([
-                                                'providers' => ['cron']
-                                            ]);
-                                            /**
-                                             * @var \equal\cron\Scheduler $cron
-                                            */
-                                            $cron = $providers['cron'];
-                                            $cron->schedule(
-                                                "booking.quote.reminder.test",
-                                                time() +  86400,
-                                                'test_test',
-                                                [ 'id' => 1, 'lang' => 'fr' ]
-                                            );
-                                            return true;
-                                        }
 
-                )
+    '0101' => [
+            'description'       =>  "Get cron provider.",
+            'return'            =>  ['boolean'],
+            'expected'          =>  true,
+            'test'              =>  function () {
+                                        list($params, $providers) = announce([
+                                            'providers' => ['cron']
+                                        ]);
+                                        return is_callable([$providers['cron'], 'run'], true);
+                                    }
+
+        ],
+    '0102' => [
+            'description'       =>  "Schedule a task.",
+            'return'            =>  ['boolean'],
+            'expected'          =>  true,
+            'test'              =>  function () {
+                                        list($params, $providers) = announce([
+                                            'providers' => ['cron']
+                                        ]);
+                                        /**
+                                         * @var \equal\cron\Scheduler $cron
+                                        */
+                                        $cron = $providers['cron'];
+                                        $res = $cron->schedule(
+                                            "task.test",
+                                            time() +  86400,
+                                            'test_test',
+                                            [ 'id' => 1, 'lang' => 'fr' ]
+                                        );
+                                        return ($res >= 0);
+                                    }
+
+        ]
 ];
