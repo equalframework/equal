@@ -55,6 +55,7 @@ class Scheduler extends Service {
                 }
                 // mark the task as running and update last_run
                 $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now]);
+                // #todo - add current PID for force stop (exec("kill -9 $pid")) / $context->getPid()
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
@@ -69,7 +70,8 @@ class Scheduler extends Service {
                         }
                         else {
                             // #todo - add support for keeping task and de-activating it instead of deleting it
-                            $orm->remove('core\Task', $tid, true);
+                            // @see after_execution
+                            $orm->delete('core\Task', $tid, true);
                         }
                     }
                     list($status, $log) = ['', ''];
@@ -114,7 +116,7 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
         trigger_error("PHP::Scheduling job", QN_REPORT_INFO);
 
-        $orm->create('core\Task', [
+        return $orm->create('core\Task', [
             'name'          => $name,
             'moment'        => $moment,
             'controller'    => $controller,
@@ -133,8 +135,9 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
         $tasks_ids = $orm->search('core\Task', ['name', '=', $name]);
         if($tasks_ids > 0 && count($tasks_ids)) {
-            $orm->remove('core\Task', $tasks_ids, true);
+            return $orm->remove('core\Task', $tasks_ids, true);
         }
+        return QN_ERROR_UNKNOWN_OBJECT;
     }
 
 }
