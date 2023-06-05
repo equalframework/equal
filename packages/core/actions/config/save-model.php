@@ -4,95 +4,198 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
+use equal\orm\Model;
+
 list($params, $providers) = announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
+    'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
     'response'      => [
-        'content-type'  => 'application/json',
+        'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
     'params'        => [
-        'schema' =>  [
-            'description'   => 'Entity definition .',
-            'type'          => 'array',
-            'required'      => true
-
-        ],
-		'package'	=> [
-            'description'   => 'Package in which entity is declared.',
-            'type'          => 'string',
-            'required'      => true
-        ],
-		'entity'	=> [
+        'entity'	=> [
             'description'   => 'Name of the entity (class).',
             'type'          => 'string',
             'required'      => true
         ],
+        'part' => [
+            'description' => '',
+            'type' => 'string',
+            'required'      => true
+        ],
+        'payload' =>  [
+            'description'   => 'Entity definition .',
+            'type'          => 'array',
+            'required'      => true
+        ]
     ],
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
+class CustomVisitor extends NodeVisitorAbstract {
+    private $node;
+    private $target;
+
+    public function __construct($node, $target) {
+        $this->node = $node;
+        $this->target = $target;
+    }
+
+    public function leaveNode(Node $node) {
+        if ($node->name->name === $this->target) {
+            return $this->node;
+        }
+    }
+}
+
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
-// quick sanitization
-$params['entity'] = ucfirst($params['entity']);
-$params['package'] = strtolower($params['package']);
+// Create all the object to use for using PhpParser
+$parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+$nodeFinder = new NodeFinder;
+$traverser = new NodeTraverser;
+$prettyPrinter = new PhpParser\PrettyPrinter\Standard;
 
-$class_name = $params['package'].'\\'.$params['entity'];
-$parent = $params['schema']['parent'];
+// Get the parts of the entity string, separated by backslashes
+$parts = explode('\\', $params['entity']);
 
-// normalize fields map
-$fields = [];
-foreach($params['schema']['fields'] as $fld_item) {
-	$fields[$fld_item['name']] = ['type' => $fld_item['type']];
-	if(isset($fld_item['attributes'])) {
-		foreach($fld_item['attributes'] as $attr_name => $attr) {
-			if(in_array($attr_name, ['multilang', 'store'])) {
-				$attr['value'] = (bool) $attr['value'];
-				if($attr['value'] === false) continue;
-			}
-			if($attr_name == 'selection' && empty($attr['value'])) continue;
-			$fields[$fld_item['name']][$attr_name] = $attr['value'];
-		}
-	}
+// Get the package name from the first part of the string
+$package = array_shift($parts);// Get the package name from the first part of the string
+// Get the file name from the last part of the string
+$file = array_pop($parts);
+// Get the class path from the remaining part
+$class_path = implode('/', $parts);
+
+$getColumns = null;
+$code_php = null;
+
+// If you want to use save-model for updating a class/getColumns
+if($params['part'] == 'class') {
+    // Decode the JSON string to a PHP object
+    $code_php = deleteModelProperty($params['payload']['fields']);
+
+    // Get the string representation of the code_php variable, with backslashes escaped
+    $code_string = var_export($code_php, true);
+    $code_string = str_replace("\\\\", "\\", $code_string);
+
+    // Get the full path to the file
+    $file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$file}.class.php";
+
+    // Create a temporary file with the following contents and then parse it to have a ast
+    $temp_file = "<?php \nclass temp { public static function getColumns() { return ".$code_string.";}}";
+    $ast_temp_file= $parser->parse($temp_file);
+
+    // Find the getColumns node in the AST of the temporary file
+    $nodeGetColumns = $nodeFinder->findFirst($ast_temp_file, function(Node $node) {
+        return $node->name->name === "getColumns";
+    });
+
+    // Add a visitor to the traverse
+    $traverser->addVisitor(new CustomVisitor($nodeGetColumns, "getColumns"));
+    // Add a visitor to the traverser that will set the doc comment of the class node to the result of the getPropertiesAsComments function
+
+    $traverser->addVisitor(new class($code_php) extends NodeVisitorAbstract {
+        private $code_php;
+        public function __construct($code_php) {
+            $this->code_php = $code_php;
+        }
+
+        public function leaveNode(Node $node) {
+            if ($node instanceof Node\Stmt\Class_) {
+                $node->setDocComment(new Comment\Doc(getPropertiesAsComments($this->code_php)));
+                return NodeTraverser::STOP_TRAVERSAL;
+            }
+        }
+    });
 }
 
+// Get the code from the file and parse it in a AST
+$code = file_get_contents($file);
+$stmts = $parser->parse($code);
 
-// default for parent is 'equal\orm\Model'
-if($parent != 'equal\orm\Model') {
-	$parentModel = $orm->getModel($parent);
+// Traverse the AST of the code with the traverser
+$modifiedStmts = $traverser->traverse($stmts);
 
-	$parent_schema = $parentModel->getSchema();
+// Pretty print the modified AST and write a pretty code into the file
+$result = $prettyPrinter->prettyPrintFile($modifiedStmts);
+file_put_contents($file, $result);
 
-	// reduce schema to fields exclusive to the declared class (not from ancestors)
-	$diff_fields = array_diff(array_keys($fields), array_keys($parent_schema));
+$command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
 
-	$fields = array_filter($fields, function($k) use($diff_fields) {
-		return in_array($k, $diff_fields);
-	}, ARRAY_FILTER_USE_KEY);
+if(exec($command) === false) {
+    throw new Exception('command_failed', QN_ERROR_UNKNOWN);
 }
 
-
-$filename = QN_BASEDIR.'/public/packages/'.$params['package'].'/classes/'.$params['entity'].'.class.php';
-
-$schema = var_export($fields, true);
-
-$content = <<<EOT
-<?php
-namespace {$params['package']};
-
-
-class {$params['entity']} extends \\{$parent} {
-    public static function getColumns() {
-        return {$schema};
-	}
-}
-
-EOT;
-
-file_put_contents($filename, $content);
+$result = file_get_contents($file);
 
 $context->httpResponse()
-		->status(204)
         ->body($result)
         ->send();
+
+/**
+ * This function deletes the property of the schema that are already inherited from the Model.
+ *
+ * @param array     $properties     The new schema, with all the properties even those that are already in th Model
+ *
+ * @return array    A new array without the properties already inherited from Model
+ */
+function deleteModelProperty($properties) {
+    return $properties;
+    $result = [];
+    $specialColumns =  Model::getSpecialColumns();
+    foreach($properties as $property => $descriptor) {
+        if(array_key_exists($property, $specialColumns)){
+            if($descriptor != $specialColumns[$property]){
+                if($specialColumns[$property]["type"] != 'datetime') {
+                    $result[$property] = $descriptor;
+                }
+            }
+        }
+        else {
+            $result[$property] = $descriptor;
+        }
+    }
+
+    return $result;
+}
+
+/**
+ * This function gets the comments for the properties of the model
+ *
+ * @param Array the properties which need to be in the doc
+ * @return string of the documentation
+ */
+function getPropertiesAsComments($properties) {
+    $comment = "/**\n";
+    foreach(array_keys($properties) as $property) {
+        $comment .= "* @property ";
+        switch ($properties[$property]['type']) {
+            case 'one2many':
+                $comment .= 'array';
+                break;
+            case 'many2one':
+                $comment .= 'integer';
+                break;
+            case 'many2many':
+                $comment .= 'array';
+                break;
+            case 'computed' :
+                $comment .= $properties[$property]['result_type'];
+                break;
+            default :
+                $comment .= $properties[$property]['type'];
+                break;
+        }
+        $comment .= " $" . $property;
+        if($properties[$property]['description']){
+            $comment .= " " . $properties[$property]['description'];
+        }
+        $comment .= "\n";
+    }
+
+    $comment .= "*/";
+    return $comment;
+}
