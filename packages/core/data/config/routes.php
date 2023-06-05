@@ -5,62 +5,44 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Returns existing routes for a given API, along with their description and expected parameters',
-    'params'        => [
-                        'api'   => [
-                            'description'   => 'The name (string identifier) of the API for which routes are requested',
-                            'type'          => 'string',
-                            'required'      => true
-                       ]
+    'description'   => 'Returns all the routes with priority based on the number.',
+    'response'      => [
+        'content-type'      => 'application/json',
+        'charset'           => 'UTF-8',
+        'accept-origin'     => '*'
     ],
+    'params'        => [],
     'providers'     => ['context', 'route']
 ]);
 
 
 list($context, $router) = [$providers['context'], $providers['route']];
 
+$routes = scandir(QN_BASEDIR."/config/routing");
 
-if(!file_exists(QN_BASEDIR."/config/routing/api_{$params['api']}.json")) {
-    throw new Exception("No API matches provided identifier", QN_ERROR_INVALID_PARAM);
-}
+$routes = array_filter($routes, function($value) {
+    return preg_match('/^\d/', $value);
+});
 
-$routes = $router->add(QN_BASEDIR."/config/routing/api_{$params['api']}.json")->getRoutes();
+
+usort($routes, function ($a, $b) {
+    $x = intval(preg_replace('/\D/', '', $a));
+    $y = intval(preg_replace('/\D/', '', $b));
+    return $y - $x;
+});
 
 $result = [];
 
-foreach($routes as $path => $resolver) {
-    $batch = $router->normalize($path, $resolver);
-    foreach($batch as $route) {
-        if(isset($route['redirect']) || $route['operation']['type'] == 'show') continue;
-
-        // add 'announce' parameter to force script to announce itself (script description)
-        $route['operation']['params']['announce'] = true;
-
-        $json = run($route['operation']['type'], $route['operation']['name'], $route['operation']['params']);
-        $announce = json_decode($json, true);
-
-        $descriptor = [
-            'uri'           => $path,
-            'method'        => $route['method'],
-            'operation'     => [ 'uri' => $resolver[$route['method']]['operation'] ],
-            'description'   => $route['description']
-        ];
-
-        if(isset($announce['announcement']['description'])) {
-            $descriptor['operation']['description'] = $announce['announcement']['description'];
-        }
-
-        if(isset($announce['announcement']['params'])) {
-            $descriptor['params'] = $announce['announcement']['params'];
-        }
-
-        if(isset($announce['announcement']['response'])) {
-            $descriptor['response'] = $announce['announcement']['response'];
-        }
-
-        $result[] = $descriptor;
+foreach($routes as $key => $value) {
+    $json_string = file_get_contents(QN_BASEDIR."/config/routing/".$value);
+    $php_array = json_decode($json_string);
+    foreach($php_array as $path => $resolver) {
+        $result[$path]["methods"] = $resolver;
+        $result[$path]["info"]["file"] = $value;
     }
-
 }
 
-$context->httpResponse()->body($result)->send();
+
+$context->httpResponse()
+    ->body($result)
+    ->send();
