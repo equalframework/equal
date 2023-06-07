@@ -117,7 +117,14 @@ $fields_to_read = [];
 foreach($view_fields as $item) {
     $field =  $item['value'];
     $descr = $schema[$field];
-    if($descr['type'] == 'many2one') {
+
+    $type = $descr['type'];
+    // #todo - handle 'alias'
+    if($type == 'computed') {
+        $type = $descr['result_type'];
+    }
+
+    if($type == 'many2one') {
         $fields_to_read[$field] = ['id', 'name'];
     }
     else {
