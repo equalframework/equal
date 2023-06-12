@@ -11,7 +11,7 @@ use equal\orm\Model;
 class User extends Model {
 
     public static function constants() {
-        return ['USER_ACCOUNT_DISPLAYNAME'];
+        return ['USER_ACCOUNT_DISPLAYNAME', 'USER_ACCOUNT_VALIDATION'];
     }
 
     public static function getName() {
@@ -216,7 +216,10 @@ class User extends Model {
      *
      */
     public static function onValidated($orm, $ids) {
-        return $orm->transition(self::getType(), $ids, 'confirmation');
+        // no manual validation required : confirm
+        if(!constant('USER_ACCOUNT_VALIDATION')) {
+            return $orm->transition(self::getType(), $ids, 'confirmation');
+        }
     }
 
     /**
@@ -257,4 +260,18 @@ class User extends Model {
 
         return $result;
     }
+
+    public static function getConstraints() {
+        return [
+            'username' =>  [
+                'invalid_format' => [
+                    'message'       => 'Username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen.',
+                    'function'      => function ($username, $values) {
+                        return (bool) (preg_match('/^(?!-)[a-zA-Z0-9-]{1,20}(?<!-)$/u', $username));
+                    }
+                ]
+            ]
+        ];
+    }
+
 }
