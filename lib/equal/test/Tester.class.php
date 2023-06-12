@@ -35,23 +35,20 @@ class Tester {
         return $result;
     }
 
-    private static function array_equals($array1, $array2) {
+    private static function array_equals($array1, $array2, $strict=false) {
         $res = true;
-// #todo allow to make this optional (strict flag)
-        /*
-        if(count($array1) != count($array2)) {
+        if($strict && count($array1) != count($array2)) {
             return false;
         }
-        */
         foreach($array1 as $key => $value) {
             if(!isset($array2[$key]) || gettype($value) != gettype($array2[$key])) {
                 $res = false;
             }
             else {
                 if(gettype($value) == 'array') {
-                    $res = self::array_equals($value, $array2[$key]);
+                    $res = self::array_equals($value, $array2[$key], $strict);
                 }
-                else if($value != $array2[$key]) {
+                elseif($value != $array2[$key]) {
                     $res = false;
                 }
             }
