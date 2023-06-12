@@ -35,22 +35,6 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm', 'adapt']
 ]);
 
-class CustomVisitor extends NodeVisitorAbstract {
-    private $node;
-    private $target;
-
-    public function __construct($node, $target) {
-        $this->node = $node;
-        $this->target = $target;
-    }
-
-    public function leaveNode(Node $node) {
-        if ($node->name->name === $this->target) {
-            return $this->node;
-        }
-    }
-}
-
 list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
 
 // Create all the object to use for using PhpParser
@@ -78,12 +62,13 @@ if($params['part'] == 'class') {
     $code_php = deleteModelProperty($params['payload']['fields']);
 
     // Get the string representation of the code_php variable, with backslashes escaped
-    $code_string = var_export($code_php, true);
-    $code_string = str_replace("\\\\", "\\", $code_string);
+    $code_string = str_replace("\\\\", "\\", var_export($code_php, true) );
 
     // Get the full path to the file
     $file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$file}.class.php";
 
+    // #todo - handle class creation in controller create-model
+    /*
     // Create a temporary file with the following contents and then parse it to have a ast
     $temp_file = "<?php \nclass temp { public static function getColumns() { return ".$code_string.";}}";
     $ast_temp_file= $parser->parse($temp_file);
@@ -94,9 +79,25 @@ if($params['part'] == 'class') {
     });
 
     // Add a visitor to the traverse
-    $traverser->addVisitor(new CustomVisitor($nodeGetColumns, "getColumns"));
-    // Add a visitor to the traverser that will set the doc comment of the class node to the result of the getPropertiesAsComments function
+    $traverser->addVisitor(new class($nodeGetColumns, "getColumns") extends NodeVisitorAbstract {
 
+        private $node;
+        private $target;
+
+        public function __construct($node, $target) {
+            $this->node = $node;
+            $this->target = $target;
+        }
+
+        public function leaveNode(Node $node) {
+            if ($node->name->name === $this->target) {
+                return $this->node;
+            }
+        }
+    });
+    */
+
+    // Add a visitor to the traverser that will set the doc comment of the class node to the result of the getPropertiesAsComments function
     $traverser->addVisitor(new class($code_php) extends NodeVisitorAbstract {
         private $code_php;
         public function __construct($code_php) {
