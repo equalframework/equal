@@ -618,8 +618,8 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-
-                        if($res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang'])) {
+                        $res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang']);
+                        if($res > 0) {
                             foreach($ids as $oid) {
                                 if(isset($res[$oid])) {
                                     // #memo - do not adapt : we're dealing with PHP not SQL
@@ -993,7 +993,7 @@ class ObjectManager extends Service {
 
         if(!method_exists($called_class, $called_method)) {
             trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
-            return $result;
+            return QN_ERROR_UNKNOWN;
         }
 
         // init call stack
