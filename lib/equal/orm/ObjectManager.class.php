@@ -1966,7 +1966,7 @@ class ObjectManager extends Service {
                                             break;
                                         case 'null':
                                         default:
-                                            $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => '0']);
+                                            $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => null]);
                                             break;
                                     }
                                 }
