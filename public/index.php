@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2023
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -29,5 +29,18 @@ if(isset($_REQUEST['_escaped_fragment_'])) {
 /*
     Request handling
 */
+
+// #debug - for debugging, uncomment this to force the header of generated HTTP response
+/*
+header("HTTP/1.1 200 OK");
+header('Content-type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
+header('Access-Control-Allow-Headers: *');
+header('Access-Control-Expose-Headers: *');
+header('Allow: *');
+flush();
+*/
+
 // parse requested operation and relay result to php://stdout
 include('../run.php');
