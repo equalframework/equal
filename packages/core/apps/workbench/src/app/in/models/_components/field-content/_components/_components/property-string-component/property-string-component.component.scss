@@ -1,0 +1,18 @@
+.default {
+    grid-column: span 1; /* make the item take up 2 columns */
+    grid-row: span 1; /* set the item to span 1 row */
+}
+
+.checkbox {
+    height: auto;
+    padding-right: 5px;
+}
+
+.form-field-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.height-auto{
+    height: auto;
+}

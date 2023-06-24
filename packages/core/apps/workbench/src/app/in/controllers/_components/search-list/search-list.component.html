@@ -1,0 +1,11 @@
+<mat-form-field class="input search-bar">
+    <mat-icon matPrefix class="icon">filter_list</mat-icon>
+    <input matInput placeholder="Filter" (keyup)="onSearch($event.target.value)">
+</mat-form-field>
+<mat-list class="list scrollable">
+    <mat-list-item *ngFor="let node of filteredData" class="scrollable">
+        <div class="node_container" [class.node-hover]="selected_node != node" [class.node-selected]="selected_node == node">
+            <div class="pointable node-text" (click)="onclickNodeSelect(node)">{{ node }}</div>
+        </div>
+    </mat-list-item>
+</mat-list>

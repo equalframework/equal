@@ -502,7 +502,7 @@ class Collection implements \Iterator, \Countable {
         $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         $uniques = $this->model->getUnique();
 
-        $res = $this->orm->read($this->class, $ids, $fields, $lang);
+        $res = $this->orm->read($this->class, $ids, $fields, ($lang)?$lang:$this->lang);
 
         // #todo - this should be done in ObjectManager
 
@@ -600,7 +600,7 @@ class Collection implements \Iterator, \Countable {
         $values['modifier'] = $user_id;
 
         // 4) create the new object
-        $oid = $this->orm->create($this->class, $values, $lang);
+        $oid = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
         if($oid <= 0) {
             throw new \Exception($this->orm->getLastError(), $oid);
         }
@@ -618,7 +618,7 @@ class Collection implements \Iterator, \Countable {
      * When $field argument is empty, only `id` and `name` fields are loaded.
      *
      * @param $fields
-     * @param $lang
+     * @param $lang     Specific language in which values have to be read. Defaults to language set on the Collection.
      * @return Collection   Returns the current collection.
      */
     public function read($fields, $lang=null) {
@@ -673,7 +673,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 3) read values
-            $res = $this->orm->read($this->class, $ids, $requested_fields, $lang);
+            $res = $this->orm->read($this->class, $ids, $requested_fields, ($lang)?$lang:$this->lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
@@ -722,11 +722,11 @@ class Collection implements \Iterator, \Countable {
                     $children_fields[] = (!is_numeric($key))?$key:$val;
                 }
                 // read all targeted children objects at once
-                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang);
+                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, ($lang)?$lang:$this->lang);
                 // assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
                     /** @var Collection */
-                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang);
+                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang)?$lang:$this->lang);
                     if($target_type == 'many2one') {
                         // #memo - result might be null or contain sub-collections
                         $this->objects[$id][$field] = $children->first();

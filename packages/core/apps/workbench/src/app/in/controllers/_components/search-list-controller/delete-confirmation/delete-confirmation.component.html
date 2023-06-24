@@ -1,0 +1,9 @@
+<h2 mat-dialog-title>Delete Confirmation</h2>
+<div mat-dialog-content>
+    <p>This may impact applications and controllers that rely on the controller.</p>
+    <p>Are you sure you want to delete the {{ data.node }} controller ?</p>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">Cancel</button>
+    <button mat-button [mat-dialog-close]="true">Delete</button>
+</div>

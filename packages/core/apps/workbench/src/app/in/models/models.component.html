@@ -1,0 +1,103 @@
+<mat-horizontal-stepper class="max-height" [selectedIndex]="step">
+    <!-- Step for package -->
+    <mat-step class="max-height" [completed]="selected_package !=''">
+        <ng-template matStepLabel>
+            <div class="step-label" (click)="step=0">
+                <ng-container *ngIf="selected_package ==''">
+                    <span>Select package</span>
+                </ng-container>
+                <ng-container *ngIf="selected_package !=''">
+                    <span class="small-font-label">package</span>
+                    <span class="big-font-label">{{selected_package}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Package search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list class="max-height max-width"
+                    [data]="packages"
+                    [selected_node]="selected_package"
+                    (nodeSelect)="onclickPackageSelect($event)"
+                    (nodeUpdate)="onupdatePackage($event)"
+                    (nodeDelete)="ondeletePackage($event)"
+                    (nodeCreate)="oncreatePackage($event)">
+                </app-search-list>
+            </mat-grid-tile>
+            <!-- Package content -->
+            <mat-grid-tile colspan="3" class="max-height">
+                content
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+    <!-- Step for class -->
+    <mat-step class="max-height" [completed]="selected_class !=''">
+        <ng-template matStepLabel>
+            <div class="step-label">
+                <ng-container *ngIf="selected_class ==''">
+                    <span>Select class</span>
+                </ng-container>
+                <ng-container *ngIf="selected_class !=''">
+                    <span class="small-font-label">class</span>
+                    <span class="big-font-label">{{selected_class}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Class search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list class="max-height max-width"
+                    [data]="classes_for_selected_package"
+                    [selected_node]="selected_class"
+                    (nodeSelect)="onclickClassSelect($event)"
+                    (nodeUpdate)="onupdateClass($event)"
+                    (nodeDelete)="ondeleteClass($event)"
+                    (nodeCreate)="oncreateClass($event)">
+                </app-search-list>
+            </mat-grid-tile>
+            <!-- Class content -->
+            <mat-grid-tile colspan="3" class="max-height" id="schema">
+                <pre [innerHTML]="getJSONSchema()">
+                </pre>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+    <!-- Step for field -->
+    <mat-step class="max-height">
+        <ng-template matStepLabel>
+            <div class="step-label">
+                <ng-container *ngIf="selected_field ==''">
+                    <span>Select field</span>
+                </ng-container>
+                <ng-container *ngIf="selected_field !=''">
+                    <span class="small-font-label">field</span>
+                    <span class="big-font-label">{{selected_field}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Field search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list class="max-height max-width"
+                    [data]="fields_for_selected_class"
+                    [selected_node]="selected_field"
+                    (nodeSelect)="onclickFieldSelect($event)"
+                    (nodeUpdate)="onupdateField($event)"
+                    (nodeDelete)="ondeleteField($event)"
+                    (nodeCreate)="oncreateField($event)">
+                </app-search-list>
+            </mat-grid-tile>
+            <!-- Field content -->
+            <mat-grid-tile colspan="3" class="max-height">
+                <app-field-content *ngIf="selected_field != ''" class="max-height max-width"
+                    [field]="schema.fields[selected_field]"
+                    [fields]="fields_for_selected_class"
+                    [actual_field]="selected_field"
+                    [types]="types"
+                    [actual_class]="selected_package + '\\' + selected_class"
+                    (updateField)="onUpdateSchema($event)">
+                </app-field-content>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+</mat-horizontal-stepper>

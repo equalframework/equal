@@ -1,0 +1,53 @@
+<h1>Routes</h1>
+<mat-form-field class="search-bar">
+    <mat-icon matPrefix class="icon">filter_list</mat-icon>
+    <input matInput placeholder="Filter" (keyup)="onSearch($event.target.value)">
+</mat-form-field>
+
+<mat-accordion class="routes-mat-accordion" *ngIf="routes">
+    <ng-container *ngFor="let route of objectKeys(filtered_route)">
+        <ng-container *ngFor="let operation of filtered_route[route]">
+            <ng-container *ngIf="routes_controllers[route]">
+                <!-- disabled if controller is private, no respond receive -->
+                <mat-expansion-panel class="routes-expansion-panel"
+                    [disabled]="!routes_controllers[route][operation]"
+                    [ngClass]="{'get': operation == 'GET', 'post': operation == 'POST', 'delete': operation == 'DELETE', 'put' : operation == 'PUT'}">
+
+                    <!-- Header, information about the route -->
+                    <mat-expansion-panel-header>
+                        <div class="header">
+                            <div class="route-operation">
+                                <div class="operation">
+                                    {{operation}}
+                                </div>
+                                <div class="route">
+                                    {{route}}
+                                </div>
+                            </div>
+                            <div class="route-description">
+                                {{routes[route].methods[operation].description}}
+                            </div>
+                        </div>
+                    </mat-expansion-panel-header>
+
+                    <!-- Content, allow to complete controller and use it -->
+                    <ng-container>
+                        <div class="description-container">
+                            <div class="file">{{routes[route]['info']['file']}} </div>
+                            <div>{{getControllerName(route, operation)}}</div>
+                        </div>
+                        <app-params *ngIf="!routes_fixed_params[route][operation]"
+                            [values]="routes_controllers[route]?.[operation]?.['params']"
+                            [operation]="routes[route].methods[operation].operation">
+                        </app-params>
+                        <app-params *ngIf="routes_fixed_params[route][operation]"
+                            [values]="routes_controllers[route]?.[operation]?.['params']"
+                            [operation]="routes[route].methods[operation].operation"
+                            [fixed_params]="routes_fixed_params[route][operation]">
+                        </app-params>
+                    </ng-container>
+                </mat-expansion-panel>
+            </ng-container>
+        </ng-container>
+    </ng-container>
+</mat-accordion>

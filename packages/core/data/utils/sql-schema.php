@@ -33,9 +33,13 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-$params['package'] = strtolower($params['package']);
+// $params['package'] = strtolower($params['package']);
 
 $json = run('do', 'test_db-access');
 if(strlen($json)) {
@@ -175,7 +179,7 @@ foreach($m2m_tables as $table => $columns) {
     $result[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
 }
 
-// send json result
+// provide SQL schema as a JSON encoded SQL query
 $context->httpResponse()
         ->body(['result' => implode("\n", $result)])
         ->send();

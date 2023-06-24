@@ -1,0 +1,32 @@
+<div class="form-field-wrapper max-width">
+
+    <ng-container *ngIf="(name != 'default' || field['selection'] == undefined); else defaultSelection">
+        <mat-form-field class="max-width height-auto">
+            <div class="form-field-wrapper">
+                <input type="number" [disabled]="!isDesired" matInput [placeholder]="name" [value]="tempValue" (change)="updateValue($event)">
+            </div>
+            <mat-hint>{{description}}</mat-hint>
+        </mat-form-field>
+    </ng-container>
+
+    <ng-template #defaultSelection>
+        <form class="max-width">
+            <mat-form-field class="max-width">
+                <mat-label>default</mat-label>
+                <input type="text"
+                    placeholder="Pick one"
+                    aria-label="default"
+                    matInput
+                    [formControl]="autocompleteControl"
+                    [matAutocomplete]="auto"
+                    [value]="value">
+                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="onSelectDefault($event)">
+                    <mat-option *ngFor="let default of filteredSelection | async" [value]="default">
+                        {{default}}
+                    </mat-option>
+                </mat-autocomplete>
+                <mat-hint>{{description}}</mat-hint>
+            </mat-form-field>
+        </form>
+    </ng-template>
+</div>

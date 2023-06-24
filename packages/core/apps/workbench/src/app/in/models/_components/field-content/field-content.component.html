@@ -1,0 +1,99 @@
+<mat-tab-group mat-align-tabs="center" class="max-height scroll">
+
+    <!--Basic information for a field-->
+    <mat-tab label="Basic">
+        <div class="form-container">
+
+            <!--A select form field with all the type possible for a field-->
+            <mat-form-field class="col-1">
+                <mat-label>Type</mat-label>
+                <mat-select [value]="selected_type" (selectionChange)="onSelectedTypeChange($event.value)">
+                    <mat-option *ngFor="let type of list_of_type" [value]="type">
+                        {{ type }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Usage, only for the appropriate type -->
+            <ng-container *ngIf="values.type != 'one2many' && values.type != 'many2one' && values.type != 'many2many' && values.type != 'alias'">
+
+                <!-- Usage but if computed, not based on type but on the result_type -->
+                <app-usage class="col-5" *ngIf="values.type != 'computed'"
+                    [description]="getPropertyDescription('usage')"
+                    [value]="getValue('usage')"
+                    (changeUsage)="updatePropertiesWithValue($event)">
+                </app-usage>
+                <app-usage class="col-5" *ngIf="values.type == 'computed' && values.result_type"
+                    [description]="types[values.result_type].usage.description"
+                    [value]="getValue('usage')"
+                    (changeUsage)="updatePropertiesWithValue($event)">
+                </app-usage>
+            </ng-container>
+
+            <!-- Description of the property, 3/4 of the screen and no other property on the same line -->
+            <mat-form-field class="col-6 seventy-width">
+                <input matInput placeholder="description" [value]="getDescription()" (change)="updateDescription($event.target.value)"required>
+                <button mat-button matSuffix mat-icon-button aria-label="Clear"(click)="updateDescription('')">
+                    <mat-icon class="icon">clear</mat-icon>
+                </button>
+                <mat-hint>{{types[selected_type]?.description.description}}</mat-hint>
+            </mat-form-field>
+
+            <!--Rest of the basic information for a field-->
+            <ng-container *ngFor="let property of properties | keyvalue">
+                <ng-container *ngIf="basic_properties.hasOwnProperty(property.key) && property.key != 'description' && property.key != 'usage'">
+                    <app-router-property class="col-2 max-width"
+                        [name]="property.key"
+                        [description]="getPropertyDescription(property.key)"
+                        [type]="getType(property.key)"
+                        [value]="getValue(property.key)"
+                        [field]="values"
+                        [fields]="fields"
+                        [actual_class]="actual_class"
+                        (update_value_property)="updatePropertiesWithValue($event)">
+                    </app-router-property>
+                </ng-container>
+            </ng-container>
+        </div>
+
+        <!-- Buttons to save or cancel the change on the field -->
+        <div class="button-container">
+            <button class="button-height" mat-raised-button
+                [disabled]="!hasChanged"
+                (click)="cancelChange()">
+                Cancel
+            </button>
+            <button class="button-height" mat-raised-button
+                [disabled]="!hasChanged || !this.checkRequired()"
+                (click)="saveChange()">
+                Save
+            </button>
+        </div>
+    </mat-tab>
+
+    <!--Advance information for a field-->
+    <mat-tab label="Advanced">
+        <app-advance-component class="max-height"
+            [advanceField]="getAdvanceProperty()"
+            [properties]="properties"
+            [field]="values"
+            [fields]="fields"
+            [actual_class]="actual_class"
+            (update_value_property)="updatePropertiesWithValue($event)">
+        </app-advance-component>
+
+        <!-- Buttons to save or cancel the change on the field -->
+        <div class="button-container">
+            <button class="button-height" mat-raised-button
+                [disabled]="!hasChanged"
+                (click)="cancelChange()">
+                Cancel
+            </button>
+            <button class="button-height" mat-raised-button
+                [disabled]="!hasChanged || !this.checkRequired()"
+                (click)="saveChange()">
+                Save
+            </button>
+        </div>
+    </mat-tab>
+</mat-tab-group>

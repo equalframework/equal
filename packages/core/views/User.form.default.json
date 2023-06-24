@@ -27,7 +27,7 @@
                                                 "type": "field",
                                                 "value": "login",
                                                 "width": "50%",
-                                                "label": "Username",
+                                                "label": "Login",
                                                 "help": "Email address of the user."
                                             },
                                             {

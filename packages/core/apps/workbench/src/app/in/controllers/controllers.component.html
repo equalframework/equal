@@ -1,0 +1,96 @@
+<mat-horizontal-stepper class="max-height" [selectedIndex]="step">
+    <!-- Step for package -->
+    <mat-step class="max-height" [completed]="selected_package !=''">
+        <ng-template matStepLabel>
+            <div class="step-label" (click)="step=0">
+                <ng-container *ngIf="selected_package ==''">
+                    <span>Select package</span>
+                </ng-container>
+                <ng-container *ngIf="selected_package !=''">
+                    <span class="small-font-label">package</span>
+                    <span class="big-font-label">{{selected_package}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Package search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list class="max-height max-width" *ngIf="packages"
+                    [data]="packages"
+                    [selected_node]="selected_package"
+                    (nodeSelect)="onclickPackageSelect($event)">
+                </app-search-list>
+            </mat-grid-tile>
+            <!-- Package content -->
+            <mat-grid-tile colspan="3" class="max-height">
+                content
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+    <!-- Step for controller -->
+    <mat-step class="max-height" [completed]="selected_controller !=''">
+        <ng-template matStepLabel>
+            <div class="step-label">
+                <ng-container *ngIf="selected_controller ==''">
+                    <span>Select controller</span>
+                </ng-container>
+                <ng-container *ngIf="selected_controller !=''">
+                    <span class="small-font-label">class</span>
+                    <span class="big-font-label">{{selected_controller}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Controller search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list-controller class="max-height max-width" *ngIf="controllers"
+                    [data]="controllers"
+                    [selected_node]="selected_controller"
+                    (nodeSelect)="onclickControllerSelect($event)"
+                    (nodeUpdate)="onupdateController($event)"
+                    (nodeDelete)="ondeleteController($event)"
+                    (nodeCreate)="oncreateController($event)">
+                </app-search-list-controller>
+            </mat-grid-tile>
+            <!-- Controller content -->
+            <mat-grid-tile colspan="3" class="max-height" id="schema">
+                <pre [innerHTML]="getJSONSchema()">
+                </pre>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+    <!-- Step for Property -->
+    <mat-step class="max-height" [completed]="selected_property !=''">
+        <ng-template matStepLabel>
+            <div class="step-label">
+                <ng-container *ngIf="selected_property ==''">
+                    <span>Select property</span>
+                </ng-container>
+                <ng-container *ngIf="selected_property !=''">
+                    <span class="small-font-label">property</span>
+                    <span class="big-font-label">{{selected_property}}</span>
+                </ng-container>
+            </div>
+        </ng-template>
+        <mat-grid-list cols="4" class="max-height">
+            <!-- Property search list, on the left of the screen -->
+            <mat-grid-tile colspan="1" class="max-height">
+                <app-search-list class="max-height max-width" *ngIf="schema"
+                    [data]="getProperties()"
+                    [selected_node]="selected_property"
+                    (nodeSelect)="onclickPropertySelect($event)">
+                </app-search-list>
+            </mat-grid-tile>
+            <!-- Property content -->
+            <mat-grid-tile colspan="3" class="max-height">
+                <app-router-property class="max-width max-height"
+                    [selected_property]="selected_property"
+                    [schema]="schema"
+                    [eq_package]="selected_package"
+                    [controller_name]="selected_controller"
+                    [selected_type_controller]="selected_type_controller">
+                </app-router-property>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-step>
+</mat-horizontal-stepper>

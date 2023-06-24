@@ -35,7 +35,7 @@ export class AuthSigninComponent implements OnInit {
     public async ngOnInit() {
         // setup the form
         this.form = <FormGroup>this.formBuilder.group({
-            username: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$')]],
+            username: ['', [Validators.required]],
             password: ['', Validators.required]
         });
 
@@ -49,7 +49,7 @@ export class AuthSigninComponent implements OnInit {
     }
 
     public async onSubmit() {
-        // prevent sumit for invalid form
+        // prevent submitting invalid form
         if (this.form.invalid) {
             return;
         }

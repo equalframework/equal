@@ -5,6 +5,13 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
+/**
+ * A global var `$test` is expected to be set by each tests set (that var is used in the `core_package_test` controller).
+ * As the current file is injected in the global scope, this line is not mandatory and is left in order to ease the understanding.
+ *
+ * @var array   $test   Global var holding the test descriptors.
+ */
+global $test;
 
 $tests = [
     // each key of the associative array is a test identifier that maps to a test descriptor
@@ -12,15 +19,16 @@ $tests = [
             'description'   =>  "Demo test",
             'return'        => ['integer','boolean'],
             'arrange'       =>  function () {
-                    // every action that is necessary to prepare the tests
+                    // All necessary actions to prepare the scenario.
                 },
             'act'           =>  function () {
-                    // this method should return a value whose type matches one of the type given by the `return` property.
+                    // The instructions being tested.
+                    // This method should always return a value whose type matches one of the type given by the `return` property.
                     return 1;
                 },
             'assert'        =>  function($result) {
-                    // advanced test(s) on the result returned by the act function
-                    // this method must return a boolean
+                    // Advanced test(s) on the result returned by the act function.
+                    // This method must always return a boolean which indicates if the test succeeded (true) or failed (false).
                     return ($result > 0);
                 }
         ]

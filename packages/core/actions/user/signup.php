@@ -51,7 +51,7 @@ list($params, $providers) = announce([
             'default'       => 0
         ]
     ],
-    'constants'     => ['DEFAULT_LANG', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
+    'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
     'access'        => [
         'visibility'        => 'public'
     ],
@@ -70,10 +70,16 @@ list($params, $providers) = announce([
  */
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
+if(!constant('USER_ACCOUNT_REGISTRATION')) {
+    throw new Exception('no_registration', QN_ERROR_NOT_ALLOWED);
+}
+
 // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
-list($username, $domain) = explode('@', strtolower(trim($params['email'])));
-$username .= '+';
-$login = substr($username, 0, strpos($username, '+')).'@'.$domain;
+list($email, $domain) = explode('@', strtolower(trim($params['email'])));
+$email .= '+';
+$login = substr($email, 0, strpos($email, '+')).'@'.$domain;
+
+$username = trim($params['username']);
 
 list($password, $firstname, $lastname, $language, $send_confirm) = [
     $params['password'],
@@ -98,15 +104,22 @@ if($params['resend']) {
         throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
     }
     $user_id = reset($ids);
-    $user = User::id($user_id)->read(['login', 'username', 'firstname', 'lastname'])->first(true);
+    $user = User::id($user_id)->read(['status', 'login', 'username', 'firstname', 'lastname'])->first(true);
     $message_id = $params['resend'];
     // if message is still in pool : abort
-    $send_confirm = !(Mail::isQueued($message_id));
+    $send_confirm = !(Mail::isQueued($message_id) || $user['status'] != 'created');
 }
 else {
     if(count($ids) > 0) {
-        throw new Exception('existing_user', QN_ERROR_INVALID_USER);
+        throw new Exception('existing_email', QN_ERROR_INVALID_USER);
     }
+
+    // check username uniqueness
+    $ids = $om->search(User::getType(), [['username', '=', $username]]);
+    if(count($ids) > 0) {
+        throw new Exception('existing_username', QN_ERROR_INVALID_USER);
+    }
+
     // #memo - email might still be invalid (a validation check is made in User class)
     $user = User::create([
             'login'     => $params['email'],

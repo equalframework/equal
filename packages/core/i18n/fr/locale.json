@@ -47,7 +47,7 @@
         "currency.symbol_position": "after",
         "currency.symbol_separator": " ",
         "date.short": "DD/MM/YY",
-        "date.medium": "DD MMM YYYY",
+        "date.medium": "DD/MMM/YYYY",
         "date.long": "ddd DD MMM YYYY",
         "date.full": "dddd DD MMMM YYYY",
         "time.short": "H:mm",

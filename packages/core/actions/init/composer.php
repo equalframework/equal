@@ -9,7 +9,8 @@ use equal\http\HttpResponse;
 
 
 list($params, $providers) = announce([
-    'description'   => 'Downloads composer and runs it for installing dependencies from composer.json.',
+    'description'   => "Downloads composer and runs it for installing dependencies from composer.json.",
+    'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
     'params'        => [],
     'access'        => [
         'visibility'    => 'private'
@@ -44,7 +45,9 @@ if(hash_file('sha384', 'composer-setup.php') !== $expected_checksum) {
 }
 
 // run setup and remove script afterward
-exec('php composer-setup.php --quiet');
+if(exec('php composer-setup.php --quiet') === false) {
+    throw new Exception('command_failed', QN_ERROR_UNKNOWN);
+}
 unlink('composer-setup.php');
 
 // check the presence of the executable
@@ -53,7 +56,9 @@ if(!file_exists('composer.phar')) {
 }
 
 // run composer to install dependencies (quiet mode, no interactions)
-exec('php composer.phar install -q -n');
+if(exec('php composer.phar install -q -n') === false) {
+    throw new Exception('composer_failed', QN_ERROR_UNKNOWN);
+}
 
 $context->httpResponse()
         ->status(204)

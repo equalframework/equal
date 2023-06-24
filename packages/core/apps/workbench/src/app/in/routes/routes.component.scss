@@ -1,0 +1,93 @@
+h1 {
+    font-size: 35px;
+}
+
+.search-bar {
+    width: calc(100% - 30px);
+    margin: 0 15px 0 15px;
+}
+
+.routes-mat-accordion {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+
+    .get {
+        background-color: #ebf3fb;
+        .operation {
+            background-color: #61affe;
+        }
+    }
+    .post {
+        background-color: #e8f6f0;
+        .operation {
+            background-color: #49cc90;
+        }
+    }
+    .delete {
+        background-color: #fae7e7;
+        .operation {
+            background-color: #f93e3e;
+        }
+    }
+    .put {
+        background-color: #fbf1e6;
+        .operation {
+            background-color: #fca130;
+        }
+    }
+
+    .routes-expansion-panel {
+        margin: 5px 15px 5px 15px;
+        mat-expansion-panel-header {
+            padding-left: 0px;
+        }
+
+        .description-container {
+            margin-top: 7px;
+            font-size: 16px;
+            font-weight: 410;
+            display: flex;
+            .file {
+                padding-right: 15px;
+            }
+        }
+
+        .header {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+
+            .route-operation {
+                width: 40%;
+                display: flex;
+                align-items: center;
+                height: 100%;
+                .route {
+                    width: 75%;
+                    margin-left: 7%;
+                }
+                .operation {
+                    height: 100%;
+                    width: 25%;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center
+                }
+            }
+
+            .route-description {
+                width: 60%;
+                font-weight: 70;
+            }
+        }
+    }
+}
+
+mat-expansion-panel-header > .mat-content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}

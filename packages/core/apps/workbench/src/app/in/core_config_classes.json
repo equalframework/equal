@@ -1,0 +1,23 @@
+{
+    "core": [
+        "Group",
+        "Lang",
+        "Log",
+        "Mail",
+        "Permission",
+        "Task",
+        "Translation",
+        "User",
+        "Version",
+        "alert\\Message",
+        "alert\\MessageModel",
+        "setting\\Setting",
+        "setting\\SettingChoice",
+        "setting\\SettingSection",
+        "setting\\SettingValue"
+    ],
+    "demo": [
+        "Example",
+        "User"
+    ]
+}

@@ -1,0 +1,32 @@
+<div class="container">
+    <div class="app-header">
+        <app-header
+        [section]="'Workbench'"
+        (toggleMenu)="toggleSideMenu()"
+        (toggleBar)="toggleSideBar()">
+        </app-header>
+    </div>
+    <div class="app-body">
+
+        <div class="app-sidebar"  [class.show]="show_side_bar">
+            <!-- app-sidebar -->
+            <div class="side-inner">
+                <mat-nav-list>
+                    <app-menu-list-item *ngFor="let item of leftMenu"
+                        [class.hidden]="item.hidden"
+                        [item]="item"
+                        (select)="onSelectItem($event)">
+                    </app-menu-list-item>
+                </mat-nav-list>
+            </div>
+        </div>
+
+        <div class="app-main">
+            <router-outlet></router-outlet>
+        </div>
+
+        <div class="app-asidemenu" [class.show]="show_side_menu">
+            <app-sidemenu></app-sidemenu>
+        </div>
+    </div>
+</div>

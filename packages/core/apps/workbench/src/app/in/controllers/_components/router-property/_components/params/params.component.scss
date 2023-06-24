@@ -1,0 +1,45 @@
+.flex {
+    display: flex;
+}
+
+.card-content1 {
+    flex-direction: column;
+    width: 30%;
+}
+
+.card-content2 {
+    flex-direction: column;
+    width: 70%;
+}
+
+.params-mat-card {
+    margin: 10px;
+    height: fit-content;
+}
+
+.params-mat-card ~ .params-mat-card {
+    margin-top: 20px;
+}
+
+.params-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .card-container {
+        height: fit-content;
+    }
+    .params-buttons {
+        display: flex;
+        justify-content: flex-end;
+        height: max-content;
+        .params-button {
+            padding-left: 3px;
+            padding-right: 3px;
+            margin: 5px 3px 0px 3px;
+            .icon {
+                font-size: 130%;
+            }
+        }
+    }
+}

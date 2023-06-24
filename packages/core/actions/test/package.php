@@ -4,11 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\ObjectManager;
 use equal\test\Tester;
-
-use core\User;
-use core\Group;
 
 list($params, $providers) = announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
@@ -58,6 +54,7 @@ if(is_dir($tests_path)) {
         $result[$set] = $body;
     }
 }
+
 if($params['logs']) {
     $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log');
 }
@@ -66,6 +63,7 @@ $providers['context']->httpResponse()
                      ->body($result)
                      ->send();
 
+// if at least one test failed, force non-zero exit code
 if($failed) {
     exit(1);
 }

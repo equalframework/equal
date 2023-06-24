@@ -2,11 +2,11 @@
 
 list($params, $providers) = announce([
     'description'   => "Provide a unique identifier of the current git revision.\n".
-                       "This script assumes the current installation is versionned using git.",
+                       "This script assumes the current installation is versioned using git.",
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
-    ],    
+    ],
     'params'    => [
     ],
     'providers' =>  ['context']
@@ -32,7 +32,7 @@ if(!file_exists($index_path)) {
 $files = explode(' ', file_get_contents($head_path));
 
 if(!$files || !count($files)) {
-    throw new Exception('no files found in git index', QN_ERROR_INVALID_CONFIG);    
+    throw new Exception('no files found in git index', QN_ERROR_INVALID_CONFIG);
 }
 
 $file = trim($files[1]);

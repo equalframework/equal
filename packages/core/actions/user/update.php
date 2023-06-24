@@ -1,4 +1,4 @@
-irst(<?php
+<?php
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
@@ -39,6 +39,10 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ */
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 // update user instance

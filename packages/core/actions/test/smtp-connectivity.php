@@ -66,12 +66,12 @@ try {
         }
     }
 
-    // try to establish a connexion with the SMTP host
+    // try to establish a connection with the SMTP host
     $sock = fsockopen($host, $port, $errno, $errstr, 2);
     if (!$sock) {
-        throw new Exception('unable_to_conect', QN_ERROR_UNKNOWN);
+        throw new Exception('unable_to_connect', QN_ERROR_UNKNOWN);
     }
-    // do not wait for respponses more than 1 sec
+    // do not wait for responses more than 1 sec
     stream_set_timeout($sock, 1);
 
     // most MTAs expect a domain/host name, and the picky ones want the hostname specified here

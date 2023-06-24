@@ -242,29 +242,6 @@ namespace {
             }
         }
     }
-    // #todo - deprecate
-    // support for legacy config
-    if(file_exists(QN_BASEDIR.'/config/config.inc.php')) {
-        include_once(QN_BASEDIR.'/config/config.inc.php');
-    }
-    else {
-        if((@include_once(QN_BASEDIR.'/config/default.inc.php')) === false) {
-            // die('oops, default root config file is missing');
-        }
-    }
-
-/*
-// #DEBUG
-// for debugging, uncomment this to force the header of generated HTTP response
-        header("HTTP/1.1 200 OK");
-        header('Content-type: application/json; charset=UTF-8');
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD,TRACE');
-        header('Access-Control-Allow-Headers: *');
-        header('Access-Control-Expose-Headers: *');
-        header('Allow: *');
-        flush();
-*/
 }
 namespace config {
     use equal\services\Container;
@@ -483,7 +460,7 @@ namespace config {
             $container = Container::getInstance();
 
             // register names for common services and assign default classes
-            // (these can be overridden in the `config.inc.php` of invoked package)
+            // (these can be overridden in the `config.json` of invoked package)
             $container->register([
                 'report'    => 'equal\error\Reporter',
                 'auth'      => 'equal\auth\AuthenticationManager',
@@ -1094,8 +1071,16 @@ namespace config {
                 ], JSON_PRETTY_PRINT));
 
             // load package custom configuration, if any
-            if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.inc.php')) {
-                include(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.inc.php');
+            if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
+                $data = file_get_contents(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json');
+                if(($config = json_decode($data, true))) {
+                    foreach($config as $property => $value) {
+                        \config\define($property, $value);
+                    }
+                }
+                else {
+                    die('Invalid config file in package '.$resolved['package'].'.');
+                }
             }
             // if no request is specified, if possible set DEFAULT_PACKAGE/DEFAULT_APP as requested script
             if(is_null($resolved['type'])) {
@@ -1113,7 +1098,6 @@ namespace config {
                     throw new \Exception("No default app for package {$resolved['package']}", QN_ERROR_UNKNOWN_OBJECT);
                 }
             }
-
             // include resolved script, if any
             if(isset($operations[$resolved['type']])) {
                 $operation_conf = $operations[$resolved['type']];
@@ -1134,14 +1118,14 @@ namespace config {
                     if(!is_file($filename)) {
                         $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
-                            throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['visibility']}:{$resolved['operation']}", QN_ERROR_UNKNOWN_OBJECT);
+                            throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['operation']} ({$resolved['script']})", QN_ERROR_UNKNOWN_OBJECT);
                         }
                     }
                 }
 
                 // force timezone to UTC
-                // #memo - this is to avoid being impacted by daylight saving offset
-                // #memo - we expect the DBMS to store dates in UTC as well
+                // #memo - this prevents being impacted by timezone and daylight saving offsets
+                // #memo - DBMS is expected to store dates in UTC as well
                 date_default_timezone_set('UTC');
 
                 if(!$root) {

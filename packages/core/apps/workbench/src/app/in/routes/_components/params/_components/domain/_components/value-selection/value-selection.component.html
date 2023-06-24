@@ -1,0 +1,30 @@
+<ng-container *ngIf="operator == 'in' || operator == 'not in'">
+    <mat-form-field appearance="fill">
+        <mat-label>Value</mat-label>
+        <mat-select [formControl]="myControl">
+        <ng-container *ngIf="fields.fields[operand]">
+            <ng-container *ngFor="let option of fields.fields[operand].selection">
+                <mat-option style="color: black;" [value]="option" disabled="true">
+                    <mat-checkbox matPrefix class="padding-checkbox" [checked]="containsOption(option)"
+                    (change)="changeOption(option)">
+                    </mat-checkbox>
+                    {{option}}
+                </mat-option>
+            </ng-container>
+        </ng-container>
+        </mat-select>
+    </mat-form-field>
+</ng-container>
+
+<ng-container *ngIf="operator != 'in' && operator != 'not in'">
+    <mat-form-field appearance="fill">
+        <mat-label>Value</mat-label>
+        <mat-select (selectionChange)="onOptionChange($event)">
+            <ng-container *ngIf="fields.fields[operand]">
+                <ng-container *ngFor="let option of fields.fields[operand].selection">
+                    <mat-option [value]="option">{{option}}</mat-option>
+                </ng-container>
+            </ng-container>
+        </mat-select>
+    </mat-form-field>
+</ng-container>

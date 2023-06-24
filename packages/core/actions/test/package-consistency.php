@@ -37,27 +37,25 @@ list($params, $providers) = announce([
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);
 
+/**
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
+ */
 list($context, $orm) = [$providers['context'], $providers['orm']];
-
-$params['package'] = strtolower($params['package']);
 
 
 /*
+#TODO : check config and json files syntax.
 
-TODO : check config and json files syntax.
-
-translation files constraints:
+* translation files constraints:
     * model helpers : max 45 chars
     * error messages length : max 45 chars
 
-
-* pour chaque vue, vérifier que chaque champ est renseigné zéro ou une seule fois
-* pour chaque vue, vérifier que les id ont une correspondance dans le fichier de traduction
-* pour chaque classe, vérifier que tous les champs sont définis au moins dans une view
+* for each view, check that each field is present 0 or 1 time
+* for each view, check that the id match an entry in the translation file
+* for each class, check that all fields are each field is present at least in one view
 
 */
-
-
 
 // result of the tests : array containing errors (if no errors are found, array is empty)
 $result = [];
@@ -99,7 +97,7 @@ foreach($classes as $class) {
     $class_filename = str_replace('\\', '/', "packages/{$params['package']}/classes/{$class}".'.class.php');
     // check file existence
     if(!file_exists($class_filename)) {
-        throw new Exception("FATAL - class defintion file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("FATAL - class definition file missing for '{$class_name}' ", QN_ERROR_UNKNOWN_OBJECT);
     }
 
     // check PHP syntax
