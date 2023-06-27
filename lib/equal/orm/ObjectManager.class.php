@@ -2518,7 +2518,7 @@ class ObjectManager extends Service {
                 }
                 elseif($sort_field != 'id') {
                     // check the type of the field used for sorting : if it is a many2one, add the related table and use the field `name` instead of the id value
-                    if($schema[$sort_field]['type'] == 'many2one') {
+                    if($schema[$sort_field]['type'] == 'many2one' || ($schema[$sort_field]['type'] == 'computed' && $schema[$sort_field]['result_type'] == 'many2one') ) {
                         $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
                         $related_table_alias = $add_table($related_table);
                         $select_fields[] = $related_table_alias.'.name';
