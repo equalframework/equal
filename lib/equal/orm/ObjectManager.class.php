@@ -2146,7 +2146,7 @@ class ObjectManager extends Service {
             $object = reset($objects);
             if(isset($object['status']) && isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
                 foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
-                    if(isset($t_descr['depends_on']) && count(array_intersect($fields, $t_descr['depends_on'])) > 0 ) {
+                    if(isset($t_descr['watch']) && count(array_intersect($fields, $t_descr['watch'])) > 0 ) {
                         $res[] = $t_name;
                     }
                 }
@@ -2228,12 +2228,16 @@ class ObjectManager extends Service {
         foreach($objects as $id => $object) {
             // reaching this part means all objects have a status and a workflow in which given transition is defined and valid for requested mutation
             $t_descr = $workflow[$object['status']]['transitions'][$transition];
+            // if a 'onbefore' method is defined for applied transition, call it
+            if(isset($t_descr['onbefore'])) {
+                $this->callonce($class, $t_descr['onbefore'], $id);
+            }
             // status field is always writeable (we don't call `update()` to bypass checks)
             $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
             $this->store($class, (array) $id, ['status'], $lang);
-            // if a 'function' is defined for applied transition, call it
-            if(isset($t_descr['function'])) {
-                $this->callonce($class, $t_descr['function'], $id);
+            // if a 'onafter' method is defined for applied transition, call it
+            if(isset($t_descr['onafter'])) {
+                $this->callonce($class, $t_descr['onafter'], $id);
             }
         }
         return [];
