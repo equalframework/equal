@@ -56,7 +56,7 @@ class Field {
             'array'         => 'array'
         ];
         $type = $this->type;
-        if($this->type == 'computed') {
+        if($this->type == 'computed' && isset($this->descriptor['result_type'])) {
             $type = $this->descriptor['result_type'];
         }
         return isset($map[$type])?$map[$type]:$type;
@@ -84,7 +84,6 @@ class Field {
     public function getConstraints(): array {
         return $this->getUsage()->getConstraints();
     }
-
 
     public function getDescriptor(): array {
         return $this->descriptor;
