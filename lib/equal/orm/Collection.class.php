@@ -144,6 +144,11 @@ class Collection implements \Iterator, \Countable {
         return $res;
     }
 
+
+    public function getClass() {
+        return $this->class;
+    }
+
     /*
     public function from($offset) {
         if($offset < count($this->objects)) {
@@ -693,7 +698,12 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
-            $this->objects = $res;
+            // merge retrieved values with current collection (overwrite if already present)
+            foreach($res as $id => $object) {
+                foreach($object as $field => $value) {
+                    $this->objects[$id][$field] = $value;
+                }
+            }
 
             // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
             foreach($fields as $field => $subfields ) {
