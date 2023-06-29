@@ -839,6 +839,36 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
+     * Attempts to perform a specific action to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     *
+     * @param   string      $action       Name of the requested action.
+     *
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
+     */
+    public function do($action) {
+        // check if action can be performed
+        $res = $this->ac->canPerform($action, $this);
+        if(count($res)) {
+            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+        }
+
+        $actions = $this->class::getActions();
+
+        if(isset($actions[$action]) && isset($actions[$action]['function'])) {
+            // retrieve targeted identifiers
+            $ids = array_keys($this->objects);
+            if(count($ids)) {
+                $this->orm->callonce($this->class, $actions[$action]['function'], $ids);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Following methods are defined here because we want children classes to have arbitrary parameters (the only constraint is for multiple inheritance: children classes must implement a method the same way their parent does).
      * In case these methods are invoked on the Model class, the code ends up here.
      */

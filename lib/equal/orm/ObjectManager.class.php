@@ -1159,7 +1159,7 @@ class ObjectManager extends Service {
      * @param   string          $class          Entity name.
      * @param   array           $ids            Array of objects identifiers.
      * @param   array           $values         Associative array mapping fields names with values to be assigned to the object(s).
-     * @param   boolean         $check_unique   Request check for unicity contraints (related to getUnique method).
+     * @param   boolean         $check_unique   Request check for unicity constraints (related to getUnique method).
      * @param   boolean         $check_required Request check for required fields (and _self constraints).
      * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
      *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.

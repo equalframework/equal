@@ -345,8 +345,8 @@ class AccessController extends Service {
      *  Check if a current user (retrieved using Auth service) has rights to perform a given operation.
      *
      *  This method is called by the Collection service, when performing CRUD
-     *  Qinoa's Access Controller is trivial and only check for rights at class level.
-     *  For a more complex behaviour, this class can be replaced by a custom Auth service.
+     *  eQual Access Controller is trivial and only check for rights at class level.
+     *  For a more complex behavior, this class can be replaced by a custom Auth service.
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
@@ -396,22 +396,51 @@ class AccessController extends Service {
         return $allowed;
     }
 
-    public function rights($user_id, $object_class, $object_fields=[]) {
-        // non root user can only fetch their own rights
-        if(php_sapi_name() != 'cli') {
+    public function canPerform($action, $collection) {
+        $result = [];
+        $class = $collection->getClass();
+        $actions = $class::getActions();
+        if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
+	        $policies = $class::getPolicies();
             $auth = $this->container->get('auth');
             $user_id = $auth->userId();
+
+            foreach($actions[$action]['policies'] as $policy) {
+                if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
+                    $result[$policy] = 'unknown_policy';
+                }
+                if(count($policies[$policy]['function']($collection, $user_id))) {
+                    $result[$policy] = 'broken_policy';
+                }
+            }
+        }
+        return [];
+    }
+
+    /**
+     * @deprecated
+     */
+    public function rights($user_id, $object_class, $object_fields=[]) {
+        // non-root users can only fetch their own rights
+        $auth = $this->container->get('auth');
+        $uid = $auth->userId();
+        if($uid != QN_ROOT_USER_ID) {
+            $user_id = $uid;
         }
         return $this->getUserRights($user_id, $object_class, $object_fields);
     }
 
+    /**
+     * @deprecated
+     *
+     */
     public function groups($user_id) {
-        // non root user can only fetch their own groups
-        if(php_sapi_name() != 'cli') {
-            $auth = $this->container->get('auth');
-            $user_id = $auth->userId();
+        // non-root user can only fetch their own groups
+        $auth = $this->container->get('auth');
+        $uid = $auth->userId();
+        if($uid != QN_ROOT_USER_ID) {
+            $user_id = $uid;
         }
-
         return $this->getUserGroups($user_id);
     }
 
