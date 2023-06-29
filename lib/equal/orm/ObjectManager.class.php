@@ -86,7 +86,7 @@ class ObjectManager extends Service {
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
