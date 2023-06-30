@@ -1023,6 +1023,11 @@ class ObjectManager extends Service {
             elseif($param_name == 'values') {
                 $args[] = $values;
             }
+            elseif($param_name == 'user_id') {
+                $auth = $this->container->get('auth');
+                $user_id = $auth->userId();
+                $args[] = $user_id;
+            }
             elseif($param_name == 'lang') {
                 $args[] = $lang;
             }
