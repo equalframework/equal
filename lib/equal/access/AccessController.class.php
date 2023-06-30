@@ -434,7 +434,7 @@ class AccessController extends Service {
             }
         }
 
-        return [];
+        return $result;
     }
 
     /**
@@ -452,7 +452,7 @@ class AccessController extends Service {
                 }
             }
         }
-        return [];
+        return $result;
     }
 
     /**
