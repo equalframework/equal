@@ -807,9 +807,9 @@ class Collection implements \Iterator, \Countable {
 
     public function delete($permanent=false) {
         if(count($this->objects)) {
+            $user_id = $this->am->userId();
 
             // 1) sanitize and retrieve necessary values
-            $user_id = $this->am->userId();
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
 
@@ -850,7 +850,8 @@ class Collection implements \Iterator, \Countable {
      */
     public function do($action) {
         // check if action can be performed
-        $res = $this->ac->canPerform($action, $this);
+        $user_id = $this->am->userId();
+        $res = $this->ac->canPerform($user_id, $action, $this);
         if(count($res)) {
             throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
         }

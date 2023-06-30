@@ -342,11 +342,51 @@ class AccessController extends Service {
     }
 
     /**
-     *  Check if a current user (retrieved using Auth service) has rights to perform a given operation.
+     *  Check if a given user (retrieved using Auth service) has rights to perform a given operation.
      *
-     *  This method is called by the Collection service, when performing CRUD
-     *  eQual Access Controller is trivial and only check for rights at class level.
-     *  For a more complex behavior, this class can be replaced by a custom Auth service.
+     *
+     * @param integer       $operation        Binary mask of the operations that are checked (can be built using constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
+     * @param string        $object_class     Class selector indicating on which classes the check must be performed.
+     * @param int[]         $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     */
+    public function hasRight($user_id, $operation, $object_class='*', $object_ids=[]) {
+        // check operation against default rights
+        if($this->default_rights & $operation) {
+            return true;
+        }
+
+        $allowed = false;
+
+        // force cast ids to array (passing a single id is accepted)
+        if(!is_array($object_ids)) {
+            $object_ids = (array) $object_ids;
+        }
+
+        //  permission query is for class and/or fields only (no specific objects)
+        if(!count($object_ids)) {
+            $user_rights = $this->getUserRights($user_id, $object_class, [], $object_ids);
+            $allowed = (bool) ($user_rights & $operation);
+        }
+        // we have to check several objects
+        else {
+            // remove duplicates, if any
+            $object_ids = array_unique($object_ids);
+            // keep only ids of object for which user has required privilege
+            $filtered_ids = $this->filter($operation, $object_class, [], $object_ids);
+            // compute difference
+            $diff = array_diff($object_ids, $filtered_ids);
+            // if equal then operation is granted
+            $allowed = !((bool) count($diff));
+        }
+
+        return $allowed;
+    }
+
+    /**
+     *  Check if current user (retrieved using Auth service) has rights to perform a given operation.
+     *
+     *  This method is called by the Collection service, when performing CRUD.
+     *  #todo - deprecate $object_fields
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (binary mask made of constants : QN_R_CREATE, QN_R_READ, QN_R_DELETE, QN_R_WRITE, QN_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
@@ -360,48 +400,17 @@ class AccessController extends Service {
             return true;
         }
 
-        // check operation against default rights
-        if($this->default_rights & $operation) {
-            return true;
-        }
-
-        $allowed = false;
-
         // retrieve current user identifier
         $auth = $this->container->get('auth');
         $user_id = $auth->userId();
 
-        // force cast ids to array (passing a single id is accepted)
-        if(!is_array($object_ids)) {
-            $object_ids = (array) $object_ids;
-        }
-
-        //  permission query is for class and/or fields only (no specific objects)
-        if(!count($object_ids)) {
-            $user_rights = $this->getUserRights($user_id, $object_class, $object_fields);
-            $allowed = (bool) ($user_rights & $operation);
-        }
-        // we have to check several objects
-        else {
-            // remove duplicates, if any
-            $object_ids = array_unique($object_ids);
-            // keep only ids of object for which user has required privilege
-            $filtered_ids = $this->filter($operation, $object_class, $object_fields, $object_ids);
-            // compute difference
-            $diff = array_diff($object_ids, $filtered_ids);
-            // if equal then operation is granted
-            $allowed = !((bool) count($diff));
-        }
-
-        return $allowed;
+        return $this->hasRight($user_id, $operation, $object_class, $object_ids);
     }
 
-    public function isCompliant($policy, $collection) {
+    public function isCompliant($user_id, $policy, $collection) {
         $result = [];
         $class = $collection->getClass();
         $policies = $class::getPolicies();
-        $auth = $this->container->get('auth');
-        $user_id = $auth->userId();
 
         if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
             $result['unknown_policy'] = "Policy {$policy} is not defined in class {$class}";
@@ -440,13 +449,13 @@ class AccessController extends Service {
     /**
      * Check if a given action can be performed on a Collection, according to the policies defined at the entity level for that action, if any.
      */
-    public function canPerform($action, $collection) {
+    public function canPerform($user_id, $action, $collection) {
         $result = [];
         $class = $collection->getClass();
         $actions = $class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $res = $this->isCompliant($policy, $collection);
+                $res = $this->isCompliant($user_id, $policy, $collection);
                 if(count($res)) {
                     $result[$policy] = $res;
                 }
