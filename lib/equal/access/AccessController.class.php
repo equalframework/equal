@@ -406,13 +406,41 @@ class AccessController extends Service {
         if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
             $result['unknown_policy'] = "Policy {$policy} is not defined in class {$class}";
         }
-        if(count($policies[$policy]['function']($collection, $user_id))) {
-            $result['broken_policy'] = "Collection does not comply with Policy {$policy}";
+        else {
+            $method = $policies[$policy]['function'];
+
+            $called_class = $class;
+            $called_method = $method;
+
+            $parts = explode('::', $method);
+            $count = count($parts);
+
+            if( $count < 1 || $count > 2 ) {
+                $result['invalid_policy_method'] = "Method provided for Policy {$policy} has an non-supported format.";
+            }
+            else {
+                if( $count == 2 ) {
+                    $called_class = $parts[0];
+                    $called_method = $parts[1];
+                }
+                if(!method_exists($called_class, $called_method)) {
+                    $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
+                }
+                else {
+                    $res = $called_class::$called_method($collection, $user_id);
+                    if(count($res)) {
+                        $result['broken_policy'] = "Collection does not comply with Policy {$policy}";
+                    }
+                }
+            }
         }
 
         return [];
     }
 
+    /**
+     * Check if a given action can be performed on a Collection, according to the policies defined at the entity level for that action, if any.
+     */
     public function canPerform($action, $collection) {
         $result = [];
         $class = $collection->getClass();
