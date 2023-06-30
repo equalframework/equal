@@ -396,21 +396,32 @@ class AccessController extends Service {
         return $allowed;
     }
 
+    public function isCompliant($policy, $collection) {
+        $result = [];
+        $class = $collection->getClass();
+        $policies = $class::getPolicies();
+        $auth = $this->container->get('auth');
+        $user_id = $auth->userId();
+
+        if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
+            $result['unknown_policy'] = "Policy {$policy} is not defined in class {$class}";
+        }
+        if(count($policies[$policy]['function']($collection, $user_id))) {
+            $result['broken_policy'] = "Collection does not comply with Policy {$policy}";
+        }
+
+        return [];
+    }
+
     public function canPerform($action, $collection) {
         $result = [];
         $class = $collection->getClass();
         $actions = $class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
-	        $policies = $class::getPolicies();
-            $auth = $this->container->get('auth');
-            $user_id = $auth->userId();
-
             foreach($actions[$action]['policies'] as $policy) {
-                if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
-                    $result[$policy] = 'unknown_policy';
-                }
-                if(count($policies[$policy]['function']($collection, $user_id))) {
-                    $result[$policy] = 'broken_policy';
+                $res = $this->isCompliant($policy, $collection);
+                if(count($res)) {
+                    $result[$policy] = $res;
                 }
             }
         }

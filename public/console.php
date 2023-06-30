@@ -326,7 +326,7 @@ foreach($map_threads as $thread => $lines) {
         $n = count($line['stack']);
         $m = strlen($msg);
 
-        $msg_excerpt = substr($msg, 0, 64).(($m > 64)?"&hellip;":'');
+        $msg_excerpt = substr($msg, 0, 128);
 
         $html .= "
             <div class=\"thread_line\">
