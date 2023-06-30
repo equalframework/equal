@@ -842,6 +842,22 @@ class Collection implements \Iterator, \Countable {
      * Attempts to perform a specific action to a series of objects.
      * If no workflow is defined, the call is ignored (no action is taken).
      * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     */
+    public function transition($transition) {
+        // retrieve targeted identifiers
+        $ids = array_keys($this->objects);
+        $res = $this->orm->transition($this->class, $ids, $transition);
+        if(count($res)) {
+            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+        }
+        return $this;
+    }
+
+
+    /**
+     * Attempts to perform a specific action to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
      *
      * @param   string      $action       Name of the requested action.
      *
