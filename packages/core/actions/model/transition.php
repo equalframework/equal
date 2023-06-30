@@ -56,17 +56,7 @@ if(empty($params['ids'])) {
     $params['ids'][] = $params['id'];
 }
 
-$res = $orm->transition($params['entity'], $params['ids'], $params['transition']);
-
-if(count($res)) {
-    foreach($res as $error_code => $error_descr) {
-        if(is_array($error_descr)) {
-            $error_descr = serialize($error_descr);
-        }
-        // send error using the same format as the announce method
-        throw new \Exception($error_descr, (int) $error_code);
-    }
-}
+$entity::ids($params['ids'])->transition($params['transition']);
 
 $context->httpResponse()
     ->status(204)
