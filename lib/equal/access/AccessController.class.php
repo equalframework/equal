@@ -407,12 +407,10 @@ class AccessController extends Service {
             $result['unknown_policy'] = "Policy {$policy} is not defined in class {$class}";
         }
         else {
-            $method = $policies[$policy]['function'];
-
             $called_class = $class;
-            $called_method = $method;
+            $called_method = $policies[$policy]['function'];
 
-            $parts = explode('::', $method);
+            $parts = explode('::', $called_method);
             $count = count($parts);
 
             if( $count < 1 || $count > 2 ) {
@@ -427,6 +425,7 @@ class AccessController extends Service {
                     $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
                 }
                 else {
+                    trigger_error("ORM::calling {$called_class}::{$called_method}", QN_REPORT_DEBUG);
                     $res = $called_class::$called_method($collection, $user_id);
                     if(count($res)) {
                         $result['broken_policy'] = "Collection does not comply with Policy {$policy}";
