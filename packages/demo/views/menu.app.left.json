@@ -7,68 +7,20 @@
         "items": [
             {
                 "id": "settings",
-                "label": "Demo",
+                "label": "Demo Menu",
                 "description": "",
                 "icon": "settings",
                 "type": "parent",
                 "children": [
                     {
-                        "id": "settings.scheduler",
-                        "label": "Scheduler",
+                        "id": "demo.default",
+                        "type": "entry",
+                        "label": "Example",
                         "description": "",
-                        "icon": "schedule",
-                        "type": "parent",
-                        "children": [
-                            {
-                                "id": "settings.cron.tasks",
-                                "type": "entry",
-                                "label": "Scheduled tasks",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\Task",
-                                    "view": "list.default"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "id": "settings.settings",
-                        "label": "Settings",
-                        "description": "",
-                        "icon": "settings",
-                        "type": "parent",
-                        "children": [
-                            {
-                                "id": "settings.settings.settings_values",
-                                "type": "entry",
-                                "label": "Settings values",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\setting\\SettingValue",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "settings.settings.settings_choices",
-                                "type": "entry",
-                                "label": "Settings choices",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\setting\\SettingChoice",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "settings.settings.settings",
-                                "type": "entry",
-                                "label": "Available Settings",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\setting\\Setting",
-                                    "view": "list.default"
-                                }
-                            }
-                        ]
+                        "context": {
+                            "entity": "demo\\Example",
+                            "view": "list.default"
+                        }
                     }
                 ]
             }
