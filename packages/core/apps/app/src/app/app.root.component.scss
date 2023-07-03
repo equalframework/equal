@@ -1,0 +1,103 @@
+app-menu-list-item.hidden {
+    display: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-header {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    height: 55px;
+    padding: 0;
+    margin: 0;
+    background-color: #fff;
+    border-bottom: 1px solid #c8ced3;
+    z-index: 1020;
+    width: 100%;
+    flex: 0 0 55px;    
+}
+
+.app-body {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+
+    mat-nav-list {
+        padding: 0px 1px 0 0;
+        margin-top: -1px;
+    }
+}
+
+.app-body .app-main {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    order: 2;
+    margin-top: 55px;
+    display: flex;
+    flex-flow: column nowrap;
+    min-height: calc(100vh - 55px);
+
+/* 2 modes for this : either SB list view or any other type of view */
+/* this will prevent global scrollbar and add a specific scrollbar for table */
+    height: calc(100vh - 55px);
+/* this will end-up in a global scrollbar only if the content is higher than the viewport */
+    height: 100%;
+}
+
+.app-body .app-sidebar {
+    position: relative;
+    display: flex;
+    margin-top: 55px;
+    flex-direction: column;
+    padding: 0;
+
+    background-color: rgba(0,0,0,0.04);
+    margin-left: -200px;
+    width: 200px;
+    flex: 0 0 200px;
+    order: 1;
+}
+
+.app-body .app-sidebar.show {
+    margin-left: 0;
+}
+
+
+.app-body .app-asidemenu {
+    display: flex;
+    margin-top: 55px;    
+    flex-direction: column;
+    padding: 0;
+
+    background: rgba(0,0,0,0.04);    
+
+    margin-right: -250px;
+    width: 250px;
+    flex: 0 0 250px;
+    order: 3;
+}
+
+.app-body .app-sidebar .side-inner {
+    position: fixed;
+    padding: 0;
+    width: 200px;
+}
+
+
+.app-body .app-asidemenu.show {
+    margin-right: 0;
+}
+
+
+.app-header, .app-asidemenu, .app-main, .app-sidebar {
+    transition: margin-left .25s,margin-right .25s,width .25s,flex .25s;
+}
