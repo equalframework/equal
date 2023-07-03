@@ -141,11 +141,10 @@ export class UsageComponent implements OnInit {
      * @returns boolean to see if the variation need to be disable
      */
     public isVariationDisabled() {
-        if (this.usages?.[this.type][this.subtype]['selection'] == undefined || this.usages?.[this.type][this.subtype]['selection'].length < 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return !(this.usages && this.usages.hasOwnProperty(this.type)
+            && this.usages[this.type].hasOwnProperty(this.subtype)
+            && this.usages[this.type][this.subtype].hasOwnProperty('selection')
+            && this.usages[this.type][this.subtype]['selection'].length > 0);
     }
 
 

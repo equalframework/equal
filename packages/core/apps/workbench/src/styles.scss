@@ -16,6 +16,12 @@ body {
   height: 40px !important;
 }
 
+.mat-checkbox-inner-container {
+    background-color: white;
+}
+.mat-tab-header {
+    max-height: 45px;
+}
 
 /* external libraries customizations */
 
@@ -27,7 +33,7 @@ body {
 
   .timepicker-dial__control {
     outline: none;
-  }  
+  }
 
   .clock-face__clock-hand {
     background-color: #3f51b5 !important;

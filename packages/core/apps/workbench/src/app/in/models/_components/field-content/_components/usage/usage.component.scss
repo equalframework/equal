@@ -1,6 +1,7 @@
 .form-usage {
     display: flex;
     flex-direction: column;
+
     .usage-value {
         display: flex;
         flex-direction: row;
@@ -9,16 +10,17 @@
         }
 
         .type {
-            width: 25%;
+            flex: 0 1 180px;
         }
 
         .subtype {
-            width: 60%;
+            flex: 0 1 200px;
             display: flex;
         }
 
         .length {
-            width: 15%;
+            flex: 1;
+            max-width: 150px;
         }
 
         .mat-form-field-prefix {
