@@ -10,11 +10,11 @@ div{
     .headerButton{
         margin: 1rem;
         width: 264px;
-        height: 36px; 
+        height: 36px;
         font-size: 1.2rem;
         @media screen and (max-width: 1000px) {
             width: 10rem;
-            }
+        }
     }
 }
 
@@ -34,20 +34,19 @@ div{
             color: white;
             height: 4rem;
             padding: 0.2rem;
-            display: flex; 
+            display: flex;
             justify-content: center;
             text-align: center;
             overflow: hidden;
             @media screen and (max-width: 600px) {
                 height: 5.5rem;
-                }
+            }
             .mat-card-title{
                 font-size: 1rem;
                 text-align: center;
-            @media screen and (max-width: 1000px) {
-                font-size: 0.8rem;
+                @media screen and (max-width: 1000px) {
+                    font-size: 0.8rem;
                 }
-           
             }
             .mat-card-subtitle{
                 color: white;

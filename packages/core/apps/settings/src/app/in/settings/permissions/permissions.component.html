@@ -1,7 +1,6 @@
 <!-- Package -->
 
-<div class="import-header">{{ 'SETTINGS_LIST_SETTING' | translate }} <span> › </span> {{
-  'SETTINGS_LIST_PERMISSIONUPDATE' | translate }} [{{permission_id}}] </div>
+<div class="import-header">{{ 'SETTINGS_LIST_SETTING' | translate }} <span> › </span> {{'SETTINGS_LIST_PERMISSION_UPDATE' | translate }} [{{permission_id}}] </div>
 <div style="height: 4rem;">
   <button class="headerButton" mat-raised-button color="accent"  (click)="onSubmit()" *ngIf="save == true">Save</button>
   <button class="headerButton" mat-raised-button color="primary">Cancel</button>
@@ -18,7 +17,9 @@
     <mat-card-content>
       <app-permission-class-name
         style="display: flex; justify-content: space-evenly; flex-direction: column; width: 75%; margin: auto;"
-        [className]="className" (change)="onClassNameChange($event)"></app-permission-class-name>
+        [className]="className"
+        (change)="onClassNameChange($event)">
+        </app-permission-class-name>
     </mat-card-content>
   </mat-card>
 
