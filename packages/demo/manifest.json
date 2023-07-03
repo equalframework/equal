@@ -1,0 +1,27 @@
+{
+    "name": "demo",
+    "depends_on": [
+        "core"
+    ],
+    "apps": [
+        {
+            "id": "my_app",
+            "extends": "app",
+            "name": "MyApp",
+            "description": "",
+            "icon": "sentiment_satisfied",
+            "color": "#29A1A1",
+            "access": {
+                "groups": [
+                    "users"
+                ]
+            },
+            "params": {
+                "menus": {
+                    "top": "app.top",
+                    "left": "app.left"
+                }
+            }
+        }
+    ]
+}
