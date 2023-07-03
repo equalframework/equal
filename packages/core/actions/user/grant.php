@@ -37,6 +37,12 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'auth', 'access', 'orm']
 ]);
 
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\orm\ObjectManager            $orm
+ * @var \equal\auth\AuthenticationManager   $am
+ * @var \equal\access\AccessController      $ac
+ */
 list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
 
 
@@ -48,12 +54,11 @@ $operations = [
     'manage'    =>  QN_R_MANAGE
 ];
 
-if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
+if(!$ac->isAllowed(QN_R_MANAGE, $params['entity'])) {
     throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 
-// retrieve targeted user
-
+// 1) retrieve targeted user
 if(is_numeric($params['user'])) {
     // retrieve by id
     $user_id = $params['user'];
@@ -74,16 +79,17 @@ else {
     $user_id = array_shift($ids);
 }
 
+// 2) grant user for given operation
 $ac->grantUsers($user_id, $operations[$params['right']], $params['entity']);
 
 $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['user_id', '=', $user_id] ]);
-if(!count($acl_ids)) {
+
+if($acl_ids < 0 || !count($acl_ids)) {
     throw new \Exception("acl_creation_failed", QN_ERROR_UNKNOWN);
 }
 
 $acls = $orm->read('core\Permission', $acl_ids, ['user_id', 'class_name', 'rights', 'rights_txt']);
 
 $context->httpResponse()
-        ->status(200)
         ->body(['result' => array_shift($acls)])
         ->send();
