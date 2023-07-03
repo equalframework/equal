@@ -124,9 +124,8 @@
 
     "SETTINGS_LIST_SETTING": "Paramètres",
     "SETTINGS_LIST_CORE": "Général",
-    "SETTINGS_LIST_SALE": "Vente",
     "SETTINGS_LIST_PERMISSION": "Permissions",
-    "SETTINGS_LIST_FINANCE": "Finances",
+    "SETTINGS_LIST_PERMISSION_UPDATE": "Édition",
 
     "DOCS_LIST_DOCUMENT": "Documents",
     "DOCS_LIST_IMPORT": "Importer",
