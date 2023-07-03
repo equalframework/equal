@@ -123,113 +123,6 @@ foreach($queries as $query) {
     $db->sendQuery($query);
 }
 
-// check for missing columns (for classes with inheritance, we must check against non-yet created fields)
-
-/*
-$queries = [];
-$m2m_tables = [];
-
-// retrieve classes listing
-$classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
-
-// associative array with 2 levels, mapping tables with their list of columns
-$processed_columns = [];
-
-// tables have been created, but fields in inherited classes might still be missing
-foreach($classes as $class) {
-    // get the full class name
-    $entity = $params['package'].'\\'.$class;
-    // retrieve the static instance of the entity
-    $model = $orm->getModel($entity);
-
-    if(!is_object($model)) {
-        throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
-    }
-
-    // retrieve fields that need to be added
-    $schema = $model->getSchema();
-
-    // get the SQL table name
-    $table = $orm->getObjectTableName($entity);
-
-    if(!isset($processed_columns[$table])) {
-        $processed_columns[$table] = [];
-    }
-
-    // fetch existing column
-    $columns = $db->getTableColumns($table);
-
-    // retrieve list of fields that must be added to the schema
-    $columns_diff = array_diff(array_keys($schema), $columns);
-
-    foreach($columns_diff as $field) {
-        // prevent processing a same column more than once
-        if(isset($processed_columns[$table][$field])) {
-            continue;
-        }
-        $description = $schema[$field];
-        if(in_array($description['type'], array_keys($db_class::$types_associations))) {
-            $type = $db->getSqlType($description['type']);
-
-            // if a SQL type is associated to field 'usage', it prevails over the type association
-            if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
-                // $type = ObjectManager::$usages_associations[$description['usage']];
-            }
-            $queries[] = $db->getQueryAddColumn($table, $field, [
-                'type'      => $type,
-                'null'      => true,
-                'default'   => null
-            ]);
-        }
-        elseif($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
-            $type = $db->getSqlType($description['result_type']);
-            $queries[] = $db->getQueryAddColumn($table, $field, [
-                'type'      => $type,
-                'null'      => true,
-                'default'   => null
-            ]);
-        }
-        elseif($description['type'] == 'many2many') {
-            if(!isset($m2m_tables[$description['rel_table']])) {
-                $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
-            }
-        }
-        $processed_columns[$table][$field] = true;
-    }
-}
-
-// add missing relation tables, if any
-foreach($m2m_tables as $table => $columns) {
-    $constraint_name = implode('_', $columns);
-    $existing_constraints = $db->getTableConstraints($table);
-    if(in_array($constraint_name, $existing_constraints)) {
-        continue;
-    }
-    // fetch existing columns
-    $existing_columns = $db->getTableColumns($table);
-    // create table if not exist
-    $queries[] = $db->getQueryCreateTable($table);
-    foreach($columns as $column) {
-        if(in_array($column, $existing_columns)) {
-            continue;
-        }
-        $type = $db->getSqlType('integer');
-        $queries[] = $db->getQueryAddColumn($table, $column, [
-            'type'      => $type,
-            'null'      => false
-        ]);
-    }
-    $queries[] = $db->getQueryAddConstraint($table, $columns);
-    // add an empty record (required for JOIN conditions on empty tables)
-    $queries[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
-}
-
-// send each query to the DBMS
-foreach($queries as $query) {
-    $db->sendQuery($query);
-}
-*/
-
 /*  end-tables_init */
 
 // #todo : make distinction between mandatory initial data and demo data
@@ -237,19 +130,6 @@ foreach($queries as $query) {
 // 2) Populate tables with predefined data
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
-    // handle SQL files
-    /*
-    foreach (glob($data_folder."/*.sql") as $data_sql) {
-        $queries = array_merge($queries, file($data_sql, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-    }
-    // send each query to the DBMS
-    foreach($queries as $query) {
-        if(strlen($query)) {
-            $db->sendQuery($query.';');
-        }
-    }
-    */
-
     // handle JSON files
     foreach (glob($data_folder."/*.json") as $json_file) {
         $data = file_get_contents($json_file);
@@ -370,6 +250,22 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         }
     }
 }
+
+// mark the package as initialized (installed)
+
+/**
+ * The list of installed package is maintained in the file /log/packages.json,
+ * as an associative array mapping package names with the latest moment they were initialized
+ */
+$packages = [];
+
+if(file_exists("log/packages.json")) {
+    $json = file_get_contents("log/packages.json");
+    $packages = json_decode($json, true);
+}
+
+$packages[$params['package']] = date('c');
+file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
 $context->httpResponse()
         ->status(201)
