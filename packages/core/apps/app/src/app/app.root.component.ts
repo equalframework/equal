@@ -29,6 +29,9 @@ export class AppRootComponent implements OnInit {
     public package: string;
     public app: string;
 
+    // name of the App
+    public name: string;
+
     // original (full & translated) menu for left pane
     private leftMenu: any = {};
 
@@ -72,6 +75,9 @@ export class AppRootComponent implements OnInit {
             // retrieve current app params
             try {
                 const data:any = await this.api.fetch('/?get=appinfo&package='+this.package+'&app='+this.app);
+                if(data.hasOwnProperty('name')) {
+                    this.name = data.name;
+                }
                 if(data.hasOwnProperty('params') && data.params.hasOwnProperty('menus')) {
                     if(data.params.menus.hasOwnProperty('top')) {
                         const topMenu:any = await this.api.getMenu(this.package, data.params.menus.top);
