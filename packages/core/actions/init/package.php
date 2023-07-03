@@ -51,13 +51,9 @@ list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $provide
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
 
-$json = run('do', 'test_db-access');
-if(strlen($json)) {
-    // relay result
-    print($json);
-    // return an error code
-    exit(1);
-}
+// make sure DB is available
+eQual::run('do', 'test_db-access');
+
 // retrieve connection object
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
