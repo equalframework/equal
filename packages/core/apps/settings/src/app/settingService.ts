@@ -9,7 +9,7 @@ import { ApiService } from 'sb-shared-lib';
 
 export class SettingService {
 
-    // booking object for conditionning API calls
+    // booking object for conditioning API calls
     public queue: any[] = [];
 
     constructor(
