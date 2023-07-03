@@ -190,6 +190,11 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
 
     foreach($package_manifest['apps'] as $app) {
 
+        // ignore app descriptors (inherited apps are handled in `installed-apps`)
+        if(is_array($app)) {
+            continue;
+        }
+
         // path of the app
         $app_path = "packages/{$params['package']}/apps/$app";
 
