@@ -1,0 +1,5 @@
+{
+    "name": "app",
+    "description": "Standard App to serve as surrogate for Package specific apps.",
+    "url": "/app"
+}
