@@ -4,7 +4,6 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\ObjectManager;
 use equal\db\DBConnection;
 use equal\fs\FSManipulator as FS;
 use equal\orm\Field;
@@ -12,7 +11,7 @@ use equal\orm\Field;
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Initialize database for given package. If no package is given, initialize core package.',
     'params'        => [
         'package' => [
