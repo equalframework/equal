@@ -1,5 +1,11 @@
 {
     "name": "app",
     "description": "Standard App to serve as surrogate for Package specific apps.",
-    "url": "/app"
+    "url": "/app",
+    "access": {
+        "groups": [
+            "users"
+        ]
+    },
+    "show_in_apps": false
 }

@@ -1,2 +1,2 @@
 #!/bin/bash
-rm -rf ../../../../public/settings && mkdir ../../../../public/settings && cp -a dist/symbiose/* ../../../../public/settings/
+rm -rf ../../../../public/app && mkdir ../../../../public/app && cp -a dist/symbiose/* ../../../../public/app/

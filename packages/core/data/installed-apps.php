@@ -54,7 +54,7 @@ if(file_exists("log/packages.json")) {
                 if(!file_exists("public/{$app['extends']}") || !is_dir("public/{$app['extends']}")) {
                     continue;
                 }
-                $app['url'] = "/{$app['extends']}/#/$package";
+                $app['url'] = "/{$app['extends']}/#/$package/{$app['id']}";
                 // force app to be visible
                 $app['show_in_apps'] = true;
                 $map_manifests[$app['id']] = $app;
