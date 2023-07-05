@@ -374,6 +374,33 @@ class Model implements \ArrayAccess, \Iterator {
         return [];
     }
 
+
+    /**
+     * Returns an associative array describing the roles that are defined on the current entity.
+     *
+     * Roles descriptor example:
+     *   return [
+     *       'owner': {
+     *            'description': ""
+     *        },
+     *        'admin': {
+     *            'description': "",
+     *            'implied_by': ['owner']
+     *        },
+     *        'editor': {
+     *            'description': "",
+     *            'implied_by': ['admin']
+     *        },
+     *        'viewer': {
+     *            'description': "",
+     *            'implied_by': ['editor']
+     *        }
+     *    ]
+     */
+    public static function getRoles() {
+        return [];
+    }
+
     /**
      * Returns the associative array mapping policies names with related descriptors.
      * This method is meant to be overridden by children classes.
