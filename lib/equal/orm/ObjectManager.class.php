@@ -2182,18 +2182,31 @@ class ObjectManager extends Service {
             if(isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
                 foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {
                     if($t_name == $transition) {
+                        $match = true;
                         if(isset($t_descr['domain'])) {
                             $domain = new Domain($t_descr['domain']);
                             $fields = $domain->extractFields();
                             $data = $this->read($class, $id, $fields);
                             $object = reset($data);
                             if(!$domain->evaluate($object)) {
-                                $match = true;
                                 $res = ['broken_constraint' => "Object state does not comply with the constraints of transition '$transition'."];
                                 break 2;
                             }
                         }
-                        $match = true;
+                        if(isset($t_descr['policies'])) {
+                            $access = $this->container->get('access');
+                            $auth = $this->container->get('auth');
+                            $user_id = $auth->userId();
+                            $factory = Collections::getInstance();
+                            $c = $factory->create($class);
+                            $c->ids($ids);
+                            foreach($t_descr['policies'] as $policy) {
+                                $res = $access->isCompliant($user_id, $policy, $c);
+                                if(count($res)) {
+                                    break 2;
+                                }
+                            }
+                        }
                         break;
                     }
                 }
