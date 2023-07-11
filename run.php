@@ -204,7 +204,7 @@ catch(Throwable $e) {
             ->send();
         trigger_error("PHP::{$request_method} ".$request->getUri()." => $http_status ".qn_error_name($error_code).": ".$msg, QN_REPORT_WARNING);
         // store access log
-        file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:$_SERVER['REMOTE_ADDR'].';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
+        file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:(isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:'127.0.0.1').';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
         // return an error code (for compliance under CLI environment)
         exit(1);
     }
