@@ -437,7 +437,7 @@ class AccessController extends Service {
                     trigger_error("ORM::calling {$called_class}::{$called_method}", QN_REPORT_DEBUG);
                     $res = $called_class::$called_method($collection, $user_id);
                     if(count($res)) {
-                        $result['broken_policy'] = "Collection does not comply with Policy {$policy}";
+                        $result['broken_policy'] = "Collection does not comply with Policy `{$policy}`";
                     }
                 }
             }
