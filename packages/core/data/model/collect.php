@@ -197,15 +197,14 @@ $collection = $params['entity']::search($domain, [ 'sort' => $sort ]);
 
 $total = count($collection->ids());
 
-// retrieve list
+// retrieve list as an array
+// #memo - JSON objects handled by ES2015+ might have their keys order altered, so returning result as a map is not safe
 $result = $collection
-    ->shift($params['start'])
-    ->limit($params['limit'])
-    ->read($fields, $params['lang'])
-    ->adapt('json')
-    // return result as an array
-    // #memo - JSON objects handled by ES2015+ might have their keys order altered
-    ->get(true);
+        ->shift($params['start'])
+        ->limit($params['limit'])
+        ->read($fields, $params['lang'])
+        ->adapt('json')
+        ->get(true);
 
 $context->httpResponse()
         ->header('X-Total-Count', $total)
