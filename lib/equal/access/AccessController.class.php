@@ -407,16 +407,15 @@ class AccessController extends Service {
         return $this->hasRight($user_id, $operation, $object_class, $object_ids);
     }
 
-    public function isCompliant($user_id, $policy, $collection) {
+    public function isCompliant($user_id, $policy, $object_class, $object_ids) {
         $result = [];
-        $class = $collection->getClass();
-        $policies = $class::getPolicies();
+        $policies = $object_class::getPolicies();
 
         if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
-            $result['unknown_policy'] = "Policy {$policy} is not defined in class {$class}";
+            $result['unknown_policy'] = "Policy {$policy} is not defined in class {$object_class}";
         }
         else {
-            $called_class = $class;
+            $called_class = $object_class;
             $called_method = $policies[$policy]['function'];
 
             $parts = explode('::', $called_method);
@@ -435,7 +434,8 @@ class AccessController extends Service {
                 }
                 else {
                     trigger_error("ORM::calling {$called_class}::{$called_method}", QN_REPORT_DEBUG);
-                    $res = $called_class::$called_method($collection, $user_id);
+                    $c = $called_class::ids($object_ids);
+                    $res = $called_class::$called_method($c, $user_id);
                     if(count($res)) {
                         $result['broken_policy'] = "Collection does not comply with Policy `{$policy}`";
                     }
@@ -449,13 +449,12 @@ class AccessController extends Service {
     /**
      * Check if a given action can be performed on a Collection, according to the policies defined at the entity level for that action, if any.
      */
-    public function canPerform($user_id, $action, $collection) {
+    public function canPerform($user_id, $action, $object_class, $object_ids) {
         $result = [];
-        $class = $collection->getClass();
-        $actions = $class::getActions();
+        $actions = $object_class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $res = $this->isCompliant($user_id, $policy, $collection);
+                $res = $this->isCompliant($user_id, $policy, $object_class, $object_ids);
                 if(count($res)) {
                     $result[$policy] = $res;
                 }
