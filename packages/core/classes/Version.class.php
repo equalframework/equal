@@ -8,6 +8,9 @@ namespace core;
 
 use equal\orm\Model;
 
+/**
+ * @deprecated
+ */
 class Version extends Model {
 
     public static function getColumns() {
