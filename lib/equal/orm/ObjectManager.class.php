@@ -1032,10 +1032,7 @@ class ObjectManager extends Service {
                 $args[] = $lang;
             }
             elseif($param_name == 'self') {
-                $factory = Collections::getInstance();
-                $c = $factory->create($called_class);
-                $c->lang($lang)->ids($unprocessed_ids);
-                $args[] = $c;
+                $args[] = $called_class::ids($unprocessed_ids)->lang($lang);
             }
         }
 
@@ -1108,10 +1105,7 @@ class ObjectManager extends Service {
                 $args[] = $lang;
             }
             elseif($param_name == 'self') {
-                $factory = Collections::getInstance();
-                $c = $factory->create($called_class);
-                $c->lang($lang)->ids($ids);
-                $args[] = $c;
+                $args[] = $called_class::ids($ids)->lang($lang);
             }
         }
 
@@ -2197,11 +2191,8 @@ class ObjectManager extends Service {
                             $access = $this->container->get('access');
                             $auth = $this->container->get('auth');
                             $user_id = $auth->userId();
-                            $factory = Collections::getInstance();
-                            $c = $factory->create($class);
-                            $c->ids($ids);
                             foreach($t_descr['policies'] as $policy) {
-                                $res = $access->isCompliant($user_id, $policy, $c);
+                                $res = $access->isCompliant($user_id, $policy, $class, $ids);
                                 if(count($res)) {
                                     break 2;
                                 }
