@@ -620,7 +620,7 @@ class Collection implements \Iterator, \Countable {
         }
 
         // log action (if enabled)
-        $this->logger->log($user_id, 'create', $this->class, $oid);
+        $this->logger->log($user_id, 'create', $this->class, $oid, $values);
 
         // put new object in current collection
         $this->id($oid)->read(['id']);
@@ -803,7 +803,7 @@ class Collection implements \Iterator, \Countable {
 
             foreach($ids as $oid) {
                 // log action (if enabled)
-                $this->logger->log($user_id, 'update', $this->class, $oid);
+                $this->logger->log($user_id, 'update', $this->class, $oid, $values);
                 // store updated objects in current collection
                 $this->objects[$oid]['id'] = $oid;
                 foreach($values as $field => $value) {
