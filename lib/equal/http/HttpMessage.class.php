@@ -743,7 +743,7 @@ class HttpMessage {
             $namespaces[null] = null;
 
             foreach( $namespaces as $ns => $nsUrl ) {
-                // handle atributes
+                // handle attributes
                 $objAttributes = $obj->attributes($ns, true);
                 foreach( $objAttributes as $attributeName => $attributeValue ) {
                     $attribName = trim($attributeName);
@@ -759,12 +759,21 @@ class HttpMessage {
                 $count_children = count($objChildren);
                 if($count_children) {
                     $has_children = true;
+                    foreach( $objChildren as $childName => $child) {
+                        if(!isset($map_children_names[$childName])) {
+                            $map_children_names[$childName] = 0;
+                        }
+                        ++$map_children_names[$childName];
+                    }
                     foreach( $objChildren as $childName => $child ) {
                         if( !empty($ns) ) {
                             $childName = $ns.':'.$childName;
                         }
                         $res = self::xmlToArray($child);
                         if($count_children > 1 && $res['has_children']) {
+                            $children[] = $res;
+                        }
+                        elseif($map_children_names[$childName] > 1) {
                             $children[] = $res;
                         }
                         else {
