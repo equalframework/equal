@@ -96,6 +96,13 @@ class Collection implements \Iterator, \Countable {
         if($this->model === false) {
             throw new \Exception($class, QN_ERROR_UNKNOWN_OBJECT);
         }
+        // discard all fields but `id`
+        $schema = $this->model->getSchema();
+        foreach(array_keys($schema) as $field) {
+            if($field != 'id') {
+                unset($this->model[$field]);
+            }
+        }
         // default to unlimited page size
         $this->limit(0);
     }
@@ -317,6 +324,8 @@ class Collection implements \Iterator, \Countable {
             return array_keys($this->objects);
         }
         else {
+            // reset list
+            $this->objects = [];
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
             // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
@@ -686,14 +695,14 @@ class Collection implements \Iterator, \Countable {
 
             // 4) remove deleted items, if `deleted` field was not explicitly requested
             if(!in_array('deleted', $fields)) {
-                foreach($res as $oid => $odata) {
-                    if($odata['deleted']) {
+                foreach($res as $id => $object) {
+                    if($object['deleted']) {
                         // remove the object from the result set
                         // when read operation is performed after a search, this situation should not occur
-                        unset($res[$oid]);
+                        unset($res[$id]);
                     }
                     else {
-                        unset($res[$oid]['deleted']);
+                        unset($res[$id]['deleted']);
                     }
                 }
             }
@@ -845,8 +854,7 @@ class Collection implements \Iterator, \Countable {
      */
     public function transition($transition) {
         // retrieve targeted identifiers
-        $ids = array_keys($this->objects);
-        $res = $this->orm->transition($this->class, $ids, $transition);
+        $res = $this->orm->transition($this->class, $this->ids(), $transition);
         if(count($res)) {
             throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
         }
@@ -867,7 +875,7 @@ class Collection implements \Iterator, \Countable {
     public function do($action) {
         // check if action can be performed
         $user_id = $this->am->userId();
-        $res = $this->ac->canPerform($user_id, $action, $this);
+        $res = $this->ac->canPerform($user_id, $action, $this->class, $this->ids());
         if(count($res)) {
             throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
         }
