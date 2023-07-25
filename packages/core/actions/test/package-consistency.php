@@ -141,7 +141,7 @@ foreach($classes as $class) {
                 $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$description['type']])." ($class_filename)";
                 $is_error = true;
             }
-            if(in_array($attribute, array('store', 'multilang', 'search')) && $value !== true && $value !== false) {
+            if(in_array($attribute, array('store', 'multilang', 'readonly')) && $value !== true && $value !== false) {
                 $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)"." ($class_filename)";
                 $is_error = true;
             }
@@ -306,10 +306,13 @@ foreach($classes as $class) {
                             $result[] = "WARN  - I18 - Missing property '$property' for field '$field' referenced in file $i18n_file";
                         }
                         else {
-                            if(mb_strlen($data['model'][$field][$property]) && !ctype_upper(substr($data['model'][$field][$property], 0, 1))) {
+                            if(mb_strlen($data['model'][$field][$property]) == 0) {
+                                $result[] = "WARN  - I18 - Value for property '$property' should not be empty for field '$field' referenced in file $i18n_file";
+                                continue;
+                            }
+                            if(!preg_match('/^\p{Lu}/u', $data['model'][$field][$property])) {
                                 $result[] = "WARN  - I18 - Value for property '$property' should start with uppercase for field '$field' referenced in file $i18n_file";
                             }
-
                             if($property == 'label') {
                                 if( mb_strlen($data['model'][$field][$property]) && substr($data['model'][$field][$property], -1) == '.' ) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
