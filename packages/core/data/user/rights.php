@@ -45,7 +45,7 @@ else {
         throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
     }
     $user_id = array_shift($ids);
-    $rights = $ac->rights($user_id, $params['entity']);
+    $rights = $ac->getUserRights($user_id, $params['entity']);
 }
 
 // convert ACL value to human string

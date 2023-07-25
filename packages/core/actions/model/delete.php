@@ -58,6 +58,7 @@ if(!class_exists($params['entity'])) {
 
 $params['entity']::ids($params['ids'])->delete($params['permanent']);
 
+// respond with a code 205 "Reset content" so that if controller was called by a view, it allows UI to close it
 $context->httpResponse()
-        ->status(204)
+        ->status(205)
         ->send();

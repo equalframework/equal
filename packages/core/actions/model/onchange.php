@@ -60,91 +60,93 @@ if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-// adapt received values for parameter 'values' and 'changes' (which are still formatted as text)
-$schema = $model->getSchema();
+if(method_exists($params['entity'], 'onchange')) {
+    // adapt received values for parameter 'values' and 'changes' (which are still formatted as text)
+    $schema = $model->getSchema();
 
-// keep only known and non-empty fields (allow null values)
+    // keep only known and non-empty fields (allow null values)
 
-$values = array_filter($params['values'], function($val, $field) use ($schema){
-        return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
-    }, ARRAY_FILTER_USE_BOTH);
+    $values = array_filter($params['values'], function($val, $field) use ($schema){
+            return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
+        }, ARRAY_FILTER_USE_BOTH);
 
-$changes = array_filter($params['changes'], function($val, $field) use ($schema){
-        return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
-    }, ARRAY_FILTER_USE_BOTH);
+    $changes = array_filter($params['changes'], function($val, $field) use ($schema){
+            return (is_array($val) || strlen(strval($val)) || is_null($val) || in_array($schema[$field]['type'], ['boolean', 'string', 'text']) ) && isset($schema[$field]);
+        }, ARRAY_FILTER_USE_BOTH);
 
-// adapt fields in $values array
-foreach($values as $field => $value) {
-    try {
-        $f = new Field($schema[$field]);
-        // adapt received values based on their type (as defined in schema)
-        $values[$field] = $adapter->adaptIn($value, $f->getUsage());
-    }
-    catch(Exception $e) {
-        // ignore invalid fields
-        unset($values[$field]);
-    }
-}
-
-// adapt fields in $changes array
-foreach($changes as $field => $value) {
-    try {
-        $f = new Field($schema[$field]);
-        // adapt received values based on their type (as defined in schema)
-        $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
-    }
-    catch(Exception $e) {
-        $msg = $e->getMessage();
-        // handle serialized objects as message
-        $data = @unserialize($msg);
-        if ($data !== false) {
-            $msg = $data;
+    // adapt fields in $values array
+    foreach($values as $field => $value) {
+        try {
+            $f = new Field($schema[$field]);
+            // adapt received values based on their type (as defined in schema)
+            $values[$field] = $adapter->adaptIn($value, $f->getUsage());
         }
-        throw new \Exception(serialize([$field => $msg]), $e->getCode());
+        catch(Exception $e) {
+            // ignore invalid fields
+            unset($values[$field]);
+        }
     }
-}
 
-// inject parameters based on the target method signature
+    // adapt fields in $changes array
+    foreach($changes as $field => $value) {
+        try {
+            $f = new Field($schema[$field]);
+            // adapt received values based on their type (as defined in schema)
+            $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
+        }
+        catch(Exception $e) {
+            $msg = $e->getMessage();
+            // handle serialized objects as message
+            $data = @unserialize($msg);
+            if ($data !== false) {
+                $msg = $data;
+            }
+            throw new \Exception(serialize([$field => $msg]), $e->getCode());
+        }
+    }
 
-/** @var ReflectionMethod */
-$method = new ReflectionMethod($params['entity'], 'onchange');
-/** @var ReflectionParameter */
-$parameters = $method->getParameters();
+    // inject parameters based on the target method signature
 
-$args = [];
-foreach($parameters as $param) {
-    $param_name = $param->getName();
-    if(in_array($param_name, ['om', 'orm'])) {
-        $args[] = $orm;
-    }
-    elseif(in_array($param_name, ['changes', 'event'])) {
-        $args[] = $changes;
-    }
-    elseif($param_name == 'values') {
-        $args[] = $values;
-    }
-    elseif($param_name == 'lang') {
-        $args[] = $lang;
-    }
-    elseif($param_name == 'self') {
-        // #todo - should we add object id to the params ?
-        $factory = Collections::getInstance();
-        $c = $factory->create($params['entity']);
-        $c->lang($params['lang']);
-        $args[] = $c;
-    }
-}
+    /** @var ReflectionMethod */
+    $method = new ReflectionMethod($params['entity'], 'onchange');
+    /** @var ReflectionParameter */
+    $parameters = $method->getParameters();
 
-$result = $params['entity']::onchange(...$args);
+    $args = [];
+    foreach($parameters as $param) {
+        $param_name = $param->getName();
+        if(in_array($param_name, ['om', 'orm'])) {
+            $args[] = $orm;
+        }
+        elseif(in_array($param_name, ['changes', 'event'])) {
+            $args[] = $changes;
+        }
+        elseif($param_name == 'values') {
+            $args[] = $values;
+        }
+        elseif($param_name == 'lang') {
+            $args[] = $lang;
+        }
+        elseif($param_name == 'self') {
+            // #todo - should we add object id to the params ?
+            $factory = Collections::getInstance();
+            $c = $factory->create($params['entity']);
+            $c->lang($params['lang']);
+            $args[] = $c;
+        }
+    }
 
-// adapt resulting values to json
-foreach($result as $field => $value) {
-    $f = new Field($schema[$field]);
-    // adapt received values based on their type (as defined in schema)
-    $result[$field] = $adapter->adaptOut($value, $f->getUsage());
+    $result = $params['entity']::onchange(...$args);
+
+    // adapt resulting values to json
+    foreach($result as $field => $value) {
+        $f = new Field($schema[$field]);
+        // adapt received values based on their type (as defined in schema)
+        $result[$field] = $adapter->adaptOut($value, $f->getUsage());
+    }
+
 }
 
 $context->httpResponse()
-        ->status(200)
         ->body($result)
         ->send();

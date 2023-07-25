@@ -96,6 +96,13 @@ class Collection implements \Iterator, \Countable {
         if($this->model === false) {
             throw new \Exception($class, QN_ERROR_UNKNOWN_OBJECT);
         }
+        // discard all fields but `id`
+        $schema = $this->model->getSchema();
+        foreach(array_keys($schema) as $field) {
+            if($field != 'id') {
+                unset($this->model[$field]);
+            }
+        }
         // default to unlimited page size
         $this->limit(0);
     }
@@ -142,6 +149,11 @@ class Collection implements \Iterator, \Countable {
         $key = key($this->objects);
         $res = ($key !== null && $key !== false);
         return $res;
+    }
+
+
+    public function getClass() {
+        return $this->class;
     }
 
     /*
@@ -312,6 +324,8 @@ class Collection implements \Iterator, \Countable {
             return array_keys($this->objects);
         }
         else {
+            // reset list
+            $this->objects = [];
             // #memo - filling the list with non-readable object(s) raises a NOT_ALLOWED exception at reading
             $ids = array_unique((array) $args[0]);
             // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
@@ -606,7 +620,7 @@ class Collection implements \Iterator, \Countable {
         }
 
         // log action (if enabled)
-        $this->logger->log($user_id, 'create', $this->class, $oid);
+        $this->logger->log($user_id, 'create', $this->class, $oid, $values);
 
         // put new object in current collection
         $this->id($oid)->read(['id']);
@@ -681,19 +695,24 @@ class Collection implements \Iterator, \Countable {
 
             // 4) remove deleted items, if `deleted` field was not explicitly requested
             if(!in_array('deleted', $fields)) {
-                foreach($res as $oid => $odata) {
-                    if($odata['deleted']) {
+                foreach($res as $id => $object) {
+                    if($object['deleted']) {
                         // remove the object from the result set
                         // when read operation is performed after a search, this situation should not occur
-                        unset($res[$oid]);
+                        unset($res[$id]);
                     }
                     else {
-                        unset($res[$oid]['deleted']);
+                        unset($res[$id]['deleted']);
                     }
                 }
             }
 
-            $this->objects = $res;
+            // merge retrieved values with current collection (overwrite if already present)
+            foreach($res as $id => $object) {
+                foreach($object as $field => $value) {
+                    $this->objects[$id][$field] = $value;
+                }
+            }
 
             // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
             foreach($fields as $field => $subfields ) {
@@ -784,7 +803,7 @@ class Collection implements \Iterator, \Countable {
 
             foreach($ids as $oid) {
                 // log action (if enabled)
-                $this->logger->log($user_id, 'update', $this->class, $oid);
+                $this->logger->log($user_id, 'update', $this->class, $oid, $values);
                 // store updated objects in current collection
                 $this->objects[$oid]['id'] = $oid;
                 foreach($values as $field => $value) {
@@ -797,9 +816,9 @@ class Collection implements \Iterator, \Countable {
 
     public function delete($permanent=false) {
         if(count($this->objects)) {
+            $user_id = $this->am->userId();
 
             // 1) sanitize and retrieve necessary values
-            $user_id = $this->am->userId();
             // retrieve targeted identifiers
             $ids = array_keys($this->objects);
 
@@ -825,6 +844,52 @@ class Collection implements \Iterator, \Countable {
             // 4) update current collection (remove all objects)
             $this->objects = [];
         }
+        return $this;
+    }
+
+    /**
+     * Attempts to perform a specific action to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     */
+    public function transition($transition) {
+        // retrieve targeted identifiers
+        $res = $this->orm->transition($this->class, $this->ids(), $transition);
+        if(count($res)) {
+            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+        }
+        return $this;
+    }
+
+
+    /**
+     * Attempts to perform a specific action to a series of objects.
+     * If no workflow is defined, the call is ignored (no action is taken).
+     * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     *
+     * @param   string      $action       Name of the requested action.
+     *
+     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
+     */
+    public function do($action) {
+        // check if action can be performed
+        $user_id = $this->am->userId();
+        $res = $this->ac->canPerform($user_id, $action, $this->class, $this->ids());
+        if(count($res)) {
+            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+        }
+
+        $actions = $this->class::getActions();
+
+        if(isset($actions[$action]) && isset($actions[$action]['function'])) {
+            // retrieve targeted identifiers
+            $ids = array_keys($this->objects);
+            if(count($ids)) {
+                $this->orm->callonce($this->class, $actions[$action]['function'], $ids);
+            }
+        }
+
         return $this;
     }
 

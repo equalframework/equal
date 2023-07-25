@@ -54,6 +54,19 @@ namespace {
     define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
 
 
+    // equivalence map for constant names migration
+    define('EQ_ERROR_UNKNOWN',           QN_ERROR_UNKNOWN);
+    define('EQ_ERROR_MISSING_PARAM',     QN_ERROR_MISSING_PARAM);
+    define('EQ_ERROR_INVALID_PARAM',     QN_ERROR_INVALID_PARAM);
+    define('EQ_ERROR_SQL',               QN_ERROR_SQL);
+    define('EQ_ERROR_UNKNOWN_OBJECT',    QN_ERROR_UNKNOWN_OBJECT);
+    define('EQ_ERROR_NOT_ALLOWED',       QN_ERROR_NOT_ALLOWED);
+    define('EQ_ERROR_LOCKED_OBJECT',     QN_ERROR_LOCKED_OBJECT);
+    define('EQ_ERROR_CONFLICT_OBJECT',   QN_ERROR_CONFLICT_OBJECT);
+    define('EQ_ERROR_INVALID_USER',      QN_ERROR_INVALID_USER);
+    define('EQ_ERROR_UNKNOWN_SERVICE',   QN_ERROR_UNKNOWN_SERVICE);
+    define('EQ_ERROR_INVALID_CONFIG',    QN_ERROR_INVALID_CONFIG);
+
 
     /**
      * Debugging modes and levels

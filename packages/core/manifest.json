@@ -3,5 +3,5 @@
     "version": "1.0",
     "author": "Cedric Francoys",
     "depends_on": [],
-    "apps": ["apps", "auth"]
+    "apps": ["apps", "auth", "app"]
 }

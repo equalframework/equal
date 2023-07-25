@@ -38,7 +38,7 @@ if(!count($ids)) {
 }
 // #memo - user has always READ right on its own object
 $user = User::ids($ids)
-    ->read(['id', 'login', 'firstname', 'lastname', 'language', 'groups_ids' => ['name']])
+    ->read(['id', 'name', 'login', 'language', 'groups_ids' => ['name']])
     ->adapt('json')
     ->first(true);
 

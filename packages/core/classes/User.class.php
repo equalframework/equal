@@ -121,12 +121,12 @@ class User extends Model {
             'created' => [
                 'transitions' => [
                     'validation' => [
-                        'depends_on'  => ['validated'],
+                        'watch'       => ['validated'],
                         'domain'      => ['validated', '=', true],
                         'description' => 'Update the user status based on the `validated` field.',
                         'help'        => "The `validated` field is set by a dedicated controller that handles email confirmation requests.",
                         'status'	  => 'validated',
-                        'function'    => 'onValidated'
+                        'onafter'     => 'onafterValidate'
                     ]
                 ]
             ],
@@ -215,7 +215,7 @@ class User extends Model {
      * Handler run after successful transition to 'validated' status
      *
      */
-    public static function onValidated($orm, $ids) {
+    public static function onafterValidate($orm, $ids) {
         // no manual validation required : confirm
         if(!constant('USER_ACCOUNT_VALIDATION')) {
             return $orm->transition(self::getType(), $ids, 'confirmation');

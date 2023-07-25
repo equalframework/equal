@@ -44,7 +44,7 @@ else {
 
 $user_id = array_shift($ids);
 
-$groups_ids = $ac->groups($user_id);
+$groups_ids = $ac->getUserGroups($user_id);
 
 $groups = Group::ids($groups_ids)->read(['id', 'name'])->get();
 

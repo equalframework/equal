@@ -57,7 +57,7 @@ if(!password_verify($password, $user['password'])) {
     throw new \Exception('invalid_request', QN_ERROR_INVALID_USER);
 }
 
-// mark user as validated
+// mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)
 $om->update(User::getType(), $user['id'], ['validated' => true]);
 
 $response = $context->httpResponse();

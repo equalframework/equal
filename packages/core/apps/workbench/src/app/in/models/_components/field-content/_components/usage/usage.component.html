@@ -3,7 +3,7 @@
 
         <!-- Type -->
         <mat-form-field class="type">
-            <input type="text" placeholder="usage:type" matInput
+            <input type="text" placeholder="usage › type" matInput
                 [formControl]="myTypeControl"
                 [matAutocomplete]="auto"
                 [value]="myTypeControl.value">
@@ -20,7 +20,7 @@
             <!-- Just the subtype -->
             <mat-form-field class="max-width">
                 <span matPrefix>/</span>
-                <mat-select placeholder="usage:subtype" [value]="subtype" (selectionChange)="onSelectedSubtypeChange($event.value)">
+                <mat-select placeholder="usage › subtype" [value]="subtype" (selectionChange)="onSelectedSubtypeChange($event.value)">
                     <mat-option *ngFor="let element of usages?.[type] | keyvalue" [value]="getValueElement(element)">
                         {{getValueElement(element)}}
                     </mat-option>
@@ -31,7 +31,7 @@
             <ng-container *ngIf="type != '' && subtype != ''">
                 <mat-form-field>
                     <span matPrefix>.</span>
-                    <mat-select placeholder="usage:variations"
+                    <mat-select placeholder="usage › variations"
                         [disabled]="isVariationDisabled()"
                         [value]="variation"
                         (selectionChange)="onVariationChange($event.value)">
@@ -50,15 +50,15 @@
                     <mat-form-field class="length" *ngIf="usages">
                         <span matPrefix>:</span>
                         <ng-container *ngIf="usages[type][subtype]['length'] == 0">
-                            <input matInput placeholder="usage:length" type="number" disabled>
+                            <input matInput placeholder="usage › length" type="number" disabled>
                         </ng-container>
                         <ng-container *ngIf="usages[type][subtype]['length'] == 1">
-                            <input matInput placeholder="usage:length" type="number" min="1"
+                            <input matInput placeholder="usage › length" type="number" min="1"
                             [value]="getLength()"
                             (change)="updateLength($event.target.value)">
                         </ng-container>
                         <ng-container *ngIf="usages[type][subtype]['length'] == 2">
-                            <input matInput placeholder="usage:length" type="number" step="0.1" min="1"
+                            <input matInput placeholder="usage › length" type="number" step="0.1" min="1"
                             [value]="getLength()">
                         </ng-container>
                     </mat-form-field>

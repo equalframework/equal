@@ -33,8 +33,7 @@ list($params, $providers) = announce([
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'providers'     => ['context', 'orm'],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
@@ -364,9 +363,6 @@ foreach($classes as $class) {
     // a) check that every declared simple field is present in the associated DB table
     // b) check that relational tables, if any, are present as well
 
-
-if(is_file('packages/'.$params['package'].'/config.inc.php')) include('packages/'.$params['package'].'/config.inc.php');
-// reminder: constants already exported : cannot redefine constants using config\export_config()
 
 // retrieve connection object
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();

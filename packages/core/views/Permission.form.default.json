@@ -1,12 +1,27 @@
 {
-    "name": "User",
-    "description": "Simple form for displaying User",
+    "name": "Permission",
+    "description": "Access Control Permission entry (ACL).",
+    "routes": [
+        {
+            "id": "item.booking.file",
+            "label": "Edit permission",
+            "description": "",
+            "icon": "library_books",
+            "route": "/settings/permissions/edit/object.id",
+            "context": {
+                "entity": "core\\Permission",
+                "view": "form.default",
+                "domain": ["id", "=", "object.id"],
+                "reset": true
+            }
+        }
+    ],
     "layout": {
         "groups": [
             {
                 "sections": [
                     {
-                        "rows": [                            
+                        "rows": [
                             {
                                 "columns": [
                                     {
@@ -31,7 +46,7 @@
                                             }
                                         ]
                                     },
-                                    {                                            
+                                    {
                                         "width": "33%",
                                         "align": "left",
                                         "items": [
@@ -46,13 +61,13 @@
                                                 "width": "100%"
                                             }
                                         ]
-                                    }    
+                                    }
                                 ]
-                            }                            
+                            }
                         ]
                     }
                 ]
-            }            
+            }
         ]
     }
 }

@@ -23,11 +23,20 @@ class Permission extends Model {
                 'required'          => true
             ],
 
+            // #deprecated
             'domain' => [
                 'type'              => 'string',
                 'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])",
                 'default'           => NULL
             ],
+
+            // #todo
+            /*
+            'object_id' => [
+                'type'              => 'integer',
+                'description'       => "Identifier of the specific object on which the permission applies."
+            ],
+            */
 
             'group_id' => [
                 'type'              => 'many2one',

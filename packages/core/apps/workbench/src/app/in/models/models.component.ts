@@ -163,7 +163,7 @@ export class ModelsComponent implements OnInit {
                 this.selected_field = field;
             } else {
                 console.log("snackbar");
-                this.snackBar.open('Finish you modification', 'Close', {
+                this.snackBar.open('Save or abandon changes before changing context', 'Close', {
                     duration: 1500,
                     horizontalPosition: 'center',
                     verticalPosition: 'bottom'

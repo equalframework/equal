@@ -1,0 +1,28 @@
+{
+    "name": "Workbench menu",
+    "access": {
+        "groups": ["users"]
+    },
+    "layout": {
+        "items": [
+            {
+                "id": "models",
+                "type": "entry",
+                "label": "Models",
+                "description": ""
+            },
+            {
+                "id": "controllers",
+                "type": "entry",
+                "label": "Controllers",
+                "description": ""
+            },
+            {
+                "id": "routes",
+                "type": "entry",
+                "label": "Routes",
+                "description": ""
+            }
+        ]
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "Workbench",
+    "description": "This is the workbench application.",
+    "url": "/workbench",
+    "icon": "edit_note",
+    "color": "#d2252c",
+    "access": {
+        "groups": [
+            "users", "admin"
+        ]
+    },
+    "show_in_apps": true
+}

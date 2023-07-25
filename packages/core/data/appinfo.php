@@ -4,41 +4,60 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\User;
-use core\setting\SettingValue;
 
-list($params, $providers) = announce([
-    'description'   => 'Returns descriptor of current Settings, specific to current User.',
+list($params, $providers) = eQual::announce([
+    'description'   => 'Retrieve the descriptor of a given App, identified by package and app ID.',
+    'params'        => [
+        'package' => [
+            'type'          => 'string',
+            'description'   => 'Name of the package the app is part of.',
+            'required'      => true
+        ],
+        'app' => [
+            'type'          => 'string',
+            'description'   => 'Identifier of the app for which the descriptor is requested.',
+            'required'      => true
+        ]
+    ],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'UTF-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context']
 ]);
 
-list($context, $om, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
+/**
+ * @var \equal\php\Context  $context
+ */
+list($context) = [$providers['context']];
 
-// retrieve current User identifier (HTTP headers lookup through Authentication Manager)
-$user_id = $auth->userId();
-// make sure user is authenticated
-if($user_id <= 0) {
-    throw new Exception('user_unknown', QN_ERROR_NOT_ALLOWED);
-}
+list($package, $app) = [$params['package'], $params['app']];
 
 $result = [];
 
-// 1) read global settings
-$settings = SettingValue::search(['user_id', '=', 0])->read(['name', 'value'])->get();
-
-foreach($settings as $sid => $setting) {
-    $result[$setting['name']] = $setting['value'];
-}
-// 2) overload with current User specific settings, if any
-$settings = SettingValue::search(['user_id', '=', $user_id])->read(['name', 'value'])->get();
-
-foreach($settings as $sid => $setting) {
-    $result[$setting['name']] = $setting['value'];
+// look within the given package manifest for a descriptor matching requested app
+if(file_exists("packages/$package/manifest.json")) {
+    $manifest = json_decode(file_get_contents("packages/$package/manifest.json"), true);
+    if(isset($manifest['apps'])) {
+        // handle apps using app descriptors
+        foreach($manifest['apps'] as $descriptor) {
+            if(!is_array($descriptor)) {
+                // descriptor is a string (app name)
+                if($app != $descriptor) {
+                    continue;
+                }
+                // lookup in public/{app}/manifest
+                if(file_exists("public/$app/manifest.json")) {
+                    $result = json_decode(file_get_contents("public/$app/manifest.json"), true);
+                }
+            }
+            elseif(isset($descriptor['id']) && $descriptor['id'] == $app) {
+                $result = $descriptor;
+            }
+            break;
+        }
+    }
 }
 
 // send back basic info of the User object

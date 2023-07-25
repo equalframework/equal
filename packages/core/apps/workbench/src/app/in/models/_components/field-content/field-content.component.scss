@@ -1,3 +1,4 @@
+
 .form-container {
     padding: 20px 20px 0px 20px;
     height: fit-content;
@@ -41,6 +42,12 @@
     margin: 6px;
 }
 
+.mat-tab-body-wrapper {
+    background: rgb(245, 245, 245);
+    margin: 10px;
+    border-radius: 10px;
+}
+
 .scroll, .mat-tab-body-content, .mat-tab-body.mat-tab-body-active .mat-tab-body-content {
     display: flex;
     flex-direction: column;
@@ -62,3 +69,4 @@
 .mat-form-field:hover .mat-hint {
     visibility: visible;
 }
+

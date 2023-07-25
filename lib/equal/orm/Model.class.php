@@ -349,7 +349,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Returns values of static instance (default values)
+     * Returns values of static instance (default values).
      *
      */
     public final function getValues() {
@@ -357,7 +357,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Returns the user-defined part of the schema (i.e. fields list with types and other attributes)
+     * Returns the user-defined part of the schema (i.e. fields list with types and other attributes).
      * This method must be overridden by children classes.
      *
      */
@@ -366,11 +366,67 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Returns the workflow associated with the entity).
+     * Returns the workflow associated with the entity.
      * This method is meant to be overridden by children classes.
      *
      */
     public static function getWorkflow() {
+        return [];
+    }
+
+
+    /**
+     * Returns an associative array describing the roles that are defined on the current entity.
+     *
+     * Roles descriptor example:
+     *   return [
+     *       'owner': {
+     *            'description': ""
+     *        },
+     *        'admin': {
+     *            'description': "",
+     *            'implied_by': ['owner']
+     *        },
+     *        'editor': {
+     *            'description': "",
+     *            'implied_by': ['admin']
+     *        },
+     *        'viewer': {
+     *            'description': "",
+     *            'implied_by': ['editor']
+     *        }
+     *    ]
+     */
+    public static function getRoles() {
+        return [];
+    }
+
+    /**
+     * Returns the associative array mapping policies names with related descriptors.
+     * This method is meant to be overridden by children classes.
+     *
+     * A policy descriptor contains a description and a pointer to the policy handler (method).
+     * Policy handlers are meant to receive a collection and a user_id, and return an associative array mapping errors ids with their related description.
+     * If returned array is empty, the context complies with the policy.
+     *
+     * Policy descriptor example :
+     *
+     *  'publishable'   => [
+	 *		'description'		=> "Policy defining the rules for an object to be publishable.",
+	 *		'function'          => 'policyPublishable'
+	 *	]
+     *
+     */
+    public static function getPolicies() {
+        return [];
+    }
+
+    /**
+     * Returns the associative array mapping actions names with related descriptors of the actions defined by the entity.
+     * This method is meant to be overridden by children classes.
+     *
+     */
+    public static function getActions() {
         return [];
     }
 

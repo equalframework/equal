@@ -1,0 +1,29 @@
+{
+    "name": "Demo App menu",
+    "access": {
+        "groups": ["users"]
+    },
+    "layout": {
+        "items": [
+            {
+                "id": "settings",
+                "label": "Demo Menu",
+                "description": "",
+                "icon": "settings",
+                "type": "parent",
+                "children": [
+                    {
+                        "id": "demo.default",
+                        "type": "entry",
+                        "label": "Example",
+                        "description": "",
+                        "context": {
+                            "entity": "demo\\Example",
+                            "view": "list.default"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

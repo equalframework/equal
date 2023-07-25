@@ -15,33 +15,25 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'route']
 ]);
 
-
+/**
+ * @var \equal\php\Context      $context
+ * @var \equal\route\Router     $router
+ */
 list($context, $router) = [$providers['context'], $providers['route']];
 
-$routes = scandir(QN_BASEDIR."/config/routing");
-
-$routes = array_filter($routes, function($value) {
-    return preg_match('/^\d/', $value);
-});
-
-
-usort($routes, function ($a, $b) {
-    $x = intval(preg_replace('/\D/', '', $a));
-    $y = intval(preg_replace('/\D/', '', $b));
-    return $y - $x;
-});
+// get all json routes descriptors sorted by filename in desc order
+$files = array_reverse(glob(QN_BASEDIR.'/config/routing/*.json'));
 
 $result = [];
 
-foreach($routes as $key => $value) {
-    $json_string = file_get_contents(QN_BASEDIR."/config/routing/".$value);
-    $php_array = json_decode($json_string);
-    foreach($php_array as $path => $resolver) {
+foreach($files as $filepath) {
+    $json = file_get_contents($filepath);
+    $routes = json_decode($json);
+    foreach($routes as $path => $resolver) {
         $result[$path]["methods"] = $resolver;
-        $result[$path]["info"]["file"] = $value;
+        $result[$path]["info"]["file"] = basename($filepath);
     }
 }
-
 
 $context->httpResponse()
     ->body($result)
