@@ -293,7 +293,7 @@ foreach($classes as $class) {
                     if(!isset($schema[$field])) {
                         $result[] = "WARN  - I18 - Unknown field '$field' referenced in file $i18n_file";
                     }
-                    // warn about renaming root fields (specifal fiels from Model interface)
+                    // warn about renaming root fields (special fields from Model interface)
                     if(in_array($field, ['id', 'creator', 'modifier', 'modified','created', 'deleted', 'state'])) {
                         $result[] = "WARN  - I18 - Root field '$field' shouldn't be referenced in file $i18n_file";
                     }
