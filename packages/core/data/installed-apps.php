@@ -6,6 +6,9 @@
 */
 list($params, $providers) = announce([
     'description'   => "Returns a map with the descriptors of the installed apps (depending on initialized packages).",
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
