@@ -140,6 +140,15 @@ if(method_exists($params['entity'], 'onchange')) {
 
     // adapt resulting values to json
     foreach($result as $field => $value) {
+        // leave array untouched (not an ORM type)
+        if(is_array($value)) {
+            continue;
+        }
+        // convert objects to arrays (for supporting values retrieved as sub-objects)
+        if(is_subclass_of($value, 'equal\orm\Model')) {
+            $result[$field] = $value->toArray();
+            continue;
+        }
         $f = new Field($schema[$field]);
         // adapt received values based on their type (as defined in schema)
         $result[$field] = $adapter->adaptOut($value, $f->getUsage());
