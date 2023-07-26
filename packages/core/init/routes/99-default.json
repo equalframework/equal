@@ -66,7 +66,8 @@
     "/appinfo": {
         "GET": {
             "description": "Retrieve current Settings.",
-            "operation": "?get=core_appinfo"
+            "help": "#todo - replace with /envinfo (depends on eqUI) and use a dedicated route for appinfo.",
+            "operation": "?get=core_envinfo"
         }
     }
 }
