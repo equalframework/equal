@@ -118,15 +118,15 @@ class DataAdapterJson extends DataAdapter {
                         return self::datetimeToJson($value);
                     case 'year':
                         // date/year:4 (integer 0-9999)
-                        return intval(date('Y', $value));
+                        return intval(($value <= 2100 && $value >= 1970)?$value:date('Y', $value));
                     case 'month':
                         // date/month	(integer 1-12, ISO-8601)
-                        return date('n', $value);
-                        // date/weekday.mon (ISO-8601: 1 to 7, 1 is Monday)
-                        // date/weekday.sun (0 to 6, 0 is Sunday)
-                        // date/monthday (ISO-8601)
-                        // date/yearweek
-                        // date/yearday (ISO-8601)
+                        return intval(($value <= 12 && $value >= 1)?$value:date('n', $value));
+                    // date/weekday.mon (ISO-8601: 1 to 7, 1 is Monday)
+                    // date/weekday.sun (0 to 6, 0 is Sunday)
+                    // date/monthday (ISO-8601)
+                    // date/yearweek
+                    // date/yearday (ISO-8601)
                 }
                 break;
             case 'image':
