@@ -131,9 +131,9 @@ class DataAdapterSql extends DataAdapter {
                     case 'plain':
                         return self::dateToSql($value);
                     case 'year':
-                        return intval(date('Y', $value));
+                        return intval(($value <= 2100 && $value >= 1970)?$value:date('Y', $value));
                     case 'month':
-                        return date('n', $value);
+                        return intval(($value <= 12 && $value >= 1)?$value:date('n', $value));
                 }
                 break;
             case 'image':
