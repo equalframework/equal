@@ -6,8 +6,6 @@
 */
 namespace equal\orm;
 
-use equal\data\adapt\DataAdapterProvider;
-
 class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */
@@ -151,22 +149,9 @@ class Collection implements \Iterator, \Countable {
         return $res;
     }
 
-
     public function getClass() {
         return $this->class;
     }
-
-    /*
-    public function from($offset) {
-        if($offset < count($this->objects)) {
-            $this->objects = array_slice($this->objects, $offset, null, true);
-        }
-        else {
-            $this->objects = [];
-        }
-        return $this;
-    }
-    */
 
     /**
      *  Pop out the n last objects of the collection (and set internal limit value)
@@ -747,7 +732,7 @@ class Collection implements \Iterator, \Countable {
                     /** @var Collection */
                     $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang)?$lang:$this->lang);
                     if($target_type == 'many2one') {
-                        // #memo - result might be null or contain sub-collections
+                        // #memo - result might be null or an Object (that might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
@@ -814,6 +799,9 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+    /**
+     * @return  Collection  returns the current instance (allowing calls chaining)
+     */
     public function delete($permanent=false) {
         if(count($this->objects)) {
             $user_id = $this->am->userId();
@@ -851,6 +839,8 @@ class Collection implements \Iterator, \Countable {
      * Attempts to perform a specific action to a series of objects.
      * If no workflow is defined, the call is ignored (no action is taken).
      * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
+     *
+     * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function transition($transition) {
         // retrieve targeted identifiers
@@ -868,9 +858,7 @@ class Collection implements \Iterator, \Countable {
      * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
      *
      * @param   string      $action       Name of the requested action.
-     *
-     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
-     *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
+     * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function do($action) {
         // check if action can be performed
