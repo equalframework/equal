@@ -193,6 +193,10 @@ class ObjectManager extends Service {
         return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY'];
     }
 
+    /**
+     * #todo - deprecated : use the DBConnection service instead
+     * @deprecated
+     */
     public function getDB() {
         return $this->db;
     }
@@ -289,7 +293,6 @@ class ObjectManager extends Service {
         return $this->models[$class];
     }
 
-
     /**
      * Gets the name of the table associated to the specified class (required to convert namespace notation).
      *
@@ -338,12 +341,21 @@ class ObjectManager extends Service {
         return $entity;
     }
 
+    /**
+     * Retrieve the root parent class of a class.
+     * If there are several level of inheritance, the method loops up until the first class that inherits from the Model interface (`equal\orm\Model`).
+     *
+     * @param   string  $class   The full name of the entity with its namespace.
+     * @return  array   Returns an array containing the list of all the classes the given class inherits from (order is not guaranteed).
+     */
     public static function getObjectParentsClasses($class) {
         $classes = [];
         $entity = $class;
         while(true) {
             $parent = get_parent_class($entity);
-            if(!$parent || $parent == 'equal\orm\Model') break;
+            if(!$parent || $parent == 'equal\orm\Model') {
+                break;
+            }
             $classes[] = $parent;
             $entity = $parent;
         }
@@ -353,11 +365,11 @@ class ObjectManager extends Service {
     /**
      * Retrieve the package in which is defined the class of an object (required to convert namespace notation).
      *
-     * @param   string  $object_class   The full name of the entity with its namespace.
+     * @param   string  $class   The full name of the entity with its namespace.
      * @return  string
      */
-    public static function getObjectPackage($object_class) {
-        $parts = explode('\\', $object_class);
+    public static function getObjectPackage($class) {
+        $parts = explode('\\', $class);
         return array_shift($parts);
     }
 
@@ -366,15 +378,35 @@ class ObjectManager extends Service {
      *  note: this method is not set as static since we need to load class file in order to retrieve the schema
      * (and this is only done in the getStaticInstance method)
      *
-     * @param   string  $object_class   The full name of the entity with its namespace.
+     * @param   string  $class   The full name of the entity with its namespace.
      * @return  array
      */
-    public function getObjectSchema($object_class) {
-        $object = $this->getStaticInstance($object_class);
+    public function getObjectSchema($class) {
+        $object = $this->getStaticInstance($class);
         return $object->getSchema();
     }
 
 
+    /**
+     * Check if a getRoles() method is defined on the targeted class.
+     * Methods from ancestors classes are not taken in account.
+     *
+     * @param   string  $class   The full name of the entity with its namespace.
+     * @return array|boolean Returns either and associative array mapping roles with their descriptors. In case no getRoles() method is defined, returns false.
+     */
+    public function hasObjectRoles($class) {
+        if(method_exists($class, 'getRoles')) {
+            /** @var \ReflectionClass */
+            $reflectionClass = new \ReflectionClass($class);
+            return ($reflectionClass->getMethod('getRoles')->class == $class);
+        }
+        return false;
+    }
+
+    /**
+     * #todo - deprecate : use Field class instead.
+     * @deprecated
+     */
     public function getFinalType($object_class, $field) {
         $schema = $this->getObjectSchema($object_class);
 
@@ -401,7 +433,7 @@ class ObjectManager extends Service {
     * @param  array     $check_array
     * @param  array     $schema
     * @param  string    $field
-    * @return bool      Returns true if all attributes in $chek_array actually exist in the given schema.
+    * @return bool      Returns true if all attributes in $check_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
         if (!isset($schema) || !isset($schema[$field])) {
@@ -2254,7 +2286,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Searches for the objects that comply with the domain (series of criteria).
+     * Search for the objects that comply with the domain (series of criteria).
      *
      * The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
      * Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
