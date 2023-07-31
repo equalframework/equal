@@ -269,7 +269,7 @@ class Setting extends Model {
      *
      * @return  void
      */
-    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0) {
+    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0, $lang='en') {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
@@ -295,12 +295,19 @@ class Setting extends Model {
         $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
         if(!count($settings_values_ids)) {
             // value does not exist yet: create a new value
-            $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id]);
+            $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id], $lang);
         }
         else {
             // update existing value
-            $om->update(SettingValue::getType(), $settings_values_ids, ['value' => $value]);
+            $om->update(SettingValue::getType(), $settings_values_ids, ['value' => $value], $lang);
         }
+
+        // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
+        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        if(!isset($GLOBALS['_equal_core_setting_cache'])) {
+            $GLOBALS['_equal_core_setting_cache'] = [];
+        }
+        $GLOBALS['_equal_core_setting_cache'][$index] = $value;
     }
 
     public static function format_number($number, $decimal_precision=null) {
