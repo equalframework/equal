@@ -21,8 +21,8 @@
             },
             "params": {
                 "menus": {
-                    "left": "inventory.left",
-                    "top": "inventory.top"
+                    "left": "settings.left",
+                    "top": "settings.top"
                 }
             }
         }
