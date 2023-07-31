@@ -4,9 +4,11 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use core\Group;
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Creates a new user account based in given credentials and details.',
     'response'      => [
         'content-type'  => 'application/json',
@@ -53,12 +55,15 @@ list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 // create user: resulting Collection will check for current user privilege; validate the received values; and check the `Unique` constraints
 // #memo - User class defines its own Unique constraint on `login` field, and User::onchangePassword method makes sure `password` is hashed
-$instance = User::create($params)
+$user = User::create($params)
     ->read(['id', 'login', 'firstname', 'lastname', 'language'])
     ->adapt('json')
     ->first(true);
 
+// try to assign the new user to default "users" group
+Group::search(['name', '=', 'users'])->update(['users_ids' => [+$user['id']]]);
+
 $context->httpResponse()
         ->status(201)
-        ->body($instance)
+        ->body($user)
         ->send();
