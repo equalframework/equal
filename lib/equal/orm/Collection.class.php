@@ -75,6 +75,7 @@ class Collection implements \Iterator, \Countable {
         $this->class = $class;
         /** @var \equal\orm\ObjectManager */
         $this->orm = $objectManager;
+        /** @var \equal\access\AccessController */
         $this->ac = $accessController;
         $this->am = $authenticationManager;
         $this->dap = $dataAdapterProvider;
@@ -414,7 +415,12 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
+     * Feed the Collection with the IDs of the objects (of current class) that comply with the given domain.
+     * If no domain is given and parameter limit is left to 0, all objects are taken in account (Warning: reading such Collection might consume a large amount of memory)
      *
+     * The domain syntax is : array( array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]]) [, array( array(operand, operator, operand)[, array(operand, operator, operand) [, ...]])])
+     * Array of several series of clauses joined by logical ANDs themselves joined by logical ORs : disjunctions of conjunctions
+     * i.e.: (clause[, AND clause [, AND ...]]) [ OR (clause[, AND clause [, AND ...]]) [ OR ...]]
      */
     public function search(array $domain=[], array $params=[], $lang=null) {
         // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
@@ -434,6 +440,7 @@ class Collection implements \Iterator, \Countable {
         $params = array_merge($defaults, $params);
 
         // 1) sanitize and validate given domain
+
         if(!empty($domain)) {
             $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
@@ -442,31 +449,52 @@ class Collection implements \Iterator, \Countable {
             }
         }
 
-        // 2) check that current user has enough privilege to perform READ operation on given class
-        // #todo - extract fields names from domain, and make sure user has R_READ access on those
-        if(!$this->ac->isAllowed(QN_R_READ, $this->class)) {
-            // user has always READ access to its own objects
-			if(!$this->ac->isAllowed(QN_R_CREATE, $this->class)) {
-                // no READ nor CREATE permission: deny request
-				throw new \Exception($user_id.';READ;'.$this->class, QN_ERROR_NOT_ALLOWED);
-			}
-            else {
-                // user has CREATE access and might have created some objects: limit search to those, if any
-                $domain = Domain::conditionAdd($domain, ['creator', '=', $this->am->userId()]);
+        // 2) adapt domain according to access control type : either with ACL (permission) or Role (assignment)
+
+        if($this->orm->hasObjectRoles($this->class)) {
+            $roles = [];
+            // find all roles for which a READ permission is granted
+            foreach($this->class::getRoles() as $role => $descriptor) {
+                if(isset($descriptor['permissions'])) {
+                    if($descriptor['permissions'] & QN_R_READ) {
+                        $roles[] = $role;
+                    }
+                }
+            }
+            // find the objects for which the user is explicitly assigned to one of these roles
+            $assignments_ids = $this->orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['role', 'in', $roles], ['object_class', '=', $this->class] ]);
+            if($assignments_ids > 0 && count($assignments_ids)) {
+                $assignments = $this->orm->read('core\Assignment', $assignments_ids, ['object_id']);
+                $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($assignments));
+                // limit search amongst those objects
+                $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
+            }
+        }
+        else {
+            // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
+            if(!$this->ac->hasRight($user_id, QN_R_READ, $this->class)) {
+                // find the objects for which the user is explicitly granted for READ
+                $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', QN_R_READ], ['object_class', '=', $this->class] ]);
+                if($permissions_ids > 0 && count($permissions_ids)) {
+                    $permissions = $this->orm->read('core\Permission', $permissions_ids, ['object_id']);
+                    $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($permissions));
+                    // limit search amongst those objects
+                    $domain = Domain::conditionAdd($domain, ['id', 'in', $objects_ids]);
+                }
             }
         }
 
         // 3) perform search
-        // we don't use the start and limit arguments here because the final result set depends on permissions
+
+        // search according to resulting domain and specific params, if given
         $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang);
+
         // $ids is an error code
         if($ids < 0) {
             throw new \Exception(Domain::toString($domain), $ids);
         }
         if(count($ids)) {
-            // filter results using access controller (reduce resulting ids based on access rights of current user)
-            $ids = $this->ac->filter(QN_R_READ, $this->class, [], $ids);
-            // init keys of 'objects' member (so far, it is an empty array)
+            // init keys of `objects` member (so far, it is an empty array)
             $this->ids($ids);
         }
         else {
@@ -477,7 +505,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Creates new instances by copying exiting ones
+     * Create new instances by cloning the ones present in current Collection.
      *
      * @return  Collection  Returns the current Collection.
      * @example $newObject = MyClass::id(5)->clone()->first();
