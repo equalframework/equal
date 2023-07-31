@@ -263,7 +263,7 @@ class Setting extends Model {
      *
      * @return  void
      */
-    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0) {
+    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0, $lang='en') {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
@@ -295,6 +295,13 @@ class Setting extends Model {
             // update existing value
             $om->update(SettingValue::getType(), $settings_values_ids, ['value' => $value]);
         }
+
+        // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
+        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        if(!isset($GLOBALS['_equal_core_setting_cache'])) {
+            $GLOBALS['_equal_core_setting_cache'] = [];
+        }
+        $GLOBALS['_equal_core_setting_cache'][$index] = $value;
     }
 
     public static function format_number($number, $decimal_precision=null) {
