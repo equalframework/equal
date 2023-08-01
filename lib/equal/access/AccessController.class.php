@@ -364,7 +364,7 @@ class AccessController extends Service {
         // permission query is for class and/or fields only (no specific objects)
         $user_rights = $this->getUserRights($user_id, $object_class, $objects_ids);
 
-        return (bool) ($user_rights & $operation);;
+        return (bool) ($user_rights & $operation);
     }
 
     /**
