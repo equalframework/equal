@@ -7,7 +7,7 @@
                 "id": 1,
                 "name": "admins",
                 "display_name": "Administrators",
-                "description": "Group for users with admin privileges.",
+                "description": "Users with admin privileges.",
                 "users_ids": [
                     "1"
                 ]
@@ -31,7 +31,7 @@
             {
                 "id": 1,
                 "display_name": "Administrateurs",
-                "description": "Group for users with admin privileges."
+                "description": "Utilisateurs avec privilèges d'administration."
             },
             {
                 "id": 2,

@@ -7,6 +7,9 @@
 list($params, $providers) = eQual::announce([
     'description'   => "Provide a map with the descriptors of initialized packages.",
     'help'          => "Info is retrieved from log file `log/packages.json`. This is necessary because status of packages without apps cannot be deduced from `installed-apps`.",
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

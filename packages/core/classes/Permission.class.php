@@ -30,13 +30,10 @@ class Permission extends Model {
                 'default'           => NULL
             ],
 
-            // #todo
-            /*
             'object_id' => [
                 'type'              => 'integer',
                 'description'       => "Identifier of the specific object on which the permission applies."
             ],
-            */
 
             'group_id' => [
                 'type'              => 'many2one',

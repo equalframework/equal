@@ -107,6 +107,13 @@ namespace {
     define('QN_R_DELETE',    8);
     define('QN_R_MANAGE',   16);
 
+    /* equivalence map for naming migration */
+    define('R_CREATE',       QN_R_CREATE);
+    define('R_READ',         QN_R_READ);
+    define('R_WRITE',        QN_R_WRITE);
+    define('R_DELETE',       QN_R_DELETE);
+    define('R_MANAGE',       QN_R_MANAGE);
+
     /**
      * Built-in Users and Groups
      *

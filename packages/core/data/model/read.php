@@ -5,10 +5,10 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'	=>	"Returns values map of the specified fields for object matching given class and identifier.",
+    'description'	=>	"Lists objects of provided entity and ids with requested fields.",
     'params' 		=>	[
         'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+            'description'   => 'Full name (with namespace) of requested entity.',
             'type'          => 'string',
             'required'      => true
         ],
@@ -18,13 +18,14 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'fields' =>  [
-            'description'   => 'Requested fields. If not specified, only \'id\' and \'name\' fields are returned.',
+            'description'   => 'Names of fields for which value is requested.',
             'type'          => 'array',
             'default'       => ['id', 'name']
         ],
         'lang' =>  [
-            'description'   => 'Language in which multilang field have to be returned (2 letters ISO 639-1).',
+            'description'   => 'Language in which to retrieve multilang fields.',
             'type'          => 'string',
+            'usage'         => 'language/iso-639',
             'default'       => constant('DEFAULT_LANG')
         ],
         'order' => [
@@ -33,8 +34,9 @@ list($params, $providers) = announce([
             'default'       => 'id'
         ],
         'sort' => [
-            'description'   => 'The direction  (i.e. \'asc\' or \'desc\').',
+            'description'   => 'Direction of the sorting.',
             'type'          => 'string',
+            'selection'     => ['asc', 'desc'],
             'default'       => 'asc'
         ]
     ],
