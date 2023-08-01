@@ -167,13 +167,17 @@ class Reporter extends Service {
             $error_json['stack'] = $stack;
         }
 
-        // #todo - when created using CLI, file is assigned with current uid (which might prevent the http service to access it)
         $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
 
-        // #memo - if logging level is set to E_ALL with all mode enabled the log file grows quickly
+        $is_new = !file_exists($filepath);
 
         // append message to log file (bypass if debug is disabled)
         file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        // #memo - when created using CLI, file is assigned with current UID (which might prevent the HTTP service to access it)
+        if($is_new) {
+            chmod($filepath, 0666);
+        }
     }
 
     /**
