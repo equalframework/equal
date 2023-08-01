@@ -48,11 +48,11 @@
         "description": "Classes of report-messages to log (non-matching messages are ignored).",
         "instant": true,
         "default": 0,
-        "example": "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL"
+        "example": "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL | QN_MODE_APP | QN_MODE_API"
     },
     "DEBUG_LEVEL": {
         "type": "integer",
-        "description": "Types of error to report (defaults to E_ALL = 32767).",
+        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file will grow quickly.",
         "instant": true,
         "default": 32767,
         "example": "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
