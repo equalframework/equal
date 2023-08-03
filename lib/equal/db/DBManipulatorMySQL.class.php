@@ -463,7 +463,9 @@ class DBManipulatorMySQL extends DBManipulator {
         // order clause
         if(!empty($order)) {
             $order_clause = [];
-            if(!is_array($order)) $order = [$order => 'ASC'];
+            if(!is_array($order)) {
+                $order = [$order => 'ASC'];
+            }
             foreach($order as $field => $sort) {
                 $order_clause[] = self::escapeFieldName($field).' '.$sort;
             }
