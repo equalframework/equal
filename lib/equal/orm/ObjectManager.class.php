@@ -128,6 +128,8 @@ class ObjectManager extends Service {
     /**
      * Mapping of ORM types with their sized notations.
      *
+     * ORM types: boolean, integer, float, string
+     *
      * Size is expressed this way: type[(length|precision[,scale])]
      * and focus on the storage, in bytes, to allocate (rather than what value range can actually be stored).
      *
@@ -579,7 +581,7 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        $order = (isset($schema[$field]['order']))?$schema[$field]['order']:'id';
+                        $order = (isset($schema[$field]['order']) && isset($schema[$schema[$field]['order']]))?$schema[$field]['order']:'id';
                         $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
                         $domain = [
                             [
@@ -595,22 +597,26 @@ class ObjectManager extends Service {
                             $domain_tmp->merge(new Domain($schema[$field]['domain']));
                             $domain = $domain_tmp->toArray();
                         }
+                        // #todo - add support for sorting on m2o fields (for now user needs to use usort)
+                        if($schema[$order]['type'] == 'many2one' || (isset($schema[$order]['result_type']) && $schema[$order]['result_type'] == 'many2one') ) {
+                            $order = 'id';
+                        }
                         // obtain the ids by searching inside the foreign object's table
                         $result = $om->db->getRecords(
-                            $om->getObjectTableName($schema[$field]['foreign_object']),
-                            array('id', $schema[$field]['foreign_field'], $order),
-                            null,
-                            $domain,
-                            'id',
-                            [$order => $sort]
-                        );
-                        $lists = array();
+                                $om->getObjectTableName($schema[$field]['foreign_object']),
+                                ['id', $schema[$field]['foreign_field'], $order],
+                                null,
+                                $domain,
+                                'id',
+                                [$order => $sort]
+                            );
+                        $items = [];
                         while ($row = $om->db->fetchArray($result)) {
-                            $oid = $row[$schema[$field]['foreign_field']];
-                            $lists[$oid][] = $row['id'];
+                            $id = $row[$schema[$field]['foreign_field']];
+                            $items[$id][] = $row['id'];
                         }
-                        foreach($ids as $oid) {
-                            $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                        foreach($ids as $id) {
+                            $om->cache[$table_name][$id][$lang][$field] = (isset($items[$id]))?$items[$id]:[];
                         }
                     }
                 },
@@ -2301,7 +2307,7 @@ class ObjectManager extends Service {
      * @param   integer    $start       The offset at which to start the segment of the list of matching objects.
      * @param   string     $limit       The maximum number of results/identifiers to return.
      *
-     * @return  integer|array   Returns an array of matching objects ids, or a negative integer in case of error.
+     * @return  integer|array   Returns an array of matching objects ids sorted according to the $sort param, or a negative integer in case of error.
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         // get DB handler (init DB connection if necessary)
@@ -2492,16 +2498,14 @@ class ObjectManager extends Service {
                                 break;
                         }
                         // handle particular cases involving arrays
-                        // if(in_array($type, ['many2one', 'one2many', 'many2many'])) {
-                            if( in_array($operator, ['in', 'not in']) ) {
-                                if(!is_array($value)) {
-                                    $value = array($value);
-                                }
-                                if(!count($value)) {
-                                    $value = ['0'];
-                                }
+                        if( in_array($operator, ['in', 'not in']) ) {
+                            if(!is_array($value)) {
+                                $value = array($value);
                             }
-                        // }
+                            if(!count($value)) {
+                                $value = ['0'];
+                            }
+                        }
                         $conditions[$j][] = [$field, $operator, $value];
                     }
                     // search only among non-draft and non-deleted records
@@ -2564,10 +2568,11 @@ class ObjectManager extends Service {
                 }
                 elseif($sort_field != 'id') {
                     // check the type of the field used for sorting : if it is a many2one, add the related table and use the field `name` instead of the id value
-                    if($schema[$sort_field]['type'] == 'many2one' || ($schema[$sort_field]['type'] == 'computed' && $schema[$sort_field]['result_type'] == 'many2one') ) {
+                    if($schema[$sort_field]['type'] == 'many2one' || (isset($schema[$sort_field]['result_type']) && $schema[$sort_field]['result_type'] == 'many2one') ) {
                         $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
                         $related_table_alias = $add_table($related_table);
                         $select_fields[] = $related_table_alias.'.name';
+                        // #todo - shouldn't this condition be added to all clauses?
                         $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
                         $order_table_alias = $related_table_alias;
                         $sort_field = 'name';
