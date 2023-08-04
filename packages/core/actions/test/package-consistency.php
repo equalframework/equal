@@ -7,12 +7,10 @@
 use equal\db\DBConnection;
 
 // get listing of existing packages
-$json = run('get', 'config_packages');
-$packages = json_decode($json, true);
-
+$packages = eQual::run('get', 'config_packages');
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"This script tests the given package and returns a report about found errors (if any).",
     'params' 		=>	[
         'package'	=>  [
@@ -61,15 +59,7 @@ $result = [];
 $is_error = false;
 
 // get classes listing
-$json = run('get', 'config_classes', ['package' => $params['package']]);
-$classes = json_decode($json, true);
-
-// relay error if any
-if(isset($classes['errors'])) {
-    foreach($classes['errors'] as $name => $message) {
-        throw new Exception($message, qn_error_code($name));
-    }
-}
+$classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
 
 /**
@@ -79,7 +69,7 @@ if(isset($classes['errors'])) {
 $lang_dir = "packages/{$params['package']}/i18n";
 $view_dir = "packages/{$params['package']}/views";
 
-$lang_list = array();
+$lang_list = [];
 if( is_dir($lang_dir) && ($list = scandir($lang_dir)) ) {
     foreach($list as $node) {
         if(is_dir($lang_dir.'/'.$node) && !in_array($node, array('.', '..'))) $lang_list[] = $node;
@@ -114,39 +104,39 @@ foreach($classes as $class) {
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
-    // 1) check fields descriptions consistency
+    // 1) check fields descriptors consistency
 
     $valid_types = array_merge($orm::$virtual_types, $orm::$simple_types, $orm::$complex_types);
 
     // #toto - fields involved in unique constraint should be set as required
 
-    foreach($schema as $field => $description) {
-        if(!isset($description['type'])) {
+    foreach($schema as $field => $descriptor) {
+        if(!isset($descriptor['type'])) {
             $result[] = "ERROR - ORM - Class $class: Missing 'type' attribute for field $field ($class_filename)";
             $is_error = true;
             continue;
         }
-        if(!in_array($description['type'], $valid_types)) {
-            $result[] = "ERROR - ORM - Class $class: Invalid type '{$description['type']}' for field $field ($class_filename)";
+        if(!in_array($descriptor['type'], $valid_types)) {
+            $result[] = "ERROR - ORM - Class $class: Invalid type '{$descriptor['type']}' for field $field ($class_filename)";
             $is_error = true;
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$description['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$description['type']])." ($class_filename)";
+            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
             $is_error = true;
             continue;
         }
-        foreach($description as $attribute => $value) {
-            if(!in_array($attribute, $orm::$valid_attributes[$description['type']])) {
-                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$description['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$description['type']])." ($class_filename)";
+        foreach($descriptor as $attribute => $value) {
+            if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
+                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
                 $is_error = true;
             }
             if(in_array($attribute, array('store', 'multilang', 'readonly')) && $value !== true && $value !== false) {
-                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$description['type']} (possible attributes are : true, false)"." ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class: Incompatible value for attribute $attribute in field $field of type {$descriptor['type']} (possible attributes are : true, false)"." ($class_filename)";
                 $is_error = true;
             }
             if($attribute == 'foreign_object' && !class_exists($value))  {
-                $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$value}' given for attribute $attribute in field $field of type {$description['type']}"." ($class_filename)";
+                $result[] = "ERROR - ORM - Class $class: Non-existing entity '{$value}' given for attribute $attribute in field $field of type {$descriptor['type']}"." ($class_filename)";
                 $is_error = true;
             }
         }
@@ -416,31 +406,31 @@ foreach($classes as $class) {
     // load DB schema
     $db_schema = $db->getTableSchema($table);
 
-    $simple_fields = array();
-    $m2m_fields = array();
-    foreach($schema as $field => $description) {
-        if(in_array($description['type'], $orm::$simple_types)) {
+    $simple_fields = [];
+    $m2m_fields = [];
+    foreach($schema as $field => $descriptor) {
+        if(in_array($descriptor['type'], $orm::$simple_types)) {
             $simple_fields[] = $field;
         }
         // handle the 'store' attribute
-        elseif(in_array($description['type'], array('computed', 'related'))) {
-            if(isset($description['store']) && $description['store']) {
+        elseif(in_array($descriptor['type'], array('computed', 'related'))) {
+            if(isset($descriptor['store']) && $descriptor['store']) {
                 $simple_fields[] = $field;
             }
         }
-        elseif($description['type'] == 'many2many') {
+        elseif($descriptor['type'] == 'many2many') {
             $m2m_fields[] = $field;
         }
 
-        if(isset($description['onupdate'])) {
-            $parts = explode('::', $description['onupdate']);
+        if(isset($descriptor['onupdate'])) {
+            $parts = explode('::', $descriptor['onupdate']);
             $count = count($parts);
 
             $called_class = $entity;
-            $called_method = $description['onupdate'];
+            $called_method = $descriptor['onupdate'];
 
             if( $count < 1 || $count > 2 ) {
-                $result[] = "ERROR - ORM - Class $entity: Field $field has invalid onupdate property ({$description['onupdate']})";
+                $result[] = "ERROR - ORM - Class $entity: Field $field has invalid onupdate property ({$descriptor['onupdate']})";
             }
             else {
                 if( $count == 2 ) {
@@ -448,7 +438,21 @@ foreach($classes as $class) {
                     $called_method = $parts[1];
                 }
                 if(!method_exists($called_class, $called_method)) {
-                    $result[] = "ERROR - ORM - Class $entity: Field $field has onupdate property with unknown handler '{$description['onupdate']}'";
+                    $result[] = "ERROR - ORM - Class $entity: Field $field has onupdate property with unknown handler '{$descriptor['onupdate']}'";
+                }
+            }
+        }
+
+        if(isset($descriptor['description'])) {
+            if( mb_strlen($descriptor['description']) ) {
+                if(!preg_match('/^\p{Lu}/u', $descriptor['description'])) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should start with uppercase for field '$field' referenced in file $class_filename";
+                }
+                if(!in_array(substr($descriptor['description'], -1), ['.', '?', '!'])) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should end by '.' for field '$field' referenced in file $class_filename";
+                }
+                if( mb_strlen($descriptor['description']) > 65) {
+                    $result[] = "WARN  - ORM - Value for attribute 'description' should not exceed 65 chars for field '$field' referenced in file $class_filename";
                 }
             }
         }
@@ -481,6 +485,7 @@ foreach($classes as $class) {
         }
     }
 }
+
 // filter result
 foreach($result as $index => $line) {
     if(strpos($line, 'ERROR') === 0 && !in_array($params['level'], ['*', 'error'])) {
@@ -492,9 +497,12 @@ foreach($result as $index => $line) {
         continue;
     }
 }
+
 $result = array_values($result);
 
-if(!count($result)) $result[] = "INFO - Nothing to report.";
+if(!count($result)) {
+    $result[] = "INFO - Nothing to report.";
+}
 
 // send json result
 $context->httpResponse()
