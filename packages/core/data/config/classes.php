@@ -72,13 +72,12 @@ if(!function_exists('get_classes')) {
 	}
 }
 
-$data = array();
+$data = [];
 
 // if no package is given, return a map having packages as keys and arrays of related classes as values
 if($params['package'] == '*') {
 	// get listing of existing packages
-	$json = run('get', 'core_config_packages');
-	$packages = json_decode($json, true);
+	$packages = eQual::run('get', 'core_config_packages');
 	foreach($packages as $package) {
 		try {
 			$data[$package] = get_classes($package);
