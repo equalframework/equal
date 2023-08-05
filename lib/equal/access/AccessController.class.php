@@ -35,7 +35,7 @@ class AccessController extends Service {
         return ['QN_ROOT_GROUP_ID', 'QN_DEFAULT_GROUP_ID', 'QN_ROOT_USER_ID', 'QN_GUEST_USER_ID'];
     }
 
-    protected function getUserGroups($user_id) {
+    public function getUserGroups($user_id) {
         $groups_ids = [];
         if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
@@ -51,7 +51,7 @@ class AccessController extends Service {
         return $groups_ids;
     }
 
-    protected function getGroupUsers($group_id) {
+    public function getGroupUsers($group_id) {
         $users_ids = [];
         if(!isset($this->usersTable[$group_id])) {
             $orm = $this->container->get('orm');
