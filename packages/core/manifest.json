@@ -3,28 +3,5 @@
     "version": "2.0",
     "author": "Cedric Francoys",
     "depends_on": [],
-    "apps": [
-        "apps",
-        "auth",
-        "app",
-        {
-            "id": "settings",
-            "name": "Settings",
-            "extends": "app",
-            "description": "System configuration",
-            "icon": "settings",
-            "color": "#ff9741",
-            "access": {
-                "groups": [
-                    "users"
-                ]
-            },
-            "params": {
-                "menus": {
-                    "left": "settings.left",
-                    "top": "settings.top"
-                }
-            }
-        }
-    ]
+    "apps": [ "apps", "auth", "app", "settings" ]
 }
