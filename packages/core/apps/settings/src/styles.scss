@@ -1,0 +1,61 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+
+body {
+  overflow: hidden;
+}
+
+#sb-container .sb-context {
+  height: calc(100vh - 133px);
+}
+
+/* minor angular material customizations */
+
+.mat-select-panel .mat-option {
+  height: 40px !important;
+}
+
+
+/* external libraries customizations */
+
+.timepicker {
+
+  .timepicker__header {
+    background-color: #3f51b5 !important;
+  }
+
+  .timepicker-dial__control {
+    outline: none;
+  }  
+
+  .clock-face__clock-hand {
+    background-color: #3f51b5 !important;
+
+    &::after {
+      background-color: #3f51b5 !important;
+    }
+
+    &::before {
+      border-color: #3f51b5 !important;
+    }
+  }
+
+  .clock-face__number {
+    > span.active {
+      background-color: #3f51b5 !important;
+    }
+  }
+
+  button:not(.timepicker-dial__item) {
+    color: #3f51b5 !important;
+  }
+}
+
+ngx-material-timepicker-toggle {
+  button {
+    svg {
+      fill: #646464;
+    }
+  }
+}

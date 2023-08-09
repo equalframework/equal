@@ -1,0 +1,14 @@
+<mat-card>
+    <div class="titleBox">
+        <mat-card-title>{{setting.title}}</mat-card-title>
+        <mat-card-subtitle>{{setting.help}}</mat-card-subtitle>
+        <div class="settingName">{{settingName}}</div>
+    </div>
+    <form (mouseenter)="focusState = true" (mouseleave)="focusState = false">
+        <mat-form-field floatLabel="always" appearance="standard">
+            <mat-slide-toggle [formControl]="control" [checked]="settingValue" (change)="valueChange($event)"> <span class="text-invisible">{{setting.title}}</span></mat-slide-toggle>
+            <textarea matInput hidden></textarea>
+            <mat-hint *ngIf="focusState">{{setting.description}}</mat-hint>
+        </mat-form-field>
+    </form>
+</mat-card>

@@ -1,0 +1,13 @@
+{
+    "name": "Settings",
+    "description": "",
+    "url": "/settings",
+    "icon": "settings",
+    "color": "#FF9741",
+    "access": {
+        "groups": [
+            "admin"
+        ]
+    },
+    "show_in_apps": true
+}
