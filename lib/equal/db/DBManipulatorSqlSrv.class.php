@@ -49,7 +49,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
     /**
      * Open the DBMS connection
      *
-     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
+     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only with the DBMS server)
      * @return  integer   		        The status of the connect function call.
      * @access  public
      */
@@ -74,7 +74,11 @@ class DBManipulatorSqlSrv extends DBManipulator {
 
             if($auto_select) {
                 $connection_info['Database'] = $this->db_name;
-                $connection_info['CharacterSet'] = $this->charset;
+                // #memo - SQLSRV cluster < 2019 does not support UTF-8
+                // #memo - passing an invalid charset raises a IMSSP -1 "invalid option" error
+                if(!is_null($this->charset) && strlen($this->charset) > 0) {
+                    $connection_info['CharacterSet'] = $this->charset;
+                }
             }
 
             if($this->dbms_handler = sqlsrv_connect($this->host, $connection_info)) {
