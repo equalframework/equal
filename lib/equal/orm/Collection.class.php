@@ -453,10 +453,10 @@ class Collection implements \Iterator, \Countable {
 
         if($this->orm->hasObjectRoles($this->class)) {
             $roles = [];
-            // find all roles for which a READ permission is granted
+            // find all roles for which a READ right is granted
             foreach($this->class::getRoles() as $role => $descriptor) {
-                if(isset($descriptor['permissions'])) {
-                    if($descriptor['permissions'] & QN_R_READ) {
+                if(isset($descriptor['rights'])) {
+                    if($descriptor['rights'] & QN_R_READ) {
                         $roles[] = $role;
                     }
                 }

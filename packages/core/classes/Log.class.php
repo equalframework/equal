@@ -35,13 +35,10 @@ class Log extends Model {
                 'description'       => "Identifier of the targeted object (of given class)."
             ],
 
-            /*
-                Additional (optional) value.
-                Can be used for custom actions (e.g. 'status_update') and hold a newly assigned value.
-            */
             'value' => [
-                'type'              => 'string',
-                'description'       => "Optional value depending on the type of action."
+                'type'              => 'text',
+                'description'       => "Changes (new values) made to the object, if any.",
+                'help'              => "JSON representation of the new values(diff) of the object (if changes were made)."
             ]
 
         ];

@@ -41,7 +41,7 @@ class Logger extends Service {
      * @param string  $action
      * @param string  $object_class
      * @param integer $object_id
-     * @param array   $fields       Associative array (mapping fields with values) representing the partial state of the object being modified.
+     * @param array   $fields       Associative array mapping fields with values representing the partial state of the object being modified (fields impacted ny the action).
      */
     public function log($user_id, $action, $object_class, $object_id, $fields=null) {
         // ignore call if logging is disabled
@@ -59,12 +59,22 @@ class Logger extends Service {
             $user_id = QN_ROOT_USER_ID;
         }
 
+        $json = json_encode($fields);
+        // discard faulty JSON
+        if($json === false) {
+            $json = '{"ignored": "JSON conversion failed"}';
+        }
+        // max size for log entry text is 32KiB
+        elseif(strlen($json) > 32000) {
+            // drop payload
+            $json = '{"ignored": "resulting JSON too large"}';
+        }
         $values = [
             'action'        => $action,
             'object_class'  => $object_class,
             'object_id'     => $object_id,
             'user_id'       => $user_id,
-            'value'         => json_encode($fields)
+            'value'         => $json
         ];
 
         // logs are system objects (no permissions must be applied)

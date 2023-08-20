@@ -1,0 +1,51 @@
+
+<mat-form-field appearance="standard">
+    <mat-label>Level 1</mat-label>
+    <mat-select [value]="level1"  disableOptionCentering [formControl]="level1" (selectionChange)="onChangeLevel1($event)">
+      <!-- (selectionChange)="onChange($event)" -->
+      <mat-option value="{{choice}}" *ngFor="let choice of allLevel1">
+        <ng-container *ngIf="choice != ''"> {{choice}} </ng-container>
+      </mat-option>
+    </mat-select>
+    <mat-hint></mat-hint>
+  </mat-form-field>
+
+
+
+
+
+  <!-- Path1 -->
+  <mat-form-field appearance="standard" *ngIf="allLevel2?.length">
+    <mat-label>Level 2</mat-label>
+    <mat-select  disableOptionCentering [formControl]="level2" (selectionChange)="onChangeLevel2($event)">
+     
+      <mat-option value="{{choice}}" *ngFor="let choice of allLevel2">
+        <ng-container> {{choice}} </ng-container>
+      </mat-option>
+    </mat-select>
+    <mat-hint></mat-hint>
+  </mat-form-field> 
+
+
+  <!-- Path2 -->
+  <mat-form-field appearance="standard" *ngIf="allLevel3?.length">
+    <mat-label>Level 3</mat-label>
+    <mat-select  disableOptionCentering [formControl]="level3" (selectionChange)="onChangeLevel3($event)">
+      <mat-option value="{{choice}}" *ngFor="let choice of allLevel3">
+        <ng-container> {{choice}} </ng-container>
+      </mat-option>
+    </mat-select>
+    <mat-hint></mat-hint>
+  </mat-form-field> 
+
+
+  <mat-form-field appearance="standard" *ngIf="allLevel4?.length">
+    <mat-label>Level 4</mat-label>
+    <mat-select  disableOptionCentering [formControl]="level4" (selectionChange)="onChangeLevel4($event)">
+     
+      <mat-option value="{{choice}}" *ngFor="let choice of allLevel4">
+        <ng-container> {{choice}} </ng-container>
+      </mat-option>
+    </mat-select>
+    <mat-hint></mat-hint>
+  </mat-form-field> 
