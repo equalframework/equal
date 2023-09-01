@@ -250,6 +250,7 @@ namespace {
                             $value = $env;
                         }
                     }
+                    // #todo - null value should be accepted as assignment in config.json
                     if(is_null($value) && isset($descriptor['default'])) {
                         $value = $descriptor['default'];
                     }
@@ -423,7 +424,13 @@ namespace config {
         elseif(is_string($value) && substr($value, 0, 7) == 'cipher:') {
             $value = decrypt(substr($value, 7));
         }
-        \define($property, $value);
+
+        if(!\defined($property)) {
+            \define($property, $value);
+        }
+        else {
+            // property $property already declared
+        }
     }
 
     /**
@@ -573,6 +580,9 @@ namespace config {
             $method = $request->method();
             $response = $context->httpResponse();
 
+            // set Response default Content Type to JSON
+            $response->headers()->setContentType('application/json');
+
             $reporter->debug("method $method");
 
             // normalize $announcement array
@@ -603,6 +613,27 @@ namespace config {
                 }
                 if(isset($announcement['response']['content-type'])) {
                     $response->headers()->setContentType($announcement['response']['content-type']);
+                    $header_accept = $request->getHeader('Accept');
+                    // #todo - this is not the right place for that check
+                    // the original request might not be relevant for the current context (cascade run() calls)
+                    if($header_accept) {
+                        $accepted = [];
+                        $parts = explode(',', $header_accept);
+                        foreach($parts as $part) {
+                            $items = explode(';', $part);
+                            $accepted[] = trim(reset($items));
+                        }
+                        if(!in_array($announcement['response']['content-type'], $accepted) && !in_array('*/*', $accepted)) {
+                            /*
+                            // send "406 Not Acceptable"
+                            $response
+                                ->status(406)
+                                ->send();
+                            throw new \Exception('', 0);
+                            */
+                        }
+                    }
+
                 }
                 if(isset($announcement['response']['content-disposition'])) {
                     $response->headers()->set('content-disposition', $announcement['response']['content-disposition']);
@@ -845,7 +876,7 @@ namespace config {
             $invalid_params = [];
             /** @var \equal\data\adapt\DataAdapterProvider */
             $dap = $container->get('adapt');
-            // #todo - we should use the adapter based on content-type header, if any
+            // #todo - use the adapter based on content-type header, if any
             /** @var \equal\data\adapt\DataAdapter */
             $adapter = $dap->get('json');
             foreach($announcement['params'] as $param => $config) {
@@ -1178,6 +1209,15 @@ namespace config {
                 // restore original context
                 if(isset($context_orig)) {
                     $container->set('context', $context_orig);
+                    // restore original HTTP Response headers
+                    // #memo - this is mandatory for integration with other frameworks (i.e. WP) while calling `run()` when (some) headers have already been set
+                    $headers_orig = $context_orig->getHttpResponse()->getHeaders(true);
+                    if(count($headers_orig)) {
+                        header_remove();
+                        foreach($headers_orig as $header => $value) {
+                            header($header.': '.$value);
+                        }
+                    }
                 }
                 // restore container register
                 if(isset($register)) {
