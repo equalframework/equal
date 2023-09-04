@@ -20,6 +20,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 namespace {
+    global $last_context;
+    global $constants_schema;
+
     define('__EQ_LIB', true) or die('fatal error: __EQ_LIB already defined or cannot be defined');
 
     /**
