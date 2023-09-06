@@ -1,6 +1,19 @@
 {
     "name": "Tasks",
     "description": "All Scheduled tasks.",
+    "header": {
+        "selection": {
+            "default" : false,
+            "actions" : [
+                {
+                    "id": "header.selection.actions.run",
+                    "label": "Run the task",
+                    "icon": "play_arrow",
+                    "controller": "core_cron_run"
+                }
+            ]
+        }
+    },
     "layout": {
         "items": [
             {
@@ -11,7 +24,19 @@
             },
             {
                 "type": "field",
+                "value": "status",
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
                 "value": "moment",
+                "width": "15%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "last_run",
                 "width": "15%",
                 "sortable": true
             },
@@ -19,11 +44,6 @@
                 "type": "field",
                 "value": "controller",
                 "width": "25%"
-            },
-            {
-                "type": "field",
-                "value": "params",
-                "width": "20%"
             },
             {
                 "type": "field",
