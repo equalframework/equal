@@ -25,22 +25,48 @@ class Task extends Model {
                 'required'          => true
             ],
 
+            'status' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'idle',
+                    'running'
+                ],
+                'default'           => 'idle',
+                'description'       => 'current status of the processing (to avoid concurrent executions).'
+            ],
+
+            'last_run' => [
+                'type'              => 'datetime',
+                'description'       => 'Moment at which the task was last executed.'
+            ],
+
             'moment' => [
                 'type'              => 'datetime',
                 'description'       => 'Moment at which the task should be run for the next time.',
                 'default'           => time()
             ],
 
-            'is_active'          => [
+            'is_active' => [
                 'type'              => 'boolean',
                 'description'       => 'Mark the task as (temporarily) active or inactive.',
                 'default'           => true
             ],
 
-            'is_recurring'          => [
+            'is_recurring' => [
                 'type'              => 'boolean',
                 'description'       => 'Mark the task as recurring (to be run more than once).',
                 'default'           => true
+            ],
+
+            'after_execution' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'delete',
+                    'disable'
+                ],
+                'description'       => 'How to handle non-recurring task after execution.',
+                'default'           => 'delete',
+                'visible'           => ['is_recurring', '=', false]
             ],
 
             'repeat_axis' => [
@@ -65,6 +91,13 @@ class Task extends Model {
                 'visible'           => ['is_recurring', '=', true]
             ],
 
+            'is_exclusive' => [
+                'type'              => 'boolean',
+                'default'           => false,
+                'description'       => 'Exclusive tasks cannot run while another task is running.',
+                'help'              => "When an exclusive task is triggered, if any other task is already running, the execution is delayed (a new try is run every 5 minutes until success)."
+            ],
+
             'controller' => [
                 'type'              => 'string',
                 'description'       => "Full notation of the action controller to invoke (ex. core_example_action)."
@@ -73,7 +106,14 @@ class Task extends Model {
             'params' => [
                 'type'              => 'string',
                 'description'       => "JSON object holding the parameters to relay to the controller."
+            ],
+
+            'logs_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\TaskLog',
+                'foreign_field'     => 'task_id'
             ]
+
         ];
     }
 
