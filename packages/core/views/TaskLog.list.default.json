@@ -1,0 +1,22 @@
+{
+    "name": "Task Logs",
+    "description": "Logs of the scheduled task.",
+    "order": "created",
+    "sort": "desc",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "created",
+                "width": "25%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "15%",
+                "sortable": true
+            }
+        ]
+    }
+}
