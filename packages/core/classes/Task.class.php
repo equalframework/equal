@@ -91,6 +91,13 @@ class Task extends Model {
                 'visible'           => ['is_recurring', '=', true]
             ],
 
+            'is_exclusive' => [
+                'type'              => 'boolean',
+                'default'           => false,
+                'description'       => 'Exclusive tasks cannot run while another task is running.',
+                'help'              => "When an exclusive task is triggered, if any other task is already running, the execution is delayed (a new try is run every 5 minutes until success)."
+            ],
+
             'controller' => [
                 'type'              => 'string',
                 'description'       => "Full notation of the action controller to invoke (ex. core_example_action)."
