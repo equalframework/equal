@@ -68,7 +68,7 @@ if($params['part'] == 'class') {
     $file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$file}.class.php";
 
     // #todo - handle class creation in controller create-model
-    /*
+
     // Create a temporary file with the following contents and then parse it to have a ast
     $temp_file = "<?php \nclass temp { public static function getColumns() { return ".$code_string.";}}";
     $ast_temp_file= $parser->parse($temp_file);
@@ -95,7 +95,7 @@ if($params['part'] == 'class') {
             }
         }
     });
-    */
+
 
     // Add a visitor to the traverser that will set the doc comment of the class node to the result of the getPropertiesAsComments function
     $traverser->addVisitor(new class($code_php) extends NodeVisitorAbstract {
