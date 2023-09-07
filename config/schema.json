@@ -57,6 +57,12 @@
         "default": 32767,
         "example": "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
     },
+    "HTTP_REQUEST_TIMEOUT": {
+        "type": "integer",
+        "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": 10
+    },
     "EMAIL_SMTP_HOST": {
         "type": "string",
         "description": "Hostname of the SMTP server to use for sending emails.",
