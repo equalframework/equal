@@ -20,7 +20,7 @@ class TaskLog extends Model {
     public static function getColumns() {
         return [
 
-            'task_id'          => [
+            'task_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Task',
                 'description'       => 'The Task the log entry refers to.',
