@@ -41,17 +41,25 @@ class Scheduler extends Service {
         $now = time();
 
         if(!count($tasks_ids)) {
-            // no specific task is requested, fetch all active tasks (limit to max 10 tasks per batch)
+            // no specific task is requested, fetch all active tasks that are candidates to execution (limit to max 10 tasks per batch)
             $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
-            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
+            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
-                // prevent concurrent execution
+                // prevent simultaneous execution of a same task
                 if($task['status'] != 'idle') {
                     trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
                     continue;
+                }
+                // prevent concurrent execution for exclusive tasks
+                if($task['is_exclusive']) {
+                    $running_tasks_ids = $orm->search('core\Task', ['status', '=', 'running']);
+                    if($running_tasks_ids > 0 && count($running_tasks_ids)) {
+                        trigger_error("PHP::Ignoring execution of task that is exclusive [{$task['id']}] - [{$task['controller']}] (running tasks ".implode(',', $running_tasks_ids).")", QN_REPORT_INFO);
+                        continue;
+                    }
                 }
                 // mark the task as running and update last_run
                 $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now]);
@@ -69,9 +77,13 @@ class Scheduler extends Service {
                             $orm->update('core\Task', $tid, ['moment' => $moment]);
                         }
                         else {
-                            // #todo - add support for keeping task and de-activating it instead of deleting it
-                            // @see after_execution
-                            $orm->delete('core\Task', $tid, true);
+                            // delete of de-activate task according to `after_execution` property
+                            if($task['after_execution'] == 'delete') {
+                                $orm->delete('core\Task', $tid, true);
+                            }
+                            else {
+                                $orm->update('core\Task', $tid, ['is_active' => false]);
+                            }
                         }
                     }
                     list($status, $log) = ['', ''];

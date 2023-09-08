@@ -40,6 +40,11 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "after_execution",
+                                                "width": "33%"
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "status",
                                                 "visible": false
                                             }
@@ -56,18 +61,23 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "params",
-                                                "width": "100%"
+                                                "value": "is_active",
+                                                "width": "50%"
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "moment",
-                                                "width": "33%"
+                                                "width": "50%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "is_active",
-                                                "width": "33%"
+                                                "value": "is_exclusive",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "params",
+                                                "width": "100%"
                                             }
                                         ]
                                     }
@@ -90,8 +100,14 @@
                                                 "value": "logs_ids",
                                                 "width": "100%",
                                                 "widget": {
-                                                    "height": 600
+                                                    "header": {
+                                                        "actions": {
+                                                            "ACTION.CREATE": false
+                                                        }
+                                                    },
+                                                    "actions": false
                                                 }
+
                                             }
                                         ]
                                     }
