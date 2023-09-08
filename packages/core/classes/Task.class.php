@@ -61,8 +61,9 @@ class Task extends Model {
             'after_execution' => [
                 'type'              => 'string',
                 'selection'         => [
-                    'delete',
-                    'disable'
+                    'keep',
+                    'disable',
+                    'delete'
                 ],
                 'description'       => 'How to handle non-recurring task after execution.',
                 'default'           => 'delete',

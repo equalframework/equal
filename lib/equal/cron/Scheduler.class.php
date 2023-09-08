@@ -81,8 +81,11 @@ class Scheduler extends Service {
                             if($task['after_execution'] == 'delete') {
                                 $orm->delete('core\Task', $tid, true);
                             }
-                            else {
+                            elseif($task['after_execution'] == 'disable') {
                                 $orm->update('core\Task', $tid, ['is_active' => false]);
+                            }
+                            else {
+                                // keep task as is (non-recurring)
                             }
                         }
                     }
