@@ -109,7 +109,7 @@ class Scheduler extends Service {
                         $log = ($data)?$data:$msg;
                     }
                     // create a new TaskLog holding result
-                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log]);
+                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => "<pre>{$log}</pre>"]);
                     // mark the task as idle (so it can be executed again)
                     $orm->update('core\Task', $tid, ['status' => 'idle']);
                 }
