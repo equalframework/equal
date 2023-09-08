@@ -25,6 +25,7 @@ class User extends Model {
                 'result_type'       => 'string',
                 'function'          => 'calcName',
                 'store'             => true,
+                'instant'           => true,
                 'description'       => 'Display name used to refer to the user.',
                 'help'              => 'Depending on the configuration, can be either the login, the first name, the fullname, or a nickname.'
             ],
@@ -33,12 +34,14 @@ class User extends Model {
                 'type'              => 'string',
                 'usage'             => 'email',
                 'required'          => true,
-                'unique'            => true
+                'unique'            => true,
+                'dependencies'      => ['name']
             ],
 
             'username' => [
                 'type'              => 'string',
-                'unique'            => true
+                'unique'            => true,
+                'dependencies'      => ['name']
             ],
 
             'password' => [
@@ -54,11 +57,13 @@ class User extends Model {
             ],
 
             'firstname' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'dependencies'      => ['fullname', 'name']
             ],
 
             'lastname' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'dependencies'      => ['fullname', 'name']
             ],
 
             'fullname' => [
