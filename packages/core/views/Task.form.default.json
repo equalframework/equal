@@ -4,10 +4,10 @@
     "layout": {
         "groups": [
             {
+
+
                 "sections": [
                     {
-                        "id": "section.config",
-                        "label": "Parameters",
                         "rows": [
                             {
                                 "columns": [
@@ -22,7 +22,44 @@
                                                 "widget": {
                                                     "heading": true
                                                 }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "label",
+                                                "value": "",
+                                                "width": "50%"
                                             },
+                                            {
+                                                "type": "field",
+                                                "value": "pid",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+
+
+                "sections": [
+                    {
+                        "id": "section.config",
+                        "label": "Parameters",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "align": "left",
+                                        "items": [
                                             {
                                                 "type": "field",
                                                 "value": "is_recurring",
