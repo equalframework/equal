@@ -35,6 +35,12 @@ class Task extends Model {
                 'description'       => 'current status of the processing (to avoid concurrent executions).'
             ],
 
+            'pid' => [
+                'type'              => 'integer',
+                'description'       => 'Process Identifier of the script running the task.',
+                'visible'           => ['status', '=', 'running']
+            ],
+
             'last_run' => [
                 'type'              => 'datetime',
                 'description'       => 'Moment at which the task was last executed.'

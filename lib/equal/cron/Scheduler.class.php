@@ -62,8 +62,7 @@ class Scheduler extends Service {
                     }
                 }
                 // mark the task as running and update last_run
-                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now]);
-                // #todo - add current PID for force stop (exec("kill -9 $pid")) / $context->getPid()
+                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now, 'pid' => getmypid()]);
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
