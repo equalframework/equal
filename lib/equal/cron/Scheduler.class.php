@@ -41,8 +41,8 @@ class Scheduler extends Service {
         $now = time();
 
         if(!count($tasks_ids)) {
-            // no specific task is requested, fetch all active tasks that are candidates to execution (limit to max 10 tasks per batch)
-            $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
+            // no specific task is requested, fetch all active recurring tasks that are candidates to execution (limit to max 10 tasks per batch)
+            $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['is_recurring', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
@@ -68,7 +68,7 @@ class Scheduler extends Service {
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
                     if(!count($tasks_ids)) {
-                        // #memo - we must start by updating the task because some controllers might run for a duration longer than the remaining time before the next `run()` call
+                        // #memo - we must start by updating the task : some controllers might run for a duration longer than the remaining time before the next `run()` call
                         if($task['is_recurring']) {
                             $moment = $task['moment'];
                             while($moment < $now) {
