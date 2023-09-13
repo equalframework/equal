@@ -52,6 +52,11 @@
             },
             {
                 "type": "field",
+                "value": "is_exclusive",
+                "width": "10%"
+            },
+            {
+                "type": "field",
                 "value": "is_recurring",
                 "width": "10%"
             },
