@@ -274,6 +274,7 @@ class ObjectManager extends Service {
                 if(!isset($matches[1])) {
                     throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
                 }
+                // #todo - this should be tested in package-consistency controller
                 preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
                 if(!isset($matches[1])) {
                     throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
