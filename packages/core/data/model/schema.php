@@ -73,18 +73,7 @@ if(!count($data)) {
 
     // retrieve parent class
     $data['parent'] = get_parent_class($model);
-
-    // retrieve root class (before Model)
-    $root = $data['parent'];
-    while($root != 'equal\orm\Model') {
-        $prev_parent = get_parent_class($root);
-        if($prev_parent == 'equal\orm\Model') {
-            break;
-        }
-        $root = $prev_parent;
-    }
-
-    $data['root'] = $root;
+    $data['root'] = 'equal\orm\Model';
     $data['table'] = $model->getTable();
     $data['link'] = $model->getLink();
     $data['fields'] = $schema;
