@@ -248,80 +248,86 @@ class Mail extends Model {
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 
-            if(isset($message['to']) && strlen($message['to']) > 0) {
+            try {
+                if(!isset($message['to']) || strlen($message['to']) <= 0) {
+                    throw new \Exception('empty_recipient', QN_ERROR_INVALID_PARAM);
+                }
+
                 $envelope = new \Swift_Message();
-                try {
-                    // set sender and recipients
-                    $envelope
-                        ->setTo($message['to'])
-                        ->setCc($message['cc'])
-                        ->setBcc($message['bcc'])
-                        ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+                // set sender and recipients
+                $envelope
+                    ->setTo($message['to'])
+                    ->setCc($message['cc'])
+                    ->setBcc($message['bcc'])
+                    ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
-                    if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
-                        $envelope->setReplyTo($message['reply_to']);
-                    }
+                if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
+                    $envelope->setReplyTo($message['reply_to']);
+                }
 
-                    // add subject
-                    $envelope->setSubject($subject);
+                // add subject
+                $envelope->setSubject($subject);
 
-                    // process body according to content type
-                    if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
-                        $envelope->setContentType('text/html');
-                        // handle embedded images, if any
-                        $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
-                            function ($matches) use (&$envelope) {
-                                $cid = $matches[2];
-                                if(substr($cid, 4, 1) == ':') {
-                                    list($scheme, $data) = explode(':', $cid);
-                                    if($scheme == 'data') {
-                                        list($content_type, $data) = explode(';', $data);
-                                        list($encoding, $raw) = explode(',', $data);
-                                        if($encoding == 'base64') {
-                                            $raw = base64_decode($raw);
-                                        }
-                                        list($type, $extension) = explode('/', $content_type);
-                                        $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
-                                        $img->setDisposition('inline');
-                                        $cid = $envelope->embed($img);
+                // process body according to content type
+                if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
+                    $envelope->setContentType('text/html');
+                    // handle embedded images, if any
+                    $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                        function ($matches) use (&$envelope) {
+                            $cid = $matches[2];
+                            if(substr($cid, 4, 1) == ':') {
+                                list($scheme, $data) = explode(':', $cid);
+                                if($scheme == 'data') {
+                                    list($content_type, $data) = explode(';', $data);
+                                    list($encoding, $raw) = explode(',', $data);
+                                    if($encoding == 'base64') {
+                                        $raw = base64_decode($raw);
                                     }
+                                    list($type, $extension) = explode('/', $content_type);
+                                    $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                    $img->setDisposition('inline');
+                                    $cid = $envelope->embed($img);
                                 }
-                                return $matches[1].$cid.$matches[3];
-                            },
-                            $body);
-                    }
-
-                    // add body
-                    $envelope->setBody($body);
-
-                    // add attachments
-                    if(isset($message['attachments']) && count($message['attachments'])) {
-                        foreach($message['attachments'] as $key => $attachment) {
-                            $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
-                        }
-                    }
-                    // send email
-                    $mailer->send($envelope);
-                    // upon successful sending, remove the mail from the outbox
-                    $filename = self::MESSAGE_FOLDER.'/'.$file;
-                    unlink($filename);
-                    // if the message is linked to a core\Mail object, update the latter's status
-                    if(isset($message['id'])) {
-                        self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
-                    }
-                    // prevent flooding the SMTP
-                    usleep(100 *1000);
+                            }
+                            return $matches[1].$cid.$matches[3];
+                        },
+                        $body);
                 }
-                catch(\Exception $e) {
-                    // sending failed:
-                    // if the message is linked to a core\Mail object, update the latter's status
-                    if(isset($message['id'])) {
-                        self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+
+                // add body
+                $envelope->setBody($body);
+
+                // add attachments
+                if(isset($message['attachments']) && count($message['attachments'])) {
+                    foreach($message['attachments'] as $key => $attachment) {
+                        $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
                     }
                 }
 
+                // send email
+                if($mailer->send($envelope) == 0) {
+                    throw new \Exception('recipients_unreachable', QN_ERROR_UNKNOWN);
+                }
+
+                // upon successful sending, remove the mail from the outbox
+                $filename = self::MESSAGE_FOLDER.'/'.$file;
+                unlink($filename);
+
+                // if the message is linked to a core\Mail object, update the latter's status
+                if(isset($message['id'])) {
+                    self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
+                }
+
+                // prevent flooding the SMTP (wait 100 ms)
+                usleep(100 *1000);
             }
-
+            catch(\Exception $e) {
+                // sending failed
+                // if the message is linked to a core\Mail object, update the latter's status
+                if(isset($message['id'])) {
+                    self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+                }
+            }
         }
     }
 
