@@ -100,7 +100,15 @@
                                                 "widget": {
                                                     "header": {
                                                         "actions": {
-                                                            "ACTION.SELECT": true
+                                                            "ACTION.SELECT": true,
+                                                            "ACTION.CREATE": true
+                                                        },
+                                                        "actions_sample": {
+                                                            "ACTION.SELECT": false,
+                                                            "ACTION.CREATE": false
+                                                        },
+                                                        "selection_sample": {
+                                                            "default": false
                                                         }
                                                     }
                                                 }
