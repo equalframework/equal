@@ -327,6 +327,7 @@ class Mail extends Model {
                 if(isset($message['id'])) {
                     self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
                 }
+                // #todo : add support for choosing what to do upon failure (retry, delete, notify)
             }
         }
     }
