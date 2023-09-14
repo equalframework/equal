@@ -72,11 +72,15 @@ if(!count($data)) {
     $schema = $model->getSchema();
 
     // retrieve parent class
-    $data['parent'] = get_parent_class($model);
-    $data['root'] = 'equal\orm\Model';
-    $data['table'] = $model->getTable();
-    $data['link'] = $model->getLink();
-    $data['fields'] = $schema;
+    $data = [
+        'name'          => $model->getName(),
+        'description'   => $model->getDescription(),
+        'parent'        => get_parent_class($model),
+        'root'          => 'equal\orm\Model',
+        'table'         => $model->getTable(),
+        'link'          => $model->getLink(),
+        'fields'        => $schema
+    ];
 
     if(method_exists($model, 'getUnique')) {
         $data['unique'] = $model->getUnique();
