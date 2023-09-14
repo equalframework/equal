@@ -43,6 +43,7 @@ class Scheduler extends Service {
         if(!count($tasks_ids)) {
             // no specific task is requested, fetch all active tasks that are candidates to execution (limit to max 10 tasks per batch)
             $selected_tasks_ids = $orm->search('core\Task', [
+                    // #memo - we need to select all active tasks (recurring or not)
                     ['is_active', '=', true],
                     ['moment', '<=', $now]
                 ], ['moment' => 'asc'], 0, 10);
