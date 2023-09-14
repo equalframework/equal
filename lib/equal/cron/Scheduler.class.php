@@ -41,8 +41,11 @@ class Scheduler extends Service {
         $now = time();
 
         if(!count($tasks_ids)) {
-            // no specific task is requested, fetch all active recurring tasks that are candidates to execution (limit to max 10 tasks per batch)
-            $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['is_recurring', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
+            // no specific task is requested, fetch all active tasks that are candidates to execution (limit to max 10 tasks per batch)
+            $selected_tasks_ids = $orm->search('core\Task', [
+                    ['is_active', '=', true],
+                    ['moment', '<=', $now]
+                ], ['moment' => 'asc'], 0, 10);
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
@@ -76,9 +79,9 @@ class Scheduler extends Service {
                             $orm->update('core\Task', $tid, ['moment' => $moment]);
                         }
                         else {
-                            // delete of de-activate task according to `after_execution` property
+                            // delete or de-activate task according to `after_execution` property
                             if($task['after_execution'] == 'delete') {
-                                $orm->delete('core\Task', $tid, true);
+                                $orm->delete('core\Task', $tid, false);
                             }
                             elseif($task['after_execution'] == 'disable') {
                                 $orm->update('core\Task', $tid, ['is_active' => false]);
