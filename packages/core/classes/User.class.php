@@ -18,6 +18,10 @@ class User extends Model {
         return 'User';
     }
 
+    public static function getDescription() {
+        return 'A User object holds information and contact details about a specific user account.';
+    }
+
     public static function getColumns() {
         return [
             'name' => [
@@ -27,7 +31,7 @@ class User extends Model {
                 'store'             => true,
                 'instant'           => true,
                 'description'       => 'Display name used to refer to the user.',
-                'help'              => 'Depending on the configuration, can be either the login, the first name, the fullname, or a nickname.'
+                'help'              => 'Depending on the configuration (@see `USER_ACCOUNT_DISPLAYNAME`), can be either the login, the first name, the fullname, or the nickname.'
             ],
 
             'login' => [
