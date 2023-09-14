@@ -53,7 +53,7 @@ For more info, see : [http://doc.equal.run/getting-started/installation](http://
 
 
 
-## Code Coverage setup 
+## Code Coverage setup
 
 Config for PHP 7.4 with xdebug
 
@@ -145,7 +145,7 @@ phpunit.xml
 </phpunit>
 ```
 
-Alternate script generation: 
+Alternate script generation:
 ```
 ./vendor/bin/phpunit --generate-configuration
 ```
