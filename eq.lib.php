@@ -836,13 +836,15 @@ namespace config {
             if( count($missing_params)
                 || isset($body['announce'])
                 || $method == 'OPTIONS' ) {
+                // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
+                // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
                 // no feedback about services
                 if(isset($announcement['providers'])) {
-                    unset($announcement['providers']);
+                    // unset($announcement['providers']);
                 }
                 // no feedback about constants
                 if(isset($announcement['constants'])) {
-                    unset($announcement['constants']);
+                    // unset($announcement['constants']);
                 }
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
