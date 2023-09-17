@@ -7,7 +7,7 @@
 use core\setting\SettingValue;
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Returns descriptor of current Settings, specific to current User.',
+    'description'   => 'Returns a descriptor of current installation Settings, holding specific values for current User, if applicable.',
     'access'        => [
         'visibility'        => 'protected'
     ],
