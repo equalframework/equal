@@ -66,7 +66,7 @@ else {
             $view_id = $view_type.'.'.$view_name;
             if(!isset($map_views_ids[$view_id])) {
                 $map_views_ids[$view_id] = true;
-                $result[] = $package.'_'.(strlen($class_path)?str_replace('/', '_', $class_path).'_':'').$view_file;
+                $result[] = $package.'\\'.(strlen($class_path)?str_replace('/', '\\', $class_path).'\\':'').$entity_name.':'.$view_id;
             }
         }
         try {
@@ -101,25 +101,32 @@ function has_sub_items($directory, $extension) {
     return false;
 }
 
+/**
+ * #memo - this method slightly differs from the one in controllers.php and translations.php
+ */
 function recurse_dir($directory, $extension, $parent_name='') {
     $result = array();
     if( is_dir($directory) ) {
         $dir_name = basename($directory);
         $list = glob($directory.'/*');
         foreach($list as $node) {
-            $script_name = basename($node, '.'.$extension);
+            $filename = basename($node, '.'.$extension);
+            list($entity_name, $view_id) = explode('.', $filename, 2);
             if(is_dir($node)) {
-                if($dir_name == 'apps') {
-                    // do not process subdirectories for apps
-                    continue;
-                }
                 if(!has_sub_items($node, $extension)) {
                     continue;
                 }
-                $result = array_merge($result, recurse_dir($node, $extension, (strlen($parent_name)?$parent_name.'_'.$script_name:$script_name)));
+                $result = array_merge($result, recurse_dir($node, $extension, (strlen($parent_name)?$parent_name.'\\'.$filename:$filename)));
             }
-            elseif(pathinfo($node, PATHINFO_EXTENSION) == $extension){
-                $result[] = (strlen($parent_name)?$parent_name.'_':'').$script_name;
+            elseif(pathinfo($node, PATHINFO_EXTENSION) == $extension) {
+                $entity = (strlen($parent_name)?$parent_name.'\\':'').$entity_name;
+                try {
+                    $entity::getType();
+                    $result[] = $entity.':'.$view_id;
+                }
+                catch(Exception $e) {
+                    // ignore non-existing classes (menus ?)
+                }
             }
         }
     }
