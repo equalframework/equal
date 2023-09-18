@@ -46,6 +46,7 @@ else {
     if(!isset($params['entity'])) {
         throw new Exception('package_or_entity_required', QN_ERROR_MISSING_PARAM);
     }
+    // #todo : add support for controller entities
     if(!class_exists($params['entity'])) {
         throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
     }
@@ -125,7 +126,14 @@ function recurse_dir($directory, $extension, $parent_name='') {
                     $result[] = $entity.':'.$view_id;
                 }
                 catch(Exception $e) {
-                    // ignore non-existing classes (menus ?)
+                    if($entity_name == 'menu') {
+                        // ignore
+                    }
+                    else {
+                        // entity should be a controller
+                        // #todo - check that the controller actually exists
+                        $result[] = str_replace('\\', '_', $entity).':'.$view_id;
+                    }
                 }
             }
         }
