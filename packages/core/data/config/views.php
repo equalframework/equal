@@ -46,43 +46,62 @@ else {
     if(!isset($params['entity'])) {
         throw new Exception('package_or_entity_required', QN_ERROR_MISSING_PARAM);
     }
-    // #todo : add support for controller entities
-    if(!class_exists($params['entity'])) {
-        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
-    }
-    $entity = $params['entity'];
-    $map_views_ids = [];
-    // retrieve all views meant either directly for package entities or any of their parents
-    while(true) {
-        $parts = explode('\\', $entity);
-        $package = array_shift($parts);
-        $file = array_pop($parts);
+
+    // #todo - standardize the way controllers are referred to as entities
+
+    $entity = str_replace('_', '\\', $params['entity']);
+    $parts = explode('\\', $entity);
+    $file = array_pop($parts);
+    $package = array_shift($parts);
+
+    if(ctype_lower(substr($file, 0, 1)) && file_exists(QN_BASEDIR.'/packages/'.$package.'/data/'.implode('/', $parts).'/'.$file.'.php') || file_exists(QN_BASEDIR.'/packages/'.$package.'/actions/'.implode('/', $parts).'/'.$file.'.php')) {
         $class_path = implode('/', $parts);
-
         $list = glob(QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
-
         foreach($list as $node) {
             $view_file = basename($node, '.json');
             list($entity_name, $view_type, $view_name, $extension) = explode('.', $view_file);
             $view_id = $view_type.'.'.$view_name;
-            if(!isset($map_views_ids[$view_id])) {
-                $map_views_ids[$view_id] = true;
-                $result[] = $package.'\\'.(strlen($class_path)?str_replace('/', '\\', $class_path).'\\':'').$entity_name.':'.$view_id;
-            }
-        }
-        try {
-            $parent = get_parent_class($orm->getModel($entity));
-            if(!$parent || $parent == 'equal\orm\Model') {
-                break;
-            }
-            $entity = $parent;
-        }
-        catch(Exception $e) {
-            // support for controller entities
-            break;
+            $result[] = $package.'\\'.(strlen($class_path)?str_replace('/', '\\', $class_path).'\\':'').$entity_name.':'.$view_id;
         }
     }
+    elseif(!class_exists($params['entity'])) {
+        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+    }
+    else {
+        $entity = $params['entity'];
+        $map_views_ids = [];
+        // retrieve all views meant either directly for package entities or any of their parents
+        while(true) {
+            $parts = explode('\\', $entity);
+            $package = array_shift($parts);
+            $file = array_pop($parts);
+            $class_path = implode('/', $parts);
 
+            $list = glob(QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.*.json");
+
+            foreach($list as $node) {
+                $view_file = basename($node, '.json');
+                list($entity_name, $view_type, $view_name, $extension) = explode('.', $view_file);
+                $view_id = $view_type.'.'.$view_name;
+                if(!isset($map_views_ids[$view_id])) {
+                    $map_views_ids[$view_id] = true;
+                    $result[] = $package.'\\'.(strlen($class_path)?str_replace('/', '\\', $class_path).'\\':'').$entity_name.':'.$view_id;
+                }
+            }
+            try {
+                $parent = get_parent_class($orm->getModel($entity));
+                if(!$parent || $parent == 'equal\orm\Model') {
+                    break;
+                }
+                $entity = $parent;
+            }
+            catch(Exception $e) {
+                // support for controller entities
+                break;
+            }
+        }
+
+    }
 }
 
 $context->httpResponse()
