@@ -41,26 +41,43 @@ class Scheduler extends Service {
         $now = time();
 
         if(!count($tasks_ids)) {
-            // no specific task is requested, fetch all active tasks (limit to max 10 tasks per batch)
-            $selected_tasks_ids = $orm->search('core\Task', [['is_active', '=', true], ['moment', '<=', $now]], ['moment' => 'asc'], 0, 10);
+            // no specific task is requested, fetch all active tasks that are candidates to execution (limit to max 10 tasks per batch)
+            $selected_tasks_ids = $orm->search('core\Task', [
+                    // #memo - we need to select all active tasks (recurring or not)
+                    ['is_active', '=', true],
+                    ['moment', '<=', $now]
+                ], ['moment' => 'asc'], 0, 10);
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
-            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_recurring', 'repeat_axis', 'repeat_step', 'controller', 'params']);
+            // if an exclusive task is already running, ignore current batch
+            $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running'], ['is_exclusive', '=', true]]);
+            if($running_tasks_ids > 0 && count($running_tasks_ids)) {
+                trigger_error("PHP::Ignoring scheduler batch because at least one exclusive task is already running (running tasks ".implode(',', $running_tasks_ids).")", QN_REPORT_INFO);
+                return;
+            }
+            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
             foreach($tasks as $tid => $task) {
-                // prevent concurrent execution
+                // prevent simultaneous execution of a same task
                 if($task['status'] != 'idle') {
-                    // trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
+                    trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
                     continue;
                 }
+                // prevent concurrent execution for exclusive tasks
+                if($task['is_exclusive']) {
+                    $running_tasks_ids = $orm->search('core\Task', ['status', '=', 'running']);
+                    if($running_tasks_ids > 0 && count($running_tasks_ids)) {
+                        trigger_error("PHP::Ignoring execution of task that is exclusive [{$task['id']}] - [{$task['controller']}] (running tasks ".implode(',', $running_tasks_ids).")", QN_REPORT_INFO);
+                        continue;
+                    }
+                }
                 // mark the task as running and update last_run
-                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now]);
-                // #todo - add current PID for force stop (exec("kill -9 $pid")) / $context->getPid()
+                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now, 'pid' => getmypid()]);
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
                     // if no specific tasks_ids are given, update each task
                     if(!count($tasks_ids)) {
-                        // #memo - we must start by updating the task because some controllers might run for a duration longer than the remaining time before the next `run()` call
+                        // #memo - we must start by updating the task : some controllers might run for a duration longer than the remaining time before the next `run()` call
                         if($task['is_recurring']) {
                             $moment = $task['moment'];
                             while($moment < $now) {
@@ -69,9 +86,16 @@ class Scheduler extends Service {
                             $orm->update('core\Task', $tid, ['moment' => $moment]);
                         }
                         else {
-                            // #todo - add support for keeping task and de-activating it instead of deleting it
-                            // @see after_execution
-                            $orm->delete('core\Task', $tid, true);
+                            // delete or de-activate task according to `after_execution` property
+                            if($task['after_execution'] == 'delete') {
+                                $orm->delete('core\Task', $tid, false);
+                            }
+                            elseif($task['after_execution'] == 'disable') {
+                                $orm->update('core\Task', $tid, ['is_active' => false]);
+                            }
+                            else {
+                                // keep task as is (non-recurring)
+                            }
                         }
                     }
                     list($status, $log) = ['', ''];
@@ -84,7 +108,7 @@ class Scheduler extends Service {
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
-                        // trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
+                        trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
                         $status = 'error';
                         $msg = $e->getMessage();
                         $data = @unserialize($msg);
@@ -94,7 +118,7 @@ class Scheduler extends Service {
                         $log = ($data)?$data:$msg;
                     }
                     // create a new TaskLog holding result
-                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log]);
+                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => "<pre>{$log}</pre>"]);
                     // mark the task as idle (so it can be executed again)
                     $orm->update('core\Task', $tid, ['status' => 'idle']);
                 }

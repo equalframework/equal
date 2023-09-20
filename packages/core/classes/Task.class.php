@@ -35,6 +35,12 @@ class Task extends Model {
                 'description'       => 'current status of the processing (to avoid concurrent executions).'
             ],
 
+            'pid' => [
+                'type'              => 'integer',
+                'description'       => 'Process Identifier of the script running the task.',
+                'visible'           => ['status', '=', 'running']
+            ],
+
             'last_run' => [
                 'type'              => 'datetime',
                 'description'       => 'Moment at which the task was last executed.'
@@ -42,7 +48,7 @@ class Task extends Model {
 
             'moment' => [
                 'type'              => 'datetime',
-                'description'       => 'Moment at which the task should be run for the next time.',
+                'description'       => 'Upcoming moment at which the task should be run next.',
                 'default'           => time()
             ],
 
@@ -61,8 +67,9 @@ class Task extends Model {
             'after_execution' => [
                 'type'              => 'string',
                 'selection'         => [
-                    'delete',
-                    'disable'
+                    'keep',
+                    'disable',
+                    'delete'
                 ],
                 'description'       => 'How to handle non-recurring task after execution.',
                 'default'           => 'delete',
