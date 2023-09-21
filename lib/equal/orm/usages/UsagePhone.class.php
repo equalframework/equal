@@ -14,7 +14,7 @@ class UsagePhone extends Usage {
             'invalid_phone' => [
                 'message'   => 'String does not comply with usage constraint.',
                 'function'  =>  function($value) {
-                    return (bool) (preg_match('/^((\+[1-9]{2,3})|00)?[0-9]+$/', $value));
+                    return (bool) (preg_match('/^((\+[1-9]{2,3})|00)?[0-13]+$/', $value));
                 }
             ]
         ];
