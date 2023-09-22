@@ -141,7 +141,8 @@ function recurse_dir($directory, $extension, $parent_name='') {
             elseif(pathinfo($node, PATHINFO_EXTENSION) == $extension) {
                 $entity = (strlen($parent_name)?$parent_name.'\\':'').$entity_name;
                 try {
-                    $entity::getType();
+                    // #memo - ! can be controller or class
+                    // $entity::getType();
                     $result[] = $entity.':'.$view_id;
                 }
                 catch(Exception $e) {
