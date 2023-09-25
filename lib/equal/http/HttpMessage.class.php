@@ -724,10 +724,10 @@ class HttpMessage {
      *
      * @link http://en.wikipedia.org/wiki/List_of_Ajax_frameworks#JavaScript
      *
-     * @return bool true if the request is an XMLHttpRequest, false otherwise
+     * @return bool     Returns true if the request is an XMLHttpRequest, false otherwise.
      */
     public function isXHR() {
-        return ('XMLHttpRequest' == $this->headers->get('X-Requested-With'));
+        return ($this->headers->get('X-Requested-With') == 'XMLHttpRequest');
     }
 
    private static function xmlToArray(\SimpleXMLElement $obj) {
