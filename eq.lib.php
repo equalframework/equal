@@ -394,7 +394,7 @@ namespace config {
         // retrieve current value
         $value = constant($property);
         // handle shorthand notations
-        if($constants_schema[$property]['type'] == 'integer') {
+        if(isset($constants_schema[$property]) && $constants_schema[$property]['type'] == 'integer') {
             // handle binary masks on arbitrary values or pre-defined constants
             if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
                 try {
@@ -1235,6 +1235,10 @@ namespace {
                 }
             }
             return $data;
+        }
+
+        public static function announce(array $announcement) {
+            return config\eQual::announce($announcement);
         }
 
         public static function inject(array $providers) {
