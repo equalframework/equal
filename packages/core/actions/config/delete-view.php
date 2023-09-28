@@ -18,6 +18,7 @@ list($params, $providers) = announce([
             'type' => 'string',
             'required' => true
         ],
+        
     ],
     'access' => [
         'visibility'        => 'protected',
@@ -49,35 +50,23 @@ if(count($parts_v) > 0) {
     throw new Exception("view_id_invalid",QN_ERROR_INVALID_PARAM);
 }
 
-if(strcmp($type, "form")!==0 && strcmp($type, "list")!==0) {
-    $test = strcmp($type, "list");
-    throw new Exception("view_type_invalid : {$type}",QN_ERROR_INVALID_PARAM);
+if (strcmp($name,"default") === 0) {
+    throw new Exception("cant_delete_default_view",QN_ERROR_INVALID_PARAM);
 }
 
 $file = QN_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
 
-// Check if the view exists
-if(file_exists($file)){
-    throw new Exception('view_already_exists', QN_ERROR_INVALID_PARAM);
+// Check if the view exists or not
+if(!file_exists($file)){
+    throw new Exception('view_does_not_exists', QN_ERROR_INVALID_PARAM);
 }
 
-$f = fopen($file,"w");
+$f = unlink($file);
 
 if(!$f) {
     throw new Exception('IOERROR', QN_ERROR_UNKNOWN);
 }
 
-if($type == "form") {
-    fputs($f,"{\"layout\" : {\"groups\" : []}}");
-} else {
-    fputs($f,"{\"layout\" : {\"items\" : []}}");
-}
-
-fclose($f);
-
-$result = file_get_contents($file);
-
 $context->httpResponse()
-        ->status(201)
-        ->body("{$result}")
+        ->status(204)
         ->send();
