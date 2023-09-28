@@ -1,5 +1,9 @@
 <?php
-
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 list($params, $providers) = announce([
     'description'   => "save a representation of a view to a json file",
     'response'      => [
@@ -13,7 +17,7 @@ list($params, $providers) = announce([
             'type' => 'string',
             'required' => true
         ],
-        'viewid' => [
+        'view_id' => [
             'description' => 'id of the view',
             'type' => 'string',
             'required' => true
@@ -23,16 +27,19 @@ list($params, $providers) = announce([
         'visibility'        => 'protected',
         'groups'            => ['admins']
     ],
-    'providers'     => ['context', 'orm', 'adapt']
+    'providers'     => ['context']
 ]);
 
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+/**
+ * @var \equal\php\Context  $context
+ */
+list($context) = [$providers['context']];
 
 $parts = explode("\\",$params['entity']);
-$parts_v = explode(".",$params['viewid']);
+$parts_v = explode(".",$params['view_id']);
 
 $package = array_shift($parts);
-$entity = implode("/",$parts);
+$entity = implode("/", $parts);
 
 // Checking if package exists
 if(!file_exists("packages/{$package}")) {
@@ -51,7 +58,7 @@ if(count($parts_v) > 0) {
 
 if(strcmp($type, "form")!==0 && strcmp($type, "list")!==0) {
     $test = strcmp($type, "list");
-    throw new Exception("view_type_invalid : {$type}",QN_ERROR_INVALID_PARAM);
+    throw new Exception("view_type_invalid",QN_ERROR_INVALID_PARAM);
 }
 
 $file = QN_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
@@ -64,12 +71,13 @@ if(file_exists($file)){
 $f = fopen($file,"w");
 
 if(!$f) {
-    throw new Exception('IOERROR', QN_ERROR_UNKNOWN);
+    throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
 }
 
 if($type == "form") {
     fputs($f,"{\"layout\" : {\"groups\" : []}}");
-} else {
+}
+elseif($type == "list") {
     fputs($f,"{\"layout\" : {\"items\" : []}}");
 }
 
@@ -79,5 +87,5 @@ $result = file_get_contents($file);
 
 $context->httpResponse()
         ->status(201)
-        ->body("{$result}")
+        ->body($result)
         ->send();
