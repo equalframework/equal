@@ -142,7 +142,7 @@ class HttpRequest extends HttpMessage {
                     'request_fulluri'   => true,
                     'header'            => $headers,
                     'ignore_errors'     => true,
-                    'timeout'           => 10,
+                    'timeout'           => (defined('HTTP_REQUEST_TIMEOUT'))?constant('HTTP_REQUEST_TIMEOUT'):10,
                     'protocol_version'  => $this->getProtocolVersion()
                 ]);
             // create the HTTP stream context

@@ -1,7 +1,10 @@
 {
     "name": "core",
+    "description": "Foundations package holding the application logic of the elementary entities.",
     "version": "2.0",
     "author": "Cedric Francoys",
+    "license": "LGPL-3",
     "depends_on": [],
-    "apps": [ "apps", "auth", "app", "settings" ]
+    "apps": [ "apps", "auth", "app", "settings" ],
+    "tags": ["equal", "core"]
 }

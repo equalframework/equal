@@ -36,8 +36,12 @@ class Context extends Service {
     }
 
     public function __clone() {
-        if($this->httpRequest)  $this->httpRequest = clone $this->httpRequest;
-        if($this->httpResponse) $this->httpResponse = clone $this->httpResponse;
+        if($this->httpRequest) {
+            $this->httpRequest = clone $this->httpRequest;
+        }
+        if($this->httpResponse) {
+            $this->httpResponse = clone $this->httpResponse;
+        }
     }
 
     public function __toString() {
@@ -97,8 +101,9 @@ class Context extends Service {
         return $this;
     }
 
-    // below are additional method using short name and get/set based on arguments
-
+    /**
+     * Shorthand for getHttpRequest/setHttpRequest, acting as getter/setter based on arguments
+     */
     public function httpRequest() {
         $args = func_get_args();
         if(count($args) < 1) {
@@ -110,6 +115,9 @@ class Context extends Service {
         }
     }
 
+    /**
+     * Shorthand for getHttpResponse/setHttpResponse, acting as getter/setter based on arguments
+     */
     public function httpResponse() {
         $args = func_get_args();
         if(count($args) < 1) {
@@ -121,27 +129,17 @@ class Context extends Service {
         }
     }
 
-    // private methods
 
-
+    /**
+     * Return the list of headers that have been set and that will be part of the HTTP Response.
+     * #todo - there might be several headers having the same name (ex. Link), using a map prevents supporting that case
+     */
     private function getHttpResponseHeaders() {
         $res = [];
         $headers = headers_list();
         foreach($headers as $header) {
             list($name, $value) = explode(':', $header, 2);
-            $res[$name] = trim($value);
-        }
-        $request_headers = $this->getHttpRequestHeaders();
-        // set default content type to JSON and default charset to UTF-8
-        $res['Content-Type'] = 'application/json; charset=UTF-8';
-        if(isset($request_headers['Accept'])) {
-            // example: Accept: text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c
-            $parts = explode(',', $request_headers['Accept']);
-            $parts = explode(';', $parts[0]);
-            $content_type = trim($parts[0]);
-            if(strpos($request_headers['Accept'], '*/*') === false) {
-                $res['Content-Type'] = $content_type;
-            }
+            $res[HttpHeaders::normalizeName($name)] = trim($value);
         }
         return $res;
     }

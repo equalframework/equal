@@ -20,35 +20,36 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 // length, 0 = no length, 1 = integer, 2 = precision.scale
 $usage = [
-    'language'      => [
-        'iso639' => ['selection' => [
-            'default' => '1',
-            'selection' => ['1', '2']
-        ]]
+    'amount' => [
+        'money',
+        'percent' => ['length' => 2],
+        'rate' => ['length' => 2]
     ],
 
-    'country'       => [
+    'array'         => [
+        ''
+    ],
+
+    'binary'        => [
+        ''
+    ],
+
+    'color' => [
+        'css',
+        'rgb',
+        'rgba',
+        'hexadecimal'
+    ],
+
+    'country' => [
         'iso3166' => ['selection' => [
             'default' => '2',
             'selection' => ['2', '3']
         ]]
     ],
 
-    'image'         => [
-        'jpeg',
-        'gif',
-        'png',
-        'tiff',
-        'webp',
-        'ief',
-        'svg+xml'
-    ],
 
-    'password'      => [
-        'nist', 'enisa'
-    ],
-
-    'coordinate'    => [
+    'coordinate' => [
         'latitude' => [
             'default' => 'decimal',
             'selection' => ['decimal', 'dms']
@@ -59,14 +60,35 @@ $usage = [
         ]
     ],
 
-    'currency'      => [
+    'currency' => [
         'iso-4217' => [
             'default' => 'alpha',
             'selection' => ['alpha', 'numeric']
         ]
     ],
 
-    'hash'          => [
+    'date' => [
+        'plain',
+        'time',
+        'year',
+        'month',
+        'weekday',
+        'yearweek',
+        'yearday'
+    ],
+
+    'email' => [
+        ''
+    ],
+
+    'file'          => [
+        'javascript',
+        'pdf',
+        'sql',
+        'zip'
+    ],
+
+    'hash' => [
         'md2',
         'md4',
         'md5',
@@ -76,14 +98,43 @@ $usage = [
         'sha512'
     ],
 
-    'color'         => [
-        'css',
-        'rgb',
-        'rgba',
-        'hexadecimal'
+    'image' => [
+        'jpeg',
+        'gif',
+        'png',
+        'tiff',
+        'webp',
+        'ief',
+        'svg+xml'
     ],
 
-    'text'          => [
+    'language' => [
+        'iso639' => ['selection' => [
+            'default' => '1',
+            'selection' => ['1', '2']
+        ]]
+    ],
+
+    'number' => [
+        'boolean' => ['length' => 1],
+        'natural' => ['length' => 1],
+        'integer' => [
+            'default' => 'decimal',
+            'selection' => ['decimal', 'hexadecimal', 'octal'],
+            'length' => 1
+        ],
+        'real' => ['length' => 2]
+    ],
+
+    'password' => [
+        'nist', 'enisa'
+    ],
+
+    'phone'         => [
+        'iso-29172'
+    ],
+
+    'text' => [
         'xml',
         'html',
         'markdown',
@@ -95,24 +146,11 @@ $usage = [
         ]
     ],
 
-    'amount'        => [
-        'money',
-        'percent' => ['length' => 2],
-        'rate' => ['length' => 2]
+    'time' => [
+        'plain'
     ],
 
-    'number'        => [
-        'boolean' => ['length' => 1],
-        'natural' => ['length' => 1],
-        'integer' => [
-            'default' => 'decimal',
-            'selection' => ['decimal', 'hexadecimal', 'octal'],
-            'length' => 1
-        ],
-        'real' => ['length' => 2]
-    ],
-
-    'uri'           => [
+    'uri' => [
         'mailto',
         'payto' => [
             'default' => 'iban',
@@ -126,43 +164,6 @@ $usage = [
         'isan',
         'iban',
         'ean'
-    ],
-
-    'date'          => [
-        'plain',
-        'time',
-        'year',
-        'month',
-        'weekday',
-        'yearweek',
-        'yearday'
-    ],
-
-    'time'          => [
-        'plain'
-    ],
-
-    'email'         => [
-        ''
-    ],
-
-    'file'          => [
-        'javascript',
-        'pdf',
-        'sql',
-        'zip'
-    ],
-
-    'binary'        => [
-        ''
-    ],
-
-    'phone'         => [
-        'iso-29172'
-    ],
-
-    'array'         => [
-        ''
     ]
 ];
 

@@ -53,15 +53,18 @@ class Example extends Model {
 
             'float_2' => [
                 'type'          => 'float',
-                'onupdate'      => 'test\Example::onupdateTotalFloat'
+                'onupdate'      => 'demo\Example::onupdateTotalFloat'
             ],
 
-            'float_3'			=> ['type' => 'float', 'onupdate' => 'test\Example::onupdateTotalFloat'],
+            'float_3' => [
+                'type'          => 'float',
+                'onupdate'      => 'demo\Example::onupdateTotalFloat'
+            ],
 
             'total_float' => [
                 'type'          => 'computed',
                 'result_type'   => 'float',
-                'function'      => 'test\Example::calcTotalFloat',
+                'function'      => 'demo\Example::calcTotalFloat',
                 'store'         => true
             ],
 
@@ -73,10 +76,10 @@ class Example extends Model {
             'integer_2'			=> ['type' => 'integer'],
 
             'integer_3' => [
-                'type'          => 'function', 
-                'result_type'   => 'integer', 
-                'store'         => true, 
-                'function'      => 'test\Example::calcInteger3'
+                'type'          => 'function',
+                'result_type'   => 'integer',
+                'store'         => true,
+                'function'      => 'demo\Example::calcInteger3'
             ]
 
         ];
@@ -85,13 +88,13 @@ class Example extends Model {
     public static function calcTotalFloat($om, $oid, $lang) {
         $total = 0.0;
         $float_fields = array('float_1', 'float_2', 'float_3');
-        $res = $om->read('test\Example', array($oid), $float_fields, $lang);
+        $res = $om->read('demo\Example', array($oid), $float_fields, $lang);
         foreach($float_fields as $float_field) $total += $res[$oid][$float_field];
         return $total;
     }
 
     public static function onupdateTotalFloat($om, $oid, $values, $lang) {
-        $om->update('test\Example', array($oid), [ 'total_float' => Example::calcTotalFloat($om, $oid, $lang) ], $lang);
+        $om->update('demo\Example', array($oid), [ 'total_float' => Example::calcTotalFloat($om, $oid, $lang) ], $lang);
     }
 
     public static function calcInteger3($om, $oid, $lang) {
@@ -105,13 +108,13 @@ class Example extends Model {
                     'message'       => 'Value must be less than 10.',
                     'function'      => function ($float_1, $values) {
                         return ($float_1 < 10);
-                    }    
+                    }
                 ],
                 'too_low' => [
                     'message'       => 'Value must be higher than 5.',
                     'function'      => function ($float_1, $values) {
                         return ($float_1 > 5);
-                    }    
+                    }
                 ]
             ]
         ];

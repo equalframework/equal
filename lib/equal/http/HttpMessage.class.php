@@ -90,9 +90,9 @@ class HttpMessage {
     protected static $HTTP_METHODS = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE', 'PURGE', 'OPTIONS', 'TRACE', 'CONNECT'];
 
     /**
-    * Handle sub objects for deep cloning
-    *
-    */
+     * Handle sub objects for deep cloning
+     *
+     */
     public function __clone() {
         if($this->uri) {
             $this->uri = clone $this->uri;
@@ -711,7 +711,7 @@ class HttpMessage {
     }
 
     /**
-     * send method is defined in HttpResponse and HttpRequest classes
+     * Send method is defined in HttpResponse and HttpRequest classes.
      *
      */
     public function send() {}
@@ -724,10 +724,10 @@ class HttpMessage {
      *
      * @link http://en.wikipedia.org/wiki/List_of_Ajax_frameworks#JavaScript
      *
-     * @return bool true if the request is an XMLHttpRequest, false otherwise
+     * @return bool     Returns true if the request is an XMLHttpRequest, false otherwise.
      */
     public function isXHR() {
-        return ('XMLHttpRequest' == $this->headers->get('X-Requested-With'));
+        return ($this->headers->get('X-Requested-With') == 'XMLHttpRequest');
     }
 
    private static function xmlToArray(\SimpleXMLElement $obj) {

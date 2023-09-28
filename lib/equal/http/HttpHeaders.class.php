@@ -74,9 +74,11 @@ class HttpHeaders {
     }
 
     public function setContentType($content_type) {
+        // the header is part of a Request
         if(isset($this->headers['Accept'])) {
             return $this->set('Accept', $content_type);
         }
+        // the header is part of a Response
         else {
             $charset = $this->getCharset();
             return $this->set('Content-Type', $content_type.'; charset='.$charset);
@@ -97,10 +99,14 @@ class HttpHeaders {
      */
     public function get($header, $default=null) {
         $res = $default;
-        if(isset($this->headers[$header])) $res = $this->headers[$header];
+        if(isset($this->headers[$header])) {
+            $res = $this->headers[$header];
+        }
         else {
             $normaliazed_header = self::normalizeName($header);
-            if(isset($this->headers[$normaliazed_header])) $res = $this->headers[$normaliazed_header];
+            if(isset($this->headers[$normaliazed_header])) {
+                $res = $this->headers[$normaliazed_header];
+            }
         }
         return $res;
     }

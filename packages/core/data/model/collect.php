@@ -75,7 +75,9 @@ $adapter = $dap->get('json');
 /*
     Handle controller entities
 */
-$parts = explode('\\', $params['entity']);
+// #todo - standardize the way controllers are referred to as entities
+$entity = str_replace('_', '\\', $params['entity']);
+$parts = explode('\\', $entity);
 $file = array_pop($parts);
 if(ctype_lower(substr($file, 0, 1))) {
     $package = array_shift($parts);

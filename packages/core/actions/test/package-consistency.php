@@ -101,6 +101,17 @@ foreach($classes as $class) {
         throw new Exception("FATAL - unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
     }
 
+    // verify that the class actually inherits from Model
+    // retrieve root class (before Model)
+    $root_parent = get_parent_class($model);
+    while($root_parent && $root_parent != 'equal\orm\Model') {
+        $root_parent = get_parent_class($root_parent);
+    }
+
+    if(!$root_parent ) {
+        throw new Exception("FATAL - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.", QN_ERROR_UNKNOWN_OBJECT);
+    }
+
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
@@ -387,7 +398,9 @@ foreach($classes as $class) {
     $entity = $params['package'].'\\'.$class;
 
     $model = $orm->getModel($entity);
-    if(!is_object($model)) throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
+    if(!is_object($model)) {
+        throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
+    }
 
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();

@@ -15,14 +15,14 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context                  $context
+ * @var \equal\php\Context  $context
  */
 list($context) = [$providers['context']];
 
 $packages = [];
 
 if(!is_dir('packages') || !($list = scandir('packages'))) {
-    throw new Exception('packages directory not found', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_packages_directory', QN_ERROR_INVALID_CONFIG);
 }
 
 foreach($list as $node) {

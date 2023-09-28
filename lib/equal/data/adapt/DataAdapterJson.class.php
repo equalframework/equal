@@ -48,10 +48,14 @@ class DataAdapterJson extends DataAdapter {
                 return (string) $value;
             case 'time':
                 return self::jsonToTime($value);
+            case 'datetime':
+                return self::jsonToDatetime($value);
             case 'date':
                 switch($subtype) {
-                    case 'time':
                     case 'plain':
+                        return self::jsonToDate($value);
+                    case 'datetime':
+                    case 'time':
                         return self::jsonToDatetime($value);
                     case 'year':
                         // date/year:4 (integer 0-9999)
@@ -111,10 +115,14 @@ class DataAdapterJson extends DataAdapter {
                 break;
             case 'time':
                 return self::timeToJson($value);
+            case 'datetime':
+                return self::datetimeToJson($value);
             case 'date':
                 switch($subtype) {
-                    case 'time':
                     case 'plain':
+                        return self::dateToJson($value);
+                    case 'datetime':
+                    case 'time':
                         return self::datetimeToJson($value);
                     case 'year':
                         // date/year:4 (integer 0-9999)
@@ -200,6 +208,21 @@ class DataAdapterJson extends DataAdapter {
             }
         }
         return $res;
+    }
+
+    private static function jsonToDate($value) {
+        if(is_numeric($value)) {
+            // value is a timestamp, keep it
+            $value = intval($value);
+        }
+        else {
+            // convert ISO 8601 to timestamp
+            $value = strtotime($value);
+            if($value === false) {
+                return null;
+            }
+        }
+        return strtotime(date('Y-m-d', $value).'T00:00:00Z');
     }
 
     private static function jsonToDatetime($value) {
@@ -404,7 +427,14 @@ class DataAdapterJson extends DataAdapter {
     }
 
     /**
-     * Returns date as a ISO 8601 formatted string
+     * Convert a timestamp to an ISO 8601 string (date @ 00:00:00)
+     */
+    private static function dateToJson($value) {
+        return date('Y-m-d', $value).'T00:00:00+00:00';
+    }
+
+    /**
+     * Convert a timestamp to an ISO 8601 formatted string
      */
     private static function datetimeToJson($value) {
         return date("c", $value);

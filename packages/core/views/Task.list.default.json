@@ -31,13 +31,13 @@
             {
                 "type": "field",
                 "value": "moment",
-                "width": "15%",
+                "width": "20%",
                 "sortable": true
             },
             {
                 "type": "field",
                 "value": "last_run",
-                "width": "15%",
+                "width": "20%",
                 "sortable": true
             },
             {
@@ -48,6 +48,11 @@
             {
                 "type": "field",
                 "value": "is_active",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "is_exclusive",
                 "width": "10%"
             },
             {

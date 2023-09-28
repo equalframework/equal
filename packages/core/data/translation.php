@@ -4,8 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-// #deprecated - use `core_translation` instead
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Retrieves the translation values related to the specified entity.",
     'params'        => [
         'entity' =>  [
@@ -79,7 +78,7 @@ foreach($parents as $entity) {
 }
 
 if(empty($lang)) {
-    throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("empty_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 $context->httpResponse()
