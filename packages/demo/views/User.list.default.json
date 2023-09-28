@@ -1,0 +1,13 @@
+{
+    "name": "test",
+    "description": "test",
+    "layout": {
+        "items": [
+            {
+                "type": "label",
+                "value": "creator",
+                "width": "100%"
+            }
+        ]
+    }
+}
