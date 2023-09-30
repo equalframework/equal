@@ -69,5 +69,17 @@
             "help": "#todo - replace with /envinfo (depends on eqUI) and use a dedicated route for appinfo.",
             "operation": "?get=core_envinfo"
         }
+    },
+    "/welcome": {
+        "GET": {
+            "description": "Redirects to eQual welcome screen.",
+            "operation": "?show=core_welcome"
+        }
+    },
+    "/discord": {
+        "GET": {
+            "description": "Redirects to eQual welcome screen.",
+            "operation": "?show=core_discord"
+        }
     }
 }
