@@ -1653,7 +1653,12 @@ class ObjectManager extends Service {
                         $onupdate_fields[] = $field;
                     }
                     // assign cache to object values
-                    $this->cache[$table_name][$oid][$lang][$field] = $value;
+                    $target_lang = $lang;
+                    if($lang != constant('DEFAULT_LANG') && !isset($schema[$field]['multilang']) || !$schema[$field]['multilang']) {
+                        // field is not multilang: make sure to assign the default lang
+                        $target_lang = constant('DEFAULT_LANG');
+                    }
+                    $this->cache[$table_name][$oid][$target_lang][$field] = $value;
                 }
             }
 
@@ -1819,6 +1824,7 @@ class ObjectManager extends Service {
             }
 
             // #memo - there is no canread(), since it would be redundant with access::isAllowed()
+            // #todo - no : canread might depend on non-ACL policies
 
             // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 
