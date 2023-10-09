@@ -1,40 +1,54 @@
 <?php
-/*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
-    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
-*/
-list($params, $providers) = announce([
-    'description'   => 'Returns all the routes with priority based on the number.',
+
+$packages = eQual::run('get', 'config_packages');
+
+list($params, $providers) = eQual::announce([
+    'description'   => 'This is the core_config_routes controller created with core_config_create-controller.',
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'params'        => [],
-    'providers'     => ['context', 'route']
+    'params'        => [
+        "package" => [
+            "decription" => "package to inspect",
+            "type" => "string",
+            'selection' => array_combine(array_values($packages), array_values($packages)),
+            "required" => true
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['users']
+    ],
+    'providers'         => ['context']
 ]);
-
 /**
- * @var \equal\php\Context      $context
- * @var \equal\route\Router     $router
+ * @var \equal\php\context  Context
  */
-list($context, $router) = [$providers['context'], $providers['route']];
+$context = $providers['context'];
 
-// get all json routes descriptors sorted by filename in desc order
-$files = array_reverse(glob(QN_BASEDIR.'/config/routing/*.json'));
+$package = $params["package"];
 
-$result = [];
+$dir = QN_BASEDIR."/packages/{$package}/init/routes";
 
-foreach($files as $filepath) {
-    $json = file_get_contents($filepath);
-    $routes = json_decode($json);
-    foreach($routes as $path => $resolver) {
-        $result[$path]["methods"] = $resolver;
-        $result[$path]["info"]["file"] = basename($filepath);
-    }
+if(!is_dir($dir)) {
+    throw new Exception('no_routes_dir', QN_ERROR_INVALID_PARAM);
 }
 
+$files = scandir($dir);
+
+$tree = [];
+
+foreach($files as $i => $file) {
+    // Cleaning files
+    if(strcmp($file,".") === 0 || strcmp($file,"..") === 0) continue;
+
+    $tree = array_merge($tree,[$file => json_decode(file_get_contents($dir."/".$file))]);
+}
+
+$res = json_encode($tree);
+
 $context->httpResponse()
-    ->body($result)
-    ->send();
+        ->body($res)
+        ->status(200)
+        ->send();

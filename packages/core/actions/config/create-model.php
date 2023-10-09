@@ -44,19 +44,20 @@ if(!file_exists("packages/{$package}/classes")) {
     throw new Exception('missing_classes_dir', QN_ERROR_INVALID_CONFIG);
 }
 
-$model_path = str_replace("\\","/", $params['model']);
+$model_path = $params['model'];
 
-$parts = explode("/", $model_path);
+$parts = explode("\\", $model_path);
 
 $name = array_pop($parts);
 
+
 $namespace = implode("\\", $parts);
 
-if(!strlen($name) <= 0){
+if(strlen($name) <= 0){
     throw new Exception('empty_model_name', QN_ERROR_INVALID_PARAM);
 }
 
-if(!ctype_upper(mb_substr($str, 0, 1))){
+if(!ctype_upper(mb_substr($name, 0, 1))){
     throw new Exception('broken_naming_convention', QN_ERROR_INVALID_PARAM);
 }
 
