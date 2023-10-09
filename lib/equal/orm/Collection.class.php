@@ -82,8 +82,8 @@ class Collection implements \Iterator, \Countable {
         $this->adapter = null;
         // $this->adapter = $dataAdapter;
 
-        // default to 'en' version of the content
-        $this->lang = 'en';
+        // default according to config
+        $this->lang = constant('DEFAULT_LANG');
 
         $this->logger = $logger;
         // check mandatory services
@@ -377,6 +377,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection          Returns the instance of the current Collection.
      */
     public function lang($lang) {
+        // #todo - discard if given lang is not an acceptable value
         $this->lang = $lang;
         return $this;
     }
@@ -809,7 +810,7 @@ class Collection implements \Iterator, \Countable {
             if(!isset($values['state']) || $values['state'] == 'draft') {
                 $values['state'] = 'instance';
             }
-            $res = $this->orm->update($this->class, $ids, $values, $lang);
+            $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
             if($res <= 0) {
                 throw new \Exception($this->orm->getLastError(), $res);
             }
