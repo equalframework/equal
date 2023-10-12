@@ -1643,14 +1643,29 @@ class ObjectManager extends Service {
 
             // 5) update objects
 
+            // remember callbacks that are triggered by the update
             $onupdate_fields = [];
+            $onrevert_fields = [];
+
             // update internal buffer with given values
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onupdate event
                     // #memo - computed fields assigned to null are meant to be re-computed without triggering onupdate
-                    if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
-                        $onupdate_fields[] = $field;
+                    if($schema[$field]['type'] != 'computed') {
+                        if(isset($schema[$field]['onupdate'])) {
+                            $onupdate_fields[] = $field;
+                        }
+                    }
+                    else {
+                        if(!is_null($value)) {
+                            if(isset($schema[$field]['onupdate'])) {
+                                $onupdate_fields[] = $field;
+                            }
+                        }
+                        elseif(isset($schema[$field]['onrevert'])) {
+                            $onrevert_fields[] = $field;
+                        }
                     }
                     // assign cache to object values
                     $target_lang = $lang;
@@ -1676,6 +1691,12 @@ class ObjectManager extends Service {
                 foreach($onupdate_fields as $field) {
                     // run onupdate callback (ignore undefined methods)
                     $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                }
+            }
+            if(count($onrevert_fields)) {
+                foreach($onrevert_fields as $field) {
+                    // run onupdate callback (ignore undefined methods)
+                    $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
                 }
             }
 
