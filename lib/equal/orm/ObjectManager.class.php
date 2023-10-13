@@ -834,7 +834,7 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
-                        $value = $om->cache[$table_name][$oid][$lang][$field];
+                        $value = (isset($om->cache[$table_name][$oid][$lang][$field]))?$om->cache[$table_name][$oid][$lang][$field]:null;
                         // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $schema[$field]['type'] != 'computed') {
                             /** @var \equal\data\adapt\DataAdapter */
@@ -1669,7 +1669,7 @@ class ObjectManager extends Service {
                     }
                     // assign cache to object values
                     $target_lang = $lang;
-                    if($lang != constant('DEFAULT_LANG') && !isset($schema[$field]['multilang']) || !$schema[$field]['multilang']) {
+                    if($lang != constant('DEFAULT_LANG') && (!isset($schema[$field]['multilang']) || !$schema[$field]['multilang'])) {
                         // field is not multilang: make sure to assign the default lang
                         $target_lang = constant('DEFAULT_LANG');
                     }
