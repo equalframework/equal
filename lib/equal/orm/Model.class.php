@@ -18,15 +18,16 @@ namespace equal\orm;
  * @method \equal\orm\Collection create(array $values=null, $lang=null)
  *
  * List of static method with variable parameters:
- * @method array cancreate($om, $values=[], $lang='en')
- * @method array canupdate($om, $ids=[], $values=[], $lang='en')
- * @method array canclone($om, $ids=[])
- * @method array candelete($om, $ids=[])
- * @method array onchange($om, $event=[], $values=[], $lang='en')
- * @method void oncreate($om, $ids=[], $values=[], $lang='en')
- * @method void onupdate($om, $ids=[], $values=[], $lang='en')
- * @method void onclone($om, $ids=[])
- * @method void ondelete($om, $ids=[])
+ * @method array canread($orm, $ids=[], $fields=[], $lang='en')
+ * @method array cancreate($orm, $values=[], $lang='en')
+ * @method array canupdate($orm, $ids=[], $values=[], $lang='en')
+ * @method array canclone($orm, $ids=[])
+ * @method array candelete($orm, $ids=[])
+ * @method array onchange($orm, $event=[], $values=[], $lang='en')
+ * @method void oncreate($orm, $ids=[], $values=[], $lang='en')
+ * @method void onupdate($orm, $ids=[], $values=[], $lang='en')
+ * @method void onclone($orm, $ids=[])
+ * @method void ondelete($orm, $ids=[])
  */
 class Model implements \ArrayAccess, \Iterator {
 
