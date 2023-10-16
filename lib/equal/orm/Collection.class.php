@@ -916,21 +916,36 @@ class Collection implements \Iterator, \Countable {
      */
 
     /**
+     * Check wether an object can be read by current user.
+     * This method can be overridden to define a custom set of tests (based on roles and/or policies).
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers for which reading is requested.
+     * @param  array            $fields     List of fields for which reading is requested.
+     * @param  string           $lang       Language in which multilang fields are being read.
+     * @return array            Returns an associative array mapping ids and fields with their error messages. An empty array means that object has been successfully processed and can be read.
+     */
+    public static function canread($orm, $ids=[], $fields=[], $lang='en') {
+        return [];
+    }
+
+    /**
      * Check wether an object can be created.
      * These tests come in addition to the unique constraints return by method `getUnique()`.
      * This method can be overridden to define a custom set of tests.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
      * @param  string           $lang       Language in which multilang fields are being updated.
      * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
      */
-    public static function cancreate($om, $values=[], $lang='en') {
+    public static function cancreate($orm, $values=[], $lang='en') {
         return [];
     }
-
 
     /**
      * Check wether an object can be updated.
@@ -939,16 +954,15 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
      * @param  array            $values     Associative array holding the new values to be assigned.
      * @param  string           $lang       Language in which multilang fields are being updated.
      * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
      */
-    public static function canupdate($om, $ids=[], $values=[], $lang='en') {
+    public static function canupdate($orm, $ids=[], $values=[], $lang='en') {
         return [];
     }
-
 
     /**
      * Check wether an object can be cloned.
@@ -957,14 +971,13 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
-     * @return array            Returns an associative array mapping fields with their error messages. En empty array means that object has been successfully processed and can be updated.
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be updated.
      */
-    public static function canclone($om, $ids=[]) {
+    public static function canclone($orm, $ids=[]) {
         return [];
     }
-
 
     /**
      * Check wether an object can be deleted.
@@ -972,29 +985,27 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be deleted.
      */
-    public static function candelete($om, $ids=[]) {
+    public static function candelete($orm, $ids=[]) {
         return [];
     }
-
 
     /**
      * Hook invoked after object creation for performing object-specific additional operations.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $ids        List of objects identifiers. Should contain only the id of the object just created.
      * @param  array            $values     Associative array holding the newly assigned values.
      * @param  string           $lang       Language in which multilang fields are being created.
      * @return void
      */
-    public static function oncreate($om, $ids=[], $values=[], $lang='en') {
+    public static function oncreate($orm, $ids=[], $values=[], $lang='en') {
     }
-
 
     /**
      * Hook invoked before object update for performing object-specific additional operations.
@@ -1002,13 +1013,13 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm        ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
      * @param  array            $values     Associative array holding the new values that have been assigned.
      * @param  string           $lang       Language in which multilang fields are being updated.
      * @return void
      */
-    public static function onupdate($om, $ids=[], $values=[], $lang='en') {
+    public static function onupdate($orm, $ids=[], $values=[], $lang='en') {
     }
 
     /**
@@ -1016,26 +1027,24 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm         ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
      * @return void
      */
-    public static function onclone($om, $ids=[]) {
+    public static function onclone($orm, $ids=[]) {
     }
-
 
     /**
      * Hook invoked before object deletion for performing object-specific additional operations.
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm         ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
      * @return void
      */
-    public static function ondelete($om, $ids=[]) {
+    public static function ondelete($orm, $ids=[]) {
     }
-
 
     /**
      * Signature for single object values change in UI.
@@ -1043,13 +1052,13 @@ class Collection implements \Iterator, \Countable {
      *
      * Accepts variable list of arguments, based on their names :
      * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $om         ObjectManager instance.
+     * @param  ObjectManager    $orm         ObjectManager instance.
      * @param  array            $ids        List of objects identifiers.
      * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
      * @param  array            $values     Copy of the current (partial) state of the object.
      * @return array            Returns an associative array mapping fields with their resulting values.
      */
-    public static function onchange($om, $event=[], $values=[], $lang='en') {
+    public static function onchange($orm, $event=[], $values=[], $lang='en') {
         return [];
     }
 }
