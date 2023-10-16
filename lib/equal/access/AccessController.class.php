@@ -88,8 +88,14 @@ class AccessController extends Service {
             // build domain
             $domain = [];
             $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
+            $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
+            $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
+            $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
             if(count($groups_ids)) {
                 $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
+                $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
+                $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
+                $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
             }
             $orm = $this->container->get('orm');
             // fetch all ACLs variants and build a map by object_id
@@ -262,30 +268,25 @@ class AccessController extends Service {
     }
 
     public function grantGroups($groups_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-        if(!is_array($groups_ids)) $groups_ids = (array) $groups_ids;
-        foreach($groups_ids as $group_id) {
+        foreach((array) $groups_ids as $group_id) {
             $this->changeRights('group', '+', $operation, $group_id, $object_class);
         }
     }
 
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-        if(!is_array($users_ids)) $users_ids = (array) $users_ids;
-        foreach($users_ids as $user_id) {
+        foreach((array) $users_ids as $user_id) {
             $this->changeRights('user', '+', $operation, $user_id, $object_class);
         }
     }
 
     public function revokeUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-        if(!is_array($users_ids)) $users_ids = (array) $users_ids;
-
-        foreach($users_ids as $user_id) {
+        foreach((array) $users_ids as $user_id) {
             $this->changeRights('user', '-', $operation, $user_id, $object_class);
         }
     }
 
     public function revokeGroups($groups_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-        if(!is_array($groups_ids)) $groups_ids = (array) $groups_ids;
-        foreach($groups_ids as $group_id) {
+        foreach((array) $groups_ids as $group_id) {
             $this->changeRights('group', '-', $operation, $group_id, $object_class);
         }
     }
@@ -307,11 +308,13 @@ class AccessController extends Service {
      *
      * @param $groups_ids   array   List of groups identifiers the current user must be added to.
      */
-    public function addGroups($groups_ids) {
+    public function addGroups($groups_ids, $user_id=null) {
         $groups_ids = (array) $groups_ids;
-        $auth = $this->container->get('auth');
+        if(is_null($user_id)) {
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
         $orm = $this->container->get('orm');
-        $user_id = $auth->userId();
         return $orm->write('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
     }
 
@@ -320,8 +323,8 @@ class AccessController extends Service {
      *
      * @param   $group_id   integer Identifier of the group the user must be added to.
      */
-    public function addGroup($group_id) {
-        return $this->addGroups($group_id);
+    public function addGroup($group_id, $user_id=null) {
+        return $this->addGroups($group_id, $user_id);
     }
 
     /**
@@ -329,9 +332,12 @@ class AccessController extends Service {
      *
      * @param $group    integer|string    The group name or identifier.
      */
-    public function hasGroup($group) {
+    public function hasGroup($group, $user_id=null) {
         $orm = $this->container->get('orm');
-        $auth = $this->container->get('auth');
+        if(is_null($user_id)) {
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
         if( !is_numeric($group) ) {
             // fetch all ACLs variants
             $groups_ids = $orm->search('core\Group', ['name', '=', $group]);
@@ -340,7 +346,6 @@ class AccessController extends Service {
             }
             $group = $groups_ids[0];
         }
-        $user_id = $auth->userId();
         $groups_ids = $this->getUserGroups($user_id);
         return in_array($group, $groups_ids);
     }
@@ -354,7 +359,7 @@ class AccessController extends Service {
      */
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
         // check operation against default rights
-        if($this->default_rights & $operation) {
+        if( ($this->default_rights & $operation) == $operation) {
             return true;
         }
 
@@ -364,7 +369,7 @@ class AccessController extends Service {
         // permission query is for class and/or fields only (no specific objects)
         $user_rights = $this->getUserRights($user_id, $object_class, $objects_ids);
 
-        return (bool) ($user_rights & $operation);
+        return (($user_rights & $operation) == $operation);
     }
 
     /**
