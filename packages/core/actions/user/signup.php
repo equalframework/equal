@@ -133,6 +133,7 @@ else {
         ->first(true);
 }
 
+// #todo - handle this part in another controller (user_send-confirmation)
 if($send_confirm) {
     // we need the original password to generate confirmation code in the email
     $user['password'] = $password;
