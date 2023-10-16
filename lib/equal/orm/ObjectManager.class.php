@@ -1844,8 +1844,11 @@ class ObjectManager extends Service {
                 }
             }
 
-            // #memo - there is no canread(), since it would be redundant with access::isAllowed()
-            // #todo - no : canread might depend on non-ACL policies
+            // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
+            $canread = $this->callonce($class, 'canread', $ids, $requested_fields, $lang);
+            if($canread > 0 && !empty($canread)) {
+                throw new \Exception(serialize($canread), QN_ERROR_NOT_ALLOWED);
+            }
 
             // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 
