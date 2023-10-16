@@ -66,29 +66,32 @@ class Tester {
             // use a dedicated controller to check test unit structure validity
 
             // if a specific test ID was given, ignore other tests
-            if($test_id && $id != $test_id) continue;
+            if($test_id && $id != $test_id) {
+                continue;
+            }
+
+            $args = [];
 
             if(isset($test['arrange']) && is_callable($test['arrange'])) {
                 $precondition = $test['arrange']();
+                $args = [$precondition];
             }
 
             $result = null;
             $success = true;
 
             if(isset($test['test']) && is_callable($test['test'])) {
-                $result = $test['test']();
+                $result = call_user_func_array($test['test'], $args);
             }
             elseif(isset($test['act']) && is_callable($test['act'])) {
-                $result = $test['act']();
+                $result = call_user_func_array($test['act'], $args);
             }
 
-
             if(in_array(gettype($result), (array) $test['return'])) {
-
                 if(isset($test['assert']) && is_callable($test['assert'])) {
-                    $success = $test['assert']($result);
+                    $success = call_user_func_array($test['assert'], [$result]);
                 }
-                else if(isset($test['expected'])) {
+                elseif(isset($test['expected'])) {
                     if(gettype($result) == gettype($test['expected'])) {
                         if(gettype($result) == "array") {
                             if(!self::array_equals($test['expected'], $result)) {
@@ -113,16 +116,15 @@ class Tester {
             if(!$success) {
                 $this->failing[] = $id;
             }
-            else {
-                if(isset($test['rollback']) && is_callable($test['rollback'])) {
-                    $test['rollback']();
-                }
+
+            if(isset($test['rollback']) && is_callable($test['rollback'])) {
+                $test['rollback']();
             }
 
             $this->results[$id] = [
                 'description'   => $test['description'],
                 'status'        => $success?'ok':'ko',
-                'result'        => $result
+                'result'        => (gettype($result) == 'object')?'(object)':$result
             ];
 
             if(isset($test['expected'])) {
@@ -130,7 +132,7 @@ class Tester {
             }
 
             if(isset($test['arrange'])) {
-                $this->results[$id]['arrange'] = $precondition;
+                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'(object)':$precondition;
             }
         }
 
