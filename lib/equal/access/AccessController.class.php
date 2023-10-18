@@ -82,46 +82,48 @@ class AccessController extends Service {
         $user_rights = $this->default_rights;
 
         if(count($object_ids)) {
-            // get all user's groups
-            $groups_ids = $this->getUserGroups($user_id);
-
-            // build domain
-            $domain = [];
-            $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
-            $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
-            $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
-            $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
-            if(count($groups_ids)) {
-                $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
-                $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
-                $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
-                $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
-            }
-            $orm = $this->container->get('orm');
-            // fetch all ACLs variants and build a map by object_id
-            $acl_ids = $orm->search('core\Permission', $domain);
-            if(count($acl_ids)) {
-                $map_objects_permissions = [];
-                // get the user permissions
-                $values = $orm->read('core\Permission', $acl_ids, ['object_id', 'rights']);
-                foreach($values as $acl_id => $acl) {
-                    if(!isset($map_objects_permissions[$acl['object_id']])) {
-                        $map_objects_permissions[$acl['object_id']] = $acl['rights'];
-                    }
-                    else {
-                        $map_objects_permissions[$acl['object_id']] |= $acl['rights'];
-                    }
-                }
-                $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
-                foreach($map_objects_permissions as $object_id => $rights) {
-                    $user_rights &= $rights;
-                }
-            }
-            // user has at least the default rights
-            $user_rights = max($user_rights, $this->default_rights);
             // root user always has full rights
             if($user_id == QN_ROOT_USER_ID) {
                 $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
+            }
+            else {
+                // get all user's groups
+                $groups_ids = $this->getUserGroups($user_id);
+
+                // build domain
+                $domain = [];
+                $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
+                $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'in', $object_ids] ];
+                $domain[] = [ ['class_name', '=', $object_class], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
+                $domain[] = [ ['class_name', '=', '*'], ['user_id', '=', $user_id], ['object_id', 'is', null] ];
+                if(count($groups_ids)) {
+                    $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
+                    $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'in', $object_ids] ];
+                    $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
+                    $domain[] = [ ['class_name', '=', '*'], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
+                }
+                $orm = $this->container->get('orm');
+                // fetch all ACLs variants and build a map by object_id
+                $acl_ids = $orm->search('core\Permission', $domain);
+                if(count($acl_ids)) {
+                    $map_objects_permissions = [];
+                    // get the user permissions
+                    $values = $orm->read('core\Permission', $acl_ids, ['object_id', 'rights']);
+                    foreach($values as $acl_id => $acl) {
+                        if(!isset($map_objects_permissions[$acl['object_id']])) {
+                            $map_objects_permissions[$acl['object_id']] = $acl['rights'];
+                        }
+                        else {
+                            $map_objects_permissions[$acl['object_id']] |= $acl['rights'];
+                        }
+                    }
+                    $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
+                    foreach($map_objects_permissions as $object_id => $rights) {
+                        $user_rights &= $rights;
+                    }
+                }
+                // user has at least the default rights
+                $user_rights = max($user_rights, $this->default_rights);
             }
         }
         else {
@@ -370,17 +372,11 @@ class AccessController extends Service {
      * @param int[]         $objects_ids      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
-        // check operation against default rights
-        if( ($this->default_rights & $operation) == $operation) {
-            return true;
-        }
-
         // force cast ids to array (passing a single id is accepted)
         $objects_ids = (array) $objects_ids;
-
         // permission query is for class and/or fields only (no specific objects)
         $user_rights = $this->getUserRights($user_id, $object_class, $objects_ids);
-
+        // if all bits of operation are granted, then user has requested rights
         return (($user_rights & $operation) == $operation);
     }
 
