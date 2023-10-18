@@ -86,6 +86,7 @@ class Tester {
                 }
                 catch(\Exception $e) {
                     $this->results[$id]['logs'][] = "Error while performing `arrange()`: ".$e->getMessage();
+                    throw new \Exception("test {$id} raised an unexpected exception", QN_ERROR_UNKNOWN);
                 }
             }
 
