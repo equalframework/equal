@@ -70,6 +70,10 @@ class Tester {
                 continue;
             }
 
+            $this->results[$id] = [
+                'description'   => $test['description']
+            ];
+
             $args = [];
 
             if(isset($test['arrange']) && is_callable($test['arrange'])) {
@@ -106,13 +110,25 @@ class Tester {
                 }
             }
             elseif(isset($test['act']) && is_callable($test['act'])) {
-                $result = call_user_func_array($test['act'], $args);
-                if(isset($test['assert']) && is_callable($test['assert'])) {
-                    $success = call_user_func_array($test['assert'], [$result]);
+                try {
+                    $result = call_user_func_array($test['act'], $args);
+                    if(isset($test['assert']) && is_callable($test['assert'])) {
+                        $success = call_user_func_array($test['assert'], [$result]);
+                    }
+                }
+                catch(\Exception $e) {
+                    $success = false;
+                    $this->results[$id]['log'] = $e->getMessage();
                 }
             }
             elseif(isset($test['assert']) && is_callable($test['assert'])) {
-                $success = call_user_func_array($test['assert'], $args);
+                try {
+                    $success = call_user_func_array($test['assert'], $args);
+                }
+                catch(\Exception $e) {
+                    $success = false;
+                    $this->results[$id]['log'] = $e->getMessage();
+                }
             }
 
             if(!$success) {
@@ -123,11 +139,8 @@ class Tester {
                 $test['rollback']();
             }
 
-            $this->results[$id] = [
-                'description'   => $test['description'],
-                'status'        => $success?'ok':'ko',
-                'result'        => (gettype($result) == 'object')?'(object)':$result
-            ];
+            $this->results[$id]['status'] = $success?'ok':'ko';
+            $this->results[$id]['result'] = (gettype($result) == 'object')?'(object)':$result;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];

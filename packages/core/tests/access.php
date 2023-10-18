@@ -64,7 +64,7 @@ $tests = [
                 'arrange'           => function() use($providers) {
                         $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
                         return $user['id'];
-                },
+                    },
                 'act'            => function($user_id) use($providers) {
                         return $user_id;
                     },
