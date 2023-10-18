@@ -221,6 +221,7 @@ class AccessController extends Service {
 
 
     /**
+     * Arbitrary change the rights granted to a user or a group.
      *
      * @param   $identity       string   'user' or 'group'
      * @param   $operator       string   '+' or '-'
@@ -230,40 +231,39 @@ class AccessController extends Service {
      *
      */
     private function changeRights($identity, $operator, $rights, $identity_id, $object_class) {
-        if(!in_array($identity, ['user', 'group'])) {
-            return;
-        }
-        // all users belong to the default group
-        $orm = $this->container->get('orm');
-        // search for an ACL describing this specific user
-        $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], [$identity.'_id', '=', $identity_id] ]);
-        if(count($acl_ids)) {
-            $values = $orm->read('core\Permission', $acl_ids, ['rights']);
-            // there should be only one result
-            foreach($values as $acl_id => $acl) {
-                if($operator == '+') {
-                    $acl['rights'] |= $rights;
+        if(in_array($identity, ['user', 'group'])) {
+            // all users belong to the default group
+            $orm = $this->container->get('orm');
+            // search for an ACL describing this specific user
+            $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], [$identity.'_id', '=', $identity_id] ]);
+            if(count($acl_ids)) {
+                $values = $orm->read('core\Permission', $acl_ids, ['rights']);
+                // there should be only one result
+                foreach($values as $acl_id => $acl) {
+                    if($operator == '+') {
+                        $acl['rights'] |= $rights;
+                    }
+                    else if($operator == '-') {
+                        $acl['rights'] &= ~$rights;
+                    }
+                    if(!$acl['rights']) {
+                        // remove ACL if empty (no right granted)
+                        $orm->remove('core\Permission', $acl_id, true);
+                    }
+                    else {
+                        // update ACL with new permissions
+                        $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+                    }
                 }
-                else if($operator == '-') {
-                    $acl['rights'] &= ~$rights;
-                }
-                if(!$acl['rights']) {
-                    // remove ACL if empty (no right granted)
-                    $orm->remove('core\Permission', $acl_id, true);
-                }
-                else {
-                    // update ACL with new permissions
-                    $orm->write('core\Permission', $acl_id, ['rights' => $acl['rights']]);
-                }
+                $rights = $acl['rights'];
             }
-            $rights = $acl['rights'];
-        }
-        else if($operator == '+') {
-            $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
-        }
-        // update internal cache
-        if($identity == 'user' && isset($this->permissionsTable[$identity_id])) {
-            unset($this->permissionsTable[$identity_id]);
+            else if($operator == '+') {
+                $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
+            }
+            // update internal cache
+            if($identity == 'user' && isset($this->permissionsTable[$identity_id])) {
+                unset($this->permissionsTable[$identity_id]);
+            }
         }
     }
 
@@ -328,7 +328,7 @@ class AccessController extends Service {
     }
 
     /**
-     * Check if current user is member of a given group.
+     * Check if a user is member of a given group. I no user is provided, defaults to current user.
      *
      * @param $group    integer|string    The group name or identifier.
      */
@@ -385,20 +385,18 @@ class AccessController extends Service {
      */
     public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
 
-        // grant all rights when using CLI
-        if(php_sapi_name() === 'cli') {
-            return true;
-        }
-
-        // retrieve current user identifier
+        /** @var \equal\auth\AuthenticationManager */
         $auth = $this->container->get('auth');
+        // retrieve current user identifier
         $user_id = $auth->userId();
 
-        return $this->hasRight($user_id, $operation, $object_class, $object_ids);
+        $has_right = $this->hasRight($user_id, $operation, $object_class, $object_ids);
+
+        return $has_right;
     }
 
     /**
-     * Check if a Collection is compliant with a given policy for a specific USer.
+     * Check if a Collection is compliant with a given policy for a specific User.
      */
     public function isCompliant($user_id, $policy, $object_class, $object_ids) {
         $result = [];
