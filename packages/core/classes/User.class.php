@@ -128,6 +128,7 @@ class User extends Model {
     public static function getWorkflow() {
         return [
             'created' => [
+                'description' => "The user account has been created but is not validated yet.",
                 'transitions' => [
                     'validation' => [
                         'watch'       => ['validated'],
@@ -140,6 +141,7 @@ class User extends Model {
                 ]
             ],
             'validated' => [
+                'description' => 'The email address of the account has been confirmed.',
                 'transitions' => [
                     'suspension' => [
                         'description' => 'Set the user status as suspended.',
@@ -154,6 +156,7 @@ class User extends Model {
                 ]
             ],
             'confirmed' => [
+                'description' => 'The account has been validated by the USER_ACCOUNT_VALIDATION policy, and the email address has been confirmed.',
                 'transitions' => [
                     'suspension' => [
                         'description' => 'Set the user account as disabled (prevents signin).',
@@ -170,6 +173,35 @@ class User extends Model {
                 ]
             ]
         ];
+    }
+
+    public static function getActions() {
+        return [
+            'validate' => [
+                'description'   => "Sets the validated flag to true.",
+                'policies'      => [],
+                'function'      => 'doValidate'
+            ],
+            'suspend' => [
+                'description'   => "Suspend the user account by setting the validated flag to false.",
+                'policies'      => [],
+                'function'      => 'doSuspend'
+            ]
+        ];
+    }
+
+    /**
+     * Force marking the validated flag as true, this might trigger the update of the status.
+     */
+    public static function doValidate($self) {
+        $self->update(['validated' => true]);
+    }
+
+    /**
+     * Force a reset of the validated flag, which will prevent login, whatever the status.
+     */
+    public static function doSuspend($self) {
+        $self->update(['validated' => false]);
     }
 
     public static function calcName($self) {
