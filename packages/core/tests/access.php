@@ -233,7 +233,7 @@ $tests = [
                 },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return $access->canPerform($user_id, 'validate', 'core\User', $user_id);
+                    return !boolval(count($access->canPerform($user_id, 'validate', 'core\User', $user_id)));
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
