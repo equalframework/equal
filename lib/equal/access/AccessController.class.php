@@ -22,7 +22,7 @@ class AccessController extends Service {
     private $default_rights;
 
     /**
-     * This method cannot be called directly (should be invoked through Singleton::getInstance)
+     * This method cannot be called directly (should be invoked through Singleton::getInstance).
      */
     protected function __construct(Container $container) {
         $this->permissionsTable = array();
@@ -152,9 +152,8 @@ class AccessController extends Service {
                     if(!isset($this->permissionsTable[$user_id])) {
                         $this->permissionsTable[$user_id] = [];
                     }
-
-                    $this->permissionsTable[$user_id][$object_class] = $user_rights;
                 }
+                $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
         }
 
@@ -164,6 +163,9 @@ class AccessController extends Service {
 
     /**
      * Retrieve ACLs for a given user on whole class or parents classes, but not individual objects.
+     *
+     * @param   $user_id        integer  Identifier of targeted user.
+     * @param   $object_class   string   Name of the class for which the ACL are requested.
      */
     protected function getUserAcls($user_id, $object_class) {
         $result = [];
@@ -273,12 +275,18 @@ class AccessController extends Service {
         }
     }
 
+    /**
+     * Provide additional rights for a user on a given class of objects (wildcard supported).
+     */
     public function grantUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         foreach((array) $users_ids as $user_id) {
             $this->changeRights('user', '+', $operation, $user_id, $object_class);
         }
     }
 
+    /**
+     * Withdraw some rights for a user on a given class of objects (wildcard supported).
+     */
     public function revokeUsers($users_ids, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
         foreach((array) $users_ids as $user_id) {
             $this->changeRights('user', '-', $operation, $user_id, $object_class);
@@ -397,6 +405,7 @@ class AccessController extends Service {
 
     /**
      * Check if a Collection is compliant with a given policy for a specific User.
+     * This relates to the optional `getPolicies()` method that can be defined on Model classes.
      */
     public function isCompliant($user_id, $policy, $object_class, $object_ids) {
         $result = [];
@@ -439,6 +448,8 @@ class AccessController extends Service {
 
     /**
      * Check if a given action can be performed on a Collection, according to the policies defined at the entity level for that action, if any.
+     * This relates to the optional `getActions()` method that can be defined on Model classes.
+     *
      */
     public function canPerform($user_id, $action, $object_class, $object_ids) {
         $result = [];
@@ -457,6 +468,7 @@ class AccessController extends Service {
     /**
      * @deprecated
      */
+    /*
     public function rights($user_id, $object_class, $object_fields=[]) {
         // non-root users can only fetch their own rights
         $auth = $this->container->get('auth');
@@ -466,11 +478,13 @@ class AccessController extends Service {
         }
         return $this->getUserRights($user_id, $object_class);
     }
+    */
 
     /**
      * @deprecated
      *
      */
+    /*
     public function groups($user_id) {
         // non-root user can only fetch their own groups
         $auth = $this->container->get('auth');
@@ -480,75 +494,77 @@ class AccessController extends Service {
         }
         return $this->getUserGroups($user_id);
     }
+    */
 
     /**
      *  Filter a list of objects and return only ids of objects on which current user has permission for given operation.
      *  This method is called by the Collection service, when performing Search
      *  @deprecated
      */
-    public function filter($operation, $object_class, $object_fields, $object_ids) {
+    // public function filter($operation, $object_class, $object_fields, $object_ids) {
 
-        // grant all rights when using CLI
-        if(php_sapi_name() === 'cli') return $object_ids;
+    //     // grant all rights when using CLI
+    //     if(php_sapi_name() === 'cli') return $object_ids;
 
-        /** @var ObjectManager */
-        $orm = $this->container->get('orm');
+    //     /** @var ObjectManager */
+    //     $orm = $this->container->get('orm');
 
-        // retrieve current user identifier
-        $auth = $this->container->get('auth');
-        $user_id = $auth->userId();
+    //     // retrieve current user identifier
+    //     $auth = $this->container->get('auth');
+    //     $user_id = $auth->userId();
 
-        // build final user rights
-        $user_rights = $this->getUserRights($user_id, $object_class, $object_ids);
+    //     // build final user rights
+    //     $user_rights = $this->getUserRights($user_id, $object_class, $object_ids);
 
-        // retrieve root class of filtered entity
-        $root_class = ObjectManager::getObjectRootClass($object_class);
+    //     // retrieve root class of filtered entity
+    //     $root_class = ObjectManager::getObjectRootClass($object_class);
 
-        if($root_class == 'core\Group') {
-            // members of a group have READ rights on it
-            $groups_ids = $this->getUserGroups($user_id);
-            if(count(array_diff($object_ids, $groups_ids)) <= 0) {
-                $user_rights |= QN_R_READ;
-            }
-        }
-        elseif($root_class == 'core\User') {
-            if(count($object_ids) == 1 && $user_id == $object_ids[0]) {
-                // user always has READ rights on its own object
-                $user_rights |= QN_R_READ;
-                // user is granted to update some fields on its own object
-                $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
-                // if, after removing special fields, there are only fields that user can update, then we grant the WRITE right
-                if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
-                    $user_rights |= QN_R_WRITE;
-                }
-            }
-        }
-        elseif($operation == QN_R_READ) {
-            // this is a special case of a generic feature (we should add this in the init data)
-            // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
-            $objects = $orm->read($object_class, $object_ids, ['creator']);
-            $user_ids = [];
-            foreach($objects as $oid => $odata) {
-                $user_ids[$odata['creator']] = true;
-            }
-            // user always has READ right on objects he created
-            if(count($user_ids) == 1 && array_keys($user_ids)[0] == $user_id) {
-                $user_rights |= QN_R_READ;
-            }
-        }
+    //     if($root_class == 'core\Group') {
+    //         // members of a group have READ rights on it
+    //         $groups_ids = $this->getUserGroups($user_id);
+    //         if(count(array_diff($object_ids, $groups_ids)) <= 0) {
+    //             $user_rights |= QN_R_READ;
+    //         }
+    //     }
+    //     elseif($root_class == 'core\User') {
+    //         if(count($object_ids) == 1 && $user_id == $object_ids[0]) {
+    //             // user always has READ rights on its own object
+    //             $user_rights |= QN_R_READ;
+    //             // user is granted to update some fields on its own object
+    //             $writeable_fields = ['password', 'firstname', 'lastname', 'language', 'locale'];
+    //             // if, after removing special fields, there are only fields that user can update, then we grant the WRITE right
+    //             if(count(array_diff($object_fields, array_merge(array_keys(Model::getSpecialColumns()), $writeable_fields))) == 0) {
+    //                 $user_rights |= QN_R_WRITE;
+    //             }
+    //         }
+    //     }
+    //     elseif($operation == QN_R_READ) {
+    //         // this is a special case of a generic feature (we should add this in the init data)
+    //         // if all fields 'creator' of targeted objects are equal to $user_id, then add R_READ to user_rights
+    //         $objects = $orm->read($object_class, $object_ids, ['creator']);
+    //         $user_ids = [];
+    //         foreach($objects as $oid => $odata) {
+    //             $user_ids[$odata['creator']] = true;
+    //         }
+    //         // user always has READ right on objects he created
+    //         if(count($user_ids) == 1 && array_keys($user_ids)[0] == $user_id) {
+    //             $user_rights |= QN_R_READ;
+    //         }
+    //     }
 
 
-        /*
-        loop on objects_ids, for each object
+    //     /*
+    //     loop on objects_ids, for each object
 
-        1) fetch regular ACL
-        2) fetch ACL with a domain
-        either user has operation granted with one of its ACL (or one of its groups)
-        or user is granted operation on specific objects (matching ACL domain)
+    //     1) fetch regular ACL
+    //     2) fetch ACL with a domain
+    //     either user has operation granted with one of its ACL (or one of its groups)
+    //     or user is granted operation on specific objects (matching ACL domain)
 
-        validate id as soon as an ACL condition is met
-        */
+    //     validate id as soon as an ACL condition is met
+    //     */
 
-        return ((bool)($user_rights & $operation))?$object_ids:[];
-    }
+    //     return ((bool)($user_rights & $operation))?$object_ids:[];
+    // }
+
 }
