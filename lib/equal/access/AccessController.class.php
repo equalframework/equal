@@ -119,6 +119,10 @@ class AccessController extends Service {
             }
             // user has at least the default rights
             $user_rights = max($user_rights, $this->default_rights);
+            // root user always has full rights
+            if($user_id == QN_ROOT_USER_ID) {
+                $user_rights = QN_R_CREATE | QN_R_READ | QN_R_WRITE | QN_R_DELETE | QN_R_MANAGE;
+            }
         }
         else {
 
