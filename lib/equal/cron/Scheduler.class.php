@@ -45,6 +45,7 @@ class Scheduler extends Service {
             $selected_tasks_ids = $orm->search('core\Task', [
                     // #memo - we need to select all active tasks (recurring or not)
                     ['is_active', '=', true],
+                    ['status', '=', 'idle'],
                     ['moment', '<=', $now]
                 ], ['moment' => 'asc'], 0, 10);
         }
@@ -71,10 +72,10 @@ class Scheduler extends Service {
                         continue;
                     }
                 }
-                // mark the task as running and update last_run
-                $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now, 'pid' => getmypid()]);
                 // if due time has passed or if specific tasks_ids are given, execute the task
                 if($task['moment'] <= $now || count($tasks_ids) > 0) {
+                    // mark the task as running and update last_run
+                    $orm->update('core\Task', $tid, ['status' => 'running', 'last_run' => $now, 'pid' => getmypid()]);
                     // if no specific tasks_ids are given, update each task
                     if(!count($tasks_ids)) {
                         // #memo - we must start by updating the task : some controllers might run for a duration longer than the remaining time before the next `run()` call
