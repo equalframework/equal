@@ -82,35 +82,37 @@ class Tester {
 
             if(isset($test['test']) && is_callable($test['test'])) {
                 $result = call_user_func_array($test['test'], $args);
-            }
-            elseif(isset($test['act']) && is_callable($test['act'])) {
-                $result = call_user_func_array($test['act'], $args);
-            }
-
-            if(in_array(gettype($result), (array) $test['return'])) {
-                if(isset($test['assert']) && is_callable($test['assert'])) {
-                    $success = call_user_func_array($test['assert'], [$result]);
-                }
-                elseif(isset($test['expected'])) {
-                    if(gettype($result) == gettype($test['expected'])) {
-                        if(gettype($result) == "array") {
-                            if(!self::array_equals($test['expected'], $result)) {
-                                $success = false;
+                if(in_array(gettype($result), (array) $test['return'])) {
+                    if(isset($test['expected'])) {
+                        if(gettype($result) == gettype($test['expected'])) {
+                            if(gettype($result) == "array") {
+                                if(!self::array_equals($test['expected'], $result)) {
+                                    $success = false;
+                                }
+                            }
+                            else {
+                                if($result != $test['expected']) {
+                                    $success = false;
+                                }
                             }
                         }
                         else {
-                            if($result != $test['expected']) {
-                                $success = false;
-                            }
+                            $success = false;
                         }
                     }
-                    else {
-                        $success = false;
-                    }
+                }
+                else {
+                    $success = false;
                 }
             }
-            else {
-                $success = false;
+            elseif(isset($test['act']) && is_callable($test['act'])) {
+                $result = call_user_func_array($test['act'], $args);
+                if(isset($test['assert']) && is_callable($test['assert'])) {
+                    $success = call_user_func_array($test['assert'], [$result]);
+                }
+            }
+            elseif(isset($test['assert']) && is_callable($test['assert'])) {
+                $success = call_user_func_array($test['assert'], $args);
             }
 
             if(!$success) {
