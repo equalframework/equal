@@ -78,93 +78,93 @@ $tests = [
         ],
 
     '0202' => [
-                'description'       => "Verify that new user is assigned only to `users` group.",
-                'help'              => "Create a user, check with a non existing group.",
-                'return'            => ['integer'],
-                'arrange'           => function() use($providers) {
-                        $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
-                        return $user['id'];
+            'description'       => "Verify that new user is assigned only to `users` group.",
+            'help'              => "Create a user, check with a non existing group.",
+            'return'            => ['integer'],
+            'arrange'           => function() use($providers) {
+                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    return $user['id'];
                 },
-                'act'            => function($user_id) use($providers) {
-                        return $user_id;
-                    },
-                'assert'            => function($user_id) use($providers) {
-                        $access = $providers['access'];
-                        return ($access->hasGroup('users', $user_id) && !$access->hasGroup('foo_non_existing_group', $user_id));
-                    },
-                'rollback'          => function() {
-                        User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
-                    }
+            'act'            => function($user_id) use($providers) {
+                    return $user_id;
+                },
+            'assert'            => function($user_id) use($providers) {
+                    $access = $providers['access'];
+                    return ($access->hasGroup('users', $user_id) && !$access->hasGroup('foo_non_existing_group', $user_id));
+                },
+            'rollback'          => function() {
+                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                }
         ],
 
     '0203' => [
-                'description'       => "Ensure that a user can be added to a group.",
-                'help'              => "Create a user, assign it to a group, and check the group membership  of the user.",
-                'return'            => ['array'],
-                'arrange'           => function() use($providers) {
-                        $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
-                        $group = Group::create(['name' => 'test1'])->first();
-                        return [$user['id'], $group['id']];
+            'description'       => "Ensure that a user can be added to a group.",
+            'help'              => "Create a user, assign it to a group, and check the group membership  of the user.",
+            'return'            => ['array'],
+            'arrange'           => function() use($providers) {
+                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    $group = Group::create(['name' => 'test1'])->first();
+                    return [$user['id'], $group['id']];
                 },
-                'act'               => function ($data) use($providers) {
-                        list($user_id, $group_id) = $data;
-                        $access = $providers['access'];
-                        $access->addGroup($group_id, $user_id);
-                        return [$user_id, $group_id];
-                    },
-                'assert'            => function($data) use($providers) {
-                        list($user_id, $group_id) = $data;
-                        $access = $providers['access'];
-                        $users_ids = $access->getGroupUsers($group_id);
-                        return $access->hasGroup($group_id, $user_id) && in_array($user_id, $users_ids);
-                    },
-                'rollback'          => function() {
-                        Group::search(['name', '=', 'test1'])->delete(true);
-                        User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
-                    }
+            'act'               => function ($data) use($providers) {
+                    list($user_id, $group_id) = $data;
+                    $access = $providers['access'];
+                    $access->addGroup($group_id, $user_id);
+                    return [$user_id, $group_id];
+                },
+            'assert'            => function($data) use($providers) {
+                    list($user_id, $group_id) = $data;
+                    $access = $providers['access'];
+                    $users_ids = $access->getGroupUsers($group_id);
+                    return $access->hasGroup($group_id, $user_id) && in_array($user_id, $users_ids);
+                },
+            'rollback'          => function() {
+                    Group::search(['name', '=', 'test1'])->delete(true);
+                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                }
         ],
 
     '0204' => [
-                'description'       => "Try to get users of a non-existing group.",
-                'help'              => "Create a user, assign it to a group, and check the group membership  of the user.",
-                'assert'            => function() use($providers) {
-                        $access = $providers['access'];
-                        $users_ids = $access->getGroupUsers(0);
-                        return !count($users_ids);
-                    }
+            'description'       => "Try to get users of a non-existing group.",
+            'help'              => "Create a user, assign it to a group, and check the group membership  of the user.",
+            'assert'            => function() use($providers) {
+                    $access = $providers['access'];
+                    $users_ids = $access->getGroupUsers(0);
+                    return !count($users_ids);
+                }
         ],
 
     // rights management
     '0300' => [
-                'description'       => "Check root user rights.",
-                'assert'            => function() use($providers) {
-                        $access = $providers['access'];
-                        return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
-                    },
+            'description'       => "Check root user rights.",
+            'assert'            => function() use($providers) {
+                    $access = $providers['access'];
+                    return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
+                },
         ],
 
     '0301' => [
-                'description'       => "Re-Check root user rights (to ensure using the rights cache).",
-                'assert'            => function() use($providers) {
-                        $access = $providers['access'];
-                        return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
-                    },
+            'description'       => "Re-Check root user rights (to ensure using the rights cache).",
+            'assert'            => function() use($providers) {
+                    $access = $providers['access'];
+                    return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
+                },
         ],
 
     '0303' => [
-                'description'       => "Check if a user has a right on all objects.",
-                'help'              => "Create a user, assign it to a group, grant some rights to that group and check the resulting rights of the user.",
-                'arrange'           => function() use($providers) {
-                        $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
-                        return $user['id'];
+            'description'       => "Check if a user has a right on all objects.",
+            'help'              => "Create a user, assign it to a group, grant some rights to that group and check the resulting rights of the user.",
+            'arrange'           => function() use($providers) {
+                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    return $user['id'];
+            },
+            'assert'            => function($user_id) use($providers) {
+                    $access = $providers['access'];
+                    return !$access->hasRight($user_id, R_MANAGE, 'core\User');
                 },
-                'assert'            => function($user_id) use($providers) {
-                        $access = $providers['access'];
-                        return !$access->hasRight($user_id, R_MANAGE, 'core\User');
-                    },
-                'rollback'          => function() {
-                        User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
-                    }
+            'rollback'          => function() {
+                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                }
         ],
 
     '0304' => [
@@ -176,7 +176,7 @@ $tests = [
                     $group = Group::create(['name' => 'test1'])->first();
                     $access->addGroup($group['id'], $user['id']);
                     return $group['id'];
-            },
+                },
             'act'               => function ($group_id) use($providers) {
                     $access = $providers['access'];
                     $access->grantGroups($group_id, R_READ|R_WRITE|R_MANAGE, '*');
@@ -204,7 +204,7 @@ $tests = [
                     $access->grantGroups($group['id'], R_MANAGE, '*');
                     $access->addGroup($group['id'], $user['id']);
                     return [$user['id'], $group['id']];
-            },
+                },
             'act'               => function ($data) use($providers) {
                     list($user_id, $group_id) = $data;
                     $access = $providers['access'];
@@ -220,7 +220,6 @@ $tests = [
                     Group::search(['name', '=', 'test1'])->delete(true);
                     User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
                 }
-
         ],
 
 

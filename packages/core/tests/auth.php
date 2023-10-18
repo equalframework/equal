@@ -8,32 +8,30 @@
 $tests = [
 
     '0101' => [
-                'description'       =>  "Retrieve authentication service from eQual::announce",
-                'return'            =>  ['object'],
-                'assert'            =>  function($auth) {
-                    return true;
-                        return ($auth instanceof equal\auth\AuthenticationManager);
-                    },
-                'act'               =>  function () {
-                        list($params, $providers) = eQual::announce([
-                            'providers' => ['equal\auth\AuthenticationManager']
-                        ]);
-                        return $providers['equal\auth\AuthenticationManager'];
-                    }
+            'description'       =>  "Retrieve authentication service from eQual::announce",
+            'return'            =>  ['object'],
+            'assert'            =>  function($auth) {
+                    return ($auth instanceof equal\auth\AuthenticationManager);
+                },
+            'act'               =>  function () {
+                    list($params, $providers) = eQual::announce([
+                        'providers' => ['equal\auth\AuthenticationManager']
+                    ]);
+                    return $providers['equal\auth\AuthenticationManager'];
+                }
         ],
 
     '0102' => [
-                'description'       =>  "Get auth provider using a custom registered name.",
-                'return'            =>  ['object'],
-                'assert'            =>  function($auth) {
-                        return ($auth instanceof equal\auth\AuthenticationManager);
-                    },
-                'act'               =>  function (){
-                        list($params, $providers) = eQual::announce([
-                            'providers' => ['@@testAuth' => 'equal\auth\AuthenticationManager']
-                        ]);
-                        return $providers['@@testAuth'];
-                    }
-
+            'description'       =>  "Get auth provider using a custom registered name.",
+            'return'            =>  ['object'],
+            'assert'            =>  function($auth) {
+                    return ($auth instanceof equal\auth\AuthenticationManager);
+                },
+            'act'               =>  function (){
+                    list($params, $providers) = eQual::announce([
+                        'providers' => ['@@testAuth' => 'equal\auth\AuthenticationManager']
+                    ]);
+                    return $providers['@@testAuth'];
+                }
         ]
 ];
