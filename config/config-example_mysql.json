@@ -4,7 +4,7 @@
     "DEFAULT_RIGHTS": "QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE",
     "DEBUG_MODE": "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL",
     "DEBUG_LEVEL": "E_ALL | E_ALL",
-    "DEFAULT_LANG": "fr",
+    "DEFAULT_LANG": "en",
     "DB_REPLICATION": "NO",
     "DB_DBMS": "MYSQL",
     "DB_HOST": "127.0.0.1",

@@ -28,7 +28,7 @@ jobs:
       - run: php run.php --do=test_db-connectivity
       # create an empty database
       - run: php run.php --do=init_db
-      # initialise database with demo data
+      # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core

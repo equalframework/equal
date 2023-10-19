@@ -7,6 +7,7 @@
 list($params, $providers) = eQual::announce([
     'description'   => "Provide a map with the descriptors of initialized packages.",
     'help'          => "Info is retrieved from log file `log/packages.json`. This is necessary because status of packages without apps cannot be deduced from `installed-apps`.",
+    'deprecated'    => true,
     'access'        => [
         'visibility'    => 'protected'
     ],
@@ -23,12 +24,9 @@ list($params, $providers) = eQual::announce([
  */
 list($context) = [$providers['context']];
 
-$map_packages = [];
-
-if(file_exists("public/app") && file_exists("log/packages.json")) {
-    $map_packages = json_decode(file_get_contents("log/packages.json"), true);
-}
+// #deprecated - scripts should make direct calls to core_config_live_packages
+$result = eQual::run('get', 'core_config_live_packages');
 
 $context->httpResponse()
-    ->body(array_keys($map_packages))
+    ->body($result)
     ->send();

@@ -240,8 +240,7 @@ class Mail extends Model {
         $i = 0;
         // loop through messages
         foreach($queue as $file => $message) {
-            ++$i;
-            // prevent handling handling more than $max messages
+            // prevent handling handling more than $max messages (successfully sent)
             if($i > $max) {
                 break;
             }
@@ -320,6 +319,7 @@ class Mail extends Model {
 
                 // prevent flooding the SMTP (wait 100 ms)
                 usleep(100 *1000);
+                ++$i;
             }
             catch(\Exception $e) {
                 // sending failed

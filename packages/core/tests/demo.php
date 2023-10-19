@@ -26,10 +26,20 @@ $tests = [
                     // This method should always return a value whose type matches one of the type given by the `return` property.
                     return 1;
                 },
+            /**
+             * `assert` receives the value returned by the callback of the `act` property.
+             * @return bool     The callback is meant to return a boolean value.
+             */
             'assert'        =>  function($result) {
                     // Advanced test(s) on the result returned by the act function.
                     // This method must always return a boolean which indicates if the test succeeded (true) or failed (false).
                     return ($result > 0);
+                },
+            /**
+             * The `rollback` property provides a callback for cleaning (i.e. undo what was don in the arrange callback).
+             */
+            'rollback'  => function() {
+
                 }
         ]
 ];

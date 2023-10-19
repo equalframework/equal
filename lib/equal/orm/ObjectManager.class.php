@@ -72,21 +72,21 @@ class ObjectManager extends Service {
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
     public static $valid_attributes = [
-        'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required'),
-        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
-        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'unique'),
-        'float'         => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'selection', 'precision'),
-        'string'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang', 'selection', 'unique'),
-        'text'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'date'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
-        'time'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'onupdate'),
-        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate'),
-        'file'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'onupdate', 'multilang'),
-        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
-        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
-        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
+        'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required', 'deprecated'),
+        'boolean'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
+        'integer'       => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'unique'),
+        'float'         => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'selection', 'precision'),
+        'string'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang', 'selection', 'unique'),
+        'text'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
+        'date'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
+        'time'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
+        'datetime'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate'),
+        'file'          => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
+        'binary'        => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'usage', 'required', 'deprecated', 'onupdate', 'multilang'),
+        'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'deprecated', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
+        'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
+        'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
@@ -834,7 +834,7 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
-                        $value = $om->cache[$table_name][$oid][$lang][$field];
+                        $value = (isset($om->cache[$table_name][$oid][$lang][$field]))?$om->cache[$table_name][$oid][$lang][$field]:null;
                         // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $schema[$field]['type'] != 'computed') {
                             /** @var \equal\data\adapt\DataAdapter */
@@ -1643,17 +1643,37 @@ class ObjectManager extends Service {
 
             // 5) update objects
 
+            // remember callbacks that are triggered by the update
             $onupdate_fields = [];
+            $onrevert_fields = [];
+
             // update internal buffer with given values
             foreach($ids as $oid) {
                 foreach($fields as $field => $value) {
                     // remember fields whose modification triggers an onupdate event
                     // #memo - computed fields assigned to null are meant to be re-computed without triggering onupdate
-                    if(isset($schema[$field]['onupdate']) && ($schema[$field]['type'] != 'computed' || !is_null($value)) ) {
-                        $onupdate_fields[] = $field;
+                    if($schema[$field]['type'] != 'computed') {
+                        if(isset($schema[$field]['onupdate'])) {
+                            $onupdate_fields[] = $field;
+                        }
+                    }
+                    else {
+                        if(!is_null($value)) {
+                            if(isset($schema[$field]['onupdate'])) {
+                                $onupdate_fields[] = $field;
+                            }
+                        }
+                        elseif(isset($schema[$field]['onrevert'])) {
+                            $onrevert_fields[] = $field;
+                        }
                     }
                     // assign cache to object values
-                    $this->cache[$table_name][$oid][$lang][$field] = $value;
+                    $target_lang = $lang;
+                    if($lang != constant('DEFAULT_LANG') && (!isset($schema[$field]['multilang']) || !$schema[$field]['multilang'])) {
+                        // field is not multilang: make sure to assign the default lang
+                        $target_lang = constant('DEFAULT_LANG');
+                    }
+                    $this->cache[$table_name][$oid][$target_lang][$field] = $value;
                 }
             }
 
@@ -1671,6 +1691,12 @@ class ObjectManager extends Service {
                 foreach($onupdate_fields as $field) {
                     // run onupdate callback (ignore undefined methods)
                     $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                }
+            }
+            if(count($onrevert_fields)) {
+                foreach($onrevert_fields as $field) {
+                    // run onupdate callback (ignore undefined methods)
+                    $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
                 }
             }
 
@@ -1818,7 +1844,11 @@ class ObjectManager extends Service {
                 }
             }
 
-            // #memo - there is no canread(), since it would be redundant with access::isAllowed()
+            // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
+            $canread = $this->callonce($class, 'canread', $ids, $requested_fields, $lang);
+            if($canread > 0 && !empty($canread)) {
+                throw new \Exception(serialize($canread), QN_ERROR_NOT_ALLOWED);
+            }
 
             // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 

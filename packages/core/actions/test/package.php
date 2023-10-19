@@ -42,7 +42,7 @@ $tests_path = "packages/{$params['package']}/tests";
 if(is_dir($tests_path)) {
     foreach (glob($tests_path."/*.php") as $filename) {
         $set = basename($filename, '.php');
-        if($params['set'] && $params['set'] != $set) {
+        if(isset($params['set']) && $params['set'] != $set) {
             continue;
         }
         include($filename);
