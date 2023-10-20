@@ -95,7 +95,14 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function createDatabase($db_name) {
-        $query = "CREATE DATABASE IF NOT EXISTS $db_name CHARACTER SET ".$this->charset." COLLATE ".$this->collation.';';
+        $query = "CREATE DATABASE IF NOT EXISTS $db_name";
+        if($this->charset) {
+            $query .= " CHARACTER SET ".$this->charset;
+        }
+        if($this->collation) {
+            $query .= " COLLATE ".$this->collation.';';
+        }
+        $query .= ";";
         $this->sendQuery($query);
     }
 
@@ -148,8 +155,15 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function getQueryCreateTable($table_name) {
+        $query = "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY)";
+        if($this->charset) {
+            $query .= " DEFAULT CHARSET=".$this->charset;
+        }
+        if($this->collation) {
+            $query .= " COLLATE=".$this->collation;
+        }
         // #memo - we must add at least one column, so as a convention we add the id column
-        return "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY) DEFAULT CHARSET=".$this->charset." COLLATE=".$this->collation.";";
+        return $query.";";
     }
 
     /**
