@@ -14,19 +14,21 @@ namespace equal\db;
 class DBManipulatorSqlSrv extends DBManipulator {
 
 
+    /*
+        #memo - as from SQL Server 2019, char and varchar types support UTF-8, and collation names are suffixed with '_UTF8'
+        For lower versions, we have to use nvarchar.
+    */
     public static $types_associations = [
-        'boolean'       => 'bit',
-        'integer'       => 'int',
-        'float'         => 'float(24)',
-        'string'        => 'varchar(255)',
-        'text'          => 'ntext',
-        'date'          => 'date',
-        'time'          => 'time',
-        'datetime'      => 'datetime2',
-        'timestamp'     => 'int',
-        'file'          => 'image',
-        'binary'        => 'image',
-        'many2one'      => 'int'
+        'boolean'       => 'bit',               // 1 byte
+        'integer'       => 'int',               // 4 bytes
+        'float'         => 'float(24)',         // 4 bytes
+        'string'        => 'nvarchar(255)',     // 510 bytes
+        'text'          => 'nvarchar(max)',     // max 2GB
+        'date'          => 'date',              // 3 bytes
+        'time'          => 'time',              // 5 byte
+        'datetime'      => 'datetime2',         // max 8 Bytes
+        'binary'        => 'varbinary(max)',    // max 2GB
+        'many2one'      => 'int'                // 4 bytes
     ];
 
     public function getSqlType($type) {
@@ -41,31 +43,49 @@ class DBManipulatorSqlSrv extends DBManipulator {
      * There is no distinction between select and connect.
      */
     public function select($db_name) {
-        return $this->db;
+        return $this->dbms_handler;
     }
 
     /**
      * Open the DBMS connection
      *
-     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
+     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only with the DBMS server)
      * @return  integer   		        The status of the connect function call.
      * @access  public
      */
     public function connect($auto_select=true) {
         $result = false;
-        if($this->canConnect($this->host, $this->port) && function_exists('sqlsrv_connect')) {
+        if(!function_exists('sqlsrv_connect')) {
+            throw new \Exception('Missing mandatory driver (sqlsrv).', QN_ERROR_UNKNOWN_SERVICE);
+        }
+        if($this->canConnect($this->host, $this->port)) {
+            // prevent warnings from raising errors
+            sqlsrv_configure('WarningsReturnAsErrors', 0);
             $connection_info = [
-                    "UID"                   => $this->user_name,
-                    "PWD"                   => $this->password,
-                    "Database"              => $this->db_name,
-                    // Possible values are SQLSRV_ENC_CHAR and UTF-8, we set to utf-8 whatever the DB_COLLATION setting
-                    'CharacterSet'          => 'utf-8',
+                    'UID'                       => $this->user_name,
+                    'PWD'                       => $this->password,
+                    // prevent conversion of dates to DateTime objects
+                    'ReturnDatesAsStrings'      => true,
                     // allow connection to server with self signed SSL certificate
-                    "TrustServerCertificate"=> true
+                    'TrustServerCertificate'    => true,
+                    // enable Transparent Network IP Resolution
+                    'MultiSubnetFailover'       => 'Yes'
                 ];
+
+            if($auto_select) {
+                $connection_info['Database'] = $this->db_name;
+                // #memo - SQLSRV cluster < 2019 does not support UTF-8
+                // #memo - passing an invalid charset raises a IMSSP -1 "invalid option" error
+                if(!is_null($this->charset) && strlen($this->charset) > 0) {
+                    $connection_info['CharacterSet'] = $this->charset;
+                }
+            }
 
             if($this->dbms_handler = sqlsrv_connect($this->host, $connection_info)) {
                 $result = true;
+            }
+            else if( ($errors = sqlsrv_errors()) != null) {
+                trigger_error("SQL::".implode(';', array_map(function($a) {return "{$a['SQLSTATE']}, {$a['code']}, {$a['message']}";}, $errors)), QN_REPORT_ERROR);
             }
 
             foreach($this->members as $member) {
@@ -74,6 +94,9 @@ class DBManipulatorSqlSrv extends DBManipulator {
                     break;
                 }
             }
+        }
+        else {
+            trigger_error("SQL::DBMS host unreachable", QN_REPORT_ERROR);
         }
         if(!$result) {
             return false;
@@ -88,7 +111,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
      * @access   public
      */
     public function disconnect() {
-        if(isset($this->dbms_handler)) {
+        if(isset($this->dbms_handler) && $this->dbms_handler !== false) {
             sqlsrv_close($this->dbms_handler);
             $this->dbms_handler = null;
             foreach($this->members as $member) {
@@ -98,6 +121,138 @@ class DBManipulatorSqlSrv extends DBManipulator {
         return true;
     }
 
+    public function createDatabase($db_name) {
+        $query = "USE master; CREATE DATABASE $db_name COLLATE ".$this->collation.";";
+        $this->sendQuery($query, 'create');
+    }
+
+    public function getTables() {
+        $tables = [];
+        $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';";
+        $res = $this->sendQuery($query);
+        while ($row = $this->fetchArray($res)) {
+            $tables[] = $row['TABLE_NAME'];
+        }
+        return $tables;
+    }
+
+    public function getTableSchema($table_name) {
+        $schema = [];
+        // expected properties: COLUMN_NAME, DATA_TYPE, COLLATION_NAME, IS_NULLABLE, COLUMN_DEFAULT
+        $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name';";
+        $res = $this->sendQuery($query);
+        while($row = $this->fetchArray($res)) {
+            $field = $row['COLUMN_NAME'];
+            $schema[$field] = [
+                'type'          => $row['DATA_TYPE'],
+                'collation'     => $row['COLLATION_NAME'],
+                'nullable'      => $row['IS_NULLABLE'],
+                'default'       => $row['COLUMN_DEFAULT']
+            ];
+        }
+        return $schema;
+    }
+
+    public function getTableColumns($table_name) {
+        $query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_CATALOG = '{$this->db_name}' AND  TABLE_NAME = '$table_name';";
+        $res = $this->sendQuery($query);
+        $columns = [];
+        while ($row = $this->fetchArray($res)) {
+            $columns[] = $row['COLUMN_NAME'];
+        }
+        return $columns;
+    }
+
+    public function getTableConstraints($table_name) {
+        $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
+        $res = $this->sendQuery($query);
+        $constraints = [];
+        while ($row = $this->fetchArray($res)) {
+            $constraint = $row['CONSTRAINT_NAME'];
+            if(strpos($constraint, 'AK_') == 0) {
+                $constraint = substr($constraint, 3);
+            }
+            $constraints[] = $constraint;
+        }
+        return $constraints;
+    }
+
+    public function getQueryCreateTable($table_name) {
+        // #memo - we must add at least one column for the query to be valid, so as a convention we add the id column
+        return "IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '{$table_name}'))\n
+            BEGIN\n
+                CREATE TABLE [{$table_name}] ([id] int IDENTITY(1, 1) NOT NULL)\n
+            END;";
+    }
+
+    /**
+     * Generates one or more SQL queries related to a column creation, according to given column definition.
+     *
+     * $def structure:
+     * [
+     *      'type'             => int(11),
+     *      'null'             => false,
+     *      'default'          => 0,
+     *      'auto_increment'   => false,
+     *      'primary'          => false,
+     *      'index'            => false
+     * ]
+     */
+    public function getQueryAddColumn($table_name, $column_name, $def) {
+        $sql = "ALTER TABLE [{$table_name}] ADD [{$column_name}] {$def['type']}";
+        if(isset($def['null']) && !$def['null']) {
+            $sql .= ' NOT NULL';
+        }
+        // set query according to primary key property
+        if(isset($def['primary']) && $def['primary']) {
+            $sql .= ' IDENTITY';
+            if(isset($def['auto_increment']) && $def['auto_increment']) {
+                $sql .= '(1,1)';
+            }
+        }
+        // #memo - default is supported by ORM, not DBMS
+        if(!isset($def['null']) || $def['null']) {
+            // unless specified otherwise, all columns can be null (even if having a default value)
+            $sql .= ' DEFAULT NULL';
+        }
+
+        $sql .= ';';
+
+        if(isset($def['primary']) && $def['primary']) {
+            $sql .= "ALTER TABLE [{$table_name}] ADD CONSTRAINT PK_{$column_name} PRIMARY KEY({$def['type']});";
+        }
+
+        return $sql;
+    }
+
+    public function getQueryAddConstraint($table_name, $columns) {
+        return "ALTER TABLE [$table_name] ADD CONSTRAINT ".implode('_', array_merge(['AK'], $columns))." UNIQUE (".implode(',', $columns).");";
+    }
+
+
+    public function getQueryAddRecords($table, $fields, $values) {
+        $sql = '';
+        if (!is_array($fields) || !is_array($values)) {
+            throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
+        }
+        $vals = [];
+        foreach ($values as $val_array) {
+            $line = [];
+            foreach($val_array as $value) {
+                $line[] .= $this->escapeString($value);
+            }
+            $vals[] = '('.implode(',', $line).')';
+        }
+        if(count($fields) && count($vals)) {
+            // #todo ignore duplicate enties, if any
+            $sql = "INSERT INTO [$table] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
+            if(in_array('id', $fields)) {
+                $sql = "SET IDENTITY_INSERT $table ON;".$sql."SET IDENTITY_INSERT $table OFF;";
+            }
+        }
+        return $sql;
+    }
+
     /**
      * Sends a SQL query.
      *
@@ -105,39 +260,40 @@ class DBManipulatorSqlSrv extends DBManipulator {
      *
      * @return resource Returns a resource identifier or -1 if the query was not executed correctly.
      */
-    function sendQuery($query) {
-        trigger_error("QN_DEBUG_SQL::$query", E_USER_NOTICE);
+    function sendQuery($query, $sql_operation='') {
+        trigger_error("SQL::$query", QN_REPORT_DEBUG);
+
+        if(!strlen($query)) {
+            trigger_error("SQL::ignoring empty query", QN_REPORT_DEBUG);
+            return;
+        }
 
         if(($result = sqlsrv_query($this->dbms_handler, $query)) === false) {
-            $error_str = '';
             if( ($errors = sqlsrv_errors() ) != null) {
-                foreach( $errors as $error ) {
-                    $error_str .= implode(',', $error);
-                }
+                $errors = reset($errors);
+                $errors = ((isset($errors['code']))?'('.$errors['code'].') ':'').((isset($errors['message']))?$errors['message']:'');
             }
-            throw new \Exception(__METHOD__.' : query failure. '.$error_str.'. For query: "'.$query.'"', QN_ERROR_SQL);
+            throw new \Exception(__METHOD__.' : query failure. '.$errors.'. For query: "'.$query.'"', QN_ERROR_SQL);
         }
         // everything went well: perform additional operations (replication & info about query result)
         else {
-            // update $affected_rows, $last_query, $last_id (depending on the performed operation)
-            $sql_operation = strtolower((explode(' ', $query, 2))[0]);
+            // store query as last query
             $this->setLastQuery($query);
+            // update $affected_rows & $last_id (depending on the performed operation)
             if($sql_operation == 'select') {
                 $this->setAffectedRows(sqlsrv_num_rows($result));
             }
-            else {
+            elseif(in_array($sql_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
                 // for WRITE operations, relay query to members of the replica
-                if(in_array($sql_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
-                    foreach($this->members as $member) {
-                        $member->sendQuery($query);
-                    }
+                foreach($this->members as $member) {
+                    $member->sendQuery($query);
                 }
                 if($sql_operation =='insert') {
                     if($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
                         $this->setLastId($row['id']);
                     }
                 }
-                $this->setAffectedRows(sqlsrv_rows_affected($this->dbms_handler));
+                $this->setAffectedRows(sqlsrv_rows_affected($result));
             }
         }
         return $result;
@@ -196,7 +352,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
             else {
                 if(substr($value, 0, 3) == "h0x") {
                     // hexadecimal string that must be stored as a binary value
-                    $result = "'".substr($value, 1)."'";
+                    $result = "".substr($value, 1)."";
                 }
                 else {
                     // regular string that must be escaped
@@ -239,27 +395,25 @@ class DBManipulatorSqlSrv extends DBManipulator {
                 // adjust the field syntax (if necessary)
                 $cond[0] = self::escapeFieldName($cond[0]);
                 // operator 'in' having a single value as right operand
-                if(strcasecmp($cond[1], 'in') == 0 && !is_array($cond[2])) {
-                    $cond[2] = array($cond[2]);
-                }
-                // case-sensitive comparison ('like' operator)
-                if(strcasecmp($cond[1], 'like') == 0) {
-                    // force mysql to convert field to binary (result will be case-sensitive comparison)
-                    $cond[0] = 'BINARY '.$cond[0];
-                    $cond[1] = 'LIKE';
-                }
-                // ilike operator does not exist in MySQL
-                if(strcasecmp($cond[1], 'ilike') == 0) {
-                    // force mysql to handle the field as a char (necessary for translations that are stored in a binary field)
-                    $cond[0] = ' CAST('.$cond[0].' AS CHAR )';
-                    $cond[1] = 'LIKE';
-                }
-                // format the value operand
-                if(is_array($cond[2])) {
+                if((strcasecmp($cond[1], 'in') == 0 || strcasecmp($cond[1], 'not in') == 0)) {
+                    $cond[2] = (array) $cond[2];
                     $value = '('.implode(',', array_map( [$this, 'escapeString'], $cond[2] )).')';
                 }
                 else {
+                    // format the value operand
                     $value = $this->escapeString($cond[2]);
+                    // case-sensitive comparison ('like' operator)
+                    if(strcasecmp($cond[1], 'like') == 0) {
+                        // force mysql to convert field to binary (result will be case-sensitive comparison)
+                        $cond[1] = 'LIKE';
+                    }
+                    // ilike operator does not exist in MySQL
+                    elseif(strcasecmp($cond[1], 'ilike') == 0) {
+                        // force mysql to handle the field as a char (necessary for translations that are stored in a binary field)
+                        $cond[0] = 'UPPER('.$cond[0].')';
+                        $cond[1] = 'LIKE';
+                        $value = 'UPPER('.$value.')';
+                    }
                 }
                 // concatenate query string with current condition
                 $sql .= $cond[0].' '.$cond[1].' '.$value;
@@ -287,33 +441,21 @@ class DBManipulatorSqlSrv extends DBManipulator {
      */
     public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {
         // cast tables to an array (passing a single table is accepted)
-        if(!is_array($tables)) {
-            $tables = (array) $tables;
-        }
-        // in case fields is not null ans is not an array, cast it to an array (passing a single field is accepted)
-        if(isset($fields) && !is_array($fields)) {
-            $fields = (array) $fields;
-        }
-        // in case ids is not null ans is not an array, cast it to an array (passing a single id is accepted)
-        if(isset($ids) && !is_array($ids)) {
-            $ids = (array) $ids;
-        }
+        $tables = (array) $tables;
 
-        // test values and types
+        // check params consistency
         if(empty($tables)) {
             throw new \Exception(__METHOD__." : unable to build sql query, parameter 'tables' array is empty.", QN_ERROR_SQL);
         }
-        /* irrelevant
-        if(!empty($fields) && !is_array($fields)) throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' is not an array.", QN_ERROR_SQL);
-        if(!empty($ids) && !is_array($ids)) throw new \Exception(__METHOD__." : unable to build sql query, parameter 'ids' is not an array.", QN_ERROR_SQL);
-        */
         if(!empty($conditions) && !is_array($conditions)) {
             throw new \Exception(__METHOD__." : unable to build sql query, parameter 'conditions' is not an array.", QN_ERROR_SQL);
         }
 
+        // normalize columns and ids arrays
+        $ids = array_unique((array) $ids);
+        $fields = array_unique((array) $fields);
+
         // SELECT clause
-        // we could add the following directive for better performance (disabled to maximize code portability)
-        // $sql = 'SELECT SQL_CALC_FOUND_ROWS ';
         $sql = 'SELECT DISTINCT ';
         if(empty($fields)) {
             $sql .= '*';
@@ -330,10 +472,10 @@ class DBManipulatorSqlSrv extends DBManipulator {
         $sql .= ' FROM ';
         foreach($tables as $table_alias => $table_name) {
             if(!is_numeric($table_alias)) {
-                $sql .= '`'.$table_name.'` as `'.$table_alias.'`, ';
+                $sql .= '['.$table_name.'] as ['.$table_alias.'], ';
             }
             else {
-                $sql .= '`'.$table_name.'`, ';
+                $sql .= '['.$table_name.'], ';
             }
         }
         $sql = rtrim($sql, ' ,');
@@ -341,7 +483,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         // WHERE clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
 
-        // order clause
+        // ORDER clause
         if(!empty($order)) {
             $order_clause = [];
             if(!is_array($order)) $order = [$order => 'ASC'];
@@ -355,7 +497,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
         if($limit) {
             $sql .= sprintf(" OFFSET %d ROWS FETCH NEXT %d ROWS ONLY", $start, $limit);
         }
-        return $this->sendQuery($sql);
+        return $this->sendQuery($sql, 'select');
     }
 
     public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
@@ -368,20 +510,21 @@ class DBManipulatorSqlSrv extends DBManipulator {
         }
 
         // UPDATE clause
-        $sql = "UPDATE [$table]";
+        $sql = "UPDATE [{$table}]";
 
         // SET clause
         $sql .= ' SET ';
         foreach ($fields as $key => $value) {
-            $sql .= "$key={$this->escapeString($value)}, ";
+            $sql .= "[$key]={$this->escapeString($value)}, ";
         }
         $sql = rtrim($sql, ', ');
 
         // WHERE clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
 
-        return $this->sendQuery($sql);
+        return $this->sendQuery($sql, 'update');
     }
+
 
     /**
      * Inserts new records in specified table.
@@ -392,38 +535,19 @@ class DBManipulatorSqlSrv extends DBManipulator {
      * @return	resource reference to query resource
      */
     public function addRecords($table, $fields, $values) {
-        $result = false;
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
         }
-        $cols = '';
-        $vals = '';
-        foreach ($fields as $field) {
-            $cols .= "$field,";
-        }
-        $cols = rtrim($cols, ',');
-        foreach ($values as $val_array) {
-            $vals .= '(';
-            foreach($val_array as $val) {
-                $vals .= $this->escapeString($val).',';
-            }
-            $vals = rtrim($vals, ',').'),';
-        }
-        $vals = rtrim($vals, ',');
-        if(strlen($cols) > 0 && strlen($vals) > 0) {
-            // #todo ignore duplicate enties, if any
-            $sql = "INSERT INTO [$table] ($cols) OUTPUT INSERTED.id VALUES $vals;";
-            $result = $this->sendQuery($sql);
-        }
-        return $result;
+        $sql = $this->getQueryAddRecords($table, $fields, $values);
+        return $this->sendQuery($sql, 'insert');
     }
 
     public function deleteRecords($table, $ids, $conditions=null, $id_field='id') {
         // DELETE statement
-        $sql = 'DELETE FROM ['.$table.']';
+        $sql = "DELETE FROM [{$table}]";
         // WHERE clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
-        return $this->sendQuery($sql);
+        return $this->sendQuery($sql, 'delete');
     }
 
 }
