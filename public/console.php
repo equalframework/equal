@@ -1,78 +1,408 @@
 <?php
-/*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
-    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
-*/
-/**
-* This file is supposed to remain standalone (free of any dependency other than the eq_error.log file)
-* For security reasons its access should be restricted to development environment only.
-*/
-define('QN_LOG_FILE', '../log/eq_error.log');
-define('PHP_LOG_FILE', '../log/error.log');
 
-date_default_timezone_set('Europe/Brussels');
+define('LOG_FILE_NAME', 'eq_error.log');
+$data = '';
 
-error_reporting(0);
+// get log file, using variation from URL, if any
+$log_file = LOG_FILE_NAME.( (isset($_GET['f']) && strlen($_GET['f']))?('.'.$_GET['f']):'');
 
-function normalize_error_code($errcode) {
-    switch($errcode) {
-        case 'DEBUG':
-        case E_USER_DEPRECATED:
-            return E_USER_DEPRECATED;
-        case 'Notice':
-        case 'NOTICE':
-        case E_USER_NOTICE:
-            return E_USER_NOTICE;
-        case 'WARNING':
-        case E_USER_WARNING:
-            return E_USER_WARNING;
-        case 'ERROR':
-        case E_USER_ERROR:
-            return E_USER_ERROR;
-        case 'FATAL':
-        case E_ERROR:
-        case 'Fatal error':
-        case 'Parse error':
-        case 'Catchable fatal error':
-            return E_ERROR;
-    }
-    return E_ALL;
+if(file_exists('../log/'.$log_file)) {
+    // read raw data from log file
+    $data = file_get_contents('../log/'.$log_file);
 }
 
-function get_error_class($errcode) {
+// retrieve logs history (variations on filename)
+$log_variations = [];
+foreach(glob('../log/'.LOG_FILE_NAME.'.*') as $file) {
+    $log_variations[] = pathinfo($file, PATHINFO_EXTENSION);
+}
+
+// get query from URL, if any
+$query = (isset($_GET['q']))?$_GET['q']:'';
+
+// adapt params
+if(isset($_GET['level']) && $_GET['level'] == '') {
+    unset($_GET['level']);
+}
+if(isset($_GET['mode']) && $_GET['mode'] == '') {
+    unset($_GET['mode']);
+}
+if(isset($_GET['date']) && $_GET['date'] == '') {
+    unset($_GET['date']);
+}
+
+
+// 1) filtering : discard lines that do not match the query
+
+$lines = explode(PHP_EOL, $data);
+$data = '';
+foreach($lines as $line) {
+    if(strlen($line) <= 0) {
+        continue;
+    }
+    if(strlen($query) > 0 && stripos($line, $query) === false) {
+        continue;
+    }
+    $data .= $line.',';
+}
+
+// 2) extract lines to be rendered
+
+// #memo - log file contains JSON objects separated with new line chars
+// convert notation to a valid JSON array
+$json = '['.substr($data, 0, -1).']';
+// convert JSON to a PHP associative array
+$lines = json_decode($json, true);
+
+if($lines === null) {
+    die('Invalid JSON in log file.');
+}
+
+$html = '
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="assets/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="assets/css/font-awesome.css" />
+<style>
+html, body {
+    padding:0;
+    margin:0;
+    height:100%;
+}
+body {
+    padding-top:  120px;
+}
+
+div.snack {
+    width: 250px;
+    border: solid 1px grey;
+    background: black;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 10px;
+    position: absolute;
+    z-index: 1;
+    border-radius: 3px;
+    bottom: -20px;
+    opacity: 0;
+    left: 20px;
+    color: #ccc;
+    transition: all 0.5s;
+}
+
+div.snack.show {
+    bottom: 20px;
+    opacity: 1;
+}
+
+div.thread {
+    position: relative;
+    margin-left: 10px;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+div.thread div.thread-title {
+    margin-left: 20px;
+}
+
+div.thread div.thread-title div.thread-hash {
+    display: inline-block;
+    width: 100px;
+}
+
+div.thread i.icon {
+    display: inline-block;
+    text-align: center;
+    width: 20px;
+}
+
+div.thread div.thread_line {
+    position: relative;
+    margin-left: 30px;
+}
+
+div.thread div.thread_line div.line-title {
+    margin-left: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.thread i.chevron {
+    position: absolute;
+    display: block;
+    top: 2px;
+    width: 15px;
+    text-align: center;
+    cursor: pointer;
+}
+
+input.selector {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    opacity: 0
+}
+
+div.thread_line div.trace_line {
+    margin-left: 20px;
+}
+
+div.thread_line div.trace_line i.icon-copy {
+    position: absolute;
+    right: 21px;
+    top: 25px;
+    z-index: 2;
+    cursor: pointer;
+    height: 30px;
+    width: 50px;
+    background: #f5f5f5;
+    line-height: 30px;
+    text-align: right;
+    padding-right: 10px;
+}
+
+input.selector + div > div.trace_line,
+input.selector + div > div.thread_line
+{
+    display: none;
+}
+
+input.selector:checked + div > div.trace_line,
+input.selector:checked + div > div.thread_line
+{
+    display: block;
+}
+
+input.selector:checked + div > i.fa {
+    transform: rotate(90deg);
+}
+
+pre {
+    margin-right: 20px;
+    overflow: hidden !important;
+}
+
+</style>
+<script>
+function copy(node) {
+    document.querySelector(".snack").classList.add("show");
+    var copyText = document.querySelector("#clipboard");
+    copyText.value = node.nextSibling.textContent;
+    copyText.select();
+    document.execCommand("copy");
+    setTimeout(function() {
+        document.querySelector(".snack").classList.remove("show");
+    }, 2000);
+}
+</script>
+</head>
+<body>
+<input style="display: block; position: absolute; top: -100px;" id="clipboard" type="text">
+<div class="snack">Copied to clipboard</div>
+<div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
+    <form method="GET" style="padding: 20px;background: #f1f1f1;margin: 5px;border: solid 1px grey;border-radius: 5px;">
+        <div style="display: flex; align-items: flex-end;">
+            <div style="display: flex; flex-direction: column;">
+                <label>Level:</label>
+                <select style="height: 33px; margin-right: 25px;" name="level">
+                    <option value="">All</option><option value="DEBUG" '.((isset($_GET['level']) && $_GET['level'] == 'DEBUG')?'selected':'').'>DEBUG</option>
+                    <option value="INFO" '.((isset($_GET['level']) && $_GET['level'] == 'INFO')?'selected':'').'>INFO</option>
+                    <option value="WARNING" '.((isset($_GET['level']) && $_GET['level'] == 'WARNING')?'selected':'').'>WARNING</option>
+                    <option value="ERROR" '.((isset($_GET['level']) && $_GET['level'] == 'ERROR')?'selected':'').'>ERROR</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <label>Layer:</label>
+                <select style="height: 33px; margin-right: 25px;" name="mode">
+                    <option value="">All</option>
+                    <option value="PHP" '.((isset($_GET['mode']) && $_GET['mode'] == 'PHP')?'selected':'').'>PHP</option>
+                    <option value="SQL" '.((isset($_GET['mode']) && $_GET['mode'] == 'SQL')?'selected':'').'>SQL</option>
+                    <option value="ORM" '.((isset($_GET['mode']) && $_GET['mode'] == 'ORM')?'selected':'').'>ORM</option>
+                    <option value="API" '.((isset($_GET['mode']) && $_GET['mode'] == 'API')?'selected':'').'>API</option>
+                    <option value="APP" '.((isset($_GET['mode']) && $_GET['mode'] == 'APP')?'selected':'').'>APP</option></select>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <label>Keyword:</label>
+                <input style="height: 33px; margin-right: 25px;" name="q" type="text" value="'.(isset($_GET['q'])?$_GET['q']:'').'">
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <label>Date:</label>
+                <input style="height: 33px; margin-right: 25px;" name="date" type="date" value="'.(isset($_GET['date'])?$_GET['date']:'').'">
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <button type="submit" class="btn btn-info">Filter</button>
+            </div>
+            <div style="margin-left: auto;">
+                <label>File:</label>
+                <select style="height: 33px; margin-right: 25px;" name="f" onchange="this.form.submit()">
+                    <option value="">'.LOG_FILE_NAME.'</option>'.
+                    implode(PHP_EOL, array_map(function($a) {return '<option value="'.$a.'" '.((isset($_GET['f']) && $_GET['f'] == $a)?'selected':'').'>'.$a.'</option>';}, $log_variations)).'
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+';
+
+
+// pass-1: group logs by thread_id
+$map_threads = [];
+foreach($lines as $line) {
+    if(!isset($map_threads[$line['thread_id']])) {
+        $map_threads[$line['thread_id']] = [];
+    }
+    $map_threads[$line['thread_id']][] = $line;
+}
+
+$map_codes = [
+    'DEBUG'     => E_USER_DEPRECATED,
+    'INFO'      => E_USER_NOTICE,
+    'WARNING'   => E_USER_WARNING,
+    'ERROR'     => E_USER_ERROR,
+    'FATAL'     => E_ERROR
+];
+
+// pass-2: show list by thread
+foreach($map_threads as $thread => $lines) {
+
+    $datetime = $lines[0]['time'];
+    $code = PHP_INT_MAX;
+    // find lowest error code for applying styles
+    foreach($lines as $index => $line) {
+        // filter & discard
+        if(isset($_GET['level']) && $line['level'] != $_GET['level']) {
+            unset($lines[$index]);
+            continue;
+        }
+        if(isset($_GET['mode']) && $line['mode'] != $_GET['mode']) {
+            unset($lines[$index]);
+            continue;
+        }
+        if(isset($_GET['date']) && strpos($line['time'], $_GET['date']) !== 0) {
+            unset($lines[$index]);
+            continue;
+        }
+        $lcode = $map_codes[$line['level']];
+        if($lcode < $code) {
+            $code = $lcode;
+        }
+    }
+    if(!count($lines)) {
+        continue;
+    }
+    list($type, $icon, $class) = get_level_class($code);
+
+    // append a thread line
+    $html .= "
+    <div class=\"thread\">
+        <div class=\"thread-title\">
+            <div class=\"$class\" title=\"$type\">
+                <div class=\"thread-hash\" ><i class=\"icon fa $icon\"></i> $thread </div>
+                $datetime
+            </div>
+        </div>
+        <input type=\"checkbox\" class=\"selector\">
+        <div>
+            <i class=\"chevron fa fa-chevron-right\"></i>
+        ";
+    foreach($lines as $line) {
+        // bypass invalid lines
+        if(!is_array($line) || !isset($line['level']) || !isset($line['class']) || !isset($line['function']) || !isset($line['message']) || !isset($line['stack'])) {
+            continue;
+        }
+        list($type, $icon, $class) = get_level_class($line['level']);
+
+        $origin = ((strlen($line['class']))?$line['class'].'::':'').$line['function'];
+
+        $in = (strlen($origin))?"<b>in</b> <code class=\"$class\">$origin</code>":'';
+        $msg = $line['message'];
+
+        $n = count($line['stack']);
+        $m = strlen($msg);
+
+        $msg_excerpt = substr($msg, 0, 128);
+
+        $html .= "
+            <div class=\"thread_line\">
+                <div class=\"line-title\"><a class=\"$class\" title=\"$type\"><i class=\"icon fa $icon\"></i> {$line['time']} {$line['mtime']} {$line['mode']}</a> <b>@</b> [<code class=\"$class\">{$line['file']}:{$line['line']}</code>] $in: ".$msg_excerpt."</div>
+                <input class=\"selector\" type=\"checkbox\">
+                <div>
+            ";
+
+        if($n || $m > 64) {
+            $html .= "<i class=\"chevron fa fa-chevron-right\"></i>";
+            if($m > 64) {
+                $html .= "<div class=\"trace_line\"><i class=\"fa fa-clipboard icon-copy\" onclick=\"copy(this)\"></i><pre>".$msg."</pre></div>";
+            }
+            for($i = 0; $i < $n; ++$i) {
+                $trace = array_merge([
+                        'function'  => '',
+                        'line'      => 0,
+                        'file'      => '',
+                        'class'     => '',
+                        'object'    => null,
+                        'args'      => [],
+                    ], $line['stack'][$i]);
+                $html .= "<div class=\"trace_line\">".($n-$i).". {$trace['file']} line {$trace['line']}; ({$trace['function']});</div>";
+            }
+        }
+
+        $html .= "
+            </div>
+        </div>".PHP_EOL;
+    }
+    $html .= "</div>
+    </div>".PHP_EOL;
+}
+
+
+$html .= '
+</body>
+</html>';
+
+
+echo $html;
+
+
+function get_level_class($errcode) {
     $type = $errcode;
     $icon = 'fa-info';
     $class= '';
     switch($errcode) {
         case 'DEBUG':
         case E_USER_DEPRECATED:
-            $type = 'Debug';
+            $type = 'DEBUG';
             $icon = 'fa-bug';
             $class = 'text-success';
             break;
-        case 'Notice':
+        case 'INFO':
         case 'NOTICE':
         case E_USER_NOTICE:
-            $type = 'Info';
+            $type = 'INFO';
             $icon = 'fa-info';
-            $class = 'text-success';
+            $class = 'text-info';
             break;
         case 'WARNING':
         case E_USER_WARNING:
-            $type = 'Warning';
+            $type = 'WARNING';
             $icon = 'fa-warning';
             $class = 'text-warning';
             break;
         case 'ERROR':
         case E_USER_ERROR:
-            $type = 'Error';
+            $type = 'ERROR';
             $icon = 'fa-times-circle';
             $class = 'text-danger';
             break;
         case 'FATAL':
         case E_ERROR:
-            $type = 'Fatal error';
+            $type = 'FATAL';
         case 'Fatal error':
         case 'Parse error':
             $icon = 'fa-ban';
@@ -81,311 +411,3 @@ function get_error_class($errcode) {
     }
     return [$type, $icon, $class];
 }
-
-function get_stack($stack) {
-    $res = "<table style=\"margin-left: 20px;\">".PHP_EOL;
-    for($i = 0, $n = count($stack); $i < $n; ++$i) {
-        $entry = $stack[$i];
-        list($function, $file) = explode('@', $entry);
-        $function = str_replace('#', strval($n-$i).'.', $function);
-        $res .= "<tr>
-            <td> $function&nbsp;</td>
-            <td><b>@</b>&nbsp;$file</td>
-        </tr>".PHP_EOL;
-
-    }
-    $res .= '</table>'.PHP_EOL;
-    return $res;
-}
-
-function get_line($entry) {
-    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    list($type, $icon, $class) = get_error_class($errcode);
-
-    $msg = urldecode($msg);
-
-    $in = (strlen($origin))?"<b>in</b> <code class=\"$class\">$origin</code>":'';
-    return "<div style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> $datetime $type</a> <b>@</b> [<code class=\"$class\">{$file}:{$line}</code>] $in: $msg</div>".PHP_EOL;
-}
-
-function get_header($thread_id, $selected_thread_id, $previous_thread=null, $next_thread=null) {
-    global $threads_dt, $threads_ec;
-
-    if(isset($threads_dt[$thread_id])) {
-        $datetime = $threads_dt[$thread_id];
-    }
-    else $datetime = '';
-
-    if(substr($thread_id, 0, 3) == 'PHP') {
-        $thread_pid = substr($thread_id, 3);
-    }
-    else {
-        $thread_pid = $thread_id;
-    }
-    list($up, $down, $active) = ['', '', ''];
-    if($previous_thread) {
-        $up = "<a target=\"details\" href=\"?thread_id=$previous_thread\"><i class=\"fa fa-caret-up\"></i></a>";
-        $down = "<a target=\"details\" href=\"?thread_id=$next_thread\"><i class=\"fa fa-caret-down\"></i></a>";
-    }
-    else {
-        if($selected_thread_id == $thread_id) {
-            $active = 'active';
-        }
-    }
-
-    if(isset($threads_dt[$thread_id])) {
-        $errcode = $threads_ec[$thread_id];
-    }
-    else {
-        $errcode = E_ERROR;
-    }
-
-    list($type, $icon, $class) = get_error_class($errcode);
-
-    // return "<div style=\"margin-left: 10px; $color\"><a title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\">".date('Y-m-d H:i:s', explode(' ', $thread_time)[1])." ".$thread_script."</a>&nbsp;{$up}&nbsp;{$down}</div>".PHP_EOL;
-    return "<div id=\"$thread_pid\" class=\"$active\" style=\"margin-left: 10px;\"><a class=\"$class\" title=\"$type\" ><i class=\"fa $icon\" aria-hidden=\"true\"></i> </a> <div style=\"display: inline-block; width: 150px;\"> <a target=\"details\" title=\"PID $thread_pid\" href=\"?thread_id=$thread_id\" onclick=\"document.querySelector('div.active').className='';document.getElementById('$thread_pid').className='active';\">thread ".$thread_pid."</a>&nbsp;{$up}&nbsp;{$down}</div><div style=\"display: inline-block;\">$datetime</div></div>".PHP_EOL;
-}
-
-$history = [];
-// quick fix to get datetime inside get_header function
-$threads_dt = [];
-// quick fix to get errcode inside get_header function
-$threads_ec = [];
-
-// todo : && if(!file_exists(PHP_LOG_FILE))
-if(!file_exists(QN_LOG_FILE)) die('no log found');
-// read raw content
-$log = file_get_contents(QN_LOG_FILE);
-// extract content to an array or rows
-$lines = explode(PHP_EOL, $log);
-// workaround to make sure threads ids are in a sequence (which is not the cas with concurrent processes)
-sort($lines);
-// count lines
-$len = count($lines);
-//get the last line
-$k = 1;
-
-if($len < 2) die('empty file');
-
-if(isset($_GET['thread_id']) && strlen($_GET['thread_id']) > 0) {
-    $thread_id = $_GET['thread_id'];
-}
-else {
-    $entry = $lines[$len-$k-1];
-    // skip preceeding lines
-    while(substr($entry, 0, 1) == '#' || strlen($entry) < 20) {
-        ++$k;
-        if(($len-$k) <= 0) die();
-        $entry = $lines[$len-$k-1];
-    }
-    // fetch the thread_id
-// todo : use a function to fetch an entry, and validate it based on values count (otherwise, ignore)
-    list($thread_id, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    list($datetime, $microtime) = explode('+', $datetime);
-    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");
-    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
-    // syntax:  $this->thread_id.';'.time().';'.$code.';'.$origin.';'.$trace['file'].';'.$trace['line'].';'.$msg.PHP_EOL;
-    $threads_dt[$thread_id] = $datetime;
-    if(!isset($threads_ec[$thread_id])) {
-        $threads_ec[$thread_id] = normalize_error_code($errcode);
-    }
-    else {
-        $err = normalize_error_code($errcode);
-        if($threads_ec[$thread_id] > $err) {
-            $threads_ec[$thread_id] = $err;
-        }
-    }
-}
-
-// init next and previous threads ids
-$previous_thread = null;
-$next_thread = null;
-
-
-// review all lines preceeding that thread
-for($i = 0; $i < $len-1; ++$i) {
-    $entry = $lines[$i];
-    // skip stack descriptors
-    if(substr($entry, 0, 1) == '#' || strlen($entry) < 20) continue;
-
-
-    // fetch the thread_id
-    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    list($datetime, $microtime) = explode('+', $datetime);
-    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");
-    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
-
-    $threads_dt[$tid] = $datetime;
-    if(!isset($threads_ec[$tid])) {
-        $threads_ec[$tid] = normalize_error_code($errcode);
-    }
-    else {
-        $err = normalize_error_code($errcode);
-        if($threads_ec[$tid] > $err) {
-            $threads_ec[$tid] = $err;
-        }
-    }
-    if($tid == $thread_id) {
-        $history[$timestamp.'+'.$microtime] = $entry;
-        break;
-    }
-    if($previous_thread != $tid) {
-        $history[$timestamp.'+'.$microtime] = $entry;
-    }
-    // remebrer previous thread id
-    $previous_thread = $tid;
-}
-
-// find next thread id
-$prev = $previous_thread;
-for($j = $i+1;$j < $len-1; ++$j){
-    $entry = $lines[$j];
-    if(strlen($entry) == 0) break;
-    if(substr($entry, 0, 1) == '#' || strlen($entry) < 20) continue;
-    list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-    if(!isset($threads_ec[$tid])) {
-        $threads_ec[$tid] = normalize_error_code($errcode);
-    }
-    else {
-        $err = normalize_error_code($errcode);
-        if($threads_ec[$tid] > $err) {
-            $threads_ec[$tid] = $err;
-        }
-    }
-
-    if($tid == $thread_id) continue;
-
-    list($datetime, $microtime) = explode('+', $datetime);
-    list($month, $day, $year, $hour, $minute, $second) = sscanf($datetime, "%d-%d-%d %d:%d:%d");
-    $timestamp = mktime($hour, $minute , $second, $month, $day, $year);
-    $threads_dt[$tid] = $datetime;
-
-    if(!$next_thread && $tid != $thread_id) {
-        $next_thread = $tid;
-    }
-    if($prev != $tid) {
-        $history[$timestamp.'+'.$microtime] = $entry;
-    }
-    $prev = $tid;
-}
-
-
-$current_thread = get_header($thread_id, $thread_id, $previous_thread, $next_thread);
-
-// check for errors from error.log (check if last line is newer than eq_error.log's last line)
-if(file_exists(PHP_LOG_FILE)) {
-    $php_log = file_get_contents(PHP_LOG_FILE);
-    $php_lines = explode(PHP_EOL, $php_log);
-
-    $php_len = count($php_lines);
-    for($l = 1; $l <= $php_len; ++$l) {
-        $line = $php_lines[$php_len-$l];
-        $match = [];
-
-        if(preg_match("/\[([^\s]*) ([^\s]*) ([^\s]*)\] ([^\s]*) (.*): ((.*):)? (.*) in ([^\s]*) on line ([0-9]+)/", $line, $match)) {
-            $timestamp = strtotime($match[1].' '.$match[2]);
-            $datetime = date("m-d-Y H:i:s", $timestamp);
-            $microtime = '0.00000000';
-            list($tid, $timestamp, $errcode, $origin, $file, $line, $msg) = [0, $timestamp, $match[5], '', $match[7], $match[8], $match[6]];
-
-            $tid = 'PHP'.substr(md5('0;0 '.$timestamp.';'.$file), 0, 6);
-            $entry = "$tid;$datetime+$microtime;$errcode;$origin;$file;$line;$msg";
-            $history[$timestamp.'+'.$microtime] = $entry;
-            $threads_dt[$tid] = $datetime;
-            if(!isset($threads_ec[$tid])) {
-                $threads_ec[$tid] = normalize_error_code($errcode);
-            }
-            else {
-                $err = normalize_error_code($errcode);
-                if($threads_ec[$tid] > $err) {
-                    $threads_ec[$tid] = $err;
-                }
-            }
-            if(substr($thread_id, 0, 3) == 'PHP' && $tid == $thread_id) {
-                $current_thread .= get_line($entry);
-            }
-        }
-    }
-}
-
-
-if(substr($thread_id, 0, 3) != 'PHP') {
-    // get lines that belong to current thread
-    while(true) {
-        $entry = $lines[$i];
-        if(strlen($entry) == 0) break;
-        if(substr($entry, 0, 1) != '#') {
-            $values = explode(';', $entry);
-            $tid = $values[0];
-
-            if($tid != $thread_id) break;
-            $current_thread .= get_line($entry);
-        }
-        else {
-            $j = 0;
-            $stack = [];
-            while(substr($entry, 0, 1) == '#') {
-                $stack[] = $entry;
-                ++$i;
-                if($i >= $len-1) break;
-                $entry = $lines[$i];
-            }
-            $current_thread .= get_stack($stack);
-        }
-        ++$i;
-        if($i >= $len-1) break;
-    }
-}
-?>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="assets/css/bootstrap.css" />
-<link rel="stylesheet" type="text/css" href="assets/css/font-awesome.css" />
-<style>
-html,body {
-    padding:0;
-    margin:0;
-    height:100%;
-}
-
-div.active {
-    background-color: lightblue;
-}
-</style>
-</head>
-<body>
-<?php
-if(isset($_REQUEST['list'])) {
-
-    // order history by timestamp
-    ksort($history);
-    foreach($history as $timestamp => $entry) {
-        list($tid, $datetime, $errcode, $origin, $file, $line, $msg) = explode(';', $entry);
-        echo get_header($tid, $thread_id);
-    }
-    ?>
-    <script>window.scrollTo(0,document.body.scrollHeight);</script>
-    <?php
-}
-else if( isset($_REQUEST['details']) || isset($_REQUEST['thread_id']) ) {
-
-    echo $current_thread;
-
-}
-else {
-?>
-<style>
-html, body {
-    overflow: hidden;
-}
-</style>
-<iframe name="list" width="100%" height="30%" src="/console.php?list=true" frameborder="0" allowfullscreen></iframe>
-
-<iframe name="details" width="100%" height="70%" src="/console.php?details=true" frameborder="0" allowfullscreen style="padding-bottom: 5px;"></iframe>
-<?php
-}
-?>
-</body>
-</html>
