@@ -20,7 +20,7 @@ list($params, $providers) = announce([
 
 
 $context->httpResponse()
-        ->cookie('access_token', '', ['expires' => time(), 'httponly' => true, 'secure' => AUTH_TOKEN_HTTPS])
-        ->cookie('refresh_token', '', ['expires' => time(), 'httponly' => true, 'secure' => AUTH_TOKEN_HTTPS])
+        ->cookie('access_token', '', ['expires' => time(), 'httponly' => true, 'secure' => constant('AUTH_TOKEN_HTTPS')])
+        ->cookie('refresh_token', '', ['expires' => time(), 'httponly' => true, 'secure' => constant('AUTH_TOKEN_HTTPS')])
         ->status(204)
         ->send();
