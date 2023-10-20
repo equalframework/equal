@@ -35,27 +35,26 @@ class Tester {
         return $result;
     }
 
-    private static function array_equals($array1, $array2) {
+    private static function array_equals($array1, $array2, $strict=false) {
         $res = true;
-// #todo allow to make this optional (strict flag)
-        /*
-        if(count($array1) != count($array2)) {
+        if($strict && count($array1) != count($array2)) {
             return false;
         }
-        */
         foreach($array1 as $key => $value) {
             if(!isset($array2[$key]) || gettype($value) != gettype($array2[$key])) {
                 $res = false;
             }
             else {
                 if(gettype($value) == 'array') {
-                    $res = self::array_equals($value, $array2[$key]);
+                    $res = self::array_equals($value, $array2[$key], $strict);
                 }
-                else if($value != $array2[$key]) {
+                elseif($value != $array2[$key]) {
                     $res = false;
                 }
             }
-            if(!$res) break;
+            if(!$res) {
+                break;
+            }
         }
         return $res;
     }
@@ -67,37 +66,48 @@ class Tester {
             // use a dedicated controller to check test unit structure validity
 
             // if a specific test ID was given, ignore other tests
-            if($test_id && $id != $test_id) continue;
-
-            if(isset($test['arrange']) && is_callable($test['arrange'])) {
-                $precondition = $test['arrange']();
+            if($test_id && $id != $test_id) {
+                continue;
             }
 
+            $this->results[$id] = [
+                'description'   => $test['description'],
+                'logs'          => []
+            ];
+
+            $args = [];
             $result = null;
             $success = true;
 
-            if(isset($test['test']) && is_callable($test['test'])) {
-                $result = $test['test']();
-            }
-            elseif(isset($test['act']) && is_callable($test['act'])) {
-                $result = $test['act']();
-            }
-
-
-            if(in_array(gettype($result), (array) $test['return'])) {
-
-                if(isset($test['assert']) && is_callable($test['assert'])) {
-                    $success = $test['assert']($result);
+            if(isset($test['arrange']) && is_callable($test['arrange'])) {
+                try {
+                    $precondition = $test['arrange']();
+                    $args = [$precondition];
                 }
-                else if(isset($test['expected'])) {
-                    if(gettype($result) == gettype($test['expected'])) {
-                        if(gettype($result) == "array") {
-                            if(!self::array_equals($test['expected'], $result)) {
-                                $success = false;
+                catch(\Exception $e) {
+                    $this->results[$id]['logs'][] = "Error while performing `arrange()`: ".$e->getMessage();
+                    throw new \Exception("test {$id} raised an unexpected exception", QN_ERROR_UNKNOWN);
+                }
+            }
+
+            if(isset($test['test']) && is_callable($test['test'])) {
+                try {
+                    $result = call_user_func_array($test['test'], $args);
+                    if(in_array(gettype($result), (array) $test['return'])) {
+                        if(isset($test['expected'])) {
+                            if(gettype($result) == gettype($test['expected'])) {
+                                if(gettype($result) == "array") {
+                                    if(!self::array_equals($test['expected'], $result)) {
+                                        $success = false;
+                                    }
+                                }
+                                else {
+                                    if($result != $test['expected']) {
+                                        $success = false;
+                                    }
+                                }
                             }
-                        }
-                        else {
-                            if($result != $test['expected']) {
+                            else {
                                 $success = false;
                             }
                         }
@@ -106,32 +116,55 @@ class Tester {
                         $success = false;
                     }
                 }
+                catch(\Exception $e) {
+                    $success = false;
+                    $this->results[$id]['logs'][] = $e->getMessage();
+                }
             }
-            else {
-                $success = false;
+            elseif(isset($test['act']) && is_callable($test['act'])) {
+                try {
+                    $result = call_user_func_array($test['act'], $args);
+                    if(isset($test['assert']) && is_callable($test['assert'])) {
+                        $success = call_user_func_array($test['assert'], [$result]);
+                    }
+                }
+                catch(\Exception $e) {
+                    $success = false;
+                    $this->results[$id]['logs'][] = $e->getMessage();
+                }
+            }
+            elseif(isset($test['assert']) && is_callable($test['assert'])) {
+                try {
+                    $success = call_user_func_array($test['assert'], $args);
+                }
+                catch(\Exception $e) {
+                    $success = false;
+                    $this->results[$id]['logs'][] = $e->getMessage();
+                }
             }
 
             if(!$success) {
                 $this->failing[] = $id;
             }
-            else {
-                if(isset($test['rollback']) && is_callable($test['rollback'])) {
+
+            if(isset($test['rollback']) && is_callable($test['rollback'])) {
+                try {
                     $test['rollback']();
+                }
+                catch(\Exception $e) {
+                    $this->results[$id]['logs'][] = "Error while performing `rollback()`: ".$e->getMessage();
                 }
             }
 
-            $this->results[$id] = [
-                'description'   => $test['description'],
-                'status'        => $success?'ok':'ko',
-                'result'        => $result
-            ];
+            $this->results[$id]['status'] = $success?'ok':'ko';
+            $this->results[$id]['result'] = (gettype($result) == 'object')?'(object)':$result;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];
             }
 
             if(isset($test['arrange'])) {
-                $this->results[$id]['arrange'] = $precondition;
+                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'(object)':$precondition;
             }
         }
 
