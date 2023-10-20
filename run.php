@@ -89,7 +89,6 @@ try {
 
         $router = Router::getInstance();
         // add routes providers according to current request
-        if($request->isBot()) $router->add(QN_BASEDIR.'/config/routing/bot/*.json');
         $router->add(QN_BASEDIR.'/config/routing/*.json');
         $router->add(QN_BASEDIR.'/config/routing/i18n/*.json');
         // translate preflight requests (OPTIONS) to be handled as GET, with announcement
