@@ -908,7 +908,7 @@ class ObjectManager extends Service {
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -919,7 +919,7 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-            trigger_error("QN_DEBUG_ORM::invalid args ($method, $class)", QN_REPORT_WARNING);
+            trigger_error("ORM::invalid args ($method, $class)", QN_REPORT_WARNING);
             return QN_ERROR_INVALID_PARAM;
         }
 
@@ -929,7 +929,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            trigger_error("QN_DEBUG_ORM::non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            trigger_error("ORM::non-existing method '$method' for class '$class'", QN_REPORT_INFO);
             return QN_ERROR_INVALID_PARAM;
         }
 
@@ -979,7 +979,7 @@ class ObjectManager extends Service {
      * @param array     $signature  List of parameters to relay to target method (required if differing from default).
      */
     public function call($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
-        trigger_error("QN_DEBUG_ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
         $result = [];
 
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -1077,7 +1077,7 @@ class ObjectManager extends Service {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
                     // issue a warning about missing mandatory field
-                    trigger_error("QN_DEBUG_ORM::mandatory field {$field} is missing for instance of {$class}", QN_REPORT_WARNING);
+                    trigger_error("ORM::mandatory field {$field} is missing for instance of {$class}", QN_REPORT_WARNING);
                 }
             }
         }
@@ -1174,7 +1174,7 @@ class ObjectManager extends Service {
                             if(!isset($constraint['message'])) {
                                 $constraint['message'] = 'Invalid field.';
                             }
-                            trigger_error("QN_DEBUG_ORM::field {$field} violates constraint : {$constraint['message']}", QN_REPORT_DEBUG);
+                            trigger_error("ORM::field {$field} violates constraint : {$constraint['message']}", QN_REPORT_DEBUG);
                             $error_code = QN_ERROR_INVALID_PARAM;
                             if(!isset($res[$field])) {
                                 $res[$field] = [];
@@ -1245,7 +1245,7 @@ class ObjectManager extends Service {
                     }
                     // there is a violation : stop and fetch info about it
                     if(count($conflict_ids)) {
-                        trigger_error("QN_DEBUG_ORM::field {$field} violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
+                        trigger_error("ORM::field {$field} violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
                         $error_code = QN_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
                         break 2;
@@ -1436,7 +1436,7 @@ class ObjectManager extends Service {
                 // remove fields not defined in related schema
                 if(!isset($schema[$field])) {
                     unset($fields[$field]);
-                    trigger_error("QN_DEBUG_ORM::unknown field ('{$field}') in fields arg", QN_REPORT_WARNING);
+                    trigger_error("ORM::unknown field ('{$field}') in fields arg", QN_REPORT_WARNING);
                 }
             }
 
@@ -1593,7 +1593,7 @@ class ObjectManager extends Service {
                 else if(!isset($schema[$field])) {
                     // drop invalid fields
                     unset($fields[$key]);
-                    trigger_error("QN_DEBUG_ORM::unknown field '$field' for class : '$class'", QN_REPORT_WARNING);
+                    trigger_error("ORM::unknown field '$field' for class : '$class'", QN_REPORT_WARNING);
                 }
                 else {
                     // handle aliases
@@ -1637,7 +1637,7 @@ class ObjectManager extends Service {
 
                 foreach($ids as $oid) {
                     if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
-                        trigger_error("QN_DEBUG_ORM::unknown or empty object $class[$oid]", QN_REPORT_WARNING);
+                        trigger_error("ORM::unknown or empty object $class[$oid]", QN_REPORT_WARNING);
                         continue;
                     }
                     // first pass : retrieve fields values
@@ -2162,7 +2162,7 @@ class ObjectManager extends Service {
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
                 if(!isset($schema[$sort_field]) || ( $schema[$sort_field]['type'] == 'computed' && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
-                    trigger_error("QN_DEBUG_ORM::invalid order field '$sort_field' for class '$class'", QN_REPORT_WARNING);
+                    trigger_error("ORM::invalid order field '$sort_field' for class '$class'", QN_REPORT_WARNING);
                     // $order = 'id';
                     $sort_field = 'id';
                     $sort_order = 'asc';

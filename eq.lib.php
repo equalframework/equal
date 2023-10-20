@@ -996,7 +996,7 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("QN_DEBUG_PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
             global $last_context;
 
             $result = '';
@@ -1149,7 +1149,7 @@ namespace config {
                         file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
                     }
                 }
-                trigger_error("QN_DEBUG_PHP::result - $result", QN_REPORT_DEBUG);
+                trigger_error("PHP::result - $result", QN_REPORT_DEBUG);
             }
 
             // restore context

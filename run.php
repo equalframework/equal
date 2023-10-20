@@ -200,7 +200,7 @@ catch(Throwable $e) {
         // for debug purpose
         // ->extendBody([ 'logs' => file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log')])
         ->send();
-        trigger_error("{$request_headers['Origin']} QN_DEBUG_PHP::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
+        trigger_error("{$request_headers['Origin']} PHP::".qn_error_name($error_code)." - ".$msg, QN_REPORT_WARNING);
         exit(1);
     }
 }
