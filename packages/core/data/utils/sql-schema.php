@@ -52,6 +52,7 @@ $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), consta
 
 
 $result = array();
+$m2m_tables = array();
 
 // get classes listing
 $json = run('get', 'config_classes', ['package' => $params['package']]);
@@ -64,8 +65,8 @@ else {
     $classes = $data;
 }
 
-
-$m2m_tables = array();
+// associative array with 2 levels, mapping tables with their list of columns
+$processed_columns = [];
 
 // remember tables used by inherited classes (can only be overriden by children, not by ancestor)
 $parent_tables = [];
@@ -77,24 +78,26 @@ foreach($classes as $class) {
     if(!is_object($model)) throw new Exception("unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
 
     // get the SQL table name
-    $table_name = $orm->getObjectTableName($class_name);
+    $table = $orm->getObjectTableName($class_name);
     $direct_name = strtolower(str_replace('\\', '_', $class_name));
     // handle inherited classes
-    if($table_name != $direct_name) {
+    if($table != $direct_name) {
         // table name is the table of an ancestor
-        $parent_tables[] = $table_name;
+        $parent_tables[] = $table;
     }
 
     // get the complete schema of the object (including special fields)
     $schema = $model->getSchema();
 
-    // init result array
+    if(!isset($processed_columns[$table])) {
+        $processed_columns[$table] = [];
+    }
 
     // #memo - deleting tables prevents keeping data across inherited classes
-    // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
+    // $result[] = "DROP TABLE IF EXISTS `{$table}`;";
 
     // fetch existing column
-    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
+    $query = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table' AND TABLE_SCHEMA='".constant('DB_NAME')."';";
     $res = $db->sendQuery($query);
 
     $columns = [];
@@ -107,6 +110,10 @@ foreach($classes as $class) {
     if(!empty($columns) && !$params['full']) {
         $columns_diff = array_diff(array_keys($schema), $columns);
         foreach($columns_diff as $field) {
+            // prevent processing a same column more than once
+            if(isset($processed_columns[$table][$field])) {
+                continue;
+            }
             $description = $schema[$field];
             if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
                 $type = ObjectManager::$types_associations[$description['type']];
@@ -115,35 +122,39 @@ foreach($classes as $class) {
                     $type = ObjectManager::$usages_associations[$description['usage']];
                 }
                 if($field == 'id') {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} NOT NULL AUTO_INCREMENT;";
+                    $result[] = "ALTER TABLE `{$table}` ADD `{$field}` {$type} NOT NULL AUTO_INCREMENT;";
                 }
                 elseif(in_array($field, array('creator','modifier','published','deleted'))) {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} NOT NULL DEFAULT '0';";
+                    $result[] = "ALTER TABLE `{$table}` ADD `{$field}` {$type} NOT NULL DEFAULT '0';";
                 }
                 else {
-                    $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type};";
+                    $result[] = "ALTER TABLE `{$table}` ADD `{$field}` {$type};";
                 }
             }
-            else if( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
+            elseif( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
                 $type = ObjectManager::$types_associations[$description['result_type']];
                 // if a SQL type is associated to field 'usage', it prevails over the type association
                 if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
                     $type = ObjectManager::$usages_associations[$description['usage']];
                 }
-                $result[] = "ALTER TABLE `{$table_name}` ADD `{$field}` {$type} DEFAULT NULL;";
+                $result[] = "ALTER TABLE `{$table}` ADD `{$field}` {$type} DEFAULT NULL;";
             }
-            else if($description['type'] == 'many2many') {
+            elseif($description['type'] == 'many2many') {
                 if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
             }
-
+            $processed_columns[$table][$field] = true;
         }
     }
     // if no columns were found, the table is either empty or do not exist yet
     // in this case, we create the table and add all the columns
     else {
-        $result[] = "CREATE TABLE IF NOT EXISTS `{$table_name}` (";
+        $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
 
         foreach($schema as $field => $description) {
+            // prevent processing a same column more than once
+            if(isset($processed_columns[$table][$field])) {
+                continue;
+            }
             if(in_array($description['type'], array_keys(ObjectManager::$types_associations))) {
                 $type = ObjectManager::$types_associations[$description['type']];
 
@@ -162,13 +173,14 @@ foreach($classes as $class) {
                     $result[] = "`{$field}` {$type} DEFAULT NULL,";
                 }
             }
-            else if( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
+            elseif( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
                 $type = ObjectManager::$types_associations[$description['result_type']];
                 $result[] = "`{$field}` {$type} DEFAULT NULL,";
             }
-            else if($description['type'] == 'many2many') {
+            elseif($description['type'] == 'many2many') {
                 if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
             }
+            $processed_columns[$table][$field] = true;
         }
         $result[] = "PRIMARY KEY (`id`)";
 
@@ -196,11 +208,19 @@ foreach($classes as $class) {
 }
 
 foreach($m2m_tables as $table => $columns) {
+    if(!isset($processed_columns[$table])) {
+        $processed_columns[$table] = [];
+    }
     $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
     $key = '';
     foreach($columns as $column) {
+        // prevent processing a same column more than once
+        if(isset($processed_columns[$table][$column])) {
+            continue;
+        }
         $result[] = "`{$column}` int(11) NOT NULL,";
         $key .= "`$column`,";
+        $processed_columns[$table][$column] = true;
     }
     $key = rtrim($key, ",");
     $result[] = "PRIMARY KEY ({$key})";
