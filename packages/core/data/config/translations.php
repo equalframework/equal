@@ -53,8 +53,15 @@ else {
     if(!isset($params['entity'])) {
         throw new Exception('package_or_entity_required', QN_ERROR_MISSING_PARAM);
     }
-    if(!class_exists($params['entity'])) {
-        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+    $temp = explode("\\", str_replace("_","\\",$params['entity']));
+    $pkg = array_shift($temp);
+    $path = implode("/",$temp);
+    if(
+        !file_exists(QN_BASEDIR."/packages/{$pkg}/classes/{$path}.class.php") 
+        && !file_exists(QN_BASEDIR."/packages/{$pkg}/actions/{$path}.php") 
+        && !file_exists(QN_BASEDIR."/packages/{$pkg}/data/{$path}.php")
+    ) {
+        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
     }
     $entity = $params['entity'];
     $map_views_ids = [];
