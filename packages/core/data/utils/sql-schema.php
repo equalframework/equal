@@ -148,8 +148,12 @@ foreach($classes as $class) {
     // if no columns were found, the table is either empty or do not exist yet
     // in this case, we create the table and add all the columns
     else {
-        $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
-
+        $queries = [];
+        $count_fields = 0;
+        $queries[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
+        if(!isset($processed_columns[$table])) {
+            $processed_columns[$table] = [];
+        }
         foreach($schema as $field => $description) {
             // prevent processing a same column more than once
             if(isset($processed_columns[$table][$field])) {
@@ -164,25 +168,26 @@ foreach($classes as $class) {
                 }
 
                 if($field == 'id') {
-                    $result[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
+                    $queries[] = "`{$field}` {$type} NOT NULL AUTO_INCREMENT,";
                 }
                 elseif(in_array($field, array('creator','modifier','published','deleted'))) {
-                    $result[] = "`{$field}` {$type} NOT NULL DEFAULT '0',";
+                    $queries[] = "`{$field}` {$type} NOT NULL DEFAULT '0',";
                 }
                 else {
-                    $result[] = "`{$field}` {$type} DEFAULT NULL,";
+                    $queries[] = "`{$field}` {$type} DEFAULT NULL,";
                 }
             }
             elseif( $description['type'] == 'computed' && isset($description['store']) && $description['store'] ) {
                 $type = ObjectManager::$types_associations[$description['result_type']];
-                $result[] = "`{$field}` {$type} DEFAULT NULL,";
+                $queries[] = "`{$field}` {$type} DEFAULT NULL,";
             }
             elseif($description['type'] == 'many2many') {
                 if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
             }
             $processed_columns[$table][$field] = true;
+            ++$count_fields;
         }
-        $result[] = "PRIMARY KEY (`id`)";
+        $queries[] = "PRIMARY KEY (`id`)";
 
         if(method_exists($model, 'getUnique')) {
             $list = $model->getUnique();
@@ -202,7 +207,13 @@ foreach($classes as $class) {
             }
         }
 
-        $result[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";
+        $queries[] = ") DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;\n";
+        if($count_fields > 0) {
+            foreach($queries as $query) {
+                $result[] = $query;
+            }
+        }
+
     }
 
 }
@@ -211,23 +222,31 @@ foreach($m2m_tables as $table => $columns) {
     if(!isset($processed_columns[$table])) {
         $processed_columns[$table] = [];
     }
-    $result[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
+    $queries = [];
+    $queries[] = "CREATE TABLE IF NOT EXISTS `{$table}` (";
     $key = '';
+    $count_fields = 0;
     foreach($columns as $column) {
         // prevent processing a same column more than once
         if(isset($processed_columns[$table][$column])) {
             continue;
         }
-        $result[] = "`{$column}` int(11) NOT NULL,";
+        $queries[] = "`{$column}` int(11) NOT NULL,";
         $key .= "`$column`,";
         $processed_columns[$table][$column] = true;
+        ++$count_fields;
     }
     $key = rtrim($key, ",");
-    $result[] = "PRIMARY KEY ({$key})";
-    $result[] = ");";
+    $queries[] = "PRIMARY KEY ({$key})";
+    $queries[] = ");";
+    if($count_fields > 0) {
+        foreach($queries as $query) {
+            $result[] = $query;
+        }
+    }
     // add an empty record (required for JOIN conditions on empty tables)
     $result[] = "INSERT IGNORE INTO `{$table}` (".implode(',', array_map(function($col) {return "`{$col}`";}, $columns)).') VALUES ';
-    $result[]= '('.implode(',', array_fill(0, count($columns), 0)).");";
+    $result[] = '('.implode(',', array_fill(0, count($columns), 0)).");";
 }
 
 // send json result
