@@ -54,17 +54,31 @@ namespace {
     define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
 
 
+    // equivalence map for constant names migration
+    define('EQ_ERROR_UNKNOWN',           QN_ERROR_UNKNOWN);
+    define('EQ_ERROR_MISSING_PARAM',     QN_ERROR_MISSING_PARAM);
+    define('EQ_ERROR_INVALID_PARAM',     QN_ERROR_INVALID_PARAM);
+    define('EQ_ERROR_SQL',               QN_ERROR_SQL);
+    define('EQ_ERROR_UNKNOWN_OBJECT',    QN_ERROR_UNKNOWN_OBJECT);
+    define('EQ_ERROR_NOT_ALLOWED',       QN_ERROR_NOT_ALLOWED);
+    define('EQ_ERROR_LOCKED_OBJECT',     QN_ERROR_LOCKED_OBJECT);
+    define('EQ_ERROR_CONFLICT_OBJECT',   QN_ERROR_CONFLICT_OBJECT);
+    define('EQ_ERROR_INVALID_USER',      QN_ERROR_INVALID_USER);
+    define('EQ_ERROR_UNKNOWN_SERVICE',   QN_ERROR_UNKNOWN_SERVICE);
+    define('EQ_ERROR_INVALID_CONFIG',    QN_ERROR_INVALID_CONFIG);
+
 
     /**
      * Debugging modes and levels
      */
-    define('QN_DEBUG_PHP',          1);
-    define('QN_DEBUG_SQL',          2);
-    define('QN_DEBUG_ORM',          4);
-    define('QN_DEBUG_API',          8);
-    define('QN_DEBUG_APP',          16);
+    // debugging modes
+    define('QN_MODE_PHP',          1);
+    define('QN_MODE_SQL',          2);
+    define('QN_MODE_ORM',          4);
+    define('QN_MODE_API',          8);
+    define('QN_MODE_APP',          16);
 
-
+    // debugging levels
     define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
     define('QN_REPORT_INFO',        E_USER_NOTICE);         // 1024
     define('QN_REPORT_WARNING',     E_USER_WARNING);        // 512
@@ -93,6 +107,13 @@ namespace {
     define('QN_R_DELETE',    8);
     define('QN_R_MANAGE',   16);
 
+    /* equivalence map for naming migration */
+    define('R_CREATE',       QN_R_CREATE);
+    define('R_READ',         QN_R_READ);
+    define('R_WRITE',        QN_R_WRITE);
+    define('R_DELETE',       QN_R_DELETE);
+    define('R_MANAGE',       QN_R_MANAGE);
+
     /**
      * Built-in Users and Groups
      *
@@ -111,7 +132,7 @@ namespace {
     */
 
     /**
-     * Mapper from internal eror codes to string constants
+     * Mapper from internal error codes to string constants
      */
     function qn_error_name($error_id) {
         switch($error_id) {
@@ -130,7 +151,7 @@ namespace {
     }
 
     /**
-     * Mapper from string constants to internal eror codes
+     * Mapper from string constants to internal error codes
      */
     function qn_error_code($error_name) {
         switch($error_name) {
@@ -149,14 +170,14 @@ namespace {
     }
 
     /**
-     * Mapper from internal eror codes to HTTP codes
+     * Mapper from internal error codes to HTTP codes
      */
     function qn_error_http($error_id) {
         switch($error_id) {
             case 0:                         return 200;
             case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
             case QN_ERROR_INVALID_PARAM:    return 400;
-            case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario happend and operation could not be performed
+            case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario append and operation could not be performed
             case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'              user has not enough privilege to perform requested operation (includes method not allowed-
             case QN_ERROR_UNKNOWN_OBJECT:   return 404;     // 'Not Found'              object or route does not exist
             case QN_ERROR_LOCKED_OBJECT:    return 423;     // 'Locked'                 resource is currently locked
@@ -171,14 +192,24 @@ namespace {
         return 500;
     }
 
-
-
-    function qn_report_name($code) {
+    function qn_debug_code_name($code) {
         switch($code) {
             case QN_REPORT_DEBUG:    return 'DEBUG';
+            case QN_REPORT_INFO:     return 'INFO';
             case QN_REPORT_WARNING:  return 'WARNING';
             case QN_REPORT_ERROR:    return 'ERROR';
             case QN_REPORT_FATAL:    return 'FATAL';
+        }
+        return 'UNKNOWN';
+    }
+
+    function qn_debug_mode_name($mode) {
+        switch($mode) {
+            case QN_MODE_PHP:    return 'PHP';
+            case QN_MODE_SQL:    return 'SQL';
+            case QN_MODE_ORM:    return 'ORM';
+            case QN_MODE_API:    return 'API';
+            case QN_MODE_APP:    return 'APP';
         }
         return 'UNKNOWN';
     }
