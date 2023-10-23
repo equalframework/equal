@@ -1,9 +1,11 @@
 {
     "name": "Authentication",
-    "description": "",
+    "description": "App for authenticating users and/or creating new accounts.",
+    "version": "1.0",
+    "author": "Cedric Francoys",
+    "license": "LGPL-3",
+    "repository": "https://github.com/equalframework/apps-core-auth.git",
     "url": "/auth",
-    "icon": "",
-    "color": "",
     "access": {
         "groups": [
             "users"
