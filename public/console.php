@@ -82,9 +82,9 @@ div.snack {
     height: 40px;
     line-height: 40px;
     padding: 0 10px;
-    position: absolute;
+    position: fixed;
     z-index: 1;
-    border-radius: 3px;
+    border-radius: 5px;
     bottom: -20px;
     opacity: 0;
     left: 20px;
