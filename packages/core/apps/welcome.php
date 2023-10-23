@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
-    'description'   => 'Redirect to welcome folder.',
+    'description'   => 'Redirect to welcome public folder.',
     'params'        => [],
     'response'      => [
         'location'      => '/welcome/'
