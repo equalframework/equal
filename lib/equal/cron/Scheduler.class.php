@@ -58,7 +58,7 @@ class Scheduler extends Service {
                 return;
             }
             foreach($selected_tasks_ids as $tid) {
-                // #memo - reading is done just before processing, to make sure to get up to date values (might have been updated by another process)
+                // #memo - reading is done just before processing, to make sure to get up-to-date values (tasks might have been updated by another process)
                 $tasks = $orm->read('core\Task', $tid, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
                 if($tasks < 0 || !count($tasks)) {
                     continue;
