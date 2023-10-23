@@ -1,9 +1,0 @@
-<mat-form-field appearance="fill" class="max-width">
-    <mat-label>{{ label }}</mat-label>
-    <input matInput [formControl]="control" [matAutocomplete]="auto" [value]="value">
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelectionChange($event)">
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-            {{ option }}
-        </mat-option>
-    </mat-autocomplete>
-</mat-form-field>
