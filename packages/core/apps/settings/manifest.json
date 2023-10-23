@@ -2,7 +2,7 @@
     "name": "Settings",
     "description": "App for accessing and managing configuration and options related to an eQual installation.",
     "version": "1.0",
-    "author": "Cedric Francoys",
+    "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-settings.git",
     "url": "/settings",

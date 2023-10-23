@@ -2,7 +2,7 @@
     "name": "Apps",
     "description": "Dashboard showing all Apps that are available to current User.",
     "version": "1.0",
-    "author": "Cedric Francoys",
+    "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-apps.git",
     "url": "/apps",

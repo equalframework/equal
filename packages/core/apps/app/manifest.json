@@ -2,7 +2,7 @@
     "name": "app",
     "description": "Standard App to serve as surrogate for Package specific apps.",
     "version": "1.0",
-    "author": "Cedric Francoys",
+    "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-app.git",
     "url": "/app",

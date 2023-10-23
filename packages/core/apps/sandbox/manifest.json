@@ -2,7 +2,7 @@
     "name": "Sandbox",
     "description": "Demo App to help learning how to use the eQUI logic.",
     "version": "1.0",
-    "author": "Cedric Francoys",
+    "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-sandbox.git",
     "url": "/sandbox",
