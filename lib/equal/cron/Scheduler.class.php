@@ -57,11 +57,16 @@ class Scheduler extends Service {
                 trigger_error("PHP::Ignoring scheduler batch because at least one exclusive task is already running (running tasks ".implode(',', $running_tasks_ids).")", QN_REPORT_INFO);
                 return;
             }
-            $tasks = $orm->read('core\Task', $selected_tasks_ids, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
-            foreach($tasks as $tid => $task) {
+            foreach($selected_tasks_ids as $tid) {
+                // #memo - reading is done just before processing, to make sure to get up to date values (might have been updated by another process)
+                $tasks = $orm->read('core\Task', $tid, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
+                if($tasks < 0 || !count($tasks)) {
+                    continue;
+                }
+                $task = reset($tasks);
                 // prevent simultaneous execution of a same task
                 if($task['status'] != 'idle') {
-                    trigger_error("PHP::Ignoring execution of task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
+                    trigger_error("PHP::Ignoring execution of a task that is already running [{$task['id']}] - [{$task['controller']}]", QN_REPORT_INFO);
                     continue;
                 }
                 // prevent concurrent execution for exclusive tasks
