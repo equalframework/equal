@@ -18,7 +18,15 @@ class DBConnection extends Service {
     protected function __construct() {
         switch(constant('DB_DBMS')) {
             case 'MYSQL' :
-                $this->dbConnection = new DBManipulatorMySQL(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'));
+                $this->dbConnection = new DBManipulatorMySQL(
+                        constant('DB_HOST'),
+                        constant('DB_PORT'),
+                        constant('DB_NAME'),
+                        constant('DB_USER'),
+                        constant('DB_PASSWORD'),
+                        constant('DB_CHARSET'),
+                        constant('DB_COLLATION')
+                    );
                 break;
             /*
             // insert handling of other DBMS here
