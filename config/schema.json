@@ -1,4 +1,9 @@
 {
+    "ENV_MODE": {
+        "type": "string",
+        "description": "Possible values are: 'development', 'staging', 'production'",
+        "default": "development"
+    },
     "CIPHER_KEY": {
         "type": "string",
         "description": "Private key to use for secrets decryption. This property should be defined before any encryption/decryption operation.",
@@ -120,7 +125,7 @@
     },
     "DB_DBMS": {
         "type": "string",
-        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRESQL', 'ORACLE'",
+        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRESQL'",
         "instant": true,
         "default": "MYSQL",
         "example": "MARIADB"
