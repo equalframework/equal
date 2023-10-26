@@ -19,7 +19,7 @@ list($params, $providers) = announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 if(!file_exists(QN_BASEDIR."/config/usages.json")) {
-    throw new Exception("no_usages_file", QN_ERROR_UNKOWN);
+    throw new Exception("missing_usages_file", QN_ERROR_UNKNOWN);
 }
 
 $content = file_get_contents(QN_BASEDIR."/config/usages.json");
