@@ -157,6 +157,9 @@ foreach($classes as $class) {
 }
 
 foreach($m2m_tables as $table => $columns) {
+    if(!isset($processed_columns[$table])) {
+        $processed_columns[$table] = [];
+    }
     // fetch existing columns
     $existing_columns = $db->getTableColumns($table);
     // create table if not exist
@@ -168,11 +171,15 @@ foreach($m2m_tables as $table => $columns) {
         if(in_array($column, $existing_columns)) {
             continue;
         }
+        if(isset($processed_columns[$table][$column])) {
+            continue;
+        }
         $type = $db->getSqlType('integer');
         $result[] = $db->getQueryAddColumn($table, $column, [
             'type'      => $type,
             'null'      => false
         ]);
+        $processed_columns[$table][$column] = true;
     }
     $result[] = $db->getQueryAddConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)

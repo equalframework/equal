@@ -1,6 +1,10 @@
 {
     "name": "Workbench",
-    "description": "This is the workbench application.",
+    "description": "App customizing models, views and controllers from the user interface without code.",
+    "version": "1.0",
+    "authors": ["Cedric Francoys", "Sylvain Sausse", "Quentin Leveque"],
+    "license": "LGPL-3",
+    "repository": "https://github.com/equalframework/apps-core-settings.git",
     "url": "/workbench",
     "icon": "edit_note",
     "color": "#d2252c",

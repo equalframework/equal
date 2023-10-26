@@ -34,6 +34,7 @@ class SettingValue extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the value relates to.',
+                'ondelete'          => 'cascade',
                 'required'          => true
             ],
 
@@ -41,7 +42,7 @@ class SettingValue extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
                 'description'       => 'User the setting is specific to (optional).',
-                'default'           => 0
+                'ondelete'          => 'cascade'
             ],
 
             // #memo - for settings not having the is_multilang field set, translations are ignored

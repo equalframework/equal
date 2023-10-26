@@ -1,6 +1,10 @@
 {
     "name": "Sandbox",
-    "description": "This is a demo application to help learning how to use the Symbiose UI logic.",
+    "description": "Demo App to help learning how to use the eQUI logic.",
+    "version": "1.0",
+    "authors": ["Cedric Francoys"],
+    "license": "LGPL-3",
+    "repository": "https://github.com/equalframework/apps-core-sandbox.git",
     "url": "/sandbox",
     "icon": "edit_note",
     "color": "#d2252c",

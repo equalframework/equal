@@ -1,10 +1,11 @@
 {
     "name": "Apps",
-    "description": "",
-    "checksum": "f3b85b67f6bad1de2ca0a8de965f4b3c",
+    "description": "Dashboard showing all Apps that are available to current User.",
+    "version": "1.0",
+    "authors": ["Cedric Francoys"],
+    "license": "LGPL-3",
+    "repository": "https://github.com/equalframework/apps-core-apps.git",
     "url": "/apps",
-    "icon": "",
-    "color": "",
     "access": {
         "groups": [
             "users"

@@ -721,6 +721,11 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
+            // withdraw invalid objects from collection (id not matching an actual object)
+            foreach(array_diff(array_keys($this->objects), array_keys($res)) as $invalid_id) {
+                unset($this->objects[$invalid_id]);
+            }
+
             // merge retrieved values with current collection (overwrite if already present)
             foreach($res as $id => $object) {
                 foreach($object as $field => $value) {
