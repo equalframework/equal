@@ -6,6 +6,7 @@
 */
 list($params, $providers) = announce([
     'description'   => 'Returns schema of available types and related possible attributes.',
+    'deprecated'    => true,
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
