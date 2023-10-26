@@ -221,7 +221,7 @@ foreach($values as $oid => $odata) {
         // handle html content
         if($type == 'string' && strlen($value) && $usage == 'text/html') {
             $align = 'left';
-            $$value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));
+            $value = strip_tags(str_replace(['</p>', '<br />'], "\r\n", $value));
         }
         else {
             // translate 'select' values
