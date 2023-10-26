@@ -104,6 +104,12 @@
                 "name": "surface",
                 "setting_id": 17,
                 "value": "m2"
+            },
+            {
+                "id": 18,
+                "name": "Europe/Brussels",
+                "setting_id": 18,
+                "value": "Europe/Brussels"
             }
         ]
     }
