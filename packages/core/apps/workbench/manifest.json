@@ -1,6 +1,6 @@
 {
     "name": "Workbench",
-    "description": "App customizing models, views and controllers from the user interface without code.",
+    "description": "App for customizing models, views and controllers from the user interface without code.",
     "version": "1.0",
     "authors": ["Cedric Francoys", "Sylvain Sausse", "Quentin Leveque"],
     "license": "LGPL-3",
