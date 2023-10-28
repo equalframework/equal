@@ -229,7 +229,7 @@
     },
     "AUTH_TOKEN_HTTPS":{
         "type": "boolean",
-        "description": "Flag for limiting the sending of auth token to HTTPS.",
+        "description": "Flag for limiting the sending of auth token over HTTPS.",
         "instant": true,
         "default": false
     },
