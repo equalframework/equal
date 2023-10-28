@@ -149,7 +149,7 @@ class Tester {
 
             if(isset($test['rollback']) && is_callable($test['rollback'])) {
                 try {
-                    $test['rollback']();
+                    call_user_func_array($test['rollback'], [$result]);
                 }
                 catch(\Exception $e) {
                     $this->results[$id]['logs'][] = "Error while performing `rollback()`: ".$e->getMessage();
