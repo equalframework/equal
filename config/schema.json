@@ -9,7 +9,9 @@
         "description": "Private key to use for secrets decryption. This property should be defined before any encryption/decryption operation.",
         "instant": true,
         "environment": "EQ_CIPHER_KEY",
-        "example": "this is a secret key"
+        "examples": [
+            "this is a secret key"
+        ]
     },
     "DEFAULT_LANG": {
         "type": "string",
@@ -46,21 +48,29 @@
         "description": "Rights to grant to any user when no ACL is defined.",
         "instant": true,
         "default": 0,
-        "example": "QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE"
+        "examples": [
+            0,
+            "QN_R_READ | QN_R_WRITE",
+            "QN_R_CREATE | QN_R_READ | QN_R_DELETE | QN_R_WRITE | QN_R_MANAGE"
+        ]
     },
     "DEBUG_MODE": {
         "type": "integer",
         "description": "Classes of report-messages to log (non-matching messages are ignored).",
         "instant": true,
         "default": 0,
-        "example": "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL | QN_MODE_APP | QN_MODE_API"
+        "examples": [
+            "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL | QN_MODE_APP | QN_MODE_API"
+        ]
     },
     "DEBUG_LEVEL": {
         "type": "integer",
         "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file will grow quickly.",
         "instant": true,
-        "default": 32767,
-        "example": "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
+        "default": 0,
+        "examples": [
+            "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
+        ]
     },
     "HTTP_REQUEST_TIMEOUT": {
         "type": "integer",
@@ -121,28 +131,45 @@
         "description": "Strategy to apply for database replication. Possible values are: 'NO': no replication; 'MS' ('master-slave', 2 servers) write operations are performed on both servers, read operations are performed on the master only; 'MM' ('multi-master'): any number of servers; write operations are performed on all servers, read operations can be performed on any server",
         "instant": true,
         "default": "NO",
-        "example": "MS"
+        "examples": [
+            "MS"
+        ]
     },
     "DB_DBMS": {
         "type": "string",
         "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRESQL'",
         "instant": true,
         "default": "MYSQL",
-        "example": "MARIADB"
+        "examples": [
+            "MARIADB",
+            "SQLSRV"
+        ]
     },
     "DB_CHARSET": {
         "type": "string",
-        "description": "Charset encoding to use when manipulating strings with DBMS. Possible values are: 'utf8' (3 bytes) or 'utf8mb4' (4 bytes).",
+        "description": "Charset encoding to use when manipulating strings with DBMS. The possible values depends on the DBMS.",
+        "help": [
+            "MySQL: MySQL/MariaDB handles UTF8 as utf8mb3 by default ('utf8' = 'utf8mb3'). For 4-byte unicode encoding, use 'utf8mb4'.",
+            "SQLSRV: SQLSRV cluster < 2019 does not support UTF-8, so this setting is ignored."
+        ],
         "instant": true,
         "default": "utf8mb4",
-        "example": "utf8"
+        "examples": [
+            "utf8"
+        ]
     },
     "DB_COLLATION": {
         "type": "string",
-        "description": "Collation to apply on SQL queries. Possible values are: 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases.",
+        "description": "Collation to apply on SQL connection (and subsequent queries). The possible values depends on the DBMS.",
+        "help": [
+            "MySQL: Possible values are 'utf8_unicode_ci' (3 bytes) or 'utf8mb4_unicode_ci' (4 bytes) in most cases."
+        ],
         "instant": true,
         "default": "utf8mb4_unicode_ci",
-        "example": "utf8_unicode_ci"
+        "examples": [
+            "utf8_unicode_ci",
+            "LATIN1_GENERAL_100_CS_AS_SC"
+        ]
     },
     "DB_HOST": {
         "type": "string",
@@ -181,9 +208,13 @@
     },
     "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
-        "description": "Maximum authorized size for file upload (in octet). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
+        "description": "Maximum authorized size for file upload (in bytes). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
         "default": "64M",
-        "example": ""
+        "examples": [
+            0,
+            32768,
+            "128M"
+        ]
     },
     "L10N_TIMEZONE": {
         "type": "string",
