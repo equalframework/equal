@@ -1,0 +1,17 @@
+{
+    "name": "Welcome",
+    "description": "Welcome screen displayed as default App.",
+    "version": "1.0",
+    "authors": ["Cedric Francoys"],
+    "license": "LGPL-3",
+    "repository": "https://github.com/equalframework/apps-core-welcome.git",
+    "url": "/welcome",
+    "icon": "home",
+    "color": "#d2252c",
+    "access": {
+        "groups": [
+            "users"
+        ]
+    },
+    "show_in_apps": true
+}
