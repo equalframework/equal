@@ -8,7 +8,7 @@ list($params, $providers) = eQual::announce([
     'description'   => 'Verify major checkpoints to ensure current installation is healthy.',
     'params'        => [
     ],
-    'constants'     => ['ENV_MODE', 'AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'DEFAULT_RIGHTS', 'DEFAULT_LANG'],
+    'constants'     => ['ENV_MODE', 'AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'DEFAULT_RIGHTS', 'DEFAULT_LANG', 'DEBUG_LEVEL'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -39,11 +39,14 @@ if(constant('ENV_MODE') == 'production') {
     if(constant('AUTH_ACCESS_TOKEN_VALIDITY') > 86400) {
         $result[] = 'WARN  - SEC - [AUTH_ACCESS_TOKEN_VALIDITY] Using hight lifespan for access token in production is a potential security breach.';
     }
-    if(constant('DEFAULT_RIGHTS') & R_WRITE >= R_WRITE) {
+    if(constant('DEFAULT_RIGHTS') & R_WRITE == R_WRITE) {
         $result[] = 'WARN  - SEC - [DEFAULT_RIGHTS] WRITE permission to all users in production is a potential security breach.';
     }
     if(constant('AUTH_TOKEN_HTTPS') == false) {
         $result[] = 'WARN  - SEC - [AUTH_TOKEN_HTTPS] It is recommended to exchange auth token over HTTPS only.';
+    }
+    if(constant('DEBUG_LEVEL') >= QN_REPORT_INFO) {
+        $result[] = 'WARN  - CFG - [DEBUG_LEVEL] Using a high debug level will generate a large amount of logs and can result in lower performances.';
     }
 }
 
