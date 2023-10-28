@@ -104,13 +104,13 @@
     },
     "EMAIL_SMTP_ACCOUNT_USERNAME": {
         "type": "string",
-        "description": "Account name (or email address) to use to authentify to SMTP server.",
+        "description": "Account name (or email address) to use to authenticate to SMTP server.",
         "instant": true,
         "default": "account.username"
     },
     "EMAIL_SMTP_ACCOUNT_PASSWORD": {
         "type": "string",
-        "description": "Password to use to authentify to SMTP server.",
+        "description": "Password to use to authenticate to SMTP server.",
         "instant": true,
         "default": "password"
     },
@@ -180,7 +180,11 @@
     },
     "DB_PORT": {
         "type": "integer",
-        "description": "TCP/IP port for connecting to DB host. Default ports: MYSQL 3306, SQLSRV 1433",
+        "description": "TCP/IP port for connecting to DB host.",
+        "help": [
+            "MySQL: default port for MySQL/MariaDB is 3306",
+            "SQLSRV: default port for MS SQL Server si 1433"
+        ],
         "instant": true,
         "environment": "EQ_DB_PORT",
         "default": "3306"
