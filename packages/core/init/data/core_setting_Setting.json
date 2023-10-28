@@ -72,12 +72,12 @@
             {
                 "id": 7,
                 "code": "time_format",
-                "title": "Hours format",
+                "title": "Time format",
                 "package": "core",
                 "form_control": "select",
                 "section_id": 1,
-                "description":"Format des heures",
-                "help": "Format pour l'affichage des heures.",
+                "description":"Format for times.",
+                "help": "Format to use for displaying times and time parts of dates.",
                 "type": "string"
             },
             {
@@ -87,7 +87,7 @@
                 "package": "core",
                 "form_control": "select",
                 "section_id": 2,
-                "description":"Installation main company",
+                "description":"Main company of installation.",
                 "help": "Identifier of the main company of the current installation.",
                 "type": "integer"
             },
@@ -189,6 +189,17 @@
                 "description":"Surface unit",
                 "help": "Default unit for surface measures (e.g. 'm2' square meter, 'ft2' square foot).",
                 "type": "string"
+            },
+            {
+                "id": 18,
+                "code": "time_zone",
+                "title": "Time zone",
+                "package": "core",
+                "form_control": "select",
+                "section_id": 1,
+                "description":"Time zone on which dates are based.",
+                "help": "Default timezone to be used at application level.",
+                "type": "string"
             }
         ]
     },
@@ -199,32 +210,32 @@
             {
                 "id": 1,
                 "title": "Séparateur de milliers",
-                "description":"Caract\u00e8re de s\u00e9paration de milliers",
-                "help": "Caract\u00e8re de s\u00e9paration de milliers (e.g. '.', ',', ' ')."
+                "description":"Caractère de séparation de milliers",
+                "help": "Caractère de séparation de milliers (e.g. '.', ',', ' ')."
             },
             {
                 "id": 2,
                 "title": "Position de devise",
-                "description":"Position du symbole de monnaie par rapport \u00e0 sa valeur",
-                "help": "Position du symbole de monnaie par rapport \u00e0 sa valeur ('before', 'after', 'decimal_separator')."
+                "description":"Position du symbole de monnaie par rapport à sa valeur",
+                "help": "Position du symbole de monnaie par rapport à sa valeur ('before', 'after', 'decimal_separator')."
             },
             {
                 "id": 3,
-                "title": "Nombre de d\u00e9cimales (Prix)",
-                "description":"Nombre de d\u00e9cimales pour les prix",
-                "help": "Nombre de d\u00e9cimales \u00e0 conserver pour les champs \u00e0 usage 'Price'."
+                "title": "Nombre de décimales (Prix)",
+                "description":"Nombre de décimales pour les prix",
+                "help": "Nombre de décimales à conserver pour les champs à usage 'Price'."
             },
             {
                 "id": 4,
-                "title": "Séparateur de de d\u00e9cimales",
-                "description":"Séparateur de d\u00e9cimales (e.g. '.', ',')",
-                "help": "Caract\u00e8re de s\u00e9paration entre les parties enti\u00e8re et d\u00e9cimale (e.g. '.', ',')."
+                "title": "Séparateur de de décimales",
+                "description":"Séparateur de décimales (e.g. '.', ',')",
+                "help": "Caractère de séparation entre les parties entière et décimale (e.g. '.', ',')."
             },
             {
                 "id": 5,
-                "title": "Nombre de d\u00e9cimales",
-                "description":"Nombre de d\u00e9cimales",
-                "help": "Nombre de d\u00e9cimales \u00e0 conserver pour les champs de type 'float'."
+                "title": "Nombre de décimales",
+                "description":"Nombre de décimales",
+                "help": "Nombre de décimales à conserver pour les champs de type 'float'."
             },
             {
                 "id": 6,
@@ -247,56 +258,62 @@
             {
                 "id": 9,
                 "title": "Format du papier",
-                "description":"Taille papier par d\u00e9faut",
-                "help": "Taille papier par d\u00e9faut (e.g. 'A4', 'legal_US', 'letter_US')."
+                "description":"Taille papier par défaut",
+                "help": "Taille papier par défaut (e.g. 'A4', 'legal_US', 'letter_US')."
             },
             {
                 "id": 10,
                 "title": "Création de compte",
                 "description":"Autoriser la création de compte",
-                "help": "Autoriser les visiteurs \u00e0 cr\u00e9er un compte utilisateur."
+                "help": "Autoriser les visiteurs à créer un compte utilisateur."
             },
             {
                 "id": 11,
                 "title": "Importer",
                 "description":"Autoriser l'importation",
-                "help": "Autoriser les utilisateurs \u00e0 importer des donn\u00e9es depuis des fichiers  (CSV\/XLS\/XLSX\/ODS)."
+                "help": "Autoriser les utilisateurs à importer des données depuis des fichiers  (CSV\/XLS\/XLSX\/ODS)."
             },
             {
                 "id": 12,
                 "title": "Exporter",
                 "description":"Autoriser l'exportation",
-                "help": "Autoriser les utilisateurs \u00e0 exporter des donn\u00e9es vers des fichiers (CSV\/XLS\/PDF)."
+                "help": "Autoriser les utilisateurs à exporter des données vers des fichiers (CSV\/XLS\/PDF)."
             },
             {
                 "id": 13,
                 "title": "Devise",
                 "description":"Devise des prix",
-                "help": "Devise \u00e0 utiliser pour les champs \u00e0 usage 'Price' (ISO 4217)."
+                "help": "Devise à utiliser pour les champs à usage 'Price' (ISO 4217)."
             },
             {
                 "id": 14,
                 "title": "Longueur",
                 "description":"Unité de longueur",
-                "help": "Unit\u00e9 par d\u00e9faut pour les mesures de longueur."
+                "help": "Unité par défaut pour les mesures de longueur."
             },
             {
                 "id": 15,
                 "title": "Poids",
                 "description":"Unité de poids",
-                "help": "Unit\u00e9 par d\u00e9faut pour les mesures de poids (e.g. 'kg' kilogram, 'lb' pound)."
+                "help": "Unité par défaut pour les mesures de poids (e.g. 'kg' kilogram, 'lb' pound)."
             },
             {
                 "id": 16,
                 "title": "Volume",
                 "description":"Unité de volume",
-                "help": "Unit\u00e9 par d\u00e9faut pour les unit\u00e9s de volume (e.g. 'm3' cubic meter, 'ft3' cubic foot)."
+                "help": "Unité par défaut pour les unités de volume (e.g. 'm3' cubic meter, 'ft3' cubic foot)."
             },
             {
                 "id": 17,
                 "title": "Surface",
                 "description":"Unité de surface",
-                "help": "Unit\u00e9 par d\u00e9faut pour les unit\u00e9s de surface (e.g. 'm2' square meter, 'ft2' square foot)."
+                "help": "Unité par défaut pour les unités de surface (e.g. 'm2' square meter, 'ft2' square foot)."
+            },
+            {
+                "id": 18,
+                "title": "Fuseau horaire",
+                "description":"Fuseau horaire sur lequel baser les dates.",
+                "help": "Fuseau horaire par défaut utiliser au niveau de l'application (back-end)."
             }
         ]
     }
