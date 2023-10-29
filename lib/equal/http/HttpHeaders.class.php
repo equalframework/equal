@@ -147,8 +147,7 @@ class HttpHeaders {
         return $default;
     }
 
-// todo: make explicit distinction between charset used in the message and expected charset in response
-
+    // #todo: make explicit distinction between charset used in the message and expected charset in response
     public function getCharsets()  {
         $charsets = [];
         if(isset($this->headers['Accept-Charset'])) {
