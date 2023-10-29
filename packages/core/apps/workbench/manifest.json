@@ -7,7 +7,7 @@
     "repository": "https://github.com/equalframework/apps-core-settings.git",
     "url": "/workbench",
     "icon": "edit_note",
-    "color": "#d2252c",
+    "color": "#0f1397",
     "access": {
         "groups": [
             "users", "admin"
