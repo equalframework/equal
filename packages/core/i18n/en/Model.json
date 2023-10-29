@@ -25,9 +25,9 @@
             "description": "Date of last update.",
             "help": ""
         },
-        "delete": {
+        "deleted": {
             "label": "Deleted",
-            "description": "Indicateur pour les objets supprimés.",
+            "description": "Flag for deleted objects.",
             "help": ""
         },
         "state": {
