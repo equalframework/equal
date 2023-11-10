@@ -1,2 +1,4 @@
 #!/bin/bash
+# This script is meant to shorten the syntax for calling eQual controllers through CLI
+# For global access, it can be put in `/usr/local/bin`
 php run.php "$@"
