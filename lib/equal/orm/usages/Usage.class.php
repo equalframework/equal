@@ -50,6 +50,10 @@ class Usage {
         return [];
     }
 
+    final public function getName() : string {
+        return $this->usage_str;
+    }
+
     /**
      * Provides the generic (display) name of the type.
      */
@@ -104,8 +108,7 @@ class Usage {
     public function __construct(string $usage_str) {
 
         // check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
-            // error
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({([0-9]+)(,([0-9]+))?})?/', $usage_str,  $matches)) {
             trigger_error("ORM::invalid usage format $usage_str", QN_REPORT_WARNING);
         }
         else {
@@ -117,8 +120,9 @@ class Usage {
                 group 8 = length
                 group 9 = precision
                 group 10 = scale
+                group 12 = min
+                group 14 = max
             */
-
             // store original usage string
             $this->usage_str = $usage_str;
             $this->type = isset($matches[1])?$matches[1]:'';
@@ -126,6 +130,9 @@ class Usage {
             $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;
             $this->subtype = isset($matches[4])?$matches[4]:'';
             $tree = isset($matches[6])?$matches[6]:'';
+            if(strlen($tree) > 0) {
+                $this->subtype .= '.'.$tree;
+            }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
             $this->length = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
             $this->scale = (isset($matches[10]) && strlen($matches[10]))?$matches[10]:0;
