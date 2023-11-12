@@ -75,6 +75,7 @@ if(count($values) == 4) {
         foreach($results as $result) {
             $output[] = rtrim($result, '_');
         }
+        // #todo - off all results start with the same string, use it as response
         // display number of results
         // #memo - this is a also hack since COMPREPLY do not consider entries when there are less than 3 (observed under WIN env)
         $output[] = "({$count_results})\n";
