@@ -38,9 +38,6 @@ class UsageFactory {
      * @param string $usage     String representation of the usage (not an Usage instance).
      */
     public static function create(string $usage): Usage {
-        /** @var Usage[] */
-        static $usages = [];
-
         // split parts and check usage string consistency
         if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({([0-9]+)(,([0-9]+))?})?/', $usage,  $matches)) {
             throw new \Exception("invalid_usage for $usage", QN_ERROR_INVALID_PARAM);
@@ -63,63 +60,57 @@ class UsageFactory {
 
         $usageInstance = null;
 
-        if(isset($usages[$type])) {
-            $usageInstance = $usages[$type];
-        }
-        else {
-            switch($type) {
-                // string usages
-                case 'text':
-                    $usageInstance = new UsageText($usage);
-                    break;
-                case 'coordinate':
-                    break;
-                case 'country':
-                    $usageInstance = new UsageCountry($usage);
-                    break;
-                case 'currency':
-                    $usageInstance = new UsageCurrency($usage);
-                    break;
-                // datetime usages
-                case 'date':
-                    $usageInstance = new UsageDate($usage);
-                case 'time':
-                    $usageInstance = new UsageTime($usage);
-                case 'email':
-                    $usageInstance = new UsageEmail($usage);
-                case 'hash':
-                    break;
-                // binary usages
-                case 'file':
-                case 'binary':
-                case 'image':
-                    $usageInstance = new UsageImage($usage);
-                    break;
-                case 'language':
-                    $usageInstance = new UsageLanguage($usage);
-                    break;
-                // numeric usages
-                case 'amount':
-                    $usageInstance = new UsageAmount($usage);
-                    break;
-                case 'number':
-                    $usageInstance = new UsageNumber($usage);
-                    break;
-                case 'password':
-                    $usageInstance = new UsagePassword($usage);
-                    break;
-                case 'phone':
-                    $usageInstance = new UsagePhone($usage);
-                    break;
-                case 'uri':
-                    break;
-                case 'array':
-                    $usageInstance = new UsageArray($usage);
-                    break;
-                default:
-                    $usageInstance = new Usage($usage);
-            }
-            $usages[$type] = $usageInstance;
+        switch($type) {
+            // string usages
+            case 'text':
+                $usageInstance = new UsageText($usage);
+                break;
+            case 'coordinate':
+                break;
+            case 'country':
+                $usageInstance = new UsageCountry($usage);
+                break;
+            case 'currency':
+                $usageInstance = new UsageCurrency($usage);
+                break;
+            // datetime usages
+            case 'date':
+                $usageInstance = new UsageDate($usage);
+            case 'time':
+                $usageInstance = new UsageTime($usage);
+            case 'email':
+                $usageInstance = new UsageEmail($usage);
+            case 'hash':
+                break;
+            // binary usages
+            case 'file':
+            case 'binary':
+            case 'image':
+                $usageInstance = new UsageImage($usage);
+                break;
+            case 'language':
+                $usageInstance = new UsageLanguage($usage);
+                break;
+            // numeric usages
+            case 'amount':
+                $usageInstance = new UsageAmount($usage);
+                break;
+            case 'number':
+                $usageInstance = new UsageNumber($usage);
+                break;
+            case 'password':
+                $usageInstance = new UsagePassword($usage);
+                break;
+            case 'phone':
+                $usageInstance = new UsagePhone($usage);
+                break;
+            case 'uri':
+                break;
+            case 'array':
+                $usageInstance = new UsageArray($usage);
+                break;
+            default:
+                $usageInstance = new Usage($usage);
         }
         return $usageInstance;
     }
