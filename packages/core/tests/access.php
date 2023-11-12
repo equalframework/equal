@@ -15,43 +15,43 @@ $tests = [
     '0101' => [
             'description'       =>  "Retrieve Access Controller service from eQual::announce",
             'return'            =>  ['object'],
-            'assert'            =>  function($access) {
-                    return ($access instanceof equal\access\AccessController);
-                },
             'act'               =>  function () {
                     list($params, $providers) = eQual::announce([
                         'providers' => ['equal\access\AccessController']
                     ]);
                     return $providers['equal\access\AccessController'];
+                },
+            'assert'            =>  function($access) {
+                    return ($access instanceof equal\access\AccessController);
                 }
         ],
 
     '0102' => [
             'description'       =>  "Get Access Controller service using a custom registered name.",
             'return'            =>  ['object'],
-            'assert'            =>  function($access) {
-                    return ($access instanceof equal\access\AccessController);
-                },
             'act'               =>  function (){
                     list($params, $providers) = eQual::announce([
                         'providers' => ['@@testAccess' => 'equal\access\AccessController']
                     ]);
                     return $providers['@@testAccess'];
+                },
+            'assert'            =>  function($access) {
+                    return ($access instanceof equal\access\AccessController);
                 }
         ],
 
     '0103' => [
-                'description'       =>  "Get Access Controller service using default registered name.",
-                'return'            =>  ['object'],
-                'act'               =>  function (){
-                        list($params, $providers) = eQual::announce([
-                            'providers' => ['access']
-                        ]);
-                        return $providers['access'];
-                    },
-                'assert'            =>  function($access) {
-                        return ($access instanceof equal\access\AccessController);
-                    }
+            'description'       =>  "Get Access Controller service using default registered name.",
+            'return'            =>  ['object'],
+            'act'               =>  function (){
+                    list($params, $providers) = eQual::announce([
+                        'providers' => ['access']
+                    ]);
+                    return $providers['access'];
+                },
+            'assert'            =>  function($access) {
+                    return ($access instanceof equal\access\AccessController);
+                }
         ],
 
 
