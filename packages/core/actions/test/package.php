@@ -6,7 +6,7 @@
 */
 use equal\test\Tester;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
