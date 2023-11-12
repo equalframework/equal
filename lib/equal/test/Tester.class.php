@@ -23,9 +23,9 @@ class Tester {
 
     public function toArray() {
         $result = [
-            'result'        => 'ok',
+            'log'           => $this->results,
             'count_test'    => count($this->tests),
-            'log'           => $this->results
+            'result'        => 'ok',
         ];
         // if something went wrong, append details
         if(count($this->failing)) {
@@ -86,7 +86,7 @@ class Tester {
                 }
                 catch(\Exception $e) {
                     $this->results[$id]['logs'][] = "Error while performing `arrange()`: ".$e->getMessage();
-                    throw new \Exception("test {$id} raised an unexpected exception", QN_ERROR_UNKNOWN);
+                    throw new \Exception("test {$id} raised an unexpected exception: ".$e->getMessage(), QN_ERROR_UNKNOWN);
                 }
             }
 
@@ -157,14 +157,14 @@ class Tester {
             }
 
             $this->results[$id]['status'] = $success?'ok':'ko';
-            $this->results[$id]['result'] = (gettype($result) == 'object')?'(object)':$result;
+            $this->results[$id]['result'] = (gettype($result) == 'object')?'('.get_class($result).' object)':$result;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];
             }
 
             if(isset($test['arrange'])) {
-                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'(object)':$precondition;
+                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'('.get_class($precondition).' object)':$precondition;
             }
         }
 
