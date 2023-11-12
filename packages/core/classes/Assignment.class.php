@@ -50,7 +50,7 @@ class Assignment extends Model {
      */
     public static function onchange($event) {
         $result = [];
-        if(isset($event['object_class']) && method_exists($event['object_class'], 'getRoles')) {
+        if(isset($event['object_class']) && class_exists($event['object_class']) && method_exists($event['object_class'], 'getRoles')) {
             $map_roles = $event['object_class']::getRoles();
             $result['role'] = [
                 'selection' => array_keys($map_roles)
