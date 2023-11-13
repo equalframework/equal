@@ -10,6 +10,14 @@ use equal\locale\Locale;
 
 class UsageNumber extends Usage {
 
+    public function getScale(): int {
+        $scale = intval(parent::getScale());
+        if($this->getSubtype() == 'real') {
+            $scale = ($scale)?$scale:2;
+        }
+        return $scale;
+    }
+
     public function getConstraints(): array {
         switch($this->getSubtype()) {
             case 'boolean':
@@ -53,7 +61,7 @@ class UsageNumber extends Usage {
                         'function'  =>  function($value) {
                             // expected len format is `precision.scale`
                             $scale = $this->getScale();
-                            $integers = $this->getPrecision() - $scale;
+                            $integers = $this->getPrecision();
                             if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $value)) {
                                 return false;
                             }
