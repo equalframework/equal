@@ -73,12 +73,12 @@ class DataAdapterTxtReal implements DataAdapter {
         // get numbers.thousands_separator and numbers.decimal_separator from locale
         $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $locale);
         $decimal_separator = Locale::get_format('core', 'numbers.decimal_separator', '.', $locale);
-        $decimal_length = intval($usage->getLength());
+        $decimal_length = intval($usage->getScale());
         return number_format($value, $decimal_length, $decimal_separator, $thousands_separator);
     }
 
     private function amountToTxt($value, $usage, $locale) {
-        $decimal_length = intval($usage->getLength());
+        $decimal_length = intval($usage->getScale());
         // get numbers.thousands_separator and numbers.decimal_separator from locale
         $thousands_separator = Locale::get_format('core', 'numbers.thousands_separator', ',', $locale);
         $decimal_separator = Locale::get_format('core', 'numbers.decimal_separator', '.', $locale);
