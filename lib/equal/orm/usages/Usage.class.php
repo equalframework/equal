@@ -34,8 +34,13 @@ class Usage {
      */
     private $is_array = false;
 
-    /** @var string */
+    /** @var string
+     * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+    */
     private $length = '';
+
+    /** @var int */
+    private $precision = 0;
 
     /** @var int */
     private $scale = 0;
@@ -78,13 +83,13 @@ class Usage {
     }
 
     /**
-     * The precision indicates the number of digits of a floating number.
+     * The precision indicates the number of digits in the integer part of a floating number.
      * It is expected to be an integer value completed with a scale (that defaults to 0).
      * In all other situations, precision and length are synonyms and scale is always 0.
      *
      */
     final public function getPrecision(): string {
-        return $this->length;
+        return $this->precision;
     }
 
     /**
@@ -134,7 +139,8 @@ class Usage {
                 $this->subtype .= '.'.$tree;
             }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-            $this->length = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
+            $this->length = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:0;
+            $this->precision = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
             $this->scale = (isset($matches[10]) && strlen($matches[10]))?$matches[10]:0;
         }
 
