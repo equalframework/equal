@@ -7,6 +7,8 @@
 namespace equal\data\adapt\adapters\json;
 
 use equal\data\adapt\DataAdapter;
+use equal\orm\UsageFactory;
+use equal\orm\usages\Usage;
 
 class DataAdapterJsonReal implements DataAdapter {
 
@@ -27,7 +29,11 @@ class DataAdapterJsonReal implements DataAdapter {
         $result = null;
         // arg represents a numeric value (either numeric type or string)
         if(is_numeric($value)) {
-            $result = floatval($value);
+            if(!($usage instanceof Usage)) {
+                /** @var \equal\orm\usages\Usage */
+                $usage = UsageFactory::create($usage);
+            }
+            $result = round(floatval($value), $usage->getScale());
         }
         return $result;
     }
@@ -45,7 +51,11 @@ class DataAdapterJsonReal implements DataAdapter {
         if(is_null($value)) {
             return null;
         }
-        return (float) $value;
+        if(!($usage instanceof Usage)) {
+            /** @var \equal\orm\usages\Usage */
+            $usage = UsageFactory::create($usage);
+        }
+        return round(floatval($value), $usage->getScale());
     }
 
 }
