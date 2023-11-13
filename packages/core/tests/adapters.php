@@ -236,6 +236,57 @@ $tests = [
                     return ($result === -2);
                 }
         ],
+    '4005' => [
+            'description'   =>  "JSON adapter IN - time",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptIn('10:00', 'time');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result == 36000);
+                }
+        ],
+    '4006' => [
+            'description'   =>  "JSON adapter IN - date",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptIn('2018-12-10T13:49:51.141Z', 'date');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result == 1544400000);
+                }
+        ],
+    '4007' => [
+            'description'   =>  "JSON adapter IN - datetime",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptIn('2018-12-10T13:49:51.141Z', 'date/datetime');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result == 1544449791);
+                }
+        ],
     '4101' => [
             'description'   =>  "JSON adapter OUT - number/real",
             'arrange'       =>  function () {
@@ -303,6 +354,90 @@ $tests = [
             'assert'        =>  function($result) {
                     return ($result === -2);
                 }
+        ],
+    '4105' => [
+            'description'   =>  "JSON adapter OUT - amount/money",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptOut(1.95435, 'amount/money');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === 1.9544);
+                }
+        ],
+    '4106' => [
+            'description'   =>  "JSON adapter OUT - time",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptOut(36000, 'time');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === '10:00');
+                }
+        ],
+    '4107' => [
+            'description'   =>  "JSON adapter OUT - datetime",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptOut(1699907585, 'datetime');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === '2023-11-13T20:33:05+00:00');
+                }
+        ],
+    '4108' => [
+            'description'   =>  "JSON adapter OUT - date",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptOut(1699907585, 'date');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === '2023-11-13T00:00:00+00:00');
+                }
+        ],
+    '4109' => [
+            'description'   =>  "JSON adapter OUT - array",
+            'arrange'       =>  function () {
+                    /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                    $providers = eQual::inject(['adapt']);
+                    $dap = $providers['adapt'];
+                    $adapter = $dap->get('json');
+                    return $adapter;
+                },
+            'act'           =>  function ($jsonAdapter) {
+                    $result = $jsonAdapter->adaptOut(['a', 'b', 'c' => 'ok'], 'array');
+                    return $result;
+                },
+            'assert'        =>  function($result) {
+                    return ($result === ['a', 'b', 'c' => 'ok']);
+                }
         ]
-
 ];
