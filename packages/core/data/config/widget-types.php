@@ -5,21 +5,24 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Return the widget types depending on the type of field',
+    'description'   => 'Returns an associative array mapping orm types with possible widget types.',
+    'help'          => 'Widget types allow variations on the way the widget is displayed, without impacting the underlying value (whose type depends on the type and usage from the related field).',
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
     'params'        => [],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
-
-list($context, $orm) = [$providers['context'], $providers['orm']];
+/**
+ * @var \equal\php\Context          $context
+ */
+list($context) = [$providers['context']];
 
 if(!file_exists(QN_BASEDIR."/config/widget_types.json")) {
-    throw new Exception("no_usages_file", QN_ERROR_UNKOWN);
+    throw new Exception("no_usages_file", EQ_ERROR_UNKNOWN);
 }
 
 $content = file_get_contents(QN_BASEDIR."/config/widget_types.json");
