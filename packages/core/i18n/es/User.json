@@ -1,0 +1,140 @@
+{
+    "name": "Usuario",
+    "plural": "Usuarios",
+    "description": " Los usuarios pueden iniciar sesión, unirse a grupos y recibir permisos específicos.",
+    "model": {
+       "id": {
+          "label": "Identificador",
+          "description": "",
+          "help": ""
+       },
+       "creator": {
+          "label": "Creador",
+          "description": "El usuario que ha realizado la creación.",
+          "help": ""
+       },
+       "created": {
+          "label": "Creado",
+          "description": "La fecha de creación.",
+          "help": ""
+       },
+       "modifier": {
+          "label": "Modificador",
+          "description": "El usuario que ha realizado la modificación.",
+          "help": ""
+       },
+       "modified": {
+          "label": "Modificado",
+          "description": "La fecha de modificación.",
+          "help": ""
+       },
+       "deleted": {
+          "label": "Eliminado",
+          "description": "",
+          "help": "¿El usuario está eliminado?"
+       },
+       "name": {
+          "label": "Nombre",
+          "description": "",
+          "help": ""
+       },
+       "login": {
+          "label": "Identificador",
+          "description": "Los identificadores son direcciones de correo electrónico.",
+          "help": ""
+       },
+       "username": {
+          "label": "Nombre de usuario",
+          "description": "",
+          "help": ""
+       },
+       "password": {
+          "label": "Contraseña",
+          "description": "",
+          "help": ""
+       },
+       "nickname": {
+          "label": "Apodo",
+          "description": "",
+          "help": ""
+       },
+       "firstname": {
+          "label": "Primer Nombre",
+          "description": "El primer nombre del usuario.",
+          "help": ""
+       },
+       "lastname": {
+          "label": "Apellido ",
+          "description": "",
+          "help": ""
+       },
+       "fullname": {
+          "label": "Nombre completo",
+          "description": "Nombre completo.",
+          "help": ""
+       },
+       "language": {
+          "label": "Idioma",
+          "description": "",
+          "help": " El idioma preferido del usuario."
+       },
+       "validated": {
+          "label": "Validado",
+          "description": "",
+          "help": "¿Cuenta validada?"
+       },
+       "groups_ids": {
+          "label": "Grupos del usuario",
+          "description": "Los grupos a los que pertenece el usuario.",
+          "help": ""
+       },
+       "permissions_ids": {
+          "label": "Permisos del usuario",
+          "description": "Los permisos que tiene acceso el usuario.",
+          "help": ""
+       },
+       "setting_values_ids": {
+          "label": "Valores de configuración",
+          "description": "",
+          "help": ""
+       },
+       "status": {
+          "label": "Estado",
+          "description": "El estado del usuario.",
+          "help": ""
+       }
+    },
+    "view": {
+       "form.default": {
+          "name": "Formulario del usuario",
+          "description": "",
+          "layout": {
+             "group.user": {
+                "label": "Información del usuario"
+             },
+             "user_details": {
+                "label": "Detalles del usuario"
+             },
+             "section.preferences": {
+                "label": "Preferencias"
+             },
+             "section.groups": {
+                "label": "Grupos"
+             }
+          }
+       },
+       "list.default": {
+          "name": "Lista de usuarios",
+          "description": "Lista detallada de usuarios."
+       }
+    },
+    "error": {
+       "login": {
+          "invalid_email": "El correo electrónico debe ser validado"
+       },
+       "firstname": {
+          "too_short": "Debe tener mínimo 2 caracteres.",
+          "invalid_chars": "No debe contener caracteres simbólicos"
+       }
+    }
+ }

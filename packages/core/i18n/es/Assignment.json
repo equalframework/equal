@@ -1,0 +1,34 @@
+{
+    "name": "Asignación",
+    "plural": "Asignaciones",
+    "description": "",
+    "model": {
+        "id": {
+            "label": "Identificador",
+            "description": "",
+            "help": ""
+        },
+        "object_class": {
+            "label": "Clase",
+            "description": "Nombre completo de la entidad sobre la que se aplica la asignación de roles.",
+            "help": ""
+        },
+        "object_id": {
+            "label": "Objeto",
+            "description": "Identificador del objeto específico al que se asigna el rol.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Usuario",
+            "description": "Usuario al que se asigna el rol.",
+            "help": ""
+        },
+        "role": {
+            "label": "Rol",
+            "description": "Rol que se asigna al usuario.",
+            "help": "El rol asignado debe coincidir con uno de los roles definidos a nivel de entidad y devueltos por el método `getRole()`."
+        }
+    },
+    "view": [],
+    "error": []
+}

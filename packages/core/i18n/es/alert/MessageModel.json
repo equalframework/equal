@@ -1,0 +1,44 @@
+{
+    "name": "Modelo de mensaje de alerta",
+    "plural": "Modelos de mensajes de alertas.",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Nombre",
+            "description": "Identificador de opción de parámetro.",
+            "help": ""
+        },
+        "label": {
+            "label": "Etiqueta",
+            "description": "Título del mensaje.",
+            "help": ""
+        },
+        "description": {
+            "label": "Descripción",
+            "description": "Descripción del significado del mensaje.",
+            "help": ""
+        },
+        "type": {
+            "label": "Tipo",
+            "description": "Tipo de mensaje.",
+            "help": ""
+        },
+        "messages_ids": {
+            "label": "Mensajes",
+            "description": "",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Modelo de mensaje de alerta",
+            "description": "Formulario de modelo de mensaje de alerta.",
+            "layout": []
+        },
+        "list.default": {
+            "name": "Lista de modelos de mensajes de alerta.",
+            "description": ""
+        }
+    },
+    "error": []
+}

@@ -1,0 +1,39 @@
+{
+    "name": "Registro de tarea",
+    "plural": "Registros de tareas",
+    "description": "",
+    "model": {
+        "created": {
+            "label": "Creado",
+            "description": "Fecha de creación.",
+            "help": ""
+        },
+        "task_id": {
+            "label": "Tarea",
+            "description": "Tarea a la que se refiere el registro.",
+            "help": ""
+        },
+        "status": {
+            "label": "Estado",
+            "description": "Estado en función del resultado de la ejecución de la Tarea.",
+            "help": ""
+        },
+        "log": {
+            "label": "Log",
+            "description": "El valor devuelto en la ejecución del controlador al que se dirige la Tarea.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Registro de tarea",
+            "description": "",
+            "layout": []
+        },
+        "list.default": {
+            "name": "Lista de registro de tarea",
+            "description": ""
+        }
+    },
+    "error": []
+}

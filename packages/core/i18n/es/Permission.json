@@ -1,0 +1,50 @@
+{
+    "name": "Permiso",
+    "plural": "Permisos",
+    "description": "Permisos",
+    "model": {
+        "class_name": {
+            "label": "Clase",
+            "description": "",
+            "help": ""
+        },
+        "domain": {
+            "label": "Dominio",
+            "description": "Valor JSON del dominio de restricciones.",
+            "help": ""
+        },
+        "group_id": {
+            "label": "Grupo",
+            "description": "Grupo al que pertenece el permiso.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Usuario",
+            "description": "",
+            "help": ""
+        },
+        "rights": {
+            "label": "Permiso",
+            "description": "Los permisos se establecen mediante una máscara binaria",
+            "help": ""
+        },
+        "rights_txt": {
+            "label": "Permiso texto",
+            "description": "Traducción en texto de los derechos del permiso.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Permiso",
+            "description": "Formulario de permisos.",
+            "layout": [],
+            "routes": []
+        },
+        "list.default": {
+            "name": "Lista de permisos",
+            "description": ""
+        }
+    },
+    "error": []
+}
