@@ -1,0 +1,20 @@
+{
+    "boolean" : [
+        "toggle",
+        "checkbox"
+    ],
+    "many2many" : [
+        "list",
+        "multiselect",
+        "multiselect_dynamic"
+    ],
+    "many2one" : [
+        "select",
+        "select_dynamic"
+    ],
+    "one2many" : [
+        "list",
+        "multiselect",
+        "multiselect_dynamic"
+    ]
+}
