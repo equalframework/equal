@@ -9,22 +9,21 @@ list($params, $providers) = announce([
     'params'        => [
         'package' =>  [
             'description'   => 'Name of the package the menu relates to (e.g. \'core\').',
-            'type'          => 'string', 
+            'type'          => 'string',
             'required'      => true
         ],
         'menu_id' =>  [
             'description'   => 'The identifier of the menu <name>.',
-            'type'          => 'string', 
+            'type'          => 'string',
             'default'       => 'list'
-        ],
-        
+        ]
     ],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
-        'accept-origin' => '*'        
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm'] 
+    'providers'     => ['context', 'orm']
 ]);
 
 
