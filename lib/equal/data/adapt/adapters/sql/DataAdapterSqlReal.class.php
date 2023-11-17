@@ -7,6 +7,7 @@
 namespace equal\data\adapt\adapters\sql;
 
 use equal\data\adapt\DataAdapter;
+use equal\orm\UsageFactory;
 
 class DataAdapterSqlReal implements DataAdapter {
 
