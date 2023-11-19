@@ -1,0 +1,39 @@
+{
+    "name": "Valor de la configuración",
+    "plural": "Valores de configuraciones",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Nombre",
+            "description": "Identificador de la configuración.",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Configuración",
+            "description": "Configuración al que se adjunta el valor.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Usuario",
+            "description": "Usuario al que pertenece la configuración.",
+            "help": ""
+        },
+        "value": {
+            "label": "Valor",
+            "description": "Valor de la configuración.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Valor de la configuración",
+            "description": "Muestra un valor de la configuración.",
+            "layout": []
+        },
+        "list.default": {
+            "name": "",
+            "description": ""
+        }
+    },
+    "error": []
+}

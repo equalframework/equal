@@ -1,0 +1,79 @@
+{
+    "name": "Configuración",
+    "plural": "Configuraciones",
+    "description": "Configuración",
+    "model": {
+        "id": {
+            "label": "Identificador",
+            "description": "Identificador de la configuración.",
+            "help": ""
+        },
+        "name": {
+            "label": "Nombre",
+            "description": "Identificador completo de la configuración.",
+            "help": ""
+        },
+        "code": {
+            "label": "Código",
+            "description": "Identificador del código.",
+            "help": ""
+        },
+        "package": {
+            "label": "Paquete",
+            "description": "Paquete al que pertenece de la configuración.",
+            "help": ""
+        },
+        "section": {
+            "label": "Sección",
+            "description": "Sección a la que pertenece de la configuración.",
+            "help": ""
+        },
+        "section_id": {
+            "label": "Sección",
+            "description": "Sección a la que pertenece de la configuración.",
+            "help": ""
+        },
+        "title": {
+            "label": "Título ",
+            "description": "Título de la configuración.",
+            "help": ""
+        },
+        "description": {
+            "label": "Descripción",
+            "description": "Descripción de la configuración.",
+            "help": ""
+        },
+        "help": {
+            "label": "Ayuda",
+            "description": "Descripción más detallada de la configuración.",
+            "help": ""
+        },
+        "type": {
+            "label": "Tipo",
+            "description": "Tipo de la configuración.",
+            "help": ""
+        },
+        "is_multilang": {
+            "label": "Es multilingüe",
+            "description": " Marcar ajuste como traducible",
+            "help": ""
+        },
+        "form_control": {
+            "label": "Control de formulario",
+            "description": "Forma en que se presenta el formulario al Usuario.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Configuración",
+            "description": "Furmulario de configuración",
+            "layout": []
+        },
+        "list.default": {
+            "name": "Lista de configuración",
+            "description": ""
+        }
+    },
+    "error": []
+}

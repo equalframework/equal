@@ -1,0 +1,29 @@
+{
+    "name": "Versión",
+    "plural": "Veriones",
+    "description": "",
+    "model": {
+        "object_class": {
+            "label": "Clase",
+            "description": "Clase del objeto de destino",
+            "help": ""
+        },
+        "object_id": {
+            "label": "Identificador",
+            "description": "Identificador del objeto.",
+            "help": ""
+        },
+        "serialized_value": {
+            "label": "valor serializado",
+            "description": "",
+            "help": ""
+        },
+        "lang": {
+            "label": "Idioma",
+            "description": "Idioma del  objeto.",
+            "help": ""
+        }
+    },
+    "view": [],
+    "error": []
+}

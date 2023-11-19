@@ -1,0 +1,101 @@
+{
+    "name": "Tarea",
+    "plural": "Tareas",
+    "description": "",
+    "model": {
+        "id": {
+            "label": "Identificador",
+            "description": "Identificador de la tarea.",
+            "help": ""
+        },
+        "created": {
+            "label": "Creador",
+            "description": "La fecha de creación",
+            "help": ""
+        },
+        "name": {
+            "label": "Nombre",
+            "description": "Nombre de la tarea.",
+            "help": ""
+        },
+        "status": {
+            "label": "Estado",
+            "description": "Estado de la tarea.",
+            "help": ""
+        },
+        "last_run": {
+            "label": "Ultima ejecución ",
+            "description": "Instante en que se llevó a cabo la última tarea.",
+            "help": ""
+        },
+        "moment": {
+            "label": "Momento",
+            "description": "Momento que se realiza la tarea.",
+            "help": "Próximo momento en el que se debe ejecutar la tarea."
+        },
+        "is_active": {
+            "label": "Activa",
+            "description": "La tarea esta activa.",
+            "help": "Marque la tarea como (temporalmente) activa o inactiva."
+        },
+        "is_recurring": {
+            "label": "Periodica",
+            "description": "La tarea es periódica. ",
+            "help": "Marque la tarea como recurrente (para ejecutar más de una vez)."
+        },
+        "after_execution": {
+            "label": " Después de la ejecución",
+            "description": " Cómo manejar tareas no recurrentes después de la ejecución.",
+            "help": ""
+        },
+        "repeat_axis": {
+            "label": "Repetición",
+            "description": "",
+            "help": ""
+        },
+        "repeat_step": {
+            "label": "Pasos de repetición ",
+            "description": " Pasos a esperar antes de que se vuelvan a ejecutar las tareas.",
+            "help": ""
+        },
+        "is_exclusive": {
+            "label": "Esclusiva",
+            "description": "La tarea es esclusiva.",
+            "help": ""
+        },
+        "controller": {
+            "label": "Controlador",
+            "description": "Notación completa del controlador de acción a invocar (por ejemplo, core_example_action).",
+            "help": ""
+        },
+        "params": {
+            "label": "Parámetros ",
+            "description": "Objeto JSON que contiene los parámetros a transmitir al controlador",
+            "help": ""
+        },
+        "logs_ids": {
+            "label": "Logs",
+            "description": "",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Tarea",
+            "description": "Formulario de  tarea.",
+            "layout": {
+                "section.config": {
+                    "label": "Detalles de la tarea"
+                },
+                "section.logs": {
+                    "label": "Logs"
+                }
+            }
+        },
+        "list.default": {
+            "name": "Lista de tareas",
+            "description": "Listas de tareas"
+        }
+    },
+    "error": []
+}

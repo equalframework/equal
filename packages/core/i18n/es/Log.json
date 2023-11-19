@@ -1,0 +1,49 @@
+{
+    "name": "Log",
+    "plural": "Logs",
+    "description": "",
+    "model": {
+        "created": {
+            "label": "Creado",
+            "description": "Fecha de creación.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Usuario",
+            "description": "Usuario que realizó la acción.",
+            "help": ""
+        },
+        "object_class": {
+            "label": "Clase",
+            "description": "Clase de entidad con la que está relacionada esta entrada.",
+            "help": ""
+        },
+        "object_id": {
+            "label": "Identificador",
+            "description": "Identificador del objeto objetivo (de la clase dada).",
+            "help": ""
+        },
+        "value": {
+            "label": "Valor",
+            "description": "Cambios (nuevos valores) realizados en el objeto, si los hay.",
+            "help": "Representación JSON de los nuevos valores(diff) del objeto (si se han realizado cambios)."
+        },
+        "name": {
+            "label": "Nombre",
+            "description": "El nombre de la acción realizada en el objeto de destino (\\'create\\', \\'update\\', \\'delete\\' o cualquier valor personalizado).",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Logs",
+            "description": "Formulario de logs",
+            "layout": []
+        },
+        "list.default": {
+            "name": "Lista de logs",
+            "description": ""
+        }
+    },
+    "error": []
+}
