@@ -70,16 +70,16 @@ class Usage {
         return $this->subtype;
     }
 
-    final public function getLength(): string {
-        return $this->length;
-    }
-
     /**
      * Size is a naming convention that only makes sense if Usage targets an array.
      *
      */
-    final public function getSize(): string {
+    final public function getSize(): int {
         return $this->size;
+    }
+
+    public function getLength(): int {
+        return $this->length;
     }
 
     /**
@@ -88,7 +88,7 @@ class Usage {
      * In all other situations, precision and length are synonyms and scale is always 0.
      *
      */
-    final public function getPrecision(): string {
+    public function getPrecision(): int {
         return $this->precision;
     }
 
@@ -139,9 +139,9 @@ class Usage {
                 $this->subtype .= '.'.$tree;
             }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-            $this->length = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:0;
-            $this->precision = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
-            $this->scale = (isset($matches[10]) && strlen($matches[10]))?$matches[10]:0;
+            $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
+            $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
+            $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
         }
 
     }
