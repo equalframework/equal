@@ -10,12 +10,48 @@ use equal\locale\Locale;
 
 class UsageNumber extends Usage {
 
+    /**
+     * Adds support for shortcut notation number/real:5 (equivalent to number/real:10.5)
+     */
     public function getScale(): int {
-        $scale = intval(parent::getScale());
+        $scale = parent::getScale();
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
         if($this->getSubtype() == 'real') {
-            $scale = ($scale)?$scale:2;
+            // single number as length : use it as scale
+            if($length == $precision) {
+                $scale = $length;
+            }
+            else {
+                // use provided scale, fallback to default scale
+                $scale = ($scale)?$scale:2;
+            }
         }
         return $scale;
+    }
+
+    public function getPrecision(): int {
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
+        if($this->getSubtype() == 'real') {
+            // single number as length means 'scale': use default precision
+            if($length == $precision) {
+                $precision = 10;
+            }
+        }
+        return $precision;
+    }
+
+    public function getLength(): int {
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
+        if($this->getSubtype() == 'real') {
+            // single number as length means 'scale': use default precision
+            if($length == $precision) {
+                $precision = 10;
+            }
+        }
+        return $precision;
     }
 
     public function getConstraints(): array {
