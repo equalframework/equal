@@ -15,7 +15,7 @@
     },
     "DEFAULT_LANG": {
         "type": "string",
-        "description": "The language in which the content must be displayed by default (ISO 639-1).",
+        "description": "The language in which the multilang content must be provided/stored by default (ISO 639-1).",
         "instant": true,
         "default": "en"
     },
