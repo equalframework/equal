@@ -1,0 +1,29 @@
+{
+    "name": "Idioma",
+    "plural": "Idiomas",
+    "description": "",
+    "model": {
+        "name": {
+            "label": "Nombre",
+            "description": "Nombre del idioma.",
+            "help": ""
+        },
+        "code": {
+            "label": "Código",
+            "description": "Código de idioma (ISO 639): 2 letras minúsculas.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Idioma",
+            "description": "Formulario de idioma.",
+            "layout": []
+        },
+        "list.default": {
+            "name": "Lista de idomas",
+            "description": ""
+        }
+    },
+    "error": []
+}

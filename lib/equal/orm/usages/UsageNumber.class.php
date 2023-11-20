@@ -10,6 +10,58 @@ use equal\locale\Locale;
 
 class UsageNumber extends Usage {
 
+    /**
+     * Adds support for shortcut notation number/real:5 (equivalent to number/real:10.5)
+     */
+    public function getScale(): int {
+        $scale = parent::getScale();
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
+        if($this->getSubtype() == 'real') {
+            // single number as length: use it as scale
+            if($length && $length == $precision) {
+                $scale = $length;
+            }
+            else {
+                // use provided scale, fallback to default scale
+                $scale = ($scale)?$scale:2;
+            }
+        }
+        return $scale;
+    }
+
+    public function getPrecision(): int {
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
+        if($this->getSubtype() == 'real') {
+            // single number as length means 'scale': use default precision
+            if($length && $length == $precision) {
+                $precision = 10;
+            }
+            else {
+                // use provided scale, fallback to default scale
+                $precision = ($precision)?$precision:2;
+            }
+        }
+        return $precision;
+    }
+
+    public function getLength(): int {
+        $precision = parent::getPrecision();
+        $length = parent::getLength();
+        if($this->getSubtype() == 'real') {
+            // single number as length means 'scale': use default precision
+            if($length == $precision) {
+                $length = 10;
+            }
+            else {
+                // use provided scale, fallback to default scale
+                $length = ($length)?$length:2;
+            }
+        }
+        return $length;
+    }
+
     public function getConstraints(): array {
         switch($this->getSubtype()) {
             case 'boolean':
@@ -53,7 +105,7 @@ class UsageNumber extends Usage {
                         'function'  =>  function($value) {
                             // expected len format is `precision.scale`
                             $scale = $this->getScale();
-                            $integers = $this->getPrecision() - $scale;
+                            $integers = $this->getPrecision();
                             if(preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $value)) {
                                 return false;
                             }

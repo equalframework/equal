@@ -61,7 +61,6 @@ if(file_exists("log/packages.json")) {
                 // force app to be visible
                 $app['show_in_apps'] = true;
                 $map_manifests[$app['id']] = $app;
-
             }
         }
     }

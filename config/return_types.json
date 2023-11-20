@@ -1,0 +1,14 @@
+{
+    "types" : {
+        "text" : {
+            "qty" : ["one","many"]
+        },
+        "entity" : {
+            "qty" : ["one","many"],
+            "entity" : []
+        },
+        "any" : {
+            "qty" : ["one","many"]
+        }
+    }
+}

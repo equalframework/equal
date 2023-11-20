@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns the list of classes defined in specified package.',
     'params'        => [
         'package' => [
@@ -61,7 +61,7 @@ if(!function_exists('get_classes')) {
 	function get_classes($package, $path='') {
 		$data = [];
         $path = trim($path, '/');
-		$package_dir = 'packages/'.$package.'/classes';
+		$package_dir = QN_BASEDIR.'/packages/'.$package.'/classes';
         if(strlen($path)) {
             $package_dir .= '/'.$path;
         }

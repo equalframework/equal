@@ -34,8 +34,13 @@ class Usage {
      */
     private $is_array = false;
 
-    /** @var string */
+    /** @var string
+     * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+    */
     private $length = '';
+
+    /** @var int */
+    private $precision = 0;
 
     /** @var int */
     private $scale = 0;
@@ -50,6 +55,10 @@ class Usage {
         return [];
     }
 
+    final public function getName() : string {
+        return $this->usage_str;
+    }
+
     /**
      * Provides the generic (display) name of the type.
      */
@@ -61,26 +70,26 @@ class Usage {
         return $this->subtype;
     }
 
-    final public function getLength(): string {
-        return $this->length;
-    }
-
     /**
      * Size is a naming convention that only makes sense if Usage targets an array.
      *
      */
-    final public function getSize(): string {
+    final public function getSize(): int {
         return $this->size;
     }
 
+    public function getLength(): int {
+        return $this->length;
+    }
+
     /**
-     * The precision indicates the number of digits of a floating number.
+     * The precision indicates the number of digits in the integer part of a floating number.
      * It is expected to be an integer value completed with a scale (that defaults to 0).
      * In all other situations, precision and length are synonyms and scale is always 0.
      *
      */
-    final public function getPrecision(): string {
-        return $this->length;
+    public function getPrecision(): int {
+        return $this->precision;
     }
 
     /**
@@ -104,8 +113,7 @@ class Usage {
     public function __construct(string $usage_str) {
 
         // check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
-            // error
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({([0-9]+)(,([0-9]+))?})?/', $usage_str,  $matches)) {
             trigger_error("ORM::invalid usage format $usage_str", QN_REPORT_WARNING);
         }
         else {
@@ -117,8 +125,9 @@ class Usage {
                 group 8 = length
                 group 9 = precision
                 group 10 = scale
+                group 12 = min
+                group 14 = max
             */
-
             // store original usage string
             $this->usage_str = $usage_str;
             $this->type = isset($matches[1])?$matches[1]:'';
@@ -126,9 +135,13 @@ class Usage {
             $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;
             $this->subtype = isset($matches[4])?$matches[4]:'';
             $tree = isset($matches[6])?$matches[6]:'';
+            if(strlen($tree) > 0) {
+                $this->subtype .= '.'.$tree;
+            }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-            $this->length = (isset($matches[9]) && strlen($matches[9]))?$matches[9]:0;
-            $this->scale = (isset($matches[10]) && strlen($matches[10]))?$matches[10]:0;
+            $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
+            $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
+            $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
         }
 
     }

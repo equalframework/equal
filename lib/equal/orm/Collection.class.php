@@ -369,7 +369,7 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Set Collection to perform ongoing operations using a given language.
+     * Set Collection to perform ongoing operations using the given language.
      * Language switching can be performed several times on a same collection and is sequential (the lang that will be used is the one set by the last `lang()` call).
      * #memo - the lang is set in constructor and defaults to 'en'.
      *

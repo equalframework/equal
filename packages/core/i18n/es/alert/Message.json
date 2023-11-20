@@ -1,0 +1,68 @@
+{
+    "name": "Mensaje",
+    "plural": "Mensajes",
+    "description": "Mensajes de alerta de modificación.",
+    "model": {
+        "object_class": {
+            "label": "Clase",
+            "description": "Clase del objeto de destino.",
+            "help": ""
+        },
+        "object_id": {
+            "label": "Identificador",
+            "description": "Identificador del objeto.",
+            "help": ""
+        },
+        "object_link": {
+            "label": "Enlace",
+            "description": "Enlace al objeto.",
+            "help": ""
+        },
+        "label": {
+            "label": "Etiqueta",
+            "description": "Título de email.",
+            "help": ""
+        },
+        "description": {
+            "label": "Descripción ",
+            "description": "Descripción del motivo de la alerta.",
+            "help": ""
+        },
+        "severity": {
+            "label": " Gravedad",
+            "description": "Nivel de importancia de la alerta.",
+            "help": ""
+        },
+        "controller": {
+            "label": "Controlador",
+            "description": " Controlador a invocar.",
+            "help": ""
+        },
+        "params": {
+            "label": "Configuraciones",
+            "description": "Configuraciones a transmitir al controlador.",
+            "help": ""
+        },
+        "user_id": {
+            "label": "Usuario",
+            "description": "",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Mensaje",
+            "description": "Mensaje de alerta.",
+            "layout": []
+        },
+        "list.dashboard": {
+            "name": "Lista de mensajes",
+            "description": "Lista de mensajes de alerta."
+        },
+        "list.default": {
+            "name": "Lista de mensajes",
+            "description": "Lista de mensajes de alertas."
+        }
+    },
+    "error": []
+}

@@ -120,7 +120,7 @@ class Container extends Service {
     /**
      *
      * @param  mixed    $name (string | array) name(s) of services to retrieve
-     * @return mixed (object | array)
+     * @return mixed    (object | array)
      * @throws Exception
      */
     public function get($name) {
@@ -129,8 +129,10 @@ class Container extends Service {
         $names = (array) $name;
         foreach($names as $name) {
             // check for current object request
-            if($name == 'container' || $name == __CLASS__) return $this;
-            // if no instance is foun, return a null object
+            if($name == 'container' || $name == __CLASS__) {
+                return $this;
+            }
+            // if no instance is found, return a null object
             $instance = null;
             $name = $this->resolve($name);
             if(isset($this->instances[$name])) {

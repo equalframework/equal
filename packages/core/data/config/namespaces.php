@@ -21,9 +21,9 @@ list($params, $providers) = announce([
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
-        'accept-origin'     => '*'        
+        'accept-origin'     => '*'
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context']
 ]);
 
 
@@ -36,7 +36,7 @@ list($context) = [$providers['context']];
  */
 // prevent multi-declaration in global scope
 if(!function_exists('get_namespaces')) {
-    
+
     // recurse within the `classes` directory
     function get_dirs($dir) {
         $result = [];
@@ -53,7 +53,7 @@ if(!function_exists('get_namespaces')) {
         }
         return $result;
     }
-    
+
 	function get_namespaces($package, $path='') {
 		$data = [];
         $path = trim($path, '/');
@@ -63,7 +63,7 @@ if(!function_exists('get_namespaces')) {
         }
 		if(is_dir($package_dir) && ($list = scandir($package_dir))) {
             $data = get_dirs($package_dir);
-		}		
+		}
 		return $data;
 	}
 }
@@ -90,7 +90,7 @@ else {
 	$data = get_namespaces($params['package'], $params['path']);
 }
 
-    
+
 $context->httpResponse()
         ->body($data)
         ->send();

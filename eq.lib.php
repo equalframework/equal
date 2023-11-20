@@ -542,12 +542,10 @@ namespace config {
             $result = [];
             // retrieve service container
             $container = Container::getInstance();
-
             // retrieve providers
             foreach($providers as $name) {
                 $result[$name] = $container->get($name);
             }
-
             return $result;
         }
 

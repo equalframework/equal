@@ -5,18 +5,20 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Returns schema of available types and related possible attributes.',
+    'description'   => 'Returns an associative array mapping orm types with possible usages and their descriptors.',
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
     'params'        => [],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
-
-list($context, $orm) = [$providers['context'], $providers['orm']];
+/**
+ * @var \equal\php\Context          $context
+ */
+list($context) = [$providers['context']];
 
 if(!file_exists(QN_BASEDIR."/config/usages.json")) {
     throw new Exception("missing_usages_file", QN_ERROR_UNKNOWN);

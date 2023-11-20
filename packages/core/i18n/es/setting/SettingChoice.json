@@ -1,0 +1,34 @@
+{
+    "name": "Elección de configuración",
+    "plural": "Elecciones de configuraciónes",
+    "description": "Opciones disponibles por una configuración",
+    "model": {
+        "name": {
+            "label": "Nombre",
+            "description": "Nombre de la configuración.",
+            "help": ""
+        },
+        "setting_id": {
+            "label": "Configuración",
+            "description": "Configuración que se adjunta la opción.",
+            "help": ""
+        },
+        "value": {
+            "label": "Valor",
+            "description": "Valor de opción de la configuración.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Opción de la configuración",
+            "description": "Muestra una opción de la configuración.",
+            "layout": []
+        },
+        "list.default": {
+            "name": "",
+            "description": ""
+        }
+    },
+    "error": []
+}

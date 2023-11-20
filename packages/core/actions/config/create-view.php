@@ -68,6 +68,17 @@ if(file_exists($file)){
     throw new Exception('view_already_exists', QN_ERROR_INVALID_PARAM);
 }
 
+$nest = explode("/",$entity);
+array_pop($nest);
+$path = implode("/",$nest);
+
+if(!is_dir(QN_BASEDIR."/packages/{$package}/views/{$path}")){
+    mkdir(QN_BASEDIR."/packages/{$package}/views/{$path}",0777,true);
+    if(!is_dir(QN_BASEDIR."/packages/{$package}/views/{$path}")) {
+        throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
+    }
+}
+
 $f = fopen($file,"w");
 
 if(!$f) {

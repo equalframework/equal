@@ -1,0 +1,59 @@
+{
+    "name": "Correo",
+    "plural": "Correos",
+    "description": "Correos electrónicos enviados.",
+    "model": {
+        "status": {
+            "label": "Estado",
+            "description": "",
+            "help": ""
+        },
+        "to": {
+            "label": "Para",
+            "description": "Destinatario principal del correo electrónico.",
+            "help": "Destinatario en el campo \"to\"."
+        },
+        "reply_to": {
+            "label": "Responder a ",
+            "description": "Dirección de respuesta.",
+            "help": "Dirección en el campo `reply-to` a la que deben enviarse los correos electrónicos de respuesta."
+        },
+        "subject": {
+            "label": "Asunto",
+            "description": "Asunto del mensaje.",
+            "help": ""
+        },
+        "body": {
+            "label": "Contenido",
+            "description": "Contenido del mensaje.",
+            "help": ""
+        },
+        "attachments": {
+            "label": "Archivos adjuntos",
+            "description": "Lista de nombres de los documentos adjuntos al mensaje.",
+            "help": ""
+        },
+        "response_status": {
+            "label": "Repuesta",
+            "description": "Código de estado de la respuesta SMTP.",
+            "help": ""
+        },
+        "response": {
+            "label": "Repuesta",
+            "description": "Mensaje de respuesta del servidor SMTP.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "",
+            "description": "",
+            "layout": []
+        },
+        "list.default": {
+            "name": "",
+            "description": ""
+        }
+    },
+    "error": []
+}

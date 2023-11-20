@@ -1375,6 +1375,10 @@ class ObjectManager extends Service {
                         elseif(isset($extra_values[$id][$field])) {
                             $value = $extra_values[$id][$field];
                         }
+                        else {
+                            // ignore non-exiting fields
+                            continue;
+                        }
                         // #memo - field involved in unique constraint can be left to null (unless marked as required)
                         if(is_null($value)) {
                             // if one of the value composing the key is null, we consider the object as valid (discard constraint)

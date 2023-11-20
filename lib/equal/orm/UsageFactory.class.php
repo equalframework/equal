@@ -35,71 +35,84 @@ class UsageFactory {
 
     /**
      * Creates an instance of a Usage object based on a usage string descriptor.
-     * @param string $usage_str     String representation of the usage (not an Usage instance).
+     * @param string $usage     String representation of the usage (not an Usage instance).
      */
-    public static function create(string $usage_str): Usage {
-
+    public static function create(string $usage): Usage {
         // split parts and check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?/', $usage_str,  $matches)) {
-            throw new \Exception("invalid_usage for $usage_str", QN_ERROR_INVALID_PARAM);
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({([0-9]+)(,([0-9]+))?})?/', $usage,  $matches)) {
+            throw new \Exception("invalid_usage for $usage", QN_ERROR_INVALID_PARAM);
         }
 
         /*
             group 1 = type
             group 3 = array size
             group 4 = subtype
+            group 6 = subtype tree
             group 8 = length
             group 9 = precision
             group 10 = scale
+            group 12 = min
+            group 14 = max
         */
 
         $type = $matches[1];
         // $subtype = $matches[4];
 
+        $usageInstance = null;
+
         switch($type) {
             // string usages
             case 'text':
-                return new UsageText($usage_str);
+                $usageInstance = new UsageText($usage);
+                break;
             case 'coordinate':
                 break;
             case 'country':
-                return new UsageCountry($usage_str);
+                $usageInstance = new UsageCountry($usage);
+                break;
             case 'currency':
-                return new UsageCurrency($usage_str);
+                $usageInstance = new UsageCurrency($usage);
+                break;
             // datetime usages
             case 'date':
-                return new UsageDate($usage_str);
+                $usageInstance = new UsageDate($usage);
             case 'time':
-                return new UsageTime($usage_str);
+                $usageInstance = new UsageTime($usage);
             case 'email':
-                return new UsageEmail($usage_str);
+                $usageInstance = new UsageEmail($usage);
             case 'hash':
                 break;
+            // binary usages
             case 'file':
             case 'binary':
             case 'image':
-                return new UsageImage($usage_str);
+                $usageInstance = new UsageImage($usage);
+                break;
             case 'language':
-                return new UsageLanguage($usage_str);
+                $usageInstance = new UsageLanguage($usage);
+                break;
             // numeric usages
             case 'amount':
-                return new UsageAmount($usage_str);
+                $usageInstance = new UsageAmount($usage);
+                break;
             case 'number':
-                return new UsageNumber($usage_str);
+                $usageInstance = new UsageNumber($usage);
+                break;
             case 'password':
-                return new UsagePassword($usage_str);
+                $usageInstance = new UsagePassword($usage);
+                break;
             case 'phone':
-                return new UsagePhone($usage_str);
-            case 'time':
+                $usageInstance = new UsagePhone($usage);
                 break;
             case 'uri':
                 break;
             case 'array':
-                return new UsageArray($usage_str);
+                $usageInstance = new UsageArray($usage);
                 break;
-
+            default:
+                $usageInstance = new Usage($usage);
         }
-        return new Usage($usage_str);
+        return $usageInstance;
     }
 
 }

@@ -11,7 +11,6 @@ use core\setting\Setting;
 
 class UsageAmount extends Usage {
 
-
     public function getScale(): int {
         $scale = intval($this->getLength());
         switch($this->getSubtype()) {

@@ -1,0 +1,17 @@
+# this script is meant to be placed at /etc/bash_completion.d/
+# and activated with source /etc/bash_completion.d/equal_autocomplete
+
+_equal_completion()
+{
+    script='/var/html/www/autocomplete.php'
+    if [[ "$OSTYPE" =~ ^msys ]]; then
+        alias php='php.exe'
+        script='autocomplete.php'
+    fi
+    local cur
+    COMPREPLY=()
+    cur=${COMP_WORDS[*]}
+    COMPREPLY=( $(php $script "$cur") )
+    return 0
+}
+complete -o nospace -F _equal_completion "equal.run"

@@ -129,7 +129,7 @@ class Reporter extends Service {
             // default to mask QN_MODE_PHP
             $source = QN_MODE_PHP;
             $parts = explode('::', $msg, 2);
-            if(count($parts) > 1) {
+            if($parts && count($parts) > 1) {
                 $source = (strlen($parts[0]))?('QN_MODE_'.$parts[0]):$source;
                 $msg = $parts[1];
             }

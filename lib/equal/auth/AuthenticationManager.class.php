@@ -42,7 +42,7 @@ class AuthenticationManager extends Service {
     public function token($user_id=0, $validity=0) {
         $payload = [
             'id'    => ($user_id > 0)?$user_id:$this->user_id,
-            'exp'   => time()+$validity
+            'exp'   => time() + $validity
         ];
         return $this->createToken($payload);
     }
@@ -96,7 +96,7 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * @param   string      $token  Token for identifying the user. If not provided, this method tries to fetch it from the current request header or from received cookies.
+     * @param   string      $token  Token for identifying the user. If not provided, this method tries to fetch it from the current request header or from the cookies.
      * @throws  Exception   If a token is found and valid but expired, an Exception is raised with ['auth_expired_token', QN_ERROR_INVALID_USER]
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
@@ -159,27 +159,28 @@ class AuthenticationManager extends Service {
                 $payload = $decoded['payload'];
             }
             catch(\Exception $e) {
-                trigger_error("Unable to decode token: ".$e->getMessage(), QN_REPORT_ERROR);
+                trigger_error("API::Unable to decode token: ".$e->getMessage(), QN_REPORT_ERROR);
             }
             if($payload) {
                 if($payload['exp'] < time()) {
+                    // generate a 401 Unauthorized HTTP response
                     throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
                 }
                 $this->user_id = $payload['id'];
                 // make sure token remains valid for the upcoming hour
+                // #todo - use a distinct flow with a refresh_token
                 if($payload['exp'] < time() + 3600) {
                     $token = $this->token($this->user_id, 3600);
                     $context
                         ->httpResponse()
                         ->cookie('access_token', $token, [
-                            'expires'   => time() + 3600,
-                            'httponly'  => true,
-                            'secure'    => constant('AUTH_TOKEN_HTTPS')
-                        ]);
+                                'expires'   => time() + 3600,
+                                'httponly'  => true,
+                                'secure'    => constant('AUTH_TOKEN_HTTPS')
+                            ]);
                 }
             }
         }
-
         return $this->user_id;
     }
 

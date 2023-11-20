@@ -1,0 +1,88 @@
+{
+    "name": "Grupo",
+    "plural": "Grupos",
+    "description": "Grupos",
+    "model": {
+        "id": {
+            "label": "Identificador",
+            "description": "",
+            "help": ""
+        },
+        "creator": {
+            "label": "Creador",
+            "description": "El usuario que ha realizado la creación del grupo.",
+            "help": ""
+        },
+        "created": {
+            "label": "Creado",
+            "description": "La fecha de creación.",
+            "help": ""
+        },
+        "modifier": {
+            "label": "Modificador",
+            "description": "El usuario que ha realizado la modificación  del grupo.",
+            "help": ""
+        },
+        "modified": {
+            "label": "Modificado",
+            "description": "",
+            "help": "La fecha de modificación."
+        },
+        "deleted": {
+            "label": "Eliminado",
+            "description": "",
+            "help": "¿El grupos está eliminado?"
+        },
+        "name": {
+            "label": "Nombre",
+            "description": "",
+            "help": ""
+        },
+        "display_name": {
+            "label": "Nombre",
+            "description": "",
+            "help": ""
+        },
+        "description": {
+            "label": "Descripción",
+            "description": "Breve presentación del papel asignado a los miembros del grupo.",
+            "help": ""
+        },
+        "users_ids": {
+            "label": "Usuarios",
+            "description": "Lista de usuarios miembros del grupo.",
+            "help": ""
+        },
+        "permissions_ids": {
+            "label": "Permisos",
+            "description": "Lista de permisos del del grupo.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Grupo",
+            "description": "Formulario de registro del grupo.",
+            "layout": {
+                "section.details": {
+                    "label": "Detalles del grupo"
+                },
+                "section.permissions": {
+                    "label": "Permisos"
+                },
+                "section.users": {
+                    "label": "Usuarios"
+                }
+            }
+        },
+        "list.default": {
+            "name": "Lista de grupo",
+            "description": "Lista de los grupos"
+        },
+        "list.selection": {
+            "name": "Lista de grupo",
+            "description": ""
+        }
+    },
+    "error": []
+}
