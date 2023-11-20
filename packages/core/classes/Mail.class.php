@@ -244,6 +244,16 @@ class Mail extends Model {
             if($i > $max) {
                 break;
             }
+
+            if(isset($message['id'])) {
+                $mailMessage = self::id($message['id'])->read(['status']);
+                // prevent re-sending already sent messages
+                if($mailMessage['status'] == 'sent') {
+                    unlink(self::MESSAGE_FOLDER.'/'.$file);
+                    continue;
+                }
+            }
+
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 
