@@ -53,6 +53,9 @@ $name = array_pop($parts);
 
 $namespace = implode("\\", $parts);
 
+$nest = str_replace("\\","/",$namespace);
+
+
 if(strlen($name) <= 0){
     throw new Exception('empty_model_name', QN_ERROR_INVALID_PARAM);
 }
@@ -62,7 +65,7 @@ if(!ctype_upper(mb_substr($name, 0, 1))){
 }
 
 // Verification de la non existence du model
-$file = QN_BASEDIR."/packages/{$package}/classes/{$model_path}.class.php";
+$file = QN_BASEDIR."/packages/{$package}/classes/{$nest}/{$name}.class.php";
 
 if(file_exists($file)) {
     throw new Exception('model_already_exists', QN_ERROR_INVALID_PARAM);
@@ -88,7 +91,7 @@ else {
 }
 
 // create folder if missing
-$dir = QN_BASEDIR."/packages/{$package}/classes/".str_replace("\\","/",$namespace);
+$dir = QN_BASEDIR."/packages/{$package}/classes/".$nest;
 $d = mkdir($dir, 0777, true);
 
 $f = fopen($file,"w");
