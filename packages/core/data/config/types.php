@@ -136,7 +136,7 @@ $types = [
     'computed'  => [
         'type'              => ['type' => 'string'],
         //'default'           => ['type' => 'string'],
-        'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang', 'selection'
+        'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang'
     ]
 ];
 
