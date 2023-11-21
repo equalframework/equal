@@ -35,7 +35,8 @@ list($params, $providers) = eQual::announce([
         ],
         'payload' =>  [
             'description'   => 'Controller `announce` descriptor.',
-            'type'          => 'array',
+            'type'          => 'string',
+            'usage'         => 'application/json'
 //            'required'      => true
         ]
     ],
@@ -55,19 +56,26 @@ $traverser = new NodeTraverser;
 $prettyPrinter = new PhpParser\PrettyPrinter\Standard;
 
 // Get the parts of the entity string, separated by backslashes
-$params['entity'] = str_replace('_', '\\', $params['entity']);
-$parts = explode('\\', $params['entity']);
+$params['controller'] = str_replace('_', '\\', $params['controller']);
+print($params['controller']."\n");
+$parts = explode('\\', $params['controller']);
 
 // Get the package name from the first part of the string
 $package = array_shift($parts);
+print($package."\n");
 // Get the file name from the last part of the string
 $filename = array_pop($parts);
 // Get the class path from the remaining part
 $class_path = implode('/', $parts);
 
+print($params['payload']);
+
+if(!($decoded = json_decode($params['payload'],true))) {
+    throw new Exception('Malformed Json', QN_ERROR_INVALID_PARAM);
+}
 
 // Get a string representation from the code_php variable, with backslashes escaped
-$code_string = str_replace("\\\\", "\\", var_export($params['payload'], true));
+$code_string = str_replace("\\\\", "\\", var_export( $decoded, true));
 
 // #test #toremove
 // $code_string = "[
@@ -139,7 +147,6 @@ $traverser->addVisitor(
 // Get the full path of the file
 $dir = ['do' => 'actions', 'get' => 'date', 'show' => 'apps'][$params['operation']];
 $file = QN_BASEDIR."/packages/{$package}/{$dir}/{$class_path}/{$filename}.php";
-
 // Get the code from the original file ...
 $code = file_get_contents($file);
 // ... and parse it to create an AST
