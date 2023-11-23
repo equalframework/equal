@@ -13,6 +13,7 @@ list($params, $providers) = announce([
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'type'          => 'string',
+            'usage'         => 'orm/entity',
             'required'      => true
         ],
         'fields' =>  [
