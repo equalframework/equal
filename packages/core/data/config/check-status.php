@@ -18,8 +18,7 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context                $context
- * @var \equal\error\Reporter             $reporter
+ * @var \equal\php\Context      $context
  */
 list($context) = [$providers['context']];
 
