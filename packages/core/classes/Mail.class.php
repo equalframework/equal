@@ -246,7 +246,7 @@ class Mail extends Model {
             }
 
             if(isset($message['id'])) {
-                $mailMessage = self::id($message['id'])->read(['status']);
+                $mailMessage = self::id($message['id'])->read(['status'])->first();
                 // prevent re-sending already sent messages
                 if($mailMessage['status'] == 'sent') {
                     unlink(self::MESSAGE_FOLDER.'/'.$file);
