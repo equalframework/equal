@@ -86,7 +86,7 @@ class ObjectManager extends Service {
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'required', 'deprecated', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'onupdate', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'onupdate', 'onrevert', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
@@ -196,7 +196,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * #todo - deprecated : use the DBConnection service instead
+     * #todo - deprecate : use the DBConnection service instead
      * @deprecated
      */
     public function getDB() {
@@ -1578,7 +1578,7 @@ class ObjectManager extends Service {
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
-     * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate hook call).
+     * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate and events hooks call).
      *
      * @return  int|array Returns an array of updated ids, or an error identifier in case an error occurred.
      */
@@ -1651,8 +1651,10 @@ class ObjectManager extends Service {
 
             // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
 
-            // #todo - allow explicit notation `onbeforeupdate()`
-            $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+            if(!$create) {
+                // #todo - allow explicit notation `onbeforeupdate()`
+                $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+            }
 
 
             // 5) update objects
@@ -1699,18 +1701,20 @@ class ObjectManager extends Service {
 
             // 7) second pass : handle onupdate events, if any
 
-            // #memo - this must be done after modifications otherwise object values might be outdated
-            if(count($onupdate_fields)) {
-                // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
-                foreach($onupdate_fields as $field) {
-                    // run onupdate callback (ignore undefined methods)
-                    $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+            if(!$create) {
+                // #memo - this must be done after modifications otherwise object values might be outdated
+                if(count($onupdate_fields)) {
+                    // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
+                    foreach($onupdate_fields as $field) {
+                        // run onupdate callback (ignore undefined methods)
+                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                    }
                 }
-            }
-            if(count($onrevert_fields)) {
-                foreach($onrevert_fields as $field) {
-                    // run onupdate callback (ignore undefined methods)
-                    $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                if(count($onrevert_fields)) {
+                    foreach($onrevert_fields as $field) {
+                        // run onrevert callback (ignore undefined methods)
+                        $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                    }
                 }
             }
 
@@ -1735,8 +1739,10 @@ class ObjectManager extends Service {
                     if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
                         $instant_fields[] = $dependency;
                     }
-                    // allow cascade update
-                    $this->update($class, $ids, [$dependency => null], $lang);
+                    if(!$create) {
+                        // allow cascade update
+                        $this->update($class, $ids, [$dependency => null], $lang);
+                    }
                 }
             }
             if(count($instant_fields)) {
@@ -1764,7 +1770,7 @@ class ObjectManager extends Service {
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
 
             if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
-                $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', get_called_class()], ['object_id', 'in', $ids] ] );
+                $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', $class], ['object_id', 'in', $ids] ] );
                 if($messages_ids) {
                     $this->delete('core\alert\Message', $messages_ids, true);
                 }
