@@ -6,11 +6,11 @@
 */
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Sign a user out.",
     'params' 		=>	[
     ],
-    'constants'     => ['AUTH_TOKEN_HTTPS'],
+    'constants'     => ['ROOT_APP_URL', 'AUTH_TOKEN_HTTPS'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -20,6 +20,11 @@ list($params, $providers) = announce([
 
 
 $context->httpResponse()
-        ->cookie('access_token', '', ['expires' => time(), 'httponly' => true, 'secure' => constant('AUTH_TOKEN_HTTPS')])
+        ->cookie('access_token', '', [
+            'expires'   => time(),
+            'httponly'  => true,
+            'secure'    => constant('AUTH_TOKEN_HTTPS'),
+            'domain'    => parse_url(constant('ROOT_APP_URL'), PHP_URL_HOST)
+        ])
         ->status(204)
         ->send();
