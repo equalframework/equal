@@ -13,7 +13,12 @@ list($params, $providers) = eQual::announce([
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
-        'accept-origin' => '*'
+        'accept-origin' => '*',
+        'schema'        => [
+            'type'              => 'array',
+            'usage'             => 'text[]/plain:255',
+            'description'       => 'List of packages names.'
+        ]
     ],
     'providers'     => ['context']
 ]);
