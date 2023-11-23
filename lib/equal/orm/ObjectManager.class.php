@@ -633,7 +633,7 @@ class ObjectManager extends Service {
                             null,
                             [
                                 [
-                                    // note :we have to escape right field because there is no way for dbManipulator to guess it is not a value
+                                    // #memo - right field needs to be escaped because there is no way for dbManipulator to guess it is not a value
                                     array('t0.id', '=', "`t1`.`{$schema[$field]['rel_foreign_key']}`"),
                                     array('t1.'.$schema[$field]['rel_local_key'], 'in', $ids),
                                     array('t0.state', '=', 'instance'),
@@ -1100,7 +1100,7 @@ class ObjectManager extends Service {
 
     /**
      * Invoke a callback from an object Class.
-     * Objects callback signature must always be `methodName($orm: object, $ids: array, $lang: string)`
+     * Default objects callback signature is `methodName($orm: object, $ids: array, $lang: string)`
      * There is no recursion protection and a same callback can be invoked several times without any restrictions.
      *
      * @param string    $class
