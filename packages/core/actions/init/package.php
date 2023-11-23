@@ -147,16 +147,17 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
                     if($res > 0 && count($res)) {
                         // object already exist, but either values or language might differ
                         $id = $odata['id'];
-                        $res = $orm->update($entity, $id, $odata, $lang);
-                        $objects_ids[] = $id;
                     }
                     else {
-                        $objects_ids[] = $orm->create($entity, $odata, $lang);
+                        $id = $orm->create($entity, [], $lang);
                     }
+                    unset($odata['id']);
                 }
                 else {
-                    $objects_ids[] = $orm->create($entity, $odata, $lang);
+                    $id = $orm->create($entity, [], $lang);
                 }
+                $orm->update($entity, $id, $odata, $lang);
+                $objects_ids[] = $id;
             }
 
             // force a first generation of computed fields, if any
