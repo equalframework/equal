@@ -828,9 +828,11 @@ class ObjectManager extends Service {
                         $values_array
                     );
             },
-            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
                 /** @var \equal\data\adapt\DataAdapterProvider */
                 $dap = $this->container->get('adapt');
+                // #memo - this handler is for non-multilang fields
+                $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
@@ -848,7 +850,9 @@ class ObjectManager extends Service {
                     $om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
                 }
             },
-            'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+            'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
+                // #memo - this handler is for non-multilang fields
+                $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
@@ -905,7 +909,9 @@ class ObjectManager extends Service {
                     }
                 }
             },
-            'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+            'many2many' =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
+                // #memo - this handler is for non-multilang fields
+                $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $rel_ids = $om->cache[$table_name][$oid][$lang][$field];
@@ -980,9 +986,13 @@ class ObjectManager extends Service {
                         $fields_lists['multilang'][] = $field;
                     }
                     // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
-                    else $fields_lists['simple'][] = $field;
+                    else {
+                        $fields_lists['simple'][] = $field;
+                    }
                 }
-                else  $fields_lists[$type][] = $field;
+                else {
+                    $fields_lists[$type][] = $field;
+                }
             }
             // 2) store fields according to their types
             foreach($fields_lists as $type => $list) {
@@ -1628,6 +1638,7 @@ class ObjectManager extends Service {
                         unset($fields_to_check[$field]);
                     }
                 }
+                // #todo - split the tests with status check against the object workflow
                 $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
                 if($canupdate > 0 && !empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
@@ -1640,8 +1651,7 @@ class ObjectManager extends Service {
 
             // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
 
-            // #todo - split the tests with status check against the object workflow
-
+            // #todo - allow explicit notation `onbeforeupdate()`
             $this->callonce($class, 'onupdate', $ids, $fields, $lang);
 
 
@@ -1999,7 +2009,7 @@ class ObjectManager extends Service {
             }
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
-
+            // #todo allow explicit notation 'onbeforedelete'
             $this->callonce($class, 'ondelete', $ids, [], null, ['ids']);
 
             // 4) cascade deletions / relations updates
