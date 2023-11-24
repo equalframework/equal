@@ -132,6 +132,7 @@ function recurse_dir($directory, $extension, $parent_name='') {
         foreach($list as $node) {
             $filename = basename($node, '.'.$extension);
             list($entity_name, $view_id) = explode('.', $filename, 2);
+            if($entity_name == 'menu') continue;
             if(is_dir($node)) {
                 if(!has_sub_items($node, $extension)) {
                     continue;

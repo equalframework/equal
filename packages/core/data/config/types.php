@@ -137,6 +137,9 @@ $types = [
         'type'              => ['type' => 'string'],
         //'default'           => ['type' => 'string'],
         'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang'
+    ],
+    'array'     => [
+        'default','type' => ['type' => 'string'],'dependencies','onupdate', 'selection','usage'
     ]
 ];
 
