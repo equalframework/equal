@@ -1,3 +1,4 @@
-[submodule "workbench"]
-	path = ./packages/core/apps/workbench
+[submodule "packages/core/apps/workbench"]
+	path = packages/core/apps/workbench
 	url = https://github.com/f7ed0/equal-workbench.git
+	branch = master
