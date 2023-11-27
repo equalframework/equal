@@ -33,7 +33,7 @@ namespace {
     /**
      * Current version of eQual
      */
-    define('QN_VERSION', '1.0.0');
+    define('EQ_VERSION', '2.0.0');
 
     /**
      * Root directory of current install
@@ -109,13 +109,15 @@ namespace {
     define('QN_R_WRITE',     4);
     define('QN_R_DELETE',    8);
     define('QN_R_MANAGE',   16);
+    define('QN_R_ALL',      31);
 
     /* equivalence map for naming migration */
-    define('R_CREATE',       QN_R_CREATE);
-    define('R_READ',         QN_R_READ);
-    define('R_WRITE',        QN_R_WRITE);
-    define('R_DELETE',       QN_R_DELETE);
-    define('R_MANAGE',       QN_R_MANAGE);
+    define('EQ_R_CREATE',       QN_R_CREATE);
+    define('EQ_R_READ',         QN_R_READ);
+    define('EQ_R_WRITE',        QN_R_WRITE);
+    define('EQ_R_DELETE',       QN_R_DELETE);
+    define('EQ_R_MANAGE',       QN_R_MANAGE);
+    define('EQ_R_ALL',          QN_R_ALL);
 
     /**
      * Built-in Users and Groups
