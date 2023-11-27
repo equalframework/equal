@@ -471,6 +471,8 @@ class ObjectManager extends Service {
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
+        // #removed #memo - this leads to a lot of extra individual DB requests
+        /*
         // process remaining identifiers
         $valid_ids = [];
         if(!empty($ids)) {
@@ -491,6 +493,7 @@ class ObjectManager extends Service {
                 unset($ids[$i]);
             }
         }
+        */
         return $ids;
     }
 
@@ -1901,7 +1904,7 @@ class ObjectManager extends Service {
 
                 foreach($ids as $oid) {
                     if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
-                        trigger_error("ORM::unknown or empty object $class[$oid]", QN_REPORT_WARNING);
+                        trigger_error("ORM::unknown or empty object $class [$oid]", QN_REPORT_WARNING);
                         continue;
                     }
                     // first pass : retrieve fields values
