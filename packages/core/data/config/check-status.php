@@ -38,7 +38,7 @@ if(constant('ENV_MODE') == 'production') {
     if(constant('AUTH_ACCESS_TOKEN_VALIDITY') > 86400) {
         $result[] = 'WARN  - SEC - [AUTH_ACCESS_TOKEN_VALIDITY] Using hight lifespan for access token in production is a potential security breach.';
     }
-    if(constant('DEFAULT_RIGHTS') & R_WRITE == R_WRITE) {
+    if(constant('DEFAULT_RIGHTS') & EQ_R_WRITE == EQ_R_WRITE) {
         $result[] = 'WARN  - SEC - [DEFAULT_RIGHTS] WRITE permission to all users in production is a potential security breach.';
     }
     if(constant('AUTH_TOKEN_HTTPS') == false) {
