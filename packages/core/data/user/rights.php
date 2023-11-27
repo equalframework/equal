@@ -26,27 +26,26 @@ list($params, $providers) = announce([
             'default'       => '*'
         ]
     ],
-    'providers'     => ['context', 'auth', 'access', 'orm']
+    'providers'     => ['context', 'access']
 ]);
 
-list($context, $orm, $am, $ac) = [ $providers['context'], $providers['orm'], $providers['auth'], $providers['access'] ];
+list($context, $access) = [ $providers['context'], $providers['access'] ];
 
 // retrieve targeted user
 if(is_numeric($params['user'])) {
     $ids = User::search(['id', '=', $params['user']])->ids();
-    if(!count($ids)) {
-        $rights = constant('DEFAULT_RIGHTS');
-    }
 }
 else {
     // retrieve by login
     $ids = User::search(['login', '=', $params['user']])->ids();
-    if(!count($ids)) {
-        throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
-    }
-    $user_id = array_shift($ids);
-    $rights = $ac->getUserRights($user_id, $params['entity']);
 }
+
+if(!count($ids)) {
+    throw new Exception("unknown_user", QN_ERROR_UNKNOWN_OBJECT);
+}
+
+$user_id = array_shift($ids);
+$rights = $access->getUserRights($user_id, $params['entity']);
 
 // convert ACL value to human string
 $rights_txt = [];
@@ -57,13 +56,21 @@ $operations = [
     QN_R_DELETE => 'delete',
     QN_R_MANAGE => 'manage'
 ];
-foreach($operations as $id => $name) {
-    if($rights & $id) {
+
+foreach($operations as $op => $name) {
+    if($rights & $op) {
         $rights_txt[] = $name;
     }
 }
 
+$result = [
+    'user_id'       => $user_id,
+    'entity'        => $params['entity'],
+    'rights'        => $rights,
+    'rights_txt'    => $rights_txt
+];
+
 $context->httpResponse()
         ->status(200)
-        ->body(['result' => implode(', ', $rights_txt)])
+        ->body($result)
         ->send();
