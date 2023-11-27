@@ -55,7 +55,7 @@ $operations = [
 ];
 
 if(!$ac->isAllowed(QN_R_MANAGE, $params['entity'])) {
-    throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
+    throw new Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 
 // 1) retrieve targeted user
@@ -65,7 +65,7 @@ if(is_numeric($params['user'])) {
 
     $ids = User::search(['id', '=', $user_id])->ids();
     if(!count($ids)) {
-        throw new \Exception("unknown_user_id", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown_user_id", QN_ERROR_UNKNOWN_OBJECT);
     }
 }
 else {
@@ -73,7 +73,7 @@ else {
     $ids = User::search(['login', '=', $params['user']])->ids();
 
     if(!count($ids)) {
-        throw new \Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown_username", QN_ERROR_UNKNOWN_OBJECT);
     }
 
     $user_id = array_shift($ids);
@@ -85,7 +85,7 @@ $ac->grantUsers($user_id, $operations[$params['right']], $params['entity']);
 $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $params['entity']], ['user_id', '=', $user_id] ]);
 
 if($acl_ids < 0 || !count($acl_ids)) {
-    throw new \Exception("acl_creation_failed", QN_ERROR_UNKNOWN);
+    throw new Exception("acl_creation_failed", QN_ERROR_UNKNOWN);
 }
 
 $acls = $orm->read('core\Permission', $acl_ids, ['user_id', 'class_name', 'rights', 'rights_txt']);
