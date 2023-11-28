@@ -28,7 +28,7 @@ class DataAdapter extends Service {
 
     public static function strToInteger($value) {
         if(is_string($value)) {
-            if($value == 'null') {
+            if($value == 'null' || $value == '') {
                 $value = null;
             }
             elseif(empty($value)) {
@@ -116,7 +116,7 @@ class DataAdapter extends Service {
             'float' => [
                 'txt'   => [
                     'php' =>    function ($value) {
-                                    if(is_string($value) && $value == 'null') {
+                                    if(is_string($value) && ($value == 'null' || $value == '')) {
                                         $value = null;
                                     }
                                     // arg represents a numeric value (either numeric type or string)
