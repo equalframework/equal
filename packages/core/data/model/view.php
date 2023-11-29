@@ -57,7 +57,7 @@ while(true) {
 }
 
 if(!file_exists($file)) {
-    throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("unknown_view_id : ".$file, QN_ERROR_UNKNOWN_OBJECT);
 }
 
 if( ($view = json_decode(@file_get_contents($file), true)) === null) {
