@@ -1,11 +1,9 @@
-<?php
+<?
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
-use core\Log;
 
 list($params, $providers) = eQual::announce([
     'description'   => 'Returns a descriptor of current installation Settings, holding specific values for current User, if applicable.',
@@ -55,57 +53,21 @@ list($params, $providers) = eQual::announce([
 
 list($context, $om, $auth) = [$providers['context'], $providers['orm'], $providers['auth']];
 
-function printStack($thread, int $level = 0)
+/**
+ * @var string $level
+ * @return string ANSI escape codes to change the color of the level text according to their values
+ * example $level = "WARNING" returns yellow color
+ */
+function calColor(string $level)
 {
     $green = "\e[32;1m";
     $red = "\e[31;1m";
     $blue = "\e[34;1m";
     $yellow = "\e[33;1m";
     $white = "\e[0m";
-    $bold = "\e[00;1m";
-    $text = "";
 
-    for ($tmp_lvl = $level; $tmp_lvl > 0; $tmp_lvl--) {
-        $text .= "-";
-    }
-    $text .= "$green ${thread['time']} $white";
-    if ($thread['mtime']) {
-        $text .= "$bold {$thread['mtime']} $white";
-    }
-
-    if (is_string($thread['level'])) {
-        $text .= " [" .  calColor($thread['level'])  . $thread['level'] . "]" . $white;
-    }
-    $text .= "$bold${$thread['mode']} $white";
-    $text .= "$bold ${thread['function']} ";
-    $text .= "@ ${thread['file']} : ";
-    $text .= "line ${bold} ${thread['line']}  | $white";
-    $text .= "thread_id $red ${thread['thread_id']} $white";
-    // $text .= "cla : " .  $bold . $thread['class'] . " \n" . $white;
-    if (is_string($thread['message'])) {
-        $text .= "\e[7m \nmessage: $white ${thread['message']} ";
-        // $text .= "\n body $messageBody  \n $white";
-    }
-    if (isset($thread['stack']) && count($thread['stack']) > 0) {
-        foreach ($thread['stack'] as $subitem) {
-            $text .= "\n" . printStack($subitem, $level + 1);
-        }
-    }
-
-    return ($text);
-}
-
-function calColor(string $value)
-{
-
-    $green = "\e[32;1m";
-    $red = "\e[31;1m";
-    $blue = "\e[34;1m";
-    $yellow = "\e[33;1m";
-    $white = "\e[0m";
-
-    if (is_null($value)) return $white;
-    switch (strtoupper($value)) {
+    if (is_null($level)) return $white;
+    switch (strtoupper($level)) {
         case 'WARNING':
         case E_USER_WARNING:
             return $yellow;
@@ -134,8 +96,6 @@ function displayThread(array $thread)
 {
     $green = "\e[32;1m";
     $red = "\e[31;1m";
-    $blue = "\e[34;1m";
-    $yellow = "\e[33;1m";
     $white = "\e[0m";
     $bold = "\e[00;1m";
     $text = "";
@@ -152,10 +112,8 @@ function displayThread(array $thread)
     $text .= "@ ${thread['file']} : ";
     $text .= "line ${bold} ${thread['line']}  | $white";
     $text .= "thread_id $red ${thread['thread_id']} $white";
-    // $text .= "class : " .  $bold . $thread['class'] . " \n" . $white;
     if (is_string($thread['message'])) {
         $text .= "$bold \nmessage: $white ${thread['message']} ";
-        // $text .= "\n body $messageBody  \n $white";
     }
     if (isset($thread['stack'])) {
         for ($i = 0; $i < count($thread['stack']); $i++) {
@@ -196,7 +154,7 @@ function filterThreadByParams(array $thread, array $params)
 if (file_exists('/var/www/html/log/eq_error.log')) {
     // read raw data from pointer log file
     $fp = fopen("/var/www/html/log/eq_error.log", "r");
-    echo "START LOG\n $white";
+    echo "START LOG\n";
     $cpt = 0;
     if ($fp) {
         while ((($data = stream_get_line($fp, 65535, PHP_EOL)) !== false) && ((isset($params["limit"]) && $cpt <= $params["limit"]) || !isset($params["limit"]))) {
@@ -206,14 +164,14 @@ if (file_exists('/var/www/html/log/eq_error.log')) {
                 $filteredThread = filterThreadByParams($thread, $params);
                 if (!is_null($filteredThread)) {
                     print(displayThread($thread));
-                    echo ("\n------------------------------------------------------------------------\n");
+                    echo ("\n---------------------------------------------------------------------------------------------------------------------------------------------\n");
                 };
             }
             $cpt++;
         }
         fclose($fp);
     }
-    echo "\nEND LOG $white \n";
+    echo "\nEND LOG \e[0m \n";
 };
 
 // $context->httpResponse()
