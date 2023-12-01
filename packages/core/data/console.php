@@ -108,16 +108,26 @@ function displayThread(array $thread)
     if (is_string($thread['level'])) {
         $text .=  calColor($thread['level']) . "[{$thread['level']}]$white";
     }
-    $text .= " {$thread['mode']}";
-    $text .= "{$bold} {$thread['function']} ";
-    $text .= "{$white}@ {$thread['file']} : ";
-    $text .= "line $bold{$thread['line']}$white ".PHP_EOL;
+    if(isset($thread['mode'])) {
+        $text .= " {$thread['mode']}";
+    }
+    if(isset($thread['function'])) {
+        $text .= "{$bold} {$thread['function']} ";
+    }
+    if(isset($thread['file'])) {
+        $text .= "{$white}@ {$thread['file']} : ";
+    }
+    if(isset($thread['line'])) {
+        $text .= "line $bold{$thread['line']}$white ";
+    }
 
-    if (is_string($thread['message'])) {
+    $text .= PHP_EOL;
+
+    if(is_string($thread['message'])) {
         // check message format to display in lines if it is an associative array
-        if (is_array(json_decode($thread['message'], true))) {
+        if(is_array(json_decode($thread['message'], true))) {
             $newMessage = json_decode($thread['message'], true);
-            foreach ($newMessage as $val) {
+            foreach($newMessage as $val) {
                 if(is_array($val)) {
                     $m = "";
                     foreach ($val as $id => $v) {
