@@ -5,6 +5,6 @@
     "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "depends_on": [],
-    "apps": [ "apps", "auth", "app", "settings" ],
+    "apps": [ "apps", "auth", "app", "settings","workbench" ],
     "tags": ["equal", "core"]
 }

@@ -22,6 +22,7 @@ list($params, $providers) = eQual::announce([
         'controller'	=> [
             'description'   => 'Name of the controller.',
             'type'          => 'string',
+            'usage'         => 'orm/entity'
 //            'required'      => true
         ],
         'operation'	=> [
@@ -55,8 +56,8 @@ $traverser = new NodeTraverser;
 $prettyPrinter = new PhpParser\PrettyPrinter\Standard;
 
 // Get the parts of the entity string, separated by backslashes
-$params['entity'] = str_replace('_', '\\', $params['entity']);
-$parts = explode('\\', $params['entity']);
+$params['controller'] = str_replace('_', '\\', $params['controller']);
+$parts = explode('\\', $params['controller']);
 
 // Get the package name from the first part of the string
 $package = array_shift($parts);
@@ -65,9 +66,12 @@ $filename = array_pop($parts);
 // Get the class path from the remaining part
 $class_path = implode('/', $parts);
 
+/*if(!($decoded = json_decode($params['payload'],true))) {
+    throw new Exception('Malformed Json', QN_ERROR_INVALID_PARAM);
+}*/
 
 // Get a string representation from the code_php variable, with backslashes escaped
-$code_string = str_replace("\\\\", "\\", var_export($params['payload'], true));
+$code_string = str_replace("\\\\", "\\", var_export( $params['payload'], true));
 
 // #test #toremove
 // $code_string = "[
@@ -137,9 +141,10 @@ $traverser->addVisitor(
     );
 
 // Get the full path of the file
-$dir = ['do' => 'actions', 'get' => 'date', 'show' => 'apps'][$params['operation']];
+$dir = ['do' => 'actions', 'get' => 'data', 'show' => 'apps'][$params['operation']];
 $file = QN_BASEDIR."/packages/{$package}/{$dir}/{$class_path}/{$filename}.php";
 
+$file = str_replace("//","/",$file);
 // Get the code from the original file ...
 $code = file_get_contents($file);
 // ... and parse it to create an AST
@@ -174,7 +179,8 @@ try {
     }
 }
 catch(Exception $e) {
-    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
+    throw new Exception('unable to beautfy the file', QN_ERROR_UNKNOWN);
+    //trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
 }
 
 $result = file_get_contents($file);
