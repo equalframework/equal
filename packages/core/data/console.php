@@ -1,4 +1,4 @@
-<?
+<?php
 /*
     This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
@@ -100,35 +100,39 @@ function displayThread(array $thread)
     $bold = "\e[00;1m";
     $text = "";
 
-    $text .= "$green ${thread['time']} $white";
+    $text .= "$red {$thread['thread_id']} $white";
+    $text .= "$green {$thread['time']} $white";
     if ($thread['mtime']) {
         $text .= "$bold {$thread['mtime']} $white";
     }
     if (is_string($thread['level'])) {
-        $text .=  calColor($thread['level']) . "[${thread['level']}]$white";
+        $text .=  calColor($thread['level']) . "[{$thread['level']}]$white";
     }
-    $text .= " ${thread['mode']}";
-    $text .= "${bold} ${thread['function']} ";
-    $text .= "${white}@ ${thread['file']} : ";
-    $text .= "line $bold${thread['line']}$white  | ";
-    $text .= "thread_id $red ${thread['thread_id']} $white";
+    $text .= " {$thread['mode']}";
+    $text .= "{$bold} {$thread['function']} ";
+    $text .= "{$white}@ {$thread['file']} : ";
+    $text .= "line $bold{$thread['line']}$white ".PHP_EOL;
+
     if (is_string($thread['message'])) {
         // check message format to display in lines if it is an associative array
         if (is_array(json_decode($thread['message'], true))) {
             $newMessage = json_decode($thread['message'], true);
             foreach ($newMessage as $val) {
-                if (is_array($val)) {
+                if(is_array($val)) {
                     $m = "";
                     foreach ($val as $id => $v) {
-                        $m .= "$white ${bold}${id}${white} : \e[3m${v} \e[23m";
+                        $m .= "$white {$bold}{$id}{$white} : \e[3m{$v} \e[23m".PHP_EOL;
                     }
-                    $text .= "\n${bold}message:$m";
-                } else if (is_string($val)) {
-                    $text .= "${bold}\nmessage:$white \e[3m${val} \e[23m"; // message displays in italics
+                    $text .= "$m".PHP_EOL;
+                }
+                elseif (is_string($val)) {
+                    // message displays in italics
+                    $text .= "\e[3m{$val} \e[23m".PHP_EOL;
                 }
             }
-        } else {
-            $text .= "$bold \nmessage:$white \e[3m${thread['message']} \e[23m";
+        }
+        else {
+            $text .= "\e[3m{$thread['message']} \e[23m".PHP_EOL;
         }
         // message displays in italics
     }
@@ -136,7 +140,7 @@ function displayThread(array $thread)
         for ($i = 0; $i < count($thread['stack']); $i++) {
             $stack = $thread['stack'][count($thread['stack']) - $i - 1];
             $text .= $i == count($thread['stack']) - 1 ? "\n └ " : "\n ├ ";
-            $text .= "${stack['function']} @ ${stack['file']} ${stack['line']} $white";
+            $text .= "{$stack['function']} @ {$stack['file']} {$stack['line']} $white";
         }
     }
     return ($text);
@@ -168,10 +172,10 @@ function filterThreadByParams(array $thread, array $params)
     }
 }
 
-if (file_exists('/var/www/html/log/eq_error.log')) {
+if (file_exists(QN_BASEDIR.'/log/eq_error.log')) {
     // read raw data from pointer log file
-    $fp = fopen("/var/www/html/log/eq_error.log", "r");
-    echo "START LOG\n";
+    $fp = fopen(QN_BASEDIR.'/log/eq_error.log', "r");
+    echo "START LOG".PHP_EOL;
     $cpt = 0;
     if ($fp) {
         while ((($data = stream_get_line($fp, 65535, PHP_EOL)) !== false) && ((isset($params["limit"]) && $cpt <= $params["limit"]) || !isset($params["limit"]))) {
@@ -181,14 +185,14 @@ if (file_exists('/var/www/html/log/eq_error.log')) {
                 $filteredThread = filterThreadByParams($thread, $params);
                 if (!is_null($filteredThread)) {
                     print(displayThread($thread));
-                    echo ("\n---------------------------------------------------------------------------------------------------------------------------------------------\n");
+                    echo (PHP_EOL."---------------------------------------------------------------------------------------------------------------------------------------------".PHP_EOL);
                 };
             }
             $cpt++;
         }
         fclose($fp);
     }
-    echo "\nEND LOG \e[0m \n";
+    echo PHP_EOL."END LOG \e[0m ".PHP_EOL;
 };
 
 // $context->httpResponse()
