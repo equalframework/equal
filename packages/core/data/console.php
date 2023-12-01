@@ -107,13 +107,30 @@ function displayThread(array $thread)
     if (is_string($thread['level'])) {
         $text .=  calColor($thread['level']) . "[${thread['level']}]$white";
     }
-    $text .= "$bold${$thread['mode']} $white";
-    $text .= "$bold ${thread['function']} ";
-    $text .= "@ ${thread['file']} : ";
-    $text .= "line ${bold} ${thread['line']}  | $white";
+    $text .= " ${thread['mode']}";
+    $text .= "${bold} ${thread['function']} ";
+    $text .= "${white}@ ${thread['file']} : ";
+    $text .= "line $bold${thread['line']}$white  | ";
     $text .= "thread_id $red ${thread['thread_id']} $white";
     if (is_string($thread['message'])) {
-        $text .= "$bold \nmessage: $white ${thread['message']} ";
+        // check message format to display in lines if it is an associative array
+        if (is_array(json_decode($thread['message'], true))) {
+            $newMessage = json_decode($thread['message'], true);
+            foreach ($newMessage as $val) {
+                if (is_array($val)) {
+                    $m = "";
+                    foreach ($val as $id => $v) {
+                        $m .= "$white ${bold}${id}${white} : \e[3m${v} \e[23m";
+                    }
+                    $text .= "\n${bold}message:$m";
+                } else if (is_string($val)) {
+                    $text .= "${bold}\nmessage:$white \e[3m${val} \e[23m"; // message displays in italics
+                }
+            }
+        } else {
+            $text .= "$bold \nmessage:$white \e[3m${thread['message']} \e[23m";
+        }
+        // message displays in italics
     }
     if (isset($thread['stack'])) {
         for ($i = 0; $i < count($thread['stack']); $i++) {
@@ -143,7 +160,7 @@ function filterThreadByParams(array $thread, array $params)
     if (isset($params['mtime']) && $params['mtime'] != '' && $thread['mtime'] == $params['mtime']) {
         return $thread;
     }
-    if (isset($params['time']) && $params['time'] != '' && $thread['time'] == $params['time']) {
+    if (isset($params['time']) && $params['time'] != '' && str_contains(($thread['time']), $params['time'])) {
         return $thread;
     }
     if (!isset($params['time']) && !isset($params['mtime']) && !isset($params['thread_id']) && !isset($params['level']) && !isset($params['mode'])) {
