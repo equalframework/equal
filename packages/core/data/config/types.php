@@ -33,6 +33,7 @@ $default_descriptor = [
 $properties_descriptor = [
     'usage'             => ['type' => 'string', 'description' => 'Specifies additional information about the format of the field.'],
     'onupdate'          => ['type' => 'string', 'description' => 'Name of the method to invoke when field is updated.'],
+    'onrevert'          => ['type' => 'string', 'description' => 'Name of the method to invoke when a computed field is explicitly set to NULL.'],
     'dependencies'      => ['type' => 'array', 'description' => 'List of computed fields that must be reset when the value of the field is updated.'],
     'selection'         => ['type' => 'array', 'description' => 'Pre-defined list or associative array holding the possible values for the field.'],
     'unique'            => ['type' => 'boolean', 'description' => 'If the property need to be unique.'],
@@ -136,7 +137,7 @@ $types = [
     'computed'  => [
         'type'              => ['type' => 'string'],
         //'default'           => ['type' => 'string'],
-        'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang'
+        'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang', 'onrevert'
     ],
     'array'     => [
         'default','type' => ['type' => 'string'],'dependencies','onupdate', 'selection','usage'
