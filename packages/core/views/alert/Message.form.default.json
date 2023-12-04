@@ -21,7 +21,7 @@
                             {
                                 "columns": [
                                     {
-                                        "width": "100%",
+                                        "width": "50%",
                                         "items": [
                                             {
                                                 "type": "field",
@@ -37,17 +37,22 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "message_model_id",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "field",
                                                 "value": "label",
                                                 "width": "50%"
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "description",
-                                                "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "message_model_id",
                                                 "width": "50%"
                                             },
                                             {
