@@ -37,7 +37,7 @@ $messages = Message::ids($params['ids'])->read(['id']);
 
 foreach($messages as $id => $message) {
     try {
-        eQual::run('do', 'contractika_alert_dismiss', ['id' => $id]);
+        eQual::run('do', 'core_alert_dismiss', ['id' => $id]);
     }
     catch(Exception $e) {
         // something went wrong : ignore
