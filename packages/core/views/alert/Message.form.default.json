@@ -1,6 +1,15 @@
 {
     "name": "Message",
     "description": "Automated alert message.",
+    "actions": [
+        {
+            "id": "action.retry",
+            "label": "Retry",
+            "description": "Retry the check that generated the alert. Message will be dismissed if alert is no longer present.",
+            "controller": "core_alert_dismiss",
+            "confirm": false
+        }
+    ],
     "layout": {
         "groups": [
             {
