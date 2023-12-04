@@ -77,7 +77,7 @@ class Dispatcher extends Service {
      * This should be invoked following a user request for removing the message.
      * The message is deleted and, if it relates to a controller, a call is made (which, in turn, can lead to the message being re-created).
      *
-     * @param   string    $id         Identifier of the message to cancel.
+     * @param   integer    $id         Identifier of the message to cancel (core\alert\Message).
      */
     public function dismiss($id) {
         /** @var \equal\orm\ObjectManager */
@@ -95,7 +95,7 @@ class Dispatcher extends Service {
                         \eQual::run('do', $message['controller'], $body, true);
                     }
                     catch(\Exception $e) {
-                        // error occured during execution
+                        // error occurred during execution
                     }
                 }
             }
