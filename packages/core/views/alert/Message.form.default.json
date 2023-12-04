@@ -33,7 +33,7 @@
                                                 "type": "field",
                                                 "label": "Object identifier",
                                                 "value": "object_id",
-                                                "width": "50%"
+                                                "width": "25%"
                                             },
                                             {
                                                 "type": "field",
@@ -53,7 +53,7 @@
                                             {
                                                 "type": "field",
                                                 "value": "description",
-                                                "width": "50%"
+                                                "width": "100%"
                                             },
                                             {
                                                 "type": "field",
