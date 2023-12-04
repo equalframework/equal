@@ -474,7 +474,7 @@ class AccessController extends Service {
      *  Check if current user (retrieved using Auth service) has rights to perform a given operation.
      *
      *  This method is called by the Collection service, when performing CRUD.
-     *  #todo #toconfirm - deprecate $object_fields
+     *  #todo #toconfirm - deprecate $object_fields (how individual can...() checks are made on fields ?)
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
@@ -497,9 +497,11 @@ class AccessController extends Service {
         // Assignment objects
         $roles = $object_class::getRoles();
         // build a list of all roles that cover the given role (see implied_by)
-        // retrieve all assignments implying one or more roles of the list, given to user on given object class, object id
+        // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
+        // core\Assignment
         // map results on object_id
         // check if count(array_keys($result)) == count($objects_ids)
+
     }
 
     /**
