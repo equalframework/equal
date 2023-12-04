@@ -21,12 +21,12 @@
         "items": [
             {
                 "type": "field",
-                "value": "object_link",
+                "value": "label",
                 "width": "25%"
             },
             {
                 "type": "field",
-                "value": "label",
+                "value": "object_link",
                 "width": "25%"
             },
             {

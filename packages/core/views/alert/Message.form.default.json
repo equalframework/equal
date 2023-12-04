@@ -15,6 +15,8 @@
             {
                 "sections": [
                     {
+                        "id": "section.details",
+                        "label": "Details",
                         "rows": [
                             {
                                 "columns": [
@@ -23,12 +25,24 @@
                                         "items": [
                                             {
                                                 "type": "field",
+                                                "label": "Object Class",
                                                 "value": "object_class",
                                                 "width": "50%"
                                             },
                                             {
                                                 "type": "field",
+                                                "label": "Object identifier",
                                                 "value": "object_id",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "label",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "description",
                                                 "width": "50%"
                                             },
                                             {
@@ -40,7 +54,22 @@
                                                 "type": "field",
                                                 "value": "severity",
                                                 "width": "50%"
-                                            },
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.advanced",
+                        "label": "Advanced",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
                                             {
                                                 "type": "field",
                                                 "value": "controller",
@@ -50,6 +79,11 @@
                                                 "type": "field",
                                                 "value": "params",
                                                 "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "log",
+                                                "width": "100%"
                                             }
                                         ]
                                     }
