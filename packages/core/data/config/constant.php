@@ -5,7 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = announce([
-    'description'   => 'Request the final value of a specific configuration constant (as it is provided when a controller requests it). If the value is crypted, the decrypted value is shown.',
+    'description'   => 'Request the final value of a specific configuration constant (as it is provided when a controller requests it). If the value is encrypted, the decrypted value is shown.',
     'params'        => [
         'constant' =>  [
             'type'          => 'string',
