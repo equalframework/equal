@@ -39,7 +39,7 @@ class AccessController extends Service {
         if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
             $this->groupsTable[$user_id] = [(string) QN_DEFAULT_GROUP_ID];
-
+            /** @var \equal\orm\ObjectManager */
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
             if($values > 0 && isset($values[$user_id])) {
@@ -474,7 +474,7 @@ class AccessController extends Service {
      *  Check if current user (retrieved using Auth service) has rights to perform a given operation.
      *
      *  This method is called by the Collection service, when performing CRUD.
-     *  #todo #toconfirm - deprecate $object_fields (how individual can...() checks are made on fields ?)
+     *  #todo #confirm - deprecate $object_fields (how individual can...() checks are made on fields ?)
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
@@ -493,15 +493,49 @@ class AccessController extends Service {
         return $has_right;
     }
 
+    /**
+     * Check if a given user is granted a role on a collection of objects.
+     *
+     * @var integer         $user_id          The identifier of the user for which the test is requested.
+     * @var string          $role             The role for which assignment is being tested.
+     * @param string        $object_class     Class on which the check must be performed.
+     * @param int[]         $object_ids       List of objects identifiers (relating to $object_class) against which the check must be performed.
+     */
     public function hasRole($user_id, $role, $object_class, $objects_ids=[]) {
-        // Assignment objects
-        $roles = $object_class::getRoles();
-        // build a list of all roles that cover the given role (see implied_by)
-        // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
-        // core\Assignment
-        // map results on object_id
-        // check if count(array_keys($result)) == count($objects_ids)
+        // associative array with keys holding objects ids for which role is granted
+        $result = [];
 
+        /** @var \equal\orm\ObjectManager */
+        $orm = $this->container->get('orm');
+
+        // build a list of all roles that cover the given role (see implied_by)
+        $def_roles = $object_class::getRoles();
+        $map_roles = [];
+
+        if(isset($def_roles[$role])) {
+            $map_roles[$role] = true;
+            $desc = $def_roles[$role];
+            while(isset($desc['implied_by'])) {
+                foreach((array) $desc['implied_by'] as $r) {
+                    $map_roles[$r] = true;
+                }
+                $desc = $desc['implied_by'];
+            }
+        }
+
+        $related_roles = array_keys($map_roles);
+        if(count($related_roles)) {
+            foreach($objects_ids as $object_id) {
+                // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
+                $user_roles_ids = $orm->search('core\Assignment', [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
+                if($user_roles_ids > 0 && count($user_roles_ids)) {
+                    // map results on object_id
+                    $result[$object_id] = true;
+                }
+            }
+        }
+
+        return (count(array_keys($result)) == count($objects_ids));
     }
 
     /**
