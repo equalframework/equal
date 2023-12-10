@@ -214,7 +214,7 @@ class ObjectManager extends Service {
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
                 // fatal error
-                trigger_error('Unable to establish connection to database: check connection parameters '.
+                trigger_error("ORM::".'Unable to establish connection to database: check connection parameters '.
                         '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, DB offline, ...)',
                         QN_REPORT_ERROR
                     );
@@ -309,7 +309,7 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             return $e->getCode();
         }
         return $result;
@@ -746,7 +746,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to load object fields', $e->getCode());
         }
     }
@@ -864,7 +864,7 @@ class ObjectManager extends Service {
                                 $value = [intval($value)];
                             }
                             else {
-                                trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                                 continue;
                             }
                         }
@@ -906,7 +906,9 @@ class ObjectManager extends Service {
                             }
                         }
                         // add relation by setting the pointing id (overwrite previous value if any)
-                        if(count($ids_to_add)) $om->db->setRecords($foreign_table, $ids_to_add, array($schema[$field]['foreign_field']=>$oid));
+                        if(count($ids_to_add)) {
+                            $om->db->setRecords($foreign_table, $ids_to_add, [$schema[$field]['foreign_field'] => $oid]);
+                        }
                         // invalidate cache (field partially loaded)
                         unset($om->cache[$table_name][$oid][$lang][$field]);
                     }
@@ -923,7 +925,7 @@ class ObjectManager extends Service {
                                 $rel_ids = [intval($rel_ids)];
                             }
                             else {
-                                trigger_error("wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
                                 continue;
                             }
                         }
@@ -1004,7 +1006,7 @@ class ObjectManager extends Service {
 
         }
         catch (Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             throw new Exception('unable to store object fields', $e->getCode());
         }
     }
@@ -1504,19 +1506,24 @@ class ObjectManager extends Service {
                             ],
                             ['id' => 'asc']
                         );
-                    if(count($ids) && $ids[0] > 0) {
+                    if($ids > 0 && count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];
                         // store the id to reuse
                         $creation_array['id'] = $oid;
                         // and delete the associated record (might contain obsolete data)
                         $db->deleteRecords($table_name, array($oid));
+                        trigger_error("ORM::found draft object in table $table_name with id $oid.", QN_REPORT_DEBUG);
+                    }
+                    else {
+                        trigger_error("ORM::no reusable draft object found.", QN_REPORT_DEBUG);
                     }
                 }
             }
             else {
-                $ids = $this->filterValidIdentifiers($class, [$creation_array['id']]);
-                if(!empty($ids)) {
+                // check if there is an object with same id
+                $records = $db->getRecords($table_name, 'id', (array) $creation_array['id']);
+                if($db->fetchArray($records)) {
                     throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
                 }
                 $oid = (int) $creation_array['id'];
@@ -1559,7 +1566,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_WARNING);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1781,7 +1788,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1965,7 +1972,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $res = $e->getCode();
         }
         return $res;
@@ -2110,7 +2117,7 @@ class ObjectManager extends Service {
             $this->callonce($class, 'onafterdelete', $ids, [], null, ['ids']);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2207,7 +2214,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2651,7 +2658,7 @@ class ObjectManager extends Service {
             $res_list = array_unique($res_list);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $res_list = $e->getCode();
         }
         return $res_list;
