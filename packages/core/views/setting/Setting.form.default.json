@@ -6,6 +6,8 @@
             {
                 "sections": [
                     {
+                        "id": "section.details",
+                        "label": "Details",
                         "rows": [
                             {
                                 "columns": [
@@ -66,6 +68,26 @@
                                                 "type": "field",
                                                 "value": "is_multilang",
                                                 "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.values",
+                        "label": "Setting values",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_values_ids",
+                                                "width": "100%"
                                             }
                                         ]
                                     }
