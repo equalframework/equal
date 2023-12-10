@@ -105,7 +105,8 @@ class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     /**
-     * Close the DBMS connection
+     * Close the DBMS connection.
+     * This method is meant to assign a value to `$this->dbms_handler`.
      *
      * @return   integer   Status of the close function call
      * @access   public
@@ -244,7 +245,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
             $vals[] = '('.implode(',', $line).')';
         }
         if(count($fields) && count($vals)) {
-            // #todo ignore duplicate enties, if any
+            // #todo ignore duplicate entries, if any
             $sql = "INSERT INTO [$table] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
             if(in_array('id', $fields)) {
                 $sql = "SET IDENTITY_INSERT $table ON;".$sql."SET IDENTITY_INSERT $table OFF;";
