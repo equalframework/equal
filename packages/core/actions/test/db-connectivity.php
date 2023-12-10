@@ -6,7 +6,7 @@
 */
 use equal\db\DBConnection;
 
-$params = announce([
+$params = eQual::announce([
     'description'   => "Tests connectivity to the DBMS server.\nIn case of success, the script simply terminates with a status code of 0 (no output)",
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
