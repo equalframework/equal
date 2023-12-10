@@ -43,6 +43,17 @@ class DBConnection extends Service {
                         constant('DB_COLLATION')
                     );
                 break;
+            case 'SQLITE' :
+                $this->dbConnection = new DBManipulatorSQLite(
+                        constant('DB_HOST'),
+                        constant('DB_PORT'),
+                        constant('DB_NAME'),
+                        constant('DB_USER'),
+                        constant('DB_PASSWORD'),
+                        constant('DB_CHARSET'),
+                        constant('DB_COLLATION')
+                    );
+                break;
             case 'POSTGRESQL' :
                 // #todo
                 break;
