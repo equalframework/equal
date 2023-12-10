@@ -1217,7 +1217,7 @@ namespace config {
                     // restore original HTTP Response headers
                     // #memo - this is mandatory for integration with other frameworks (i.e. WP) while calling `run()` when (some) headers have already been set
                     $headers_orig = $context_orig->getHttpResponse()->getHeaders(true);
-                    if(count($headers_orig)) {
+                    if(is_array($headers_orig) && count($headers_orig)) {
                         header_remove();
                         foreach($headers_orig as $header => $value) {
                             header($header.': '.$value);
