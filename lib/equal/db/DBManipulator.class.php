@@ -168,7 +168,7 @@ class DBManipulator {
     * @return boolean    false if no connection can be made, true otherwise
     *
     */
-    public final function canConnect() {
+    public function canConnect() {
         if($fp = fsockopen($this->host, $this->port, $errno, $errstr, 1)) {
             fclose($fp);
             return true;
