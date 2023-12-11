@@ -159,7 +159,8 @@ class DBManipulatorSQLite extends DBManipulator {
     }
 
     public function getQueryCreateTable($table_name) {
-        $query = "CREATE TABLE IF NOT EXISTS `{$table_name}` (`id` INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY)";
+        // #memo - autoincrement keyword make the autoincrement break !
+        $query = "CREATE TABLE IF NOT EXISTS `{$table_name}` (id INTEGER PRIMARY KEY)";
         // SQLite supports only the UTF-8 character encoding
         /*
         if($this->charset) {
