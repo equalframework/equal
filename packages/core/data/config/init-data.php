@@ -17,8 +17,16 @@ list($params, $providers) = eQual::announce([
             'help' => '',
             'type' => 'string',
             'usage' => 'orm/package',
-            'required' => true,
             'default' => 'core',
+        ],
+        'type' => [
+            'description' => 'type of init-data you want to gather',
+            'help' => '',
+            'type' => 'string',
+            'default' => 'init',
+            'selection' => [
+                'init','demo'
+            ]
         ],
     ],
     'access' => [
@@ -36,12 +44,16 @@ $context = $providers['context'];
 
 $package =  equal::run("do","sanitize_path",["path" => $params['package'], "name_only"=>true]) ;
 
+$trad = [
+    "init" => "data",
+    "demo" => "demo"
+];
 
 if(!is_dir(QN_BASEDIR."/packages/$package")) {
     throw new Exception("package does not exists ",QN_ERROR_INVALID_PARAM);
 }
 
-$init_file_dir = QN_BASEDIR."/packages/$package/init/data";
+$init_file_dir = QN_BASEDIR."/packages/$package/init/{$trad[$params['type']]}";
 
 if(!is_dir($init_file_dir)) {
     $context->httpResponse()

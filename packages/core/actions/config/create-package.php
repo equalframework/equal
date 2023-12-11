@@ -63,6 +63,14 @@ if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/init/routes", 0775)) {
     throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
 }
 
+if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/init/data", 0775)) {
+    throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
+}
+
+if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/init/demo", 0775)) {
+    throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
+}
+
 if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/i18n", 0775)) {
     throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
 }
@@ -70,6 +78,8 @@ if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/i18n", 0775)) {
 if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/tests", 0775)) {
     throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
 }
+
+
 
 // create empty manifest (from template)
 $template = <<<EOT

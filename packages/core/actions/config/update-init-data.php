@@ -20,6 +20,15 @@ list($params, $providers) = eQual::announce([
             'type' => 'string',
             'required' => true
         ],
+        'type' => [
+            'description' => 'type of init-data you want to gather',
+            'help' => '',
+            'type' => 'string',
+            'default' => 'init',
+            'selection' => [
+                'init','demo'
+            ]
+        ],
         'payload' =>  [
             'description'   => 'View definition (JSON).',
             'type'          => 'text',
@@ -38,10 +47,16 @@ if( ($decoded = json_decode($params['payload'],true)) === null) {
 
 $package = equal::run("do","sanitize_path",["path" => $params['package'], "name_only"=>true]);
 
-$path = QN_BASEDIR."/packages/$package/init/data";
+
+$trad = [
+    "init" => "data",
+    "demo" => "demo"
+];
+
+$path = QN_BASEDIR."/packages/$package/init/{$trad[$params['type']]}";
 
 if(!is_dir($path)) {
-    throw new Error("malformed package",QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed package",QN_ERROR_INVALID_CONFIG);
 }
 
 $files = flattenFolder($path);
@@ -52,7 +67,7 @@ foreach($files as $file) {
     unlink($path.'/'.$file.'.bak');
     $res = rename($path.'/'.$file,$path.'/'.$file.'.bak');
     if(!$res) {
-        throw new Error("io error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io error",QN_ERROR_INVALID_CONFIG);
     }
     $backups[] = $path.'/'.$file.'.bak';
 }
@@ -62,13 +77,12 @@ foreach($decoded as $file => $content) {
     
     $sanitized_filename = equal::run("do","sanitize_path",["path" => $file, "name_only"=>false]);
     $f = fopen($path.'/'.$sanitized_filename,"w");
-    echo $path.'/'.$sanitized_filename."\n";
     if(!$f) {
-        throw new Error("io error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io error",QN_ERROR_INVALID_CONFIG);
     }
     $json = json_encode($content,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     if(!$json) {
-        throw new Error("encoding error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("encoding error",QN_ERROR_INVALID_CONFIG);
     }
     fputs($f,$json);
     fclose($f);

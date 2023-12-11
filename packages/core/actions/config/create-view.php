@@ -56,10 +56,6 @@ if(count($parts_v) > 0) {
     throw new Exception("view_id_invalid",QN_ERROR_INVALID_PARAM);
 }
 
-if(strcmp($type, "form")!==0 && strcmp($type, "list")!==0 && strcmp($type, "search")!==0 && strcmp($type, "app")!==0 && strcmp($type, $package)!==0 ) {
-    $test = strcmp($type, "list");
-    throw new Exception("view_type_invalid",QN_ERROR_INVALID_PARAM);
-}
 
 $file = QN_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
 
