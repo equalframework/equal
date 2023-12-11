@@ -202,7 +202,7 @@ catch(Throwable $e) {
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
-        trigger_error("PHP::{$request_method} ".$request->getUri()." => $http_status ".qn_error_name($error_code).": ".$msg, QN_REPORT_WARNING);
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?QN_REPORT_WARNING:QN_REPORT_ERROR);
         // store access log
         file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:(isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:'127.0.0.1').';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
         // return an error code (for compliance under CLI environment)
