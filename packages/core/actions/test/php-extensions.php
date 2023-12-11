@@ -21,7 +21,10 @@ if(!is_callable('get_loaded_extensions')) {
 
 $extensions = get_loaded_extensions();
 
-$ext_mandatory = ['gd','zip','intl','mbstring','SimpleXML','libxml','iconv','json'];
+// mandatory PHP extensions
+$ext_mandatory = ['gd','intl','iconv','json', 'libxml', 'mbstring','SimpleXML', 'zip'];
+
+// supported DBMS extensions
 $ext_dbms = ['sqlite3', 'mysqli', 'sqlsrv'];
 
 
