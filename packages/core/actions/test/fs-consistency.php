@@ -4,10 +4,10 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-$params = announce([
+$params = eQual::announce([
     'description'   => 'Checks current installation directories integrity',
     'params'        => [],
-    'constants'     => ['FILE_STORAGE_MODE', 'ROUTING_METHOD']
+    'constants'     => ['FILE_STORAGE_MODE', 'ROUTING_METHOD', 'HTTP_PROCESS_USERNAME']
 ]);
 
 // array holding files and directories to be tested
@@ -27,6 +27,10 @@ $paths = [
     [
         'rights'    =>  QN_R_READ | QN_R_WRITE,
         'path'      =>  QN_BASEDIR.'/spool'
+    ],
+    [
+        'rights'    =>  QN_R_READ,
+        'path'      =>  QN_BASEDIR.'/lib'
     ],
     [
         'rights'    =>  QN_R_READ,
@@ -94,17 +98,24 @@ function check_permissions($path, $mask, $uid=0) {
 
 
 $uid = 0;
-// #todo - add HTTP_PROCESS_USERNAME
-$username = 'www-data';
+
+$username = constant('HTTP_PROCESS_USERNAME');
+
 // get UID of a use by its name
-if(exec("id -u \"$username\"", $output)) {
+exec("id -u \"$username\" 2>&1", $output);
+
+if(count($output)) {
     $uid = intval(reset($output));
+}
+
+if(!$uid) {
+    throw new Exception(serialize(['unknown_user' => $username]), QN_ERROR_INVALID_CONFIG);
 }
 
 // check mod
 foreach($paths as $item) {
     if(!file_exists($item['path'])) {
-        throw new Exception("Missing mandatory node {$item['path']}", QN_ERROR_INVALID_CONFIG);
+        throw new Exception(serialize(['missing_mandatory_node' => $item['path']]), QN_ERROR_INVALID_CONFIG);
     }
     if( ($res = check_permissions($item['path'], $item['rights'], $uid)) <= 0) {
         switch(-$res) {
