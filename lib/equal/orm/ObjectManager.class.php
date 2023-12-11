@@ -1611,6 +1611,7 @@ class ObjectManager extends Service {
             $ids = $this->filterValidIdentifiers($class, $ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
+                trigger_error("ORM::ignoring call with empty ids ", QN_REPORT_INFO);
                 return $res;
             }
             // ids that are left are the ones of the objects that will be written
