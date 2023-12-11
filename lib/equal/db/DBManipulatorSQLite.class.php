@@ -341,7 +341,7 @@ class DBManipulatorSQLite extends DBManipulator {
             else {
                 if(substr($value, 0, 3) == "h0x") {
                     // hexadecimal string that must be stored as a binary value
-                    $result = "UNHEX('".substr($value, 3)."')";
+                    $result = "X'".substr($value, 3)."'";
                 }
                 else {
                     // regular string that must be escaped
@@ -426,7 +426,7 @@ class DBManipulatorSQLite extends DBManipulator {
      * @param	array   $ids          ids to which the selection is limited
      * @param	array   $conditions   list of arrays (field, operand, value)
      * @param	string  $id_field     name of the id field ('id' by default)
-     * @param	mixed   $order        string holding name of the order field or maps holding field nmaes as keys and sorting as value
+     * @param	mixed   $order        string holding name of the order field or maps holding field names as keys and sorting as value
      * @param	integer $start
      * @param	integer $limit
      *
