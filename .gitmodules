@@ -2,3 +2,6 @@
 	path = packages/core/apps/workbench/sources
 	url = https://github.com/f7ed0/equal-workbench.git
 	branch = dev
+[submodule "doc"]
+	path = doc
+	url = https://github.com/equalframework/equal-doc.git
