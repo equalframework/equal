@@ -7,8 +7,6 @@
 namespace equal\error;
 
 use equal\organic\Service;
-use equal\php\Context;
-
 
 class Reporter extends Service {
 
@@ -47,19 +45,21 @@ class Reporter extends Service {
      * In all cases, these are critical errors that cannot be recovered and need an immediate stop (fatal error)
      */
     public static function uncaughtExceptionHandler($exception) {
-        $code = $exception->getCode();
+        self::handleThrowable($exception);
+        // prevent further processing
+        exit(1);
+    }
+
+    public static function handleThrowable($exception) {
         $msg = $exception->getMessage();
-        if($code != QN_REPORT_FATAL) {
-            $msg = '[uncaught exception]-'.$msg;
-        }
         // retrieve instance and log error
         $instance = self::getInstance();
-        $trace = $exception->getTrace();
-        if(count($trace)) {
-            $instance->log($code, $msg, $trace[0]);
+        $backtrace = $exception->getTrace();
+        if(count($backtrace)) {
+            $trace = array_shift($backtrace);
+            $trace['stack'] = $backtrace;
+            $instance->log(QN_REPORT_ERROR, $msg, $trace);
         }
-        // prevent processing
-        exit(1);
     }
 
     /**
@@ -151,16 +151,16 @@ class Reporter extends Service {
             'mtime'         => substr($time_parts[0], 2, 6),
             'level'         => qn_debug_code_name($code),
             'mode'          => qn_debug_mode_name($mode),
-            'class'         => $trace['class'],
-            'function'      => $trace['function'],
-            'file'          => $trace['file'],
-            'line'          => $trace['line'],
+            'class'         => (isset($trace['class']))?$trace['class']:'',
+            'function'      => (isset($trace['function']))?$trace['function']:'',
+            'file'          => (isset($trace['file']))?$trace['file']:'',
+            'line'          => (isset($trace['line']))?$trace['line']:'',
             'message'       => $msg,
-            'stack'         => []
+            'stack'         => (isset($trace['stack']))?$trace['stack']:[]
         ];
 
         // append backtrace if required (fatal errors)
-        if(in_array($code, [QN_REPORT_WARNING, QN_REPORT_ERROR, QN_REPORT_FATAL])) {
+        if(!count($error_json['stack']) && in_array($code, [QN_REPORT_WARNING, QN_REPORT_ERROR, QN_REPORT_FATAL])) {
             $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
             // remove 2 calls related to Reporter Service
             array_splice($stack, 0, 2);
