@@ -7,7 +7,7 @@
 use equal\fs\FSManipulator;
 
 list($params, $providers) = eQual::announce([
-    'description'   => "save a representation of a view to a json file",
+    'description'   => "Save a representation of a view to a json file.",
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
@@ -21,7 +21,7 @@ list($params, $providers) = eQual::announce([
         ],
         'type' => [
             'type'          => 'string',
-            'description'   => 'type of init-data you want to gather',
+            'description'   => 'Type of requested init-data (folder).',
             'selection'     => [
                 'init',
                 'demo'
@@ -41,7 +41,7 @@ list($params, $providers) = eQual::announce([
 list($context) = [$providers['context']];
 
 if( ($decoded = json_decode($params['payload'], true)) === null) {
-    throw new Exception("invalid_payload",QN_ERROR_INVALID_PARAM);
+    throw new Exception("invalid_payload", QN_ERROR_INVALID_PARAM);
 }
 
 $package = $params['package'];
@@ -76,7 +76,6 @@ foreach($files as $file) {
     $backups[] = $dir.'/'.$file.'.bak';
 }
 
-
 foreach($decoded as $file => $content) {
     $sanitized_filename = FSManipulator::getSanitizedPath($file);
     $f = fopen($dir.'/'.$sanitized_filename, "w");
@@ -85,7 +84,7 @@ foreach($decoded as $file => $content) {
     }
     $json = json_encode($content, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     if(!$json) {
-        throw new Exception("encoding error", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("encoding_error", QN_ERROR_INVALID_CONFIG);
     }
     fputs($f, $json);
     fclose($f);
