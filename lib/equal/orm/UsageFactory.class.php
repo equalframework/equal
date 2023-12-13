@@ -20,6 +20,7 @@ use equal\orm\usages\{
         UsagePassword,
         UsagePhone,
         UsageText,
+        UsageUri,
         UsageArray
     };
 
