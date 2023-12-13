@@ -105,6 +105,7 @@ class UsageFactory {
                 $usageInstance = new UsagePhone($usage);
                 break;
             case 'uri':
+                $usageInstance = new UsageUri($usage);
                 break;
             case 'array':
                 $usageInstance = new UsageArray($usage);
