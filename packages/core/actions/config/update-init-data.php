@@ -4,8 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
-use function PHPUnit\Framework\stringStartsWith;
+use equal\fs\FSManipulator;
 
 list($params, $providers) = eQual::announce([
     'description'   => "save a representation of a view to a json file",
@@ -16,18 +15,18 @@ list($params, $providers) = eQual::announce([
     ],
     'params' => [
         'package' => [
-            'description' => 'Name of the entity.',
-            'type' => 'string',
-            'required' => true
+            'type'          => 'string',
+            'description'   => 'Name of the entity.',
+            'required'      => true
         ],
         'type' => [
-            'description' => 'type of init-data you want to gather',
-            'help' => '',
-            'type' => 'string',
-            'default' => 'init',
-            'selection' => [
-                'init','demo'
-            ]
+            'type'          => 'string',
+            'description'   => 'type of init-data you want to gather',
+            'selection'     => [
+                'init',
+                'demo'
+            ],
+            'default'       => 'init',
         ],
         'payload' =>  [
             'description'   => 'View definition (JSON).',
@@ -41,50 +40,54 @@ list($params, $providers) = eQual::announce([
 /** @var \equal\php\context Context */
 list($context) = [$providers['context']];
 
-if( ($decoded = json_decode($params['payload'],true)) === null) {
-    throw new Error("payload not valid",QN_ERROR_INVALID_PARAM);
+if( ($decoded = json_decode($params['payload'], true)) === null) {
+    throw new Exception("invalid_payload",QN_ERROR_INVALID_PARAM);
 }
 
-$package = equal::run("do","sanitize_path",["path" => $params['package'], "name_only"=>true]);
+$package = $params['package'];
 
+$packages = equal::run("get", "config_packages");
 
-$trad = [
-    "init" => "data",
-    "demo" => "demo"
-];
-
-$path = QN_BASEDIR."/packages/$package/init/{$trad[$params['type']]}";
-
-if(!is_dir($path)) {
-    throw new Exception("malformed package",QN_ERROR_INVALID_CONFIG);
+if(!in_array($package, $packages)) {
+    throw new Exception("unknown_package", QN_ERROR_INVALID_PARAM);
 }
 
-$files = flattenFolder($path);
+$folder = ([
+        "init" => "data",
+        "demo" => "demo"
+    ])[$params['type']];
+
+$dir = QN_BASEDIR."/packages/$package/init/$folder";
+
+if(!is_dir($dir)) {
+    throw new Exception("missing_directory", QN_ERROR_INVALID_CONFIG);
+}
+
+$files = FSManipulator::getDirFlatten($dir, ['json']);
 
 $backups = [];
 
 foreach($files as $file) {
-    unlink($path.'/'.$file.'.bak');
-    $res = rename($path.'/'.$file,$path.'/'.$file.'.bak');
+    unlink($dir.'/'.$file.'.bak');
+    $res = rename($dir.'/'.$file, $dir.'/'.$file.'.bak');
     if(!$res) {
-        throw new Exception("io error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io_error",QN_ERROR_INVALID_CONFIG);
     }
-    $backups[] = $path.'/'.$file.'.bak';
+    $backups[] = $dir.'/'.$file.'.bak';
 }
 
 
 foreach($decoded as $file => $content) {
-    
-    $sanitized_filename = equal::run("do","sanitize_path",["path" => $file, "name_only"=>false]);
-    $f = fopen($path.'/'.$sanitized_filename,"w");
+    $sanitized_filename = FSManipulator::getSanitizedPath($file);
+    $f = fopen($dir.'/'.$sanitized_filename, "w");
     if(!$f) {
-        throw new Exception("io error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("io_error", QN_ERROR_INVALID_CONFIG);
     }
-    $json = json_encode($content,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+    $json = json_encode($content, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     if(!$json) {
-        throw new Exception("encoding error",QN_ERROR_INVALID_CONFIG);
+        throw new Exception("encoding error", QN_ERROR_INVALID_CONFIG);
     }
-    fputs($f,$json);
+    fputs($f, $json);
     fclose($f);
 }
 
@@ -92,26 +95,6 @@ foreach($backups as $file) {
     unlink($file);
 }
 
-
 $context->httpResponse()
         ->status(201)
         ->send();
-
-
-function flattenFolder(string $path,string $suffix = ""):array {
-    $res = [];
-    $scan = scandir($path);
-    foreach($scan as $item) {
-        if(str_starts_with($item,".")) {
-            continue;
-        }
-        if(str_ends_with($item,".json")) {
-            $res[] = "$suffix$item";
-            continue;
-        }
-        if(is_dir("$path/$item")) {
-            $res = array_merge($res,flattenFolder("$path/$item","$suffix$item/"));
-        }
-    }
-    return $res;
-}
