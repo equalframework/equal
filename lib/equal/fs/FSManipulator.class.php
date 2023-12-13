@@ -710,6 +710,21 @@ class FSManipulator {
         }
     }
 
+    public static function getSanitizedPath($path) {
+        $banned = [
+            "%252e%252e%255c",
+            "%2e%2e%2f",
+            "%2e%2e%5c",
+            "%2e%2e/",
+            "..%255c",
+            "..%2f",
+            "..%5c",
+            "../",
+            "\0"
+        ];
+        return str_replace($banned, '', str_replace('\\', '/', $path));
+    }
+
     public static function getSanitizedName($file_name) {
         // note: remember to maintain current file charset to UTF-8 !
         $ascii = array(
@@ -733,9 +748,43 @@ class FSManipulator {
         return strtolower($value);
     }
 
+    public static function getDirFlatten(string $path, $extensions=[], string $prefix = '') {
+        $res = [];
+        if($scan = scandir($path)) {
+            foreach($scan as $item) {
+                if(substr($item, 0, 1) == '.') {
+                    continue;
+                }
+                if(is_file("$path/$item")) {
+                    if(count($extensions)) {
+                        foreach($extensions as $extension) {
+                            $extension = str_replace('.', '', $extension);
+                            $len = strlen($extension);
+                            if(substr(strtolower($item), -($len+1)) == '.'.$extension) {
+                                $res[] = $prefix.$item;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        $res[] = $prefix.$item;
+                    }
+                }
+                elseif(is_dir("$path/$item")) {
+                    $res = array_merge($res, self::getDirFlatten("$path/$item", $extensions, $prefix.$item.'/'));
+                }
+            }
+        }
+        return $res;
+    }
+
     public static function getDirListing($dir_name) {
-        if(!is_dir($dir_name)) return null;
-        if(($dir = opendir($dir_name)) === false) return null;
+        if(!is_dir($dir_name)) {
+            return null;
+        }
+        if(($dir = opendir($dir_name)) === false) {
+            return null;
+        }
         $d_pos = 0;
         $f_pos = 0;
         $list_directoies = array();
