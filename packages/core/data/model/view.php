@@ -31,18 +31,27 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $entity = $params['entity'];
 
+list($view_type, $view_name) = explode('.', $params['view_id']);
+
 // retrieve existing view meant for entity (recurse through parents)
 while(true) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
     $file = array_pop($parts);
     $class_path = implode('/', $parts);
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$params['view_id']}.json";
 
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$view_type}.{$view_name}.json";
     if(file_exists($file)) {
         break;
     }
 
+    // fallback to default variant of the view
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$view_type}.default.json";
+    if(file_exists($file)) {
+        break;
+    }
+
+    // go one level up through parents
     try {
         $parent = get_parent_class($orm->getModel($entity));
         if(!$parent || $parent == 'equal\orm\Model') {
@@ -57,7 +66,7 @@ while(true) {
 }
 
 if(!file_exists($file)) {
-    throw new Exception("unknown_view_id : ".$file, QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("missing_view", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 if( ($view = json_decode(@file_get_contents($file), true)) === null) {
