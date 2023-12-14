@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Retrieves the translation values related to the specified menu.",
     'params'        => [
         'package' =>  [
@@ -29,22 +29,23 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+/**
+ * @var \equal\php\Context  $context
+ */
+list($context) = [ $providers['context'] ];
 
+$result = [];
 
 $file = QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json";
 
-if(!file_exists($file)) {
-    throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
-}
-
-if( ($schema = json_decode(@file_get_contents($file), true)) === null) {
-    throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+// #memo - to prevent untimely log entries, this script always return a non-404 error
+if(file_exists($file) && ($schema = json_decode(@file_get_contents($file), true)) !== null) {
+    $result = $schema;
 }
 
 $context->httpResponse()
-        ->body($schema)
+        ->body($result)
         ->send();
