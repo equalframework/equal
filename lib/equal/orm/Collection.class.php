@@ -73,9 +73,7 @@ class Collection implements \Iterator, \Countable {
 
         // assign private members
         $this->class = $class;
-        /** @var \equal\orm\ObjectManager */
         $this->orm = $objectManager;
-        /** @var \equal\access\AccessController */
         $this->ac = $accessController;
         $this->am = $authenticationManager;
         $this->dap = $dataAdapterProvider;
