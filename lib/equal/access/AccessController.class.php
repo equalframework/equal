@@ -169,9 +169,9 @@ class AccessController extends Service {
 
         // if no ACL found, lookup for ACLs set on parent class
         if($result == 0) {
-            $classes = [$object_class];
             $parent_classes = $orm->getObjectParentsClasses($object_class);
             if(count($parent_classes)) {
+                $classes = [];
                 $table_name = $orm->getObjectTableName($object_class);
                 foreach($parent_classes as $class) {
                     if($orm->getObjectTableName($class) == $table_name) {
@@ -179,8 +179,9 @@ class AccessController extends Service {
                     }
                 }
                 foreach($classes as $class) {
-                    if($result < $operation) {
-                        $result |= $this->getUserRightsOnClass($user_id, $class);
+                    $result |= $this->getUserRightsOnClass($user_id, $class);
+                    if($result >= $operation) {
+                        break;
                     }
                 }
             }
