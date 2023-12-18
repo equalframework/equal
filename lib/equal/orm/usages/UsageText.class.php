@@ -9,6 +9,13 @@ namespace equal\orm\usages;
 
 class UsageText extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 32000;
+        }
+    }
+
     public function getConstraints(): array {
         return [
             'not_string_type' => [
