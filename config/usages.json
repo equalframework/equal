@@ -32,7 +32,8 @@
                 "xml"       : {},
                 "html"      : {},
                 "markdown"  : {},
-                "wiki"      : {}
+                "wiki"      : {},
+                "json"      : {}
             },
             "length_free" : true,
             "boundary" : true
