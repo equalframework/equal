@@ -1545,6 +1545,9 @@ class ObjectManager extends Service {
             if($oid <= 0) {
                 // id field is auto-increment: retrieve last value
                 $oid = $db->getLastId();
+                if($oid <= 0) {
+                    throw new Exception('invalid_object_id', QN_ERROR_UNKNOWN);
+                }
                 $this->cache[$table_name][$oid][$lang] = $creation_array;
             }
             // in any case, we return the object id
