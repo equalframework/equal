@@ -13,43 +13,43 @@ namespace equal\orm\usages;
 class Usage {
 
     /** @var string */
-    private $usage_str = '';
+    protected $usage_str = '';
 
     /**
      * Usage main type.
      * @var string
      */
-    private $type = '';
+    protected $type = '';
 
     /**
      * Usage subtype.
      * Subtype might have several nodes (ex: node1.node2.node3)
      * @var string
      */
-    private $subtype = '';
+    protected $subtype = '';
 
     /**
      * Flag marking if the usage targets an array.
      * @var boolean
      */
-    private $is_array = false;
+    protected $is_array = false;
 
     /** @var string
      * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
     */
-    private $length = '';
+    protected $length = '';
 
     /** @var int */
-    private $precision = 0;
+    protected $precision = 0;
 
     /** @var int */
-    private $scale = 0;
+    protected $scale = 0;
 
     /**
      * Size of the array (when usage targets an array of values)
      * @var int
      */
-    private $size = 0;
+    protected $size = 0;
 
     public function getConstraints(): array {
         return [];
