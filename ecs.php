@@ -17,10 +17,12 @@ return static function (ECSConfig $ecsConfig): void {
         // run and fix, one by one
         SetList::SPACES,
         SetList::ARRAY,
-	    SetList::DOCBLOCK,
-	    SetList::SYMPLIFY,
-	    // SetList::COMMON, // adds declare(strict_types=1)
-	    SetList::CLEAN_CODE,
-        SetList::PSR_12,
+        SetList::DOCBLOCK,
+        SetList::SYMPLIFY,
+        // #memo - adds declare(strict_types=1)
+        // SetList::COMMON,
+        SetList::CLEAN_CODE,
+        // #memo - join comment lines and then break them without starting with * (star)
+        // SetList::PSR_12,
     ]);
 };
