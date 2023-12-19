@@ -7,26 +7,24 @@
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
 
 list($params, $providers) = eQual::announce([
-    'description'   => "Translate a workflow definition of a given entity to a PHP method and store it in related file.",
-    'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
+    'description'   => "Removes the specified view relating to the given entity.",
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params'        => [
-        'entity'    => [
-            'description'   => 'Name of the entity (class).',
-            'type'          => 'string',
-            'required'      => true
-        ],
-        'payload' =>  [
-            'description'   => 'Workflow definition.',
-            'type'          => 'array',
-            'required'      => true
+    'params' => [
+        'entity' => [
+            'description' => 'Name of the entity.',
+            'type' => 'string',
+            'required' => true
         ]
     ],
-    'providers'     => ['context', 'orm']
+    'access' => [
+        'visibility'        => 'protected',
+        'groups'            => ['admins']
+    ],
+    'providers'     => ['context']
 ]);
 
 /**
@@ -49,30 +47,16 @@ $filename = array_pop($parts);
 // Get the class path from the remaining part
 $class_path = implode('/', $parts);
 
-$getColumns = null;
-$code_php = null;
-
-// Decode the JSON string to a PHP object
-$code_php = $params['payload'];
-// Get a string representation from the code_php variable, with backslashes escaped
-$code_string = str_replace("\\\\", "\\", var_export($code_php, true));
-// Create a virtual file holing the default structure with the parsed code and generate a minimal AST
-$ast_temp = $parser->parse("<?php \nclass temp { public static function getWorkflow() {return ".$code_string.";}}");
-// Find the getWorkflow node in the AST of the temporary file
-$nodeGetWorkflow = $nodeFinder->findFirst($ast_temp, function(Node $node) {return $node->name->name === "getWorkflow";});
-
 // Add a visitor hijack the getWorkflow method and update its content with new schema
 $traverser->addVisitor(
-        new class($nodeGetWorkflow, "getWorkflow") extends NodeVisitorAbstract {
-            private $node;
+        new class("getWorkflow") extends NodeVisitorAbstract {
             private $target;
-            public function __construct($node, $target) {
-                $this->node = $node;
+            public function __construct($target) {
                 $this->target = $target;
             }
             public function leaveNode(Node $node) {
                 if ($node->name->name === $this->target) {
-                    return $this->node;
+                    return NodeTraverser::REMOVE_NODE;
                 }
             }
         }
@@ -104,6 +88,5 @@ catch(Exception $e) {
 
 $result = file_get_contents($file);
 $context->httpResponse()
-        ->status(204)
         ->body($result)
         ->send();

@@ -40,8 +40,14 @@ if(!method_exists($entity, 'getWorkflow')) {
     throw new Exception("missing_method", QN_ERROR_INVALID_CONFIG);
 }
 
-$workflow = $entity->getWorkflow();
+$workflow = [];
 
+$reflectionClass = new ReflectionClass($entity::getType());
+if($reflectionClass->getMethod('getWorkflow')->class != $entity::getType()) {
+    throw new Exception("entity_without_workflow", QN_ERROR_UNKNOWN_OBJECT);
+}
+
+$workflow = $entity->getWorkflow();
 if(!is_array($workflow)) {
     throw new Exception("invalid_method", QN_ERROR_INVALID_CONFIG);
 }

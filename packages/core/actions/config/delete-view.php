@@ -4,8 +4,8 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
-    'description'   => "Saves a representation of a view to a json file.",
+list($params, $providers) = eQual::announce([
+    'description'   => "Removes the specified view relating to the given entity.",
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
