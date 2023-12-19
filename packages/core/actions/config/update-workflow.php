@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
 
 list($params, $providers) = eQual::announce([
     'description'   => "Translate a workflow definition of a given entity to a PHP method and store it in related file.",
@@ -89,7 +89,9 @@ $stmtModified = $traverser->traverse($stmtOriginal);
 // Pretty print the modified AST ...
 $result = $prettyPrinter->prettyPrintFile($stmtModified);
 // ... and write back the code to the file
-file_put_contents($file, $result);
+if(file_put_contents($file, $result) === false) {
+    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+}
 
 try {
     // apply coding standards (ecs.php is expected in QN_BASEDIR)
@@ -97,12 +99,12 @@ try {
     if(exec($command) === false) {
         throw new Exception('command_failed', QN_ERROR_UNKNOWN);
     }
+    $result = file_get_contents($file);
 }
 catch(Exception $e) {
     trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
 }
 
-$result = file_get_contents($file);
 $context->httpResponse()
         ->status(204)
         ->body($result)

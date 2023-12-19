@@ -114,12 +114,12 @@ try {
     if(exec($command) === false) {
         throw new Exception('command_failed', QN_ERROR_UNKNOWN);
     }
+    $result = file_get_contents($file);
 }
 catch(Exception $e) {
     trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
 }
 
-$result = file_get_contents($file);
 $context->httpResponse()
         ->body($result)
         ->send();

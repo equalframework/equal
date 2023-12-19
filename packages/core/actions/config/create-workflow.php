@@ -79,7 +79,9 @@ $stmt = $parser->parse($code);
 $result = $printer->prettyPrintFile($stmt);
 
 // ... and write back the code to the file
-file_put_contents($file, $result);
+if(file_put_contents($file, $result) === false) {
+    throw new Exception('io_error', QN_ERROR_UNKNOWN);
+}
 
 try {
     // apply coding standards (ecs.php is expected in QN_BASEDIR)
