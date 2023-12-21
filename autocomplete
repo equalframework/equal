@@ -1,5 +1,5 @@
 # this script is meant to be placed at /etc/bash_completion.d/
-# and activated with source /etc/bash_completion.d/equal_autocomplete
+# and activated with `source /etc/bash_completion.d/autocomplete`
 
 _equal_completion()
 {
