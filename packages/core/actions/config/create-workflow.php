@@ -97,5 +97,6 @@ catch(Exception $e) {
 $result = file_get_contents($file);
 
 $context->httpResponse()
+        ->status(204)
         ->body($result)
         ->send();
