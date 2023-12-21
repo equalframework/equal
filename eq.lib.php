@@ -771,6 +771,61 @@ namespace config {
                 }
             }
 
+            // if help is in the parameters
+            if(isset($body['help'])) {
+                $resp = "";
+                $resp .= "help ";
+                $resp .= $context->get('operation')['operation'];
+                $resp .= " :\n\nDescription :\n";
+                $resp .= $announcement["description"];
+                $resp .= "\n\n";
+                $resp .= "Parameters :\n";
+                foreach($announcement['params'] as $name => $info) {
+                    $resp .= "--".$name;
+                    for($i = strlen($name)+2; $i<20 ; $i++) {
+                        $resp .= " ";
+                    }
+                    if(isset($info['required'])) {
+                        $resp .= '(required)  ';
+                    }
+                    else {
+                        $resp .= '            ';
+                    }
+                    $count = strlen($info['type']);
+                    $resp .= $info['type'];
+                    if(isset($info['usage'])){
+                        $resp .= ">".$info['usage'];
+                        $count .= strlen($info['usage'])+1;
+                    }
+                    for($i = $count; $i<25 ; $i++) {
+                        $resp .= " ";
+                    }
+                    $resp .= $info['description'];
+                    $resp .= "\n";
+                }
+                $resp .= "\nMore Info :\n";
+                foreach($body as $key => $value) {
+                    if(isset($announcement['params'][$key])) {
+                        $resp .= "--".$key." :\n";
+                        if(isset($announcement['params'][$key]['help'])) {
+                            $resp .= '    help : ';
+                            $resp .= $announcement['params'][$key]['help']."\n";
+                        }
+                        if(isset($announcement['params'][$key]['default'])) {
+                            $resp .= '   default value : ';
+                            $resp .= json_encode($announcement['params'][$key]['default'],true)."\n";
+                        }
+                        if(isset($announcement['params'][$key]['selection'])) {
+                            $resp .= '   acceptable value : ';
+                            $resp .= json_encode($announcement['params'][$key]['selection'],true)."\n";
+                        }
+                    }
+                }
+                $response->headers()->setContentType('text/plain');
+                $response->status(200)->body($resp)->send();
+                exit();
+            }
+
             // check access restrictions
             if(isset($announcement['access']) && $method != 'OPTIONS') {
                 list($access, $auth) = $container->get(['access', 'auth']);
@@ -821,6 +876,7 @@ namespace config {
                     }
                 }
             }
+
 
 
             // 1) check if all required parameters have been received
