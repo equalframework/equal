@@ -833,23 +833,53 @@ namespace config {
             }
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            if( count($missing_params)
-                || isset($body['announce'])
-                || $method == 'OPTIONS' ) {
+            if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
                 // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
-                // no feedback about services
-                if(isset($announcement['providers'])) {
-                    // unset($announcement['providers']);
-                }
-                // no feedback about constants
-                if(isset($announcement['constants'])) {
-                    // unset($announcement['constants']);
+                // if 'help' is amongst the params and request was made through CLI
+                if(php_sapi_name() == 'cli' && isset($body['help'])) {
+                    $operation = $context->get('operation');
+                    $help = 'Help about ';
+                    $help .= strtoupper($operation['type']).' '.$operation['operation']." :\n\n";
+                    $help .= "Description:\n";
+                    $help .= $announcement["description"]."\n\n";
+                    $help .= "Parameters:\n";
+                    foreach($announcement['params'] as $name => $info) {
+                        $help .= str_pad("--".$name, 20, ' ', STR_PAD_RIGHT);
+                        $required = (isset($info['required']))?'(required)':'';
+                        $help .= str_pad($required, 12, ' ');
+                        $type = $info['type'].( (isset($info['usage']))?'>'.$info['usage']:'');
+                        $help .= str_pad($type, 28, ' ');
+                        $help .= $info['description']."\n";
+                    }
+                    $help.= "\nMore Info :\n";
+                    foreach($body as $key => $value) {
+                        if(isset($announcement['params'][$key])) {
+                            $help.= "--".$key." :\n";
+                            if(isset($announcement['params'][$key]['help'])) {
+                                $help .= '   help: ';
+                                $help .= preg_replace("/ {2,}/", str_pad('', 9, ' '), $announcement['params'][$key]['help'])."\n";
+                            }
+                            if(isset($announcement['params'][$key]['default'])) {
+                                $help .= '   default value: ';
+                                $help .= json_encode($announcement['params'][$key]['default'], true)."\n";
+                            }
+                            if(isset($announcement['params'][$key]['selection'])) {
+                                $help .= '   selection: ';
+                                $help .= json_encode($announcement['params'][$key]['selection'], true)."\n";
+                            }
+                        }
+                    }
+                    $response->status(200)
+                        ->header('Content-Type', 'text/plain')
+                        ->body($help)
+                        ->send();
+                    throw new \Exception('', 0);
                 }
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
+                // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
-                    // user asked for the announcement or browser requested fingerprint
                     $response->status(200)
                         // allow browser to cache the response for 1 year
                         ->header('Cache-Control', 'max-age=31536000')
