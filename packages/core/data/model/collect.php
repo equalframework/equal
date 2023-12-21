@@ -7,11 +7,15 @@
 use equal\orm\Domain;
 use equal\orm\Field;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
-            'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
+            'description'   => 'Full name of the entity to collect.',
+            'help'          => "The entity is either a class or a controller, given with its full namespace (including the package).
+                                Classes are given with backslash separators (e.g. 'core\\User'),
+                                while controllers are given with underscore separators (e.g. 'core_model_collect').
+                                If a controller is given, it is expected to be a data handler (GET).",
             'type'          => 'string',
             'usage'         => 'orm/entity',
             'required'      => true
