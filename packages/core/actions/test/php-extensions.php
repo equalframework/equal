@@ -6,12 +6,14 @@
 */
 $params = eQual::announce([
     'description'   => 'Checks current installation PHP loaded extensions.',
+    'help'          => "This controller raises an exception if one or more mandatory PHP extensions are not loaded in the current environment.\n
+                        If the `dbms` param is set to True, then it will also raise an exception if none of the supported DBMS are supported through a specific PHP extension.",
     'params'        => [
         'dbms'	=>  [
-                    'type'          => 'boolean',
-                    'description'   => 'Flag for testing support for at least one DBMS.',
-                    'default'       => false
-                ]
+            'type'          => 'boolean',
+            'description'   => 'Flag for testing support for at least one DBMS.',
+            'default'       => false
+        ]
     ]
 ]);
 
@@ -22,7 +24,7 @@ if(!is_callable('get_loaded_extensions')) {
 $extensions = get_loaded_extensions();
 
 // mandatory PHP extensions
-$ext_mandatory = ['gd','intl','iconv','json', 'libxml', 'mbstring','SimpleXML', 'zip'];
+$ext_mandatory = ['gd', 'intl', 'iconv','json', 'libxml', 'mbstring', 'SimpleXML', 'zip'];
 
 // supported DBMS extensions
 $ext_dbms = ['sqlite3', 'mysqli', 'sqlsrv'];
