@@ -390,15 +390,13 @@ class DBManipulatorSQLite extends DBManipulator {
                 if((strcasecmp($cond[1], 'in') == 0 || strcasecmp($cond[1], 'not in') == 0) && !is_array($cond[2])) {
                     $cond[2] = (array) $cond[2];
                 }
-                // case-sensitive comparison ('like' operator)
+                // case-sensitive is the default behavior
                 if(strcasecmp($cond[1], 'like') == 0) {
-                    // force mysql to convert field to binary (result will be case-sensitive comparison)
-                    $cond[0] = 'BINARY '.$cond[0];
                     $cond[1] = 'LIKE';
                 }
-                // ilike operator does not exist in MySQL
+                // #todo - should we use `COLLATE NOCASE` ?
                 if(strcasecmp($cond[1], 'ilike') == 0) {
-                    // force mysql to handle the field as a char (necessary for translations that are stored in a binary field)
+                    // force sqlite to handle the field as a char (necessary for translations that are stored in a binary field)
                     $cond[0] = 'CAST('.$cond[0].' AS CHAR )';
                     $cond[1] = 'LIKE';
                 }
