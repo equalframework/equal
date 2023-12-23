@@ -7,7 +7,7 @@
 use equal\db\DBConnection;
 
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Create a database according to the configuration',
     'params'        => [],
     'providers'     => ['context', 'orm'],
@@ -16,14 +16,7 @@ list($params, $providers) = announce([
 
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-$json = run('do', 'test_db-connectivity');
-
-if(strlen($json)) {
-    // relay result
-    print($json);
-    // return an error code
-    exit(1);
-}
+eQual::run('do', 'test_db-connectivity');
 
 // create Master database
 $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect(false);
