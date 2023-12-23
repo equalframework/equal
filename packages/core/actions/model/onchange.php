@@ -7,7 +7,7 @@
 use equal\orm\Field;
 use equal\orm\Collections;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
     'response'      => [
         'content-type'  => 'application/json',
@@ -101,7 +101,7 @@ if(method_exists($params['entity'], 'onchange')) {
             if ($data !== false) {
                 $msg = $data;
             }
-            throw new \Exception(serialize([$field => $msg]), $e->getCode());
+            throw new Exception(serialize([$field => $msg]), $e->getCode());
         }
     }
 
