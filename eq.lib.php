@@ -1004,7 +1004,7 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
                 foreach($invalid_params as $invalid_param => $error_id) {
                     // raise an exception with error details
-                    throw new \Exception(serialize([$invalid_param => [$error_id => 'Invalid parameter']]), QN_ERROR_INVALID_PARAM);
+                    throw new \Exception(serialize([$invalid_param => [$error_id => "Invalid value {$result[$invalid_param]} for parameter {$invalid_param}."]]), QN_ERROR_INVALID_PARAM);
                 }
             }
 
