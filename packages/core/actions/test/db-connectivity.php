@@ -17,12 +17,12 @@ $db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), consta
 
 // 1) test access to DBMS service
 if(!$db->canConnect()) {
-    throw new Exception('Unable to establish connection to DBMS host (wrong hostname or port).', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('Unable to establish connection to DBMS host (wrong hostname).', QN_ERROR_INVALID_CONFIG);
 }
 // 2) try to connect to DBMS
 if(!$db->connected()) {
     if($db->connect(false) == false) {
-        throw new Exception('Unable to establish connection to DBMS host (wrong credentials).', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Unable to establish connection to DBMS host (wrong port or wrong credentials).', QN_ERROR_INVALID_CONFIG);
     }
 }
 // 3) everything went well: disconnect
