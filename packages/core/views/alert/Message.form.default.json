@@ -4,7 +4,7 @@
     "actions": [
         {
             "id": "action.retry",
-            "label": "Retry",
+            "label": "Re-check",
             "description": "Retry the check that generated the alert. Message will be dismissed if alert is no longer present.",
             "controller": "core_alert_dismiss",
             "confirm": false
