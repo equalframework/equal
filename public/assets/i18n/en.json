@@ -99,6 +99,7 @@
     "AUTH_ERROR_MISSING_EMAIL": "Email address is mandatory",
 
     "APPS_APP_BOOKING": "Bookings",
+    "APPS_APP_PLANNING": "Planning",
     "APPS_APP_POS": "Point of Sale",
     "APPS_APP_ACCOUNTING": "Accounting",
     "APPS_APP_SALES": "Sales",

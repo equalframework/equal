@@ -99,6 +99,7 @@
     "AUTH_ERROR_MISSING_EMAIL": "Adresse email requise",
 
     "APPS_APP_BOOKING": "Réservations",
+    "APPS_APP_PLANNING": "Planning",
     "APPS_APP_POS": "Point de vente",
     "APPS_APP_ACCOUNTING": "Compta",
     "APPS_APP_SALES": "Ventes",
