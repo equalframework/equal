@@ -12,7 +12,7 @@ list($params, $providers) = eQual::announce([
         'package'   => [ 
             'type' => 'string',
             'required'  => true,
-            'selection' => array_combine(array_values($packages), array_values($packages))
+            'selection' => array_values($packages)
         ],
         'file'      => [
             'type'  => 'string',

@@ -823,6 +823,7 @@ namespace config {
             }
 
 
+
             // 1) check if all required parameters have been received
 
             // build mandatory fields array
