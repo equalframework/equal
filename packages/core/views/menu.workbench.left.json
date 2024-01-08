@@ -1,27 +1,35 @@
 {
     "name": "Workbench menu",
     "access": {
-        "groups": ["users"]
+        "groups": [
+            "users"
+        ]
     },
     "layout": {
         "items": [
             {
-                "id": "models",
                 "type": "entry",
-                "label": "Models",
-                "description": ""
+                "label": "Components",
+                "icon": "category",
+                "context": [],
+                "children": []
             },
             {
-                "id": "controllers",
-                "type": "entry",
-                "label": "Controllers",
-                "description": ""
-            },
-            {
-                "id": "routes",
-                "type": "entry",
-                "label": "Routes",
-                "description": ""
+                "id": "uml.drawer",
+                "type": "parent",
+                "label": "UML",
+                "icon": "account_tree",
+                "context": [],
+                "children": [
+                    {
+                        "id": "uml",
+                        "type": "entry",
+                        "label": "Object-relational",
+                        "icon": "schema",
+                        "context": [],
+                        "children": []
+                    }
+                ]
             }
         ]
     }
