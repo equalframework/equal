@@ -35,7 +35,7 @@ list($params, $providers) = announce([
  */
 list($context, $cron, $am) = [$providers['context'], $providers['cron'], $providers['access']];
 
-if(!$am->hasGroup('admin')) {
+if(!$am->hasGroup('admins')) {
     throw new Exception('admin_only', QN_ERROR_NOT_ALLOWED);
 }
 
