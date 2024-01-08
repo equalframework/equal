@@ -34,7 +34,7 @@ list($params, $providers) = eQual::announce([
     ],
     'access' => [
         'visibility'        => 'protected',
-        'groups'            => ['admin']
+        'groups'            => ['admins']
     ],
     'providers'     => ['context', 'orm', 'access']
 ]);
