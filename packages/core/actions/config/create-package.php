@@ -79,6 +79,9 @@ if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/tests", 0775)) {
     throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
 }
 
+if(!mkdir(QN_BASEDIR.'/packages/'.$params['package']."/uml", 0775)) {
+    throw new Exception("directory_creation_failed", QN_ERROR_UNKNOWN);
+}
 
 
 // create empty manifest (from template)
