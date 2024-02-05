@@ -59,7 +59,13 @@ $code_string = str_replace("\\\\", "\\", var_export($code_php, true));
 // Create a virtual file holing the default structure with the parsed code and generate a minimal AST
 $ast_temp = $parser->parse("<?php \nclass temp { public static function getWorkflow() {return ".$code_string.";}}");
 // Find the getWorkflow node in the AST of the temporary file
-$nodeGetWorkflow = $nodeFinder->findFirst($ast_temp, function(Node $node) {return $node->name->name === "getWorkflow";});
+$nodeGetWorkflow = $nodeFinder->findFirst(
+    $ast_temp,
+    function(Node $node) {
+        return isset($node->name->name)
+            && $node->name->name === "getWorkflow";
+    }
+);
 
 // Add a visitor hijack the getWorkflow method and update its content with new schema
 $traverser->addVisitor(
@@ -71,9 +77,14 @@ $traverser->addVisitor(
                 $this->target = $target;
             }
             public function leaveNode(Node $node) {
-                if ($node->name->name === $this->target) {
+                if (
+                    isset($node->name->name)
+                    && $node->name->name === $this->target
+                ) {
                     return $this->node;
                 }
+
+                return null;
             }
         }
     );
