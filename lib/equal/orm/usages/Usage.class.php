@@ -109,6 +109,14 @@ class Usage {
 
     /**
      * @param string $usage_str   Usage string: string describing the usage.
+     *
+     * @example
+     *  urn/isbn.10
+     *  number[3]/integer:2
+     *  language/iso-639:3
+     *  number/real:5.2
+     *  date/weekday.mon:short
+     *
     */
     public function __construct(string $usage_str) {
 
