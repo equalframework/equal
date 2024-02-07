@@ -1202,7 +1202,7 @@ class ObjectManager extends Service {
      * Checks whether a set of values is valid according to given class definition.
      * This is done using the class validation method.
      *
-     * Ex.:
+     * Result example:
      *           "INVALID_PARAM": {
      *             "login": {
      *                 "invalid_email": "Login must be a valid email address."
@@ -1256,6 +1256,9 @@ class ObjectManager extends Service {
         //         $usage = $f->getUsage();
         //         $constraints = $f->getConstraints();
         //         foreach($constraints as $error_id => $constraint) {
+        //             if(!isset($constraint['function'])) {
+        //                 continue;
+        //             }
         //             $fn = $constraint['function'];
         //             if(is_callable($fn)) {
         //                 $fn->bindTo($usage);
@@ -1282,6 +1285,7 @@ class ObjectManager extends Service {
                         // #todo - continue this list
                         case 'text':
                         case 'text/plain':
+                        case 'text/json':
                         case 'text/html':
                             $type = 'text';
                             break;
