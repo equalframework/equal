@@ -42,6 +42,7 @@ class SettingValue extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
                 'description'       => 'User the setting is specific to (optional).',
+                'default'           => 0,
                 'ondelete'          => 'cascade'
             ],
 

@@ -164,6 +164,7 @@ class ObjectManager extends Service {
         'markup/html'               => 'string(64000)',       // 64k chars html
         'text/html'                 => 'string(64000)',
         'text/plain'                => 'string(64000)',       // 64k chars text
+        'text/json'                 => 'string(64000)',       // 64k chars json
         'email'                     => 'string(255)',
         'phone'                     => 'string(20)'
     ];
@@ -1287,6 +1288,7 @@ class ObjectManager extends Service {
                         case 'text/plain':
                         case 'text/json':
                         case 'text/html':
+                        case 'text/json':
                             $type = 'text';
                             break;
                     }
