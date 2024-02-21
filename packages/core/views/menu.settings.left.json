@@ -69,7 +69,7 @@
                                 "label": "Identities",
                                 "description": "",
                                 "context": {
-                                    "entity": "lodging\\identity\\Identity",
+                                    "entity": "identity\\Identity",
                                     "view": "list.default"
                                 }
                             },
