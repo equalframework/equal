@@ -145,13 +145,19 @@ if(method_exists($params['entity'], 'onchange')) {
             continue;
         }
         // convert objects to arrays (for supporting values retrieved as sub-objects)
-        if(is_subclass_of($value, 'equal\orm\Model')) {
-            $result[$field] = $value->toArray();
-            continue;
+        if(is_object($value)) {
+            if(is_subclass_of($value, 'equal\orm\Model')) {
+                $result[$field] = $value->toArray();
+            }
+            else {
+                $result[$field] = serialize($value);
+            }
         }
-        $f = new Field($schema[$field]);
-        // adapt received values based on their type (as defined in schema)
-        $result[$field] = $adapter->adaptOut($value, $f->getUsage());
+        else {
+            $f = new Field($schema[$field]);
+            // adapt received values based on their type (as defined in schema)
+            $result[$field] = $adapter->adaptOut($value, $f->getUsage());
+        }
     }
 
 }
