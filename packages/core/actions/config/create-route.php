@@ -9,7 +9,7 @@ list($params, $providers) = eQual::announce([
         'accept-origin' => '*'
     ],
     'params'        => [
-        'package'   => [ 
+        'package'   => [
             'type' => 'string',
             'required'  => true,
             'selection' => array_values($packages)
