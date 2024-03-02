@@ -1753,21 +1753,19 @@ class ObjectManager extends Service {
             }
             // remember fields that must be re-computed instantly
             $instant_fields = [];
-            foreach($dependencies as $dependency) {
+            foreach(array_unique($dependencies) as $dependency) {
                 // #todo - add support for dot notation
                 if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
                     if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
                         $instant_fields[] = $dependency;
                     }
-                    if(!$create) {
-                        // allow cascade update
-                        $this->update($class, $ids, [$dependency => null], $lang);
-                    }
+                    // allow cascade update
+                    $this->update($class, $ids, [$dependency => null], $lang, $create);
                 }
             }
             if(count($instant_fields)) {
                 // re-compute 'instant' computed field
-                $this->read($class, $ids, $instant_fields, $lang);
+                $this->read($class, $ids, array_unique($instant_fields), $lang);
             }
 
 
@@ -1780,10 +1778,14 @@ class ObjectManager extends Service {
                     $t_res = $this->transition($class, (array) $object_id, $transition);
                     // transition succeeded
                     if(count($t_res) == 0) {
-                        // there should be only one applicable transition, process next object
+                        // there should be only one applicable transition: process next object
                         break;
                     }
                 }
+            }
+
+            if(!$create) {
+                $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
             }
 
             // #todo - move this to a dedicated controller for CRON
