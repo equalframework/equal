@@ -273,6 +273,12 @@ function createNewItemFromOld(array $config, DBManipulator $old_db_connection, a
                 case 'round':
                     $item[$new_key] = round($previous_value);
                     break;
+                case 'multiply':
+                    $item[$new_key] = $previous_value * $import_conf['by'];
+                    break;
+                case 'divide':
+                    $item[$new_key] = $previous_value / $import_conf['by'];
+                    break;
                 case 'field-contains':
                     $item[$new_key] = strpos($previous_value, $imp_conf['value']) !== false;
                     break;
