@@ -81,9 +81,8 @@ list($context, $dap) = [$providers['context'], $providers['adapt']];
 /** @var $adapter DataAdapter */
 $adapter = $dap->get('sql');
 
-$import_config = json_decode(
-    file_get_contents(QN_BASEDIR . '/packages/' . $params['package'] . '/init/import-config.json'),
-    true
+$import_config = getImportConfig(
+    QN_BASEDIR . '/packages/' . $params['package'] . '/init/import-config.json'
 );
 
 $old_db_connection = createOldDbConnection(
@@ -150,6 +149,19 @@ $context->httpResponse()
     ->body(['success' => true])
     ->send();
 
+function getImportConfig($config_file_path): array {
+    $config_file_content = file_get_contents($config_file_path);
+    if(!$config_file_content) {
+        throw new Exception('Missing import config file ' . $config_file_path, QN_ERROR_INVALID_CONFIG);
+    }
+
+    $import_config = json_decode($config_file_content, true);
+    if(!is_array($import_config)) {
+        throw new Exception('Invalid import configuration file', QN_ERROR_INVALID_CONFIG);
+    }
+
+    return $import_config;
+}
 
 function createOldDbConnection(string $dbms, string $host, int $port, string $name, string $user, string $password, string $charset, string $collation) {
     $db_manipulator_map = [
