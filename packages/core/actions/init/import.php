@@ -266,7 +266,7 @@ function createNewItemFromOld(array $config, DBManipulator $old_db_connection, a
                             $item[$new_key] = (bool) $previous_value;
                             break;
                         case 'string':
-                            $item[$new_key] = $previous_value . '';
+                            $item[$new_key] = (string) $previous_value;
                             break;
                     }
                     break;
