@@ -20,6 +20,7 @@ use equal\orm\usages\{
         UsagePassword,
         UsagePhone,
         UsageText,
+        UsageUri,
         UsageArray
     };
 
@@ -105,6 +106,7 @@ class UsageFactory {
                 $usageInstance = new UsagePhone($usage);
                 break;
             case 'uri':
+                $usageInstance = new UsageUri($usage);
                 break;
             case 'array':
                 $usageInstance = new UsageArray($usage);

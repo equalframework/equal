@@ -48,7 +48,7 @@ $operations = [
     'manage'    =>  QN_R_MANAGE
 ];
 
-if(!$ac->isAllowed(QN_R_MANAGE, $operation, $params['entity'])) {
+if(!$ac->isAllowed(QN_R_MANAGE, $params['entity'])) {
     throw new \Exception('MANAGE,'.$params['entity'], QN_ERROR_NOT_ALLOWED);
 }
 

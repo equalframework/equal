@@ -56,6 +56,13 @@ class Message extends Model {
                 'multilang'         => true
             ],
 
+            'log' => [
+                'type'              => 'string',
+                'usage'             => 'text/plain',
+                'description'       => "Arbitrary text containing additional details.",
+                'help'              => "The log is meant to provide extra information about the meaning of the message and contains specific notes and object references relating to the context of the alert.",
+            ],
+
             'severity' => [
                 'type'              => 'string',
                 'selection'         => [

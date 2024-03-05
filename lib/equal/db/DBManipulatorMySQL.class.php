@@ -39,7 +39,8 @@ class DBManipulatorMySQL extends DBManipulator {
     }
 
     /**
-     * Open the DBMS connection
+     * Open the DBMS connection.
+     * This method is meant to assign a value to `$this->dbms_handler`.
      *
      * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
      * @return  integer   		        The status of the connect function call.
@@ -226,7 +227,7 @@ class DBManipulatorMySQL extends DBManipulator {
         }
         $vals = rtrim($vals, ',');
         if(strlen($cols) > 0 && strlen($vals) > 0) {
-            // #memo - we ignore duplicate enties, if any
+            // #memo - we ignore duplicate entries, if any
             $sql = "INSERT IGNORE INTO `$table` ($cols) VALUES $vals;";
         }
         return $sql;

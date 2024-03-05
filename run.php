@@ -1,7 +1,7 @@
 <?php
 /**
 *    This file is part of the eQual framework.
-*    https://github.com/cedricfrancoys/equal
+*    https://github.com/equalframework/equal
 *
 *    Some Rights Reserved, Cedric Francoys, 2010-2021
 *    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
@@ -19,6 +19,8 @@
 *    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+use equal\error\Reporter;
 use equal\php\Context;
 use equal\route\Router;
 
@@ -161,6 +163,7 @@ catch(Throwable $e) {
     else {
         $error_code = $e->getCode();
     }
+    Reporter::handleThrowable($e);
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
         // retrieve info from HTTP request (we don't ask for $context->httpResponse() since it might have raised the current exception)
@@ -202,7 +205,7 @@ catch(Throwable $e) {
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
-        trigger_error("PHP::{$request_method} ".$request->getUri()." => $http_status ".qn_error_name($error_code).": ".$msg, QN_REPORT_WARNING);
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?QN_REPORT_WARNING:QN_REPORT_ERROR);
         // store access log
         file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:(isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:'127.0.0.1').';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
         // return an error code (for compliance under CLI environment)

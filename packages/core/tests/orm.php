@@ -243,7 +243,7 @@ $tests = [
     '2220' => [
                     'description'       =>  "Create a group (no validation)",
                     'return'            =>  array('integer'),
-                    'test'              =>  function () {
+                    'act'               =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 $group_id = $om->create('core\Group', ['name' => 'test']);
                                                 return $group_id;
@@ -268,7 +268,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return ($result > 0);
                                             },
-                    'test'              =>  function () {
+                    'act'               =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 $dummy_user_id = $om->search('core\Group', ['login', '=', 'dummy@example.com']);
                                                 return $om->remove('core\User', $dummy_user_id, true);
@@ -345,7 +345,7 @@ $tests = [
     '2620' => array(
                     'description'       =>  "Search for some object : clause 'contains' on many2many field",
                     'return'            =>  array('integer', 'array'),
-                    'test'              =>  function () use($providers) {
+                    'arrange'           =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
                                                     // grant READ operation on all classes
@@ -362,7 +362,7 @@ $tests = [
                                                 return $values;
                                             },
                     'assert'            =>  function($result) {
-                                                return (
+                                                return is_array($result) && count($result) == 2 && (
                                                     count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
                                                  && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result['2'])) == 0
                                                 );
@@ -372,7 +372,7 @@ $tests = [
     '2631' => array(
                     'description'       =>  "Add a user to a given group",
                     'return'            =>  array('integer', 'array'),
-                    'test'              =>  function () use($providers) {
+                    'act'               =>  function () use($providers) {
                                                 try {
                                                     // grant READ operation on all classes
                                                     $providers['access']->addGroup(2);
@@ -414,7 +414,7 @@ $tests = [
     '3101' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as map)",
                     'return'            =>  array('integer', 'array'),
-                    'test'              =>  function () {
+                    'act'               =>  function () {
                                                 try {
                                                     $values = User::search(['login', 'like', 'cedric@equal.run'])
                                                               ->read(['login'])
@@ -436,7 +436,7 @@ $tests = [
     '3102' => array(
                     'description'       =>  "Search for an existing user object using Collection (result as array)",
                     'return'            =>  array('integer', 'array'),
-                    'test'              =>  function () {
+                    'act'               =>  function () {
                                                 try {
                                                     $values = User::search(['login', '=', 'cedric@equal.run'])
                                                               ->read(['login'])
@@ -476,7 +476,7 @@ $tests = [
                                                 $om->remove('core\User', $ids, true);
                                                 $providers['access']->revoke(QN_R_CREATE|QN_R_DELETE);
                                             },
-                    'test'              =>  function () {
+                    'act'               =>  function () {
                                                 try {
                                                     $values = User::search(['login', '=', 'test@equal.run'])
                                                               ->read(['login'])

@@ -45,27 +45,29 @@ class Dispatcher extends Service {
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
-        if($message_models_ids > 0 ){
+        if($message_models_ids > 0 && count($message_models_ids)){
             $message_model_id = reset($message_models_ids);
+            // prevent creating duplicates
+            $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]]);
+            if(!count($messages_ids)) {
+                $values = [
+                    'message_model_id'  => $message_model_id,
+                    'object_class'      => $object_class,
+                    'object_id'         => $object_id,
+                    'severity'          => $severity,
+                    'controller'        => $controller,
+                    'params'            => json_encode($params),
+                    'links'             => json_encode($links),
+                    'user_id'           => $user_id,
+                    'group_id'          => $group_id
+                ];
 
-            $values = [
-                'message_model_id'  => $message_model_id,
-                'object_class'      => $object_class,
-                'object_id'         => $object_id,
-                'severity'          => $severity,
-                'controller'        => $controller,
-                'params'            => json_encode($params),
-                'links'             => json_encode($links),
-                'user_id'           => $user_id,
-                'group_id'          => $group_id
-            ];
-
-            if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
-                $orm->create('core\alert\Message', $values);
-                // if targeted object has an 'alert' field (computed as convention), reset it
-                $orm->update($object_class, $object_id, ['alert' => null]);
+                if(!count($orm->validate('core\alert\Message', [], $values, true, true))) {
+                    $orm->create('core\alert\Message', $values);
+                    // if targeted object has an 'alert' field (computed as convention), reset it
+                    $orm->update($object_class, $object_id, ['alert' => null]);
+                }
             }
-
         }
         else {
             trigger_error("PHP::unknown message model", E_USER_WARNING);
@@ -77,25 +79,24 @@ class Dispatcher extends Service {
      * This should be invoked following a user request for removing the message.
      * The message is deleted and, if it relates to a controller, a call is made (which, in turn, can lead to the message being re-created).
      *
-     * @param   string    $id         Identifier of the message to cancel.
+     * @param   integer    $id         Identifier of the message to cancel (core\alert\Message).
      */
     public function dismiss($id) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $messages_ids = $orm->search('core\alert\Message', ['id', '=', $id]);
-        if($messages_ids > 0) {
-            $message_id = reset($messages_ids);
-            $messages = $orm->read('core\alert\Message', $message_id, ['controller', 'params']);
-            if($messages > 0) {
+        if($messages_ids > 0 && count($messages_ids)) {
+            $messages = $orm->read('core\alert\Message', $messages_ids, ['id', 'controller', 'params']);
+            if($messages > 0 && count($messages)) {
                 $message = reset($messages);
-                $orm->delete('core\alert\Message', $message_id, true);
+                $orm->delete('core\alert\Message', $message['id'], true);
                 if($message['controller']) {
                     try {
                         $body = json_decode($message['params'], true);
                         \eQual::run('do', $message['controller'], $body, true);
                     }
                     catch(\Exception $e) {
-                        // error occured during execution
+                        // error occurred during execution
                     }
                 }
             }

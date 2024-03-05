@@ -53,7 +53,10 @@
                                             {
                                                 "type": "field",
                                                 "value": "group_id",
-                                                "width": "100%"
+                                                "width": "100%",
+                                                "widget": {
+                                                    "limit": 100
+                                                }
                                             },
                                             {
                                                 "type": "field",

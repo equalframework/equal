@@ -1,0 +1,6 @@
+[submodule "doc"]
+	path = doc
+	url = https://github.com/equalframework/equal-doc.git
+[submodule "packages/core/apps/workbench/source"]
+	path = packages/core/apps/workbench/source
+	url = https://github.com/equalframework/apps-core-workbench.git

@@ -7,6 +7,7 @@
 namespace equal\data\adapt\adapters\txt;
 
 use equal\data\adapt\DataAdapter;
+use equal\locale\Locale;
 
 class DataAdapterTxtInteger implements DataAdapter {
 

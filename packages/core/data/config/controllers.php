@@ -6,17 +6,17 @@
 */
 list($params, $providers) = eQual::announce([
     'description'   => 'Returns the list of controllers defined in given package.',
-    'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'UTF-8',
-        'accept-origin'     => '*'
-    ],
     'params'        => [
         'package' => [
             'description'   => 'Name of the package for which the list is requested',
             'type'          => 'string',
-            'required'      => true
+            'default'       => '*'
         ]
+    ],
+    'response'      => [
+        'content-type'      => 'application/json',
+        'charset'           => 'UTF-8',
+        'accept-origin'     => '*'
     ],
     'access' => [
         'visibility'    => 'protected'
@@ -30,10 +30,25 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $result = [
-    'apps'      => recurse_dir("packages/{$params['package']}/apps", 'php', $params['package']),
-    'actions'   => recurse_dir("packages/{$params['package']}/actions", 'php', $params['package']),
-    'data'      => recurse_dir("packages/{$params['package']}/data", 'php', $params['package'])
+    'apps'      => [],
+    'actions'   => [],
+    'data'      => []
 ];
+
+$packages = eQual::run('get', 'config_packages');
+
+if($params['package'] != '*') {
+    if(!in_array($params['package'], $packages)) {
+        throw new Exception('unknown_package', EQ_ERROR_INVALID_PARAM);
+    }
+    $packages = (array) $params['package'];
+}
+
+foreach($packages as $package) {
+    $result['apps'] = array_merge($result['apps'], recurse_dir("packages/{$package}/apps", 'php', $package));
+    $result['actions'] = array_merge($result['actions'], recurse_dir("packages/{$package}/actions", 'php', $package));
+    $result['data'] = array_merge($result['data'], recurse_dir("packages/{$package}/data", 'php', $package));
+}
 
 $context->httpResponse()
         ->body($result)

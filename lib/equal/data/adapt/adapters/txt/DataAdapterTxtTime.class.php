@@ -8,6 +8,7 @@ namespace equal\data\adapt\adapters\txt;
 
 use equal\data\adapt\DataAdapter;
 use equal\data\DataFormatter;
+use equal\locale\Locale;
 
 class DataAdapterTxtTime implements DataAdapter {
 

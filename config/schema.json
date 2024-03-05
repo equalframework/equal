@@ -15,7 +15,7 @@
     },
     "DEFAULT_LANG": {
         "type": "string",
-        "description": "The language in which the content must be displayed by default (ISO 639-1).",
+        "description": "The language in which the multilang content must be provided/stored by default (ISO 639-1).",
         "instant": true,
         "default": "en"
     },
@@ -78,6 +78,12 @@
         "instant": true,
         "default": 10
     },
+    "HTTP_PROCESS_USERNAME": {
+        "type": "string",
+        "description": "Username used by the HTTP service (for rights checks).",
+        "instant": true,
+        "default": "www-data"
+    },
     "EMAIL_SMTP_HOST": {
         "type": "string",
         "description": "Hostname of the SMTP server to use for sending emails.",
@@ -137,7 +143,7 @@
     },
     "DB_DBMS": {
         "type": "string",
-        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'POSTGRESQL'",
+        "description": "Database Management System running on the DB host. Possible values are: 'MYSQL', 'SQLSRV', 'MARIADB', 'SQLITE', 'POSTGRESQL'",
         "instant": true,
         "default": "MYSQL",
         "examples": [
@@ -270,6 +276,8 @@
     },
     "ROOT_APP_URL": {
         "type": "string",
+        "deprecated": "Please use APP_URL instead.",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
     },
     "USER_ACCOUNT_DISPLAYNAME": {
@@ -286,5 +294,30 @@
         "type": "boolean",
         "description": "Flag telling if a new user account needs to be validated before being active.",
         "default": true
+    },
+    "ORG_NAME" : {
+        "type": "string",
+        "description": "Name of the organisation to which belongs the instance.",
+        "default": "eQual"
+    },
+    "ORG_URL": {
+        "type": "string",
+        "description": "URL of the official website of the organisation.",
+        "default": "https://equal.run"
+    },
+    "APP_NAME": {
+        "type": "string",
+        "description": "Specific brand name of the application, if any.",
+        "default": "eQual"
+    },
+    "APP_URL": {
+        "type": "string",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "default": "http://equal.local"
+    },
+    "APP_LOGO_URL": {
+        "type": "string",
+        "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
+        "default": "/assets/img/logo.svg"
     }
 }

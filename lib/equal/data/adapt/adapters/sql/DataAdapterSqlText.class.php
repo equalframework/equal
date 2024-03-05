@@ -16,7 +16,7 @@ class DataAdapterSqlText implements DataAdapter {
 
     /**
      * Handles the conversion to the PHP type equivalent.
-     * Adapts the input value from JSON type to PHP type (JSON -> PHP).
+     * Adapts the input value from JSON type to PHP type (SQL -> PHP).
      *
      * @param mixed         $value      Value to be adapted.
      * @param string|Usage  $usage      The usage descriptor the adaptation is requested for.
@@ -33,7 +33,7 @@ class DataAdapterSqlText implements DataAdapter {
 
     /**
      * Handles the conversion to the type targeted by the DataAdapter.
-     * Adapts the input value from PHP type to JSON type (PHP -> JSON).
+     * Adapts the input value from PHP type to JSON type (PHP -> SQL).
      *
      * @param mixed         $value      Value to be adapted.
      * @param string|Usage  $usage      The usage descriptor the adaptation is requested for.

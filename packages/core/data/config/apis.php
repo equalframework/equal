@@ -6,11 +6,12 @@
 */
 list($params, $providers) = announce([
     'description'   => "Returns a list of existing API (string identifiers).\nResult is based on json files stored into config/routing.\nExpected format is api_{identifier}",
+    'deprecated'    => true,
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'providers'     => ['context'] 
+    'providers'     => ['context']
 ]);
 
 

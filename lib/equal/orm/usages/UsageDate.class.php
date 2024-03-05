@@ -22,10 +22,11 @@ class UsageDate extends Usage {
         date/yearweek
         date/yearday (ISO-8601)
         datetime (ISO 8601)
-        time/plain (h:m:s)
      */
     public function getConstraints(): array {
-        switch($this->getSubtype()) {
+        $subtype = $this->getSubtype();
+        $main_subtype = ( explode('.', $subtype) )[0];
+        switch($main_subtype) {
             case 'day':
                 return [
                     'invalid_amount' => [
@@ -66,6 +67,7 @@ class UsageDate extends Usage {
                     ]
                 ];
         }
+        return [];
     }
 
 }

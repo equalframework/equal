@@ -23,7 +23,7 @@ class Permission extends Model {
                 'required'          => true
             ],
 
-            // #deprecated
+            // #deprecated (use `getRole()` for each specific Model)
             'domain' => [
                 'type'              => 'string',
                 'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])",
@@ -50,8 +50,8 @@ class Permission extends Model {
 
             'rights' => [
                 'type' 	            => 'integer',
-                'onupdate'          => 'onupdateRights',
-                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)"
+                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)",
+                'dependencies'      => ['rights_txt']
             ],
 
             // virtual field, used in list views
@@ -64,22 +64,18 @@ class Permission extends Model {
         ];
     }
 
-    public static function onupdateRights($om, $ids, $values, $lang) {
-        $om->update(__CLASS__, $ids, ['rights_txt' => null], $lang);
-    }
-
     public static function calcRightsTxt($om, $ids, $lang) {
         $res = [];
         $values = $om->read(__CLASS__, $ids, ['rights'], $lang);
-        foreach($ids as $oid) {
+        foreach($ids as $id) {
             $rights_txt = [];
-            $rights = $values[$oid]['rights'];
+            $rights = $values[$id]['rights'];
             if($rights & QN_R_CREATE)   $rights_txt[] = 'create';
             if($rights & QN_R_READ)     $rights_txt[] = 'read';
             if($rights & QN_R_WRITE)    $rights_txt[] = 'write';
             if($rights & QN_R_DELETE)   $rights_txt[] = 'delete';
             if($rights & QN_R_MANAGE)   $rights_txt[] = 'manage';
-            $res[$oid] = implode(', ', $rights_txt);
+            $res[$id] = implode(', ', $rights_txt);
         }
         return $res;
     }

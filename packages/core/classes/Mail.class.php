@@ -240,10 +240,20 @@ class Mail extends Model {
         $i = 0;
         // loop through messages
         foreach($queue as $file => $message) {
-            // prevent handling handling more than $max messages (successfully sent)
+            // prevent handling more than $max messages (successfully sent)
             if($i > $max) {
                 break;
             }
+
+            if(isset($message['id'])) {
+                $mailMessage = self::id($message['id'])->read(['status'])->first();
+                // prevent re-sending already sent messages
+                if($mailMessage['status'] == 'sent') {
+                    unlink(self::MESSAGE_FOLDER.'/'.$file);
+                    continue;
+                }
+            }
+
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
 

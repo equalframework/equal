@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2023
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 
 define('LOG_FILE_NAME', 'eq_error.log');
 $data = '';
@@ -6,10 +11,6 @@ $data = '';
 // get log file, using variation from URL, if any
 $log_file = LOG_FILE_NAME.( (isset($_GET['f']) && strlen($_GET['f']))?('.'.$_GET['f']):'');
 
-if(file_exists('../log/'.$log_file)) {
-    // read raw data from log file
-    $data = file_get_contents('../log/'.$log_file);
-}
 
 // retrieve logs history (variations on filename)
 $log_variations = [];
@@ -31,34 +32,30 @@ if(isset($_GET['date']) && $_GET['date'] == '') {
     unset($_GET['date']);
 }
 
+$lines = [];
+if(file_exists('../log/'.$log_file)) {
+    // read raw data from log file
 
-// 1) filtering : discard lines that do not match the query
-
-$lines = explode(PHP_EOL, $data);
-$data = '';
-foreach($lines as $line) {
-    if(strlen($line) <= 0) {
-        continue;
+    $f = fopen('../log/'.$log_file,"r");
+    for($line = stream_get_line($f, 65535, PHP_EOL);$line!== false;$line = stream_get_line($f, 65535, PHP_EOL)) {
+        if(strlen($line) <= 0) {
+            continue;
+        }
+        if(strlen($query) > 0 && stripos($line, $query) === false) {
+            continue;
+        }
+        if(($res = json_decode($line,true)) === null) {
+            continue;
+        }
+        $lines[] = $res;
     }
-    if(strlen($query) > 0 && stripos($line, $query) === false) {
-        continue;
-    }
-    $data .= $line.',';
 }
-
-// 2) extract lines to be rendered
-
-// #memo - log file contains JSON objects separated with new line chars
-// convert notation to a valid JSON array
-$json = '['.substr($data, 0, -1).']';
-// convert JSON to a PHP associative array
-$lines = json_decode($json, true);
 
 if($lines === null) {
     die('Invalid JSON in log file.');
 }
 
-$html = '
+echo '
 <!DOCTYPE html>
 <html>
 <head>
@@ -206,7 +203,7 @@ function copy(node) {
 <input style="display: block; position: absolute; top: -100px;" id="clipboard" type="text">
 <div class="snack">Copied to clipboard</div>
 <div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
-    <form method="GET" style="padding: 20px;background: #f1f1f1;margin: 5px;border: solid 1px grey;border-radius: 5px;">
+    <form method="GET" style="padding: 20px;background: #f5f5f5;margin: 5px;border: solid 1px #dfdfdf; border-radius: 5px;">
         <div style="display: flex; align-items: flex-end;">
             <div style="display: flex; flex-direction: column;">
                 <label>Level:</label>
@@ -238,6 +235,12 @@ function copy(node) {
             <div style="display: flex; flex-direction: column;">
                 <button type="submit" class="btn btn-info">Filter</button>
             </div>
+            <div style="display: flex; flex-direction: column; margin-left:10px">
+                <a href="#end" class="btn btn-info">Go to bottom</a>
+            </div>
+            <div style="display: flex; flex-direction: column; margin-left:10px">
+                <a href="#start" class="btn btn-info">Go to top</a>
+            </div>
             <div style="margin-left: auto;">
                 <label>File:</label>
                 <select style="height: 33px; margin-right: 25px;" name="f" onchange="this.form.submit()">
@@ -248,6 +251,7 @@ function copy(node) {
         </div>
     </form>
 </div>
+<div id="start"></div>
 ';
 
 
@@ -299,7 +303,7 @@ foreach($map_threads as $thread => $lines) {
     list($type, $icon, $class) = get_level_class($code);
 
     // append a thread line
-    $html .= "
+    echo "
     <div class=\"thread\">
         <div class=\"thread-title\">
             <div class=\"$class\" title=\"$type\">
@@ -328,7 +332,7 @@ foreach($map_threads as $thread => $lines) {
 
         $msg_excerpt = substr($msg, 0, 128);
 
-        $html .= "
+        echo "
             <div class=\"thread_line\">
                 <div class=\"line-title\"><a class=\"$class\" title=\"$type\"><i class=\"icon fa $icon\"></i> {$line['time']} {$line['mtime']} {$line['mode']}</a> <b>@</b> [<code class=\"$class\">{$line['file']}:{$line['line']}</code>] $in: ".$msg_excerpt."</div>
                 <input class=\"selector\" type=\"checkbox\">
@@ -336,9 +340,9 @@ foreach($map_threads as $thread => $lines) {
             ";
 
         if($n || $m > 64) {
-            $html .= "<i class=\"chevron fa fa-chevron-right\"></i>";
+            echo "<i class=\"chevron fa fa-chevron-right\"></i>";
             if($m > 64) {
-                $html .= "<div class=\"trace_line\"><i class=\"fa fa-clipboard icon-copy\" onclick=\"copy(this)\"></i><pre>".$msg."</pre></div>";
+                echo "<div class=\"trace_line\"><i class=\"fa fa-clipboard icon-copy\" onclick=\"copy(this)\"></i><pre>".$msg."</pre></div>";
             }
             for($i = 0; $i < $n; ++$i) {
                 $trace = array_merge([
@@ -349,25 +353,26 @@ foreach($map_threads as $thread => $lines) {
                         'object'    => null,
                         'args'      => [],
                     ], $line['stack'][$i]);
-                $html .= "<div class=\"trace_line\">".($n-$i).". {$trace['file']} line {$trace['line']}; ({$trace['function']});</div>";
+                echo "<div class=\"trace_line\">".($n-$i).". {$trace['file']} line {$trace['line']}; ({$trace['function']});</div>";
             }
         }
 
-        $html .= "
+        echo "
             </div>
         </div>".PHP_EOL;
     }
-    $html .= "</div>
+    echo "</div>
     </div>".PHP_EOL;
 }
 
 
-$html .= '
+echo '
+<div id="end"></div>
 </body>
 </html>';
 
 
-echo $html;
+//echo $html;
 
 
 function get_level_class($errcode) {

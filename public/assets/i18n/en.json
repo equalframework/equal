@@ -65,6 +65,7 @@
     "SB_ERROR_DUPLICATE_INDEX": "An entry is duplicated.",
     "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération.",
     "SB_ERROR_NON_EDITABLE": "The item cannot be updated in its current state.",
+    "SB_ERROR_NON_REMOVABLE": "The item cannot be deleted in its current state.",
     "SB_ERROR_CONFIG_MISSING_PARAM": "Erreur de configuration: paramètre manquant.",
     "SB_ERROR_MISSING_MANDATORY": "Mandatory field.",
     "SB_ERROR_MISSING_PARAM": "Missing mandatory field.",

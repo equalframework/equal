@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
-    'description'   => "Retrieves the translation values related to the specified entity.",
+    'description'   => "Recursively retrieves the full map of translation values relating to a specified entity.",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look for (e.g. \'core\\User\').',

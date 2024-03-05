@@ -18,7 +18,7 @@ list($params, $providers) = announce([
 ]);
 
 
-// initalise local vars with inputs
+// initialize local vars with inputs
 list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 Mail::flush();

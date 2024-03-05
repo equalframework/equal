@@ -52,6 +52,9 @@ git clone https://github.com/equalframework/equal.git
 For more info, see : [http://doc.equal.run/getting-started/installation](http://doc.equal.run/getting-started/installation/)
 
 
+## CLI autocomplete
+To ease commands typing in CLI, you can enable autocompletion by running `source autocomplete`.
+
 
 ## Code Coverage setup
 

@@ -33,7 +33,7 @@ namespace {
     /**
      * Current version of eQual
      */
-    define('QN_VERSION', '1.0.0');
+    define('EQ_VERSION', '2.0.0');
 
     /**
      * Root directory of current install
@@ -109,13 +109,15 @@ namespace {
     define('QN_R_WRITE',     4);
     define('QN_R_DELETE',    8);
     define('QN_R_MANAGE',   16);
+    define('QN_R_ALL',      31);
 
     /* equivalence map for naming migration */
-    define('R_CREATE',       QN_R_CREATE);
-    define('R_READ',         QN_R_READ);
-    define('R_WRITE',        QN_R_WRITE);
-    define('R_DELETE',       QN_R_DELETE);
-    define('R_MANAGE',       QN_R_MANAGE);
+    define('EQ_R_CREATE',       QN_R_CREATE);
+    define('EQ_R_READ',         QN_R_READ);
+    define('EQ_R_WRITE',        QN_R_WRITE);
+    define('EQ_R_DELETE',       QN_R_DELETE);
+    define('EQ_R_MANAGE',       QN_R_MANAGE);
+    define('EQ_R_ALL',          QN_R_ALL);
 
     /**
      * Built-in Users and Groups
@@ -821,6 +823,7 @@ namespace config {
             }
 
 
+
             // 1) check if all required parameters have been received
 
             // build mandatory fields array
@@ -831,23 +834,53 @@ namespace config {
             }
             // if at least one mandatory param is missing
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            if( count($missing_params)
-                || isset($body['announce'])
-                || $method == 'OPTIONS' ) {
+            if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
                 // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
-                // no feedback about services
-                if(isset($announcement['providers'])) {
-                    // unset($announcement['providers']);
-                }
-                // no feedback about constants
-                if(isset($announcement['constants'])) {
-                    // unset($announcement['constants']);
+                // if 'help' is amongst the params and request was made through CLI
+                if(php_sapi_name() == 'cli' && isset($body['help'])) {
+                    $operation = $context->get('operation');
+                    $help = 'Help about ';
+                    $help .= strtoupper($operation['type']).' '.$operation['operation']." :\n\n";
+                    $help .= "Description:\n";
+                    $help .= $announcement["description"]."\n\n";
+                    $help .= "Parameters:\n";
+                    foreach($announcement['params'] as $name => $info) {
+                        $help .= str_pad("--".$name, 20, ' ', STR_PAD_RIGHT);
+                        $required = (isset($info['required']))?'(required)':'';
+                        $help .= str_pad($required, 12, ' ');
+                        $type = $info['type'].( (isset($info['usage']))?'>'.$info['usage']:'');
+                        $help .= str_pad($type, 28, ' ');
+                        $help .= $info['description']."\n";
+                    }
+                    $help.= "\nMore Info :\n";
+                    foreach($body as $key => $value) {
+                        if(isset($announcement['params'][$key])) {
+                            $help.= "--".$key." :\n";
+                            if(isset($announcement['params'][$key]['help'])) {
+                                $help .= '   help: ';
+                                $help .= preg_replace("/ {2,}/", str_pad('', 9, ' '), $announcement['params'][$key]['help'])."\n";
+                            }
+                            if(isset($announcement['params'][$key]['default'])) {
+                                $help .= '   default value: ';
+                                $help .= json_encode($announcement['params'][$key]['default'], true)."\n";
+                            }
+                            if(isset($announcement['params'][$key]['selection'])) {
+                                $help .= '   selection: ';
+                                $help .= json_encode($announcement['params'][$key]['selection'], true)."\n";
+                            }
+                        }
+                    }
+                    $response->status(200)
+                        ->header('Content-Type', 'text/plain')
+                        ->body($help)
+                        ->send();
+                    throw new \Exception('', 0);
                 }
                 // add announcement to response body
                 $response->body(['announcement' => $announcement]);
+                // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
-                    // user asked for the announcement or browser requested fingerprint
                     $response->status(200)
                         // allow browser to cache the response for 1 year
                         ->header('Cache-Control', 'max-age=31536000')
@@ -972,7 +1005,7 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
                 foreach($invalid_params as $invalid_param => $error_id) {
                     // raise an exception with error details
-                    throw new \Exception(serialize([$invalid_param => [$error_id => 'Invalid parameter']]), QN_ERROR_INVALID_PARAM);
+                    throw new \Exception(serialize([$invalid_param => [$error_id => "Invalid value {$result[$invalid_param]} for parameter {$invalid_param}."]]), QN_ERROR_INVALID_PARAM);
                 }
             }
 
@@ -1215,7 +1248,7 @@ namespace config {
                     // restore original HTTP Response headers
                     // #memo - this is mandatory for integration with other frameworks (i.e. WP) while calling `run()` when (some) headers have already been set
                     $headers_orig = $context_orig->getHttpResponse()->getHeaders(true);
-                    if(count($headers_orig)) {
+                    if(is_array($headers_orig) && count($headers_orig)) {
                         header_remove();
                         foreach($headers_orig as $header => $value) {
                             header($header.': '.$value);

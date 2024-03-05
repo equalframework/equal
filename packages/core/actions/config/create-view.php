@@ -56,10 +56,6 @@ if(count($parts_v) > 0) {
     throw new Exception("view_id_invalid",QN_ERROR_INVALID_PARAM);
 }
 
-if(strcmp($type, "form")!==0 && strcmp($type, "list")!==0) {
-    $test = strcmp($type, "list");
-    throw new Exception("view_type_invalid",QN_ERROR_INVALID_PARAM);
-}
 
 $file = QN_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
 
@@ -85,10 +81,10 @@ if(!$f) {
     throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
 }
 
-if($type == "form") {
+if($type == "form" || $type == "search") {
     fputs($f,"{\"layout\" : {\"groups\" : []}}");
 }
-elseif($type == "list") {
+else {
     fputs($f,"{\"layout\" : {\"items\" : []}}");
 }
 

@@ -112,6 +112,7 @@ class Task extends Model {
 
             'params' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain',
                 'description'       => "JSON object holding the parameters to relay to the controller."
             ],
 

@@ -6,6 +6,7 @@
 */
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
 use equal\orm\Model;
+
 list($params, $providers) = eQual::announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
@@ -20,16 +21,6 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true
         ],
-        'part' => [
-            'description'   => '',
-            'type'          => 'string',
-            'selection'     => [
-                'class',        // #todo - replace with 'columns'
-                'workflow',
-                'roles'
-            ],
-            'required'      => true
-        ],
         'payload' =>  [
             'description'   => 'Entity definition .',
             'type'          => 'array',
@@ -38,11 +29,13 @@ list($params, $providers) = eQual::announce([
     ],
     'providers'     => ['context', 'orm']
 ]);
+
 /**
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
+
 // Create all the object to use for using PhpParser
 $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
 $nodeFinder = new NodeFinder;
@@ -56,50 +49,52 @@ $package = array_shift($parts);// Get the package name from the first part of th
 $filename = array_pop($parts);
 // Get the class path from the remaining part
 $class_path = implode('/', $parts);
+
 $getColumns = null;
 $code_php = null;
-// If you want to use save-model for updating a class/getColumns
-if($params['part'] == 'class') {
-    // Decode the JSON string to a PHP object
-    $code_php = sanitizeColumns($params['payload']['fields']);
-    // Get a string representation from the code_php variable, with backslashes escaped
-    $code_string = str_replace("\\\\", "\\", var_export($code_php, true));
-    // Create a virtual file holing the default structure with the parsed code and generate a minimal AST
-    $ast_temp = $parser->parse("<?php \nclass temp { public static function getColumns() {return ".$code_string.";}}");
-    // Find the getColumns node in the AST of the temporary file
-    $nodeGetColumns = $nodeFinder->findFirst($ast_temp, function(Node $node) {return $node->name->name === "getColumns";});
-    // Add a visitor to the traverse in order to consider the getColumns method and update its content with new schema
-    $traverser->addVisitor(
-            new class($nodeGetColumns, "getColumns") extends NodeVisitorAbstract {
-                private $node;
-                private $target;
-                public function __construct($node, $target) {
-                    $this->node = $node;
-                    $this->target = $target;
-                }
-                public function leaveNode(Node $node) {
-                    if ($node->name->name === $this->target) {
-                        return $this->node;
-                    }
+
+// Decode the JSON string to a PHP object
+$code_php = sanitizeColumns($params['payload']['fields']);
+// Get a string representation from the code_php variable, with backslashes escaped
+$code_string = str_replace("\\\\", "\\", var_export($code_php, true));
+// Create a virtual file holing the default structure with the parsed code and generate a minimal AST
+$ast_temp = $parser->parse("<?php \nclass temp { public static function getColumns() {return ".$code_string.";}}");
+// Find the getColumns node in the AST of the temporary file
+$nodeGetColumns = $nodeFinder->findFirst($ast_temp, function(Node $node) {return $node->name->name === "getColumns";});
+
+// Add a visitor hijack the getColumns method and update its content with new schema
+$traverser->addVisitor(
+        new class($nodeGetColumns, "getColumns") extends NodeVisitorAbstract {
+            private $node;
+            private $target;
+            public function __construct($node, $target) {
+                $this->node = $node;
+                $this->target = $target;
+            }
+            public function leaveNode(Node $node) {
+                if ($node->name->name === $this->target) {
+                    return $this->node;
                 }
             }
-        );
-    // Add a visitor to the traverser for setting the doc comments on the class node
-    $traverser->addVisitor(
-            new class($code_php) extends NodeVisitorAbstract {
-                private $code_php;
-                public function __construct($code_php) {
-                    $this->code_php = $code_php;
-                }
-                public function leaveNode(Node $node) {
-                    if ($node instanceof Node\Stmt\Class_) {
-                        $node->setDocComment(new Comment\Doc(getPropertiesAsComments($this->code_php)));
-                        return NodeTraverser::STOP_TRAVERSAL;
-                    }
+        }
+    );
+
+// Add a visitor for setting the doc comments on the class node
+$traverser->addVisitor(
+        new class($code_php) extends NodeVisitorAbstract {
+            private $code_php;
+            public function __construct($code_php) {
+                $this->code_php = $code_php;
+            }
+            public function leaveNode(Node $node) {
+                if ($node instanceof Node\Stmt\Class_) {
+                    $node->setDocComment(new Comment\Doc(getPropertiesAsComments($this->code_php)));
+                    return NodeTraverser::STOP_TRAVERSAL;
                 }
             }
-        );
-}
+        }
+    );
+
 // Get the full path of the file
 $file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
 // Get the code from the original file ...
@@ -112,20 +107,23 @@ $stmtModified = $traverser->traverse($stmtOriginal);
 $result = $prettyPrinter->prettyPrintFile($stmtModified);
 // ... and write back the code to the file
 file_put_contents($file, $result);
+
 try {
     // apply coding standards (ecs.php is expected in QN_BASEDIR)
     $command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
     if(exec($command) === false) {
         throw new Exception('command_failed', QN_ERROR_UNKNOWN);
     }
+    $result = file_get_contents($file);
 }
 catch(Exception $e) {
     trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
 }
-$result = file_get_contents($file);
+
 $context->httpResponse()
         ->body($result)
         ->send();
+
 /**
  * Filter out the properties of the schema from special columns inherited from the Model.
  *
@@ -146,6 +144,7 @@ function sanitizeColumns($properties) {
     }
     return $result;
 }
+
 /**
  * Generate the PHP comments for the properties of the model.
  *

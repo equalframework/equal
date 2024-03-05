@@ -6,7 +6,7 @@
 */
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Retrieve the descriptor of a given App, identified by package and app ID.',
+    'description'   => 'Retrieve the descriptor of a given App (from manifest), identified by package and app ID.',
     'params'        => [
         'package' => [
             'type'          => 'string',
@@ -42,20 +42,22 @@ if(file_exists("packages/$package/manifest.json")) {
     if(isset($manifest['apps'])) {
         // handle apps using app descriptors
         foreach($manifest['apps'] as $descriptor) {
-            if(!is_array($descriptor)) {
+            if(is_array($descriptor)) {
+                if(isset($descriptor['id']) && $descriptor['id'] == $app) {
+                    $result = $descriptor;
+                    break;
+                }
+            }
+            else {
                 // descriptor is a string (app name)
-                if($app != $descriptor) {
-                    continue;
-                }
-                // lookup in public/{app}/manifest
-                if(file_exists("public/$app/manifest.json")) {
-                    $result = json_decode(file_get_contents("public/$app/manifest.json"), true);
+                if($app == $descriptor) {
+                    // lookup in public/{app}/manifest
+                    if(file_exists("public/$app/manifest.json")) {
+                        $result = json_decode(file_get_contents("public/$app/manifest.json"), true);
+                        break;
+                    }
                 }
             }
-            elseif(isset($descriptor['id']) && $descriptor['id'] == $app) {
-                $result = $descriptor;
-            }
-            break;
         }
     }
 }

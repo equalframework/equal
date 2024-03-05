@@ -1,4 +1,5 @@
 {
+    "#memo #todo": "could terms and formats be referenced as usages ? ex.: number/boolean.true , date/plain.short , time/plain.full",
     "terms": {
         "bool.true":                "vrai",
         "bool.false":               "faux",
@@ -46,13 +47,18 @@
         "numbers.decimal_separator": ",",
         "currency.symbol_position": "after",
         "currency.symbol_separator": " ",
+        "date.short.day": "ddd DD/MM/YY",
         "date.short": "DD/MM/YY",
         "date.medium": "DD/MMM/YYYY",
         "date.long": "ddd DD MMM YYYY",
         "date.full": "dddd DD MMMM YYYY",
-        "time.short": "H:mm",
+        "time.short": "HH:mm",
         "time.medium": "HH:mm",
         "time.long": "HH:mm:ss",
-        "time.full": "HH:mm:ss.SSS"
+        "time.full": "HH:mm:ss.SSS",
+        "datetime.short": "DD/MM/YY HH:mm",
+        "datetime.medium": "DD/MMM/YYYY HH:mm",
+        "datetime.long": "ddd DD MMM YYYY HH:mm",
+        "datetime.full": "dddd DD MMMM YYYY HH:mm"
     }
 }

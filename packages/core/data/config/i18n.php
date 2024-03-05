@@ -4,9 +4,10 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-// #deprecated - use `core_translation` instead
+// #deprecated - use `core_config_translation` instead
 list($params, $providers) = announce([
     'description'   => "Retrieves the translation values related to the specified entity.",
+    'deprecated'    => true,
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look for (e.g. \'core\\User\').',

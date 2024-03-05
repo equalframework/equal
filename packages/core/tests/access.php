@@ -139,7 +139,7 @@ $tests = [
             'description'       => "Check root user rights.",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
+                    return $access->hasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -147,7 +147,7 @@ $tests = [
             'description'       => "Re-Check root user rights (to ensure using the rights cache).",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->hasRight(QN_ROOT_USER_ID, R_MANAGE, 'core\User');
+                    return $access->hasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -160,7 +160,7 @@ $tests = [
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return !$access->hasRight($user_id, R_MANAGE, 'core\User');
+                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User');
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
@@ -179,13 +179,13 @@ $tests = [
                 },
             'act'               => function ($group_id) use($providers) {
                     $access = $providers['access'];
-                    $access->grantGroups($group_id, R_READ|R_WRITE|R_MANAGE, '*');
+                    $access->grantGroups($group_id, EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
                     return $group_id;
                 },
             'assert'            => function($group_id) use($providers) {
                     $access = $providers['access'];
                     $user = User::search(['groups_ids', 'contains', $group_id])->first();
-                    return $access->hasRight($user['id'], R_READ|R_WRITE|R_MANAGE, '*');
+                    return $access->hasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test1'])->delete(true);
@@ -201,20 +201,20 @@ $tests = [
                     $access = $providers['access'];
                     $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
                     $group = Group::create(['name' => 'test1'])->first();
-                    $access->grantGroups($group['id'], R_MANAGE, '*');
+                    $access->grantGroups($group['id'], EQ_R_MANAGE, '*');
                     $access->addGroup($group['id'], $user['id']);
                     return [$user['id'], $group['id']];
                 },
             'act'               => function ($data) use($providers) {
                     list($user_id, $group_id) = $data;
                     $access = $providers['access'];
-                    $access->revokeGroups($group_id, R_MANAGE, '*');
+                    $access->revokeGroups($group_id, EQ_R_MANAGE, '*');
                     return $data;
                 },
             'assert'            => function($data) use($providers) {
                     list($user_id, $group_id) = $data;
                     $access = $providers['access'];
-                    return !$access->hasRight($user_id, R_MANAGE, 'core\User', 1);
+                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User', 1);
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test1'])->delete(true);

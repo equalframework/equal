@@ -225,7 +225,7 @@ foreach($classes as $class) {
                 ]
             ];
         }
-        else if(strpos($view_file, 'list.') > 0) {
+        elseif(strpos($view_file, 'list.') > 0) {
             $structure = [
                 'name',
                 'description',
@@ -236,7 +236,7 @@ foreach($classes as $class) {
                 ]
             ];
         }
-        else if(strpos($view_file, 'chart.') > 0) {
+        elseif(strpos($view_file, 'chart.') > 0) {
             $structure = [
                 'name',
                 'description',
@@ -319,12 +319,12 @@ foreach($classes as $class) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should not end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
-                            else if($property == 'help') {
+                            elseif($property == 'help') {
                                 if( mb_strlen($data['model'][$field][$property]) && !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                     $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
                                 }
                             }
-                            else if($property == 'description') {
+                            elseif($property == 'description') {
                                 if( mb_strlen($data['model'][$field][$property]) ) {
                                     if( !in_array(substr($data['model'][$field][$property], -1), ['.', '?', '!']) ) {
                                         $result[] = "WARN  - I18 - Value for property '$property' should end by '.' for field '$field' referenced in file $i18n_file";
@@ -437,7 +437,7 @@ foreach($classes as $class) {
 
         if(isset($descriptor['onupdate'])) {
             $parts = explode('::', $descriptor['onupdate']);
-            $count = count($parts);
+            $count = count((array) $parts);
 
             $called_class = $entity;
             $called_method = $descriptor['onupdate'];
@@ -550,7 +550,7 @@ function view_test($data, $structure) {
                     return "missing property '$key' for item $index";
                 }
             }
-            else if(isset($elem[$key]) && isset($structure[$item])){
+            elseif(isset($elem[$key]) && isset($structure[$item])){
                 $res = view_test($elem[$key], $structure[$item]);
                 if($res) {
                     return $res;

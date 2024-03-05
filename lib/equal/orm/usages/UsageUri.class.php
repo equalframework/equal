@@ -32,7 +32,7 @@ class UsageUri extends Usage {
                         }
                     ]
                 ];
-            case 'uri/url.tel':
+            case 'url.tel':
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid tel URL.',
@@ -41,7 +41,7 @@ class UsageUri extends Usage {
                         }
                     ]
                 ];
-            case 'uri/url.mailto':
+            case 'url.mailto':
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid mailto URL.',

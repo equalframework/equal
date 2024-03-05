@@ -1,37 +1,80 @@
 {
     "name": "Message",
     "description": "Automated alert message.",
+    "actions": [
+        {
+            "id": "action.retry",
+            "label": "Re-check",
+            "description": "Retry the check that generated the alert. Message will be dismissed if alert is no longer present.",
+            "controller": "core_alert_dismiss",
+            "confirm": false
+        }
+    ],
     "layout": {
         "groups": [
             {
                 "sections": [
                     {
+                        "id": "section.details",
+                        "label": "Details",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "label": "Object Class",
+                                                "value": "object_class",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "label": "Object identifier",
+                                                "value": "object_id",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "message_model_id",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "50%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "label",
+                                                "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "description",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "severity",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.advanced",
+                        "label": "Advanced",
                         "rows": [
                             {
                                 "columns": [
                                     {
                                         "width": "100%",
                                         "items": [
-                                            {
-                                                "type": "field",
-                                                "value": "object_class",
-                                                "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "object_id",
-                                                "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "message_model_id",
-                                                "width": "50%"
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "severity",
-                                                "width": "50%"
-                                            },
                                             {
                                                 "type": "field",
                                                 "value": "controller",
@@ -41,6 +84,11 @@
                                                 "type": "field",
                                                 "value": "params",
                                                 "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "log",
+                                                "width": "100%"
                                             }
                                         ]
                                     }

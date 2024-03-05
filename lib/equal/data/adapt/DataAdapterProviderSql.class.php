@@ -10,7 +10,8 @@ class DataAdapterProviderSql implements AdapterProvider {
     const CONFIG = [
         'MYSQL'     => 'equal\data\adapt\DataAdapterProviderSqlMySql',
         'MARIADB'   => 'equal\data\adapt\DataAdapterProviderSqlMySql',
-        'SQLSRV'    => 'equal\data\adapt\DataAdapterProviderSqlSqlSrv'
+        'SQLSRV'    => 'equal\data\adapt\DataAdapterProviderSqlSqlSrv',
+        'SQLITE'    => 'equal\data\adapt\DataAdapterProviderSqlSqlite'
     ];
 
     /**

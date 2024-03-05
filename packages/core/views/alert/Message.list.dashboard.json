@@ -1,16 +1,32 @@
 {
     "name": "Messages list",
     "description": "Listing of pending messages.",
+    "header": {
+        "actions": {
+            "ACTION.CREATE": false
+        },
+        "selection": {
+            "default" : false,
+            "actions" : [
+                {
+                    "id": "header.selection.actions.bulk_dismiss",
+                    "label": "Re-check",
+                    "icon": "replay",
+                    "controller": "core_alert_bulk-dismiss"
+                }
+            ]
+        }
+    },
     "layout": {
         "items": [
             {
                 "type": "field",
-                "value": "object_link",
+                "value": "label",
                 "width": "25%"
             },
             {
                 "type": "field",
-                "value": "label",
+                "value": "object_link",
                 "width": "25%"
             },
             {

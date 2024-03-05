@@ -129,7 +129,7 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     foreach (glob($data_folder."/*.json") as $json_file) {
         $data = file_get_contents($json_file);
         $classes = json_decode($data, true);
-        foreach($classes as $class){
+        foreach($classes as $class) {
             $entity = $class['name'];
             $lang = $class['lang'];
             $model = $orm->getModel($entity);
@@ -142,21 +142,23 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
                     $f = new Field($schema[$field]);
                     $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
                 }
+
                 if(isset($odata['id'])) {
                     $res = $orm->search($entity, ['id', '=', $odata['id']]);
                     if($res > 0 && count($res)) {
                         // object already exist, but either values or language might differ
-                        $id = $odata['id'];
-                        $res = $orm->update($entity, $id, $odata, $lang);
-                        $objects_ids[] = $id;
                     }
                     else {
-                        $objects_ids[] = $orm->create($entity, $odata, $lang);
+                        $orm->create($entity, ['id' => $odata['id']], $lang, false);
                     }
+                    $id = $odata['id'];
+                    unset($odata['id']);
                 }
                 else {
-                    $objects_ids[] = $orm->create($entity, $odata, $lang);
+                    $id = $orm->create($entity, [], $lang);
                 }
+                $orm->update($entity, $id, $odata, $lang);
+                $objects_ids[] = $id;
             }
 
             // force a first generation of computed fields, if any
