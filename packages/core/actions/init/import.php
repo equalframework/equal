@@ -257,6 +257,12 @@ function createNewItemFromOld(array $config, DBManipulator $old_db_connection, a
                 case 'field':
                     $item[$new_key] = $previous_value;
                     break;
+                case 'computed':
+                    $item[$new_key] = $imp_conf['value'];
+                    foreach($imp_conf['fields'] as $f) {
+                        $item[$new_key] = str_replace('%'.$f.'%', $old_item[$f], $item[$new_key]);
+                    }
+                    break;
                 case 'cast':
                     switch($imp_conf['cast']) {
                         case 'integer':
