@@ -5,7 +5,7 @@
         "data": [
             {
                 "id": 1,
-                "name": "numbers.thousands_separator",
+                "name": "core.locale.numbers.thousands_separator",
                 "setting_id": 1,
                 "value": "."
             },
@@ -29,169 +29,169 @@
             },
             {
                 "id": 5,
-                "name": "numbers.decimal_precision",
+                "name": "core.locale.numbers.decimal_precision",
                 "setting_id": 5,
                 "value": "2"
             },
             {
                 "id": 6,
-                "name": "date_format",
+                "name": "core.locale.date_format",
                 "setting_id": 6,
                 "value": "d\/m\/Y"
             },
             {
                 "id": 7,
-                "name": "time_format",
+                "name": "core.locale.time_format",
                 "setting_id": 7,
                 "value": "H:i"
             },
             {
                 "id": 8,
-                "name": "company.id",
+                "name": "core.main.company.id",
                 "setting_id": 8,
                 "value": "1"
             },
             {
                 "id": 9,
-                "name": "formats.paper",
+                "name": "core.main.formats.paper",
                 "setting_id": 9,
                 "value": "A4"
             },
             {
                 "id": 10,
-                "name": "account_creation",
+                "name": "core.security.account_creation",
                 "setting_id": 10,
                 "value": null
             },
             {
                 "id": 11,
-                "name": "import",
+                "name": "core.security.import",
                 "setting_id": 11,
                 "value": "1"
             },
             {
                 "id": 12,
-                "name": "export",
+                "name": "core.security.export",
                 "setting_id": 12,
                 "value": "1"
             },
             {
                 "id": 13,
-                "name": "currency",
+                "name": "core.units.currency",
                 "setting_id": 13,
                 "value": "€"
             },
             {
                 "id": 14,
-                "name": "length",
+                "name": "core.units.length",
                 "setting_id": 14,
                 "value": "m"
             },
             {
                 "id": 15,
-                "name": "weight",
+                "name": "core.units.weight",
                 "setting_id": 15,
                 "value": "kg"
             },
             {
                 "id": 16,
-                "name": "volume",
+                "name": "core.units.volume",
                 "setting_id": 16,
                 "value": "m3"
             },
             {
                 "id": 17,
-                "name": "surface",
+                "name": "core.units.surface",
                 "setting_id": 17,
                 "value": "m2"
             },
             {
                 "id": 18,
-                "name": "invoice.sequence_format",
+                "name": "finance.invoice.invoice.sequence_format",
                 "setting_id": 22,
                 "value": "%4d(year)-%02d(org)-%03d(sequence)"
             },
             {
                 "id": 19,
-                "name": "booking.sequence_format",
+                "name": "sale.booking.booking.sequence_format",
                 "setting_id": 23,
                 "value": "%1d{center}%05d{sequence}"
             },
             {
                 "id": 20,
-                "name": "invoice.sequence.1",
+                "name": "sale.invoice.invoice.sequence.1",
                 "setting_id": 18,
                 "value": "111"
             },
             {
                 "id": 21,
-                "name": "invoice.sequence.2",
+                "name": "sale.invoice.invoice.sequence.2",
                 "setting_id": 19,
                 "value": "111"
             },
             {
                 "id": 22,
-                "name": "invoice.sequence.3",
+                "name": "sale.invoice.invoice.sequence.3",
                 "setting_id": 20,
                 "value": "111"
             },
             {
                 "id": 23,
-                "name": "invoice.fiscal_year",
+                "name": "finance.invoice.invoice.fiscal_year",
                 "setting_id": 21,
                 "value": "2021"
             },
             {
                 "id": 24,
-                "name": "booking.sequence.1",
+                "name": "sale.booking.booking.sequence.1",
                 "setting_id": 24,
                 "value": "11117"
             },
             {
                 "id": 25,
-                "name": "booking.sequence.2",
+                "name": "sale.booking.booking.sequence.2",
                 "setting_id": 25,
                 "value": "11111"
             },
             {
                 "id": 26,
-                "name": "booking.sequence.3",
+                "name": "sale.booking.booking.sequence.3",
                 "setting_id": 26,
                 "value": "11111"
             },
             {
                 "id": 27,
-                "name": "booking.sequence.4",
+                "name": "sale.booking.booking.sequence.4",
                 "setting_id": 27,
                 "value": "11113"
             },
             {
                 "id": 28,
-                "name": "booking.sequence.5",
+                "name": "sale.booking.booking.sequence.5",
                 "setting_id": 28,
                 "value": "11112"
             },
             {
                 "id": 29,
-                "name": "booking.sequence.6",
+                "name": "sale.booking.booking.sequence.6",
                 "setting_id": 29,
                 "value": "11111"
             },
             {
                 "id": 30,
-                "name": "booking.sequence.7",
+                "name": "sale.booking.booking.sequence.7",
                 "setting_id": 30,
                 "value": "11111"
             },
             {
                 "id": 31,
-                "name": "booking.sequence.8",
+                "name": "sale.booking.booking.sequence.8",
                 "setting_id": 31,
                 "value": "11111"
             },
             {
                 "id": 32,
-                "name": "option.validity",
+                "name": "sale.booking.option.validity",
                 "setting_id": 32,
                 "value": "10"
             }
