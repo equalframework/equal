@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Welcome to eQual</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: Roboto, sans-serif;
+        }
+        a {
+            text-transform: uppercase;
+            color:black;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #wnd-wrapper {
+            width: 756px;
+            margin: auto;
+            margin-top: 30px;
+            max-height: 450px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        #wnd-wrapper::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #wnd-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #wnd-wrapper::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+
+        #wnd {
+            background: black;
+            border-radius: .2em;
+            white-space: pre-wrap;
+            padding: .5em;
+            font-family: "Consolas", "Ubuntu Mono", "Monaco", monospace;
+            color: white;
+            width: 0px;
+            display: none;
+            transition: all .5s ease-in-out;
+        }
+        .prompt {
+            color: #0DBC5C;
+        }
+        .cmd {
+            color: #b9b9b8;
+        }
+</style>
+<script>
+var prompt;
+
+function setPrompt(usr, domain) {
+    prompt = usr + '@' + domain + ':~/equal#';
+}
+
+function addOutput(s) {
+    $('<div>').text(s).appendTo($('#wnd'));
+    $("#wnd-wrapper").scrollTop($("#wnd").height());
+    return $.Deferred(function(defer) {
+        setTimeout(() => defer.resolve(), 1);
+    }).promise();
+}
+
+function addInput(s) {
+    var l = $('.prompt:last');
+    var e = $('<span>').addClass('cmd').appendTo(l);
+    return addLettersRecursive(e, s);
+}
+
+function addPrompt() {
+    var l = $('<div>').text(prompt).addClass('prompt').appendTo($('#wnd'));
+    $("#wnd-wrapper").scrollTop($("#wnd").height());
+    return $.Deferred(function(defer) {
+        setTimeout(() => defer.resolve(), 1000);
+    }).promise();
+}
+
+function addLettersRecursive(container, s) {
+    container.append(s.charAt(0));
+
+    return $.Deferred(function(defer) {
+        setTimeout(function()  {
+            if (s.length <= 1) {
+                defer.resolve();
+            }
+            addLettersRecursive(container, s.substr(1)).then(function() {
+                    defer.resolve();
+                });
+        }, 80);
+    }).promise();
+}
+
+$( document ).ready(function() {
+
+    setPrompt('user', 'equal.run');
+
+    var lines = $('textarea').val().split('\n');
+
+    var promise = $.Deferred(function(defer) {defer.resolve();}).promise();
+
+    setTimeout(function() {
+        $('#wnd').css({display: 'block', width: '100%'});
+        setTimeout(function() {
+            lines.forEach( function(item) {
+                if (item[0] == '$') {
+                    promise = promise.then(function(){ return addPrompt(); })
+                    promise = promise.then(function(){ return addInput(item.substr(1)); })
+                }
+                else {
+                    promise = promise.then(function(){ return addOutput(item); })
+                }
+            })
+        }, 1500);
+    }, 1000);
+});
+
+</script>
+</head>
+<body>
+    <div style="display: flex; justify-content: center;">
+        <div style="margin-top: 10%;"><img alt="" src="http://doc.equal.run/assets/img/equal_logo_w_bg.png"></div>
+    </div>
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; width: 756px;">
+            <div style="margin: 10px 20px;"><a href="https://doc.equal.run" target="_blank">Documentation</a></div>
+            <div style="margin: 10px;"><a href="https://discord.gg/BNCPYxD9kk" target="_blank">Discord</a></div>
+            <div style="margin: 10px;"><a href="https://github.com/equalframework/equal" target="_blank">Github</a></div>
+            <div style="margin: 10px;"><a href="https://hub.docker.com/repository/docker/cedricfrancoys/equal" target="_blank">Dockerhub</a></div>
+        </div>
+    </div>
+
+    <div id="wnd-wrapper">
+        <div id="wnd"></div>
+    </div>
+
+    <textarea style="display: none;">
+$ ./equal.run --do=init_db
+
+$ ./equal.run --do=init_package --package=core --import=true
+
+$ ./equal.run --get=model_collect --entity='core\User'
+[
+    {
+        "id": 1,
+        "name": "root@host.local",
+        "state": "instance",
+        "modified": "2023-07-31T09:01:09+00:00"
+    },
+    {
+        "id": 2,
+        "name": "root@equal.run",
+        "state": "instance",
+        "modified": "2023-07-31T11:13:26+00:00"
+    }
+]
+$ ./equal.run --get=model_read --entity='core\User' --ids=[2] --fields='{firstname,lastname,groups_ids:{id,name}}'
+[
+    {
+        "firstname": "C\u00e9dric",
+        "lastname": "Fran\u00e7oys",
+        "groups_ids": [
+            {
+                "id": 2,
+                "name": "users",
+                "state": "instance",
+                "modified": "2023-07-31T00:00:00+00:00"
+            }
+        ],
+        "name": "cedric@equal.run",
+        "id": 2,
+        "state": "instance",
+        "modified": "2023-07-31T11:13:26+00:00"
+    }
+]
+$ ./equal.run --get=model_read --announce
+{
+    "announcement": {
+        "description": "Lists objects of provided ids with requested fields.",
+        "params": {
+            "entity": {
+                "description": "Full name (with namespace) of requested entity.",
+                "type": "string",
+                "required": true
+            },
+            "ids": {
+                "description": "List of unique identifiers of the objects to read.",
+                "type": "array",
+                "required": true
+            },
+            "fields": {
+                "description": "Names of fields for which value is requested.",
+                "type": "array",
+                "default": [
+                    "id",
+                    "name"
+                ]
+            },
+            "lang": {
+                "description": "Language to use for multilang fields.",
+                "type": "string",
+                "usage": "language/iso-639",
+                "default": "en"
+            },
+            "order": {
+                "description": "Column to use for sorting results.",
+                "type": "string",
+                "default": "id"
+            },
+            "sort": {
+                "description": "The direction  (i.e. 'asc' or 'desc').",
+                "type": "string",
+                "selection": [
+                    "asc",
+                    "desc"
+                ]
+                "default": "asc"
+            }
+        },
+        "response": {
+            "content-type": "application\/json",
+            "charset": "utf-8",
+            "accept-origin": [
+                "*"
+            ]
+        }
+    }
+}
+$ ./equal.run --show=welcome --announce
+{
+    "announcement": {
+        "description": "Redirect to `/welcome` public folder.",
+        "params": [],
+        "response": {
+            "location": "\/welcome\/"
+        }
+    }
+}
+    </textarea>
+
+</body>
+</html>
