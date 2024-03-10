@@ -862,7 +862,7 @@ class ObjectManager extends Service {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
                         if(!is_array($value)) {
                             if(is_numeric($value)) {
-                                $value = [intval($value)];
+                                $value = (array) intval($value);
                             }
                             else {
                                 trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
@@ -896,14 +896,14 @@ class ObjectManager extends Service {
                                             break;
                                         case 'null':
                                         default:
-                                            $om->db->setRecords($foreign_table, $ids_to_remove, [ $schema[$field]['foreign_field'] => 0 ] );
+                                            $om->db->setRecords($foreign_table, $ids_to_remove, [ $schema[$field]['foreign_field'] => null ] );
                                             break;
                                     }
                                 }
                             }
                             else {
                                 // remove relation by setting pointing id to 0
-                                $om->db->setRecords($foreign_table, $ids_to_remove, [$schema[$field]['foreign_field'] => 0]);
+                                $om->db->setRecords($foreign_table, $ids_to_remove, [$schema[$field]['foreign_field'] => null]);
                             }
                         }
                         // add relation by setting the pointing id (overwrite previous value if any)
