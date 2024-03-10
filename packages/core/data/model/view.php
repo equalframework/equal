@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns the JSON view related to an entity (class model), given a view ID (<type.name>).",
     'params'        => [
         'entity' =>  [
@@ -26,14 +26,116 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm']
 ]);
 
-
 list($context, $orm) = [$providers['context'], $providers['orm']];
+
+$removeNodes = function (&$layout, $nodes_ids) {
+    foreach($layout['groups'] as $group_index => $group) {
+        if(isset($group['id']) && in_array($group['id'], $nodes_ids)) {
+            array_splice($layout['groups'], $group_index, 1);
+            continue;
+        }
+        foreach($group['sections'] as $section_index => $section) {
+            if(isset($section['id']) && in_array($section['id'], $nodes_ids)) {
+                array_splice($layout['groups'][$group_index]['sections'], $section_index, 1);
+                continue;
+            }
+            foreach($section['rows'] as $row_index => $row) {
+                if(isset($row['id']) && in_array($row['id'], $nodes_ids)) {
+                    array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'], $row_index, 1);
+                    continue;
+                }
+                foreach($row['columns'] as $column_index => $column) {
+                    if(isset($column['id']) && in_array($column['id'], $nodes_ids)) {
+                        array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'], $column_index, 1);
+                        continue;
+                    }
+                    foreach($row['items'] as $item_index => $item) {
+                        if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
+                            array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'], $item_index, 1);
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
+$updateNode = function (&$layout, $id, $node) {
+    $target = null;
+    $index = 0;
+    $target_parent = null;
+    foreach($layout['groups'] as $group_index => $group) {
+        if(isset($group['id']) && $group['id'] == $id) {
+            $target = &$layout['groups'][$group_index];
+            break;
+        }
+        $target_parent = &$layout['groups'][$group_index]['sections'];
+        foreach($group['sections'] as $section_index => $section) {
+            if(isset($section['id']) && $section['id'] == $id) {
+                $target = &$layout['groups'][$group_index]['sections'][$section_index];
+                $index = $section_index;
+                break 2;
+            }
+            $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'];
+            foreach($section['rows'] as $row_index => $row) {
+                if(isset($row['id']) && $row['id'] == $id) {
+                    $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index];
+                    $index = $row_index;
+                    break 3;
+                }
+                $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'];
+                foreach($row['columns'] as $column_index => $column) {
+                    if(isset($column['id']) && $column['id'] == $id) {
+                        $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index];
+                        $index = $column_index;
+                        break 4;
+                    }
+                    $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'];
+                    foreach($column['items'] as $item_index => $item) {
+                        if(isset($item['id']) && $item['id'] == $id) {
+                            $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'][$item_index];
+                            $index = $item_index;
+                            break 5;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if($target) {
+        if(isset($node['attributes'])) {
+            foreach((array) $node['attributes'] as $attribute => $value) {
+                $target[$attribute] = $value;
+            }
+        }
+        if(isset($node['prepend'])) {
+            foreach((array) $node['prepend'] as $elem) {
+                array_unshift($target, $elem);
+            }
+        }
+        if(isset($node['append'])) {
+            foreach((array) $node['append'] as $elem) {
+                array_push($target, $elem);
+            }
+        }
+        if($target_parent) {
+            if(isset($node['before'])) {
+                array_splice($target_parent, $index, 0, (array) $node['before']);
+            }
+            if(isset($node['after'])) {
+                array_splice($target_parent, $index + 1, 0, (array) $node['after']);
+            }
+        }
+    }
+};
+
 
 $entity = $params['entity'];
 
 list($view_type, $view_name) = explode('.', $params['view_id']);
 
-// retrieve existing view meant for entity (recurse through parents)
+// pass-1 : retrieve existing view meant for entity (recurse through parents)
 while(true) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
@@ -69,8 +171,34 @@ if(!file_exists($file)) {
     throw new Exception("missing_view", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-if( ($view = json_decode(@file_get_contents($file), true)) === null) {
+if(($view = json_decode(@file_get_contents($file), true)) === null) {
     throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+}
+
+if(!isset($view['layout'])) {
+    throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+}
+
+// pass-2 : adapt the view if inheritance is involved
+if(isset($view['layout']['extends'])) {
+    $entity = $params['entity'];
+    if(isset($view['layout']['extends']['entity'])) {
+        $entity = $view['layout']['extends']['entity'];
+    }
+    if(!isset($view['layout']['extends']['view'])) {
+        throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+    }
+    $view_id = $view['layout']['extends']['view'];
+    $parent_view = eQual::run('get', 'model_view', ['entity' => $entity, 'view_id' => $view_id]);
+    if(isset($view['layout']['remove'])) {
+        $removeNodes($parent_view['layout'], (array) $view['layout']['remove']);
+    }
+    if(isset($view['layout']['update'])) {
+        foreach((array) $view['layout']['update'] as $id => $node) {
+            $updateNode($parent_view['layout'], $id, $node);
+        }
+    }
+    $view['layout'] = $parent_view['layout'];
 }
 
 $context->httpResponse()
