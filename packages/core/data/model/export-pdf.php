@@ -387,7 +387,7 @@ if($is_controller_entity) {
 }
 else {
     // with group_by support
-    // create initial stack of goups / objects
+    // create initial stack of groups / objects
     $stack = [$values];
     if(count($group_by) && !$is_controller_entity) {
         $groups = groupObjects($schema, $values, $group_by);
@@ -512,7 +512,12 @@ function groupObjects($schema, $objects, $group_by) {
             if(is_array($key)) {
                 if(isset($key['name'])) {
                     $label = $key['name'];
-                    $key = $key['name'];
+                    if(isset($group['order']) && isset($key[$group['order']])) {
+                        $key = $key[$group['order']];
+                    }
+                    else {
+                        $key = $key['name'];
+                    }
                 }
                 else {
                     $label = '';
