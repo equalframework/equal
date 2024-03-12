@@ -122,6 +122,7 @@ $updateNode = function (&$layout, $id, $node) {
         if($target_parent) {
             if(isset($node['before'])) {
                 array_splice($target_parent, $index, 0, (array) $node['before']);
+                $index += count((array) $node['before']);
             }
             if(isset($node['after'])) {
                 array_splice($target_parent, $index + 1, 0, (array) $node['after']);
