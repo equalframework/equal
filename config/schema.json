@@ -282,8 +282,12 @@
     },
     "USER_ACCOUNT_DISPLAYNAME": {
         "type": "string",
-        "description": "Strategy for displaying the user name to other users. The expected value is a string holding one or more of following references: 'id', 'nickname', 'mail', 'givenname', 'surname', 'initials' (Note: 'mail' is the email address and suits Apps restricted to users from a same organisation but should be avoided for non public profiles).",
-        "default": "mail"
+        "description": "Strategy for displaying the user name to other users. The expected value is a string holding one or more of following references: 'id', 'nickname', 'mail', 'firstname', 'lastname', 'initials' (Note: 'mail' is the email address and suits Apps restricted to users from a same organisation but should be avoided for non public profiles).",
+        "default": "mail",
+        "examples": [
+            "nickname",
+            "firstname lastname"
+        ]
     },
     "USER_ACCOUNT_REGISTRATION": {
         "type": "boolean",
