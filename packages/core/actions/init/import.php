@@ -1,16 +1,83 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
-    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Lucas LAURENT
+    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
-use equal\data\adapt\DataAdapter;
 use equal\db\DBConnection;
 use equal\db\DBManipulator;
 use equal\db\DBManipulatorMySQL;
 use equal\db\DBManipulatorSQLite;
 use equal\db\DBManipulatorSqlSrv;
+
+list($params, $providers) = eQual::announce([
+    'description' => 'Import data from a database to eQual database for a given package.',
+    'help'        => 'Needs a configuration file init/import-config.json in the folder of the concerned package.',
+    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'params'      => [
+        'db_dbms' => [
+            'type'    => 'string',
+            'default' => 'MYSQL'
+        ],
+
+        'db_host' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+
+        'db_port' => [
+            'type'     => 'integer',
+            'required' => true
+        ],
+
+        'db_user' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+
+        'db_password' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+
+        'db_name' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+
+        'db_charset' => [
+            'type'     => 'string',
+            'default'  => 'utf8mb4'
+        ],
+
+        'db_collation' => [
+            'type'     => 'string',
+            'default'  => 'utf8mb4_unicode_ci'
+        ],
+
+        'package' => [
+            'type'     => 'string',
+            'required' => true
+        ],
+
+        'entity' => [
+            'type'     => 'string'
+        ]
+    ],
+    'response'    => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ],
+    'providers'   => ['context', 'adapt']
+]);
+
+/**
+ * @var \equal\php\Context               $context
+ * @var \equal\data\DataAdapterProvider  $dap
+ */
+list($context, $dap) = [$providers['context'], $providers['adapt']];
 
 $getImportConfig = function($config_file_path): array {
     $config_file_content = file_get_contents($config_file_path);
@@ -110,8 +177,13 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
         }
 
         $imp_confs = isset($import_conf['type']) ? [$import_conf] : $import_conf;
+        $field = $imp_confs[0]['field'] ?? null;
 
-        $previous_value = $old_item[$imp_confs[0]['field']] ?? null;
+        if(!$field) {
+            continue;
+        }
+
+        $previous_value = $old_item[$field] ?? null;
         foreach($imp_confs as $imp_conf) {
             switch($imp_conf['type']) {
                 case 'value':
@@ -197,73 +269,6 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
 
     return $item;
 };
-
-list($params, $providers) = eQual::announce([
-    'description' => 'Import data from a database to eQual database for a given package.',
-    'help'        => 'Needs a configuration file init/import-config.json in the folder of the concerned package.',
-    'params'      => [
-        'db_dbms' => [
-            'type'    => 'string',
-            'default' => 'MYSQL'
-        ],
-
-        'db_host' => [
-            'type'     => 'string',
-            'required' => true
-        ],
-
-        'db_port' => [
-            'type'     => 'integer',
-            'required' => true
-        ],
-
-        'db_user' => [
-            'type'     => 'string',
-            'required' => true
-        ],
-
-        'db_password' => [
-            'type'     => 'string',
-            'required' => true
-        ],
-
-        'db_name' => [
-            'type'     => 'string',
-            'required' => true
-        ],
-
-        'db_charset' => [
-            'type'     => 'string',
-            'default'  => 'utf8mb4'
-        ],
-
-        'db_collation' => [
-            'type'     => 'string',
-            'default'  => 'utf8mb4_unicode_ci'
-        ],
-
-        'package' => [
-            'type'     => 'string',
-            'required' => true
-        ],
-
-        'entity' => [
-            'type'     => 'string'
-        ]
-    ],
-    'response'    => [
-        'content-type'  => 'application/json',
-        'charset'       => 'utf-8',
-        'accept-origin' => '*'
-    ],
-    'providers'   => ['context', 'adapt']
-]);
-
-/**
- * @var \equal\php\Context               $context
- * @var \equal\data\DataAdapterProvider  $dap
- */
-list($context, $dap) = [$providers['context'], $providers['adapt']];
 
 /** @var $adapter DataAdapter */
 $adapter = $dap->get('sql');
