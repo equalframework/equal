@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -47,8 +47,8 @@ $tests = [
                 'expected'          =>  array(
                                         '1' => array(
                                                 'language'  => 'en',
-                                                'firstname' => 'root',
-                                                'lastname'  => '@system'
+                                                'firstname' => 'Root',
+                                                'lastname'  => 'USER'
                                               )
                                         ),
                 'test'              =>  function (){
@@ -68,8 +68,8 @@ $tests = [
                     'expected'          =>  array(
                                             '1' => array(
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                   )
                                             ),
                     'test'              =>  function (){
@@ -88,8 +88,8 @@ $tests = [
                     'expected'          =>  array(
                                             '1' => array(
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                   )
                                             ),
                     'test'              =>  function (){
@@ -119,8 +119,8 @@ $tests = [
                     'expected'          =>  array(
                                             '1' => [
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                    ]
                                             ),
                     'test'              =>  function () {
@@ -178,7 +178,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => array(
-                                                    'firstname' => 'root'
+                                                    'firstname' => 'Root'
                                                   )
                                             ),
                     'test'              =>  function () {
@@ -210,7 +210,7 @@ $tests = [
     '2151' => array(
                     'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('1' => array('firstname' => 'root') ),
+                    'expected'          =>  array('1' => array('firstname' => 'Root') ),
                     'test'              =>  function () {
                                                 $res = [];
                                                 $om = ObjectManager::getInstance();
