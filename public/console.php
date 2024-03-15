@@ -4,6 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2023
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+error_reporting(0);
 
 define('LOG_FILE_NAME', 'eq_error.log');
 $data = '';
