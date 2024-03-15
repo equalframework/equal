@@ -206,6 +206,14 @@ class DBManipulator {
         return $this->last_query;
     }
 
+    public static function fetchRow($result) {
+        return [];
+    }
+
+    public static function fetchArray($result) {
+        return [];
+    }
+
     protected function setLastId($id) {
         $this->last_id = $id;
     }
