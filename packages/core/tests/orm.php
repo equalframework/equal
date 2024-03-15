@@ -331,7 +331,7 @@ $tests = [
                     'expected'          =>  QN_ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('root@host.local', 'secure_password');
+                                                    $providers['auth']->authenticate('root@equal.local', 'secure_password');
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
@@ -347,7 +347,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'arrange'           =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
+                                                    $providers['auth']->authenticate('user@equal.local', 'safe_pass');
                                                     // grant READ operation on all classes
                                                     $providers['access']->grant(QN_R_READ);
 
@@ -363,8 +363,8 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return is_array($result) && count($result) == 2 && (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
-                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result['2'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'user@equal.run'], (array) $result['2'])) == 0
                                                 );
                                             }
                     ),
@@ -389,7 +389,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
                                                 );
                                             }
                     ),
@@ -416,7 +416,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'act'               =>  function () {
                                                 try {
-                                                    $values = User::search(['login', 'like', 'cedric@equal.run'])
+                                                    $values = User::search(['login', 'like', 'user@equal.local'])
                                                               ->read(['login'])
                                                               ->get();
                                                 }
@@ -429,7 +429,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return (
                                                     count($result) &&
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[2])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result[2])) == 0
                                                 );
                                             }
                     ),
@@ -438,7 +438,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'act'               =>  function () {
                                                 try {
-                                                    $values = User::search(['login', '=', 'cedric@equal.run'])
+                                                    $values = User::search(['login', '=', 'user@equal.local'])
                                                               ->read(['login'])
                                                               ->get(true);
                                                 }
@@ -451,7 +451,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return (
                                                     count($result) &&
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[0])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result[0])) == 0
                                                 );
                                             }
                     ),
