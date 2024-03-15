@@ -364,7 +364,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return is_array($result) && count($result) == 2 && (
                                                     count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
-                                                 && count(array_diff(['id' => 2, 'login' => 'user@equal.run'], (array) $result['2'])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result['2'])) == 0
                                                 );
                                             }
                     ),
