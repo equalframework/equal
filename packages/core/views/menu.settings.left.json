@@ -3,6 +3,7 @@
     "access": {
         "groups": ["setting.default.user"]
     },
+    "search": true,
     "layout": {
         "items": [
             {
