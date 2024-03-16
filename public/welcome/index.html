@@ -99,7 +99,7 @@ function addLettersRecursive(container, s) {
             addLettersRecursive(container, s.substr(1)).then(function() {
                     defer.resolve();
                 });
-        }, 100);
+        }, 80);
     }).promise();
 }
 
@@ -137,7 +137,7 @@ $( document ).ready(function() {
         <div style="display: flex; justify-content: space-between; width: 756px;">
             <div style="margin: 10px 20px;"><a href="https://doc.equal.run" target="_blank">Documentation</a></div>
             <div style="margin: 10px;"><a href="https://discord.gg/BNCPYxD9kk" target="_blank">Discord</a></div>
-            <div style="margin: 10px;"><a href="https://github.com/cedricfrancoys/equal" target="_blank">Github</a></div>
+            <div style="margin: 10px;"><a href="https://github.com/equalframework/equal" target="_blank">Github</a></div>
             <div style="margin: 10px;"><a href="https://hub.docker.com/repository/docker/cedricfrancoys/equal" target="_blank">Dockerhub</a></div>
         </div>
     </div>
@@ -148,9 +148,9 @@ $( document ).ready(function() {
 
     <textarea style="display: none;">
 $ ./equal.run --do=init_db
- 
+
 $ ./equal.run --do=init_package --package=core --import=true
- 
+
 $ ./equal.run --get=model_collect --entity='core\User'
 [
     {
@@ -161,7 +161,7 @@ $ ./equal.run --get=model_collect --entity='core\User'
     },
     {
         "id": 2,
-        "name": "cedric@equal.run",
+        "name": "root@equal.run",
         "state": "instance",
         "modified": "2023-07-31T11:13:26+00:00"
     }
