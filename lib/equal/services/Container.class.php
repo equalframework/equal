@@ -64,16 +64,20 @@ class Container extends Service {
 
             if(count($parameters)) {
                 foreach($parameters as $parameter) {
-                    // #deprecated
-                    // $constructor_dependency = $parameter->getClass()->getName();
-                    $constructor_dependency = $parameter->getType()->getName();
-                    // #todo - missing cyclic dependency check
-                    $res = $this->inject($constructor_dependency);
+                    // #memo - ReflectionType::__toString has been deprecated PHP 7.4 and undeprecated in 8.0
+                    /** @var ReflectionType */
+                    $type_name = (string) $parameter->getType();
+                    // ignore scalar types
+                    if(empty($type_name) || in_array($type_name, ['array', 'bool', 'callable', 'float', 'int', 'null', 'object', 'string', 'false', 'iterable', 'mixed', 'never', 'true', 'void'])) {
+                        continue;
+                    }
+                    // #todo - add support for cyclic dependency detection
+                    $res = $this->inject($type_name);
                     if(count($res[1])) {
                         $unresolved_dependencies = array_merge($unresolved_dependencies, $res[1]);
                         continue;
                     }
-                    if($res[0] instanceof $constructor_dependency) {
+                    if($res[0] instanceof $type_name) {
                         $dependencies_instances[] = $res[0];
                     }
                 }
