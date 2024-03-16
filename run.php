@@ -41,10 +41,7 @@ use equal\route\Router;
 
 */
 
-/*
- Load bootstrap library: system constants and functions definitions
- (eQual library allows to include required files and classes)
-*/
+// Bootstrap the library holding system constants and functions definitions and autoload support.
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
 
 if( (include($bootstrap)) === false ) {

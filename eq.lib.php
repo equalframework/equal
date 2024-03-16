@@ -504,12 +504,18 @@ namespace config {
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
                 'cron'      => 'equal\cron\Scheduler',
-                'dispatch'  => 'equal\dispatch\Dispatcher'
+                'dispatch'  => 'equal\dispatch\Dispatcher',
+                'db'        => 'equal\db\DBConnector'
             ]);
 
-            // make sure mandatory dependencies are available (reporter requires context)
             try {
+                // make mandatory dependencies available (reporter requires context)
                 $container->get(['report', 'context']);
+                // register ORM classes auto-loader
+                $om = $container->get('orm');
+                // init collections provider
+                $container->get('equal\orm\Collections');
+                spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
                 // fallback to a manual HTTP 500
@@ -522,17 +528,6 @@ namespace config {
                 // and raise an exception (will be output in PHP error log)
                 throw new \Exception("missing_mandatory_dependency", QN_REPORT_FATAL);
             }
-            // register ORM classes autoloader
-            try {
-                $om = $container->get('orm');
-                // init collections provider
-                $container->get('equal\orm\Collections');
-                spl_autoload_register([$om, 'getModel']);
-            }
-            catch(\Throwable $e) {
-                throw new \Exception("autoload_register_failed", QN_REPORT_FATAL);
-            }
-
         }
 
         public static function getLastContext() {
@@ -1303,7 +1298,7 @@ namespace config {
 
     }
 
-    // Initialize the eQual class for further 'load_class' calls
+    // bootstrap eQual
     eQual::init();
 }
 namespace {
