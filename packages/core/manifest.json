@@ -5,6 +5,19 @@
     "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "depends_on": [],
-    "apps": [ "apps", "auth", "app", "settings","workbench" ],
+    "apps": [ "apps", "auth", "app", "settings", "workbench", "welcome",
+        {
+            "id": "test",
+            "name": "test",
+            "extends": "app",
+            "description": "Test app",
+            "icon": "analytics",
+            "color": "#6C3483",
+            "show_in_apps": true,
+            "access": {
+                "groups": ["users"]
+            }
+        }
+     ],
     "tags": ["equal", "core"]
 }

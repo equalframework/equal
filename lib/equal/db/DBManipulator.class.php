@@ -139,6 +139,7 @@ class DBManipulator {
      * @access   public
      */
     public function connect($auto_select=true) {
+        return $this;
     }
 
     public function select($db_name) {

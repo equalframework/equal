@@ -65,7 +65,7 @@ class DBConnector extends Service {
     }
 
     public function connect($auto_select=true) {
-        return isset($this->connection) && $this->connection->connect($auto_select);
+        return isset($this->connection)?$this->connection->connect($auto_select):false;
     }
 
     public function disconnect() {
