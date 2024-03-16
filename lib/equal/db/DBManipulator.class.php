@@ -6,6 +6,9 @@
 */
 namespace equal\db;
 
+/**
+ * This class is used as abstract class providing members and methods signature for DBManipulator class that extend it.
+ */
 class DBManipulator {
 
     /**
@@ -225,5 +228,35 @@ class DBManipulator {
     protected function setLastQuery($query) {
         $this->last_query = $query;
     }
+
+    /**
+     * Get records from specified table, according to some conditions.
+     *
+     * @param	array   $tables       name of involved tables
+     * @param	array   $fields       list of requested fields
+     * @param	array   $ids          ids to which the selection is limited
+     * @param	array   $conditions   list of arrays (field, operand, value)
+     * @param	string  $id_field     name of the id field ('id' by default)
+     * @param	mixed   $order        string holding name of the order field or maps holding field names as keys and sorting as value
+     * @param	integer $start
+     * @param	integer $limit
+     *
+     * @return	resource              reference to query resource
+     */
+    public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {}
+
+    public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id') {}
+
+    /**
+     * Inserts new records in specified table.
+     *
+     * @param	string $table name of the table in which insert the records
+     * @param	array $fields list of involved fields
+     * @param	array $values array of arrays specifying the values related to each specified field
+     * @return	resource reference to query resource
+     */
+    public function addRecords($table, $fields, $values) {}
+
+    public function deleteRecords($table, $ids, $conditions=null, $id_field='id') {}
 
 }
