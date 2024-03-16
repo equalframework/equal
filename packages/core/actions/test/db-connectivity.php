@@ -4,16 +4,17 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\db\DBConnection;
+use equal\db\DBConnector;
 
 $params = eQual::announce([
-    'description'   => "Tests connectivity to the DBMS server.\nIn case of success, the script simply terminates with a status code of 0 (no output)",
+    'description'   => "Tests connectivity to the DBMS server.\n
+                        In case of success, the script simply terminates with a status code of 0 (no output).",
     'params'        => [],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS']
 ]);
 
 // retrieve connection object
-$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
+$db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
 
 // 1) test access to DBMS service
 if(!$db->canConnect()) {

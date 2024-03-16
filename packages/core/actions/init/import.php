@@ -7,14 +7,12 @@
 */
 use equal\db\DBConnection;
 use equal\db\DBManipulator;
-use equal\db\DBManipulatorMySQL;
-use equal\db\DBManipulatorSQLite;
-use equal\db\DBManipulatorSqlSrv;
+use equal\db\DBConnector;
 
 list($params, $providers) = eQual::announce([
     'description' => 'Import data from a database to eQual database for a given package.',
-    'help'        => 'Needs a configuration file init/import-config.json in the folder of the concerned package.',
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'help'        => 'Needs a configuration file `import-config.json` in the `init` folder of the given package.',
+    'constants'   => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'params'      => [
         'db_dbms' => [
             'type'    => 'string',
@@ -94,18 +92,7 @@ $getImportConfig = function($config_file_path): array {
 };
 
 $createOldDbConnection = function(string $dbms, string $host, int $port, string $name, string $user, string $password, string $charset, string $collation) {
-    $db_manipulator_map = [
-        'MARIADB' => DBManipulatorMySQL::class,
-        'MYSQL'   => DBManipulatorMySQL::class,
-        'SQLSRV'  => DBManipulatorSqlSrv::class,
-        'SQLITE'  => DBManipulatorSQLite::class,
-    ];
-
-    if(!isset($db_manipulator_map[$dbms])) {
-        throw new Exception('DBMS ' . $dbms . ' not handled', QN_ERROR_INVALID_CONFIG);
-    }
-
-    $db_connection = new $db_manipulator_map[$dbms]($host, $port, $name, $user, $password, $charset, $collation);
+    $db_connection = DBConnection::create($dbms,$host, $port, $name, $user, $password, $charset, $collation);
 
     $db_connection->connect();
     if(!$db_connection->connected()) {
@@ -119,11 +106,7 @@ $createOldDbConnection = function(string $dbms, string $host, int $port, string 
 };
 
 $createNewDbConnection = function() {
-    $db_connection = DBConnection::getInstance(
-        constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'),
-        constant('DB_USER'), constant('DB_PASSWORD'),
-        constant('DB_DBMS')
-    );
+    $db_connection = DBConnector::getInstance();
 
     $db_connection->connect();
     if(!$db_connection->connected()) {
@@ -270,18 +253,26 @@ $createNewItemFromOld = function(array $config, DBManipulator $old_db_connection
     return $item;
 };
 
-/** @var $adapter DataAdapter */
+/** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('sql');
 
 $import_config = $getImportConfig(
     QN_BASEDIR . '/packages/' . $params['package'] . '/init/import-config.json'
 );
 
+/** @var DBManipulator */
 $old_db_connection = $createOldDbConnection(
-    $params['db_dbms'], $params['db_host'], $params['db_port'], $params['db_name'],
-    $params['db_user'], $params['db_password'], $params['db_charset'], $params['db_collation']
-);
+        $params['db_dbms'],
+        $params['db_host'],
+        $params['db_port'],
+        $params['db_name'],
+        $params['db_user'],
+        $params['db_password'],
+        $params['db_charset'],
+        $params['db_collation']
+    );
 
+/** @var DBManipulator */
 $new_db_connection = $createNewDbConnection();
 
 $limit = 500;
@@ -307,7 +298,7 @@ foreach($import_config as $config) {
             $limit
         );
 
-        if($res->num_rows < $limit) {
+        if($old_db_connection->getAffectedRows() < $limit) {
             $remaining_data = false;
         }
 

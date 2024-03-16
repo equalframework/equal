@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\db\DBConnection;
+use equal\db\DBConnector;
 
 
 list($params, $providers) = eQual::announce([
@@ -19,14 +19,14 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 eQual::run('do', 'test_db-connectivity');
 
 // create Master database
-$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect(false);
+$db = DBConnector::getInstance()->connect(false);
 $db->createDatabase(constant('DB_NAME'));
 
 // create replica members, if any
 if(defined('DB_REPLICATION') && constant('DB_REPLICATION') != 'NO') {
     $i = 1;
     while(defined('DB_'.$i.'_HOST') && defined('DB_'.$i.'_PORT') && defined('DB_'.$i.'_USER') && defined('DB_'.$i.'_PASSWORD') && defined('DB_'.$i.'_NAME')) {
-        $db = DBConnection::getInstance(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'), constant('DB_DBMS'))->connect(false);
+        $db = DBConnector::getInstance(constant('DB_'.$i.'_HOST'), constant('DB_'.$i.'_PORT'), constant('DB_'.$i.'_NAME'), constant('DB_'.$i.'_USER'), constant('DB_'.$i.'_PASSWORD'), constant('DB_DBMS'))->connect(false);
         $db->createDatabase(constant('DB_'.$i.'_NAME'));
         ++$i;
     }

@@ -7,7 +7,7 @@
 namespace equal\orm;
 
 use equal\organic\Service;
-use equal\db\DBConnection;
+use equal\db\DBConnector;
 use equal\data\DataValidator;
 
 use \Exception as Exception;
@@ -62,8 +62,8 @@ class ObjectManager extends Service {
     private $last_error;
 
     /**
-     * Instance to a DBConnection object
-     * @var DBConnection
+     * DB connector instance
+     * @var DBConnector
      */
     private $db;
 
@@ -170,9 +170,9 @@ class ObjectManager extends Service {
     ];
 
     /**
-     * @param DBConnection $db  Instance of the Service allowing connection to DBMS (connection might not be established yet).
+     * @param DBConnector $db  Instance of the Service allowing connection to DBMS (connection might not be established yet).
      */
-    protected function __construct(DBConnection $db) {
+    protected function __construct(DBConnector $db) {
         $this->db = &$db;
         $this->packages = null;
         $this->cache = [];
@@ -197,7 +197,7 @@ class ObjectManager extends Service {
     }
 
     /**
-     * #todo - deprecate : use the DBConnection service instead
+     * #todo - deprecate : use the DBConnector instead
      * @deprecated
      */
     public function getDB() {
@@ -205,10 +205,10 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Provide the db handler (DBConnection instance).
+     * Provide the db handler (DBConnector instance).
      * If the connection hasn't been established yet, tries to connect to DBMS.
      *
-     * @return DBConnection
+     * @return DBConnector
      */
     private function getDBHandler() {
         // open DB connection, if not connected yet
