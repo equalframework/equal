@@ -155,7 +155,7 @@ class Reporter extends Service {
             'level'         => qn_debug_code_name($code),
             'mode'          => qn_debug_mode_name($mode),
             'class'         => (isset($trace['class']))?$trace['class']:'',
-            'function'      => (isset($trace['function']))?$trace['function']:'',
+            'function'      => (isset($trace['function']))?(strlen($trace['function'])?$trace['function'].'()':'[main]'):'',
             'file'          => (isset($trace['file']))?$trace['file']:'',
             'line'          => (isset($trace['line']))?$trace['line']:'',
             'message'       => $msg,
@@ -226,24 +226,24 @@ class Reporter extends Service {
     }
 
     public function fatal($msg) {
-        $this->log(QN_REPORT_FATAL, $msg, self::getTrace(2));
+        $this->log(QN_REPORT_FATAL, $msg, self::getTrace(1));
         die('fatal_error');
     }
 
     public function error($msg) {
-        $this->log(QN_REPORT_ERROR, $msg, self::getTrace(2));
+        $this->log(QN_REPORT_ERROR, $msg, self::getTrace(1));
     }
 
     public function warning($msg) {
-        $this->log(QN_REPORT_WARNING, $msg, self::getTrace(2));
+        $this->log(QN_REPORT_WARNING, $msg, self::getTrace(1));
     }
 
     public function info($msg) {
-        $this->log(QN_REPORT_INFO, $msg, self::getTrace(2));
+        $this->log(QN_REPORT_INFO, $msg, self::getTrace(1));
     }
 
     public function debug($msg) {
-        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace(2));
+        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace(1));
     }
 
 }
