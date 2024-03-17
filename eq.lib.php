@@ -1079,8 +1079,13 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("API::operation: $type:$operation", QN_REPORT_INFO);
             global $last_context;
+            /** @var \equal\services\Container */
+            $container = Container::getInstance();
+            /** @var \equal\error\Reporter */
+            $reporter = $container->get('report');
+
+            $reporter->info("API::operation: $type:$operation");
 
             $result = '';
             $resolved = [
@@ -1096,7 +1101,6 @@ namespace config {
                 'get'   => ['kind' => 'DATA_PROVIDER',  'dir' => 'data'   ],    // return some data
                 'show'  => ['kind' => 'APPLICATION',    'dir' => 'apps'   ]     // output rendering information (UI)
             ];
-            $container = Container::getInstance();
 
             if(!$root) {
                 $context_orig = $container->get('context');
@@ -1112,9 +1116,6 @@ namespace config {
                 /** @var \equal\php\Context */
                 $context = $container->get('context');
             }
-
-            /** @var \equal\error\Reporter */
-            $reporter = $container->get('report');
 
             $getOperationOutput = function($script) use($context) {
                 ob_start();
