@@ -65,12 +65,13 @@
     },
     "DEBUG_LEVEL": {
         "type": "integer",
-        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file will grow quickly.",
+        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
         "instant": true,
         "default": 0,
         "examples": [
             "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL",
-            "QN_REPORT_SYSTEM"
+            "QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR",
+            "QN_REPORT_DEBUG & E_ALL"
         ]
     },
     "HTTP_REQUEST_TIMEOUT": {
