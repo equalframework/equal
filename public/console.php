@@ -223,7 +223,9 @@ function copy(node) {
                     <option value="SQL" '.((isset($_GET['mode']) && $_GET['mode'] == 'SQL')?'selected':'').'>SQL</option>
                     <option value="ORM" '.((isset($_GET['mode']) && $_GET['mode'] == 'ORM')?'selected':'').'>ORM</option>
                     <option value="API" '.((isset($_GET['mode']) && $_GET['mode'] == 'API')?'selected':'').'>API</option>
-                    <option value="APP" '.((isset($_GET['mode']) && $_GET['mode'] == 'APP')?'selected':'').'>APP</option></select>
+                    <option value="APP" '.((isset($_GET['mode']) && $_GET['mode'] == 'APP')?'selected':'').'>APP</option>
+                    <option value="AAA" '.((isset($_GET['mode']) && $_GET['mode'] == 'AAA')?'selected':'').'>AAA</option>
+                    <option value="NET" '.((isset($_GET['mode']) && $_GET['mode'] == 'NET')?'selected':'').'>NET</option></select>
             </div>
             <div style="display: flex; flex-direction: column;">
                 <label>Keyword:</label>
