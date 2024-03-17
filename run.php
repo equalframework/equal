@@ -212,7 +212,7 @@ catch(Throwable $e) {
         trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?QN_REPORT_WARNING:QN_REPORT_ERROR);
     }
     // store access log
-    Reporter::errorHandler(QN_REPORT_SYSTEM, "NET::".json_encode(['start' => $_SERVER["REQUEST_TIME_FLOAT"], 'end' => microtime(true), 'ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ))]));
+    Reporter::errorHandler(QN_REPORT_SYSTEM, "NET::".json_encode(['error' => ($error_code != 0), 'start' => $_SERVER["REQUEST_TIME_FLOAT"], 'end' => microtime(true), 'ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ))]));
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
        // return an error code (for compliance under CLI environment)
