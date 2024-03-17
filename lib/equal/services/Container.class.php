@@ -66,19 +66,24 @@ class Container extends Service {
                 foreach($parameters as $parameter) {
                     // #memo - ReflectionType::__toString has been deprecated PHP 7.4 and undeprecated in 8.0
                     /** @var ReflectionType */
-                    $type_name = (string) $parameter->getType();
+                    $type_name = @ (string) $parameter->getType();
                     // ignore scalar types
                     if(empty($type_name) || in_array($type_name, ['array', 'bool', 'callable', 'float', 'int', 'null', 'object', 'string', 'false', 'iterable', 'mixed', 'never', 'true', 'void'])) {
                         continue;
                     }
-                    // #todo - add support for cyclic dependency detection
-                    $res = $this->inject($type_name);
-                    if(count($res[1])) {
-                        $unresolved_dependencies = array_merge($unresolved_dependencies, $res[1]);
-                        continue;
+                    if($type_name == 'equal\services\Container') {
+                        $dependencies_instances[] = $this;
                     }
-                    if($res[0] instanceof $type_name) {
-                        $dependencies_instances[] = $res[0];
+                    else {
+                        // #todo - add support for cyclic dependency detection
+                        $res = $this->inject($type_name);
+                        if(count($res[1])) {
+                            $unresolved_dependencies = array_merge($unresolved_dependencies, $res[1]);
+                            continue;
+                        }
+                        if($res[0] instanceof $type_name) {
+                            $dependencies_instances[] = $res[0];
+                        }
                     }
                 }
             }
