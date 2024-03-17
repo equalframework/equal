@@ -16,28 +16,29 @@ class Reporter extends Service {
     private $thread_id;
 
     /**
-     * Constructor defines which methods have to be called when errors and uncaught exceptions occur
+     * Static list of constants required by current provider
      *
      */
+    public static function constants() {
+        return ['DEBUG_MODE', 'DEBUG_LEVEL', 'QN_LOG_STORAGE_DIR', 'QN_REPORT_SYSTEM', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG', 'QN_REPORT_INFO', 'QN_REPORT_DEBUG'];
+    }
+
+    /**
+     * Constructor defines which methods have to be called when errors and uncaught exceptions occur
+     *
+     * Note: $thread_id depends on the current PHP thread.
+     * A same thread can stack several contexts. In the console, logs are grouped based on their thread_id.
+     */
     public function __construct() {
-        // #memo - $thread_id depends on the current PHP thread. A same thread can stack several contexts. In the console, logs are grouped based on their thread_id.
         $this->thread_id = substr(md5(getmypid().';'.hrtime(true)), 0, 8);
         $this->debug_mode  = (defined('DEBUG_MODE'))?constant('DEBUG_MODE'):0;
         $this->debug_level = (defined('DEBUG_LEVEL'))?constant('DEBUG_LEVEL'):0;
-        // ::errorHandler() will deal with error and debug messages depending on debug source value
+        // ::errorHandler() will deal with errors and debug messages depending on debug source value
         ini_set('display_errors', 1);
         // use QN_REPORT_x for reporting, E_ERROR for fatal errors only, E_ALL for all errors
         error_reporting($this->debug_level);
         set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
         set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
-    }
-
-    /**
-     * Static list of constants required by current provider
-     *
-     */
-    public static function constants() {
-        return ['QN_LOG_STORAGE_DIR', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG', 'QN_REPORT_INFO', 'QN_REPORT_DEBUG'];
     }
 
     /**
