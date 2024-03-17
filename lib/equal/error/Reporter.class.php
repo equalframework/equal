@@ -41,8 +41,8 @@ class Reporter extends Service {
     }
 
     /**
-     * Handles uncaught exceptions, which include deliberately triggered fatal-error
-     * In all cases, these are critical errors that cannot be recovered and need an immediate stop (fatal error)
+     * Handles uncaught exceptions, which include deliberately triggered fatal-error.
+     * Uncaught errors imply a critical issue that cannot be recovered and need an immediate stop (fatal error).
      */
     public static function uncaughtExceptionHandler($exception) {
         self::handleThrowable($exception);
@@ -73,8 +73,8 @@ class Reporter extends Service {
     * @param mixed $errcontext
     */
     public static function errorHandler($errno, $errmsg, $errfile='', $errline=0, $errcontext=[]) {
-        // dismiss handler if not required
-        if (!(error_reporting() & $errno)) {
+        // dismiss processing if not required
+        if ($errno > 0 && !(error_reporting() & $errno)) {
             return;
         }
         // adapt error code
@@ -87,8 +87,8 @@ class Reporter extends Service {
             case QN_REPORT_INFO:        // E_USER_NOTICE
             case QN_REPORT_WARNING:     // E_USER_WARNING
             case QN_REPORT_ERROR:       // E_USER_ERROR
-            // #memo - fatal errors always stop the script before reaching this point
             case QN_REPORT_FATAL:       // E_ERROR
+            case QN_REPORT_SYSTEM:      // 0
                 $depth = 2;
                 break;
             // handler was invoked by PHP internals
@@ -121,18 +121,18 @@ class Reporter extends Service {
      * Appends one line to the log file.
      */
     private function log($code, $msg, $trace) {
-        // discard non-applicable log requests
-        if($this->debug_mode == 0 || $this->debug_level == 0 || !($code & $this->debug_level))  {
+        // discard non-applicable log requests, with exception for $code = 0 (system message that must always be logged)
+        if($code > 0 && ($this->debug_mode == 0 || $this->debug_level == 0 || !($code & $this->debug_level)))  {
             return;
         }
         // check reporting mode, if provided
-        $mode = QN_MODE_PHP;
+        $mode = EQ_MODE_PHP;
         if(strpos($msg, '::') == 3) {
             // default to mask QN_MODE_PHP
-            $source = QN_MODE_PHP;
+            $source = $mode;
             $parts = explode('::', $msg, 2);
             if($parts && count($parts) > 1) {
-                $source = (strlen($parts[0]))?('QN_MODE_'.$parts[0]):$source;
+                $source = (strlen($parts[0]))?('EQ_MODE_'.$parts[0]):$source;
                 $msg = $parts[1];
             }
             if(!is_numeric($source) && @constant($source)) {
@@ -141,7 +141,7 @@ class Reporter extends Service {
             $mode = (int) $source;
         }
         // discard non-applicable log requests
-        if(!($this->debug_mode & $mode)) {
+        if($code > 0 && !($this->debug_mode & $mode)) {
             return;
         }
 

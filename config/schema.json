@@ -60,7 +60,7 @@
         "instant": true,
         "default": 0,
         "examples": [
-            "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL | QN_MODE_APP | QN_MODE_API"
+            "QN_MODE_PHP | QN_MODE_ORM | QN_MODE_SQL | QN_MODE_APP | QN_MODE_API | QN_MODE_AAA | QN_MODE_NET"
         ]
     },
     "DEBUG_LEVEL": {
@@ -69,7 +69,8 @@
         "instant": true,
         "default": 0,
         "examples": [
-            "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL"
+            "QN_REPORT_DEBUG | QN_REPORT_INFO | QN_REPORT_WARNING | QN_REPORT_ERROR | QN_REPORT_FATAL",
+            "QN_REPORT_SYSTEM"
         ]
     },
     "HTTP_REQUEST_TIMEOUT": {
