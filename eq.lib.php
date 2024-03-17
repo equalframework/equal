@@ -1079,7 +1079,7 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("API::operation: $type:$operation", QN_REPORT_DEBUG);
+            trigger_error("API::operation: $type:$operation", QN_REPORT_INFO);
             global $last_context;
 
             $result = '';
