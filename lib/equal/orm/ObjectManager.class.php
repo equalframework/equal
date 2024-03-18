@@ -2416,7 +2416,7 @@ class ObjectManager extends Service {
 
             $table_name = $this->getObjectTableName($class);
 
-            // we use a nested closure to define a function that stores original table names and returns corresponding aliases
+            // use nested closure to store original table names and return corresponding aliases
             $add_table = function ($table_name) use (&$tables) {
                 if(in_array($table_name, $tables)) {
                     return array_search($table_name, $tables);
@@ -2644,11 +2644,15 @@ class ObjectManager extends Service {
                     if($schema[$sort_field]['type'] == 'many2one' || (isset($schema[$sort_field]['result_type']) && $schema[$sort_field]['result_type'] == 'many2one') ) {
                         $related_table = $this->getObjectTableName($schema[$sort_field]['foreign_object']);
                         $related_table_alias = $add_table($related_table);
-                        $select_fields[] = $related_table_alias.'.name';
+                        $related_schema = $this->getObjectSchema($schema[$sort_field]['foreign_object']);
                         // #todo - shouldn't this condition be added to all clauses?
                         $conditions[0][] = array($table_alias.'.'.$sort_field, '=', '`'.$related_table_alias.'.id'.'`');
                         $order_table_alias = $related_table_alias;
                         $sort_field = 'name';
+                        while($related_schema[$sort_field]['type'] == 'alias') {
+                            $sort_field = $related_schema[$sort_field]['alias'];
+                        }
+                        $select_fields[] = $related_table_alias.'.'.$sort_field;
                     }
                     else {
                         $select_fields[] = $table_alias.'.'.$sort_field;
