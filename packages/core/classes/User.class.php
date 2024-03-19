@@ -104,8 +104,6 @@ class User extends Model {
                 'invalid_email' => [
                     'message'       => 'Login must be a valid email address.',
                     'function'      => function ($login, $values) {
-                        // an exception for admin
-                        if($login == 'admin') return true;
                         return (bool) (preg_match('/^([_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $login));
                     }
                 ]

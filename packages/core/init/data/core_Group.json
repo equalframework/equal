@@ -5,7 +5,7 @@
         "data": [
             {
                 "id": 1,
-                "name": "admin",
+                "name": "admins",
                 "display_name": "Administrators",
                 "description": "Group for users with admin privileges.",
                 "users_ids": [
