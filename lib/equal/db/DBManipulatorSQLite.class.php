@@ -65,11 +65,13 @@ final class DBManipulatorSQLite extends DBManipulator {
         // by convention the DB file is the given DB_NAME with `.db` suffix
         $db_file = QN_BASEDIR.'/bin/'.$this->db_name.'.db';
 
-        $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
-
         if(!file_exists($db_file)) {
             return false;
         }
+
+        $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
+        // make sure PHP process waits when an exclusive transaction is pending
+        $this->dbms_handler->busyTimeout(3000);
 
         return $this;
     }
@@ -529,6 +531,18 @@ final class DBManipulatorSQLite extends DBManipulator {
         $sql = 'DELETE FROM `'.$table.'`';
         // where clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
+        return $this->sendQuery($sql);
+    }
+
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     *
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $sql = 'BEGIN EXCLUSIVE TRANSACTION;';
+        $sql .= "UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");";
+        $sql .= 'COMMIT TRANSACTION;';
+        $sql .= "SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");";
         return $this->sendQuery($sql);
     }
 

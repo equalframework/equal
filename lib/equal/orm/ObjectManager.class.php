@@ -2234,6 +2234,50 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Increment the field of an object by a given increment (integer value).
+     *
+     * note : We use this nomenclature because it has a recognized semantics and equivalence in many programming languages.
+     *
+     * @param   string    $class            Class name of the object to clone.
+     * @param   array     $ids              Array of ids of the objects to update.
+     * @param   string    $field            Name of the field to increment (must have a numeric type).
+     * @param   integer   $increment        Value by witch increment the field (positive or negative).
+     *
+     * @return  int|array Returns an array of updated ids, or an error identifier in case an error occurred.
+     */
+    public function fetchAndAdd($class, $ids, $field, $increment) {
+        $result = [];
+        $db = $this->getDBHandler();
+        try {
+            // get static instance (checks that given class exists)
+            $object = $this->getStaticInstance($class);
+            // retrieve schema
+            $schema = $object->getSchema();
+            // make sure that the targeted field exists and has a numeric type
+            if(!isset($schema[$field])) {
+                throw new Exception('unknown_field', EQ_ERROR_INVALID_PARAM);
+            }
+            if(!in_array($schema[$field]['type'], ['integer', 'float'])) {
+                throw new Exception('non_numeric_field', EQ_ERROR_INVALID_PARAM);
+            }
+            $table_name = $this->getObjectTableName($class);
+            // increment the field as an atomic operation
+            $res = $db->incRecords($table_name, $ids, $field, $increment);
+            // #todo - returned values must be similar to a
+            while ($row = $db->fetchArray($res)) {
+                // maintain ids order provided by the SQL sort
+                $result[$row['id']] = $row[$field];
+            }
+        }
+        catch(Exception $e) {
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
+            $this->last_error = $e->getMessage();
+            $result = $e->getCode();
+        }
+        return $result;
+    }
+
+    /**
      * Returns applicable transitions based on a list of updated fields, according to the dependencies defined in the related workflow descriptors.
      * If no workflow is defined for the given class, an empty array is returned.
      *

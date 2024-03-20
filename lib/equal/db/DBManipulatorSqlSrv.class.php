@@ -288,7 +288,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
                 foreach($this->members as $member) {
                     $member->sendQuery($query);
                 }
-                if($sql_operation =='insert') {
+                if($sql_operation == 'insert') {
                     if($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
                         $this->setLastId($row['id']);
                     }
@@ -329,13 +329,13 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         if(gettype($value) == 'string' && strlen($value) == 0) {
             $result = "''";
         }
-        else if(in_array(gettype($value), ['integer', 'double'])) {
+        elseif(in_array(gettype($value), ['integer', 'double'])) {
             $result = $value;
         }
-        else if(gettype($value) == 'boolean') {
+        elseif(gettype($value) == 'boolean') {
             $result = ($value)?'1':'0';
         }
-        else if(is_null($value)) {
+        elseif(is_null($value)) {
             $result = 'NULL';
         }
         else {
@@ -525,6 +525,20 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         // WHERE clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
         return $this->sendQuery($sql, 'delete');
+    }
+
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     *
+     * For unknown reason, if the select is done after the update, no result set is returned.
+     * That is why we compute the expected result in the first select statement, marked with TABLOCKX to make sure the server locks the table before updating it.
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $sql = 'BEGIN TRANSACTION;';
+        $sql .= "SELECT [{$id_field}], ([{$field}] + $increment) as $field FROM [{$table}] WITH (TABLOCKX) WHERE [{$id_field}] in (".implode(',', $ids).");";
+        $sql .= "UPDATE [{$table}] SET [{$field}] = [{$field}] + $increment WHERE [{$id_field}] in (".implode(',', $ids).");";
+        $sql .= 'COMMIT;';
+        return $this->sendQuery($sql, 'update');
     }
 
 }

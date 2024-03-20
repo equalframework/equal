@@ -420,7 +420,7 @@ final class DBManipulatorMySQL extends DBManipulator {
 
         // test values and types
         if(empty($tables)) {
-            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'tables' array is empty.", QN_ERROR_SQL);
+            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'tables' is empty.", QN_ERROR_SQL);
         }
         /* irrelevant
         if(!empty($fields) && !is_array($fields)) throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' is not an array.", QN_ERROR_SQL);
@@ -520,4 +520,18 @@ final class DBManipulatorMySQL extends DBManipulator {
         return $this->sendQuery($sql);
     }
 
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     *
+     * MySQL requires multi queries to support a single input with instructions separator.
+     * So we use LOCK TABLES and UNLOCK TABLES to make sure no change occurs between update and read.
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $res = null;
+        $this->sendQuery('LOCK TABLES `'.$table.'` WRITE;');
+        $this->sendQuery("UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");");
+        $res = $this->sendQuery("SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");");
+        $this->sendQuery('UNLOCK TABLES;');
+        return $res;
+    }
 }
