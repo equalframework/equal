@@ -296,7 +296,7 @@ foreach($map_threads as $thread => $lines) {
             continue;
         }
         $lcode = $map_codes[$line['level']];
-        if($lcode < $code) {
+        if($lcode && $lcode < $code) {
             $code = $lcode;
         }
     }
