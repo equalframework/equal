@@ -101,9 +101,9 @@ if(!isset($view_schema['layout']['items'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
+// #todo - add support for group_by directive
 $group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
 
-// #todo - add support for group_by directive
 $view_fields = [];
 foreach($view_schema['layout']['items'] as $item) {
     if(isset($item['type']) && isset($item['value']) && $item['type'] == 'field') {
@@ -117,7 +117,14 @@ $fields_to_read = [];
 foreach($view_fields as $item) {
     $field =  $item['value'];
     $descr = $schema[$field];
-    if($descr['type'] == 'many2one') {
+
+    $type = $descr['type'];
+    // #todo - handle 'alias'
+    if($type == 'computed') {
+        $type = $descr['result_type'];
+    }
+
+    if($type == 'many2one') {
         $fields_to_read[$field] = ['id', 'name'];
     }
     else {
@@ -138,6 +145,16 @@ if($is_controller_entity) {
             $values[$index][$field] = $adapter->adapt($value, $schema[$field]['type']);
         }
     }
+    // #memo - while group_by is not supported
+    $order = (isset($params['params']['order']))?$params['params']['order']:'id';
+    $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+
+    usort($values, function ($a, $b) use ($order, $sort) {
+        if($sort == 'asc') {
+            return strcmp($a[$order], $b[$order]);
+        }
+        return strcmp($b[$order], $a[$order]);
+    });
 }
 // entity is a Model
 else {
