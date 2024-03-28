@@ -32,9 +32,22 @@ if(isset($_GET['mode']) && $_GET['mode'] == '') {
 if(isset($_GET['date']) && $_GET['date'] == '') {
     unset($_GET['date']);
 }
+if(isset($_GET['empty-file']) && $_GET['empty-file'] == '') {
+    unset($_GET['empty-file']);
+}
 
 $lines = [];
 if(file_exists('../log/'.$log_file)) {
+
+    if(isset($_GET['empty-file']) && $_GET['empty-file'] === 'on') {
+        $f = fopen('../log/'.$log_file,"r+");
+        ftruncate($f, 0);
+        fclose($f);
+
+        header("Location: console.php");
+        die();
+    }
+
     // read raw data from log file
 
     $f = fopen('../log/'.$log_file,"r");
@@ -233,7 +246,12 @@ function copy(node) {
             </div>
             <div style="display: flex; flex-direction: column;">
                 <label>Date:</label>
-                <input style="height: 33px; margin-right: 25px;" name="date" type="date" value="'.(isset($_GET['date'])?$_GET['date']:'').'">
+                <input style="height: 33px;" name="date" type="date" value="'.(isset($_GET['date'])?$_GET['date']:'').'">
+            </div>
+            <div style="display: flex; flex-direction: column; height: 30px; margin-left: 10px; margin-right: 25px;">
+                <div style="display: flex;">
+                    <input type="checkbox" name="empty-file"> <span style="margin-left: 5px">Empty file</span>
+                </div>
             </div>
             <div style="display: flex; flex-direction: column;">
                 <button type="submit" class="btn btn-info">Filter</button>
