@@ -1,6 +1,6 @@
 {
     "name": "User",
-    "description": "Simple form for displaying User",
+    "description": "Basic form for displaying User.",
     "layout": {
         "groups": [
             {
