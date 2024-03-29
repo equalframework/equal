@@ -155,13 +155,13 @@ $ ./equal.run --get=model_collect --entity='core\User'
 [
     {
         "id": 1,
-        "name": "root@host.local",
+        "name": "root@equal.local",
         "state": "instance",
         "modified": "2023-07-31T09:01:09+00:00"
     },
     {
         "id": 2,
-        "name": "root@equal.run",
+        "name": "user@equal.local",
         "state": "instance",
         "modified": "2023-07-31T11:13:26+00:00"
     }
@@ -169,8 +169,8 @@ $ ./equal.run --get=model_collect --entity='core\User'
 $ ./equal.run --get=model_read --entity='core\User' --ids=[2] --fields='{firstname,lastname,groups_ids:{id,name}}'
 [
     {
-        "firstname": "C\u00e9dric",
-        "lastname": "Fran\u00e7oys",
+        "firstname": "First",
+        "lastname": "USER",
         "groups_ids": [
             {
                 "id": 2,
@@ -179,7 +179,7 @@ $ ./equal.run --get=model_read --entity='core\User' --ids=[2] --fields='{firstna
                 "modified": "2023-07-31T00:00:00+00:00"
             }
         ],
-        "name": "cedric@equal.run",
+        "name": "user@equal.local",
         "id": 2,
         "state": "instance",
         "modified": "2023-07-31T11:13:26+00:00"
