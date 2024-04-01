@@ -13,9 +13,9 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Type of the UML data',
             'type'          => 'string',
             'selection'     => [
-                'or'
+                'erd'
             ]
-        ]     
+        ]
     ],
     'providers'     => ['context', 'orm']
 ]);
@@ -26,12 +26,12 @@ list($params, $providers) = eQual::announce([
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-$packages = eQual::run('get','core_config_packages',[]);
+$packages = eQual::run('get','core_config_packages', []);
 
 $result = [];
 
 foreach($packages as $package) {
-    $result[$package] = recurse_dir(QN_BASEDIR."/packages/{$package}/uml","equml",$params['type']);
+    $result[$package] = recurse_dir(QN_BASEDIR."/packages/{$package}/uml", "json", $params['type']);
 }
 
 $context->httpResponse()
@@ -60,7 +60,7 @@ function endsWith( $haystack, $needle ) {
 }
 
 /**
- * #memo - this method highily differs from the one in controllers.php , translations.php and menu.php
+ * #memo - this method highly differs from the one in controllers.php , translations.php and menu.php
 */
 function recurse_dir($directory, $extension,$type,$parent_name='') {
     $result = array();

@@ -9,7 +9,7 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ],
         'path' =>  [
-            'decription'    => 'relative path to the file from packages/{pkg}/',
+            'description'    => 'relative path to the file from packages/{pkg}/',
             'type'          => 'string',
             'required'      => true
         ],
@@ -23,7 +23,7 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true,
             'selection'     => [
-                'or'
+                'erd'
             ]
         ]
     ],
@@ -68,13 +68,13 @@ $path = str_replace("..","",$path);
 
 $str_payload =$params['payload'];
 
-if(!endsWith($filename,".{$params["type"]}.equml")) {
-    $filename = $filename.".{$params["type"]}.equml";
+if(!endsWith($filename,".{$params["type"]}.json")) {
+    $filename = $filename.".{$params["type"]}.json";
 }
 
 if(!is_dir(QN_BASEDIR."/packages/{$package}/uml/{$path}")) {
     $response_code = 201;
-    if(!mkdir(QN_BASEDIR."/packages/{$package}/uml/{$path}",0775,true)) {
+    if(!mkdir(QN_BASEDIR."/packages/{$package}/uml/{$path}", 0775, true)) {
         throw new Exception('io_error'.QN_BASEDIR."/packages/{$package}/uml/{$path}", QN_ERROR_INVALID_CONFIG);
     }
 }
@@ -82,11 +82,13 @@ if(!is_dir(QN_BASEDIR."/packages/{$package}/uml/{$path}")) {
 if($response_code === 200 && !file_exists(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}")) {
     $response_code = 201;
 }
-// Create file
+
+// create file
 $f = fopen(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}","w");
 if(!$f) {
     throw new Exception('io_error', QN_ERROR_INVALID_CONFIG);
 }
+
 fputs($f,$str_payload);
 fclose($f);
 
@@ -95,7 +97,7 @@ $result = file_get_contents(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filen
 $context->httpResponse()
         ->body($result)
         ->status($response_code)
-        ->send(); 
+        ->send();
 
 function endsWith( $haystack, $needle ) {
     $length = strlen( $needle );
