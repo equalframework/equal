@@ -1205,6 +1205,7 @@ class ObjectManager extends Service {
     /**
      * Checks whether a set of values is valid according to given class definition.
      * This is done using the class validation method.
+     * Relations consistency check (verifying that targeted object(s) actually exist) is not performed here.
      *
      * Result example:
      *           "INVALID_PARAM": {
@@ -1216,16 +1217,16 @@ class ObjectManager extends Service {
      * @param   string          $class          Entity name.
      * @param   array           $ids            Array of objects identifiers.
      * @param   array           $values         Associative array mapping fields names with values to be assigned to the object(s).
-     * @param   boolean         $check_unique   Request check for unicity constraints (related to getUnique method).
+     * @param   boolean         $check_unique   Request check for unique constraints (related to getUnique method).
      * @param   boolean         $check_required Request check for required fields (and _self constraints).
+     *
      * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
      *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
-        // #todo : check relational fields consistency (make sure that target object(s) actually exist)
-
         $res = [];
 
+        /** @var \equal\orm\Model */
         $model = $this->getStaticInstance($class);
         $schema = $model->getSchema();
 
@@ -1251,109 +1252,54 @@ class ObjectManager extends Service {
          * 2) MODEL constraint check
          */
 
-
-        //     // #todo
-        //     // check constraints implied by type and usage
-        //     foreach($values as $field => $value) {
-        //         /** @var \equal\orm\Field */
-        //         $f = $model->getField($class);
-        //         $usage = $f->getUsage();
-        //         $constraints = $f->getConstraints();
-        //         foreach($constraints as $error_id => $constraint) {
-        //             if(!isset($constraint['function'])) {
-        //                 continue;
-        //             }
-        //             $fn = $constraint['function'];
-        //             if(is_callable($fn)) {
-        //                 $fn->bindTo($usage);
-        //                 if(!call_user_func($fn, $value)) {
-        //                     $res[$field][$error_id] = $constraint['message'];
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        //     // + support $model->getConstraints()
-
-
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
-
+        // append constraints implied by type and usage
         foreach($values as $field => $value) {
-            // add constraints based on field type : check that given value is not bigger than related DBMS column capacity
-            if(isset($schema[$field]['type'])) {
-                $type = $schema[$field]['type'];
-                // adapt type based on usage
-                if(isset($schema[$field]['usage'])) {
-                    switch($schema[$field]['usage']) {
-                        // #todo - continue this list
-                        case 'text':
-                        case 'text/plain':
-                        case 'text/json':
-                        case 'text/html':
-                        case 'text/json':
-                            $type = 'text';
-                            break;
-                    }
+            $f = $model->getField($field);
+            foreach($f->getConstraints() as $error_id => $constraint) {
+                if(!isset($constraint['function'])) {
+                    continue;
                 }
-                switch($type) {
-                    case 'string':
-                        $constraints[$field]['size_overflow'] = [
-                            'message'     => 'String length must be maximum 255 chars.',
-                            'function'    => function($val, $obj) {return (strlen($val) <= 255);}
+                if(is_callable($constraint['function'])) {
+                    $closure = \Closure::fromCallable($constraint['function']);
+                    $closure->bindTo($f->getUsage());
+                    if(!isset($constraints[$field])) {
+                        $constraints[$field] = [];
+                    }
+                    $constraints[$field][$error_id] = [
+                            'message'   => $constraint['message'],
+                            'function'  => $closure
                         ];
-                        break;
-                    case 'text':
-                        $constraints[$field]['size_overflow'] = [
-                            'message'     => 'String length must be maximum 65,535 chars.',
-                            'function'    => function($val, $obj) {return (strlen($val) <= 65535);}
-                        ];
-                        break;
-                    case 'file':
-                    case 'binary':
-                        $constraints[$field]['size_overflow'] = [
-                            'message'     => 'String length must be maximum '.constant('UPLOAD_MAX_FILE_SIZE').' chars.',
-                            'function'    => function($val, $obj) {return (strlen($val) <= constant('UPLOAD_MAX_FILE_SIZE'));}
-                        ];
-                        break;
                 }
             }
-            // add constraints based on `usage` attribute
-            if(isset($schema[$field]['usage']) && !empty($value)) {
-                $constraint = DataValidator::getConstraintFromUsage($schema[$field]['usage']);
-                $constraints[$field]['type_misuse'] = [
-                    'message'     => "Value [$value] does not comply with usage '{$schema[$field]['usage']}'.",
-                    'function'    => $constraint['rule']
-                ];
+        }
+        // check constraints
+        foreach($values as $field => $value) {
+            if(!isset($constraints[$field]) || empty($constraints[$field])) {
+                // ignore fields with no constraints
+                continue;
             }
-            // add constraints based on `required` attribute
-            /*
-            // #memo - has no effect
-            if(isset($schema[$field]['required']) && $schema[$field]['required']) {
-                $constraints[$field]['missing_mandatory'] = [
-                    'message'     => 'Missing mandatory value.',
-                    'function'    => function($a) { return (isset($a) && (!is_string($a) || !empty($a))); }
-                ];
+            if($value === null) {
+                // all fields can be reset to null
+                continue;
             }
-            */
-            // check constraints
-            if(isset($constraints[$field])) {
-                foreach($constraints[$field] as $error_id => $constraint) {
-                    if(isset($constraint['function']) ) {
-                        $validation_func = $constraint['function'];
-                        // #todo - use a single arg (validation should be independent from context, otherwise use cancreate/canupdate)
-                        if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
-                            if(!isset($constraint['message'])) {
-                                $constraint['message'] = 'Invalid field.';
-                            }
-                            trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_DEBUG);
-                            $error_code = QN_ERROR_INVALID_PARAM;
-                            if(!isset($res[$field])) {
-                                $res[$field] = [];
-                            }
-                            $res[$field][$error_id] = $constraint['message'];
-                        }
+            foreach($constraints[$field] as $error_id => $constraint) {
+                if(!isset($constraint['function']) ) {
+                    continue;
+                }
+                $validation_func = $constraint['function'];
+                // #todo - use a single arg (validation should be independent from context, otherwise use cancreate/canupdate)
+                if(is_callable($validation_func) && !call_user_func($validation_func, $value, $values)) {
+                    if(!isset($constraint['message'])) {
+                        $constraint['message'] = 'Invalid field.';
                     }
+                    trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                    $error_code = QN_ERROR_INVALID_PARAM;
+                    if(!isset($res[$field])) {
+                        $res[$field] = [];
+                    }
+                    $res[$field][$error_id] = $constraint['message'];
                 }
             }
         }
@@ -1843,6 +1789,7 @@ class ObjectManager extends Service {
             }
 
             // get static instance (check that given class exists)
+            /** @var \equal\orm\Model */
             $model = $this->getStaticInstance($class);
             $schema = $model->getSchema();
             // retrieve name of the DB table associated with the class
@@ -1968,7 +1915,6 @@ class ObjectManager extends Service {
             foreach($map_dot_fields as $field => $sub_fields) {
                 foreach($sub_fields as $sub_path) {
                     // retrieve final type of targeted field
-                    /** @var \equal\orm\Field */
                     $f = $model->getField($field);
                     $descriptor = $f->getDescriptor();
                     if(!$descriptor || !isset($descriptor['result_type']) || !isset($descriptor['foreign_object'])) {
