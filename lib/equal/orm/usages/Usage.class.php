@@ -53,8 +53,8 @@ class Usage {
 
     /**
      * Return the constraints descriptors, according to the Usage instance.
-     * `function` properties returned by this method expect a non-static context.
-     * Using the ORM, those callbacks are bound to a Usage instance using `bindTo()`.
+     * Since `function` properties returned by this method expect a non-static context,
+     * using the ORM, those callbacks are bound to a Usage instance using `bindTo()`.
      */
     public function getConstraints(): array {
         return [];
