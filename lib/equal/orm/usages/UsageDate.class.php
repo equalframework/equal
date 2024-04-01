@@ -30,7 +30,7 @@ class UsageDate extends Usage {
             case 'day':
                 return [
                     'invalid_amount' => [
-                        'message'   => 'Malformed amount or size overflow.',
+                        'message'   => 'Malformed day value.',
                         'function'  =>  function($value) {
                             // 2 digits, from 1 to 31
                             return ($value >= 0 && $value <= 31);
@@ -40,7 +40,7 @@ class UsageDate extends Usage {
             case 'month':
                 return [
                     'invalid_amount' => [
-                        'message'   => 'Malformed amount or size overflow.',
+                        'message'   => 'Malformed month value.',
                         'function'  =>  function($value) {
                             // 2 digits, from 1 to 12
                             return ($value >= 0 && $value <= 12);
@@ -50,7 +50,7 @@ class UsageDate extends Usage {
             case 'year':
                 return [
                     'invalid_amount' => [
-                        'message'   => 'Malformed amount or size overflow.',
+                        'message'   => 'Malformed year value.',
                         'function'  =>  function($value) {
                             // 4 digits, from 0 to 9999
                             return ($value >= 0 && $value <= 9999);
