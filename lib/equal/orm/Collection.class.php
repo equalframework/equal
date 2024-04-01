@@ -665,10 +665,10 @@ class Collection implements \Iterator, \Countable {
             $requested_fields = [];
 
             // 'id': we might access an object directly by giving its `id`.
-            // 'state': the state of the object is provided for concurrency control (check that a draft object is not validated twice).
-            // 'deleted': since some objects might have been soft-deleted we need to load the `deleted` state in order to know if object needs to be in the result set or not.
-            // 'modified': the last update timestamp is always provided. At update, if modified is provided, it is compared to the current timestamp to detect concurrent changes.
-            // #memo - we cannot add 'name' by default since it might be a computed field (that could lead to a circular dependency)
+            // 'state': the state of the object is provided for concurrency control (check that a draft object is not instantiated twice).
+            // 'deleted': since some objects might have been soft-deleted, we need to load the `deleted` state in order to know if object needs to be in the result set or not.
+            // 'modified': the last update timestamp is always provided. At update, if `modified` is provided, it is compared to the current timestamp to detect concurrent changes.
+            // #memo - we cannot add 'name' by default since it might be (an alias to) a computed field (that could lead to a circular dependency)
             $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
 
             foreach($fields as $key => $val ) {
@@ -737,16 +737,19 @@ class Collection implements \Iterator, \Countable {
                 if(is_numeric($field)) {
                     continue;
                 }
-                // we accept single value as subfields
+                // accept both array or single value as subfields
                 $subfields = (array) $subfields;
                 // #memo - using Field object guarantees support for `alias` and `computed` fields
                 $targetField = $this->model->getField($field);
-                $target = $targetField->getDescriptor();
-
-                $target_type = (isset($target['result_type']))?$target['result_type']:$target['type'];
-                if(!in_array($target_type, ['one2many', 'many2one', 'many2many'])) {
+                if(!$targetField) {
                     continue;
                 }
+                $target = $targetField->getDescriptor();
+
+                if(!in_array($target['result_type'], ['one2many', 'many2one', 'many2many'])) {
+                    continue;
+                }
+
                 $children_ids = [];
                 foreach($this->objects as $object) {
                     foreach((array) $object[$field] as $oid) {
@@ -763,8 +766,8 @@ class Collection implements \Iterator, \Countable {
                 foreach($this->objects as $id => $object) {
                     /** @var Collection */
                     $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang)?$lang:$this->lang);
-                    if($target_type == 'many2one') {
-                        // #memo - result might be null or an Object (that might contain sub-collections)
+                    if($target['result_type'] == 'many2one') {
+                        // #memo - result might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
