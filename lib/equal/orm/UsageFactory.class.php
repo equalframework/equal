@@ -77,10 +77,13 @@ class UsageFactory {
             // datetime usages
             case 'date':
                 $usageInstance = new UsageDate($usage);
+                break;
             case 'time':
                 $usageInstance = new UsageTime($usage);
+                break;
             case 'email':
                 $usageInstance = new UsageEmail($usage);
+                break;
             case 'hash':
                 break;
             // binary usages
