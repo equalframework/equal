@@ -230,9 +230,9 @@ class User extends Model {
      */
     public static function onupdatePassword($om, $ids, $values, $lang) {
         $values = $om->read(self::getType(), $ids, ['password']);
-        foreach($values as $oid => $odata) {
-            if(substr($odata['password'], 0, 4) != '$2y$') {
-                $om->update(self::getType(), $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
+        foreach($values as $id => $user) {
+            if(substr($user['password'], 0, 4) != '$2y$') {
+                $om->update(self::getType(), $id, ['password' => password_hash($user['password'], PASSWORD_BCRYPT)]);
             }
         }
     }
