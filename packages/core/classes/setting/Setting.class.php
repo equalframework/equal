@@ -157,12 +157,12 @@ class Setting extends Model {
         }
     }
 
-    public static function calcSection($om, $oids, $lang) {
+    public static function calcSection($om, $ids, $lang) {
         $result = [];
-        $settings = $om->read(self::getType(), $oids, ['section_id.code'], $lang);
+        $settings = $om->read(self::getType(), $ids, ['section_id.code'], $lang);
         if($settings > 0 && count($settings)) {
-            foreach($settings as $oid => $odata) {
-                $result[$oid] = $odata['section_id.code'];
+            foreach($settings as $id => $setting) {
+                $result[$id] = $setting['section_id.code'];
             }
         }
         return $result;
