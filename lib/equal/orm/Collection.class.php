@@ -386,14 +386,14 @@ class Collection implements \Iterator, \Countable {
      * @throws  Exception   if some value could not be validated against class constraints (see {class}::getConstraints method)
      */
     private function validate(array $fields, $ids=[], $check_unique=false, $check_required=false) {
-        $validation = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
-        if($validation < 0 || count($validation)) {
-            foreach($validation as $error_code => $error_descr) {
-                if(is_array($error_descr)) {
-                    $error_descr = serialize($error_descr);
+        $errors = $this->orm->validate($this->class, $ids, $fields, $check_unique, $check_required);
+        if(count($errors)) {
+            foreach($errors as $error_id => $description) {
+                if(is_array($description)) {
+                    $description = serialize($description);
                 }
                 // send error using the same format as the announce method
-                throw new \Exception($error_descr, (int) $error_code);
+                throw new \Exception($description, (int) $error_id);
             }
         }
     }
