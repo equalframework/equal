@@ -45,10 +45,7 @@ class UsageAmount extends Usage {
                         case 'money':
                         case 'percent':
                         case 'rate':
-                            if(preg_match('/^[+-]?[0-9]{0,9}(\.[0-9]{0,'.$scale.'})?$/', (string) $value)) {
-                                return false;
-                            }
-                            break;
+                            return preg_match('/^[+-]?[0-9]{0,9}(\.[0-9]{0,'.$scale.'})?$/', (string) $value);
                     }
                     return true;
                 }
