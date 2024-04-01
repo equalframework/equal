@@ -13,7 +13,7 @@ $providers = eQual::inject(['context', 'orm', 'auth', 'access']);
 
 $tests = [
     '40101' => [
-            'description'       =>  "Retrieve sub-object using dot notation with ORM::read.",
+            'description'       =>  "Retrieve sub-object using dot notation with ORM::read (with recursion).",
             'act'               =>  function () use ($providers) {
                     $orm = $providers['orm'];
                     $res = $orm->read('core\User', QN_ROOT_USER_ID, ['name', 'groups_ids.name', 'groups_ids.id', 'groups_ids.users_ids.name']);
