@@ -58,6 +58,8 @@ class Reporter extends Service {
         $backtrace = $exception->getTrace();
         if(count($backtrace)) {
             $trace = array_shift($backtrace);
+            $trace['file'] = $exception->getFile();
+            $trace['line'] = $exception->getLine();
             $trace['stack'] = $backtrace;
             $instance->log(QN_REPORT_ERROR, $msg, $trace);
         }
