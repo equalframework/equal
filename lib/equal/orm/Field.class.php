@@ -12,7 +12,9 @@ use equal\orm\usages\Usage;
 class Field {
 
     /**
-     * Descriptor of the field, as returned by Model::getColumns()
+     * Descriptor of the field.
+     * In addition to properties from `Model::getColumns()`, `Field::descriptor` always as a `result_type` property.
+     *
      * @var array
      */
     private $descriptor = [];
@@ -30,10 +32,13 @@ class Field {
      * @param array $descriptor Associative array mapping field properties and their values.
      */
     public function __construct(array $descriptor) {
-        // store original descriptor
-        $this->descriptor = $descriptor;
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
+        }
+        $this->descriptor = $descriptor;
+        // ensure local descriptor always has a result_type property
+        if(!isset($descriptor['result_type'])) {
+            $this->descriptor['result_type'] = $this->type;
         }
     }
 
