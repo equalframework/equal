@@ -1543,7 +1543,6 @@ class ObjectManager extends Service {
             /** @var \equal\data\adapt\DataAdapterProvider */
             $dap = $this->container->get('adapt');
             foreach($creation_array as $field => $value) {
-                /** @var \equal\data\adapt\DataAdapter */
                 $adapter = $dap->get('sql');
                 $f = new Field($schema[$field]);
                 // adapt value to SQL
@@ -1876,7 +1875,7 @@ class ObjectManager extends Service {
                 // handle fields with 'dot' notation
                 if(strpos($field, '.') > 0) {
                     $dot_fields[] = $field;
-                    // drop dot fields (they will be handled later on)
+                    // drop dot fields (they are handled in dedicated step)
                     unset($fields[$key]);
                 }
                 // invalid field
@@ -1949,42 +1948,56 @@ class ObjectManager extends Service {
 
             // 5) handle dot fields
 
-            foreach($dot_fields as $field) {
+            // create a map associating fields with all subfields
+            $map_dot_fields = [];
+            foreach($dot_fields as $path) {
                 // extract sub field and remainder
-                $parts = explode('.', $field, 2);
+                $parts = explode('.', $path, 2);
                 // left side of the first dot
-                $path_field = $parts[0];
-                // #todo - use getField
-                // retrieve final type of targeted field
-                $field_type = $this->getFinalType($class, $path_field);
-                // ignore non-relational fields
-                if(!$field_type || !in_array($field_type, ['many2one', 'one2many', 'many2many'])) {
-                    continue;
+                $field = $parts[0];
+                if(!isset($map_dot_fields[$field])) {
+                    $map_dot_fields[$field] = [];
                 }
-                // read the field values
-                $values = $this->read($class, $ids, (array) $path_field, $lang);
+                $map_dot_fields[$field][] = $parts[1];
+            }
 
-                if($values < 0) {
-                    continue;
-                }
+            // read all dot fields at once
+            $this->load($class, $ids, array_keys($map_dot_fields), $lang);
 
-                // recursively read sub objects
-                foreach($ids as $oid) {
-                    // #memo - unreachable values are always set to null
-                    $res[$oid][$field] = null;
-                    if(isset($values[$oid][$path_field]) && isset($schema[$path_field]['foreign_object'])) {
-                        $sub_class = $schema[$path_field]['foreign_object'];
-                        $sub_ids = $values[$oid][$path_field];
-                        $sub_values = $this->read($sub_class, $sub_ids, (array) $parts[1], $lang);
-                        if($sub_values > 0) {
+            // recursively read sub objects
+            foreach($map_dot_fields as $field => $sub_fields) {
+                foreach($sub_fields as $sub_path) {
+                    // retrieve final type of targeted field
+                    /** @var \equal\orm\Field */
+                    $f = $model->getField($field);
+                    $descriptor = $f->getDescriptor();
+                    if(!$descriptor || !isset($descriptor['result_type']) || !isset($descriptor['foreign_object'])) {
+                        // ignore invalid descriptors
+                        continue;
+                    }
+                    $field_type = $descriptor['result_type'];
+                    if(!$field_type || !in_array($field_type, ['many2one', 'one2many', 'many2many'])) {
+                        // ignore non-relational fields
+                        continue;
+                    }
+                    // recursively read sub objects for each object
+                    // #todo - this could be improved by loading all targeted objects for current collection at once
+                    foreach($ids as $oid) {
+                        // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
+                        $sub_ids = $this->cache[$table_name][$oid][$lang][$field];
+                        if(isset($sub_ids) || count($sub_ids)) {
+                            $sub_values = $this->read($descriptor['foreign_object'], (array) $sub_ids, (array) $sub_path, $lang);
+                            if($sub_values <= 0) {
+                                continue;
+                            }
                             if($field_type == 'many2one') {
                                 $odata = reset($sub_values);
                                 if(is_array($odata) || is_a($odata, Model::getType())) {
-                                    $res[$oid][$field] = $odata[$parts[1]];
+                                    $res[$oid][$field.'.'.$sub_path] = $odata[$sub_path];
                                 }
                             }
                             else {
-                                $res[$oid][$field] = $sub_values;
+                                $res[$oid][$field.'.'.$sub_path] = $sub_values;
                             }
                         }
                     }
