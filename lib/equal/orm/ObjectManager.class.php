@@ -713,7 +713,9 @@ class ObjectManager extends Service {
                         $fields_lists['simple'][] = $field;
                     }
                 }
-                else  $fields_lists[$type][] = $field;
+                else {
+                    $fields_lists[$type][] = $field;
+                }
             }
 
             // 2) load fields values, grouping fields by type
@@ -1030,6 +1032,10 @@ class ObjectManager extends Service {
      */
     public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
+
+        // stack current state of object_methods map (current state is restored at the end of the method)
+        $object_methods_state = $this->object_methods;
+
         $result = [];
 
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -1059,7 +1065,7 @@ class ObjectManager extends Service {
             $this->object_methods[$called_class][$called_method] = [];
         }
 
-        // prevent inner loops and several calls to same handler with identical ids during the cycle (subsequent update() calls)
+        // prevent inner loops (several calls to same handler with identical ids) during the cycle (subsequent `callonce()` calls)
         $processed_ids = $this->object_methods[$called_class][$called_method];
         $unprocessed_ids = array_diff((array) $ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
@@ -1103,6 +1109,9 @@ class ObjectManager extends Service {
         catch(\Exception $e) {
             $result = $e->getCode();
         }
+
+        // unstack global object_methods state
+        $this->object_methods = $object_methods_state;
 
         return $result;
     }
@@ -1589,8 +1598,6 @@ class ObjectManager extends Service {
                     },
                     ARRAY_FILTER_USE_KEY
                 );
-            // stack current state of object_methods map (we'll restore current state at the end of the update cycle)
-            $object_methods_state = $this->object_methods;
 
 
             // 3) make sure objects in the collection can be updated
@@ -1630,6 +1637,7 @@ class ObjectManager extends Service {
             // remember callbacks that are triggered by the update
             $onupdate_fields = [];
             $onrevert_fields = [];
+            $instant_fields = [];
 
             // update internal buffer with given values
             foreach($ids as $oid) {
@@ -1647,8 +1655,13 @@ class ObjectManager extends Service {
                                 $onupdate_fields[] = $field;
                             }
                         }
-                        elseif(isset($schema[$field]['onrevert'])) {
-                            $onrevert_fields[] = $field;
+                        else {
+                            if(isset($schema[$field]['onrevert'])) {
+                                $onrevert_fields[] = $field;
+                            }
+                            if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
+                                $instant_fields[$field] = true;
+                            }
                         }
                     }
                     // assign cache to object values
@@ -1686,39 +1699,66 @@ class ObjectManager extends Service {
                 }
             }
 
-            // unstack global object_methods state
-            $this->object_methods = $object_methods_state;
-
-
             // 8) handle the resetting of the dependent computed fields
 
-            $dependencies = [];
+            $dependents = [
+                'primary' => [],
+                'related' => []
+            ];
             foreach($fields as $field => $value) {
                 // remember fields whose modification triggers resetting computed fields
-                // #todo - deprecate use of 'dependencies'
+                // #todo - deprecate dependencies : use dependents
                 if(isset($schema[$field]['dependencies'])) {
-                    $dependencies = array_merge($dependencies, (array) $schema[$field]['dependencies']);
+                    foreach((array) $schema[$field]['dependencies'] as $dependent) {
+                        $dependents['primary'][$dependent] = true;
+                    }
                 }
+
                 if(isset($schema[$field]['dependents'])) {
-                    $dependencies = array_merge($dependencies, (array) $schema[$field]['dependents']);
+                    foreach((array) $schema[$field]['dependents'] as $key => $val) {
+                        // handle array notation
+                        if(!is_numeric($key)) {
+                            if(!isset($dependents['related'][$key])) {
+                                $dependents['related'][$key] = [];
+                            }
+                            $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
+                        }
+                        else {
+                            $dependents['primary'][$val] = true;
+                        }
+                    }
                 }
             }
 
-            // remember fields that must be re-computed instantly
-            $instant_fields = [];
-            foreach(array_unique($dependencies) as $dependency) {
-                // #todo - add support for dot notation
-                if(isset($schema[$dependency]) && $schema[$dependency]['type'] == 'computed') {
-                    if(isset($schema[$dependency]['instant']) && $schema[$dependency]['instant']) {
-                        $instant_fields[] = $dependency;
-                    }
-                    // allow cascade update
-                    $this->update($class, $ids, [$dependency => null], $lang, $create);
+            // read all target fields at once
+            $this->load($class, $ids, array_keys($dependents['related']), $lang);
+
+            foreach($dependents['related'] as $field => $subfields) {
+                $values = [];
+                foreach($subfields as $subfield) {
+                    $values[$subfield] = null;
+                }
+                foreach($ids as $oid) {
+                    $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                    // allow cascade update (circular dependencies are checked in `core_test_package`)
+                    $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
                 }
             }
+
+            // handle fields that must be re-computed instantly
+            $values = [];
+            foreach(array_keys($dependents['primary']) as $field) {
+                if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
+                    if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
+                        $instant_fields[$field] = true;
+                    }
+                    $values[$field] = null;
+                }
+            }
+
             if(count($instant_fields)) {
-                // re-compute 'instant' computed field
-                $this->read($class, $ids, array_unique($instant_fields), $lang);
+                // re-compute local 'instant' computed field
+                $this->load($class, $ids, array_keys($instant_fields), $lang);
             }
 
 
@@ -1826,7 +1866,7 @@ class ObjectManager extends Service {
                     unset($fields[$key]);
                 }
                 // invalid field
-                else if(!isset($schema[$field])) {
+                elseif(!isset($schema[$field])) {
                     // drop invalid fields
                     unset($fields[$key]);
                     trigger_error("ORM::unknown field '$field' for class : '$class'", QN_REPORT_WARNING);
