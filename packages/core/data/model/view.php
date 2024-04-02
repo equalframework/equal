@@ -59,6 +59,12 @@ $removeNodes = function (&$layout, $nodes_ids) {
             }
         }
     }
+
+    foreach($layout['items'] as $item_index => $item) {
+        if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
+            array_splice($layout['items'], $item_index, 1);
+        }
+    }
 };
 
 $updateNode = function (&$layout, $id, $node) {
