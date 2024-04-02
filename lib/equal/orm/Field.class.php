@@ -87,32 +87,29 @@ class Field {
      * @return array
      */
     public function getConstraints(): array {
-        static $map = [
-            'bool'      => 'boolean',
-            'int'       => 'integer',
-            'float'     => 'double',
-            'text'      => 'string',
-            'date'      => 'integer',
-            'datetime'  => 'integer',
-            'file'      => 'string',
-            'binary'    => 'string',
-            'many2one'  => 'integer',
-            'one2many'  => 'array',
-            'many2many' => 'array'
-        ];
-
-        // fix types to match values returned by PHP `gettype()`
-        $result_type = $this->type;
-        if(isset($map[$this->type])) {
-            $result_type = $map[$this->type];
-        }
-
         // generate constraint based on type
+        $result_type = $this->descriptor['result_type'];
+
         $constraints = [
             'invalid_type' => [
-                'message'   => "Value is not of type {$this->type}.",
+                'message'   => "Value is not of type {$result_type}.",
                 'function'  =>  function($value) use($result_type) {
-                    return (gettype($value) == $result_type);
+                    static $map = [
+                        'bool'      => 'boolean',
+                        'int'       => 'integer',
+                        'float'     => 'double',
+                        'text'      => 'string',
+                        'date'      => 'integer',
+                        'datetime'  => 'integer',
+                        'file'      => 'string',
+                        'binary'    => 'string',
+                        'many2one'  => 'integer',
+                        'one2many'  => 'array',
+                        'many2many' => 'array'
+                    ];
+                    // fix types to match values returned by PHP `gettype()`
+                    $mapped_type = $map[$result_type] ?? $result_type;
+                    return (gettype($value) == $mapped_type);
                 }
             ]
         ];
