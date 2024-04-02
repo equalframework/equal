@@ -20,8 +20,9 @@ class Test extends Model
     {
         return [
             'string_short' => [
-                'type'      => 'string',
-                'usage'     => 'text/plain:9'
+                'type'          => 'string',
+                'usage'         => 'text/plain:9',
+                'dependents'    => ['tests1_ids' => ['test']]
             ],
 
             'string_currency' => [
@@ -36,7 +37,13 @@ class Test extends Model
 
             'datetime' => [
                 'type'      => 'datetime'
-            ]
+            ],
+
+            'tests1_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\test\Test1',
+                'foreign_field'     => 'test_id'
+            ],
 
         ];
     }
