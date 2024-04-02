@@ -1,10 +1,15 @@
 {
     "name": "core",
-    "description": "Foundations package holding the application logic of the elementary entities.",
+    "description": "Foundation package holding common application logic and elementary entities.",
     "version": "2.0",
     "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
+    "tags": [ "equal", "core" ],
     "depends_on": [],
-    "apps": [ "apps", "auth", "app", "settings", "workbench", "welcome"],
-    "tags": ["equal", "core"]
+    "requires": {
+        "swiftmailer/swiftmailer": "^6.2",
+        "phpoffice/phpspreadsheet": "^1.4",
+        "dompdf/dompdf": "^0.8.3"
+    },
+    "apps": [ "apps", "auth", "app", "settings", "workbench", "welcome" ]
 }
