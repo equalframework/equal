@@ -29,27 +29,27 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $removeNodes = function (&$layout, $nodes_ids) {
-    foreach($layout['groups'] as $group_index => $group) {
+    foreach($layout['groups'] ?? [] as $group_index => $group) {
         if(isset($group['id']) && in_array($group['id'], $nodes_ids)) {
             array_splice($layout['groups'], $group_index, 1);
             continue;
         }
-        foreach($group['sections'] as $section_index => $section) {
+        foreach($group['sections'] ?? [] as $section_index => $section) {
             if(isset($section['id']) && in_array($section['id'], $nodes_ids)) {
                 array_splice($layout['groups'][$group_index]['sections'], $section_index, 1);
                 continue;
             }
-            foreach($section['rows'] as $row_index => $row) {
+            foreach($section['rows'] ?? [] as $row_index => $row) {
                 if(isset($row['id']) && in_array($row['id'], $nodes_ids)) {
                     array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'], $row_index, 1);
                     continue;
                 }
-                foreach($row['columns'] as $column_index => $column) {
+                foreach($row['columns'] ?? [] as $column_index => $column) {
                     if(isset($column['id']) && in_array($column['id'], $nodes_ids)) {
                         array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'], $column_index, 1);
                         continue;
                     }
-                    foreach($row['items'] as $item_index => $item) {
+                    foreach($row['items'] ?? [] as $item_index => $item) {
                         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
                             array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'], $item_index, 1);
                             continue;
@@ -60,7 +60,7 @@ $removeNodes = function (&$layout, $nodes_ids) {
         }
     }
 
-    foreach($layout['items'] as $item_index => $item) {
+    foreach($layout['items'] ?? [] as $item_index => $item) {
         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
             array_splice($layout['items'], $item_index, 1);
         }
