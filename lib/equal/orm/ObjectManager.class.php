@@ -1756,6 +1756,11 @@ class ObjectManager extends Service {
                 }
             }
 
+            if(count($values)) {
+                // allow cascade update (circular dependencies are checked in `core_test_package`)
+                $this->update($class, $ids, $values, $lang);
+            }
+
             if(count($instant_fields)) {
                 // re-compute local 'instant' computed field
                 $this->load($class, $ids, array_keys($instant_fields), $lang);
@@ -2181,7 +2186,7 @@ class ObjectManager extends Service {
             $original = $res_r[$id];
             $new_values = [];
 
-            // unset relations + id and parent_field (needs to be updated + could be part of unique contrainst)
+            // unset relations + id and parent_field (needs to be updated + could be part of unique constraint)
             foreach($original as $field => $value) {
                 $def = $schema[$field];
                 if(!in_array($def['type'], ['one2many', 'many2many']) && !in_array($field, ['id', $parent_field])) {
