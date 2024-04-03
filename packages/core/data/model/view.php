@@ -136,6 +136,10 @@ $entity = $params['entity'];
 
 list($view_type, $view_name) = explode('.', $params['view_id']);
 
+if(!in_array($view_type, ['form', 'list', 'chart', 'search', 'report', 'kanban'])) {
+    throw new Exception('invalid_view_type', EQ_ERROR_INVALID_PARAM);
+}
+
 // pass-1 : retrieve existing view meant for entity (recurse through parents)
 while(true) {
     $parts = explode('\\', $entity);
