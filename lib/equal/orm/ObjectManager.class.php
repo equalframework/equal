@@ -664,17 +664,26 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        $res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang, ['ids', 'lang']);
-                        if($res > 0) {
-                            foreach($ids as $oid) {
-                                if(isset($res[$oid])) {
-                                    // #memo - do not adapt : we're dealing with PHP not SQL
-                                    $value = $res[$oid];
+                        // spot the fields that have not been computed yet (or unset) during this cycle
+                        $missing_ids = [];
+                        foreach($ids as $oid) {
+                            if(!isset($om->cache[$table_name][$oid][$lang][$field])) {
+                                $missing_ids[] = $oid;
+                            }
+                        }
+                        if(count($missing_ids)) {
+                            $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang, ['ids', 'lang']);
+                            if($res > 0) {
+                                foreach($ids as $oid) {
+                                    if(isset($res[$oid])) {
+                                        // #memo - do not adapt : we're dealing with PHP not SQL
+                                        $value = $res[$oid];
+                                    }
+                                    else {
+                                        $value = null;
+                                    }
+                                    $om->cache[$table_name][$oid][$lang][$field] = $value;
                                 }
-                                else {
-                                    $value = null;
-                                }
-                                $om->cache[$table_name][$oid][$lang][$field] = $value;
                             }
                         }
                     }
