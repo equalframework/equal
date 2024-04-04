@@ -52,13 +52,13 @@ $adapter = $dap->get('json');
 
 
 // retrieve target entity
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
+$model = $orm->getModel($params['entity']);
+if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
 // get the complete schema of the object (including special fields)
-$schema = $entity->getSchema();
+$schema = $model->getSchema();
 
 // adapt received fields names for dot notation support
 $fields = [];
@@ -66,7 +66,8 @@ foreach($params['fields'] as $field => $value) {
     if(!isset($schema[$field])) {
         continue;
     }
-    $f = new Field($schema[$field]);
+    /** @var equal\orm\Field */
+    $f = $model->getField($field);
     $fields[$field] = $adapter->adaptIn($value, $f->getUsage());
 }
 

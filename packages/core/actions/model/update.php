@@ -79,6 +79,7 @@ if(!$model) {
 
 // adapt received values for parameter 'fields' (which are still formatted as text)
 $schema = $model->getSchema();
+
 // remove unknown fields
 $fields = array_filter($params['fields'], function($field) use ($schema){
             return isset($schema[$field]);
@@ -86,8 +87,10 @@ $fields = array_filter($params['fields'], function($field) use ($schema){
         ARRAY_FILTER_USE_KEY
     );
 
-
 foreach($fields as $field => $value) {
+    if(!isset($schema[$field])) {
+        continue;
+    }
     $type = $schema[$field]['type'];
     // drop empty fields (but allow reset to null)
     if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value) ) {
@@ -96,7 +99,8 @@ foreach($fields as $field => $value) {
     }
     try {
         // adapt received values based on their type (as defined in schema)
-        $f = new Field($schema[$field]);
+        /** @var equal\orm\Field */
+        $f = $model->getField($field);
         $fields[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
     catch(Exception $e) {

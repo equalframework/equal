@@ -101,7 +101,8 @@ foreach($data as $class) {
 
     foreach($class['data'] as $odata) {
         foreach($odata as $field => $value) {
-            $f = new Field($schema[$field]);
+            /** @var equal\orm\Field */
+            $f = $model->getField($field);
             $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
         }
         if(isset($odata['id'])) {

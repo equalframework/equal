@@ -67,21 +67,25 @@ list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $provide
 $adapter = $dap->get('json');
 
 // fields and values have been received as a raw array : adapt received values according to schema
-$entity = $orm->getModel($params['entity']);
-if(!$entity) {
+$model = $orm->getModel($params['entity']);
+if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-$schema = $entity->getSchema();
+$schema = $model->getSchema();
 
 try {
     foreach($params['fields'] as $field => $value) {
+        if(!isset($schema[$field])) {
+            continue;
+        }
         // drop empty and unknown fields
         if(is_null($value) || !isset($schema[$field])) {
             unset($params['fields'][$field]);
             continue;
         }
-        $f = new Field($schema[$field]);
+        /** @var equal\orm\Field */
+        $f = $model->getField($field);
         $params['fields'][$field] = $adapter->adaptIn($value, $f->getUsage());
     }
 }

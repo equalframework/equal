@@ -77,7 +77,8 @@ if(method_exists($params['entity'], 'onchange')) {
     // adapt fields in $values array
     foreach($values as $field => $value) {
         try {
-            $f = new Field($schema[$field]);
+            /** @var equal\orm\Field */
+            $f = $model->getField($field);
             // adapt received values based on their type (as defined in schema)
             $values[$field] = $adapter->adaptIn($value, $f->getUsage());
         }
