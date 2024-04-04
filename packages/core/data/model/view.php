@@ -144,16 +144,16 @@ if(!in_array($view_type, ['form', 'list', 'chart', 'search', 'report', 'kanban']
 while(true) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
-    $file = array_pop($parts);
+    $filename = array_pop($parts);
     $class_path = implode('/', $parts);
 
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$view_type}.{$view_name}.json";
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.{$view_name}.json";
     if(file_exists($file)) {
         break;
     }
 
     // fallback to default variant of the view
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$file}.{$view_type}.default.json";
+    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.default.json";
     if(file_exists($file)) {
         break;
     }
@@ -173,7 +173,7 @@ while(true) {
 }
 
 if(!file_exists($file)) {
-    throw new Exception("missing_view", QN_ERROR_UNKNOWN_OBJECT);
+    throw new Exception("missing_view ".$file, QN_ERROR_UNKNOWN_OBJECT);
 }
 
 if(($view = json_decode(@file_get_contents($file), true)) === null) {
