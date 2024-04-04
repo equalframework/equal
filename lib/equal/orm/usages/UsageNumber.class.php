@@ -66,10 +66,10 @@ class UsageNumber extends Usage {
         switch($this->getSubtype()) {
             case 'boolean':
                 return [
-                    'not_integer' => [
+                    'not_boolean' => [
                         'message'   => 'Value is not a boolean.',
                         'function'  =>  function($value) {
-                            return preg_match('/^[0-1]$/', (string) $value);
+                            return preg_match('/^[0-1]$/', (string) intval($value));
                         }
                     ]
                 ];
