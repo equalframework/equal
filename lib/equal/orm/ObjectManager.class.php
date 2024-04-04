@@ -674,7 +674,7 @@ class ObjectManager extends Service {
                         if(count($missing_ids)) {
                             $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang, ['ids', 'lang']);
                             if($res > 0) {
-                                foreach($ids as $oid) {
+                                foreach($missing_ids as $oid) {
                                     if(isset($res[$oid])) {
                                         // #memo - do not adapt : we're dealing with PHP not SQL
                                         $value = $res[$oid];
