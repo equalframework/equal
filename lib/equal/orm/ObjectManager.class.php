@@ -1200,6 +1200,7 @@ class ObjectManager extends Service {
 
     /**
      * Retrieve the static instance of a given class (Model with default values).
+     * This method is registered as autoload handler in `eq.lib.php`.
      *
      * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
@@ -1210,8 +1211,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
-            // #todo - validate (this is the only public method in ORM that raises an Exception)
-            throw new Exception("unknown class '{$class}'", QN_ERROR_UNKNOWN_OBJECT);
+            // #memo - another autoload handler might be registered, so we relay without raising an exception
         }
         return $model;
     }
