@@ -1310,7 +1310,7 @@ namespace config {
                     $result = include_once $file_path.'.class.php';
                 }
                 // Fallback to simple php extension
-                else if(file_exists($file_path.'.php')) {
+                elseif(file_exists($file_path.'.php')) {
                     $result = include_once $file_path.'.php';
                 }
                 else {
