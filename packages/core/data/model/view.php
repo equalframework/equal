@@ -192,14 +192,14 @@ if(!isset($view['layout'])) {
 
 // pass-2 : adapt the view if inheritance is involved
 if(isset($view['layout']['extends'])) {
-    $entity = $params['entity'];
-    if(isset($view['layout']['extends']['entity'])) {
-        $entity = $view['layout']['extends']['entity'];
-    }
     if(!isset($view['layout']['extends']['view'])) {
         throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
     }
     $view_id = $view['layout']['extends']['view'];
+    $entity = $view['layout']['extends']['entity'] ?? $params['entity'];
+    if($params['view_id'] == $view_id && $params['entity'] == $entity) {
+        throw new Exception("cyclic_view_dependency", QN_ERROR_INVALID_CONFIG);
+    }
     $parent_view = eQual::run('get', 'model_view', ['entity' => $entity, 'view_id' => $view_id]);
     if(isset($view['layout']['remove'])) {
         $removeNodes($parent_view['layout'], (array) $view['layout']['remove']);
