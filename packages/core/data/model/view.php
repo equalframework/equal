@@ -109,6 +109,17 @@ $updateNode = function (&$layout, $id, $node) {
             }
         }
     }
+
+    if(isset($layout['items'])) {
+        $target_parent = &$layout['items'];
+        foreach($layout['items'] as $item_index => $item) {
+            if(isset($item['id']) && $item['id'] == $id) {
+                $target = &$layout['items'][$item_index];
+                $index = $item_index;
+            }
+        }
+    }
+
     if($target) {
         if(isset($node['attributes'])) {
             foreach((array) $node['attributes'] as $attribute => $value) {
