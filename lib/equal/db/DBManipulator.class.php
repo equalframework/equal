@@ -261,6 +261,7 @@ class DBManipulator {
     public function deleteRecords($table, $ids, $conditions=null, $id_field='id') {}
 
     /**
+     * Fetch and increment the column of a series of records in a single operation.
      * This method implements FAA instruction (fetch-and-add) in order to read and update a column as an atomic operation.
      *
      * @param int $increment    A numeric value used to increment columns (if value positive) or decrement columns (if value is negative).
