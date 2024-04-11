@@ -86,12 +86,12 @@ class Reporter extends Service {
         $depth = 0;
         switch($errno) {
             // handler was invoked using trigger_error()
-            case QN_REPORT_DEBUG:       // E_USER_DEPRECATED
-            case QN_REPORT_INFO:        // E_USER_NOTICE
-            case QN_REPORT_WARNING:     // E_USER_WARNING
-            case QN_REPORT_ERROR:       // E_USER_ERROR
-            case QN_REPORT_FATAL:       // E_ERROR
-            case QN_REPORT_SYSTEM:      // 0
+            case EQ_REPORT_DEBUG:       // E_USER_DEPRECATED
+            case EQ_REPORT_INFO:        // E_USER_NOTICE
+            case EQ_REPORT_WARNING:     // E_USER_WARNING
+            case EQ_REPORT_ERROR:       // E_USER_ERROR
+            case EQ_REPORT_FATAL:       // E_ERROR
+            case EQ_REPORT_SYSTEM:      // 0
                 $depth = 2;
                 break;
             // handler was invoked by PHP internals
@@ -128,10 +128,9 @@ class Reporter extends Service {
         if($code > 0 && ($this->debug_mode == 0 || $this->debug_level == 0 || !($code & $this->debug_level)))  {
             return;
         }
-        // check reporting mode, if provided
+        // retrieve reporting mode, if provided
         $mode = EQ_MODE_PHP;
         if(strpos($msg, '::') == 3) {
-            // default to mask QN_MODE_PHP
             $source = $mode;
             $parts = explode('::', $msg, 2);
             if($parts && count($parts) > 1) {
@@ -144,8 +143,12 @@ class Reporter extends Service {
             $mode = (int) $source;
         }
         // discard non-applicable log requests
-        if($code > 0 && !($this->debug_mode & $mode)) {
-            return;
+        // #memo - SYSTEM are always logged (code == 0)
+        if($code > 0) {
+            // discard if mode is not marked in debug_mode
+            if(!($this->debug_mode & $mode)) {
+                return;
+            }
         }
 
         $time_parts = explode(" ", microtime());
