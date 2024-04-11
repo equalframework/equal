@@ -72,6 +72,10 @@ if(!count($_GET)) {
                 background-color: #e1f0f5;
             }
 
+            div.thread div.thread-title div.text {
+                color: #4f4f4f;
+            }
+
             div.thread div.thread-title div.thread-hash {
                 display: inline-block;
                 width: 100px;
@@ -93,6 +97,10 @@ if(!count($_GET)) {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+
+            div.thread div.thread_line div.line-title span.text {
+                color: #4f4f4f;
             }
 
             div.thread i.chevron {
@@ -167,11 +175,11 @@ if(!count($_GET)) {
                 }, 2000);
             }
 
-            function get_level_info(code) {
-                let type = code;
+            function get_level_info(level) {
+                let type = level;
                 let icon = "fa-info";
                 let classname = "";
-                switch(code) {
+                switch(level) {
                     case "DEBUG":
                     case 16384: // E_USER_DEPRECATED
                         type = "DEBUG";
@@ -204,6 +212,11 @@ if(!count($_GET)) {
                     case "Parse error":
                         icon = "fa-ban";
                         classname = "text-danger";
+                        break;
+                    case "SYSTEM":
+                    case 0:
+                        icon = "fa-hashtag";
+                        classname = "text";
                         break;
                 }
                 return {type: type, icon: icon, class: classname};
@@ -242,7 +255,8 @@ if(!count($_GET)) {
                 content = content.replace("$icon", info.icon);
                 div.innerHTML = content;
                 div.querySelector("input").addEventListener("click", async function(event) {
-                        for(let node of document.getElementsByClassName("thread")) {
+                        let list = document.getElementById("list");
+                        for(let node of list.getElementsByClassName("thread")) {
                             if(event.target.checked) {
                                 if(event.target.parentNode != node) {
                                     node.style.display = "none";
@@ -325,12 +339,12 @@ if(!count($_GET)) {
             }
 
             async function feed(params) {
-                document.getElementById("list")
                 const threads = await get_threads(params);
-                document.getElementById("list").innerHTML = "";
+                let list = document.getElementById("list");
+                list.innerHTML = "";
                 for(const thread of threads) {
                     let element = createThreadElement(thread, params);
-                    document.getElementById("list").append(element);
+                    list.append(element);
                 }
             }
 
@@ -372,7 +386,7 @@ if(!count($_GET)) {
 
         <div class="line-template" style="display: none">
             <div class="thread_line">
-                <div class="line-title"><a class="$class" title="$type"><i class="icon fa $icon"></i> $time $mtime $mode</a> <b>@</b> [<code class="$class">$file:$line</code>] $in: $msg</div>
+                <div class="line-title"><span class="$class" title="$type"><i class="icon fa $icon"></i> $time $mtime $mode</span> <b>@</b> [<code class="$class">$file:$line</code>] $in: $msg</div>
                 <input class="selector" type="checkbox">
                 <div class="line-traces">
                     <i class="chevron fa fa-chevron-right"></i>
@@ -392,7 +406,9 @@ if(!count($_GET)) {
                     <div style="display: flex; flex-direction: column;">
                         <label>Level:</label>
                         <select style="height: 33px; margin-right: 25px;" name="level">
-                            <option value="">All</option><option value="DEBUG">DEBUG</option>
+                            <option value="">All</option>
+                            <option value="SYSTEM">SYSTEM</option>
+                            <option value="DEBUG">DEBUG</option>
                             <option value="INFO">INFO</option>
                             <option value="WARNING">WARNING</option>
                             <option value="ERROR">ERROR</option>
@@ -454,6 +470,7 @@ else {
     $result = [];
 
     $map_codes = [
+        'SYSTEM'    => 0,
         'DEBUG'     => E_USER_DEPRECATED,
         'INFO'      => E_USER_NOTICE,
         'WARNING'   => E_USER_WARNING,
@@ -508,7 +525,7 @@ else {
                     if( $match && (isset($_GET['date']) && strpos($line['time'], $_GET['date']) !== 0) ) {
                         $match = false;
                     }
-                    if( $match && (isset($_GET['q']) && strlen($_GET['q']) > 0 && stripos($line, $query) === false) ) {
+                    if( $match && (strlen($query) > 0 && stripos($line['message'], $query) === false) ) {
                         $match = false;
                     }
                     if($match) {
@@ -533,7 +550,7 @@ else {
                             'time'      => $line['time']
                         ];
                     }
-                    elseif($line['level'] > $map_threads[$line['thread_id']]['level']) {
+                    elseif($line['level'] && (!$map_threads[$line['thread_id']]['level'] || $line['level'] > $map_threads[$line['thread_id']]['level'])) {
                         $map_threads[$line['thread_id']]['level'] = $line['level'];
                     }
                     $match = true;
