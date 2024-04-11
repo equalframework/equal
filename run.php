@@ -52,7 +52,7 @@ if( (include($bootstrap)) === false ) {
 
 try {
     // keep track of the access in the log
-    Reporter::errorHandler(QN_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => Container::getInstance()->get('auth')->userId() ]));
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => Container::getInstance()->get('auth')->userId() ]));
 
     // 1) retrieve current HTTP context
 
@@ -154,10 +154,25 @@ try {
 
     // 3) perform requested operation
 
+    // store http info to access log
+    Reporter::errorHandler(EQ_REPORT_INFO, "NET::".json_encode([
+                'method'    => $method,
+                'uri'       => (string) $uri,
+                'headers'   => $request->getHeaders(true),
+                'body'      => $request->getBody()
+            ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
+        );
+
     // output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
-    // store access log
-    Reporter::errorHandler(QN_REPORT_SYSTEM, "NET::".json_encode(['start' => $_SERVER["REQUEST_TIME_FLOAT"], 'end' => microtime(true), 'ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ))]));
+
+    // store NET info to access log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
+                'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
+                'end'       => microtime(true),
+                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+            ])
+        );
 }
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
@@ -209,10 +224,15 @@ catch(Throwable $e) {
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?QN_REPORT_WARNING:QN_REPORT_ERROR);
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?EQ_REPORT_WARNING:EQ_REPORT_ERROR);
     }
-    // store access log
-    Reporter::errorHandler(QN_REPORT_SYSTEM, "NET::".json_encode(['error' => ($error_code != 0), 'start' => $_SERVER["REQUEST_TIME_FLOAT"], 'end' => microtime(true), 'ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' ))]));
+    // store NET info to access log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
+                'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
+                'end'       => microtime(true),
+                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+            ])
+        );
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
        // return an error code (for compliance under CLI environment)
