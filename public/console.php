@@ -31,8 +31,65 @@ if(!count($_GET)) {
                 margin:0;
                 height:100%;
             }
-            body {
+            #start {
                 padding-top:  120px;
+            }
+            .loader-overlay {
+                display: none;
+                position: relative;
+            }
+
+            .loader-overlay .loader-container {
+                position: absolute;
+                top: calc(40vh - 50px);
+                left: calc(50% - 50px);
+                z-index: 1;
+            }
+
+            .loader-overlay .loader-spinner {
+                display: inline-block;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                box-sizing: border-box;
+                border: 5px solid #3f51b5;
+                clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%);
+                animation: 1.6s loader_spinner linear infinite;
+            }
+
+            @keyframes loader_spinner {
+                0% {
+                    transform: rotate(0deg);
+                    clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%);
+                }
+                20% {
+                    clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 50%);
+                }
+                30% {
+                    clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 100%, 50% 100%, 50% 100%, 50% 100%);
+                }
+                40% {
+                    clip-path: polygon(50% 50%, 0% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 100%, 50% 100%, 0% 100%, 0% 50%);
+                }
+                50% {
+                    clip-path: polygon(50% 50%, 50% 0%, 50% 0%, 100% 0%, 100% 50%, 100% 100%, 50% 100%, 0% 100%, 0% 50%);
+                }
+                60% {
+                    clip-path: polygon(50% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 50%, 100% 100%, 50% 100%, 0% 100%, 0% 50%);
+                }
+                70% {
+                    clip-path: polygon(50% 50%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 0% 100%, 0% 50%);
+                }
+                80% {
+                    clip-path: polygon(50% 50%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 100%, 0% 50%);
+                }
+                90%{
+                    transform: rotate(360deg);
+                    clip-path: polygon(50% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%);
+                }
+                100% {
+                    clip-path: polygon(50% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%, 0% 50%);
+                }
             }
 
             div.snack {
@@ -56,7 +113,15 @@ if(!count($_GET)) {
                 bottom: 20px;
                 opacity: 1;
             }
-
+            div.no-result {
+                margin-left: 20px;
+            }
+            div.no-result::before {
+                content: \'(no match or empty log)\';
+                width: 100%;
+                line-height: 30px;
+                font-style: italic;
+            }
             div.thread {
                 position: relative;
                 margin-left: 10px;
@@ -97,6 +162,10 @@ if(!count($_GET)) {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+
+            div.thread div.thread_line div.line-title.match, div.thread div.thread_line div.line-title.match code {
+                background-color: yellow !important;
             }
 
             div.thread div.thread_line div.line-title span.text {
@@ -255,13 +324,21 @@ if(!count($_GET)) {
                 content = content.replace("$icon", info.icon);
                 div.innerHTML = content;
                 div.querySelector("input").addEventListener("click", async function(event) {
+                        document.getElementById("loader").style.display = "block";
+                        event.target.parentNode.classList.add("selected");
                         let list = document.getElementById("list");
+                        // pass-1 - hide threads
                         for(let node of list.getElementsByClassName("thread")) {
                             if(event.target.checked) {
                                 if(event.target.parentNode != node) {
                                     node.style.display = "none";
                                 }
-                                else {
+                            }
+                        }
+                        // pass-2 - load lines
+                        for(let node of list.getElementsByClassName("thread")) {
+                            if(event.target.checked) {
+                                if(event.target.parentNode == node) {
                                     // if not yet present, load lines
                                     if(!node.classList.contains("loaded")) {
                                         node.classList.add("loaded");
@@ -280,6 +357,7 @@ if(!count($_GET)) {
                             node.classList.remove("selected");
                         }
                         event.target.parentNode.classList.add("selected");
+                        document.getElementById("loader").style.display = "none";
                     });
 
                 return div.firstElementChild;
@@ -303,6 +381,10 @@ if(!count($_GET)) {
                 content = content.replaceAll("$icon", info.icon);
                 content = content.replaceAll("$msg", line.message);
                 div.innerHTML = content;
+
+                if(line.match) {
+                    div.getElementsByClassName("line-title")[0].classList.add("match");
+                }
 
                 let list = div.getElementsByClassName("line-traces")[0];
                 let count = line.stack.length, i = 0;
@@ -339,6 +421,7 @@ if(!count($_GET)) {
             }
 
             async function feed(params) {
+                document.getElementById("loader").style.display = "block";
                 const threads = await get_threads(params);
                 let list = document.getElementById("list");
                 list.innerHTML = "";
@@ -346,11 +429,14 @@ if(!count($_GET)) {
                     let element = createThreadElement(thread, params);
                     list.append(element);
                 }
+                if(!threads.length) {
+                    list.innerHTML = "<div class=\"no-result\"></div>";
+                }
+                document.getElementById("loader").style.display = "none";
             }
 
-            document.addEventListener("DOMContentLoaded", function() {
-                feed();
-
+            document.addEventListener("DOMContentLoaded", async function() {
+                await feed();
                 document.getElementById("searchForm").addEventListener("submit", function (e) {
                         e.preventDefault();
                         const form = e.srcElement;
@@ -432,7 +518,7 @@ if(!count($_GET)) {
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label>Date:</label>
-                        <input style="height: 33px;" name="date" type="date" value="">
+                        <input style="height: 33px; width: 150px;" name="date" type="date" value="">
                     </div>
                     <div style="display: flex; flex-direction: column; height: 30px; margin-left: 10px; margin-right: 25px;">
                         <div style="display: flex;">
@@ -458,6 +544,7 @@ if(!count($_GET)) {
                 </div>
             </form>
         </div>
+        <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
         <div id="start"></div>
         <div id="list"></div>
         <div id="end"></div>
@@ -489,7 +576,7 @@ else {
         }
 
         // get query from URL, if any
-        $query = (isset($_GET['q']))?$_GET['q']:'';
+        $query = $_GET['q'] ?? '';
 
         // adapt params
         if(isset($_GET['level']) && $_GET['level'] == '') {
@@ -516,6 +603,7 @@ else {
                         continue;
                     }
                     $match = true;
+                    $line['match'] = false;
                     if( $match && (isset($_GET['level']) && $line['level'] != $_GET['level']) ) {
                         $match = false;
                     }
@@ -528,9 +616,11 @@ else {
                     if( $match && (strlen($query) > 0 && stripos($line['message'], $query) === false) ) {
                         $match = false;
                     }
-                    if($match) {
-                        $result[] = $line;
+                    if($match && strlen($query)) {
+                        $line['match'] = true;
                     }
+                    $result[] = $line;
+
                 }
 
             }
@@ -546,11 +636,11 @@ else {
                         $map_threads[$line['thread_id']] = [
                             'thread_id' => $line['thread_id'],
                             'lines'     => 0,
-                            'level'     => $map_codes[$line['level']],
+                            'level'     => $map_threads[$line['thread_id']]['level'],
                             'time'      => $line['time']
                         ];
                     }
-                    elseif($line['level'] && (!$map_threads[$line['thread_id']]['level'] || $line['level'] > $map_threads[$line['thread_id']]['level'])) {
+                    elseif($map_codes[$line['level']] && (!$map_codes[$map_threads[$line['thread_id']]['level']] || $map_codes[$line['level']] < $map_codes[$map_threads[$line['thread_id']]['level']])) {
                         $map_threads[$line['thread_id']]['level'] = $line['level'];
                     }
                     $match = true;
@@ -565,7 +655,7 @@ else {
                         if( $match && (isset($_GET['date']) && strpos($line['time'], $_GET['date']) !== 0) ) {
                             $match = false;
                         }
-                        if( $match && (isset($_GET['q']) && strlen($_GET['q']) > 0 && stripos($line, $query) === false) ) {
+                        if( $match && strlen($query) && stripos($line['message'], $query) === false) {
                             $match = false;
                         }
                     }
