@@ -359,7 +359,6 @@ if(!count($_GET)) {
                         event.target.parentNode.classList.add("selected");
                         document.getElementById("loader").style.display = "none";
                     });
-
                 return div.firstElementChild;
             }
 
@@ -421,10 +420,11 @@ if(!count($_GET)) {
             }
 
             async function feed(params) {
+                list.style.display = "none";
+                list.innerHTML = "";
                 document.getElementById("loader").style.display = "block";
                 const threads = await get_threads(params);
                 let list = document.getElementById("list");
-                list.innerHTML = "";
                 for(const thread of threads) {
                     let element = createThreadElement(thread, params);
                     list.append(element);
@@ -433,6 +433,7 @@ if(!count($_GET)) {
                     list.innerHTML = "<div class=\"no-result\"></div>";
                 }
                 document.getElementById("loader").style.display = "none";
+                list.style.display = "block";
             }
 
             document.addEventListener("DOMContentLoaded", async function() {
@@ -449,6 +450,7 @@ if(!count($_GET)) {
                         feed(params);
                     });
             });
+
         </script>
         </head>
         <body>
@@ -637,7 +639,8 @@ else {
                             'thread_id' => $line['thread_id'],
                             'lines'     => 0,
                             'level'     => $map_threads[$line['thread_id']]['level'],
-                            'time'      => $line['time']
+                            // threads will be sorted on timestamp using a map : we must avoid collisions
+                            'time'      => $line['time'].'.'.$line['mtime']
                         ];
                     }
                     elseif($map_codes[$line['level']] && (!$map_codes[$map_threads[$line['thread_id']]['level']] || $map_codes[$line['level']] < $map_codes[$map_threads[$line['thread_id']]['level']])) {
