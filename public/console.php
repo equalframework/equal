@@ -446,7 +446,8 @@ if(!count($_GET)) {
                             q: form.elements.q.value,
                             mode: form.elements.mode.value,
                             level: form.elements.level.value,
-                            date: form.elements.date.value
+                            date: form.elements.date.value,
+                            "empty-file": form.elements["empty-file"].checked
                         }
                         feed(params);
                     });
@@ -570,12 +571,11 @@ else {
 
     if(file_exists('../log/'.$log_file)) {
 
-        if(isset($_GET['empty-file']) && $_GET['empty-file'] === 'on') {
+        if(isset($_GET['empty-file']) && $_GET['empty-file'] === 'true') {
             $f = fopen('../log/'.$log_file,"r+");
             ftruncate($f, 0);
             fclose($f);
-            header("Location: console.php");
-            die();
+            die(json_encode($result));
         }
 
         // get query from URL, if any
