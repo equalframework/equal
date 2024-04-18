@@ -420,11 +420,12 @@ if(!count($_GET)) {
             }
 
             async function feed(params) {
+                let list = document.getElementById("list");
                 list.style.display = "none";
                 list.innerHTML = "";
                 document.getElementById("loader").style.display = "block";
                 const threads = await get_threads(params);
-                let list = document.getElementById("list");
+
                 for(const thread of threads) {
                     let element = createThreadElement(thread, params);
                     list.append(element);
