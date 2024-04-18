@@ -530,13 +530,13 @@ if(!count($_GET)) {
                         </div>
                     </div>
                     <div style="display: flex; flex-direction: column;">
-                        <button type="submit" class="btn btn-info">Filter</button>
+                        <button type="submit" class="btn btn-info">Go</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; margin-left:50px">
+                        <a href="#end" class="btn btn-info" title="Jump to bottom" style="width: 34px;"><i class="fa fa-long-arrow-down"></i></a>
                     </div>
                     <div style="display: flex; flex-direction: column; margin-left:10px">
-                        <a href="#end" class="btn btn-info">Go to bottom</a>
-                    </div>
-                    <div style="display: flex; flex-direction: column; margin-left:10px">
-                        <a href="#start" class="btn btn-info">Go to top</a>
+                        <a href="#start" class="btn btn-info" title="Jump to top" style="width: 34px;"><i class="fa fa-long-arrow-up"></i></a>
                     </div>
                     <div style="margin-left: auto;">
                         <label>File:</label>
