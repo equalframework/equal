@@ -6,7 +6,7 @@
 */
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Retrieve the descriptor of a given App (from manifest), identified by package and app ID.',
+    'description'   => 'Provide the descriptor of a given App (from manifest), identified by package and app ID.',
     'params'        => [
         'package' => [
             'type'          => 'string',

@@ -8,7 +8,7 @@ namespace equal\organic;
 use equal\services\Container;
 
 class Service extends Singleton {
-    /*  All services are instanciated throught the service container
+    /*  All services are instantiated through the service container
         which instance is, in turn, made available as public member
     */
     public $container;

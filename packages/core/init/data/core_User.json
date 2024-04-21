@@ -5,20 +5,20 @@
         "data": [
             {
                 "id": 1,
-                "login": "root@host.local",
+                "login": "root@equal.local",
                 "password": "secure_password",
-                "firstname": "root",
-                "lastname": "@system",
+                "firstname": "Root",
+                "lastname": "USER",
                 "language": "en",
                 "validated": true,
                 "groups_ids": [1, 2]
             },
             {
                 "id": 2,
-                "login": "cedric@equal.run",
+                "login": "user@equal.local",
                 "password": "safe_pass",
-                "firstname": "Cédric",
-                "lastname": "Françoys",
+                "firstname": "First",
+                "lastname": "USER",
                 "language": "en",
                 "validated": true,
                 "groups_ids": [2]

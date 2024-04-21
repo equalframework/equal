@@ -1,5 +1,9 @@
 <?php
-
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 
 list($params, $providers) = eQual::announce([
     'description'   => 'Returns the list of menus defined in a given package, or applicable to a given entity.',
@@ -13,9 +17,9 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Type of the UML data',
             'type'          => 'string',
             'selection'     => [
-                'or'
+                'erd'
             ]
-        ]     
+        ]
     ],
     'providers'     => ['context', 'orm']
 ]);
@@ -26,12 +30,12 @@ list($params, $providers) = eQual::announce([
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-$packages = eQual::run('get','core_config_packages',[]);
+$packages = eQual::run('get','core_config_packages', []);
 
 $result = [];
 
 foreach($packages as $package) {
-    $result[$package] = recurse_dir(QN_BASEDIR."/packages/{$package}/uml","equml",$params['type']);
+    $result[$package] = recurse_dir(QN_BASEDIR."/packages/{$package}/uml", "json", $params['type']);
 }
 
 $context->httpResponse()
@@ -60,7 +64,7 @@ function endsWith( $haystack, $needle ) {
 }
 
 /**
- * #memo - this method highily differs from the one in controllers.php , translations.php and menu.php
+ * #memo - this method highly differs from the one in controllers.php , translations.php and menu.php
 */
 function recurse_dir($directory, $extension,$type,$parent_name='') {
     $result = array();

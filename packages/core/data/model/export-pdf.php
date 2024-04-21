@@ -518,7 +518,12 @@ function groupObjects($schema, $objects, $group_by) {
             if(is_array($key)) {
                 if(isset($key['name'])) {
                     $label = $key['name'];
-                    $key = $key['name'];
+                    if(isset($group['order']) && isset($key[$group['order']])) {
+                        $key = str_pad((string) $key[$group['order']], 11, '0', STR_PAD_LEFT);
+                    }
+                    else {
+                        $key = $key['name'];
+                    }
                 }
                 else {
                     $label = '';

@@ -162,7 +162,7 @@ $thread_display = function (array $thread) use($style_red, $style_green, $style_
             $function = (isset($stack[$index]['function']))?$stack[$index]['function']:'';
             $file = (isset($stack[$index]['file']))?$stack[$index]['file']:'';
             $line = (isset($stack[$index]['line']))?$stack[$index]['line']:'';
-            $text .= PHP_EOL.($i == ($n - 1))?' └ ':' ├ ';
+            $text .= PHP_EOL.(($i == ($n - 1))?' └ ':' ├ ');
             $text .= "{$function} @ {$file} {$line} ";
         }
     }
@@ -213,7 +213,10 @@ if(file_exists(QN_BASEDIR.'/log/eq_error.log')) {
                         $result[] = "-------------------------------------------------------------------------------------------------------------------------------------------";
                     }
                 }
-                $result[] = $thread_display($thread);
+                foreach(explode(PHP_EOL, $thread_display($thread)) as $line) {
+                    $result[] = $line;
+                }
+
                 $prev_thread_id = $thread['thread_id'];
                 $i++;
             }

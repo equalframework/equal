@@ -10,8 +10,7 @@ namespace equal\db;
  * DBManipulator implementation for MS SQL server.
  *
  */
-
-class DBManipulatorSqlSrv extends DBManipulator {
+final class DBManipulatorSqlSrv extends DBManipulator {
 
 
     /*
@@ -289,7 +288,7 @@ class DBManipulatorSqlSrv extends DBManipulator {
                 foreach($this->members as $member) {
                     $member->sendQuery($query);
                 }
-                if($sql_operation =='insert') {
+                if($sql_operation == 'insert') {
                     if($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
                         $this->setLastId($row['id']);
                     }
@@ -330,13 +329,13 @@ class DBManipulatorSqlSrv extends DBManipulator {
         if(gettype($value) == 'string' && strlen($value) == 0) {
             $result = "''";
         }
-        else if(in_array(gettype($value), ['integer', 'double'])) {
+        elseif(in_array(gettype($value), ['integer', 'double'])) {
             $result = $value;
         }
-        else if(gettype($value) == 'boolean') {
+        elseif(gettype($value) == 'boolean') {
             $result = ($value)?'1':'0';
         }
-        else if(is_null($value)) {
+        elseif(is_null($value)) {
             $result = 'NULL';
         }
         else {
@@ -426,20 +425,6 @@ class DBManipulatorSqlSrv extends DBManipulator {
         return $sql;
     }
 
-    /**
-     * Get records from specified table, according to some conditions.
-     *
-     * @param	array   $tables       name of involved tables
-     * @param	array   $fields       list of requested fields
-     * @param	array   $ids          ids to which the selection is limited
-     * @param	array   $conditions   list of arrays (field, operand, value)
-     * @param	string  $id_field     name of the id field ('id' by default)
-     * @param	mixed   $order        string holding name of the order field or maps holding field nmaes as keys and sorting as value
-     * @param	integer $start
-     * @param	integer $limit
-     *
-     * @return	resource              reference to query resource
-     */
     public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {
         // cast tables to an array (passing a single table is accepted)
         $tables = (array) $tables;
@@ -526,15 +511,6 @@ class DBManipulatorSqlSrv extends DBManipulator {
         return $this->sendQuery($sql, 'update');
     }
 
-
-    /**
-     * Inserts new records in specified table.
-     *
-     * @param	string $table name of the table in which insert the records
-     * @param	array $fields list of involved fields
-     * @param	array $values array of arrays specifying the values related to each specified field
-     * @return	resource reference to query resource
-     */
     public function addRecords($table, $fields, $values) {
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
@@ -549,6 +525,20 @@ class DBManipulatorSqlSrv extends DBManipulator {
         // WHERE clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
         return $this->sendQuery($sql, 'delete');
+    }
+
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     *
+     * For unknown reason, if the select is done after the update, no result set is returned.
+     * That is why we compute the expected result in the first select statement, marked with TABLOCKX to make sure the server locks the table before updating it.
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $sql = 'BEGIN TRANSACTION;';
+        $sql .= "SELECT [{$id_field}], ([{$field}] + $increment) as $field FROM [{$table}] WITH (TABLOCKX) WHERE [{$id_field}] in (".implode(',', $ids).");";
+        $sql .= "UPDATE [{$table}] SET [{$field}] = [{$field}] + $increment WHERE [{$id_field}] in (".implode(',', $ids).");";
+        $sql .= 'COMMIT;';
+        return $this->sendQuery($sql, 'update');
     }
 
 }

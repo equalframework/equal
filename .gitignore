@@ -15,6 +15,7 @@ config/routing/*
 composer.phar
 composer.lock
 .vscode
+.idea
 public/*
 !public/index.php
 !public/console.php

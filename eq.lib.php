@@ -38,56 +38,78 @@ namespace {
     /**
      * Root directory of current install
      */
-    define('QN_BASEDIR', realpath(dirname(__FILE__)));
+    define('EQ_BASEDIR', realpath(dirname(__FILE__)));
+    // equivalence for constant names migration
+    // #deprecated
+    define('QN_BASEDIR', EQ_BASEDIR);
 
     /**
      * Error codes
      * we use negative values to make it possible to distinguish error codes from object ids
      */
-    define('QN_ERROR_UNKNOWN',             -1);        // something went wrong (check the logs)
-    define('QN_ERROR_MISSING_PARAM',       -2);        // one or more mandatory parameters are missing
-    define('QN_ERROR_INVALID_PARAM',       -4);        // one or more parameters have invalid or incompatible value
-    define('QN_ERROR_SQL',                 -8);        // error while building SQL query or processing it (check that object class matches DB schema)
-    define('QN_ERROR_UNKNOWN_OBJECT',     -16);        // unknown resource (class, object, view, ...)
-    define('QN_ERROR_NOT_ALLOWED',        -32);        // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
-    define('QN_ERROR_LOCKED_OBJECT',      -64);        // object is currently locked by another process
-    define('QN_ERROR_CONFLICT_OBJECT',   -128);        // version conflict
-    define('QN_ERROR_INVALID_USER',      -256);        // auth failure
-    define('QN_ERROR_UNKNOWN_SERVICE',   -512);        // server error : missing service
-    define('QN_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
-
-
+    define('EQ_ERROR_UNKNOWN',             -1);        // something went wrong (check the logs)
+    define('EQ_ERROR_MISSING_PARAM',       -2);        // one or more mandatory parameters are missing
+    define('EQ_ERROR_INVALID_PARAM',       -4);        // one or more parameters have invalid or incompatible value
+    define('EQ_ERROR_SQL',                 -8);        // error while building SQL query or processing it (check that object class matches DB schema)
+    define('EQ_ERROR_UNKNOWN_OBJECT',     -16);        // unknown resource (class, object, view, ...)
+    define('EQ_ERROR_NOT_ALLOWED',        -32);        // action violates some rule (including UPLOAD_MAX_FILE_SIZE for binary fields) or user don't have required permissions
+    define('EQ_ERROR_LOCKED_OBJECT',      -64);        // object is currently locked by another process
+    define('EQ_ERROR_CONFLICT_OBJECT',   -128);        // version conflict
+    define('EQ_ERROR_INVALID_USER',      -256);        // auth failure
+    define('EQ_ERROR_UNKNOWN_SERVICE',   -512);        // server error : missing service
+    define('EQ_ERROR_INVALID_CONFIG',   -1024);        // server error : faulty configuration
     // equivalence map for constant names migration
-    define('EQ_ERROR_UNKNOWN',           QN_ERROR_UNKNOWN);
-    define('EQ_ERROR_MISSING_PARAM',     QN_ERROR_MISSING_PARAM);
-    define('EQ_ERROR_INVALID_PARAM',     QN_ERROR_INVALID_PARAM);
-    define('EQ_ERROR_SQL',               QN_ERROR_SQL);
-    define('EQ_ERROR_UNKNOWN_OBJECT',    QN_ERROR_UNKNOWN_OBJECT);
-    define('EQ_ERROR_NOT_ALLOWED',       QN_ERROR_NOT_ALLOWED);
-    define('EQ_ERROR_LOCKED_OBJECT',     QN_ERROR_LOCKED_OBJECT);
-    define('EQ_ERROR_CONFLICT_OBJECT',   QN_ERROR_CONFLICT_OBJECT);
-    define('EQ_ERROR_INVALID_USER',      QN_ERROR_INVALID_USER);
-    define('EQ_ERROR_UNKNOWN_SERVICE',   QN_ERROR_UNKNOWN_SERVICE);
-    define('EQ_ERROR_INVALID_CONFIG',    QN_ERROR_INVALID_CONFIG);
+    // #deprecated
+    define('QN_ERROR_UNKNOWN',           EQ_ERROR_UNKNOWN);
+    define('QN_ERROR_MISSING_PARAM',     EQ_ERROR_MISSING_PARAM);
+    define('QN_ERROR_INVALID_PARAM',     EQ_ERROR_INVALID_PARAM);
+    define('QN_ERROR_SQL',               EQ_ERROR_SQL);
+    define('QN_ERROR_UNKNOWN_OBJECT',    EQ_ERROR_UNKNOWN_OBJECT);
+    define('QN_ERROR_NOT_ALLOWED',       EQ_ERROR_NOT_ALLOWED);
+    define('QN_ERROR_LOCKED_OBJECT',     EQ_ERROR_LOCKED_OBJECT);
+    define('QN_ERROR_CONFLICT_OBJECT',   EQ_ERROR_CONFLICT_OBJECT);
+    define('QN_ERROR_INVALID_USER',      EQ_ERROR_INVALID_USER);
+    define('QN_ERROR_UNKNOWN_SERVICE',   EQ_ERROR_UNKNOWN_SERVICE);
+    define('QN_ERROR_INVALID_CONFIG',    EQ_ERROR_INVALID_CONFIG);
 
 
     /**
      * Debugging modes and levels
      */
     // debugging modes
-    define('QN_MODE_PHP',          1);
-    define('QN_MODE_SQL',          2);
-    define('QN_MODE_ORM',          4);
-    define('QN_MODE_API',          8);
-    define('QN_MODE_APP',          16);
+    define('EQ_MODE_PHP',          1);              // low-level logs (code)
+    define('EQ_MODE_SQL',          2);              // DB related logs
+    define('EQ_MODE_ORM',          4);              // ORM entities & manipulations logs
+    define('EQ_MODE_API',          8);              // routes & controllers related logs
+    define('EQ_MODE_APP',          16);             // application logic logs
+    define('EQ_MODE_AAA',          32);             // authentication, authorization & accounting logs
+    define('EQ_MODE_NET',          64);             // network logs (tcp/ip, http)
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_MODE_PHP',          EQ_MODE_PHP);
+    define('QN_MODE_SQL',          EQ_MODE_SQL);
+    define('QN_MODE_ORM',          EQ_MODE_ORM);
+    define('QN_MODE_API',          EQ_MODE_API);
+    define('QN_MODE_APP',          EQ_MODE_APP);
+    define('QN_MODE_AAA',          EQ_MODE_AAA);
+    define('QN_MODE_NET',          EQ_MODE_NET);
 
     // debugging levels
-    define('QN_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
-    define('QN_REPORT_INFO',        E_USER_NOTICE);         // 1024
-    define('QN_REPORT_WARNING',     E_USER_WARNING);        // 512
-    define('QN_REPORT_ERROR',       E_USER_ERROR);          // 256
-    define('QN_REPORT_FATAL',       E_ERROR);               // 1
+    define('EQ_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
+    define('EQ_REPORT_INFO',        E_USER_NOTICE);         // 1024
+    define('EQ_REPORT_WARNING',     E_USER_WARNING);        // 512
+    define('EQ_REPORT_ERROR',       E_USER_ERROR);          // 256
+    define('EQ_REPORT_FATAL',       E_ERROR);               // 1
+    define('EQ_REPORT_SYSTEM',      0);                     // 0
 
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_REPORT_DEBUG',       EQ_REPORT_DEBUG);
+    define('QN_REPORT_INFO',        EQ_REPORT_INFO);
+    define('QN_REPORT_WARNING',     EQ_REPORT_WARNING);
+    define('QN_REPORT_ERROR',       EQ_REPORT_ERROR);
+    define('QN_REPORT_FATAL',       EQ_REPORT_FATAL);
+    define('QN_REPORT_SYSTEM',      EQ_REPORT_SYSTEM);
 
     /**
      * Logs storage directory
@@ -204,6 +226,7 @@ namespace {
             case QN_REPORT_WARNING:  return 'WARNING';
             case QN_REPORT_ERROR:    return 'ERROR';
             case QN_REPORT_FATAL:    return 'FATAL';
+            case QN_REPORT_SYSTEM:   return 'SYSTEM';
         }
         return 'UNKNOWN';
     }
@@ -215,6 +238,8 @@ namespace {
             case QN_MODE_ORM:    return 'ORM';
             case QN_MODE_API:    return 'API';
             case QN_MODE_APP:    return 'APP';
+            case QN_MODE_AAA:    return 'AAA';
+            case QN_MODE_NET:    return 'NET';
         }
         return 'UNKNOWN';
     }
@@ -504,12 +529,18 @@ namespace config {
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
                 'cron'      => 'equal\cron\Scheduler',
-                'dispatch'  => 'equal\dispatch\Dispatcher'
+                'dispatch'  => 'equal\dispatch\Dispatcher',
+                'db'        => 'equal\db\DBConnector'
             ]);
 
-            // make sure mandatory dependencies are available (reporter requires context)
             try {
+                // make mandatory dependencies available
                 $container->get(['report', 'context']);
+                // register ORM classes auto-loader
+                $om = $container->get('orm');
+                // init collections provider
+                $container->get('equal\orm\Collections');
+                spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
                 // fallback to a manual HTTP 500
@@ -522,17 +553,6 @@ namespace config {
                 // and raise an exception (will be output in PHP error log)
                 throw new \Exception("missing_mandatory_dependency", QN_REPORT_FATAL);
             }
-            // register ORM classes autoloader
-            try {
-                $om = $container->get('orm');
-                // init collections provider
-                $container->get('equal\orm\Collections');
-                spl_autoload_register([$om, 'getModel']);
-            }
-            catch(\Throwable $e) {
-                throw new \Exception("autoload_register_failed", QN_REPORT_FATAL);
-            }
-
         }
 
         public static function getLastContext() {
@@ -586,7 +606,7 @@ namespace config {
             // set Response default Content Type to JSON
             $response->headers()->setContentType('application/json');
 
-            $reporter->debug("method $method");
+            $reporter->debug("API::method: $method");
 
             // normalize $announcement array
             if(!isset($announcement['params'])) {
@@ -722,14 +742,14 @@ namespace config {
                         $expires = intval($announcement['response']['expires']);
                         $age = time() - filemtime(realpath($cache_filename));
                         if($age >= $expires) {
-                            $reporter->debug("expired cache-id {$cache_id}");
+                            $reporter->debug("API::expired cache-id {$cache_id}");
                             $serve_from_cache = false;
                         }
                     }
                     // handle manual request for invalidating the cache
                     if(isset($body['cache'])) {
                         if(in_array($body['cache'], [null, false, 0, '0'])) {
-                            $reporter->debug("manual reset cache-id {$cache_id}");
+                            $reporter->debug("API::manual reset cache-id {$cache_id}");
                             $serve_from_cache = false;
                         }
                         // cache is a reserved parameter: no further process
@@ -739,7 +759,7 @@ namespace config {
                     if(file_exists($cache_filename)) {
                         // cache was invalidated: remove related file
                         if(!$serve_from_cache) {
-                            $reporter->debug("invalidating cache-id {$cache_id}");
+                            $reporter->debug("API::invalidating cache-id {$cache_id}");
                             unlink($cache_filename);
                         }
                         // cache is still valid: serve from cache
@@ -752,7 +772,7 @@ namespace config {
                                     ->send();
                                 throw new \Exception('', 0);
                             }
-                            $reporter->debug("serving from cache-id {$cache_id}");
+                            $reporter->debug("API::serving from cache-id {$cache_id}");
                             list($headers, $result) = unserialize(file_get_contents($cache_filename));
                             // build response with cached headers
                             foreach($headers as $header => $value) {
@@ -902,7 +922,7 @@ namespace config {
             $allowed_params = array_keys($announcement['params']);
             $unknown_params = array_diff(array_keys($body), $allowed_params);
             foreach($unknown_params as $unknown_param) {
-                $reporter->debug("dropped unexpected parameter '{$unknown_param}'");
+                $reporter->debug("API::dropped unexpected parameter '{$unknown_param}'");
                 unset($body[$unknown_param]);
             }
             $missing_params = array_diff($allowed_params, array_intersect($allowed_params, array_keys($body)));
@@ -941,11 +961,11 @@ namespace config {
                         }
                         else {
                             if(isset($config['default'])) {
-                                $reporter->warning("invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
+                                $reporter->warning("API::invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
                                 $result[$param] = $config['default'];
                             }
                             else {
-                                $reporter->warning("dropped invalid non-mandatory parameter '{$param}'");
+                                $reporter->warning("API::dropped invalid non-mandatory parameter '{$param}'");
                             }
                         }
                     }
@@ -974,12 +994,12 @@ namespace config {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
-                            $reporter->warning("invalid value {$value} for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
+                            $reporter->warning("API::invalid value {$value} for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
                             $result[$param] = $config['default'];
                         }
                         else {
                             // otherwise, drop it
-                            $reporter->warning("dropped invalid non-mandatory parameter '{$param}'");
+                            $reporter->warning("API::dropped invalid non-mandatory parameter '{$param}'");
                             unset($result[$param]);
                         }
                     }
@@ -990,7 +1010,7 @@ namespace config {
             }
 
             // report received parameters
-            $reporter->debug("params: ".json_encode($result));
+            $reporter->debug("API::params: ".json_encode($result));
 
             if(count($invalid_params)) {
                 // no feedback about services
@@ -1059,8 +1079,13 @@ namespace config {
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
         public static function run($type, $operation, $body=[], $root=false) {
-            trigger_error("PHP::calling run method for $type:$operation", QN_REPORT_DEBUG);
             global $last_context;
+            /** @var \equal\services\Container */
+            $container = Container::getInstance();
+            /** @var \equal\error\Reporter */
+            $reporter = $container->get('report');
+
+            $reporter->info("API::operation: $type:$operation");
 
             $result = '';
             $resolved = [
@@ -1076,7 +1101,6 @@ namespace config {
                 'get'   => ['kind' => 'DATA_PROVIDER',  'dir' => 'data'   ],    // return some data
                 'show'  => ['kind' => 'APPLICATION',    'dir' => 'apps'   ]     // output rendering information (UI)
             ];
-            $container = Container::getInstance();
 
             if(!$root) {
                 $context_orig = $container->get('context');
@@ -1092,9 +1116,6 @@ namespace config {
                 /** @var \equal\php\Context */
                 $context = $container->get('context');
             }
-
-            /** @var \equal\error\Reporter */
-            $reporter = $container->get('report');
 
             $getOperationOutput = function($script) use($context) {
                 ob_start();
@@ -1133,6 +1154,12 @@ namespace config {
             $request = $context->httpRequest();
             $request->body($body);
 
+            $reporter->info("API::".json_encode([
+                    'uri'       => (string) $request->getUri(),
+                    'headers'   => $request->getHeaders(true),
+                    'body'      => $request->getBody()
+                ], JSON_PRETTY_PRINT));
+
             $operation = explode(':', $operation);
             if(count($operation) > 1) {
                 $visibility = array_shift($operation);
@@ -1150,12 +1177,6 @@ namespace config {
                     $resolved['script'] = implode('/', $parts).'.php';
                 }
             }
-
-            $reporter->debug(json_encode([
-                    'uri'       => (string) $request->getUri(),
-                    'headers'   => $request->getHeaders(true),
-                    'body'      => $request->getBody()
-                ], JSON_PRETTY_PRINT));
 
             // load package custom configuration, if any
             if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
@@ -1233,10 +1254,10 @@ namespace config {
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
                         file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
-                        $reporter->debug("stored cache-id {$cache_id}");
+                        $reporter->debug("API::stored cache-id {$cache_id}");
                     }
                 }
-                trigger_error("PHP::result: $result", QN_REPORT_DEBUG);
+                trigger_error("API::result: $result", QN_REPORT_DEBUG);
             }
 
             // restore context
@@ -1289,7 +1310,7 @@ namespace config {
                     $result = include_once $file_path.'.class.php';
                 }
                 // Fallback to simple php extension
-                else if(file_exists($file_path.'.php')) {
+                elseif(file_exists($file_path.'.php')) {
                     $result = include_once $file_path.'.php';
                 }
                 else {
@@ -1303,7 +1324,7 @@ namespace config {
 
     }
 
-    // Initialize the eQual class for further 'load_class' calls
+    // bootstrap eQual
     eQual::init();
 }
 namespace {

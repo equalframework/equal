@@ -12,7 +12,9 @@ use equal\orm\usages\Usage;
 class Field {
 
     /**
-     * Descriptor of the field, as returned by Model::getColumns()
+     * Descriptor of the field.
+     * In addition to properties from `Model::getColumns()`, `Field::descriptor` always as a `result_type` property.
+     *
      * @var array
      */
     private $descriptor = [];
@@ -30,10 +32,13 @@ class Field {
      * @param array $descriptor Associative array mapping field properties and their values.
      */
     public function __construct(array $descriptor) {
-        // store original descriptor
-        $this->descriptor = $descriptor;
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
+        }
+        $this->descriptor = $descriptor;
+        // ensure local descriptor always has a result_type property
+        if(!isset($descriptor['result_type'])) {
+            $this->descriptor['result_type'] = $this->type;
         }
     }
 
@@ -82,7 +87,35 @@ class Field {
      * @return array
      */
     public function getConstraints(): array {
-        return $this->getUsage()->getConstraints();
+        // generate constraint based on type
+        $result_type = $this->descriptor['result_type'];
+
+        $constraints = [
+            'invalid_type' => [
+                'message'   => "Value is not of type {$result_type}.",
+                'function'  =>  function($value) use($result_type) {
+                    static $map = [
+                        'bool'      => 'boolean',
+                        'int'       => 'integer',
+                        'float'     => 'double',
+                        'text'      => 'string',
+                        'date'      => 'integer',
+                        'datetime'  => 'integer',
+                        'file'      => 'string',
+                        'binary'    => 'string',
+                        'many2one'  => 'integer',
+                        'one2many'  => 'array',
+                        'many2many' => 'array'
+                    ];
+                    // fix types to match values returned by PHP `gettype()`
+                    $mapped_type = $map[$result_type] ?? $result_type;
+                    return (gettype($value) == $mapped_type);
+                }
+            ]
+        ];
+
+        // append constraints based on usage
+        return array_merge($constraints, $this->getUsage()->getConstraints());
     }
 
     public function getDescriptor(): array {

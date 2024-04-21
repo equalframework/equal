@@ -20,9 +20,11 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use equal\auth\AuthenticationManager;
 use equal\error\Reporter;
 use equal\php\Context;
 use equal\route\Router;
+use equal\services\Container;
 
 /*
 
@@ -41,10 +43,7 @@ use equal\route\Router;
 
 */
 
-/*
- Load bootstrap library: system constants and functions definitions
- (eQual library allows to include required files and classes)
-*/
+// Bootstrap the library holding system constants and functions definitions and autoload support.
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
 
 if( (include($bootstrap)) === false ) {
@@ -52,6 +51,9 @@ if( (include($bootstrap)) === false ) {
 }
 
 try {
+    // keep track of the access in the log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => Container::getInstance()->get('auth')->userId() ]));
+
     // 1) retrieve current HTTP context
 
     // get PHP context
@@ -87,7 +89,7 @@ try {
     if( strlen($path) > 1 && !in_array(basename($path), [
             'index.php',                // HTTP request
             'run.php',                  // CLI
-            'equal.php'                 // integration with other frameworks that already use index.php (e.g. WP)
+            'equal.php'                 // integration with other frameworks relying on `index.php` (e.g. WP)
         ]) ) {
 
         $router = Router::getInstance();
@@ -141,7 +143,7 @@ try {
         $route = [
             'operation' => Router::normalizeOperation('?'.$uri->query())
         ];
-        // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root config.inc.php)
+        // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root `config.json`)
         if(!isset($route['operation']['name'])) {
             if(defined('DEFAULT_PACKAGE')) {
                 $route['operation']['name'] = constant('DEFAULT_PACKAGE');
@@ -150,10 +152,27 @@ try {
         }
     }
 
-    // 3) perform requested operation and output result to STDOUT
+    // 3) perform requested operation
+
+    // store http info to access log
+    Reporter::errorHandler(EQ_REPORT_INFO, "NET::".json_encode([
+                'method'    => $method,
+                'uri'       => (string) $uri,
+                'headers'   => $request->getHeaders(true),
+                'body'      => $request->getBody()
+            ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
+        );
+
+    // output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
-    // store access log
-    file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR'])?$_SERVER['HTTP_X_FORWARDED_FOR']:( (isset($_SERVER['REMOTE_ADDR']))?$_SERVER['REMOTE_ADDR']:'127.0.0.1' )).';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
+
+    // store NET info to access log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
+                'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
+                'end'       => microtime(true),
+                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+            ])
+        );
 }
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
@@ -180,7 +199,7 @@ catch(Throwable $e) {
         // redirect to custom location defined for this code, if any
         if(defined('HTTP_REDIRECT_'.$http_status)) {
             header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
-            exit();
+            exit(0);
         }
         $msg = $e->getMessage();
         // handle serialized objects as message
@@ -205,10 +224,18 @@ catch(Throwable $e) {
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?QN_REPORT_WARNING:QN_REPORT_ERROR);
-        // store access log
-        file_put_contents(QN_LOG_STORAGE_DIR.'/access.log', (isset($_SERVER['HTTP_X_FORWARDED_FOR']))?$_SERVER['HTTP_X_FORWARDED_FOR']:(isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:'127.0.0.1').';'.$_SERVER["REQUEST_TIME_FLOAT"].';'.microtime(true).PHP_EOL, FILE_APPEND | LOCK_EX);
-        // return an error code (for compliance under CLI environment)
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?EQ_REPORT_WARNING:EQ_REPORT_ERROR);
+    }
+    // store NET info to access log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
+                'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
+                'end'       => microtime(true),
+                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+            ])
+        );
+    // an exception with code 0 is an explicit request to halt process with no error
+    if($error_code != 0) {
+       // return an error code (for compliance under CLI environment)
         exit(1);
     }
 }

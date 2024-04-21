@@ -211,7 +211,7 @@ class User extends Model {
         foreach($self as $id => $user) {
             $parts = explode(' ', str_replace('-', ' ', $user['firstname'].' '.$user['lastname']));
             $initials = strtoupper(array_reduce($parts, function($c, $a) {return $c.substr($a, 0, 1);}, ''));
-            $res = str_replace(['id', 'nickname', 'mail', 'givenname', 'surname', 'initials'], [$id, $user['nickname'], $user['login'], $user['firstname'], $user['lastname'], $initials], $mask);
+            $res = str_replace(['id', 'nickname', 'mail', 'firstname', 'lastname', 'initials'], [$id, $user['nickname'], $user['login'], $user['firstname'], $user['lastname'], $initials], $mask);
             // fallback to user ID
             $result[$id] = (strlen($res) > 0)?$res:$id;
         }
@@ -230,9 +230,9 @@ class User extends Model {
      */
     public static function onupdatePassword($om, $ids, $values, $lang) {
         $values = $om->read(self::getType(), $ids, ['password']);
-        foreach($values as $oid => $odata) {
-            if(substr($odata['password'], 0, 4) != '$2y$') {
-                $om->update(self::getType(), $oid, ['password' => password_hash($odata['password'], PASSWORD_BCRYPT)]);
+        foreach($values as $id => $user) {
+            if(substr($user['password'], 0, 4) != '$2y$') {
+                $om->update(self::getType(), $id, ['password' => password_hash($user['password'], PASSWORD_BCRYPT)]);
             }
         }
     }
@@ -247,7 +247,7 @@ class User extends Model {
         $result = [];
         $self->read(['firstname', 'lastname']);
         foreach($self as $id => $user) {
-            $result[$id] = $user['firstname'].' '.$user['lastname'];
+            $result[$id] = ucfirst($user['firstname']).' '.mb_strtoupper($user['lastname']);
         }
         return $result;
     }
@@ -278,23 +278,23 @@ class User extends Model {
 
             if(isset($event['firstname'])) {
                 if(isset($event['lastname'])) {
-                    $result['fullname'] = $event['firstname'].' '.$event['lastname'];
+                    $result['fullname'] = ucfirst($event['firstname']).' '.mb_strtoupper($event['lastname']);
                 }
                 else {
                     if(isset($values['lastname'])) {
-                        $result['fullname'] = $event['firstname'].' '.$values['lastname'];
+                        $result['fullname'] = ucfirst($event['firstname']).' '.mb_strtoupper($values['lastname']);
                     }
                     else {
-                        $result['fullname'] = $event['firstname'];
+                        $result['fullname'] = mb_strtoupper($event['firstname']);
                     }
                 }
             }
             else {
                 if(isset($values['firstname'])) {
-                    $result['fullname'] = $values['firstname'].' '.$event['lastname'];
+                    $result['fullname'] = ucfirst($values['firstname']).' '.mb_strtoupper($event['lastname']);
                 }
                 else {
-                    $result['fullname'] = $event['lastname'];
+                    $result['fullname'] = mb_strtoupper($event['lastname']);
                 }
             }
         }

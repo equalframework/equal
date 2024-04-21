@@ -6,7 +6,7 @@
 */
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Updates the password related to a user account.',
     'response'      => [
         'content-type'  => 'application/json',

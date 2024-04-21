@@ -6,12 +6,10 @@
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-welcome.git",
     "url": "/welcome",
-    "icon": "home",
-    "color": "#d2252c",
+    "icon": "sentiment_satisfied",
+    "color": "#2b78c3",
+    "show_in_apps": true,
     "access": {
-        "groups": [
-            "users"
-        ]
-    },
-    "show_in_apps": true
+        "groups": ["users"]
+    }
 }

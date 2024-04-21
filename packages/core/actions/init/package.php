@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\db\DBConnection;
+use equal\db\DBConnector;
 use equal\fs\FSManipulator as FS;
 use equal\orm\Field;
 
@@ -54,7 +54,7 @@ $adapter = $dap->get('json');
 eQual::run('do', 'test_db-access');
 
 // retrieve connection object
-$db = DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
+$db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 if(!$db) {
     throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);

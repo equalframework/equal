@@ -99,7 +99,7 @@ class HttpResponse extends HttpMessage {
             case 'application/vnd.api+json':
             case 'application/x-json':
             case 'application/json':
-                $body = json_encode($body, JSON_PRETTY_PRINT);
+                $body = json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                 if($body === false) {
                     throw new \Exception('invalid_json_input', QN_ERROR_UNKNOWN);
                 }

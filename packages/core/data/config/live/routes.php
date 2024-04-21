@@ -6,6 +6,9 @@
 */
 list($params, $providers) = announce([
     'description'   => 'Returns all the routes with priority based on the number.',
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'UTF-8',

@@ -18,12 +18,6 @@ class UsageText extends Usage {
 
     public function getConstraints(): array {
         return [
-            'not_string_type' => [
-                'message'   => 'Value is not a string.',
-                'function'  =>  function($value) {
-                    return (gettype($value) == 'string');
-                }
-            ],
             'size_exceeded' => [
                 'message'   => 'String exceeds usage length constraint.',
                 'function'  =>  function($value) {
@@ -42,16 +36,16 @@ class UsageText extends Usage {
                         case 'plain':
                             break;
                         case 'html':
-                            $doc = new DOMDocument();
+                            $doc = new \DOMDocument();
                             libxml_use_internal_errors(true);
                             $doc->loadHTML($value);
                             return (empty(libxml_get_errors()));
                             break;
                         case 'xml':
                             // #todo - check XML validity
-                            $xml = new XMLReader();
+                            $xml = new \XMLReader();
                             $xml->xml($value);
-                            $xml->setParserProperty(XMLReader::VALIDATE, true);
+                            $xml->setParserProperty(\XMLReader::VALIDATE, true);
                             return $xml->isValid();
                         case 'markdown':
                             // #todo - check markdown validity

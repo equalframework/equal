@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -58,7 +58,7 @@ $tests = [
     // groups assignments
 
     '0201' => [
-                'description'       => "Verify assignment with non-existing group.",
+                'description'       =>   "Verify assignment with non-existing group.",
                 'help'              => "Create a user, check with a non existing group.",
                 'return'            => ['integer'],
                 'arrange'           => function() use($providers) {
@@ -82,7 +82,7 @@ $tests = [
             'help'              => "Create a user, check with a non existing group.",
             'return'            => ['integer'],
             'arrange'           => function() use($providers) {
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    $user = User::create(['login' => 'user_test_2@example.com', 'password' => 'abcd1234'])->first();
                     return $user['id'];
                 },
             'act'            => function($user_id) use($providers) {
@@ -93,7 +93,7 @@ $tests = [
                     return ($access->hasGroup('users', $user_id) && !$access->hasGroup('foo_non_existing_group', $user_id));
                 },
             'rollback'          => function() {
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    User::search(['login', '=', 'user_test_2@example.com'])->delete(true);
                 }
         ],
 
@@ -102,7 +102,7 @@ $tests = [
             'help'              => "Create a user, assign it to a group, and check the group membership  of the user.",
             'return'            => ['array'],
             'arrange'           => function() use($providers) {
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    $user = User::create(['login' => 'user_test_3@example.com', 'password' => 'abcd1234'])->first();
                     $group = Group::create(['name' => 'test1'])->first();
                     return [$user['id'], $group['id']];
                 },
@@ -120,7 +120,7 @@ $tests = [
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test1'])->delete(true);
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    User::search(['login', '=', 'user_test_3@example.com'])->delete(true);
                 }
         ],
 
@@ -155,7 +155,7 @@ $tests = [
             'description'       => "Check if a user has a right on all objects.",
             'help'              => "Create a user, assign it to a group, grant some rights to that group and check the resulting rights of the user.",
             'arrange'           => function() use($providers) {
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    $user = User::create(['login' => 'user_test_4@example.com', 'password' => 'abcd1234'])->first();
                     return $user['id'];
             },
             'assert'            => function($user_id) use($providers) {
@@ -163,7 +163,7 @@ $tests = [
                     return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User');
                 },
             'rollback'          => function() {
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    User::search(['login', '=', 'user_test_4@example.com'])->delete(true);
                 }
         ],
 
@@ -172,8 +172,8 @@ $tests = [
             'help'              => "Create a user, assign it to a group, grant some rights to that group and check the resulting rights of the user.",
             'arrange'           => function() use($providers) {
                     $access = $providers['access'];
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
-                    $group = Group::create(['name' => 'test1'])->first();
+                    $user = User::create(['login' => 'user_test_5@example.com', 'password' => 'abcd1234'])->first();
+                    $group = Group::create(['name' => 'test2'])->first();
                     $access->addGroup($group['id'], $user['id']);
                     return $group['id'];
                 },
@@ -188,10 +188,9 @@ $tests = [
                     return $access->hasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
                 },
             'rollback'          => function() {
-                    Group::search(['name', '=', 'test1'])->delete(true);
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    Group::search(['name', '=', 'test2'])->delete(true);
+                    User::search(['login', '=', 'user_test_5@example.com'])->delete(true);
                 }
-
         ],
 
     '0305' => [
@@ -199,8 +198,8 @@ $tests = [
             'help'              => "Create a user, assign it to a group, grant some rights to that group, then remove back those rights, and check the resulting rights of the user.",
             'arrange'           => function() use($providers) {
                     $access = $providers['access'];
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
-                    $group = Group::create(['name' => 'test1'])->first();
+                    $user = User::create(['login' => 'user_test_6@example.com', 'password' => 'abcd1234'])->first();
+                    $group = Group::create(['name' => 'test3'])->first();
                     $access->grantGroups($group['id'], EQ_R_MANAGE, '*');
                     $access->addGroup($group['id'], $user['id']);
                     return [$user['id'], $group['id']];
@@ -217,8 +216,8 @@ $tests = [
                     return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User', 1);
                 },
             'rollback'          => function() {
-                    Group::search(['name', '=', 'test1'])->delete(true);
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    Group::search(['name', '=', 'test3'])->delete(true);
+                    User::search(['login', '=', 'user_test_6@example.com'])->delete(true);
                 }
         ],
 
@@ -227,7 +226,7 @@ $tests = [
             'description'       => "Check if an action is authorized.",
             'help'              => "Create a user, and check if the user can perform an action on its own object.",
             'arrange'           => function() use($providers) {
-                    $user = User::create(['login' => 'user_test_1@example.com', 'password' => 'abcd1234'])->first();
+                    $user = User::create(['login' => 'user_test_7@example.com', 'password' => 'abcd1234'])->first();
                     return $user['id'];
                 },
             'assert'            => function($user_id) use($providers) {
@@ -235,7 +234,7 @@ $tests = [
                     return !boolval(count($access->canPerform($user_id, 'validate', 'core\User', $user_id)));
                 },
             'rollback'          => function() {
-                    User::search(['login', '=', 'user_test_1@example.com'])->delete(true);
+                    User::search(['login', '=', 'user_test_7@example.com'])->delete(true);
                 }
         ]
 ];

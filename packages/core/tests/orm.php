@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -17,7 +17,7 @@ $tests = [
 
     //1xxx : calls related to the ObjectManger instance
     '1000' => array(
-                'description'       => "Get instance of the object Manager",
+                'description'       => "Get the instance of the object Manager.",
                 'return'            => array('boolean'),
                 'expected'          => true,
                 'test'              => function (){
@@ -27,7 +27,7 @@ $tests = [
                 ),
 
     '1100' => array(
-                'description'       =>  "Check uniqueness of ObjectManager instance",
+                'description'       =>  "Check uniqueness of ObjectManager instance.",
                 'return'            =>  array('boolean'),
                 'expected'          =>  true,
                 'test'              =>  function (){
@@ -42,13 +42,13 @@ $tests = [
     // @return      mixed (int or array) error code OR resulting associative array
 
     '2100' => array(
-                'description'       =>  "Requesting User object by passing an array holding a unique id",
+                'description'       =>  "Requesting User object by passing an array holding a unique id.",
                 'return'            =>  array('integer', 'array'),
                 'expected'          =>  array(
                                         '1' => array(
                                                 'language'  => 'en',
-                                                'firstname' => 'root',
-                                                'lastname'  => '@system'
+                                                'firstname' => 'Root',
+                                                'lastname'  => 'USER'
                                               )
                                         ),
                 'test'              =>  function (){
@@ -63,13 +63,13 @@ $tests = [
                 ),
 
     '2101' => array(
-                    'description'       =>  "Requesting User object by passing an integer as id",
+                    'description'       =>  "Requesting User object by passing an integer as id.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => array(
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                   )
                                             ),
                     'test'              =>  function (){
@@ -83,13 +83,13 @@ $tests = [
                                             }
                     ),
     '2102' => array(
-                    'description'       =>  "Requesting User object by passing a string as id",
+                    'description'       =>  "Requesting User object by passing a string as id.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => array(
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                   )
                                             ),
                     'test'              =>  function (){
@@ -104,7 +104,7 @@ $tests = [
                     ),
 
     '2103' => array(
-                    'description'       =>  "Requesting User object by giving a non-existing integer id",
+                    'description'       =>  "Requesting User object by giving a non-existing integer id.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
                     'test'              =>  function (){
@@ -114,13 +114,13 @@ $tests = [
                     ),
 
     '2104' => array(
-                    'description'       =>  "Requesting User object by passing an array containing an invalid id",
+                    'description'       =>  "Requesting User object by passing an array containing an invalid id.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => [
                                                     'language'  => 'en',
-                                                    'firstname' => 'root',
-                                                    'lastname'  => '@system'
+                                                    'firstname' => 'Root',
+                                                    'lastname'  => 'USER'
                                                    ]
                                             ),
                     'test'              =>  function () {
@@ -131,12 +131,11 @@ $tests = [
                                                     $res[$oid] = $object->toArray();
                                                 }
                                                 return $res;
-
                                             }
                     ),
 
     '2105' => array(
-                    'description'       =>  "Call ObjectManager::read with empty value for \$ids parameter : empty array",
+                    'description'       =>  "Call ObjectManager::read with empty value for \$ids parameter : empty array.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
                     'test'              =>  function () {
@@ -146,7 +145,7 @@ $tests = [
                     ),
 
     '2110' => array(
-                    'description'       =>  "Call ObjectManager::read with missing \$ids parameters",
+                    'description'       =>  "Call ObjectManager::read with missing \$ids parameters.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  [],
                     'test'              =>  function () {
@@ -155,7 +154,7 @@ $tests = [
                                             }
                     ),
     '2120' => array(
-                    'description'       =>  "Call ObjectManager::read with wrong \$ids parameters",
+                    'description'       =>  "Call ObjectManager::read with wrong \$ids parameters.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(),
                     'test'              =>  function () {
@@ -164,7 +163,7 @@ $tests = [
                                             }
                     ),
     '2130' => array(
-                    'description'       =>  "Call ObjectManager::read some non-existing object from non-existing class",
+                    'description'       =>  "Call ObjectManager::read some non-existing object from non-existing class.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  QN_ERROR_UNKNOWN_OBJECT,
                     'test'              =>  function () {
@@ -174,11 +173,11 @@ $tests = [
                     ),
 
     '2140' => array(
-                    'description'       =>  "Call ObjectManager::read with a string as field",
+                    'description'       =>  "Call ObjectManager::read with a string as field.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array(
                                             '1' => array(
-                                                    'firstname' => 'root'
+                                                    'firstname' => 'Root'
                                                   )
                                             ),
                     'test'              =>  function () {
@@ -192,7 +191,7 @@ $tests = [
                                             }
                     ),
     '2150' => array(
-                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name",
+                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  [
                                                 '1' => []
@@ -208,9 +207,9 @@ $tests = [
                                             }
                     ),
     '2151' => array(
-                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name",
+                    'description'       =>  "Call ObjectManager::read with wrong \$fields value : non-existing field name.",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  array('1' => array('firstname' => 'root') ),
+                    'expected'          =>  array('1' => array('firstname' => 'Root') ),
                     'test'              =>  function () {
                                                 $res = [];
                                                 $om = ObjectManager::getInstance();
@@ -225,7 +224,7 @@ $tests = [
 
     //22xx : calls related to the create method
     '2210' => array(
-                    'description'       =>  "Create a user (no validation)",
+                    'description'       =>  "Create a user (no validation).",
                     'return'            =>  array('integer'),
                     'test'              =>  function () {
                                                 global $dummy_user_id;
@@ -241,7 +240,7 @@ $tests = [
                     ),
 
     '2220' => [
-                    'description'       =>  "Create a group (no validation)",
+                    'description'       =>  "Create a group (no validation).",
                     'return'            =>  array('integer'),
                     'act'               =>  function () {
                                                 $om = ObjectManager::getInstance();
@@ -263,7 +262,7 @@ $tests = [
 
     //24xx : calls related to the remove method
     '2401' => array(
-                    'description'       =>  "Remove a user (no validation)",
+                    'description'       =>  "Remove a user (no validation).",
                     'return'            =>  array('integer', 'array'),
                     'assert'            =>  function($result) {
                                                 return ($result > 0);
@@ -279,7 +278,7 @@ $tests = [
     // @signature : public function search($object_class, $domain=NULL, $order='id', $sort='asc', $start='0', $limit='0', $lang='en') {
     // @return : mixed (integer or array)
     '2501' => array(
-                    'description'       =>  "Search an object with valid clause 'ilike'",
+                    'description'       =>  "Search an object with valid clause 'ilike'.",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  array('2'),
                     'test'              =>  function () {
@@ -288,7 +287,7 @@ $tests = [
                                             }
                     ),
     '2502' => array(
-                    'description'       =>  "Search an object with invalid clause 'ilike' (non-existing field)",
+                    'description'       =>  "Search an object with invalid clause 'ilike' (non-existing field).",
                     'return'            =>  array('integer', 'array'),
                     'expected'          =>  QN_ERROR_INVALID_PARAM,
                     'test'              =>  function () {
@@ -297,7 +296,7 @@ $tests = [
                                             }
                     ),
     '2510' => array(
-                    'description'       =>  "Search for some object : clause 'contains' on one2many field",
+                    'description'       =>  "Search for some object : clause 'contains' on one2many field.",
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function (){
@@ -306,7 +305,7 @@ $tests = [
                                             },
                     ),
     '2520' => array(
-                    'description'       =>  "Search for some object : clause 'contains' on one2many field (using a foreign key different from 'id')",
+                    'description'       =>  "Search for some object : clause 'contains' on one2many field (using a foreign key different from 'id').",
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function () {
@@ -315,7 +314,7 @@ $tests = [
                                             }
                     ),
     '2530' => array(
-                    'description'       =>  "Search for some object : clause 'contains' on many2one field",
+                    'description'       =>  "Search for some object : clause 'contains' on many2one field.",
                     'return'            =>  array('boolean'),
                     'expected'          =>  true,
                     'test'              =>  function () {
@@ -331,7 +330,7 @@ $tests = [
                     'expected'          =>  QN_ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('root@host.local', 'secure_password');
+                                                    $providers['auth']->authenticate('root@equal.local', 'secure_password');
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
@@ -343,11 +342,11 @@ $tests = [
                     ),
 
     '2620' => array(
-                    'description'       =>  "Search for some object : clause 'contains' on many2many field",
+                    'description'       =>  "Search for some object : clause 'contains' on many2many field.",
                     'return'            =>  array('integer', 'array'),
                     'arrange'           =>  function () use($providers) {
                                                 try {
-                                                    $providers['auth']->authenticate('cedric@equal.run', 'safe_pass');
+                                                    $providers['auth']->authenticate('user@equal.local', 'safe_pass');
                                                     // grant READ operation on all classes
                                                     $providers['access']->grant(QN_R_READ);
 
@@ -363,14 +362,14 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return is_array($result) && count($result) == 2 && (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
-                                                 && count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result['2'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
+                                                 && count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result['2'])) == 0
                                                 );
                                             }
                     ),
 
     '2631' => array(
-                    'description'       =>  "Add a user to a given group",
+                    'description'       =>  "Add a user to a given group.",
                     'return'            =>  array('integer', 'array'),
                     'act'               =>  function () use($providers) {
                                                 try {
@@ -389,7 +388,7 @@ $tests = [
                                             },
                     'assert'            =>  function($result) {
                                                 return (
-                                                    count(array_diff(['id' => 1, 'login' => 'root@host.local'], (array) $result['1'])) == 0
+                                                    count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
                                                 );
                                             }
                     ),
@@ -416,7 +415,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'act'               =>  function () {
                                                 try {
-                                                    $values = User::search(['login', 'like', 'cedric@equal.run'])
+                                                    $values = User::search(['login', 'like', 'user@equal.local'])
                                                               ->read(['login'])
                                                               ->get();
                                                 }
@@ -429,7 +428,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return (
                                                     count($result) &&
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[2])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result[2])) == 0
                                                 );
                                             }
                     ),
@@ -438,7 +437,7 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'act'               =>  function () {
                                                 try {
-                                                    $values = User::search(['login', '=', 'cedric@equal.run'])
+                                                    $values = User::search(['login', '=', 'user@equal.local'])
                                                               ->read(['login'])
                                                               ->get(true);
                                                 }
@@ -451,7 +450,7 @@ $tests = [
                     'assert'            =>  function($result) {
                                                 return (
                                                     count($result) &&
-                                                    count(array_diff(['id' => 2, 'login' => 'cedric@equal.run'], (array) $result[0])) == 0
+                                                    count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result[0])) == 0
                                                 );
                                             }
                     ),

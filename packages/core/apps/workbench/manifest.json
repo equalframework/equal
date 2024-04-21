@@ -1,12 +1,12 @@
 {
     "name": "Workbench",
-    "description": "This is the workbench application.",
+    "description": "The workbench App allows to create, edit, and configure the components of the current installation.",
     "url": "/workbench",
-    "icon": "edit_note",
-    "color": "#d2252c",
+    "icon": "construction",
+    "color": "#3a8f50",
     "access": {
         "groups": [
-            "users", "admins"
+            "admins"
         ]
     },
     "show_in_apps": true

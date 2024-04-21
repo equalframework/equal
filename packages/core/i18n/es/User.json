@@ -112,8 +112,8 @@
              "group.user": {
                 "label": "Información del usuario"
              },
-             "user_details": {
-                "label": "Detalles del usuario"
+             "section.details": {
+                "label": "Detalles"
              },
              "section.preferences": {
                 "label": "Preferencias"

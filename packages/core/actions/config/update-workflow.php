@@ -9,11 +9,6 @@ use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFind
 list($params, $providers) = eQual::announce([
     'description'   => "Translate a workflow definition of a given entity to a PHP method and store it in related file.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
-    'response'      => [
-        'content-type'  => 'text/plain',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'entity'    => [
             'description'   => 'Name of the entity (class).',
@@ -26,6 +21,11 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ]
     ],
+    'response'      => [
+        'content-type'  => 'text/plain',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
     'providers'     => ['context', 'orm']
 ]);
 
@@ -35,88 +35,96 @@ list($params, $providers) = eQual::announce([
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-// Create all the object to use for using PhpParser
-$parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
-$nodeFinder = new NodeFinder;
-$traverser = new NodeTraverser;
-$prettyPrinter = new PhpParser\PrettyPrinter\Standard;
-// Get the parts of the entity string, separated by backslashes
-$parts = explode('\\', $params['entity']);
-// Get the package name from the first part of the string
-$package = array_shift($parts);// Get the package name from the first part of the string
-// Get the file name from the last part of the string
-$filename = array_pop($parts);
-// Get the class path from the remaining part
-$class_path = implode('/', $parts);
+// force class autoload
+$entity = $orm->getModel($entity::getType());
+if(!$entity) {
+    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+}
 
-$getColumns = null;
-$code_php = null;
+$class = new ReflectionClass($entity::getType());
 
-// Decode the JSON string to a PHP object
-$code_php = $params['payload'];
-// Get a string representation from the code_php variable, with backslashes escaped
-$code_string = str_replace("\\\\", "\\", var_export($code_php, true));
-// Create a virtual file holing the default structure with the parsed code and generate a minimal AST
-$ast_temp = $parser->parse("<?php \nclass temp { public static function getWorkflow() {return ".$code_string.";}}");
-// Find the getWorkflow node in the AST of the temporary file
-$nodeGetWorkflow = $nodeFinder->findFirst(
-    $ast_temp,
-    function(Node $node) {
-        return isset($node->name->name)
-            && $node->name->name === "getWorkflow";
+if(!$class->hasMethod('getWorkflow')) {
+    throw new Exception('missing_workflow', QN_ERROR_UNKNOWN);
+}
+
+$getWorkflow = new ReflectionMethod($params['entity'], 'getWorkflow');
+
+// retrieve content of the source file of the targeted entity
+$file = $class->getFileName();
+$code = file_get_contents($file);
+$lines = explode("\n", $code);
+
+// retrieve start and end lines of getWorkflow declaration
+$start_index = $getWorkflow->getStartLine() - 1;
+$end_index = $getWorkflow->getEndLine() - 1;
+
+// generate replacement code for the getWorkflow method
+$workflow_code = ''.
+    "    public static function getWorkflow() {\n".
+    "        return ".array_export($params['payload'], 4, 2, true).";\n".
+    "    }";
+
+$result = '';
+
+foreach($lines as $index => $line) {
+    if($index < $start_index) {
+        $result .= $line."\n";
     }
-);
-
-// Add a visitor hijack the getWorkflow method and update its content with new schema
-$traverser->addVisitor(
-        new class($nodeGetWorkflow, "getWorkflow") extends NodeVisitorAbstract {
-            private $node;
-            private $target;
-            public function __construct($node, $target) {
-                $this->node = $node;
-                $this->target = $target;
-            }
-            public function leaveNode(Node $node) {
-                if (
-                    isset($node->name->name)
-                    && $node->name->name === $this->target
-                ) {
-                    return $this->node;
-                }
-
-                return null;
+    else {
+        if($index == $start_index) {
+            $result .= $workflow_code."\n";
+        }
+        else {
+            if($index > $end_index) {
+                $result .= $line."\n";
             }
         }
-    );
-
-// Get the full path of the file
-$file = QN_BASEDIR."/packages/{$package}/classes/{$class_path}/{$filename}.class.php";
-// Get the code from the original file ...
-$code = file_get_contents($file);
-// ... and parse it to create an AST
-$stmtOriginal = $parser->parse($code);
-// Update the AST by using visitors attached to the traverser
-$stmtModified = $traverser->traverse($stmtOriginal);
-// Pretty print the modified AST ...
-$result = $prettyPrinter->prettyPrintFile($stmtModified);
-// ... and write back the code to the file
-if(file_put_contents($file, $result) === false) {
-    throw new Exception('io_error', QN_ERROR_UNKNOWN);
-}
-
-try {
-    // apply coding standards (ecs.php is expected in QN_BASEDIR)
-    $command = 'php ./vendor/bin/ecs check "' . str_replace('\\', '/', $file) . '" --fix';
-    if(exec($command) === false) {
-        throw new Exception('command_failed', QN_ERROR_UNKNOWN);
     }
-    $result = file_get_contents($file);
 }
-catch(Exception $e) {
-    trigger_error("PHP::unable to beautify rendered file ($file): ".$e->getMessage(), QN_REPORT_INFO);
+
+// write back the code to the source file
+if(file_put_contents($file, rtrim($result)."\n") === false) {
+    throw new Exception('io_error', QN_ERROR_UNKNOWN);
 }
 
 $context->httpResponse()
         ->status(204)
-        ->body($result)
         ->send();
+
+/**
+ * Use var_export() native function and apply a few regex replacements to improve the syntax.
+ * Note : this strategy is preferred to the use of PhpParser since it allows to modify only the portion of code targeted by the getWorkflow method.
+ *
+ * @param array     $array                  Array to be converted to PHP code.
+ * @param int       $indent_spaces          Number of spaces to use for code indentation.
+ * @param int       $pad_indents            Number of indents each line must be prefixed with.
+ * @param bool      $ignore_first_indent    Flag for disabling indent for first line.
+ */
+function array_export($array, $indent_spaces = 4, $pad_indents = 0, $ignore_first_indent=false) {
+    // convert to PHP code
+    $export = var_export($array, true);
+    // minimalist code 'beautify'
+    $patterns = [
+        // convert to square bracket notation
+        "/array \(/"                        => '[',
+        "/^([ ]*)\)(,?)$/m"                 => '$1]$2',
+        "/=>[ ]?\n[ ]+\[/"                  => '=> [',
+        "/([ ]*)(\'[^\']+\') => ([\[\'])/"  => '$1$2 => $3',
+        // remove explicit numeric index
+        "/[0-9]+ => /"                      => ''
+    ];
+    $result = preg_replace(array_keys($patterns), array_values($patterns), $export);
+    // indent lines
+    $lines = explode("\n", $result);
+    foreach($lines as $index => $line) {
+    	if(!$ignore_first_indent || $index > 0) {
+            $code = ltrim($line);
+            // produced PHP code is 2 spaces indented
+            $indents = (strlen($line) - strlen($code)) / 2;
+    		$lines[$index] = str_pad('', $pad_indents*$indent_spaces, ' ').
+                             str_pad('', $indents*$indent_spaces, ' ').
+                             $code;
+    	}
+    }
+    return implode("\n", $lines);
+}

@@ -48,16 +48,6 @@
             },
             {
                 "type": "field",
-                "value": "firstname",
-                "width": "20%"
-            },
-            {
-                "type": "field",
-                "value": "lastname",
-                "width": "20%"
-            },
-            {
-                "type": "field",
                 "value": "language",
                 "width": "10%",
                 "widget": {

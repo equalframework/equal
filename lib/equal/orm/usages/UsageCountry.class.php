@@ -20,7 +20,7 @@ class UsageCountry extends Usage {
                 ]
             ];
         }
-        // subtype is expected to be iso-3166
+        // subtype is expected to be ISO-3166
         switch($this->getLength()) {
             case '3':
                 return [
@@ -42,7 +42,6 @@ class UsageCountry extends Usage {
                         }
                     ]
                 ];
-
         }
     }
 

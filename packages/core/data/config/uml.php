@@ -1,4 +1,9 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 
 list($params, $providers) = eQual::announce([
     'description'   => "Attempts to create a new package using a given name.",
@@ -9,7 +14,7 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ],
         'path' =>  [
-            'decription'    => 'relative path to the file from packages/{pkg}/',
+            'description'    => 'relative path to the file from packages/{pkg}/',
             'type'          => 'string',
             'required'      => true
         ],
@@ -18,7 +23,7 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true,
             'selection'     => [
-                'or'
+                'erd'
             ]
         ]
     ],
@@ -61,8 +66,8 @@ $path = implode("/",$path_arr);
 
 $path = str_replace("..","",$path);
 
-if(!endsWith($filename,".{$params["type"]}.equml")) {
-    $filename = $filename.".{$params["type"]}.equml";
+if(!endsWith($filename,".{$params["type"]}.json")) {
+    $filename = $filename.".{$params["type"]}.json";
 }
 
 if(!file_exists(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}")) {
@@ -72,7 +77,7 @@ if(!file_exists(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}")) {
 $context->httpResponse()
         ->body(file_get_contents(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}"))
         ->status(200)
-        ->send(); 
+        ->send();
 
 function endsWith( $haystack, $needle ) {
     $length = strlen( $needle );

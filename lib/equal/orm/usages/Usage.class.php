@@ -51,6 +51,11 @@ class Usage {
      */
     protected $size = 0;
 
+    /**
+     * Return the constraints descriptors, according to the Usage instance.
+     * Since `function` properties returned by this method expect a non-static context,
+     * using the ORM, those callbacks are bound to a Usage instance using `bindTo()`.
+     */
     public function getConstraints(): array {
         return [];
     }

@@ -1,17 +1,15 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
 /**
- * A global var `$test` is expected to be set by each tests set (that var is used in the `core_package_test` controller).
- * As the current file is injected in the global scope, this line is not mandatory and is left in order to ease the understanding.
- *
- * @var array   $test   Global var holding the test descriptors.
+ * A `$test` var is expected to be set by each tests set.
+ * That var is used in the `core_test_package` controller and, since tests sets are loaded using `include($filename)`,
+ * the `$tests` var is shared between tests sets and the parent script.
  */
-global $test;
 
 $tests = [
     // Each key of the associative array is a test identifier that maps to a test descriptor.

@@ -37,14 +37,16 @@ class Setting extends Model {
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
                 'onupdate'          => 'onupdateCode',
-                'required'          => true
+                'required'          => true,
+                'dependencies'      => ['name']
             ],
 
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
                 'onupdate'          => 'onupdatePackage',
-                'default'           => 'core'
+                'default'           => 'core',
+                'dependencies'      => ['name']
             ],
 
             'section' => [
@@ -61,7 +63,8 @@ class Setting extends Model {
                 'foreign_object'    => 'core\setting\SettingSection',
                 'onupdate'          => 'onupdateSectionId',
                 'description'       => 'Section the setting relates to.',
-                'required'          => true
+                'required'          => true,
+                'dependencies'      => ['section', 'name']
             ],
 
             'title' => [
@@ -134,7 +137,6 @@ class Setting extends Model {
     }
 
     public static function onupdateCode($om, $ids, $values, $lang) {
-        $om->update(self::getType(), $ids, ['name' => null], $lang);
         $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
         foreach($settings as $oid => $setting) {
             $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
@@ -142,7 +144,6 @@ class Setting extends Model {
     }
 
     public static function onupdateSectionId($om, $ids, $values, $lang) {
-        $om->update(self::getType(), $ids, ['name' => null, 'section' => null], $lang);
         $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
         foreach($settings as $oid => $setting) {
             $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
@@ -150,19 +151,18 @@ class Setting extends Model {
     }
 
     public static function onupdatePackage($om, $ids, $values, $lang) {
-        $om->update(self::getType(), $ids, ['name' => null], $lang);
         $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
         foreach($settings as $oid => $setting) {
             $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
         }
     }
 
-    public static function calcSection($om, $oids, $lang) {
+    public static function calcSection($om, $ids, $lang) {
         $result = [];
-        $settings = $om->read(self::getType(), $oids, ['section_id.code'], $lang);
+        $settings = $om->read(self::getType(), $ids, ['section_id.code'], $lang);
         if($settings > 0 && count($settings)) {
-            foreach($settings as $oid => $odata) {
-                $result[$oid] = $odata['section_id.code'];
+            foreach($settings as $id => $setting) {
+                $result[$id] = $setting['section_id.code'];
             }
         }
         return $result;

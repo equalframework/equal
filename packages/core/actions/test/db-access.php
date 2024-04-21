@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\db\DBConnection;
+use equal\db\DBConnector;
 
 $params = announce([
     'description'   => "Tests access to the database.\nIn case of success, the script simply terminates with a status code of 0 (no output).",
@@ -13,7 +13,7 @@ $params = announce([
 ]);
 
 // retrieve connection object
-$db = &DBConnection::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
+$db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'));
 
 // 1) test connectivity to DBMS service
 $json = run('do', 'test_db-connectivity');

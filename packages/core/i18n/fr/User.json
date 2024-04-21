@@ -41,8 +41,8 @@
         "label.details":{
             "label":"Détails de contact"
         },
-        "section.user_details": {
-            "label": "Section des détails"
+        "section.details": {
+            "label": "Détails"
         },
         "identification":{
             "label":"Identification"

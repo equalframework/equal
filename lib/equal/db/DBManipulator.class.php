@@ -6,6 +6,9 @@
 */
 namespace equal\db;
 
+/**
+ * This class is used as abstract class providing members and methods signature for DBManipulator class that extend it.
+ */
 class DBManipulator {
 
     /**
@@ -136,6 +139,7 @@ class DBManipulator {
      * @access   public
      */
     public function connect($auto_select=true) {
+        return $this;
     }
 
     public function select($db_name) {
@@ -206,6 +210,14 @@ class DBManipulator {
         return $this->last_query;
     }
 
+    public static function fetchRow($result) {
+        return [];
+    }
+
+    public static function fetchArray($result) {
+        return [];
+    }
+
     protected function setLastId($id) {
         $this->last_id = $id;
     }
@@ -218,4 +230,42 @@ class DBManipulator {
         $this->last_query = $query;
     }
 
+    /**
+     * Get records from specified table, according to some conditions.
+     *
+     * @param	array   $tables       name of involved tables
+     * @param	array   $fields       list of requested fields
+     * @param	array   $ids          ids to which the selection is limited
+     * @param	array   $conditions   list of arrays (field, operand, value)
+     * @param	string  $id_field     name of the id field ('id' by default)
+     * @param	mixed   $order        string holding name of the order field or maps holding field names as keys and sorting as value
+     * @param	integer $start
+     * @param	integer $limit
+     *
+     * @return	resource              reference to query resource
+     */
+    public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {}
+
+    public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id') {}
+
+    /**
+     * Inserts new records in specified table.
+     *
+     * @param	string $table name of the table in which insert the records
+     * @param	array $fields list of involved fields
+     * @param	array $values array of arrays specifying the values related to each specified field
+     * @return	resource reference to query resource
+     */
+    public function addRecords($table, $fields, $values) {}
+
+    public function deleteRecords($table, $ids, $conditions=null, $id_field='id') {}
+
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     * This method implements FAA instruction (fetch-and-add) in order to read and update a column as an atomic operation.
+     *
+     * @param int $increment    A numeric value used to increment columns (if value positive) or decrement columns (if value is negative).
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -23,7 +23,7 @@ $tests = [
                                                 try {
                                                     $request = new HttpRequest("http://localhost/me");
                                                     $response = $request
-                                                                ->header('Authorization', 'Basic '.base64_encode("cedric@equal.run:safe_pass"))
+                                                                ->header('Authorization', 'Basic '.base64_encode("user@equal.local:safe_pass"))
                                                                 ->send();
                                                     return $response->body();
                                                 }
@@ -33,7 +33,7 @@ $tests = [
                                                 }
                                                 return $values;
                                             },
-                        'expected'      =>  ['id' => 2, 'login' => 'cedric@equal.run', 'firstname' => 'Cédric', 'lastname' => 'FRANÇOYS', 'language' => 'fr']
+                        'expected'      =>  ['id' => 2, 'login' => 'user@equal.local', 'firstname' => 'User', 'lastname' => 'USER', 'language' => 'fr']
                     ),
 */
 ];

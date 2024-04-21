@@ -10,8 +10,7 @@ namespace equal\db;
  * DBManipulator implementation for MySQL server.
  *
  */
-
-class DBManipulatorSQLite extends DBManipulator {
+final class DBManipulatorSQLite extends DBManipulator {
 
 
     public static $types_associations = [
@@ -66,11 +65,13 @@ class DBManipulatorSQLite extends DBManipulator {
         // by convention the DB file is the given DB_NAME with `.db` suffix
         $db_file = QN_BASEDIR.'/bin/'.$this->db_name.'.db';
 
-        $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
-
         if(!file_exists($db_file)) {
             return false;
         }
+
+        $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
+        // make sure PHP process waits when an exclusive transaction is pending
+        $this->dbms_handler->busyTimeout(3000);
 
         return $this;
     }
@@ -417,20 +418,6 @@ class DBManipulatorSQLite extends DBManipulator {
         return $sql;
     }
 
-    /**
-     * Get records from specified table, according to some conditions.
-     *
-     * @param	array   $tables       name of involved tables
-     * @param	array   $fields       list of requested fields
-     * @param	array   $ids          ids to which the selection is limited
-     * @param	array   $conditions   list of arrays (field, operand, value)
-     * @param	string  $id_field     name of the id field ('id' by default)
-     * @param	mixed   $order        string holding name of the order field or maps holding field names as keys and sorting as value
-     * @param	integer $start
-     * @param	integer $limit
-     *
-     * @return	resource              reference to query resource
-     */
     public function getRecords($tables, $fields=NULL, $ids=NULL, $conditions=NULL, $id_field='id', $order=[], $start=0, $limit=0) {
         // cast tables to an array (passing a single table is accepted)
         if(!is_array($tables)) {
@@ -531,14 +518,6 @@ class DBManipulatorSQLite extends DBManipulator {
         return $this->sendQuery($sql);
     }
 
-    /**
-     * Inserts new records in specified table.
-     *
-     * @param	string $table name of the table in which insert the records
-     * @param	array $fields list of involved fields
-     * @param	array $values array of arrays specifying the values related to each specified field
-     * @return	resource reference to query resource
-     */
     public function addRecords($table, $fields, $values) {
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
@@ -552,6 +531,18 @@ class DBManipulatorSQLite extends DBManipulator {
         $sql = 'DELETE FROM `'.$table.'`';
         // where clause
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
+        return $this->sendQuery($sql);
+    }
+
+    /**
+     * Fetch and increment the column of a series of records in a single operation.
+     *
+     */
+    public function incRecords($table, $ids, $field, $increment, $id_field='id') {
+        $sql = 'BEGIN EXCLUSIVE TRANSACTION;';
+        $sql .= "UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");";
+        $sql .= 'COMMIT TRANSACTION;';
+        $sql .= "SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");";
         return $this->sendQuery($sql);
     }
 

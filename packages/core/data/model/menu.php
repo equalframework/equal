@@ -29,7 +29,7 @@ list($params, $providers) = eQual::announce([
 /**
  * @var \equal\php\Context  $context
  */
-list($context, $orm) = [ $providers['context'] ];
+list($context) = [ $providers['context'] ];
 
 $result = [];
 
