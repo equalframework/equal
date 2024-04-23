@@ -103,9 +103,9 @@ class HttpHeaders {
             $res = $this->headers[$header];
         }
         else {
-            $normaliazed_header = self::normalizeName($header);
-            if(isset($this->headers[$normaliazed_header])) {
-                $res = $this->headers[$normaliazed_header];
+            $normalized_header = self::normalizeName($header);
+            if(isset($this->headers[$normalized_header])) {
+                $res = $this->headers[$normalized_header];
             }
         }
         return $res;
