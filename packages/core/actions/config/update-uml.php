@@ -8,8 +8,8 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true
         ],
-        'path' =>  [
-            'description'    => 'relative path to the file from packages/{pkg}/',
+        'filename' =>  [
+            'description'   => 'relative path to the file from packages/{package}/uml',
             'type'          => 'string',
             'required'      => true
         ],
@@ -48,61 +48,54 @@ list($context, $orm, $ac) = [$providers['context'], $providers['orm'], $provider
 
 $response_code = 200;
 
-$package = $params["package"];
+$package = $params['package'];
 
-// Checking if package exists
 if(!file_exists(QN_BASEDIR."/packages/{$package}")) {
     throw new Exception('missing_package_dir', QN_ERROR_INVALID_PARAM);
 }
 
-// Checking if package exists
 if(!file_exists(QN_BASEDIR."/packages/{$package}/uml")) {
-    throw new Exception('malformed_package', QN_ERROR_INVALID_CONFIG);
-}
-
-$path_arr = explode('/',$params['path']);
-$filename = array_pop($path_arr);
-$path = implode("/",$path_arr);
-
-$path = str_replace("..","",$path);
-
-$str_payload =$params['payload'];
-
-if(!endsWith($filename,".{$params["type"]}.json")) {
-    $filename = $filename.".{$params["type"]}.json";
-}
-
-if(!is_dir(QN_BASEDIR."/packages/{$package}/uml/{$path}")) {
-    $response_code = 201;
-    if(!mkdir(QN_BASEDIR."/packages/{$package}/uml/{$path}", 0775, true)) {
+    if(!mkdir(QN_BASEDIR."/packages/{$package}/uml", 0775, true)) {
         throw new Exception('io_error'.QN_BASEDIR."/packages/{$package}/uml/{$path}", QN_ERROR_INVALID_CONFIG);
     }
 }
 
-if($response_code === 200 && !file_exists(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}")) {
+$filepath = str_replace(['..', '/'], ['', '_'], $params['filename']);
+
+$parts = explode("_", $filepath);
+$filename = array_pop($parts);
+
+$path = implode('/', $parts);
+
+$extension = ".{$params["type"]}.json";
+
+if(substr($filename, -strlen($extension)) != $extension) {
+    $filename = $filename.$extension;
+}
+
+$final_path = QN_BASEDIR."/packages/{$package}/uml/" . ( (strlen($path))?($path.'/'):'' );
+
+if(!is_dir($final_path)) {
+    if(!mkdir($final_path, 0775, true)) {
+        throw new Exception('io_error', QN_ERROR_INVALID_CONFIG);
+    }
+}
+
+if(!file_exists($final_path.$filename)) {
     $response_code = 201;
 }
 
-// create file
-$f = fopen(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}","w");
+// store payload
+$f = fopen($final_path.$filename, "w");
 if(!$f) {
     throw new Exception('io_error', QN_ERROR_INVALID_CONFIG);
 }
-
-fputs($f,$str_payload);
+fputs($f, $params['payload']);
 fclose($f);
 
-$result = file_get_contents(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}");
+$result = file_get_contents($final_path.$filename);
 
 $context->httpResponse()
         ->body($result)
         ->status($response_code)
         ->send();
-
-function endsWith( $haystack, $needle ) {
-    $length = strlen( $needle );
-    if( !$length ) {
-        return true;
-    }
-    return substr( $haystack, -$length ) === $needle;
-}
