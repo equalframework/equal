@@ -18,14 +18,14 @@
                 "id": "uml.drawer",
                 "type": "parent",
                 "label": "UML",
-                "icon": "account_tree",
+                "icon": "schema",
                 "context": [],
                 "children": [
                     {
                         "id": "uml",
                         "type": "entry",
-                        "label": "Object-relational",
-                        "icon": "schema",
+                        "label": "ERD",
+                        "icon": "account_tree",
                         "context": [],
                         "children": []
                     }
