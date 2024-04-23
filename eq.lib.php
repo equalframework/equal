@@ -126,20 +126,21 @@ namespace {
     /**
      * Users & Groups permissions masks
      */
-    define('QN_R_CREATE',    1);
-    define('QN_R_READ',      2);
-    define('QN_R_WRITE',     4);
-    define('QN_R_DELETE',    8);
-    define('QN_R_MANAGE',   16);
-    define('QN_R_ALL',      31);
+    define('EQ_R_CREATE',    1);
+    define('EQ_R_READ',      2);
+    define('EQ_R_WRITE',     4);
+    define('EQ_R_DELETE',    8);
+    define('EQ_R_MANAGE',   16);
+    define('EQ_R_ALL',      31);
 
-    /* equivalence map for naming migration */
-    define('EQ_R_CREATE',       QN_R_CREATE);
-    define('EQ_R_READ',         QN_R_READ);
-    define('EQ_R_WRITE',        QN_R_WRITE);
-    define('EQ_R_DELETE',       QN_R_DELETE);
-    define('EQ_R_MANAGE',       QN_R_MANAGE);
-    define('EQ_R_ALL',          QN_R_ALL);
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_R_CREATE',       EQ_R_CREATE);
+    define('QN_R_READ',         EQ_R_READ);
+    define('QN_R_WRITE',        EQ_R_WRITE);
+    define('QN_R_DELETE',       EQ_R_DELETE);
+    define('QN_R_MANAGE',       EQ_R_MANAGE);
+    define('QN_R_ALL',          EQ_R_ALL);
 
     /**
      * Built-in Users and Groups
@@ -587,8 +588,8 @@ namespace config {
          */
         public static function announce(array $announcement) {
             // 0) init vars
-            $result = array();
-            $mandatory_params = array();
+            $result = [];
+            $mandatory_params = [];
             // retrieve service container
             $container = Container::getInstance();
             // retrieve required services
@@ -606,19 +607,18 @@ namespace config {
             // set Response default Content Type to JSON
             $response->headers()->setContentType('application/json');
 
-            $reporter->debug("API::method: $method");
-
             // normalize $announcement array
             if(!isset($announcement['params'])) {
-                $announcement['params'] = array();
+                $announcement['params'] = [];
             }
+
+            $operation = $context->get('operation');
 
             // handle controller inheritance
             if(isset($announcement['extends']))  {
                 // retrieve params from parent controller
-                $op_descr = $context->get('operation');
                 try {
-                    $data = \eQual::run($op_descr['type'], $announcement['extends'], ['announce' => true], false);
+                    $data = \eQual::run($operation['type'], $announcement['extends'], ['announce' => true], false);
                     if(!is_null($data) && isset($data['announcement']['params'])) {
                         $announcement['params'] = array_merge($data['announcement']['params'], $announcement['params']);
                     }
@@ -859,7 +859,6 @@ namespace config {
                 // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
                 // if 'help' is amongst the params and request was made through CLI
                 if(php_sapi_name() == 'cli' && isset($body['help'])) {
-                    $operation = $context->get('operation');
                     $help = 'Help about ';
                     $help .= strtoupper($operation['type']).' '.$operation['operation']." :\n\n";
                     $help .= "Description:\n";
@@ -1010,7 +1009,11 @@ namespace config {
             }
 
             // report received parameters
-            $reporter->debug("API::params: ".json_encode($result));
+            $reporter->debug("API::".json_encode([
+                        'controller'  => $operation['operation'],
+                        'params'      => $result
+                    ], JSON_PRETTY_PRINT)
+                );
 
             if(count($invalid_params)) {
                 // no feedback about services
@@ -1085,7 +1088,11 @@ namespace config {
             /** @var \equal\error\Reporter */
             $reporter = $container->get('report');
 
-            $reporter->info("API::operation: $type:$operation");
+            $reporter->info('API::'.json_encode([
+                        'type'      =>  $type,
+                        'operation' => $operation
+                  ], JSON_PRETTY_PRINT)
+                );
 
             $result = '';
             $resolved = [
@@ -1153,12 +1160,6 @@ namespace config {
             /** @var \equal\http\HttpRequest */
             $request = $context->httpRequest();
             $request->body($body);
-
-            $reporter->info("API::".json_encode([
-                    'uri'       => (string) $request->getUri(),
-                    'headers'   => $request->getHeaders(true),
-                    'body'      => $request->getBody()
-                ], JSON_PRETTY_PRINT));
 
             $operation = explode(':', $operation);
             if(count($operation) > 1) {
