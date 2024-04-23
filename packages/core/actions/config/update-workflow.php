@@ -36,7 +36,7 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 // force class autoload
-$entity = $orm->getModel($entity::getType());
+$entity = $orm->getModel($params['entity']);
 if(!$entity) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
