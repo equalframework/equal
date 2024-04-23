@@ -134,22 +134,29 @@ class HttpRequest extends HttpMessage {
             $additional_headers['Content-Length'] = $body_length;
             // merge manually defined headers with additional headers (later overwrites the former)
             $headers = array_merge((array) $this->getHeaders(true), $additional_headers);
+            // if host is present in the header, it will void any redirection attempt - remove it if present
+            // https://www.php.net/manual/en/context.http.php#125832
+            if(isset($headers['Host'])) {
+                unset($headers['Host']);
+            }
             // adapt headers to fit into a numerically indexed array
             $headers = array_map(function ($header, $value) {return "$header: $value";}, array_keys($headers), $headers);
             // build the HTTP options array
             $http_options = array_merge($http_options, [
                     'method'            => $method,
-                    'request_fulluri'   => true,
+                    // #memo - this has been demonstrated as not being supported by some 'strict' HTTP servers
+                    // 'request_fulluri'   => true,
                     'header'            => $headers,
                     'ignore_errors'     => true,
                     'timeout'           => (defined('HTTP_REQUEST_TIMEOUT'))?constant('HTTP_REQUEST_TIMEOUT'):10,
-                    'protocol_version'  => $this->getProtocolVersion()
+                    'protocol_version'  => $this->getProtocolVersion(),
+                    'follow_location'   => 1,
+                    'max_redirects'     => 10
                 ]);
             // create the HTTP stream context
             $context = stream_context_create([
                     'http' => $http_options
                 ]);
-
             // send request
             $data = @file_get_contents(
                     $uri,
@@ -164,8 +171,12 @@ class HttpRequest extends HttpMessage {
                 foreach($http_response_header as $line) {
 					list($header, $value) = ['', ''];
                     $parts = array_map('trim', explode(':', $line));
-					if(isset($parts[0])) $header = $parts[0];
-					if(isset($parts[1])) $value = $parts[1];
+					if(isset($parts[0])) {
+                        $header = $parts[0];
+                    }
+					if(isset($parts[1])) {
+                        $value = $parts[1];
+                    }
 					if(strpos($header, 'HTTP/1.1') === 0) {
 						$response_status = $header;
 					}
@@ -176,7 +187,7 @@ class HttpRequest extends HttpMessage {
                 $response = new HttpResponse($response_status, $headers, $data);
             }
             else {
-                throw new \Exception('unable to send HTTP request', QN_ERROR_UNKNOWN);
+                throw new \Exception('failed_sending_http_request', QN_ERROR_UNKNOWN);
             }
         }
         return $response;
