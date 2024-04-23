@@ -1,0 +1,14 @@
+[
+    {
+        "name": "core\\Meta",
+        "lang": "en",
+        "data": [
+            {
+                "name": "workflow.core.User",
+                "code": "workflow",
+                "reference": "core.User",
+                "value": "{\"created\":{\"position\":{\"x\":192,\"y\":193},\"transitions\":{\"validation\":{\"anchorFrom\":4,\"anchorTo\":3}}},\"validated\":{\"position\":{\"x\":368,\"y\":193},\"transitions\":{\"suspension\":{\"anchorFrom\":4,\"anchorTo\":3},\"confirmation\":{\"anchorFrom\":4,\"anchorTo\":3}}},\"confirmed\":{\"position\":{\"x\":633,\"y\":106},\"transitions\":{\"suspension\":{\"anchorFrom\":1,\"anchorTo\":6}}},\"suspended\":{\"position\":{\"x\":630,\"y\":302},\"transitions\":{\"confirmation\":{\"anchorFrom\":1,\"anchorTo\":6}}}}"
+            }
+        ]
+    }
+]
