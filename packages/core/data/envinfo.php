@@ -37,7 +37,8 @@ list($context, $auth) = [$providers['context'], $providers['auth']];
 $user_id = $auth->userId();
 
 $envinfo = [
-	"production"    => constant('ENV_MODE'),
+	"env_mode"      => constant('ENV_MODE'),
+	"production"    => (constant('ENV_MODE') == 'production'),
 	"parent_domain" => parse_url(constant('BACKEND_URL'), PHP_URL_HOST),
 	"backend_url"   => constant('BACKEND_URL'),
 	"rest_api_url"  => constant('REST_API_URL'),
