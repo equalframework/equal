@@ -9,17 +9,17 @@ list($params, $providers) = eQual::announce([
     'description'   => "Attempts to create a new package using a given name.",
     'params'        => [
         'package'   => [
-            'description'   => 'Name of the package of the new model',
+            'description'   => 'Name of the package of the new model.',
             'type'          => 'string',
             'required'      => true
         ],
         'path' =>  [
-            'description'    => 'relative path to the file from packages/{pkg}/',
+            'description'    => 'Relative path to the file inside `packages/{package}/`.',
             'type'          => 'string',
             'required'      => true
         ],
         'type'      => [
-            'description'   => 'Type of the UML data',
+            'description'   => 'Type of the UML data.',
             'type'          => 'string',
             'required'      => true,
             'selection'     => [
@@ -60,14 +60,16 @@ if(!file_exists(QN_BASEDIR."/packages/{$package}/uml")) {
     throw new Exception('malformed_package', QN_ERROR_INVALID_CONFIG);
 }
 
-$path_arr = explode('/',$params['path']);
+$path_arr = explode('/', $params['path']);
 $filename = array_pop($path_arr);
-$path = implode("/",$path_arr);
+$path = implode("/", $path_arr);
 
-$path = str_replace("..","",$path);
+$path = str_replace("..", "", $path);
 
-if(!endsWith($filename,".{$params["type"]}.json")) {
-    $filename = $filename.".{$params["type"]}.json";
+$extension = ".{$params["type"]}.json";
+
+if(substr($filename, -strlen($extension)) != $extension) {
+    $filename = $filename.$extension;
 }
 
 if(!file_exists(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}")) {
@@ -78,11 +80,3 @@ $context->httpResponse()
         ->body(file_get_contents(QN_BASEDIR."/packages/{$package}/uml/{$path}/{$filename}"))
         ->status(200)
         ->send();
-
-function endsWith( $haystack, $needle ) {
-    $length = strlen( $needle );
-    if( !$length ) {
-        return true;
-    }
-    return substr( $haystack, -$length ) === $needle;
-}
