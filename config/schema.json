@@ -278,7 +278,7 @@
     },
     "ROOT_APP_URL": {
         "type": "string",
-        "deprecated": "Please use APP_URL instead.",
+        "deprecated": "Please use BACKEND_URL instead.",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
     },
@@ -325,5 +325,23 @@
         "type": "string",
         "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
         "default": "/assets/img/logo.svg"
+    },
+    "BACKEND_URL": {
+        "type": "string",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "default": "http://equal.local",
+        "examples": [
+            "http://equal.local",
+            "http://equal.local/index.php"
+        ]
+    },
+    "REST_API_URL": {
+        "type": "string",
+        "description": "The URL specific to the API path, if any. This URL should end with a slash ('/')",
+        "default": "http://equal.local/",
+        "examples": [
+            "http://equal.local/api/",
+            "http://equal.local/v1/"
+        ]
     }
 }
