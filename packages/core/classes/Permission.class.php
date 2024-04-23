@@ -8,6 +8,16 @@ namespace core;
 
 use equal\orm\Model;
 
+/**
+ * @property alias      $name
+ * @property string     $class_name     Full name of the entity to which the permission rule applies.
+ * @property string     $domain         JSON value of the constraints domain (ex. ['creator', '=', '1'])
+ * @property integer    $object_id      Identifier of the specific object on which the permission applies.
+ * @property integer    $group_id       Targeted group, if permission applies to a group.
+ * @property integer    $user_id        Targeted user, if permission applies to a single user.
+ * @property integer    $rights         Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)
+ * @property string     $rights_txt
+ */
 class Permission extends Model {
 
     public static function getColumns() {
