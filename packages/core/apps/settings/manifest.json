@@ -1,13 +1,13 @@
 {
     "name": "Settings",
-    "description": "App for accessing and managing configuration and options related to an eQual installation.",
+    "description": "Manage and configure global and App-specific options and parameters.",
     "version": "1.0",
     "authors": ["Cedric Francoys"],
     "license": "LGPL-3",
     "repository": "https://github.com/equalframework/apps-core-settings.git",
     "url": "/settings",
     "icon": "settings",
-    "color": "#FF9741",
+    "color": "#FF5F00",
     "access": {
         "groups": [
             "admins"
