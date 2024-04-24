@@ -318,6 +318,7 @@
     },
     "APP_URL": {
         "type": "string",
+        "deprecated": "Please use BACKEND_URL and DEFAULT_APP instead.",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
     },
