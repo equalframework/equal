@@ -35,9 +35,6 @@ list( $params, $providers ) = eQual::announce([
 
 list($context, $auth) = [$providers['context'], $providers['auth']];
 
-// retrieve current User identifier (through HTTP headers lookup by Authentication Manager)
-$user_id = $auth->userId();
-
 $envinfo = [
     "env_mode"      => constant('ENV_MODE'),
     "production"    => (constant('ENV_MODE') == 'production'),
@@ -52,6 +49,9 @@ $envinfo = [
     "app_name"      => constant('APP_NAME'),
     "app_logo_url"  => constant('APP_LOGO_URL')
 ];
+
+// retrieve current User
+$user_id = $auth->userId();
 
 // append settings values if request is made by an authenticated user
 if($user_id) {
