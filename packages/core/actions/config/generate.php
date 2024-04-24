@@ -6,7 +6,7 @@
 */
 
 list( $params, $providers ) = eQual::announce( [
-    'description' => "Generate a configuration file based on a set of params.",
+    'description' => "Generate a configuration file based on a set of params and store it as `config/config.json`.",
     'response'    => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
@@ -54,12 +54,6 @@ list( $params, $providers ) = eQual::announce( [
             'description' => 'The password of the DBMS host.',
             'type'        => 'string',
             'required'    => true
-        ],
-        'store'       => [
-            'description' => 'Flag for requesting config file creation.',
-            'help'        => 'When this flag is set to true, the resulting configuration is stored as `config/config.json`.',
-            'type'        => 'boolean',
-            'default'     => false
         ]
     ],
     'providers'   => [ 'context' ]
@@ -84,22 +78,18 @@ $config = [
     "AUTH_ACCESS_TOKEN_VALIDITY" => "1d",
     "USER_ACCOUNT_DISPLAYNAME"   => "nickname",
     "BACKEND_URL"                => $scheme.'://'.$domain_name,
-    "REST_API_URL"               => $scheme.'://'.$domain_name.'/',
+    "REST_API_URL"               => $scheme.'://'.$domain_name.'/'
 ];
 
-// if store is requested, create the config file (overwrite if it already exists)
-if($params['store']) {
-    $filepath = EQ_BASEDIR.'/config/config.json';
-    // make sure file is writable
-    if( !is_writable(dirname($filepath)) || !is_writable($filepath) ) {
-        throw new Exception( 'non_writable_config', EQ_ERROR_INVALID_CONFIG );
-    }
-    // store config
-    file_put_contents($filepath, json_encode($config, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-    // HTTP 201 Created
-    $context->httpResponse()->status(201);
+$filepath = EQ_BASEDIR.'/config/config.json';
+// make sure file is writable
+if( !is_writable(dirname($filepath)) || !is_writable($filepath) ) {
+    throw new Exception( 'non_writable_config', EQ_ERROR_INVALID_CONFIG );
 }
-
-$context
-    ->httpResponse()
-    ->body($config);
+if( !file_exists($filepath) ) {
+    throw new Exception( 'config_already_exists', EQ_ERROR_NOT_ALLOWED );
+}
+// store config
+file_put_contents($filepath, json_encode($config, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+// HTTP 201 Created
+$context->httpResponse()->status(201);
