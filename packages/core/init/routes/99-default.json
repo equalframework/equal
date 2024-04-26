@@ -63,6 +63,12 @@
             "operation": "?get=core_userinfo"
         }
     },
+    "/envinfo": {
+        "GET": {
+            "description": "Retrieve current Settings.",
+            "operation": "?get=core_envinfo"
+        }
+    },
     "/appinfo": {
         "GET": {
             "description": "Retrieve current Settings.",
