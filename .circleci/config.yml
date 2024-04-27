@@ -2,26 +2,46 @@ version: 2.1
 
 # Define the jobs we want to run for this project
 jobs:
-  build:
+  php_7.4:
     docker:
     - image: php:7.4-apache
-
     - image: mysql:5.7
       environment:
         MYSQL_ROOT_PASSWORD: test
         MYSQL_DATABASE: equal
-
     working_directory: ~/repo
-
     steps:
       # install dependencies
       - run: apt-get update && apt-get -y install git libzip-dev
       - run: docker-php-ext-install pdo pdo_mysql mysqli zip
       - run: docker-php-ext-enable mysqli
-
       - checkout:
           path: ~/repo
-
+      # check that mandatory directories are present and have correct access rights set
+      - run: php run.php --do=test_fs-consistency
+      # check ability to connect to the dbms service
+      - run: php run.php --do=test_db-connectivity
+      # create an empty database
+      - run: php run.php --do=init_db
+      # initialize database with demo data
+      - run: php run.php --do=init_package --package=core --import=true
+      # run test units
+      - run: php run.php --do=test_package --package=core
+  php_8.1:
+    docker:
+    - image: php:8.1-apache
+    - image: mysql:5.7
+      environment:
+        MYSQL_ROOT_PASSWORD: test
+        MYSQL_DATABASE: equal
+    working_directory: ~/repo
+    steps:
+      # install dependencies
+      - run: apt-get update && apt-get -y install git libzip-dev
+      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
+      - run: docker-php-ext-enable mysqli
+      - checkout:
+          path: ~/repo
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
       # check ability to connect to the dbms service
@@ -37,4 +57,5 @@ jobs:
 workflows:
   build_and_test:
     jobs:
-      - build
+      - php_7.4
+      - php_8.1
