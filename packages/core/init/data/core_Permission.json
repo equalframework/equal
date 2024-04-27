@@ -2,7 +2,7 @@
     {
         "name": "core\\Permission",
         "lang": "en",
-		"description": "Assign READ on common objects.",
+		"description": "Grant READ permission on common objects (`core` package).",
         "data": [
             {
                 "class_name": "core\\*",
