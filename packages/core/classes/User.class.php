@@ -247,7 +247,9 @@ class User extends Model {
         $result = [];
         $self->read(['firstname', 'lastname']);
         foreach($self as $id => $user) {
-            $result[$id] = ucfirst($user['firstname']).' '.mb_strtoupper($user['lastname']);
+            $result[$id] =
+                (($user['firstname'] && strlen($user['firstname'])) ? (ucfirst($user['firstname']).' ') : '')
+                . mb_strtoupper($user['lastname'] ?? '');
         }
         return $result;
     }
