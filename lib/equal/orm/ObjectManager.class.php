@@ -341,8 +341,10 @@ class ObjectManager extends Service {
     public static function getObjectRootClass($class) {
         $entity = $class;
         while(true) {
-            $parent = get_parent_class($entity);
-            if(!$parent || $parent == 'equal\orm\Model') break;
+            $parent = (class_exists($entity))?get_parent_class($entity):false;
+            if(!$parent || $parent == 'equal\orm\Model') {
+                break;
+            }
             $entity = $parent;
         }
         return $entity;
