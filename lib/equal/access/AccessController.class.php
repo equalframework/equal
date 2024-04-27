@@ -91,6 +91,10 @@ class AccessController extends Service {
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnObjects($user_id, $object_class, $object_ids);
             }
+            // grant user RW rights on its own object
+            if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $object_ids[0] == $user_id) {
+                $user_rights |= EQ_R_READ | EQ_R_WRITE;
+            }
         }
         // request for rights based on object_class only
         else {
