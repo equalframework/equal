@@ -52,7 +52,7 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
-php_8-3:
+  php_8-3:
     docker:
     - image: php:8.3-apache
     - image: mysql:5.7
