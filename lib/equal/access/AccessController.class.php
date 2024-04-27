@@ -79,8 +79,7 @@ class AccessController extends Service {
      *
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
-        // no matter the ACLs, users are always granted the default permissions
-        // and root user always has full rights
+        // users are always granted the default permissions and root user always has full rights
         $user_rights = ($user_id == QN_ROOT_USER_ID)?EQ_R_ALL:$this->default_rights;
 
         // request for rights based on object_class and specific object_ids
