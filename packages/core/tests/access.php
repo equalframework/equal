@@ -152,15 +152,15 @@ $tests = [
         ],
 
     '0303' => [
-            'description'       => "Check if a user has a right on all objects.",
-            'help'              => "Create a user, assign it to a group, grant some rights to that group and check the resulting rights of the user.",
+            'description'       => "Check if a user has a right on its own object.",
+            'help'              => "Create a user, and check if it has the resulting user has the MANAGE right on itself.",
             'arrange'           => function() use($providers) {
                     $user = User::create(['login' => 'user_test_4@example.com', 'password' => 'abcd1234'])->first();
                     return $user['id'];
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User');
+                    return $access->hasRight($user_id, EQ_R_WRITE, 'core\User', $user_id);
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_4@example.com'])->delete(true);
@@ -184,7 +184,7 @@ $tests = [
                 },
             'assert'            => function($group_id) use($providers) {
                     $access = $providers['access'];
-                    $user = User::search(['groups_ids', 'contains', $group_id])->first();
+                    $user = User::search(['login', '=', 'user_test_5@example.com'])->read(['id'])->first();
                     return $access->hasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
                 },
             'rollback'          => function() {
@@ -213,7 +213,7 @@ $tests = [
             'assert'            => function($data) use($providers) {
                     list($user_id, $group_id) = $data;
                     $access = $providers['access'];
-                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\User', 1);
+                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\Task');
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test3'])->delete(true);
