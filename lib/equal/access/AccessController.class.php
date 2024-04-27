@@ -100,9 +100,12 @@ class AccessController extends Service {
             }
             else {
                 // grant READ on system entities ('core' package)
+                /*
+                // #memo - this is done through Permissions object to allow fine grained handling
                 if(ObjectManager::getObjectPackage(ObjectManager::getObjectRootClass($object_class)) == 'core') {
                     $user_rights |= EQ_R_READ;
                 }
+                */
                 if(strpos($object_class, '*') === false) {
                     $user_rights |= $this->getUserRightsOnClass($user_id, $object_class);
                 }
