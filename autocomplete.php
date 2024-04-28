@@ -70,12 +70,14 @@ if(count($values) == 4) {
 
     $results = choices_level($values[1], $parts);
 
+    $map_results = [];
     // filter results
     foreach($results as $i => $result) {
         $val = trim($result, ' _');
-        if(strlen($val) <= 0 || in_array($val, $results)) {
+        if(strlen($val) <= 0 || isset($map_results[$val])) {
             unset($results[$i]);
         }
+        $map_results[$val] = true;
     }
 
     $count_results = count($results);
