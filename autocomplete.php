@@ -206,7 +206,7 @@ if(in_array($count, range(6, 30, 3))) {
         }
 
         if($usage == 'orm/package') {
-            $entities = get_packages();
+            $packages = get_packages();
             foreach($packages as $package) {
                 if(!strlen($clue) || strpos($package, $clue) === 0) {
                     echo $package."\n";
