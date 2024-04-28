@@ -70,8 +70,8 @@ if(count($values) == 4) {
 
     $results = choices_level($values[1], $parts);
 
-    $map_results = [];
     // filter results
+    $map_results = [];
     foreach($results as $i => $result) {
         $val = trim($result, ' _');
         if(strlen($val) <= 0 || isset($map_results[$val])) {
@@ -132,8 +132,20 @@ if(count($values) == 5) {
         }
     }
 
-    if(count($results) > 0) {
-        if(count($results) == 1) {
+    // filter results
+    $map_results = [];
+    foreach($results as $i => $result) {
+        $val = trim($result, ' _');
+        if(strlen($val) <= 0 || isset($map_results[$val])) {
+            unset($results[$i]);
+        }
+        $map_results[$val] = true;
+    }
+
+    $count_results = count($results);
+
+    if($count_results > 0) {
+        if($count_results == 1) {
             if($values[4] != '--'.$results[0]) {
                 echo '--'.$results[0]."\n";
             }
