@@ -119,14 +119,13 @@ if(count($values) == 5) {
         exit();
     }
 
-    $clue = trim($values[4], '-');
-
     $params = [];
-    $announcement = get_announcement($clue, $values[3]);
+    $announcement = get_announcement(trim($values[1], '-'), $values[3]);
     if(isset($announcement['params'])) {
         $params = array_keys($announcement['params']);
     }
 
+    $clue = trim($values[4], '-');
     foreach($params as $param) {
         if(!strlen($clue) || strpos($param, $clue) === 0) {
             $results[] = $param;
