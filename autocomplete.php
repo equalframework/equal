@@ -168,12 +168,14 @@ if(count($values) == 5) {
     [5] => =
     ( [6] => aa )
 */
-if(count($values) == 6 || count($values) == 7) {
+if(count($values) >= 6) {
+    $count = count($values);
+
     $param = trim($values[4], '-');
     $clue = '';
 
-    if(count($values) == 7) {
-        $clue = trim($values[6], "'");
+    if($count % 2 == 1) {
+        $clue = trim($values[$count-1], "'");
     }
 
     $params = [];
@@ -201,7 +203,6 @@ if(count($values) == 6 || count($values) == 7) {
     }
     exit();
 }
-
 
 /**
  * #memo - Utilities below are hoisted when script is parsed.
