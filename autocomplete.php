@@ -115,7 +115,7 @@ if($count == 4) {
 */
 if($count >= 5 && $count % 2 == 1) {
     $results = [];
-    if(in_array($values[$count-1], ['', '-'])) {
+    if(in_array($values[$count-2], ['', '-'])) {
         echo '--'."\n";
         exit();
     }
@@ -171,7 +171,7 @@ if($count >= 5 && $count % 2 == 1) {
 */
 if($count >= 6) {
 
-    $param = trim($values[4], '-');
+    $param = trim($values[$count-2], '-');
     $clue = '';
 
     $params = [];
