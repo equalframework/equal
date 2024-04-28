@@ -183,11 +183,12 @@ if(in_array($count, range(5, 30, 3))) {
 // value choices
 if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
-    $param = trim($values[$count-2], '-');
     $clue = '';
+    $param = trim($values[$count-2], '-');
 
-    if($count % 2 == 1) {
+    if(in_array($count, range(7, 30, 3))) {
         $clue = $values[$count-1];
+        $param = trim($values[$count-3], '-');
     }
 
     $params = [];
