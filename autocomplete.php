@@ -201,7 +201,7 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
         $usage = $params[$param]['usage'] ?? '';
 
         if($usage == 'orm/entity') {
-            $entities = get_entities();
+            $entities = choices_entities();
             foreach($entities as $choice) {
                 if(!strlen($clue) || strpos($choice, $clue) === 0) {
                     echo ($choice != $clue)? $choice."\n" : '';
@@ -211,7 +211,7 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
         }
 
         if($usage == 'orm/package') {
-            $packages = get_packages();
+            $packages = choices_packages();
             foreach($packages as $choice) {
                 if(!strlen($clue) || strpos($choice, $clue) === 0) {
                     echo ($choice != $clue)? $choice."\n" : '';
@@ -222,7 +222,7 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
         if($type == 'boolean') {
             $choices = ['true', 'false'];
-            foreach($choice as $choice) {
+            foreach($choices as $choice) {
                 if(!strlen($clue) || strpos($choice, $clue) === 0) {
                     echo ($choice != $clue)? $choice."\n" : '';
                 }
@@ -237,7 +237,21 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
  * #memo - Utilities below are hoisted when script is parsed.
  */
 
-function get_entities() {
+function get_announcement($operation, $controller) {
+    $announcement = [];
+    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce';
+
+    $output = null;
+    if(exec($command, $output) !== false) {
+        $announce = json_decode(implode("\n", $output), true);
+        if(isset($announce['announcement'])) {
+            $announcement = $announce['announcement'];
+        }
+    }
+    return $announcement;
+}
+
+function choices_entities() {
     $entities = [];
     $command = 'php '.QN_BASEDIR.'/run.php --get=config_classes';
 
@@ -251,31 +265,6 @@ function get_entities() {
         }
     }
     return $entities;
-}
-
-function get_packages() {
-    $packages = [];
-    $command = 'php '.QN_BASEDIR.'/run.php --get=config_packages';
-
-    $output = null;
-    if(exec($command, $output) !== false) {
-        $packages = json_decode(implode("\n", $output), true);
-    }
-    return $packages;
-}
-
-function get_announcement($operation, $controller) {
-    $announcement = [];
-    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce';
-
-    $output = null;
-    if(exec($command, $output) !== false) {
-        $announce = json_decode(implode("\n", $output), true);
-        if(isset($announce['announcement'])) {
-            $announcement = $announce['announcement'];
-        }
-    }
-    return $announcement;
 }
 
 function choices_packages() {
