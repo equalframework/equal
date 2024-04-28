@@ -221,6 +221,7 @@ catch(Throwable $e) {
             ->header('Access-Control-Allow-Credentials', 'true')
             // append an 'error' section to response body
             ->extendBody([
+                    // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
