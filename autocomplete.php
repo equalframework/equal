@@ -182,7 +182,8 @@ if(count($values) == 6 || count($values) == 7) {
         $params = $announcement['params'];
     }
     if(isset($params[$param])) {
-        $usage = (isset($params[$param]['usage']))?$params[$param]['usage']:'';
+        $type = $params[$param]['type'] ?? '';
+        $usage = $params[$param]['usage'] ?? '';
 
         if($usage == 'orm/entity') {
             $entities = get_entities();
@@ -191,6 +192,11 @@ if(count($values) == 6 || count($values) == 7) {
                     echo $entity."\n";
                 }
             }
+            exit();
+        }
+        if($type == 'boolean') {
+            echo "true\nfalse\n";
+            exit();
         }
     }
     exit();
