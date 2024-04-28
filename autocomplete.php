@@ -113,7 +113,8 @@ if($count == 4) {
     [3] => core_model_collect
     [4] => --, --fields
 */
-if(in_array($count, [5, 8, 11, 14, 17])) {
+// field name choices
+if(in_array($count, range(5, 30, 3))) {
     $results = [];
     if(in_array($values[$count-2], ['', '-'])) {
         echo '--'."\n";
@@ -141,6 +142,13 @@ if(in_array($count, [5, 8, 11, 14, 17])) {
             unset($results[$i]);
         }
         $map_results[$val] = true;
+        // withdraw fields already present in the command
+        foreach(range(5, 30, 3) as $index) {
+            $field = trim($values[$index], '-');
+            if($field == $result) {
+                unset($results[$i]);
+            }
+        }
     }
 
     $count_results = count($results);
@@ -169,7 +177,8 @@ if(in_array($count, [5, 8, 11, 14, 17])) {
     [5] => =
     ( [6] => aa )
 */
-if(in_array($count, [6, 9, 12, 15, 18])) {
+// value choices
+if(in_array($count, range(6, 30, 3))) {
 
     $param = trim($values[$count-2], '-');
     $clue = '';
