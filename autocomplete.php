@@ -144,8 +144,11 @@ if(in_array($count, range(5, 30, 3))) {
         $map_results[$val] = true;
         // withdraw fields already present in the command
         foreach(range(5, 30, 3) as $index) {
+            if(!isset($values[$index])) {
+                break;
+            }
             $field = trim($values[$index], '-');
-            if($field == $result) {
+            if($field == $result && $index < $count-1) {
                 unset($results[$i]);
             }
         }
@@ -155,7 +158,7 @@ if(in_array($count, range(5, 30, 3))) {
 
     if($count_results > 0) {
         if($count_results == 1) {
-            echo '--'.$results[0].'='."\n";
+            echo '--'.reset($results).'='."\n";
         }
         else {
             foreach($results as $result) {
