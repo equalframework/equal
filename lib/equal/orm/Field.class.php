@@ -64,7 +64,7 @@ class Field {
         if($this->type == 'computed' && isset($this->descriptor['result_type'])) {
             $type = $this->descriptor['result_type'];
         }
-        return isset($map[$type])?$map[$type]:$type;
+        return $map[$type] ?? $type;
     }
 
     public function getUsage(): Usage {
@@ -101,6 +101,7 @@ class Field {
                         'text'      => 'string',
                         'date'      => 'integer',
                         'datetime'  => 'integer',
+                        'time'      => 'integer',
                         'file'      => 'string',
                         'binary'    => 'string',
                         'many2one'  => 'integer',
