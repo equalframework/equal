@@ -49,7 +49,7 @@ $removeNodes = function (&$layout, $nodes_ids) {
                         array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'], $column_index, 1);
                         continue;
                     }
-                    foreach($row['items'] ?? [] as $item_index => $item) {
+                    foreach($column['items'] ?? [] as $item_index => $item) {
                         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
                             array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'], $item_index, 1);
                             continue;
