@@ -86,7 +86,6 @@ if(count($values) == 4) {
         foreach($results as $result) {
             $output[] = rtrim($result, '_');
         }
-        // #todo - if all results start with the same string, use it as response
         // display number of results
         // #memo - this is a workaround for COMPREPLY not considering entries when count is lesser than 3 (observed under WIN env)
         $output[] = "({$count_results})\n";
@@ -186,7 +185,7 @@ if(count($values) == 6 || count($values) == 7) {
 
 
 /**
- * Functions below are utilities hoisted when script loads and used in the code above.
+ * #memo - Utilities below are hoisted when script is parsed.
  */
 
 function get_entities() {
