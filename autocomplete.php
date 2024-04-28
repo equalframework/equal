@@ -13,13 +13,14 @@
 define('QN_BASEDIR', realpath(dirname(__FILE__)));
 
 $values = explode(' ', $argv[1]);
+$count = count($values);
 
 if(strlen($values[1]) == 0) {
     echo '--'."\n";
     exit();
 }
 
-if(count($values) == 2) {
+if($count == 2) {
     if(in_array($values[1], ['', '-'])) {
         echo "--";
     }
@@ -43,7 +44,7 @@ if(count($values) == 2) {
     [1] => --get
     [2] => =
 */
-if(count($values) == 3) {
+if($count == 3) {
     $results = choices_level($values[1], ['']);
     $count_result = count($results);
     foreach($results as $result) {
@@ -63,7 +64,7 @@ if(count($values) == 3) {
     [2] => =
     [3] => co, core_
 */
-if(count($values) == 4) {
+if($count == 4) {
     $output = [];
     $parts = explode('_', $values[3]);
     $count_parts = count($parts);
@@ -112,9 +113,9 @@ if(count($values) == 4) {
     [3] => core_model_collect
     [4] => --, --fields
 */
-if(count($values) == 5) {
+if($count >= 5 && $count % 2 == 1) {
     $results = [];
-    if(in_array($values[4], ['', '-'])) {
+    if(in_array($values[$count-1], ['', '-'])) {
         echo '--'."\n";
         exit();
     }
@@ -125,7 +126,7 @@ if(count($values) == 5) {
         $params = array_keys($announcement['params']);
     }
 
-    $clue = trim($values[4], '-');
+    $clue = trim($values[$count-1], "-'");
     foreach($params as $param) {
         if(!strlen($clue) || strpos($param, $clue) === 0) {
             $results[] = $param;
@@ -168,15 +169,10 @@ if(count($values) == 5) {
     [5] => =
     ( [6] => aa )
 */
-if(count($values) >= 6) {
-    $count = count($values);
+if($count >= 6) {
 
     $param = trim($values[4], '-');
     $clue = '';
-
-    if($count % 2 == 1) {
-        $clue = trim($values[$count-1], "'");
-    }
 
     $params = [];
     $announcement = get_announcement(trim($values[1], '-'), $values[3]);
