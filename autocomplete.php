@@ -110,7 +110,7 @@ if(count($values) == 4) {
     [1] => --get
     [2] => =
     [3] => core_model_collect
-    [4] => --
+    [4] => --, --fields
 */
 if(count($values) == 5) {
     $results = [];
@@ -134,7 +134,9 @@ if(count($values) == 5) {
 
     if(count($results) > 0) {
         if(count($results) == 1) {
-            echo '--'.$results[0]."\n";
+            if($values[4] != '--'.$results[0]) {
+                echo '--'.$results[0]."\n";
+            }
         }
         else {
             foreach($results as $result) {
