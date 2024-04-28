@@ -204,6 +204,17 @@ if(in_array($count, range(6, 30, 3))) {
             }
             exit();
         }
+
+        if($usage == 'orm/package') {
+            $entities = get_packages();
+            foreach($packages as $package) {
+                if(!strlen($clue) || strpos($package, $clue) === 0) {
+                    echo $package."\n";
+                }
+            }
+            exit();
+        }
+
         if($type == 'boolean') {
             echo "true\nfalse\n";
             exit();
@@ -230,6 +241,17 @@ function get_entities() {
         }
     }
     return $entities;
+}
+
+function get_packages() {
+    $packages = [];
+    $command = 'php '.QN_BASEDIR.'/run.php --get=config_packages';
+
+    $output = null;
+    if(exec($command, $output) !== false) {
+        $packages = json_decode(implode("\n", $output), true);
+    }
+    return $packages;
 }
 
 function get_announcement($operation, $controller) {
