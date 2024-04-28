@@ -202,9 +202,9 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
         if($usage == 'orm/entity') {
             $entities = get_entities();
-            foreach($entities as $entity) {
-                if(!strlen($clue) || strpos($entity, $clue) === 0) {
-                    echo $entity."\n";
+            foreach($entities as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    echo ($choice != $clue)? $choice."\n" : '';
                 }
             }
             exit();
@@ -212,16 +212,21 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
         if($usage == 'orm/package') {
             $packages = get_packages();
-            foreach($packages as $package) {
-                if(!strlen($clue) || strpos($package, $clue) === 0) {
-                    echo $package."\n";
+            foreach($packages as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    echo ($choice != $clue)? $choice."\n" : '';
                 }
             }
             exit();
         }
 
         if($type == 'boolean') {
-            echo "true\nfalse\n";
+            $choices = ['true', 'false'];
+            foreach($choice as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    echo ($choice != $clue)? $choice."\n" : '';
+                }
+            }
             exit();
         }
     }
