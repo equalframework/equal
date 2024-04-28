@@ -118,14 +118,15 @@ if(count($values) == 5) {
         echo '--'."\n";
         exit();
     }
-    $params = [];
 
-    $announcement = get_announcement(trim($values[1], '-'), $values[3]);
+    $clue = trim($values[4], '-');
+
+    $params = [];
+    $announcement = get_announcement($clue, $values[3]);
     if(isset($announcement['params'])) {
         $params = array_keys($announcement['params']);
     }
 
-    $clue = trim($values[4], '-');
     foreach($params as $param) {
         if(!strlen($clue) || strpos($param, $clue) === 0) {
             $results[] = $param;
@@ -135,7 +136,7 @@ if(count($values) == 5) {
     // filter results
     $map_results = [];
     foreach($results as $i => $result) {
-        $val = trim($result, ' _');
+        $val = trim($result);
         if(strlen($val) <= 0 || isset($map_results[$val])) {
             unset($results[$i]);
         }
