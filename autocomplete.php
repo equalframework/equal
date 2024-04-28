@@ -181,10 +181,14 @@ if(in_array($count, range(5, 30, 3))) {
     ( [6] => aa )
 */
 // value choices
-if(in_array($count, range(6, 30, 3))) {
+if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
     $param = trim($values[$count-2], '-');
     $clue = '';
+
+    if($count % 2 == 1) {
+        $clue = $values[$count-1];
+    }
 
     $params = [];
     $announcement = get_announcement(trim($values[1], '-'), $values[3]);
