@@ -146,7 +146,10 @@ if(count($values) == 5) {
 
     if($count_results > 0) {
         if($count_results == 1) {
-            if($values[4] != '--'.$results[0]) {
+            if($values[4] == '--'.$results[0]) {
+                echo '--'.$results[0].'='."\n";
+            }
+            else {
                 echo '--'.$results[0]."\n";
             }
         }
