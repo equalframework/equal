@@ -113,7 +113,7 @@ if($count == 4) {
     [3] => core_model_collect
     [4] => --, --fields
 */
-if($count >= 5 && $count % 2 == 1) {
+if(in_array($count, [5, 8, 11, 14, 17])) {
     $results = [];
     if(in_array($values[$count-2], ['', '-'])) {
         echo '--'."\n";
@@ -169,7 +169,7 @@ if($count >= 5 && $count % 2 == 1) {
     [5] => =
     ( [6] => aa )
 */
-if($count >= 6) {
+if(in_array($count, [6, 9, 12, 15, 18])) {
 
     $param = trim($values[$count-2], '-');
     $clue = '';
