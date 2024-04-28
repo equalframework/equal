@@ -69,15 +69,24 @@ if(count($values) == 4) {
     $count_parts = count($parts);
 
     $results = choices_level($values[1], $parts);
+
+    // filter results
+    foreach($results as $i => $result) {
+        $val = trim($result, ' _');
+        if(strlen($val) <= 0 || in_array($val, $results)) {
+            unset($results[$i]);
+        }
+    }
+
     $count_results = count($results);
 
     if($count_results > 1) {
         foreach($results as $result) {
             $output[] = rtrim($result, '_');
         }
-        // #todo - off all results start with the same string, use it as response
+        // #todo - if all results start with the same string, use it as response
         // display number of results
-        // #memo - this is a also hack since COMPREPLY do not consider entries when there are less than 3 (observed under WIN env)
+        // #memo - this is a workaround for COMPREPLY not considering entries when count is lesser than 3 (observed under WIN env)
         $output[] = "({$count_results})\n";
     }
     elseif($count_results > 0) {

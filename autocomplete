@@ -1,9 +1,14 @@
-# this script is meant to be placed at /etc/bash_completion.d/
-# and activated with `source /etc/bash_completion.d/autocomplete`
+# Part of eQual. See LICENSE file for full copyright and licensing details.
+
+# Bash autocompletion bootstrap for eQual.
+# This script uses the operation invocation logic and the controllers announcements
+#    to provide interactive help while composing CLI commands.
+# To install this script, copy it to /etc/bash_completion.d/
+# and activate with `source /etc/bash_completion.d/autocomplete`
 
 _equal_completion()
 {
-    script='/var/html/www/autocomplete.php'
+    script='/var/www/html/autocomplete.php'
     if [[ "$OSTYPE" =~ ^msys ]]; then
         alias php='php.exe'
         script='autocomplete.php'
