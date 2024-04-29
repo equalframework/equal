@@ -973,11 +973,15 @@ namespace config {
             }
 
             // 4) validate values types and handle optional attributes
-            // #transition - to remove
+
             $validator = $container->get('validate');
             foreach($result as $param => $value) {
-                $config = $announcement['params'][$param];
+                // $config = $announcement['params'][$param];
+                $f = new Field($announcement['params'][$param]);
+                $issues = $validator->checkConstraints($f, $value);
                 // build constraints array
+            /*
+                // #transition - to remove
                 $constraints = [];
                 // adapt type to match PHP internals
                 $constraints[] = ['kind' => 'type', 'rule' => $config['type']];
@@ -987,9 +991,10 @@ namespace config {
                         $constraints[] = ['kind' => $constraint, 'rule' => $config[$constraint]];
                     }
                 }
-
-                // validate parameter's value
-                if(!$validator->validate($value, $constraints)) {
+            */
+                // validate param value
+                // if(!$validator->validate($value, $constraints)) {
+                if(count($issues)) {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
                         if(isset($config['default'])) {
