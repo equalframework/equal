@@ -30,7 +30,7 @@ list($params, $providers) = eQual::announce([
  */
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
-$packages = eQual::run('get','core_config_packages', []);
+$packages = eQual::run('get', 'core_config_packages', []);
 
 $result = [];
 
@@ -86,4 +86,3 @@ function recurse_dir($directory, $extension,$type,$parent_name='') {
     }
     return $result;
 }
-

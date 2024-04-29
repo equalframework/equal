@@ -79,8 +79,7 @@ class AccessController extends Service {
      *
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
-        // no matter the ACLs, users are always granted the default permissions
-        // and root user always has full rights
+        // users are always granted the default permissions and root user always has full rights
         $user_rights = ($user_id == QN_ROOT_USER_ID)?EQ_R_ALL:$this->default_rights;
 
         // request for rights based on object_class and specific object_ids
@@ -91,6 +90,10 @@ class AccessController extends Service {
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnObjects($user_id, $object_class, $object_ids);
             }
+            // grant user RW rights on its own object
+            if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $object_ids[0] == $user_id) {
+                $user_rights |= EQ_R_READ | EQ_R_WRITE;
+            }
         }
         // request for rights based on object_class only
         else {
@@ -100,9 +103,12 @@ class AccessController extends Service {
             }
             else {
                 // grant READ on system entities ('core' package)
+                /*
+                // #memo - this is done through Permissions object to allow fine grained handling
                 if(ObjectManager::getObjectPackage(ObjectManager::getObjectRootClass($object_class)) == 'core') {
                     $user_rights |= EQ_R_READ;
                 }
+                */
                 if(strpos($object_class, '*') === false) {
                     $user_rights |= $this->getUserRightsOnClass($user_id, $object_class);
                 }

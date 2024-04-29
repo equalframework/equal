@@ -17,7 +17,7 @@ list($params, $providers) = eQual::announce([
         'package' => [
             'description'   => 'Package for which we want SQL schema.',
             'type'          => 'string',
-            'in'            => array_values($packages),
+            'usage'         => 'orm/package',
             'default'       => 'core'
         ],
         'cascade' => [

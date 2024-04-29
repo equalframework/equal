@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -23,6 +23,12 @@ class Field {
     private $usage = null;
 
     /**
+     * Field name, if provided.
+     * @var string
+     */
+    private $name = '';
+
+    /**
      * Pseudo type of the Field instance.
      * @var string
      */
@@ -31,19 +37,28 @@ class Field {
     /**
      * @param array $descriptor Associative array mapping field properties and their values.
      */
-    public function __construct(array $descriptor) {
+    public function __construct(array $descriptor, string $name='') {
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
         }
         $this->descriptor = $descriptor;
+        $this->name = $name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
             $this->descriptor['result_type'] = $this->type;
         }
     }
 
+    public function getDescriptor(): array {
+        return $this->descriptor;
+    }
+
+    public function __toString() {
+        return $this->name;
+    }
+
     /**
-     * Provides the usage string equivalent of the pseudo type of the Field instance.
+     * Provides the usage string equivalent of the type of the Field instance.
      * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
@@ -64,7 +79,7 @@ class Field {
         if($this->type == 'computed' && isset($this->descriptor['result_type'])) {
             $type = $this->descriptor['result_type'];
         }
-        return isset($map[$type])?$map[$type]:$type;
+        return $map[$type] ?? $type;
     }
 
     public function getUsage(): Usage {
@@ -87,11 +102,11 @@ class Field {
      * @return array
      */
     public function getConstraints(): array {
+        $constraints = $this->getUsage()->getConstraints();
+
         // generate constraint based on type
         $result_type = $this->descriptor['result_type'];
-
-        $constraints = [
-            'invalid_type' => [
+        $constraints['invalid_type'] = [
                 'message'   => "Value is not of type {$result_type}.",
                 'function'  =>  function($value) use($result_type) {
                     static $map = [
@@ -101,6 +116,7 @@ class Field {
                         'text'      => 'string',
                         'date'      => 'integer',
                         'datetime'  => 'integer',
+                        'time'      => 'integer',
                         'file'      => 'string',
                         'binary'    => 'string',
                         'many2one'  => 'integer',
@@ -111,14 +127,22 @@ class Field {
                     $mapped_type = $map[$result_type] ?? $result_type;
                     return (gettype($value) == $mapped_type);
                 }
-            ]
-        ];
+            ];
 
-        // append constraints based on usage
-        return array_merge($constraints, $this->getUsage()->getConstraints());
-    }
+        // add constraint based on selection, if present
+        if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
+            $selection = $this->descriptor['selection'];
+            $constraints['invalid_value'] = [
+                    'message'   => "Value is not amongst selection choices.",
+                    'function'  =>  function($value) use($selection) {
+                        return (isset($selection[$value]) || in_array($value, $selection));
+                    }
+                ];
+        }
 
-    public function getDescriptor(): array {
-        return $this->descriptor;
+        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in', 'pattern'
+        // @see DataValidator
+
+        return $constraints;
     }
 }

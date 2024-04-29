@@ -63,11 +63,16 @@
             "operation": "?get=core_userinfo"
         }
     },
-    "/appinfo": {
+    "/envinfo": {
         "GET": {
-            "description": "Retrieve current Settings.",
-            "help": "#todo - replace with /envinfo (depends on eqUI) and use a dedicated route for appinfo.",
+            "description": "Retrieve public config intended for front-end.",
             "operation": "?get=core_envinfo"
+        }
+    },
+    "/appinfo/:package/:app": {
+        "GET": {
+            "description": "Provide the manifest of a given App.",
+            "operation": "?get=core_appinfo"
         }
     },
     "/welcome": {

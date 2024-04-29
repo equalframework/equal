@@ -75,6 +75,8 @@
     "SB_ERROR_BROKEN_CONSTRAINT": "Invalid value (broke at least one constrainst).",
     "SB_ERROR_ONUPDATE_DENIED": "Object rejected the update.",
 
+    "SB_VIEW_UNKNOWN_OBJECT": "Requested object is unknown or missing (it might have been deleted).",
+
     "AUTH_SIGNIN_TITLE": "Connection",
     "AUTH_SIGNIN_SIGNIN": "Sign in",
     "AUTH_SIGNIN_USERNAME": "Username or email address",

@@ -321,20 +321,23 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names by discarding special fields; fields marked as readonly; and fields unknown to the current class.
+     * Filters a map of fields-values entries or an array of fields names by discarding:
+     *   special fields;
+     *   fields marked as readonly;
+     *   and fields unknown to the current class.
      *
      * @param   array   $fields             Associative array mapping field names with their values.
-     * @param   bool    $check_readonly     If set to true, readonly fields are discarded.
+     * @param   bool    $drop_readonly      If set to true, readonly fields are discarded.
      *
      * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields, bool $check_readonly=true) {
+    private function filter(array $fields, bool $drop_readonly=true) {
         $result = [];
         if(count($fields)) {
             $schema = $this->model->getSchema();
             // retrieve valid fields, i.e. fields from schema
             $allowed_fields = array_keys($schema);
-            if($check_readonly) {
+            if($drop_readonly) {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
                     return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
@@ -603,12 +606,13 @@ class Collection implements \Iterator, \Countable {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
-        // silently drop invalid fields (do not check readonly: all fields are allowed at creation)
+        // silently drop invalid fields (do not drop readonly: all fields are allowed at creation)
         $values = $this->filter((array) $values, false);
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
                 return is_numeric($key)?$value:$key;
-            }, $values, array_keys($values));
+            },
+            $values, array_keys($values));
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {

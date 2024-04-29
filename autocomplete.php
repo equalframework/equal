@@ -13,13 +13,14 @@
 define('QN_BASEDIR', realpath(dirname(__FILE__)));
 
 $values = explode(' ', $argv[1]);
+$count = count($values);
 
 if(strlen($values[1]) == 0) {
     echo '--'."\n";
     exit();
 }
 
-if(count($values) == 2) {
+if($count == 2) {
     if(in_array($values[1], ['', '-'])) {
         echo "--";
     }
@@ -43,7 +44,7 @@ if(count($values) == 2) {
     [1] => --get
     [2] => =
 */
-if(count($values) == 3) {
+if($count == 3) {
     $results = choices_level($values[1], ['']);
     $count_result = count($results);
     foreach($results as $result) {
@@ -63,21 +64,31 @@ if(count($values) == 3) {
     [2] => =
     [3] => co, core_
 */
-if(count($values) == 4) {
+if($count == 4) {
     $output = [];
     $parts = explode('_', $values[3]);
     $count_parts = count($parts);
 
     $results = choices_level($values[1], $parts);
+
+    // filter results
+    $map_results = [];
+    foreach($results as $i => $result) {
+        $val = trim($result, ' _');
+        if(strlen($val) <= 0 || isset($map_results[$val])) {
+            unset($results[$i]);
+        }
+        $map_results[$val] = true;
+    }
+
     $count_results = count($results);
 
     if($count_results > 1) {
         foreach($results as $result) {
             $output[] = rtrim($result, '_');
         }
-        // #todo - off all results start with the same string, use it as response
         // display number of results
-        // #memo - this is a also hack since COMPREPLY do not consider entries when there are less than 3 (observed under WIN env)
+        // #memo - this is a workaround for COMPREPLY not considering entries when count is lesser than 3 (observed under WIN env)
         $output[] = "({$count_results})\n";
     }
     elseif($count_results > 0) {
@@ -100,35 +111,59 @@ if(count($values) == 4) {
     [1] => --get
     [2] => =
     [3] => core_model_collect
-    [4] => --
+    [4] => --, --fields
 */
-if(count($values) == 5) {
+// field name choices
+if(in_array($count, range(5, 30, 3))) {
     $results = [];
-    if(in_array($values[4], ['', '-'])) {
+    if(in_array($values[$count-2], ['', '-'])) {
         echo '--'."\n";
         exit();
     }
-    $params = [];
 
+    $params = [];
     $announcement = get_announcement(trim($values[1], '-'), $values[3]);
     if(isset($announcement['params'])) {
         $params = array_keys($announcement['params']);
     }
 
-    $clue = trim($values[4], '-');
+    $clue = trim($values[$count-1], "-'");
     foreach($params as $param) {
         if(!strlen($clue) || strpos($param, $clue) === 0) {
             $results[] = $param;
         }
     }
 
-    if(count($results) > 0) {
-        if(count($results) == 1) {
-            echo '--'.$results[0]."\n";
+    // filter results
+    $map_results = [];
+    foreach($results as $i => $result) {
+        $val = trim($result);
+        if(strlen($val) <= 0 || isset($map_results[$val])) {
+            unset($results[$i]);
+        }
+        $map_results[$val] = true;
+        // withdraw fields already present in the command
+        foreach(range(4, 30, 3) as $index) {
+            if(!isset($values[$index])) {
+                break;
+            }
+            $field = trim($values[$index], '-');
+            if($field == $result && $index < $count-1) {
+                unset($results[$i]);
+            }
+        }
+    }
+
+    $count_results = count($results);
+
+    if($count_results > 0) {
+        if($count_results == 1) {
+            echo '--'.reset($results).'='."\n";
         }
         else {
             foreach($results as $result) {
-                echo $result."\n";
+                // #memo - if there are results beginning with same chars, will display the common part without leading dashes
+                echo '--'.$result."\n";
             }
         }
     }
@@ -145,12 +180,15 @@ if(count($values) == 5) {
     [5] => =
     ( [6] => aa )
 */
-if(count($values) == 6 || count($values) == 7) {
-    $param = trim($values[4], '-');
-    $clue = '';
+// value choices
+if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
-    if(count($values) == 7) {
-        $clue = trim($values[6], "'");
+    $clue = '';
+    $param = trim($values[$count-2], '-');
+
+    if(in_array($count, range(7, 30, 3))) {
+        $clue = $values[$count-1];
+        $param = trim($values[$count-3], '-');
     }
 
     $params = [];
@@ -159,26 +197,67 @@ if(count($values) == 6 || count($values) == 7) {
         $params = $announcement['params'];
     }
     if(isset($params[$param])) {
-        $usage = (isset($params[$param]['usage']))?$params[$param]['usage']:'';
+        $type = $params[$param]['type'] ?? '';
+        $usage = $params[$param]['usage'] ?? '';
 
         if($usage == 'orm/entity') {
-            $entities = get_entities();
-            foreach($entities as $entity) {
-                if(!strlen($clue) || strpos($entity, $clue) === 0) {
-                    echo $entity."\n";
+            $entities = choices_entities();
+            // filter
+            $results = [];
+            foreach($entities as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    $results[] = $choice;
                 }
             }
+            // output
+            foreach($results as $choice) {
+                echo ($choice != $clue)? "'".$choice."'\n" : '';
+            }
+            exit();
+        }
+
+        if($usage == 'orm/package') {
+            $packages = choices_packages();
+            foreach($packages as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    echo ($choice != $clue)? $choice."\n" : '';
+                }
+            }
+            exit();
+        }
+
+        if($type == 'boolean') {
+            $choices = ['true', 'false'];
+            foreach($choices as $choice) {
+                if(!strlen($clue) || strpos($choice, $clue) === 0) {
+                    echo ($choice != $clue)? $choice."\n" : '';
+                }
+            }
+            exit();
         }
     }
     exit();
 }
 
-
 /**
- * Functions below are utilities hoisted when script loads and used in the code above.
+ * #memo - Utilities below are hoisted when script is parsed.
  */
 
-function get_entities() {
+function get_announcement($operation, $controller) {
+    $announcement = [];
+    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce=1';
+
+    $output = null;
+    if(exec($command, $output) !== false) {
+        $announce = json_decode(implode("\n", $output), true);
+        if(isset($announce['announcement'])) {
+            $announcement = $announce['announcement'];
+        }
+    }
+    return $announcement;
+}
+
+function choices_entities() {
     $entities = [];
     $command = 'php '.QN_BASEDIR.'/run.php --get=config_classes';
 
@@ -192,20 +271,6 @@ function get_entities() {
         }
     }
     return $entities;
-}
-
-function get_announcement($operation, $controller) {
-    $announcement = [];
-    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce';
-
-    $output = null;
-    if(exec($command, $output) !== false) {
-        $announce = json_decode(implode("\n", $output), true);
-        if(isset($announce['announcement'])) {
-            $announcement = $announce['announcement'];
-        }
-    }
-    return $announcement;
 }
 
 function choices_packages() {

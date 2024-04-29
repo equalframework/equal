@@ -182,9 +182,9 @@ catch(Throwable $e) {
     else {
         $error_code = $e->getCode();
     }
-    Reporter::handleThrowable($e);
     // an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
+        Reporter::handleThrowable($e);
         // retrieve info from HTTP request (we don't ask for $context->httpResponse() since it might have raised the current exception)
         $request = $context->httpRequest();
         $request_method = $request->getMethod();
@@ -221,6 +221,7 @@ catch(Throwable $e) {
             ->header('Access-Control-Allow-Credentials', 'true')
             // append an 'error' section to response body
             ->extendBody([
+                    // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();

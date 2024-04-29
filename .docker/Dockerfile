@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     git \
     procps \
     netcat \
-    vim
+    vim \
+    wget
 COPY ./mpm_prefork.conf /etc/apache2/mods-available/
 COPY ./000-default.conf /etc/apache2/sites-available/
 # install sqlsrv drivers

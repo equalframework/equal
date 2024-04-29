@@ -2,7 +2,7 @@
 namespace equal\data;
 
 use equal\organic\Service;
-
+use equal\orm\Field;
 class DataValidator extends Service {
 
     /**
@@ -10,6 +10,7 @@ class DataValidator extends Service {
      * In case no constraint is associated to the usage, an always-valid constraint is returned.
      *
      * @param   $usage  string  Identifier of the usage for which the constraint is requested.
+     * @deprecated
      * @return  array
      */
     public static function getConstraintFromUsage($usage) {
@@ -221,6 +222,55 @@ class DataValidator extends Service {
     }
 
     /**
+     * Create an associative array mapping error codes with corresponding message and function;
+     * and bind the (static) function with Usage object from given Field.
+     */
+    private function getConstraints(Field $field) {
+        $constraints = [];
+        foreach($field->getConstraints() as $error_id => $constraint) {
+            if(!isset($constraint['function'])) {
+                continue;
+            }
+            if(is_callable($constraint['function'])) {
+                $closure = \Closure::fromCallable($constraint['function']);
+                $closure->bindTo($field->getUsage());
+                $constraints[$error_id] = [
+                        'message'   => $constraint['message'],
+                        'function'  => $closure
+                    ];
+            }
+        }
+        return $constraints;
+    }
+
+    /**
+     * Checks if a given value complies with a Field object.
+     * This method is intended for fields from any entity (used both for classes and controllers).
+     */
+    public function checkConstraints(Field $field, $value) {
+        $result = [];
+        if($value === null) {
+            // all fields can be reset to null
+            return [];
+        }
+        $constraints = $this->getConstraints($field);
+        foreach($constraints as $error_id => $constraint) {
+            if(!isset($constraint['function'])) {
+                continue;
+            }
+            $validation_func = $constraint['function'];
+            if(is_callable($validation_func) && !call_user_func($validation_func, $value)) {
+                if(!isset($constraint['message'])) {
+                    $constraint['message'] = 'Invalid field.';
+                }
+                trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                $result[$error_id] = $constraint['message'];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Tells if given $value comply with related $constraints set.
      *
      * Accepted elementary types are: 'boolean' (or 'bool'), 'integer' (or 'int'), 'double' (or 'float'), 'string', 'array', 'file'
@@ -240,6 +290,8 @@ class DataValidator extends Service {
      *   ['kind' => 'min', 'rule' => 0 ],
      *   ['kind' => 'in', 'rule' => [1, 2, 3] ]
      * ]
+     *
+     * @deprecated
      *
      */
     public function validate($value, $constraints) {

@@ -10,24 +10,25 @@ list($params, $providers) = eQual::announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
-            'description'   =>  "Name of the package on which to perform test units",
-            'type'          =>  'string',
-            'default'       =>  '*'
+            'description'   => "Name of the package on which to perform test units",
+            'type'          => 'string',
+            'usage'         => 'orm/package',
+            'default'       => '*'
         ],
         'test'   => [
-            'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
-            'type'          =>  'integer',
-            'default'       =>  0
+            'description'   => "ID of the specific test to perform (by default all tests are performed).",
+            'type'          => 'integer',
+            'default'       => 0
         ],
         'set'   => [
-            'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
-            'type'          =>  'string',
-            'default'       =>  null
+            'description'   => "ID of the specific test to perform (by default all tests are performed).",
+            'type'          => 'string',
+            'default'       => null
         ],
         'logs'      => [
-            'description'   =>  "Embed logs in result",
-            'type'          =>  'boolean',
-            'default'       =>  false
+            'description'   => "Embed logs in result",
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'providers'     => ['context']

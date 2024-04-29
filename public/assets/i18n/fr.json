@@ -75,6 +75,8 @@
     "SB_ERROR_BROKEN_CONSTRAINT": "Valeur invalide (au moins une contrainte non respectée).",
     "SB_ERROR_ONUPDATE_DENIED": "L'objet n'accepte pas la sauvegarde avec les valeurs actuelles.",
 
+    "SB_VIEW_UNKNOWN_OBJECT": "L'object demandé est inconnu ou manquant (il peut avoir été supprimé).",
+
     "AUTH_SIGNIN_TITLE": "Connexion",
     "AUTH_SIGNIN_SIGNIN": "S'identifier",
     "AUTH_SIGNIN_USERNAME": "Nom d'utilisateur ou Adresse email",
