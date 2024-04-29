@@ -202,10 +202,16 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
         if($usage == 'orm/entity') {
             $entities = choices_entities();
+            // filter
+            $results = [];
             foreach($entities as $choice) {
                 if(!strlen($clue) || strpos($choice, $clue) === 0) {
-                    echo ($choice != $clue)? $choice."\n" : '';
+                    $results[] = $choice;
                 }
+            }
+            // output
+            foreach($results as $choice) {
+                echo ($choice != $clue)? "'".$choice."'\n" : '';
             }
             exit();
         }
@@ -239,7 +245,7 @@ if(in_array($count, range(6, 30, 3)) || in_array($count, range(7, 30, 3))) {
 
 function get_announcement($operation, $controller) {
     $announcement = [];
-    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce';
+    $command = 'php '.QN_BASEDIR.'/run.php --'.$operation.'='.$controller.' --announce=1';
 
     $output = null;
     if(exec($command, $output) !== false) {
