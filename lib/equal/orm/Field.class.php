@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -49,8 +49,16 @@ class Field {
         }
     }
 
+    public function getDescriptor(): array {
+        return $this->descriptor;
+    }
+
+    public function __toString() {
+        return $this->name;
+    }
+
     /**
-     * Provides the usage string equivalent of the pseudo type of the Field instance.
+     * Provides the usage string equivalent of the type of the Field instance.
      * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
@@ -94,11 +102,11 @@ class Field {
      * @return array
      */
     public function getConstraints(): array {
+        $constraints = $this->getUsage()->getConstraints();
+
         // generate constraint based on type
         $result_type = $this->descriptor['result_type'];
-
-        $constraints = [
-            'invalid_type' => [
+        $constraints['invalid_type'] = [
                 'message'   => "Value is not of type {$result_type}.",
                 'function'  =>  function($value) use($result_type) {
                     static $map = [
@@ -119,18 +127,22 @@ class Field {
                     $mapped_type = $map[$result_type] ?? $result_type;
                     return (gettype($value) == $mapped_type);
                 }
-            ]
-        ];
+            ];
 
-        // append constraints based on usage
-        return array_merge($constraints, $this->getUsage()->getConstraints());
-    }
+        // add constraint based on selection, if present
+        if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
+            $selection = $this->descriptor['selection'];
+            $constraints['invalid_value'] = [
+                    'message'   => "Value is not amongst selection choices.",
+                    'function'  =>  function($value) use($selection) {
+                        return (isset($selection[$value]) || in_array($value, $selection));
+                    }
+                ];
+        }
 
-    public function getDescriptor(): array {
-        return $this->descriptor;
-    }
+        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in', 'pattern'
+        // @see DataValidator
 
-    public function __toString() {
-        return $this->name;
+        return $constraints;
     }
 }
