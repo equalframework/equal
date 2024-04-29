@@ -943,7 +943,7 @@ namespace config {
                     // ignore optional params without default value (this allows PATCH of objects on specific fields only)
                 }
                 else {
-                    $f = new Field($config);
+                    $f = new Field($config, $param);
                     $result[$param] = $adapter->adaptIn($body[$param], $f->getUsage());
                     // #todo - check value validity according to Usage
                     /*
@@ -977,7 +977,7 @@ namespace config {
             $validator = $container->get('validate');
             foreach($result as $param => $value) {
                 // $config = $announcement['params'][$param];
-                $f = new Field($announcement['params'][$param]);
+                $f = new Field($announcement['params'][$param], $param);
                 $issues = $validator->checkConstraints($f, $value);
                 // build constraints array
             /*

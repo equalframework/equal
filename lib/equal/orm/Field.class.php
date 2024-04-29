@@ -23,6 +23,12 @@ class Field {
     private $usage = null;
 
     /**
+     * Field name, if provided.
+     * @var string
+     */
+    private $name = '';
+
+    /**
      * Pseudo type of the Field instance.
      * @var string
      */
@@ -31,11 +37,12 @@ class Field {
     /**
      * @param array $descriptor Associative array mapping field properties and their values.
      */
-    public function __construct(array $descriptor) {
+    public function __construct(array $descriptor, string $name='') {
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
         }
         $this->descriptor = $descriptor;
+        $this->name = $name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
             $this->descriptor['result_type'] = $this->type;
@@ -121,5 +128,9 @@ class Field {
 
     public function getDescriptor(): array {
         return $this->descriptor;
+    }
+
+    public function __toString() {
+        return $this->name;
     }
 }

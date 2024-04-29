@@ -578,7 +578,7 @@ class ObjectManager extends Service {
                                 $dap = $this->container->get('adapt');
                                 /** @var \equal\data\adapt\DataAdapter */
                                 $adapter = $dap->get('sql');
-                                $f = new Field($schema[$field]);
+                                $f = new Field($schema[$field], $field);
                                 $value = $adapter->adaptIn($value, $f->getUsage());
                             }
                             // update the internal buffer with fetched value
@@ -861,7 +861,7 @@ class ObjectManager extends Service {
                         if(!is_null($value) || $schema[$field]['type'] != 'computed') {
                             /** @var \equal\data\adapt\DataAdapter */
                             $adapter = $dap->get('sql');
-                            $f = new Field($schema[$field]);
+                            $f = new Field($schema[$field], $field);
                             // adapt value to SQL
                             $value = $adapter->adaptOut($value, $f->getUsage());
                         }
@@ -1276,6 +1276,7 @@ class ObjectManager extends Service {
         $constraints = $model->getConstraints();
         // append constraints implied by type and usage
         foreach($values as $field => $value) {
+            /** @var Field */
             $f = $model->getField($field);
             foreach($f->getConstraints() as $error_id => $constraint) {
                 if(!isset($constraint['function'])) {
@@ -1510,7 +1511,7 @@ class ObjectManager extends Service {
             $dap = $this->container->get('adapt');
             foreach($creation_array as $field => $value) {
                 $adapter = $dap->get('sql');
-                $f = new Field($schema[$field]);
+                $f = new Field($schema[$field], $field);
                 // adapt value to SQL
                 $sql_values[$field] = $adapter->adaptOut($value, $f->getUsage());
             }
@@ -2615,7 +2616,7 @@ class ObjectManager extends Service {
                                     $adapterSql = $dap->get('sql');
                                     /** @var \equal\data\adapt\DataAdapter */
                                     $adapterJson = $dap->get('json');
-                                    $f = new Field($schema[$field]);
+                                    $f = new Field($schema[$field], $field);
                                     // #todo - json to php conversion should be done elsewhere (at this stage, we should be dealing with PHP values only)
                                     // 2023-04 - do we still need this ?
                                     $value = $adapterJson->adaptIn($value, $f->getUsage());
