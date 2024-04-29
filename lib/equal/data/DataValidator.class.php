@@ -221,6 +221,10 @@ class DataValidator extends Service {
         // initial configuration
     }
 
+    /**
+     * Create an associative array mapping error codes with corresponding message and function;
+     * and bind the (static) function with Usage object from given Field.
+     */
     private function getConstraints(Field $field) {
         $constraints = [];
         foreach($field->getConstraints() as $error_id => $constraint) {
@@ -239,6 +243,10 @@ class DataValidator extends Service {
         return $constraints;
     }
 
+    /**
+     * Checks if a given value complies with a Field object.
+     * This method is intended for fields from any entity (used both for classes and controllers).
+     */
     public function checkConstraints(Field $field, $value) {
         $result = [];
         if($value === null) {
@@ -256,7 +264,7 @@ class DataValidator extends Service {
                     $constraint['message'] = 'Invalid field.';
                 }
                 trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
-                $res[$error_id] = $constraint['message'];
+                $result[$error_id] = $constraint['message'];
             }
         }
         return $result;
