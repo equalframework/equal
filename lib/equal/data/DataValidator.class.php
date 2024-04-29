@@ -2,7 +2,7 @@
 namespace equal\data;
 
 use equal\organic\Service;
-
+use equal\orm\Field;
 class DataValidator extends Service {
 
     /**
