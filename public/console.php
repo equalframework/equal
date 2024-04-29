@@ -428,7 +428,7 @@ if(!count($_GET)) {
 
                 for(const thread of threads) {
                     let element = createThreadElement(thread, params);
-                    list.append(element);
+                    list.prepend(element);
                 }
                 if(!threads.length) {
                     list.innerHTML = "<div class=\"no-result\"></div>";
