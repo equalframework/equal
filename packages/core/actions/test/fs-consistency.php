@@ -7,7 +7,7 @@
 $params = eQual::announce([
     'description'   => 'Checks current installation directories integrity',
     'params'        => [],
-    'constants'     => ['FILE_STORAGE_MODE', 'ROUTING_METHOD', 'HTTP_PROCESS_USERNAME']
+    'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME']
 ]);
 
 // array holding files and directories to be tested
@@ -39,15 +39,13 @@ $paths = [
     [
         'rights'    =>  QN_R_READ,
         'path'      =>  QN_BASEDIR.'/config/schema.json'
+    ],
+    [
+        'rights'    =>  QN_R_READ,
+        'path'      =>  QN_BASEDIR.'/config/routing'
     ]
 ];
 
-if(constant('ROUTING_METHOD') == 'JSON') {
-    $paths[] = [
-        'rights'    =>  QN_R_READ,
-        'path'      =>  QN_BASEDIR.'/config/routing'
-    ];
-}
 
 if(constant('FILE_STORAGE_MODE') == 'FS') {
     $paths[] = [
