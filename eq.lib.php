@@ -945,30 +945,6 @@ namespace config {
                 else {
                     $f = new Field($config, $param);
                     $result[$param] = $adapter->adaptIn($body[$param], $f->getUsage());
-                    // #todo - check value validity according to Usage
-                    /*
-                    // convert value from input format + validate type and usage constraints
-                    try {
-                        $f->validate();
-                        $result[$param] = $f->get();
-                    }
-                    catch(\Exception $e) {
-                        // only mandatory params raise an exception
-                        if(in_array($param, $mandatory_params)) {
-                            $error = @unserialize($e->getMessage()));
-                            throw new \Exception(serialize([$param => $error]), QN_ERROR_INVALID_PARAM);
-                        }
-                        else {
-                            if(isset($config['default'])) {
-                                $reporter->warning("API::invalid value for non-mandatory parameter '{$param}' reverted to default '{$config['default']}'");
-                                $result[$param] = $config['default'];
-                            }
-                            else {
-                                $reporter->warning("API::dropped invalid non-mandatory parameter '{$param}'");
-                            }
-                        }
-                    }
-                    */
                 }
             }
 
@@ -976,24 +952,8 @@ namespace config {
 
             $validator = $container->get('validate');
             foreach($result as $param => $value) {
-                // $config = $announcement['params'][$param];
                 $f = new Field($announcement['params'][$param], $param);
                 $issues = $validator->checkConstraints($f, $value);
-                // build constraints array
-            /*
-                // #transition - to remove
-                $constraints = [];
-                // adapt type to match PHP internals
-                $constraints[] = ['kind' => 'type', 'rule' => $config['type']];
-                // append explicit constraints
-                foreach(array('min', 'max', 'in', 'not in', 'pattern', 'selection') as $constraint) {
-                    if(isset($config[$constraint])) {
-                        $constraints[] = ['kind' => $constraint, 'rule' => $config[$constraint]];
-                    }
-                }
-            */
-                // validate param value
-                // if(!$validator->validate($value, $constraints)) {
                 if(count($issues)) {
                     if(!in_array($param, $mandatory_params)) {
                         // if it has a default value, assign to it
