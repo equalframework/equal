@@ -1,8 +1,50 @@
 {
-    "ENV_MODE": {
+    "APP_NAME": {
         "type": "string",
-        "description": "Possible values are: 'development', 'staging', 'production'",
-        "default": "development"
+        "description": "Specific brand name of the application, if any.",
+        "default": "eQual"
+    },
+    "APP_URL": {
+        "type": "string",
+        "deprecated": "Please use BACKEND_URL and DEFAULT_APP instead.",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "default": "http://equal.local"
+    },
+    "APP_LOGO_URL": {
+        "type": "string",
+        "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
+        "default": "/assets/img/logo.svg"
+    },
+    "AUTH_SECRET_KEY": {
+        "type": "string",
+        "description": "Secret key used for hashing JWT data.",
+        "instant": true,
+        "default": "my_secret_key"
+    },
+    "AUTH_ACCESS_TOKEN_VALIDITY": {
+        "type": "integer",
+        "description": "Validity duration of the access token, in seconds.",
+        "instant": true,
+        "default": 3600
+    },
+    "AUTH_REFRESH_TOKEN_VALIDITY": {
+        "type": "integer",
+        "default": "90d"
+    },
+    "AUTH_TOKEN_HTTPS":{
+        "type": "boolean",
+        "description": "Flag for limiting the sending of auth token over HTTPS.",
+        "instant": true,
+        "default": false
+    },
+    "BACKEND_URL": {
+        "type": "string",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "default": "http://equal.local",
+        "examples": [
+            "http://equal.local",
+            "http://equal.local/index.php"
+        ]
     },
     "CIPHER_KEY": {
         "type": "string",
@@ -12,127 +54,6 @@
         "examples": [
             "this is a secret key"
         ]
-    },
-    "DEFAULT_LANG": {
-        "type": "string",
-        "description": "The language (ISO 639-1) in which the multilang content must be provided/stored by default.",
-        "instant": true,
-        "default": "en"
-    },
-    "DEFAULT_PACKAGE": {
-        "type": "string",
-        "description": "Package we'll try to access if nothing is specified in the url (typically while accessing root URL).",
-        "instant": true,
-        "default": "core"
-    },
-    "DEFAULT_APP": {
-        "type": "string",
-        "description": "Default App to request from default package.",
-        "instant": true,
-        "default": "welcome"
-    },
-    "ROUTING_METHOD": {
-        "type": "string",
-        "description": "Method to use for parsing the URIs. Possible values are: 'ORM' or 'JSON' (router.json).",
-        "instant": true,
-        "default": "JSON"
-    },
-    "FILE_STORAGE_MODE": {
-        "type": "string",
-        "description": "Storage mode for binary content. Possible values are: 'DB' (database) and 'FS' (filesystem).",
-        "instant": true,
-        "default": "DB"
-    },
-    "DEFAULT_RIGHTS": {
-        "type": "integer",
-        "description": "Rights to grant to any user when no ACL is defined.",
-        "instant": true,
-        "default": 0,
-        "examples": [
-            0,
-            "EQ_R_READ | EQ_R_WRITE",
-            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE"
-        ]
-    },
-    "DEBUG_MODE": {
-        "type": "integer",
-        "description": "Classes of report-messages to log (non-matching messages are ignored).",
-        "instant": true,
-        "default": 0,
-        "examples": [
-            "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
-        ]
-    },
-    "DEBUG_LEVEL": {
-        "type": "integer",
-        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
-        "instant": true,
-        "default": 0,
-        "examples": [
-            "EQ_REPORT_DEBUG | EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR | EQ_REPORT_FATAL",
-            "EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR",
-            "EQ_REPORT_DEBUG & E_ALL"
-        ]
-    },
-    "HTTP_REQUEST_TIMEOUT": {
-        "type": "integer",
-        "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
-        "instant": true,
-        "default": 10
-    },
-    "HTTP_PROCESS_USERNAME": {
-        "type": "string",
-        "description": "Username used by the HTTP service (for rights checks).",
-        "instant": true,
-        "default": "www-data"
-    },
-    "EMAIL_SMTP_HOST": {
-        "type": "string",
-        "description": "Hostname of the SMTP server to use for sending emails.",
-        "instant": true,
-        "default": "SSL0.PROVIDER.NET"
-    },
-    "EMAIL_SMTP_PORT": {
-        "type": "string",
-        "description": "Port to use for SMTP connections.",
-        "instant": true,
-        "default": "2525"
-    },
-    "EMAIL_SMTP_ENCRYPT": {
-        "type": "string",
-        "description": "Encryption layer to use for SMTP connections ('tls' or 'ssl', false for SMTP with no encryption)",
-        "instant": true,
-        "default": "tls"
-    },
-    "EMAIL_SMTP_ACCOUNT_DISPLAYNAME": {
-        "type": "string",
-        "description": "",
-        "instant": true,
-        "default": "Yesbabylon Symbiose"
-    },
-    "EMAIL_SMTP_ACCOUNT_USERNAME": {
-        "type": "string",
-        "description": "Account name (or email address) to use to authenticate to SMTP server.",
-        "instant": true,
-        "default": "account.username"
-    },
-    "EMAIL_SMTP_ACCOUNT_PASSWORD": {
-        "type": "string",
-        "description": "Password to use to authenticate to SMTP server.",
-        "instant": true,
-        "default": "password"
-    },
-    "EMAIL_SMTP_ACCOUNT_EMAIL": {
-        "type": "string",
-        "description": "Email address to use as sender (must be allowed by SMTP server).",
-        "instant": true,
-        "default": "email.to.send.from@provider.com"
-    },
-    "EMAIL_SMTP_ABUSE_EMAIL": {
-        "type": "string",
-        "description": "",
-        "instant": true,
-        "default": "abuse@example.com"
     },
     "DB_REPLICATION": {
         "type": "string",
@@ -218,15 +139,130 @@
         "environment": "EQ_DB_NAME",
         "default": "equal"
     },
-    "UPLOAD_MAX_FILE_SIZE": {
+    "DEFAULT_LANG": {
+        "type": "string",
+        "description": "The language (ISO 639-1) in which the multilang content must be provided/stored by default.",
+        "instant": true,
+        "default": "en"
+    },
+    "DEFAULT_PACKAGE": {
+        "type": "string",
+        "description": "Package we'll try to access if nothing is specified in the url (typically while accessing root URL).",
+        "instant": true,
+        "default": "core"
+    },
+    "DEFAULT_APP": {
+        "type": "string",
+        "description": "Default App to request from default package.",
+        "instant": true,
+        "default": "welcome"
+    },
+    "DEFAULT_RIGHTS": {
         "type": "integer",
-        "description": "Maximum authorized size for file upload (in bytes). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
-        "default": "64M",
+        "description": "Rights to grant to any user when no ACL is defined.",
+        "instant": true,
+        "default": 0,
         "examples": [
             0,
-            32768,
-            "128M"
+            "EQ_R_READ | EQ_R_WRITE",
+            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE"
         ]
+    },
+    "DEBUG_LEVEL": {
+        "type": "integer",
+        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
+        "instant": true,
+        "default": 0,
+        "examples": [
+            "EQ_REPORT_DEBUG | EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR | EQ_REPORT_FATAL",
+            "EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR",
+            "EQ_REPORT_DEBUG & E_ALL"
+        ]
+    },
+    "DEBUG_MODE": {
+        "type": "integer",
+        "description": "Classes of report-messages to log (non-matching messages are ignored).",
+        "instant": true,
+        "default": 0,
+        "examples": [
+            "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
+        ]
+    },
+    "DRAFT_VALIDITY": {
+        "type": "integer",
+        "description": "Duration in days before recycling draft objects.",
+        "default": 0
+    },
+    "EMAIL_SMTP_HOST": {
+        "type": "string",
+        "description": "Hostname of the SMTP server to use for sending emails.",
+        "instant": true,
+        "default": "SSL0.PROVIDER.NET"
+    },
+    "EMAIL_SMTP_PORT": {
+        "type": "string",
+        "description": "Port to use for SMTP connections.",
+        "instant": true,
+        "default": "2525"
+    },
+    "EMAIL_SMTP_ENCRYPT": {
+        "type": "string",
+        "description": "Encryption layer to use for SMTP connections ('tls' or 'ssl', false for SMTP with no encryption)",
+        "instant": true,
+        "default": "tls"
+    },
+    "EMAIL_SMTP_ACCOUNT_DISPLAYNAME": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "Yesbabylon Symbiose"
+    },
+    "EMAIL_SMTP_ACCOUNT_USERNAME": {
+        "type": "string",
+        "description": "Account name (or email address) to use to authenticate to SMTP server.",
+        "instant": true,
+        "default": "account.username"
+    },
+    "EMAIL_SMTP_ACCOUNT_PASSWORD": {
+        "type": "string",
+        "description": "Password to use to authenticate to SMTP server.",
+        "instant": true,
+        "default": "password"
+    },
+    "EMAIL_SMTP_ACCOUNT_EMAIL": {
+        "type": "string",
+        "description": "Email address to use as sender (must be allowed by SMTP server).",
+        "instant": true,
+        "default": "email.to.send.from@provider.com"
+    },
+    "EMAIL_SMTP_ABUSE_EMAIL": {
+        "type": "string",
+        "description": "",
+        "instant": true,
+        "default": "abuse@example.com"
+    },
+    "ENV_MODE": {
+        "type": "string",
+        "description": "Possible values are: 'development', 'staging', 'production'",
+        "default": "development"
+    },
+    "FILE_STORAGE_MODE": {
+        "type": "string",
+        "description": "Storage mode for binary content. Possible values are: 'DB' (database) and 'FS' (filesystem).",
+        "instant": true,
+        "default": "DB"
+    },
+    "HTTP_REQUEST_TIMEOUT": {
+        "type": "integer",
+        "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": 10
+    },
+    "HTTP_PROCESS_USERNAME": {
+        "type": "string",
+        "description": "Username used by the HTTP service (for rights checks).",
+        "instant": true,
+        "default": "www-data"
     },
     "L10N_TIMEZONE": {
         "type": "string",
@@ -245,36 +281,43 @@
         "default": true,
         "description": "Keep in mind that enabling logging increases I/O operations."
     },
-    "DRAFT_VALIDITY": {
+    "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
-        "description": "Duration in days before recycling draft objects.",
-        "default": 0
+        "description": "Maximum authorized size for file upload (in bytes). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
+        "default": "64M",
+        "examples": [
+            0,
+            32768,
+            "128M"
+        ]
     },
-    "VERSIONING_ENABLED": {
-        "type": "boolean",
-        "default": true
+    "MEM_LIMIT": {
+        "type": "integer",
+        "description": "Memory amount set as upper limit (task scheduler stops running tasks while above limit).",
+        "instant": true,
+        "environment": "EQ_MEM_LIMIT",
+        "examples": [
+            "200MB"
+        ]
     },
-    "AUTH_SECRET_KEY": {
+    "ORG_NAME" : {
         "type": "string",
-        "description": "Secret key used for hashing JWT data.",
-        "instant": true,
-        "default": "my_secret_key"
+        "description": "Name of the organisation to which belongs the instance.",
+        "default": "eQual"
     },
-    "AUTH_ACCESS_TOKEN_VALIDITY": {
-        "type": "integer",
-        "description": "Validity duration of the access token, in seconds.",
-        "instant": true,
-        "default": 3600
+    "ORG_URL": {
+        "type": "string",
+        "description": "URL of the official website of the organisation.",
+        "default": "https://equal.run"
     },
-    "AUTH_REFRESH_TOKEN_VALIDITY": {
-        "type": "integer",
-        "default": "90d"
-    },
-    "AUTH_TOKEN_HTTPS":{
-        "type": "boolean",
-        "description": "Flag for limiting the sending of auth token over HTTPS.",
-        "instant": true,
-        "default": false
+    "REST_API_URL": {
+        "type": "string",
+        "description": "The URL specific to the API path, if any. This URL should end with a slash ('/')",
+        "default": "http://equal.local/",
+        "examples": [
+            "http://equal.local/api/",
+            "http://equal.local/v1/"
+        ]
     },
     "ROOT_APP_URL": {
         "type": "string",
@@ -301,48 +344,8 @@
         "description": "Flag telling if a new user account needs to be validated before being active.",
         "default": true
     },
-    "ORG_NAME" : {
-        "type": "string",
-        "description": "Name of the organisation to which belongs the instance.",
-        "default": "eQual"
-    },
-    "ORG_URL": {
-        "type": "string",
-        "description": "URL of the official website of the organisation.",
-        "default": "https://equal.run"
-    },
-    "APP_NAME": {
-        "type": "string",
-        "description": "Specific brand name of the application, if any.",
-        "default": "eQual"
-    },
-    "APP_URL": {
-        "type": "string",
-        "deprecated": "Please use BACKEND_URL and DEFAULT_APP instead.",
-        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
-        "default": "http://equal.local"
-    },
-    "APP_LOGO_URL": {
-        "type": "string",
-        "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
-        "default": "/assets/img/logo.svg"
-    },
-    "BACKEND_URL": {
-        "type": "string",
-        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
-        "default": "http://equal.local",
-        "examples": [
-            "http://equal.local",
-            "http://equal.local/index.php"
-        ]
-    },
-    "REST_API_URL": {
-        "type": "string",
-        "description": "The URL specific to the API path, if any. This URL should end with a slash ('/')",
-        "default": "http://equal.local/",
-        "examples": [
-            "http://equal.local/api/",
-            "http://equal.local/v1/"
-        ]
+    "VERSIONING_ENABLED": {
+        "type": "boolean",
+        "default": true
     }
 }
