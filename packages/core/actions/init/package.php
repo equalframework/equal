@@ -26,7 +26,7 @@ list($params, $providers) = eQual::announce([
             'default'       => true
         ],
         'import' => [
-            'description'   => 'Request for importing initial data.',
+            'description'   => 'Request importing initial data.',
             'type'          => 'boolean',
             'default'       => false
         ],
@@ -34,6 +34,11 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Import initial data for dependencies as well.',
             'type'          => 'boolean',
             'default'       => true
+        ],
+        'with_demo' => [
+            'description'   => 'Request importing demo data.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -120,13 +125,62 @@ foreach($queries as $query) {
 
 /*  end-tables_init */
 
-// #todo : make distinction between mandatory initial data and demo data
-
 // 2) Populate tables with predefined data
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     // handle JSON files
     foreach (glob($data_folder."/*.json") as $json_file) {
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        foreach($classes as $class) {
+            $entity = $class['name'];
+            $lang = $class['lang'];
+            $model = $orm->getModel($entity);
+            $schema = $model->getSchema();
+
+            $objects_ids = [];
+
+            foreach($class['data'] as $odata) {
+                foreach($odata as $field => $value) {
+                    $f = new Field($schema[$field]);
+                    $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
+                }
+
+                if(isset($odata['id'])) {
+                    $res = $orm->search($entity, ['id', '=', $odata['id']]);
+                    if($res > 0 && count($res)) {
+                        // object already exist, but either values or language might differ
+                    }
+                    else {
+                        $orm->create($entity, ['id' => $odata['id']], $lang, false);
+                    }
+                    $id = $odata['id'];
+                    unset($odata['id']);
+                }
+                else {
+                    $id = $orm->create($entity, [], $lang);
+                }
+                $orm->update($entity, $id, $odata, $lang);
+                $objects_ids[] = $id;
+            }
+
+            // force a first generation of computed fields, if any
+            $computed_fields = [];
+            foreach($schema as $field => $def) {
+                if($def['type'] == 'computed') {
+                    $computed_fields[] = $field;
+                }
+            }
+            $orm->read($entity, $objects_ids, $computed_fields, $lang);
+        }
+    }
+}
+
+// 2 bis) Populate tables with demo data, if requested
+$demo_folder = "packages/{$params['package']}/init/demo";
+if($params['with_demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
+    // handle JSON files
+    foreach (glob($demo_folder."/*.json") as $json_file) {
         $data = file_get_contents($json_file);
         $classes = json_decode($data, true);
         foreach($classes as $class) {
@@ -251,6 +305,30 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
             file_put_contents("public/$app/version", $version_md5);
         }
     }
+}
+
+// 6) Inject composer dependencies if any
+if(isset($package_manifest['requires']) && is_array($package_manifest['requires'])) {
+    $map_composer = [
+        'require'     => [],
+        'require-dev' => []
+    ];
+
+    if(file_exists(EQ_BASEDIR.'/composer.json')) {
+        $json = file_get_contents(EQ_BASEDIR.'/composer.json');
+        $data = json_decode($json, true);
+        if($data) {
+            $map_composer = $data;
+        }
+    }
+
+    foreach($package_manifest['requires'] as $dependency => $version) {
+        $map_composer['require'][$dependency] = $version;
+    }
+
+    file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+    eQual::run('do', 'init_composer');
 }
 
 // mark the package as initialized (installed)
