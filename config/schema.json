@@ -23,12 +23,14 @@
     },
     "AUTH_ACCESS_TOKEN_VALIDITY": {
         "type": "integer",
+        "usage": "time/duration",
         "description": "Validity duration of the access token, in seconds.",
         "instant": true,
         "default": 3600
     },
     "AUTH_REFRESH_TOKEN_VALIDITY": {
         "type": "integer",
+        "usage": "time/duration",
         "default": "90d"
     },
     "AUTH_TOKEN_HTTPS":{
@@ -254,6 +256,7 @@
     },
     "HTTP_REQUEST_TIMEOUT": {
         "type": "integer",
+        "usage": "time/duration",
         "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
         "instant": true,
         "default": 10
@@ -283,19 +286,23 @@
     },
     "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
+        "usage": "amount/data",
         "description": "Maximum authorized size for file upload (in bytes). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
-        "default": "64M",
+        "default": "64MB",
         "examples": [
             0,
             32768,
-            "128M"
+            "128MB"
         ]
     },
     "MEM_LIMIT": {
         "type": "integer",
-        "description": "Memory amount set as upper limit (task scheduler stops running tasks while above limit).",
+        "usage": "amount/data",
+        "description": "Upper limit of total usable memory (in bytes) available for the whole instance.",
+        "help": "This parameter is a threshold that the system tries not to exceed (the task scheduler stops running tasks while above limit). However, under certain circumstances, this limit may still be surpassed. Besides, if that value is above the memory_limit set in php.ini, it will have no effect.",
         "instant": true,
         "environment": "EQ_MEM_LIMIT",
+        "default": "512MB",
         "examples": [
             "200MB"
         ]
