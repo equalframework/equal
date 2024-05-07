@@ -147,7 +147,7 @@ final class DBManipulatorSQLite extends DBManipulator {
         return $columns;
     }
 
-    public function getTableConstraints($table_name) {
+    public function getTableUniqueConstraints($table_name) {
         $query = "PRAGMA table_info($table_name);";
         $res = $this->sendQuery($query);
         $constraints = [];
@@ -212,7 +212,11 @@ final class DBManipulatorSQLite extends DBManipulator {
         return $sql;
     }
 
-    public function getQueryAddConstraint($table_name, $columns) {
+    public function getQueryAddIndex($table_name, $column) {
+        return "CREATE INDEX idx_{$column} ON `{$table_name}` (`{$column}`);";
+    }
+
+    public function getQueryAddUniqueConstraint($table_name, $columns) {
         return "CREATE UNIQUE INDEX ".implode('_', $columns)." ON {$table_name}(".implode(',', $columns).");";
     }
 

@@ -163,7 +163,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         return $columns;
     }
 
-    public function getTableConstraints($table_name) {
+    public function getTableUniqueConstraints($table_name) {
         $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
         $res = $this->sendQuery($query);
         $constraints = [];
@@ -225,12 +225,15 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         return $sql;
     }
 
-    public function getQueryAddConstraint($table_name, $columns) {
+    public function getQueryAddIndex($table_name, $column) {
+        return "CREATE INDEX idx_{$column} ON [$table_name] ($column);";
+    }
+
+    public function getQueryAddUniqueConstraint($table_name, $columns) {
         return "ALTER TABLE [$table_name] ADD CONSTRAINT ".implode('_', array_merge(['AK'], $columns))." UNIQUE (".implode(',', $columns).");";
     }
 
-
-    public function getQueryAddRecords($table, $fields, $values) {
+    public function getQueryAddRecords($table_name, $fields, $values) {
         $sql = '';
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
@@ -245,9 +248,9 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         }
         if(count($fields) && count($vals)) {
             // #todo ignore duplicate entries, if any
-            $sql = "INSERT INTO [$table] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
+            $sql = "INSERT INTO [$table_name] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
             if(in_array('id', $fields)) {
-                $sql = "SET IDENTITY_INSERT $table ON;".$sql."SET IDENTITY_INSERT $table OFF;";
+                $sql = "SET IDENTITY_INSERT $table_name ON;".$sql."SET IDENTITY_INSERT $table_name OFF;";
             }
         }
         return $sql;

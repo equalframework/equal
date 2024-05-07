@@ -143,7 +143,7 @@ final class DBManipulatorMySQL extends DBManipulator {
         return $columns;
     }
 
-    public function getTableConstraints($table_name) {
+    public function getTableUniqueConstraints($table_name) {
         $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
         $res = $this->sendQuery($query);
         $constraints = [];
@@ -166,19 +166,6 @@ final class DBManipulatorMySQL extends DBManipulator {
         return $query.";";
     }
 
-    /**
-     * Generates one or more SQL queries related to a column creation, according to given column definition.
-     *
-     * $def structure:
-     * [
-     *      'type'             => int(11),
-     *      'null'             => false,
-     *      'default'          => 0,
-     *      'auto_increment'   => false,
-     *      'primary'          => false,
-     *      'index'            => false
-     * ]
-     */
     public function getQueryAddColumn($table_name, $column_name, $def) {
         $sql = "ALTER TABLE `{$table_name}` ADD COLUMN `{$column_name}` {$def['type']}";
         if(isset($def['null']) && !$def['null']) {
@@ -202,7 +189,11 @@ final class DBManipulatorMySQL extends DBManipulator {
         return $sql;
     }
 
-    public function getQueryAddConstraint($table_name, $columns) {
+    public function getQueryAddIndex($table_name, $column) {
+        return "ALTER TABLE `{$table_name}` ADD INDEX(`".$column."`);";
+    }
+
+    public function getQueryAddUniqueConstraint($table_name, $columns) {
         return "ALTER TABLE `{$table_name}` ADD CONSTRAINT ".implode('_', $columns)." UNIQUE (`".implode('`,`', $columns)."`);";
     }
 
