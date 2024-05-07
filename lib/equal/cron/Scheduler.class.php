@@ -51,6 +51,10 @@ class Scheduler extends Service {
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
+
+            // #todo - do not try to run the task if current memory use is above MEM_LIMIT
+            // if(total_machine_mem_use >= constant('MEM_LIMIT')) { }
+
             // if an exclusive task is already running, ignore current batch
             $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running'], ['is_exclusive', '=', true]]);
             if($running_tasks_ids > 0 && count($running_tasks_ids)) {
