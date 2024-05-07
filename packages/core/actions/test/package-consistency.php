@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
@@ -42,16 +42,19 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 
 
 /*
-#TODO : check config and json files syntax.
+    #todo :
 
-* translation files constraints:
-    * model helpers : max 45 chars
-    * error messages length : max 45 chars
+    * check config and json files syntax.
 
-* for each view, check that each field is present 0 or 1 time
-* for each view, check that the id match an entry in the translation file
-* for each class, check that all fields are each field is present at least in one view
+    * translation files constraints:
+        * model helpers : max 45 chars
+        * error messages length : max 45 chars
 
+    * for each view, check that each field is present 0 or 1 time
+    * for each view, check that the id match an entry in the translation file
+    * for each class, check that all fields are each field is present at least in one view
+
+    * check for potential versions conflicts across packages in manifest `requires` (composer dependencies)
 */
 
 // result of the tests : array containing errors (if no errors are found, array is empty)
