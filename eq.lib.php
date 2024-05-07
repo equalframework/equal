@@ -329,7 +329,7 @@ namespace config {
         return $output;
     }
 
-    function strtoint($value) {
+    function strtoint($value, $usage = '') {
         if(is_string($value)) {
             if($value == 'null') {
                 $value = null;
@@ -349,6 +349,7 @@ namespace config {
             $value = intval($value);
         }
         elseif(is_scalar($value)) {
+            // fallback suffixes coefficients (defaults)
             $suffixes = [
                 'B'  => 1,
                 'KB' => 1024,
@@ -362,6 +363,44 @@ namespace config {
                 'M'  => 3600*24*30,
                 'Y'  => 3600*24*365
             ];
+
+            switch($usage) {
+                case 'amount/data':
+                    $suffixes = [
+                        'b'   => 1,
+                        'B'   => 1,
+                        'k'   => 1000,
+                        'K'   => 1000,
+                        'kb'  => 1000,
+                        'KB'  => 1000,
+                        'kib' => 1024,
+                        'KiB' => 1024,
+                        'm'   => 1000000,
+                        'M'   => 1000000,
+                        'mb'  => 1000000,
+                        'MB'  => 1000000,
+                        'mib' => 1048576,
+                        'MiB' => 1048576,
+                        'g'   => 1000000000,
+                        'gb'  => 1000000000,
+                        'gib' => 1073741824,
+                        'GiB' => 1073741824
+                    ];
+                    break;
+                case 'time/duration':
+                    $suffixes = [
+                        'ms' => 0.001,
+                        's'  => 1,
+                        'm'  => 60,
+                        'h'  => 3600,
+                        'd'  => 3600*24,
+                        'w'  => 3600*24*7,
+                        'M'  => 3600*24*30,
+                        'y'  => 3600*24*365,
+                        'Y'  => 3600*24*365
+                    ];
+                    break;
+            }
             $val = (string) $value;
             $intval = intval($val);
             foreach($suffixes as $suffix => $factor) {
@@ -448,7 +487,7 @@ namespace config {
                 }
             }
             else {
-                $value = strtoint($value);
+                $value = strtoint($value, $constants_schema[$property]['usage'] ?? '');
             }
         }
         // handle encrypted values
