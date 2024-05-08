@@ -39,6 +39,11 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Request importing demo data.',
             'type'          => 'boolean',
             'default'       => false
+        ],
+        'root' => [
+            'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
+            'type'          => 'boolean',
+            'default'       => true
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -85,7 +90,7 @@ if(file_exists("packages/{$params['package']}/manifest.json")) {
     }
 }
 
-// check if there are dependencies
+// check if there are dependencies (must be initialized beforehand)
 if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($package_manifest['depends_on'])) {
     // initiate dependency packages that are not yet processed, if requested
     foreach($package_manifest['depends_on'] as $dependency) {
@@ -95,7 +100,8 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
                 eQual::run('do', 'init_package', [
                         'package'           => $dependency,
                         'cascade'           => $params['cascade'],
-                        'import'            => $params['import'] && $params['import_cascade']
+                        'import'            => $params['import'] && $params['import_cascade'],
+                        'root'              => false
                     ],
                     true);
             }
@@ -327,8 +333,6 @@ if(isset($package_manifest['requires']) && is_array($package_manifest['requires'
     }
 
     file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-    eQual::run('do', 'init_composer');
 }
 
 // mark the package as initialized (installed)
@@ -346,6 +350,11 @@ if(file_exists("log/packages.json")) {
 
 $packages[$params['package']] = date('c');
 file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
+
+// if script is running at top-level, run composer to install vendor dependencies
+if($params['root']) {
+    eQual::run('do', 'init_composer');
+}
 
 $context->httpResponse()
         ->status(201)
