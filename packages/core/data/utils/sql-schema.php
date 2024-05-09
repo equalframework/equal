@@ -20,7 +20,7 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'full'	=> [
-            'description'   => 'Force the output to complete schema (i.e. with tables already present in DB).',
+            'description'   => 'Force the output to complete schema (i.e. all tables with all columns, even if already present in DB).',
             'type'          => 'boolean',
             'default'       => false
         ]
@@ -112,13 +112,10 @@ foreach($classes as $class) {
                     'null'      => true
                 ];
 
-            // if a SQL type is associated to field 'usage', it prevails over the type association
-            // #todo
+            // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
             if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
-
-            // #memo - default is supported by ORM, not DBMS
 
             if($field == 'id') {
                 continue;
@@ -129,6 +126,12 @@ foreach($classes as $class) {
             }
             // generate SQL for column creation
             $result[] = $db->getQueryAddColumn($table, $field, $column_descriptor);
+
+            // #memo - default is supported and handled by the ORM, not by the DBMS
+            // if table already exists, set column value according to default, for all existing records
+            if(count($columns) && isset($description['default'])) {
+                $result[] = $db->getQuerySetRecords($table, [$field => $description['default']]);
+            }
         }
         elseif($description['type'] == 'computed') {
             if(!isset($description['store']) || !$description['store']) {

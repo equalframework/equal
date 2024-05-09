@@ -276,7 +276,7 @@ class DBManipulator {
      *
      * Generates a SQL query and create a new database according to given $db_name.
      *
-     * @param string $db_name The name of the database to create.
+     * @param string $db_name   The name of the database to create.
      * @return string SQL query to create a database.
      */
     public function createDatabase($db_name) {}
@@ -291,7 +291,7 @@ class DBManipulator {
     /**
      * Generates a SQL query to get the schema of the specified table.
      *
-     * @param string $table_name The name of the table whose schema is to be retrieved.
+     * @param string $table_name    The name of the table whose schema is to be retrieved.
      * @return string SQL query to get the table schema.
      */
     public function getTableSchema($table_name) {}
@@ -299,7 +299,7 @@ class DBManipulator {
     /**
      * Generates a SQL query to get the columns of the specified table.
      *
-     * @param string $table_name The name of the table whose columns are to be retrieved.
+     * @param string $table_name    The name of the table whose columns are to be retrieved.
      * @return string SQL query to get the table columns.
      */
     public function getTableColumns($table_name) {}
@@ -307,15 +307,16 @@ class DBManipulator {
     /**
      * Generates a SQL query to get the constraints of the specified table.
      *
-     * @param string $table_name The name of the table whose constraints are to be retrieved.
+     * @param string $table_name    The name of the table whose constraints are to be retrieved.
      * @return string SQL query to get the table constraints.
      */
     public function getTableUniqueConstraints($table_name) {}
 
     /**
      * Generates the SQL query to create a specific table.
+     * The query holds a condition to run only if the table does not exist yet.
      *
-     * @param string $table_name The name of the table for which the creation SQL is generated.
+     * @param string $table_name    The name of the table for which the creation SQL is generated.
      * @return string SQL query to create the specified table.
      */
     public function getQueryCreateTable($table_name) {}
@@ -332,9 +333,9 @@ class DBManipulator {
      *       'primary'         => false,
      *      'index'            => false
      * ]
-     * @param string $table_name The name of the table to modify.
-     * @param string $column_name The name of the column to add.
-     * @param array $def Array describing the column properties such as type, nullability, default value, etc.
+     * @param string $table_name    The name of the table to modify.
+     * @param string $column_name   The name of the column to add.
+     * @param array $def            Array describing the column properties such as type, nullability, default value, etc.
      * @return string SQL query to add a column.
     */
     public function getQueryAddColumn($table_name, $column_name, $def) {}
@@ -342,8 +343,8 @@ class DBManipulator {
     /**
      * Generates a SQL query to add an index to a table.
      *
-     * @param string $table_name The name of the table.
-     * @param string $column The name of the column to index.
+     * @param string $table_name    The name of the table.
+     * @param string $column        The name of the column to index.
      * @return string SQL query to add an index.
      */
     public function getQueryAddIndex($table_name, $column) {}
@@ -351,8 +352,8 @@ class DBManipulator {
     /**
      * Generates a SQL query to add a unique constraint to one or more columns in a table.
      *
-     * @param string $table_name The name of the table.
-     * @param array|string $columns The name(s) of the column(s) to include in the unique constraint.
+     * @param string $table_name        The name of the table.
+     * @param array|string $columns     The name(s) of the column(s) to include in the unique constraint.
      * @return string SQL query to add a unique constraint.
      */
     public function getQueryAddUniqueConstraint($table_name, $columns) {}
@@ -360,11 +361,20 @@ class DBManipulator {
     /**
      * Generates a SQL query to add records to a table.
      *
-     * @param string $table The name of the table where records will be added.
-     * @param array $fields Array of field names corresponding to the columns in the table.
-     * @param array $values Array of values to be inserted; each sub-array corresponds to a row.
+     * @param string $table     The name of the table where records will be added.
+     * @param array $fields     Array of field names corresponding to the columns in the table.
+     * @param array $values     Array of values to be inserted; each sub-array corresponds to a row.
      * @return string SQL query to add records.
      */
     public function getQueryAddRecords($table, $fields, $values) {}
 
+    /**
+     * Generates a SQL query to set columns according to an associative array, for all records of a table.
+     *
+     * @param string $table     Name of the table where records will be added.
+     * @param array $fields     Associative array mapping field names (columns) to values those must be updated to.
+     * @param array $values     Array of values to be inserted; each sub-array corresponds to a row.
+     * @return string SQL query to add records.
+     */
+    public function getQuerySetRecords($table, $fields) {}
 }

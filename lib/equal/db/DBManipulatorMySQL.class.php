@@ -223,6 +223,26 @@ final class DBManipulatorMySQL extends DBManipulator {
         return $sql;
     }
 
+    public function getQuerySetRecords($table, $fields) {
+        $sql = '';
+        // test values and types
+        if(empty($table)) {
+            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'table' empty.", QN_ERROR_SQL);
+        }
+        if(empty($fields)) {
+            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' empty.", QN_ERROR_SQL);
+        }
+        // UPDATE clause
+        $sql = 'UPDATE `'.$table.'`';
+        // SET clause
+        $sql .= ' SET ';
+        foreach($fields as $key => $value) {
+            $sql .= "`$key`={$this->escapeString($value)}, ";
+        }
+        $sql = rtrim($sql, ', ');
+        return $sql;
+    }
+
     /**
      * Sends a SQL query.
      *
@@ -471,34 +491,12 @@ final class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
-        // test values and types
-        if(empty($table)) {
-            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'table' empty.", QN_ERROR_SQL);
-        }
-        if(empty($fields)) {
-            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' empty.", QN_ERROR_SQL);
-        }
-
-        // UPDATE clause
-        $sql = 'UPDATE `'.$table.'`';
-
-        // SET clause
-        $sql .= ' SET ';
-        foreach ($fields as $key => $value) {
-            $sql .= "`$key`={$this->escapeString($value)}, ";
-        }
-        $sql = rtrim($sql, ', ');
-
-        // WHERE clause
+        $sql = $this->getQuerySetRecords($table, $fields);
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
-
         return $this->sendQuery($sql);
     }
 
     public function addRecords($table, $fields, $values) {
-        if (!is_array($fields) || !is_array($values)) {
-            throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
-        }
         $sql = $this->getQueryAddRecords($table, $fields, $values);
         return $this->sendQuery($sql);
     }
