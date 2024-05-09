@@ -35,10 +35,15 @@ list($params, $providers) = eQual::announce([
             'type'          => 'boolean',
             'default'       => true
         ],
-        'with_demo' => [
+        'demo' => [
             'description'   => 'Request importing demo data.',
             'type'          => 'boolean',
             'default'       => false
+        ],
+        'composer' => [
+            'description'   => 'Flag for requesting initialization of composer dependencies.',
+            'type'          => 'boolean',
+            'default'       => true
         ],
         'root' => [
             'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
@@ -184,7 +189,7 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
 
 // 2 bis) Populate tables with demo data, if requested
 $demo_folder = "packages/{$params['package']}/init/demo";
-if($params['with_demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
+if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
     // handle JSON files
     foreach (glob($demo_folder."/*.json") as $json_file) {
         $data = file_get_contents($json_file);
@@ -352,7 +357,7 @@ $packages[$params['package']] = date('c');
 file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
 // if script is running at top-level, run composer to install vendor dependencies
-if($params['root']) {
+if($params['root'] && $params['composer']) {
     eQual::run('do', 'init_composer');
 }
 
