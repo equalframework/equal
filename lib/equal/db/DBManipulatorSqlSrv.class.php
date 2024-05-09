@@ -275,7 +275,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
             $sql .= "[$key]={$this->escapeString($value)}, ";
         }
         $sql = rtrim($sql, ', ');
-        return $sql;
+        return $sql.';';
     }
 
     /**
@@ -512,7 +512,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
-        $sql = $this->getQuerySetRecords($table, $fields);
+        $sql = rtrim($this->getQuerySetRecords($table, $fields), ';');
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
         return $this->sendQuery($sql, 'update');
     }
