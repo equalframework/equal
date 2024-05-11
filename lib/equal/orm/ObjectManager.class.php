@@ -1636,11 +1636,15 @@ class ObjectManager extends Service {
             $fields['modified'] = time();
 
 
-            // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
+            // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
 
             if(!$create) {
-                // #todo - allow explicit notation `onbeforeupdate()`
-                $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+                if(method_exists($class, 'onbeforeupdate')) {
+                    $this->callonce($class, 'onbeforeupdate', $ids, $fields, $lang);
+                }
+                else {
+                    $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+                }
             }
 
 
