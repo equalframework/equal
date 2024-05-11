@@ -315,6 +315,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Returns a Field object that corresponds to the descriptor of the given field (from schema).
+     * If a field is an alias, it is the final descriptor of the alias chain that is returned.
      *
      * @return Field        Associative array mapping fields names with their related Field instances.
      */

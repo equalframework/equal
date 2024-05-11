@@ -260,7 +260,7 @@ class ObjectManager extends Service {
      * @param   string       $class      The full name of the class with its namespace.
      * @param   array        $fields     Associative array mapping fields with default values (provided by create() method).
      * @throws  Exception
-     * @return  Object       Returns a partial instance of the targeted class.
+     * @return  Model        Returns a partial instance of the targeted class.
      */
     private function getStaticInstance($class, $fields=[]) {
         if(count($fields) || !isset($this->models[$class])) {
@@ -1204,7 +1204,7 @@ class ObjectManager extends Service {
      * Retrieve the static instance of a given class (Model with default values).
      * This method is registered as autoload handler in `eq.lib.php`.
      *
-     * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
+     * @return boolean|Model   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
     public function getModel($class) {
         $model = false;
@@ -1213,7 +1213,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
-            // #memo - another autoload handler might be registered, so we relay without raising an exception
+            // #memo - another autoload handler might be registered, so no exception can be raised
         }
         return $model;
     }
@@ -1302,7 +1302,7 @@ class ObjectManager extends Service {
                 continue;
             }
             if($value === null) {
-                // all fields can be reset to null
+                // all fields can be reset to null (unless required)
                 continue;
             }
             foreach($constraints[$field] as $error_id => $constraint) {
@@ -2523,7 +2523,7 @@ class ObjectManager extends Service {
                             if( $operator == '=') {
                                 $operator = 'is';
                             }
-                            else if( $operator == '<>') {
+                            elseif( $operator == '<>') {
                                 $operator = 'is not';
                             }
                         }
