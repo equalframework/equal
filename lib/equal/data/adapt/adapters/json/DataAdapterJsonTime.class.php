@@ -26,18 +26,24 @@ class DataAdapterJsonTime implements DataAdapter {
 	public function adaptIn($value, $usage, $locale='en') {
         $result = null;
         if(!is_null($value)) {
-            $count = substr_count($value, ':');
-            list($hour, $minute, $second) = [0,0,0];
-            if($count == 2) {
-                list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+            if(is_numeric($value)) {
+                // value is a timestamp, keep it
+                $result = intval($value);
             }
-            else if($count == 1) {
-                list($hour, $minute) = sscanf($value, "%d:%d");
+            else {
+                $count = substr_count($value, ':');
+                list($hour, $minute, $second) = [0,0,0];
+                if($count == 2) {
+                    list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
+                }
+                else if($count == 1) {
+                    list($hour, $minute) = sscanf($value, "%d:%d");
+                }
+                else if($count == 0) {
+                    $hour = $value;
+                }
+                $result = ($hour * 3600) + ($minute * 60) + $second;
             }
-            else if($count == 0) {
-                $hour = $value;
-            }
-            $result = ($hour * 3600) + ($minute * 60) + $second;
         }
         return $result;
     }
