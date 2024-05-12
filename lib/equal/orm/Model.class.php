@@ -123,14 +123,23 @@ class Model implements \ArrayAccess, \Iterator {
                     var_dump($defaults[$field]);
                     $log = ob_get_clean();
                     trigger_error("ORM::Model ".$this->getType()." for field $field - trying to default with {$log}", QN_REPORT_DEBUG);
-                    if(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
-                        $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                    if(is_string($defaults[$field])) {
+                        if(method_exists($this->getType(), $defaults[$field])) {
+                            // default is a method of the class (or parents')
+                            $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                        }
+                        else {
+                            // do not call if there is an ambiguity (e.g. 'time')
+                            $this->values[$field] = $defaults[$field];
+                        }
                     }
-                    else {
+                    elseif(is_object($defaults[$field])) {
+                        // default is a closure
                         $this->values[$field] = $defaults[$field]();
                     }
                 }
                 else {
+                    // default is a scalar value
                     $this->values[$field] = $defaults[$field];
                 }
             }
