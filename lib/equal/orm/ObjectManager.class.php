@@ -1092,12 +1092,28 @@ class ObjectManager extends Service {
             if(in_array($param_name, ['om', 'orm'])) {
                 $args[] = $this;
             }
+            elseif(in_array($param_name, [
+                    'report',
+                    'auth',
+                    'access',
+                    'context',
+                    'validate',
+                    'adapt',
+                    'route',
+                    'log',
+                    'cron',
+                    'dispatch',
+                    'db'])) {
+                $args[] = $this->container->get($param_name);
+            }
+
             elseif(in_array($param_name, ['ids', 'oids'])) {
                 $args[] = $unprocessed_ids;
             }
             elseif($param_name == 'values') {
                 $args[] = $values;
             }
+            // #todo - deprecate : use $auth instead
             elseif($param_name == 'user_id') {
                 $auth = $this->container->get('auth');
                 $user_id = $auth->userId();

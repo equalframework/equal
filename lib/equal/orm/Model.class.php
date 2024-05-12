@@ -119,7 +119,12 @@ class Model implements \ArrayAccess, \Iterator {
             elseif(isset($defaults[$field])) {
                 // #memo - default value can be either a scalar expression or a PHP function (executed at definition parsing)
                 if(is_callable($defaults[$field])) {
-                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                    if(method_exists($this->getType(), $defaults[$field])) {
+                        $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                    }
+                    else {
+                        $this->values[$field] = $defaults[$field]();
+                    }
                 }
                 else {
                     $this->values[$field] = $defaults[$field];
