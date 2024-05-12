@@ -117,24 +117,18 @@ class Model implements \ArrayAccess, \Iterator {
                 $this->values[$field] = $values[$field];
             }
             elseif(isset($defaults[$field])) {
-                // #memo - default value can be either a scalar expression or a PHP function (executed at definition parsing)
                 if(is_callable($defaults[$field])) {
                     // either a php function (or a function from the global scope) or a closure object
-                    ob_start();
-                    var_dump($defaults[$field]);
-                    $log = ob_get_clean();
-                    trigger_error("ORM::Model ".$this->getType()." for field $field - trying to default with {$log}", QN_REPORT_DEBUG);
                     if(is_object($defaults[$field])) {
                         // default is a closure
                         $this->values[$field] = $defaults[$field]();
                     }
-                    elseif(is_string($defaults[$field])) {
-                        // do not call if there is an ambiguity (e.g. 'time')
+                    else {
+                        // do not call since there is an ambiguity (e.g. 'time')
                         $this->values[$field] = $defaults[$field];
                     }
                 }
-                elseif(method_exists($this->getType(), $defaults[$field])) {
-                    trigger_error("ORM::Model ".$this->getType()." for field $field - trying to default with {$defaults[$field]}", QN_REPORT_DEBUG);
+                elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
                     // default is a method of the class (or parents')
                     $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
                 }
@@ -142,7 +136,6 @@ class Model implements \ArrayAccess, \Iterator {
                     // default is a scalar value
                     $this->values[$field] = $defaults[$field];
                 }
-                trigger_error("ORM::Model ".$this->getType()." for field $field - result {$this->values[$field]}", QN_REPORT_DEBUG);
             }
         }
     }
