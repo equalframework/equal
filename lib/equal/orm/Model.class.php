@@ -6,6 +6,7 @@
 */
 namespace equal\orm;
 
+use equal\services\Container;
 
 /**
  * Root Model for all Object definitions.
@@ -103,6 +104,8 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     private function setDefaults($values=[]) {
+        $container = Container::getInstance();
+        $orm = $container->get('orm');
         $defaults = $this->getDefaults();
         // reset fields values
         $this->values = [];
@@ -114,8 +117,13 @@ class Model implements \ArrayAccess, \Iterator {
                 $this->values[$field] = $values[$field];
             }
             elseif(isset($defaults[$field])) {
-                // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
-                $this->values[$field] = $defaults[$field];
+                // #memo - default value can be either a scalar expression or a PHP function (executed at definition parsing)
+                if(is_callable($defaults[$field])) {
+                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                }
+                else {
+                    $this->values[$field] = $defaults[$field];
+                }
             }
         }
     }
