@@ -1723,7 +1723,7 @@ class ObjectManager extends Service {
             ];
             foreach($fields as $field => $value) {
                 // remember fields whose modification triggers resetting computed fields
-                // #todo - deprecate dependencies : use dependents
+                // #todo - deprecate 'dependencies' : use dependents
                 if(isset($schema[$field]['dependencies'])) {
                     foreach((array) $schema[$field]['dependencies'] as $dependent) {
                         $dependents['primary'][$dependent] = true;
