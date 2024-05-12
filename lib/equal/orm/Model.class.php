@@ -122,7 +122,7 @@ class Model implements \ArrayAccess, \Iterator {
                     ob_start();
                     var_dump($defaults[$field]);
                     $log = ob_get_clean();
-                    trigger_error("ORM::Model trying to default with {$log}", QN_REPORT_DEBUG);
+                    trigger_error("ORM::Model ".$this->getType()." for field $field - trying to default with {$log}", QN_REPORT_DEBUG);
                     if(method_exists($this->getType(), $defaults[$field])) {
                         $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
                     }
