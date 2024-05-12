@@ -1041,7 +1041,7 @@ class ObjectManager extends Service {
      * @param   array     $signature        (deprecated) List of parameters to relay to target method (required if differing from default).
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
-    public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
+    public function callonce($class, $method, $ids=[], $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
 
         // stack current state of object_methods map (current state is restored at the end of the method)
