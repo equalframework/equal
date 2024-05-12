@@ -363,7 +363,7 @@ namespace config {
                 'M'  => 3600*24*30,
                 'Y'  => 3600*24*365
             ];
-
+            // #todo - replicate this in DataAdapterJsonInteger
             switch($usage) {
                 case 'amount/data':
                     $suffixes = [
@@ -394,6 +394,7 @@ namespace config {
                         'm'  => 60,
                         'h'  => 3600,
                         'd'  => 3600*24,
+                        'D'  => 3600*24,
                         'w'  => 3600*24*7,
                         'M'  => 3600*24*30,
                         'y'  => 3600*24*365,
@@ -685,6 +686,7 @@ namespace config {
                             $items = explode(';', $part);
                             $accepted[] = trim(reset($items));
                         }
+                        // #todo - when should we implement strict check on accepted content type ?
                         if(!in_array($announcement['response']['content-type'], $accepted) && !in_array('*/*', $accepted)) {
                             /*
                             // send "406 Not Acceptable"
@@ -881,6 +883,11 @@ namespace config {
                 }
             }
 
+            /** @var \equal\data\adapt\DataAdapterProvider */
+            $dap = $container->get('adapt');
+            // #todo - use the adapter based on content-type header, if any
+            /** @var \equal\data\adapt\DataAdapter */
+            $adapter = $dap->get('json');
 
 
             // 1) check if all required parameters have been received
@@ -891,7 +898,7 @@ namespace config {
                     $mandatory_params[] = $param;
                 }
             }
-            // if at least one mandatory param is missing
+            // if at least one mandatory param is missing, reply with announcement
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
             if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
@@ -936,7 +943,17 @@ namespace config {
                     throw new \Exception('', 0);
                 }
                 // add announcement to response body
+                if(isset($announcement['params'])) {
+                    // default values must be adapted to JSON
+                    foreach((array) $announcement['params'] as $param => $config) {
+                        if(isset($config['default'])) {
+                            $f = new Field($config, $param);
+                            $announcement['params'][$param]['default'] = $adapter->adaptOut($config['default'], $f->getUsage());
+                        }
+                    }
+                }
                 $response->body(['announcement' => $announcement]);
+
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     $response->status(200)
@@ -968,11 +985,6 @@ namespace config {
             // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
             $invalid_params = [];
-            /** @var \equal\data\adapt\DataAdapterProvider */
-            $dap = $container->get('adapt');
-            // #todo - use the adapter based on content-type header, if any
-            /** @var \equal\data\adapt\DataAdapter */
-            $adapter = $dap->get('json');
             foreach($announcement['params'] as $param => $config) {
                 // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
