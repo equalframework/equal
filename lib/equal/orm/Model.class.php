@@ -119,6 +119,10 @@ class Model implements \ArrayAccess, \Iterator {
             elseif(isset($defaults[$field])) {
                 // #memo - default value can be either a scalar expression or a PHP function (executed at definition parsing)
                 if(is_callable($defaults[$field])) {
+                    ob_start();
+                    var_dump($defaults[$field]);
+                    $log = ob_get_clean();
+                    trigger_error("ORM::Model trying to default with {$log}", QN_REPORT_DEBUG);
                     if(method_exists($this->getType(), $defaults[$field])) {
                         $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
                     }
