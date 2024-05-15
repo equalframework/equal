@@ -101,7 +101,6 @@ namespace {
     define('EQ_REPORT_ERROR',       E_USER_ERROR);          // 256
     define('EQ_REPORT_FATAL',       E_ERROR);               // 1
     define('EQ_REPORT_SYSTEM',      0);                     // 0
-
     // equivalence map for constant names migration
     // #deprecated
     define('QN_REPORT_DEBUG',       EQ_REPORT_DEBUG);
@@ -132,7 +131,6 @@ namespace {
     define('EQ_R_DELETE',    8);
     define('EQ_R_MANAGE',   16);
     define('EQ_R_ALL',      31);
-
     // equivalence map for constant names migration
     // #deprecated
     define('QN_R_CREATE',       EQ_R_CREATE);
@@ -147,12 +145,20 @@ namespace {
      *
      * Note : make sure that the ids in DB are set and matching these
      */
-    define('QN_GUEST_USER_ID',       0);
-    define('QN_ROOT_USER_ID',        1);
+    define('EQ_GUEST_USER_ID',       0);
+    define('EQ_ROOT_USER_ID',        1);
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_GUEST_USER_ID',       EQ_GUEST_USER_ID);
+    define('QN_ROOT_USER_ID',        EQ_ROOT_USER_ID);
 
     // default group (all users are members of the default group)
-    define('QN_ROOT_GROUP_ID',       1);
-    define('QN_DEFAULT_GROUP_ID',    2);
+    define('EQ_ROOT_GROUP_ID',       1);
+    define('EQ_DEFAULT_GROUP_ID',    2);
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_ROOT_GROUP_ID',       EQ_ROOT_GROUP_ID);
+    define('QN_DEFAULT_GROUP_ID',    EQ_DEFAULT_GROUP_ID);
 
 
     /*
@@ -817,6 +823,10 @@ namespace config {
                             list($headers, $result) = unserialize(file_get_contents($cache_filename));
                             // build response with cached headers
                             foreach($headers as $header => $value) {
+                                // discard some headers
+                                if(in_array($header, ['Set-Cookie', 'Refresh'])) {
+                                    continue;
+                                }
                                 $response->header($header, $value);
                             }
                             $response
