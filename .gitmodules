@@ -4,3 +4,18 @@
 [submodule "packages/core/apps/workbench/source"]
 	path = packages/core/apps/workbench/source
 	url = https://github.com/equalframework/apps-core-workbench.git
+[submodule "packages/core/apps/welcome/source"]
+	path = packages/core/apps/welcome/source
+	url = https://github.com/equalframework/apps-core-welcome.git
+[submodule "packages/core/apps/apps/source"]
+	path = packages/core/apps/apps/source
+	url = https://github.com/equalframework/apps-core-apps.git
+[submodule "packages/core/apps/settings/source"]
+	path = packages/core/apps/settings/source
+	url = https://github.com/equalframework/apps-core-settings.git
+[submodule "packages/core/apps/auth/source"]
+	path = packages/core/apps/auth/source
+	url = https://github.com/equalframework/apps-core-auth.git
+[submodule "packages/core/apps/app/source"]
+	path = packages/core/apps/app/source
+	url = https://github.com/equalframework/apps-core-app.git
