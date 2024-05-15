@@ -243,7 +243,7 @@ class Model implements \ArrayAccess, \Iterator {
             ],
             'created' => [
                 'type'              => 'datetime',
-                'default'           => time(),
+                'default'           => function() { return time(); },
                 'readonly'          => true
             ],
             'modifier' => [
@@ -253,7 +253,7 @@ class Model implements \ArrayAccess, \Iterator {
             ],
             'modified' => [
                 'type'              => 'datetime',
-                'default'           => time(),
+                'default'           => function() { return time(); },
                 'readonly'          => true
             ],
             // #memo - when set to true, modifier points to the user who deleted the object and modified is the time of the deletion
