@@ -823,7 +823,7 @@ namespace config {
                             list($headers, $result) = unserialize(file_get_contents($cache_filename));
                             // build response with cached headers
                             foreach($headers as $header => $value) {
-                                // discard some headers
+                                // discard unwanted headers
                                 if(in_array($header, ['Set-Cookie', 'Refresh'])) {
                                     continue;
                                 }
