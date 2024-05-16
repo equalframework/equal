@@ -61,7 +61,10 @@
                                             {
                                                 "type": "field",
                                                 "value": "user_id",
-                                                "width": "100%"
+                                                "width": "100%",
+                                                "widget": {
+                                                    "limit": 100
+                                                }
                                             }
                                         ]
                                     }
