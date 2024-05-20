@@ -122,7 +122,6 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
 // 1) Init DB with SQL schema
 
 /*  start-tables_init */
-
 // retrieve schema for given package
 $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
@@ -133,7 +132,6 @@ $queries = explode(";", $data['result']);
 foreach($queries as $query) {
     $db->sendQuery($query);
 }
-
 /*  end-tables_init */
 
 // 2) Populate tables with predefined data
@@ -249,6 +247,11 @@ if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
 $route_folder = "packages/{$params['package']}/init/routes";
 if(file_exists($route_folder) && is_dir($route_folder)) {
     exec("cp -r $route_folder/* config/routing");
+}
+
+$assets_folder = "packages/{$params['package']}/init/assets";
+if(file_exists($assets_folder) && is_dir($assets_folder)) {
+    exec("cp -r $assets_folder/* public/assets/");
 }
 
 // 5) Export the compiled apps to related public folders
