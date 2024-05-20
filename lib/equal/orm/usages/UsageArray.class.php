@@ -15,6 +15,14 @@ class UsageArray extends Usage {
      */
     public function getConstraints(): array {
         return [
+
+            'not_array' => [
+                'message'   => 'Value is not an array.',
+                'function'  =>  function($value) {
+                    return is_array($value);
+                }
+            ]
+
         ];
     }
 
