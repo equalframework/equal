@@ -114,7 +114,7 @@ class Scheduler extends Service {
                         // run the task
                         $data = \eQual::run('do', $task['controller'], $body, true);
                         $status = 'success';
-	                    $log = json_encode($data, JSON_PRETTY_PRINT);
+	                    $log = (string) json_encode($data, JSON_PRETTY_PRINT);
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
