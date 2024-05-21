@@ -126,14 +126,11 @@ class AuthenticationManager extends Service {
                     // retrieve JWT token
                     list($jwt) = sscanf($auth_header, 'Bearer %s');
                 }
-                else if(strpos($auth_header, 'Basic ') !== false) {
+                elseif(strpos($auth_header, 'Basic ') !== false) {
                     list($token) = sscanf($auth_header, 'Basic %s');
                     list($username, $password) = explode(':', base64_decode($token));
                     // leave $jwt unset and authenticate (sets $user_id)
                     $this->authenticate($username, $password);
-                }
-                else if(strpos($auth_header, 'Digest ') !== false) {
-                    // #todo
                 }
             }
         }
@@ -167,18 +164,6 @@ class AuthenticationManager extends Service {
                     throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
                 }
                 $this->user_id = $payload['id'];
-                // make sure token remains valid for the upcoming hour
-                // #todo - use a distinct flow with a refresh_token
-                if($payload['exp'] < time() + 3600) {
-                    $token = $this->token($this->user_id, 3600);
-                    $context
-                        ->httpResponse()
-                        ->cookie('access_token', $token, [
-                                'expires'   => time() + 3600,
-                                'httponly'  => true,
-                                'secure'    => constant('AUTH_TOKEN_HTTPS')
-                            ]);
-                }
             }
         }
         return $this->user_id;
