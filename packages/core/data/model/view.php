@@ -29,27 +29,37 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $removeNodes = function (&$layout, $nodes_ids) {
-    foreach($layout['groups'] ?? [] as $group_index => $group) {
+    $groups = $layout['groups'] ?? [];
+    for($group_index = count($groups) - 1; $group_index >= 0; --$group_index) {
+        $group = $groups[$group_index];
         if(isset($group['id']) && in_array($group['id'], $nodes_ids)) {
             array_splice($layout['groups'], $group_index, 1);
             continue;
         }
-        foreach($group['sections'] ?? [] as $section_index => $section) {
+        $sections = $group['sections'] ?? [];
+        for($section_index = count($sections) - 1; $section_index >= 0; --$section_index) {
+            $section = $sections[$section_index];
             if(isset($section['id']) && in_array($section['id'], $nodes_ids)) {
                 array_splice($layout['groups'][$group_index]['sections'], $section_index, 1);
                 continue;
             }
-            foreach($section['rows'] ?? [] as $row_index => $row) {
+            $rows = $section['rows'] ?? [];
+            for($row_index = count($rows) - 1; $row_index >= 0; --$row_index) {
+                $row = $rows[$row_index];
                 if(isset($row['id']) && in_array($row['id'], $nodes_ids)) {
                     array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'], $row_index, 1);
                     continue;
                 }
-                foreach($row['columns'] ?? [] as $column_index => $column) {
+                $columns = $row['columns'] ?? [];
+                for($column_index = count($columns) - 1; $column_index >= 0; --$column_index) {
+                    $column = $columns[$column_index];
                     if(isset($column['id']) && in_array($column['id'], $nodes_ids)) {
                         array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'], $column_index, 1);
                         continue;
                     }
-                    foreach($column['items'] ?? [] as $item_index => $item) {
+                    $items = $column['items'] ?? [];
+                    for($item_index = count($items) - 1; $item_index >= 0; --$item_index) {
+                        $item = $items[$item_index];
                         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
                             array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'], $item_index, 1);
                             continue;
@@ -59,8 +69,10 @@ $removeNodes = function (&$layout, $nodes_ids) {
             }
         }
     }
-
-    foreach($layout['items'] ?? [] as $item_index => $item) {
+    // handle case where items are directly defined in the layout
+    $items = $layout['items'] ?? [];
+    for($item_index = count($items) - 1; $item_index >= 0; --$item_index) {
+        $item = $items[$item_index];
         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
             array_splice($layout['items'], $item_index, 1);
         }
