@@ -73,6 +73,8 @@ class Field {
             'time'          => 'time/plain',
             'binary'        => 'binary/plain:64000000',
             'many2one'      => 'number/integer:9',
+            'one2many'      => 'array',
+            'many2many'     => 'array',
             'array'         => 'array'
         ];
         $type = $this->type;
@@ -106,6 +108,9 @@ class Field {
 
         // generate constraint based on type
         $result_type = $this->descriptor['result_type'];
+
+        /*
+        // #memo - strict constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
         $constraints['invalid_type'] = [
                 'message'   => "Value is not of type {$result_type}.",
                 'function'  =>  function($value) use($result_type) {
@@ -128,6 +133,7 @@ class Field {
                     return (gettype($value) == $mapped_type);
                 }
             ];
+        */
 
         // add constraint based on selection, if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {

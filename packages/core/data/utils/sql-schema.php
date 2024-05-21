@@ -20,7 +20,7 @@ list($params, $providers) = announce([
             'required'      => true
         ],
         'full'	=> [
-            'description'   => 'Force the output to complete schema (i.e. with tables already present in DB).',
+            'description'   => 'Force the output to complete schema (i.e. all tables with all columns, even if already present in DB).',
             'type'          => 'boolean',
             'default'       => false
         ]
@@ -112,13 +112,10 @@ foreach($classes as $class) {
                     'null'      => true
                 ];
 
-            // if a SQL type is associated to field 'usage', it prevails over the type association
-            // #todo
+            // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
             if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
                 // $type = ObjectManager::$usages_associations[$description['usage']];
             }
-
-            // #memo - default is supported by ORM, not DBMS
 
             if($field == 'id') {
                 continue;
@@ -129,6 +126,12 @@ foreach($classes as $class) {
             }
             // generate SQL for column creation
             $result[] = $db->getQueryAddColumn($table, $field, $column_descriptor);
+
+            // #memo - default is supported and handled by the ORM, not by the DBMS
+            // if table already exists, set column value according to default, for all existing records
+            if(count($columns) && isset($description['default'])) {
+                $result[] = $db->getQuerySetRecords($table, [$field => $description['default']]);
+            }
         }
         elseif($description['type'] == 'computed') {
             if(!isset($description['store']) || !$description['store']) {
@@ -150,10 +153,26 @@ foreach($classes as $class) {
     }
 
     if(method_exists($model, 'getUnique')) {
-        // #memo - Classes are allowed to override the getUnique method from their parent class.
-        // Therefore, we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
-    }
+        // #memo - Classes are allowed to override the getUnique method from their parent class. Unique checks are performed by ORM.
+        // So we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
+        // However, even if check is made by ORM, each column member of a unique tuple must be indexed (for performance concerns).
 
+        $constraints = (array) $model->getUnique();
+        $map_index_fields = [];
+        foreach($constraints as $uniques) {
+            foreach((array) $uniques as $unique) {
+                if(isset($schema[$unique])) {
+                    $map_index_fields[$unique] = true;
+                }
+            }
+        }
+        foreach($map_index_fields as $unique_field => $flag) {
+            // create an index for fields not yet present in DB
+            if(!in_array($unique_field, $columns)) {
+                $result[] = $db->getQueryAddIndex($table, $unique_field);
+            }
+        }
+    }
 }
 
 foreach($m2m_tables as $table => $columns) {
@@ -181,7 +200,7 @@ foreach($m2m_tables as $table => $columns) {
         ]);
         $processed_columns[$table][$column] = true;
     }
-    $result[] = $db->getQueryAddConstraint($table, $columns);
+    $result[] = $db->getQueryAddUniqueConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)
     $result[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
 }

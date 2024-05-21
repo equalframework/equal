@@ -20,5 +20,4 @@ public/*
 !public/index.php
 !public/console.php
 !public/assets
-!public/console2.php
 public/assets/env/config.json

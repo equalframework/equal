@@ -24,12 +24,22 @@ class UsageDate extends Usage {
         datetime (ISO 8601)
      */
     public function getConstraints(): array {
+        $constraints = [
+                'invalid_type' => [
+                    'message'   => 'Value is incompatible with type datetime.',
+                    'function'  =>  function($value) {
+                        return (gettype($value) == 'integer');
+                    }
+                ]
+            ];
         $subtype = $this->getSubtype();
         $main_subtype = ( explode('.', $subtype) )[0];
+
+                            ;
         switch($main_subtype) {
             case 'day':
-                return [
-                    'invalid_amount' => [
+                $constraints[] = [
+                    'invalid_date' => [
                         'message'   => 'Malformed day value.',
                         'function'  =>  function($value) {
                             // 2 digits, from 1 to 31
@@ -37,9 +47,10 @@ class UsageDate extends Usage {
                         }
                     ]
                 ];
+                break;
             case 'month':
-                return [
-                    'invalid_amount' => [
+                $constraints[] = [
+                    'invalid_date' => [
                         'message'   => 'Malformed month value.',
                         'function'  =>  function($value) {
                             // 2 digits, from 1 to 12
@@ -47,9 +58,10 @@ class UsageDate extends Usage {
                         }
                     ]
                 ];
+                break;
             case 'year':
-                return [
-                    'invalid_amount' => [
+                $constraints[] = [
+                    'invalid_date' => [
                         'message'   => 'Malformed year value.',
                         'function'  =>  function($value) {
                             // 4 digits, from 0 to 9999
@@ -57,17 +69,18 @@ class UsageDate extends Usage {
                         }
                     ]
                 ];
+                break;
             default:
-                return [
-                    'invalid_amount' => [
-                        'message'   => 'Malformed amount or size overflow.',
+                $constraints[] = [
+                    'invalid_date' => [
+                        'message'   => 'Malformed date or unknown format.',
                         'function'  =>  function($value) {
                             return ($value <= PHP_INT_MAX && $value >= 0);
                         }
                     ]
                 ];
         }
-        return [];
+        return $constraints;
     }
 
 }

@@ -29,27 +29,37 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $removeNodes = function (&$layout, $nodes_ids) {
-    foreach($layout['groups'] ?? [] as $group_index => $group) {
+    $groups = $layout['groups'] ?? [];
+    for($group_index = count($groups) - 1; $group_index >= 0; --$group_index) {
+        $group = $groups[$group_index];
         if(isset($group['id']) && in_array($group['id'], $nodes_ids)) {
             array_splice($layout['groups'], $group_index, 1);
             continue;
         }
-        foreach($group['sections'] ?? [] as $section_index => $section) {
+        $sections = $group['sections'] ?? [];
+        for($section_index = count($sections) - 1; $section_index >= 0; --$section_index) {
+            $section = $sections[$section_index];
             if(isset($section['id']) && in_array($section['id'], $nodes_ids)) {
                 array_splice($layout['groups'][$group_index]['sections'], $section_index, 1);
                 continue;
             }
-            foreach($section['rows'] ?? [] as $row_index => $row) {
+            $rows = $section['rows'] ?? [];
+            for($row_index = count($rows) - 1; $row_index >= 0; --$row_index) {
+                $row = $rows[$row_index];
                 if(isset($row['id']) && in_array($row['id'], $nodes_ids)) {
                     array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'], $row_index, 1);
                     continue;
                 }
-                foreach($row['columns'] ?? [] as $column_index => $column) {
+                $columns = $row['columns'] ?? [];
+                for($column_index = count($columns) - 1; $column_index >= 0; --$column_index) {
+                    $column = $columns[$column_index];
                     if(isset($column['id']) && in_array($column['id'], $nodes_ids)) {
                         array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'], $column_index, 1);
                         continue;
                     }
-                    foreach($column['items'] ?? [] as $item_index => $item) {
+                    $items = $column['items'] ?? [];
+                    for($item_index = count($items) - 1; $item_index >= 0; --$item_index) {
+                        $item = $items[$item_index];
                         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
                             array_splice($layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'], $item_index, 1);
                             continue;
@@ -59,8 +69,10 @@ $removeNodes = function (&$layout, $nodes_ids) {
             }
         }
     }
-
-    foreach($layout['items'] ?? [] as $item_index => $item) {
+    // handle case where items are directly defined in the layout
+    $items = $layout['items'] ?? [];
+    for($item_index = count($items) - 1; $item_index >= 0; --$item_index) {
+        $item = $items[$item_index];
         if(isset($item['id']) && in_array($item['id'], $nodes_ids)) {
             array_splice($layout['items'], $item_index, 1);
         }
@@ -69,6 +81,7 @@ $removeNodes = function (&$layout, $nodes_ids) {
 
 $updateNode = function (&$layout, $id, $node) {
     $target = null;
+    $target_type = '';
     $index = 0;
     $target_parent = null;
     foreach($layout['groups'] as $group_index => $group) {
@@ -80,6 +93,7 @@ $updateNode = function (&$layout, $id, $node) {
         foreach($group['sections'] as $section_index => $section) {
             if(isset($section['id']) && $section['id'] == $id) {
                 $target = &$layout['groups'][$group_index]['sections'][$section_index];
+                $target_type = 'section';
                 $index = $section_index;
                 break 2;
             }
@@ -87,6 +101,7 @@ $updateNode = function (&$layout, $id, $node) {
             foreach($section['rows'] as $row_index => $row) {
                 if(isset($row['id']) && $row['id'] == $id) {
                     $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index];
+                    $target_type = 'row';
                     $index = $row_index;
                     break 3;
                 }
@@ -94,6 +109,7 @@ $updateNode = function (&$layout, $id, $node) {
                 foreach($row['columns'] as $column_index => $column) {
                     if(isset($column['id']) && $column['id'] == $id) {
                         $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index];
+                        $target_type = 'column';
                         $index = $column_index;
                         break 4;
                     }
@@ -101,6 +117,7 @@ $updateNode = function (&$layout, $id, $node) {
                     foreach($column['items'] as $item_index => $item) {
                         if(isset($item['id']) && $item['id'] == $id) {
                             $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'][$item_index];
+                            $target_type = 'item';
                             $index = $item_index;
                             break 5;
                         }
@@ -128,12 +145,22 @@ $updateNode = function (&$layout, $id, $node) {
         }
         if(isset($node['prepend'])) {
             foreach((array) $node['prepend'] as $elem) {
-                array_unshift($target, $elem);
+                if($target_type == 'column') {
+                    array_unshift($target['items'], $elem);
+                }
+                else {
+                    array_unshift($target, $elem);
+                }
             }
         }
         if(isset($node['append'])) {
             foreach((array) $node['append'] as $elem) {
-                array_push($target, $elem);
+                if($target_type == 'column') {
+                    array_push($target['items'], $elem);
+                }
+                else {
+                    array_push($target, $elem);
+                }
             }
         }
         if($target_parent) {

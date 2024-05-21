@@ -336,13 +336,13 @@ class HttpMessage {
                         if (empty($block)) continue;
                         // parse uploaded files
                         if (strpos($block, 'application/octet-stream') !== FALSE) {
-                        // match "name", then everything after "stream" (optional) except for prepending newlines
-                        preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
+                            // match "name", then everything after "stream" (optional) except for prepending newlines
+                            preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
                         }
                         // parse all other fields
                         else {
-                        // match "name" and optional value in between newline sequences
-                        preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
+                            // match "name" and optional value in between newline sequences
+                            preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
                         }
                         // assign param/value pair to related body index
                         $request[$matches[1]] = $matches[2];

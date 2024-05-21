@@ -163,7 +163,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         return $columns;
     }
 
-    public function getTableConstraints($table_name) {
+    public function getTableUniqueConstraints($table_name) {
         $query = "SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_CATALOG = '{$this->db_name}' AND TABLE_NAME = '$table_name' AND CONSTRAINT_TYPE = 'UNIQUE';";
         $res = $this->sendQuery($query);
         $constraints = [];
@@ -225,12 +225,15 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         return $sql;
     }
 
-    public function getQueryAddConstraint($table_name, $columns) {
+    public function getQueryAddIndex($table_name, $column) {
+        return "CREATE INDEX idx_{$column} ON [$table_name] ($column);";
+    }
+
+    public function getQueryAddUniqueConstraint($table_name, $columns) {
         return "ALTER TABLE [$table_name] ADD CONSTRAINT ".implode('_', array_merge(['AK'], $columns))." UNIQUE (".implode(',', $columns).");";
     }
 
-
-    public function getQueryAddRecords($table, $fields, $values) {
+    public function getQueryAddRecords($table_name, $fields, $values) {
         $sql = '';
         if (!is_array($fields) || !is_array($values)) {
             throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
@@ -245,12 +248,34 @@ final class DBManipulatorSqlSrv extends DBManipulator {
         }
         if(count($fields) && count($vals)) {
             // #todo ignore duplicate entries, if any
-            $sql = "INSERT INTO [$table] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
+            $sql = "INSERT INTO [$table_name] (".implode(',', $fields).") OUTPUT INSERTED.id VALUES ".implode(',', $vals).";";
             if(in_array('id', $fields)) {
-                $sql = "SET IDENTITY_INSERT $table ON;".$sql."SET IDENTITY_INSERT $table OFF;";
+                $sql = "SET IDENTITY_INSERT $table_name ON;".$sql."SET IDENTITY_INSERT $table_name OFF;";
             }
         }
         return $sql;
+    }
+
+    public function getQuerySetRecords($table, $fields) {
+        $sql = '';
+        // test values and types
+        if(empty($table)) {
+            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'table' empty.", QN_ERROR_SQL);
+        }
+        if(empty($fields)) {
+            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' empty.", QN_ERROR_SQL);
+        }
+
+        // UPDATE clause
+        $sql = "UPDATE [{$table}]";
+
+        // SET clause
+        $sql .= ' SET ';
+        foreach ($fields as $key => $value) {
+            $sql .= "[$key]={$this->escapeString($value)}, ";
+        }
+        $sql = rtrim($sql, ', ');
+        return $sql.';';
     }
 
     /**
@@ -487,34 +512,12 @@ final class DBManipulatorSqlSrv extends DBManipulator {
     }
 
     public function setRecords($table, $ids, $fields, $conditions=null, $id_field='id'){
-        // test values and types
-        if(empty($table)) {
-            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'table' empty.", QN_ERROR_SQL);
-        }
-        if(empty($fields)) {
-            throw new \Exception(__METHOD__." : unable to build sql query, parameter 'fields' empty.", QN_ERROR_SQL);
-        }
-
-        // UPDATE clause
-        $sql = "UPDATE [{$table}]";
-
-        // SET clause
-        $sql .= ' SET ';
-        foreach ($fields as $key => $value) {
-            $sql .= "[$key]={$this->escapeString($value)}, ";
-        }
-        $sql = rtrim($sql, ', ');
-
-        // WHERE clause
+        $sql = rtrim($this->getQuerySetRecords($table, $fields), ';');
         $sql .= $this->getConditionClause($id_field, $ids, $conditions);
-
         return $this->sendQuery($sql, 'update');
     }
 
     public function addRecords($table, $fields, $values) {
-        if (!is_array($fields) || !is_array($values)) {
-            throw new \Exception(__METHOD__.' : at least one parameter is missing', QN_ERROR_SQL);
-        }
         $sql = $this->getQueryAddRecords($table, $fields, $values);
         return $this->sendQuery($sql, 'insert');
     }

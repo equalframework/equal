@@ -25,16 +25,18 @@ class DataAdapterJsonDateTime implements DataAdapter {
      */
 	public function adaptIn($value, $usage, $locale='en') {
         $result = null;
-        if(is_numeric($value)) {
-            // value is a timestamp, keep it
-            $result = intval($value);
-        }
-        else {
-            // convert ISO 8601 to timestamp
-            $result = strtotime($value);
-        }
-        if(!$result) {
-            $result = null;
+        if(!is_null($value)) {
+            if(is_numeric($value)) {
+                // value is a timestamp, keep it
+                $result = intval($value);
+            }
+            else {
+                // convert ISO 8601 to timestamp
+                $result = strtotime($value);
+                if(!$result) {
+                    $result = null;
+                }
+            }
         }
         return $result;
     }

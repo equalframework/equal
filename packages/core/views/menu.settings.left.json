@@ -56,55 +56,6 @@
                                 }
                             }
                         ]
-                    },
-                    {
-                        "id": "identities",
-                        "label": "Identities",
-                        "description": "",
-                        "icon": "person",
-                        "type": "parent",
-                        "children": [
-                            {
-                                "id": "identities.identities",
-                                "type": "entry",
-                                "label": "Identities",
-                                "description": "",
-                                "context": {
-                                    "entity": "identity\\Identity",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "identities.partners",
-                                "type": "entry",
-                                "label": "Partners",
-                                "description": "",
-                                "context": {
-                                    "entity": "identity\\Partner",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "identities.addresses",
-                                "type": "entry",
-                                "label": "Addresses",
-                                "description": "",
-                                "context": {
-                                    "entity": "identity\\Address",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "identities.establishments",
-                                "type": "entry",
-                                "label": "Establishments",
-                                "description": "",
-                                "context": {
-                                    "entity": "identity\\Establishment",
-                                    "view": "list.default"
-                                }
-                            }
-                        ]
                     }
                 ]
             },

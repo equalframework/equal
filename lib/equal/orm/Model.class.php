@@ -6,6 +6,7 @@
 */
 namespace equal\orm;
 
+use equal\services\Container;
 
 /**
  * Root Model for all Object definitions.
@@ -103,6 +104,8 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     private function setDefaults($values=[]) {
+        $container = Container::getInstance();
+        $orm = $container->get('orm');
         $defaults = $this->getDefaults();
         // reset fields values
         $this->values = [];
@@ -114,8 +117,25 @@ class Model implements \ArrayAccess, \Iterator {
                 $this->values[$field] = $values[$field];
             }
             elseif(isset($defaults[$field])) {
-                // #memo - default value should be either a simple type, a PHP expression, or a PHP function (executed at definition parsing)
-                $this->values[$field] = $defaults[$field];
+                if(is_callable($defaults[$field])) {
+                    // either a php function (or a function from the global scope) or a closure object
+                    if(is_object($defaults[$field])) {
+                        // default is a closure
+                        $this->values[$field] = $defaults[$field]();
+                    }
+                    else {
+                        // do not call since there is an ambiguity (e.g. 'time')
+                        $this->values[$field] = $defaults[$field];
+                    }
+                }
+                elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
+                    // default is a method of the class (or parents')
+                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                }
+                else {
+                    // default is a scalar value
+                    $this->values[$field] = $defaults[$field];
+                }
             }
         }
     }
@@ -223,7 +243,7 @@ class Model implements \ArrayAccess, \Iterator {
             ],
             'created' => [
                 'type'              => 'datetime',
-                'default'           => time(),
+                'default'           => function() { return time(); },
                 'readonly'          => true
             ],
             'modifier' => [
@@ -233,7 +253,7 @@ class Model implements \ArrayAccess, \Iterator {
             ],
             'modified' => [
                 'type'              => 'datetime',
-                'default'           => time(),
+                'default'           => function() { return time(); },
                 'readonly'          => true
             ],
             // #memo - when set to true, modifier points to the user who deleted the object and modified is the time of the deletion
@@ -315,6 +335,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Returns a Field object that corresponds to the descriptor of the given field (from schema).
+     * If a field is an alias, it is the final descriptor of the alias chain that is returned.
      *
      * @return Field        Associative array mapping fields names with their related Field instances.
      */

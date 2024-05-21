@@ -260,7 +260,7 @@ class ObjectManager extends Service {
      * @param   string       $class      The full name of the class with its namespace.
      * @param   array        $fields     Associative array mapping fields with default values (provided by create() method).
      * @throws  Exception
-     * @return  Object       Returns a partial instance of the targeted class.
+     * @return  Model        Returns a partial instance of the targeted class.
      */
     private function getStaticInstance($class, $fields=[]) {
         if(count($fields) || !isset($this->models[$class])) {
@@ -1041,7 +1041,7 @@ class ObjectManager extends Service {
      * @param   array     $signature        (deprecated) List of parameters to relay to target method (required if differing from default).
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
-    public function callonce($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
+    public function callonce($class, $method, $ids=[], $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
         trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
 
         // stack current state of object_methods map (current state is restored at the end of the method)
@@ -1092,12 +1092,28 @@ class ObjectManager extends Service {
             if(in_array($param_name, ['om', 'orm'])) {
                 $args[] = $this;
             }
+            elseif(in_array($param_name, [
+                    'report',
+                    'auth',
+                    'access',
+                    'context',
+                    'validate',
+                    'adapt',
+                    'route',
+                    'log',
+                    'cron',
+                    'dispatch',
+                    'db'])) {
+                $args[] = $this->container->get($param_name);
+            }
+
             elseif(in_array($param_name, ['ids', 'oids'])) {
                 $args[] = $unprocessed_ids;
             }
             elseif($param_name == 'values') {
                 $args[] = $values;
             }
+            // #todo - deprecate : use $auth instead
             elseif($param_name == 'user_id') {
                 $auth = $this->container->get('auth');
                 $user_id = $auth->userId();
@@ -1204,7 +1220,7 @@ class ObjectManager extends Service {
      * Retrieve the static instance of a given class (Model with default values).
      * This method is registered as autoload handler in `eq.lib.php`.
      *
-     * @return boolean|Object   Returns the static instance of the model with default values. If no Model matches the class name returns false.
+     * @return boolean|Model   Returns the static instance of the model with default values. If no Model matches the class name returns false.
      */
     public function getModel($class) {
         $model = false;
@@ -1213,7 +1229,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error($e->getMessage(), QN_REPORT_ERROR);
-            // #memo - another autoload handler might be registered, so we relay without raising an exception
+            // #memo - another autoload handler might be registered, so no exception can be raised
         }
         return $model;
     }
@@ -1302,7 +1318,7 @@ class ObjectManager extends Service {
                 continue;
             }
             if($value === null) {
-                // all fields can be reset to null
+                // all fields can be reset to null (unless required)
                 continue;
             }
             foreach($constraints[$field] as $error_id => $constraint) {
@@ -1636,11 +1652,15 @@ class ObjectManager extends Service {
             $fields['modified'] = time();
 
 
-            // 4) call 'onupdate' hook : notify objects that they're about to be updated with given values
+            // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
 
             if(!$create) {
-                // #todo - allow explicit notation `onbeforeupdate()`
-                $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+                if(method_exists($class, 'onbeforeupdate')) {
+                    $this->callonce($class, 'onbeforeupdate', $ids, $fields, $lang);
+                }
+                else {
+                    $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+                }
             }
 
 
@@ -1719,7 +1739,7 @@ class ObjectManager extends Service {
             ];
             foreach($fields as $field => $value) {
                 // remember fields whose modification triggers resetting computed fields
-                // #todo - deprecate dependencies : use dependents
+                // #todo - deprecate 'dependencies' : use dependents
                 if(isset($schema[$field]['dependencies'])) {
                     foreach((array) $schema[$field]['dependencies'] as $dependent) {
                         $dependents['primary'][$dependent] = true;
@@ -2523,7 +2543,7 @@ class ObjectManager extends Service {
                             if( $operator == '=') {
                                 $operator = 'is';
                             }
-                            else if( $operator == '<>') {
+                            elseif( $operator == '<>') {
                                 $operator = 'is not';
                             }
                         }

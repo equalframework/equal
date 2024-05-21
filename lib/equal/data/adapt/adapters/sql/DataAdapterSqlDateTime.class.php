@@ -30,7 +30,7 @@ class DataAdapterSqlDateTime implements DataAdapter {
             list($year, $month, $day, $hour, $minute, $second) = sscanf($value, "%d-%d-%d %d:%d:%d");
             $result = mktime($hour, $minute, $second, $month, $day, $year);
         }
-        return $result;
+        return $result ?? null;
     }
 
     /**

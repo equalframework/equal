@@ -14,7 +14,7 @@ namespace equal\orm;
  *                '{operand}', '{operator}', '{value}'    // condition
  *            ],
  *            [
- *                '{operand}', '{operator}', '{value}'    // another contition (AND)
+ *                '{operand}', '{operator}', '{value}'    // another condition (AND)
  *            ]
  *        ],
  *        [		                                          // another clause (OR)
@@ -22,7 +22,7 @@ namespace equal\orm;
  *				'{operand}', '{operator}', '{value}'      // condition
  *			  ],
  *            [
- *                '{operand}', '{operator}', '{value}'    // another contition (AND)
+ *                '{operand}', '{operator}', '{value}'    // another condition (AND)
  *            ]
  *        ]
  *    ];

@@ -101,7 +101,6 @@ namespace {
     define('EQ_REPORT_ERROR',       E_USER_ERROR);          // 256
     define('EQ_REPORT_FATAL',       E_ERROR);               // 1
     define('EQ_REPORT_SYSTEM',      0);                     // 0
-
     // equivalence map for constant names migration
     // #deprecated
     define('QN_REPORT_DEBUG',       EQ_REPORT_DEBUG);
@@ -132,7 +131,6 @@ namespace {
     define('EQ_R_DELETE',    8);
     define('EQ_R_MANAGE',   16);
     define('EQ_R_ALL',      31);
-
     // equivalence map for constant names migration
     // #deprecated
     define('QN_R_CREATE',       EQ_R_CREATE);
@@ -147,12 +145,20 @@ namespace {
      *
      * Note : make sure that the ids in DB are set and matching these
      */
-    define('QN_GUEST_USER_ID',       0);
-    define('QN_ROOT_USER_ID',        1);
+    define('EQ_GUEST_USER_ID',       0);
+    define('EQ_ROOT_USER_ID',        1);
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_GUEST_USER_ID',       EQ_GUEST_USER_ID);
+    define('QN_ROOT_USER_ID',        EQ_ROOT_USER_ID);
 
     // default group (all users are members of the default group)
-    define('QN_ROOT_GROUP_ID',       1);
-    define('QN_DEFAULT_GROUP_ID',    2);
+    define('EQ_ROOT_GROUP_ID',       1);
+    define('EQ_DEFAULT_GROUP_ID',    2);
+    // equivalence map for constant names migration
+    // #deprecated
+    define('QN_ROOT_GROUP_ID',       EQ_ROOT_GROUP_ID);
+    define('QN_DEFAULT_GROUP_ID',    EQ_DEFAULT_GROUP_ID);
 
 
     /*
@@ -329,7 +335,7 @@ namespace config {
         return $output;
     }
 
-    function strtoint($value) {
+    function strtoint($value, $usage = '') {
         if(is_string($value)) {
             if($value == 'null') {
                 $value = null;
@@ -349,6 +355,7 @@ namespace config {
             $value = intval($value);
         }
         elseif(is_scalar($value)) {
+            // fallback suffixes coefficients (defaults)
             $suffixes = [
                 'B'  => 1,
                 'KB' => 1024,
@@ -362,6 +369,45 @@ namespace config {
                 'M'  => 3600*24*30,
                 'Y'  => 3600*24*365
             ];
+            // #todo - replicate this in DataAdapterJsonInteger
+            switch($usage) {
+                case 'amount/data':
+                    $suffixes = [
+                        'b'   => 1,
+                        'B'   => 1,
+                        'k'   => 1000,
+                        'K'   => 1000,
+                        'kb'  => 1000,
+                        'KB'  => 1000,
+                        'kib' => 1024,
+                        'KiB' => 1024,
+                        'm'   => 1000000,
+                        'M'   => 1000000,
+                        'mb'  => 1000000,
+                        'MB'  => 1000000,
+                        'mib' => 1048576,
+                        'MiB' => 1048576,
+                        'g'   => 1000000000,
+                        'gb'  => 1000000000,
+                        'gib' => 1073741824,
+                        'GiB' => 1073741824
+                    ];
+                    break;
+                case 'time/duration':
+                    $suffixes = [
+                        'ms' => 0.001,
+                        's'  => 1,
+                        'm'  => 60,
+                        'h'  => 3600,
+                        'd'  => 3600*24,
+                        'D'  => 3600*24,
+                        'w'  => 3600*24*7,
+                        'M'  => 3600*24*30,
+                        'y'  => 3600*24*365,
+                        'Y'  => 3600*24*365
+                    ];
+                    break;
+            }
             $val = (string) $value;
             $intval = intval($val);
             foreach($suffixes as $suffix => $factor) {
@@ -448,7 +494,7 @@ namespace config {
                 }
             }
             else {
-                $value = strtoint($value);
+                $value = strtoint($value, $constants_schema[$property]['usage'] ?? '');
             }
         }
         // handle encrypted values
@@ -646,6 +692,7 @@ namespace config {
                             $items = explode(';', $part);
                             $accepted[] = trim(reset($items));
                         }
+                        // #todo - when should we implement strict check on accepted content type ?
                         if(!in_array($announcement['response']['content-type'], $accepted) && !in_array('*/*', $accepted)) {
                             /*
                             // send "406 Not Acceptable"
@@ -683,7 +730,7 @@ namespace config {
                     // prevent requests from non-allowed origins (for non-https requests, this can be bypassed by manually setting requests header)
                     if($origin != '*' && $origin != $request_origin) {
                         // raise an exception with error details
-                        throw new \Exception('origin_not_allowed', QN_ERROR_NOT_ALLOWED);
+                        throw new \Exception('origin_not_allowed', EQ_ERROR_NOT_ALLOWED);
                     }
                     // set headers accordingly to response definition
                     // #todo allow to customize (override) these values
@@ -776,6 +823,10 @@ namespace config {
                             list($headers, $result) = unserialize(file_get_contents($cache_filename));
                             // build response with cached headers
                             foreach($headers as $header => $value) {
+                                // discard unwanted headers
+                                if(in_array($header, ['Set-Cookie', 'Refresh'])) {
+                                    continue;
+                                }
                                 $response->header($header, $value);
                             }
                             $response
@@ -796,19 +847,19 @@ namespace config {
                 list($access, $auth) = $container->get(['access', 'auth']);
                 if(isset($announcement['access']['visibility'])) {
                     if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
-                        throw new \Exception('private_operation', QN_ERROR_NOT_ALLOWED);
+                        throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
                     }
                     if($announcement['access']['visibility'] == 'protected')  {
                         // #memo - regular rules will apply (non identified user shouldn't be granted unless DEFAULT_RIGHTS allow it)
                         if($auth->userId() <= 0) {
-                            throw new \Exception('protected_operation', QN_ERROR_NOT_ALLOWED);
+                            throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
                         }
                     }
                 }
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
                     $current_user_id = $auth->userId();
-                    if($current_user_id != QN_ROOT_USER_ID) {
+                    if($current_user_id != EQ_ROOT_USER_ID) {
                         // #todo - add support for checks on login
                         $allowed = false;
                         $users = (array) $announcement['access']['users'];
@@ -819,29 +870,35 @@ namespace config {
                             }
                         }
                         if(!$allowed) {
-                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                            throw new \Exception('restricted_operation', EQ_ERROR_NOT_ALLOWED);
                         }
                     }
                 }
                 if(isset($announcement['access']['groups'])) {
                     $current_user_id = $auth->userId();
-                    if($current_user_id != QN_ROOT_USER_ID) {
-                        // disjunctions on groups
-                        $allowed = false;
+                    if($current_user_id != EQ_ROOT_USER_ID) {
+                        $allowed = $access->hasGroup(EQ_ROOT_GROUP_ID);
                         $groups = (array) $announcement['access']['groups'];
                         foreach($groups as $group) {
+                            if($allowed) {
+                                break;
+                            }
                             if($access->hasGroup($group)) {
                                 $allowed = true;
-                                break;
                             }
                         }
                         if(!$allowed) {
-                            throw new \Exception('restricted_operation', QN_ERROR_NOT_ALLOWED);
+                            throw new \Exception('restricted_operation', EQ_ERROR_NOT_ALLOWED);
                         }
                     }
                 }
             }
 
+            /** @var \equal\data\adapt\DataAdapterProvider */
+            $dap = $container->get('adapt');
+            // #todo - use the adapter based on content-type header, if any
+            /** @var \equal\data\adapt\DataAdapter */
+            $adapter = $dap->get('json');
 
 
             // 1) check if all required parameters have been received
@@ -852,7 +909,7 @@ namespace config {
                     $mandatory_params[] = $param;
                 }
             }
-            // if at least one mandatory param is missing
+            // if at least one mandatory param is missing, reply with announcement
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
             if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
@@ -897,7 +954,17 @@ namespace config {
                     throw new \Exception('', 0);
                 }
                 // add announcement to response body
+                if(isset($announcement['params'])) {
+                    // default values must be adapted to JSON
+                    foreach((array) $announcement['params'] as $param => $config) {
+                        if(isset($config['default'])) {
+                            $f = new Field($config, $param);
+                            $announcement['params'][$param]['default'] = $adapter->adaptOut($config['default'], $f->getUsage());
+                        }
+                    }
+                }
                 $response->body(['announcement' => $announcement]);
+
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     $response->status(200)
@@ -913,7 +980,7 @@ namespace config {
                     throw new \Exception('', 0);
                 }
                 // raise an exception with error details
-                throw new \Exception(implode(',', $missing_params), QN_ERROR_MISSING_PARAM);
+                throw new \Exception(implode(',', $missing_params), EQ_ERROR_MISSING_PARAM);
             }
 
             // 2) find any missing parameters
@@ -929,11 +996,6 @@ namespace config {
             // 3) build result array and set default values for optional parameters that are missing and for which a default value is defined
 
             $invalid_params = [];
-            /** @var \equal\data\adapt\DataAdapterProvider */
-            $dap = $container->get('adapt');
-            // #todo - use the adapter based on content-type header, if any
-            /** @var \equal\data\adapt\DataAdapter */
-            $adapter = $dap->get('json');
             foreach($announcement['params'] as $param => $config) {
                 // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
@@ -993,7 +1055,7 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
                 foreach($invalid_params as $invalid_param => $error_id) {
                     // raise an exception with error details
-                    throw new \Exception(serialize([$invalid_param => [$error_id => "Invalid value {$result[$invalid_param]} for parameter {$invalid_param}."]]), QN_ERROR_INVALID_PARAM);
+                    throw new \Exception(serialize([$invalid_param => [$error_id => "Invalid value {$result[$invalid_param]} for parameter {$invalid_param}."]]), EQ_ERROR_INVALID_PARAM);
                 }
             }
 
@@ -1024,7 +1086,7 @@ namespace config {
                         export($name, $value);
                     }
                     if(!\defined($name)) {
-                        throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
+                        throw new \Exception("Requested constant {$name} is missing from configuration", EQ_ERROR_INVALID_CONFIG);
                     }
                 }
             }
@@ -1160,7 +1222,7 @@ namespace config {
             if(is_null($resolved['type'])) {
                 if(is_null($resolved['package'])) {
                     // send 404 HTTP response
-                    throw new \Exception("no_default_package", QN_ERROR_UNKNOWN_OBJECT);
+                    throw new \Exception("no_default_package", EQ_ERROR_UNKNOWN_OBJECT);
                 }
                 if(defined('DEFAULT_APP')) {
                     $resolved['type'] = 'show';
@@ -1169,7 +1231,7 @@ namespace config {
                     $request->uri()->set('show', $resolved['package'].'_'.constant('DEFAULT_APP'));
                 }
                 else {
-                    throw new \Exception("No default app for package {$resolved['package']}", QN_ERROR_UNKNOWN_OBJECT);
+                    throw new \Exception("No default app for package {$resolved['package']}", EQ_ERROR_UNKNOWN_OBJECT);
                 }
             }
             // include resolved script, if any
@@ -1192,7 +1254,7 @@ namespace config {
                     if(!is_file($filename)) {
                         $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
-                            throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['operation']} ({$resolved['script']})", QN_ERROR_UNKNOWN_OBJECT);
+                            throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['operation']} ({$resolved['script']})", EQ_ERROR_UNKNOWN_OBJECT);
                         }
                     }
                 }

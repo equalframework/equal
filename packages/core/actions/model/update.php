@@ -1,13 +1,11 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use equal\orm\Field;
-
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Update (fully or partially) the given object.",
     'params'        => [
         'entity' =>  [
@@ -88,19 +86,21 @@ $fields = array_filter($params['fields'], function($field) use ($schema){
     );
 
 foreach($fields as $field => $value) {
-    if(!isset($schema[$field])) {
+    $f = $model->getField($field);
+    $descriptor = $f->getDescriptor();
+    $type = $descriptor['result_type'];
+    // drop empty fields : non-string scalar fields with empty string as value are ignored (unless set to null)
+    if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value)) {
+        unset($fields[$field]);
         continue;
     }
-    $type = $schema[$field]['type'];
-    // drop empty fields (but allow reset to null)
-    if(!is_array($value) && !strlen(strval($value)) && !in_array($type, ['boolean', 'string', 'text']) && !is_null($value) ) {
-        unset($fields[$field]);
+    // empty strings are considered equivalent to null
+    if(in_array($type, ['string', 'text']) && !strlen(strval($value))) {
+        $fields[$field] = null;
         continue;
     }
     try {
         // adapt received values based on their type (as defined in schema)
-        /** @var equal\orm\Field */
-        $f = $model->getField($field);
         $fields[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
     catch(Exception $e) {
@@ -116,7 +116,7 @@ foreach($fields as $field => $value) {
 
 
 if(count($fields)) {
-    // we're updating a single object: enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
+    // when updating a single object, enforce Optimistic Concurrency Control (https://en.wikipedia.org/wiki/Optimistic_concurrency_control)
     if(count($params['ids']) == 1) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
@@ -133,7 +133,7 @@ if(count($fields)) {
             }
         }
         // handle instances edition
-        else if(isset($fields['modified']) ) {
+        elseif(isset($fields['modified']) ) {
             $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
             // a changed occurred in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
@@ -151,6 +151,6 @@ if(count($fields)) {
 }
 
 $context->httpResponse()
-        ->status(200)
-        ->body($result)
-        ->send();
+    ->status(200)
+    ->body($result)
+    ->send();

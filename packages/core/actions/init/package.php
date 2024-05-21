@@ -26,12 +26,27 @@ list($params, $providers) = eQual::announce([
             'default'       => true
         ],
         'import' => [
-            'description'   => 'Request for importing initial data.',
+            'description'   => 'Request importing initial data.',
             'type'          => 'boolean',
             'default'       => false
         ],
         'import_cascade' => [
             'description'   => 'Import initial data for dependencies as well.',
+            'type'          => 'boolean',
+            'default'       => true
+        ],
+        'demo' => [
+            'description'   => 'Request importing demo data.',
+            'type'          => 'boolean',
+            'default'       => false
+        ],
+        'composer' => [
+            'description'   => 'Flag for requesting initialization of composer dependencies.',
+            'type'          => 'boolean',
+            'default'       => true
+        ],
+        'root' => [
+            'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
             'type'          => 'boolean',
             'default'       => true
         ]
@@ -80,7 +95,7 @@ if(file_exists("packages/{$params['package']}/manifest.json")) {
     }
 }
 
-// check if there are dependencies
+// check if there are dependencies (must be initialized beforehand)
 if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($package_manifest['depends_on'])) {
     // initiate dependency packages that are not yet processed, if requested
     foreach($package_manifest['depends_on'] as $dependency) {
@@ -90,7 +105,8 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
                 eQual::run('do', 'init_package', [
                         'package'           => $dependency,
                         'cascade'           => $params['cascade'],
-                        'import'            => $params['import'] && $params['import_cascade']
+                        'import'            => $params['import'] && $params['import_cascade'],
+                        'root'              => false
                     ],
                     true);
             }
@@ -106,7 +122,6 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
 // 1) Init DB with SQL schema
 
 /*  start-tables_init */
-
 // retrieve schema for given package
 $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
@@ -117,16 +132,64 @@ $queries = explode(";", $data['result']);
 foreach($queries as $query) {
     $db->sendQuery($query);
 }
-
 /*  end-tables_init */
-
-// #todo : make distinction between mandatory initial data and demo data
 
 // 2) Populate tables with predefined data
 $data_folder = "packages/{$params['package']}/init/data";
 if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
     // handle JSON files
     foreach (glob($data_folder."/*.json") as $json_file) {
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        foreach($classes as $class) {
+            $entity = $class['name'];
+            $lang = $class['lang'];
+            $model = $orm->getModel($entity);
+            $schema = $model->getSchema();
+
+            $objects_ids = [];
+
+            foreach($class['data'] as $odata) {
+                foreach($odata as $field => $value) {
+                    $f = new Field($schema[$field]);
+                    $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
+                }
+
+                if(isset($odata['id'])) {
+                    $res = $orm->search($entity, ['id', '=', $odata['id']]);
+                    if($res > 0 && count($res)) {
+                        // object already exist, but either values or language might differ
+                    }
+                    else {
+                        $orm->create($entity, ['id' => $odata['id']], $lang, false);
+                    }
+                    $id = $odata['id'];
+                    unset($odata['id']);
+                }
+                else {
+                    $id = $orm->create($entity, [], $lang);
+                }
+                $orm->update($entity, $id, $odata, $lang);
+                $objects_ids[] = $id;
+            }
+
+            // force a first generation of computed fields, if any
+            $computed_fields = [];
+            foreach($schema as $field => $def) {
+                if($def['type'] == 'computed') {
+                    $computed_fields[] = $field;
+                }
+            }
+            $orm->read($entity, $objects_ids, $computed_fields, $lang);
+        }
+    }
+}
+
+// 2 bis) Populate tables with demo data, if requested
+$demo_folder = "packages/{$params['package']}/init/demo";
+if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
+    // handle JSON files
+    foreach (glob($demo_folder."/*.json") as $json_file) {
         $data = file_get_contents($json_file);
         $classes = json_decode($data, true);
         foreach($classes as $class) {
@@ -184,6 +247,11 @@ if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
 $route_folder = "packages/{$params['package']}/init/routes";
 if(file_exists($route_folder) && is_dir($route_folder)) {
     exec("cp -r $route_folder/* config/routing");
+}
+
+$assets_folder = "packages/{$params['package']}/init/assets";
+if(file_exists($assets_folder) && is_dir($assets_folder)) {
+    exec("cp -r $assets_folder/* public/assets/");
 }
 
 // 5) Export the compiled apps to related public folders
@@ -253,6 +321,28 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
     }
 }
 
+// 6) Inject composer dependencies if any
+if(isset($package_manifest['requires']) && is_array($package_manifest['requires'])) {
+    $map_composer = [
+        'require'     => [],
+        'require-dev' => []
+    ];
+
+    if(file_exists(EQ_BASEDIR.'/composer.json')) {
+        $json = file_get_contents(EQ_BASEDIR.'/composer.json');
+        $data = json_decode($json, true);
+        if($data) {
+            $map_composer = $data;
+        }
+    }
+
+    foreach($package_manifest['requires'] as $dependency => $version) {
+        $map_composer['require'][$dependency] = $version;
+    }
+
+    file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
+
 // mark the package as initialized (installed)
 
 /**
@@ -268,6 +358,11 @@ if(file_exists("log/packages.json")) {
 
 $packages[$params['package']] = date('c');
 file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
+
+// if script is running at top-level, run composer to install vendor dependencies
+if($params['root'] && $params['composer']) {
+    eQual::run('do', 'init_composer');
+}
 
 $context->httpResponse()
         ->status(201)

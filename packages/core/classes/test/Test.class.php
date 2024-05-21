@@ -16,6 +16,10 @@ use equal\orm\Model;
  */
 class Test extends Model
 {
+    public static function getDescription() {
+        return "This Class is defined for testing purpose, and is intended to be used in testing units of the core package.";
+    }
+
     public static function getColumns()
     {
         return [
