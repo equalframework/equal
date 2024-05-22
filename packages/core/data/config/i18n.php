@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 // #deprecated - use `core_config_translation` instead
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Retrieves the translation values related to the specified entity.",
     'deprecated'    => true,
     'params'        => [
@@ -79,9 +79,11 @@ foreach($parents as $entity) {
     }
 }
 
+/*
 if(empty($lang)) {
     throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
+*/
 
 $context->httpResponse()
         ->body($lang)
