@@ -110,7 +110,7 @@ class Field {
         $result_type = $this->descriptor['result_type'];
 
         /*
-        // #memo - strict constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
+        // #memo - strict type constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
         $constraints['invalid_type'] = [
                 'message'   => "Value is not of type {$result_type}.",
                 'function'  =>  function($value) use($result_type) {
@@ -135,7 +135,7 @@ class Field {
             ];
         */
 
-        // add constraint based on selection, if present
+        // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
             $constraints['invalid_value'] = [
@@ -146,7 +146,18 @@ class Field {
                 ];
         }
 
-        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in', 'pattern'
+        // add constraint based on 'pattern', if present
+        if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
+            $pattern = $this->descriptor['pattern'];
+            $constraints['invalid_value'] = [
+                    'message'   => "Value does not match provided pattern.",
+                    'function'  =>  function($value) use($pattern) {
+                        return preg_match($pattern, $value);
+                    }
+                ];
+        }
+
+        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in'
         // @see DataValidator
 
         return $constraints;
