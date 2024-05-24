@@ -6,6 +6,7 @@
 */
 
 use equal\orm\Field;
+use equal\orm\ObjectManager;
 
 list($params, $providers) = announce([
     'description'   => "Returns the schema of given class (model) in JSON",
@@ -76,7 +77,7 @@ if(!count($data)) {
         'name'          => $model->getName(),
         'description'   => $model->getDescription(),
         'parent'        => get_parent_class($model),
-        'root'          => 'equal\orm\Model',
+        'root'          => ObjectManager::getObjectRootClass($params['entity']),
         'table'         => $model->getTable(),
         'link'          => $model->getLink(),
         'fields'        => $schema

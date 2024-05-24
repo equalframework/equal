@@ -141,7 +141,7 @@ class AccessController extends Service {
         if(!class_exists($object_class)) {
             return 0;
         }
-
+        /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
 
         // get all user's groups
@@ -175,7 +175,7 @@ class AccessController extends Service {
 
         // if no ACL found, lookup for ACLs set on parent class
         if($result == 0) {
-            $parent_classes = $orm->getObjectParentsClasses($object_class);
+            $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
             if(count($parent_classes)) {
                 $classes = [];
                 $table_name = $orm->getObjectTableName($object_class);
@@ -272,7 +272,7 @@ class AccessController extends Service {
 
         // retrieve applicable parent classes (object from classes sharing same objects ids)
         $classes = [$object_class];
-        $parent_classes = $orm->getObjectParentsClasses($object_class);
+        $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
 
         $table_name = $orm->getObjectTableName($object_class);
         foreach($parent_classes as $class) {
