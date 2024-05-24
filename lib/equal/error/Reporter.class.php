@@ -175,7 +175,7 @@ class Reporter extends Service {
             $error_json['stack'] = $stack;
         }
 
-        $filepath = QN_LOG_STORAGE_DIR.'/eq_error.log';
+        $filepath = QN_LOG_STORAGE_DIR.'/equal.log';
 
         $is_new = !file_exists($filepath);
 

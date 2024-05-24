@@ -7,7 +7,7 @@
 error_reporting(0);
 
 // get log file, using variation from URL, if any
-$log_file = (isset($_GET['f']) && strlen($_GET['f']))?$_GET['f']:'eq_error.log';
+$log_file = (isset($_GET['f']) && strlen($_GET['f']))?$_GET['f']:'equal.log';
 
 // retrieve logs history (variations on filename)
 $log_variations = [];
