@@ -52,15 +52,16 @@ list($params, $providers) = eQual::announce([
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm', 'adapt'],
+    'providers'     => ['context', 'orm', 'adapt', 'report'],
 ]);
 
 /**
  * @var \equal\php\Context               $context
  * @var \equal\orm\ObjectManager         $orm
  * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\error\Reporter            $reporter
  */
-list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm, $dap, $reporter) = [$providers['context'], $providers['orm'], $providers['adapt'], $providers['report']];
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
@@ -151,6 +152,10 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
 
             foreach($class['data'] as $odata) {
                 foreach($odata as $field => $value) {
+                    if(!isset($schema[$field])) {
+                        $reporter->warning("ORM::unknown field {$field} in json file '{$json_file}'.");
+                        continue;
+                    }
                     $f = new Field($schema[$field]);
                     $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
                 }
