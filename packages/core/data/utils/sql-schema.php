@@ -139,7 +139,7 @@ foreach($classes as $class) {
                         $default = $description['default']();
                     }
                 }
-                elseif(!is_string($description['default']) || !method_exists($this->getType(), $description['default'])) {
+                elseif(!is_string($description['default']) || !method_exists($model->getType(), $description['default'])) {
                     // default is a scalar value
                     $default = $description['default'];
                 }
