@@ -68,6 +68,7 @@ class UsageUri extends Usage {
                         }
                     ]
                 ];
+            return [];
         }
     }
 
