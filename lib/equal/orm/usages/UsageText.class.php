@@ -39,10 +39,9 @@ class UsageText extends Usage {
                             $doc = new \DOMDocument();
                             libxml_use_internal_errors(true);
                             $doc->loadHTML($value);
-                            return (empty(libxml_get_errors()));
+                            return empty(libxml_get_errors());
                             break;
                         case 'xml':
-                            // #todo - check XML validity
                             $xml = new \XMLReader();
                             $xml->xml($value);
                             $xml->setParserProperty(\XMLReader::VALIDATE, true);
