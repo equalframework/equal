@@ -130,6 +130,19 @@ foreach($classes as $class) {
             // #memo - default is supported and handled by the ORM, not by the DBMS
             // if table already exists, set column value according to default, for all existing records
             if(count($columns) && isset($description['default'])) {
+                // #todo - computed defaults are not supported for existing objects
+                $default = null;
+                if(is_callable($description['default'])) {
+                    // either a php function (or a function from the global scope) or a closure object
+                    if(is_object($description['default'])) {
+                        // default is a closure
+                        $default = $description['default']();
+                    }
+                }
+                elseif(!is_string($description['default']) || !method_exists($this->getType(), $description['default'])) {
+                    // default is a scalar value
+                    $default = $description['default'];
+                }
                 $result[] = $db->getQuerySetRecords($table, [$field => $description['default']]);
             }
         }
