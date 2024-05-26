@@ -309,6 +309,51 @@ class Setting extends Model {
         $GLOBALS['_equal_core_setting_cache'][$index] = $value;
     }
 
+    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, int $user_id=0, string $lang='en') {
+        $result = null;
+
+        $providers = \eQual::inject(['orm']);
+        /** @var \equal\orm\ObjectManager */
+        $orm = $providers['orm'];
+
+        $settings_ids = $orm->search(self::getType(), [
+            ['package', '=', $package],
+            ['section', '=', $section],
+            ['code', '=', $code]
+        ]);
+
+        if($settings_ids > 0 && count($settings_ids)) {
+
+            $settings = $orm->read(self::getType(), $settings_ids, ['type', 'is_multilang', 'setting_values_ids']);
+
+            if($settings > 0 && count($settings)) {
+                // #memo - there should be exactly one setting matching the criterias
+                $setting = array_pop($settings);
+
+                $values_lang = constant('DEFAULT_LANG');
+                if($setting['is_multilang']) {
+                    $values_lang = $lang;
+                }
+
+                $setting_id = 0;
+                $setting_values = $orm->read(SettingValue::getType(), $setting['setting_values_ids'], ['id', 'user_id'], $values_lang);
+                if($setting_values > 0) {
+                    foreach($setting_values as $setting_value) {
+                        if($setting_value['user_id'] == $user_id) {
+                            $setting_id = $setting_value['id'];
+                            break;
+                        }
+                    }
+                }
+                if($setting_id > 0) {
+                    $result = $orm->fetchAndAdd(SettingValue::getType(), $setting_id, 'value', $increment);
+                }
+            }
+        }
+
+        return $result;
+    }
+
     public static function format_number($number, $decimal_precision=null) {
         $thousands_separator = Setting::get_value('core', 'locale', 'numbers.thousands_separator', '.');
         $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator', ',');
