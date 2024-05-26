@@ -103,16 +103,6 @@
                                 }
                             },
                             {
-                                "id": "settings.settings.settings_choices",
-                                "type": "entry",
-                                "label": "Settings choices",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\setting\\SettingChoice",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
                                 "id": "settings.settings.settings",
                                 "type": "entry",
                                 "label": "Available Settings",
