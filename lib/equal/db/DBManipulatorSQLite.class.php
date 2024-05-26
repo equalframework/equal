@@ -545,8 +545,8 @@ final class DBManipulatorSQLite extends DBManipulator {
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
         $sql = 'BEGIN EXCLUSIVE TRANSACTION;';
         $sql .= "UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");";
+        $sql .= "SELECT `{$id_field}`, (`{$field}` - $increment) as `$field` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");";
         $sql .= 'COMMIT TRANSACTION;';
-        $sql .= "SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");";
         return $this->sendQuery($sql);
     }
 

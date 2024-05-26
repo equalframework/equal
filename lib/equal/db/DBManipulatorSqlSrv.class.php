@@ -538,7 +538,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
      */
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
         $sql = 'BEGIN TRANSACTION;';
-        $sql .= "SELECT [{$id_field}], ([{$field}] + $increment) as $field FROM [{$table}] WITH (TABLOCKX) WHERE [{$id_field}] in (".implode(',', $ids).");";
+        $sql .= "SELECT [{$id_field}], [{$field}] FROM [{$table}] WITH (TABLOCKX) WHERE [{$id_field}] in (".implode(',', $ids).");";
         $sql .= "UPDATE [{$table}] SET [{$field}] = [{$field}] + $increment WHERE [{$id_field}] in (".implode(',', $ids).");";
         $sql .= 'COMMIT;';
         return $this->sendQuery($sql, 'update');
