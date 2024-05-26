@@ -1387,15 +1387,15 @@ namespace {
          * (So it can be used with the global exceptions logic or with local try/catch blocks.)
          *
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
-         * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
+         * @param string    $controller     Path of the controller to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
+         * @param boolean   $root           Flag to run the controller as a first (root) call (following calls are stacked).
          *
-         * @return  array        Associative array holding the result of the call.
+         * @return  mixed        Result of the call, according to the controller response.
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
-        public static function run($type, $operation, $body=[], $root=false) {
-            $result = config\eQual::run($type, $operation, $body, $root);
+        public static function run($type, $controller, $body=[], $root=false) {
+            $result = config\eQual::run($type, $controller, $body, $root);
             $data = json_decode($result, true);
             // if result is not JSON, return raw data
             if(is_null($data)) {
