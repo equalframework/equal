@@ -76,6 +76,27 @@
                         ]
                     },
                     {
+                        "id": "section.choices",
+                        "label": "Setting choices",
+                        "visible": ["form_control", "=", "select"],
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_choices_ids",
+                                                "width": "100%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
                         "id": "section.values",
                         "label": "Setting values",
                         "rows": [
