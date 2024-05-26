@@ -46,10 +46,10 @@ class SettingValue extends Model {
                 'ondelete'          => 'cascade'
             ],
 
-            // #memo - for settings not having the is_multilang field set, translations are ignored
             'value' => [
                 'type'              => 'string',
                 'description'       => 'JSON value of the parameter.',
+                'help'              => 'For settings not having the is_multilang field set, translations are ignored.',
                 'multilang'         => true
             ]
 
