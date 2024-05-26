@@ -51,6 +51,11 @@ if( (include($bootstrap)) === false ) {
 }
 
 try {
+    // remove PHP signature in prod
+    if(constant('ENV_MODE') == 'production') {
+        header_remove('x-powered-by');
+    }
+
     // keep track of the access in the log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => Container::getInstance()->get('auth')->userId() ]));
 
@@ -122,8 +127,9 @@ try {
             // remove remaining params and trailing slash, if any
             $route['redirect'] = rtrim(preg_replace('/\/:.+\/?/', '', $route['redirect']), '/');
             // manually set the response header to HTTP 200
-            header($_SERVER['SERVER_PROTOCOL'].' 200 OK'); // for HTTP client
-            header('Status: 200 OK'); // and CLI
+            header($_SERVER['SERVER_PROTOCOL'].' 200 OK');
+            // add explicit status for non-HTTP context (CLI)
+            header('Status: 200 OK');
             // redirect to resulting URL
             header('Location: '.$route['redirect']);
             // good job, let's rest now
