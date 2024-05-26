@@ -154,7 +154,7 @@ class HttpHeaders {
     public function getCharsets()  {
         $charsets = [];
         if(isset($this->headers['Accept-Charset'])) {
-            // general syntax: character_set [q=qvalue]
+            // general syntax: character_set [q=value]
             // example: Accept-Charset: iso-8859-5, unicode-1-1; q=0.8
             $parts = explode(',', $this->headers['Accept-Charset']);
             if(count($parts)) {
@@ -187,14 +187,16 @@ class HttpHeaders {
     public function getLanguages()  {
         $languages = (array) 'en';
         if(isset($this->headers['Accept-Language'])) {
-            // general syntax: language [q=qvalue]
+            // general syntax: language [q=value]
             // example: Accept-Language: da, en-gb;q=0.8, en;q=0.7
             $matches = [];
-            if( preg_match_all("/([^-;]*)(?:-([^;]*))?(?:;q=([0-9]\.[0-9]))?/", $this->headers['Accept-Language'], $matches)) {
+            if(preg_match_all("/([^-;]*)(?:-([^;]*))?(?:;q=([0-9]\.[0-9]))?/", $this->headers['Accept-Language'], $matches)) {
                 if(count($matches)) {
                     $languages = [];
                     foreach($matches[0] as $factor) {
-                        if(!strlen($factor)) continue;
+                        if(!strlen($factor)) {
+                            continue;
+                        }
                         $parts = explode(';q=', $factor);
                         $lang_descr = explode(',', trim($parts[0], ','));
                         foreach($lang_descr as $lang) {
@@ -236,15 +238,15 @@ class HttpHeaders {
     private function getIpAddresses() {
         $client_ips = array();
 
-        if (isset($this->headers['Forwarded'])) {
+        if(isset($this->headers['Forwarded'])) {
             preg_match_all('{(for)=("?\[?)([a-z0-9\.:_\-/]*)}', $this->headers['X-Forwarded-For'], $matches);
             $client_ips = $matches[3];
         }
-        elseif (isset($this->headers['X-Forwarded-For'])) {
+        elseif(isset($this->headers['X-Forwarded-For'])) {
             $client_ips = array_map('trim', explode(',', $this->headers['X-Forwarded-For']));
         }
 
-        foreach ($client_ips as $key => $client_ip) {
+        foreach($client_ips as $key => $client_ip) {
             // remove port, if any
             if (preg_match('{((?:\d+\.){3}\d+)\:\d+}', $client_ip, $match)) {
                 $client_ips[$key] = $client_ip = $match[1];
