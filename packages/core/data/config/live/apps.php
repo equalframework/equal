@@ -53,6 +53,10 @@ if(file_exists("log/packages.json")) {
                 if(!isset($app['extends'])) {
                     continue;
                 }
+                // discard apps with missing if
+                if(!isset($app['id'])) {
+                    continue;
+                }
                 // discard apps extending a non-installed App
                 if(!file_exists("public/{$app['extends']}") || !is_dir("public/{$app['extends']}")) {
                     continue;
