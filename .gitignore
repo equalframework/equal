@@ -11,6 +11,7 @@ bin/*
 config/config.json
 config/routing/*
 !config/routing/.gitkeep
+composer.json
 composer.phar
 composer.lock
 .vscode
