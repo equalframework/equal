@@ -745,21 +745,22 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                $oids = [];
+                $missing_ids = [];
                 // if store attribute is set and no result was found, we need to compute the value
-                // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
-                // (this implies that the DB schema has 'DEFAULT null' for columns associated to computed fields)
-                foreach($ids as $oid) {
-                    if(is_null($this->cache[$table_name][$oid][$lang][$field])) {
-                        $oids[] = $oid;
+                foreach($ids as $id) {
+                    if(!array_key_exists($table_name, $this->cache)
+                        || !array_key_exists($id, $this->cache[$table_name])
+                        || !array_key_exists($lang, $this->cache[$table_name][$id])
+                        || !array_key_exists($field, $this->cache[$table_name][$id][$lang])) {
+                        $missing_ids[] = $id;
                     }
                 }
-                if(count($oids)) {
+                if(count($missing_ids)) {
                     // compute field for incomplete objects
-                    $load_fields['computed']($this, $oids, array($field));
+                    $load_fields['computed']($this, $missing_ids, array($field));
                     try {
                         // store newly computed fields to database ('store' attribute set to true)
-                        $this->store($class, $oids, array($field), $lang);
+                        $this->store($class, $missing_ids, array($field), $lang);
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
@@ -1971,7 +1972,7 @@ class ObjectManager extends Service {
                             $target_field = $schema[$target_field]['alias'];
                         }
                         // use final notation
-                        $res[$oid][$field] = $this->cache[$table_name][$oid][$lang][$target_field];
+                        $res[$oid][$field] = isset($this->cache[$table_name][$oid][$lang][$target_field]) ? $this->cache[$table_name][$oid][$lang][$target_field] : null;
                     }
                 }
             }
