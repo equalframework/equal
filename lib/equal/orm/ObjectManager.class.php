@@ -751,7 +751,8 @@ class ObjectManager extends Service {
                     if(!array_key_exists($table_name, $this->cache)
                         || !array_key_exists($id, $this->cache[$table_name])
                         || !array_key_exists($lang, $this->cache[$table_name][$id])
-                        || !array_key_exists($field, $this->cache[$table_name][$id][$lang])) {
+                        || !array_key_exists($field, $this->cache[$table_name][$id][$lang])
+                        || is_null($this->cache[$table_name][$id][$lang][$field])) {
                         $missing_ids[] = $id;
                     }
                 }
