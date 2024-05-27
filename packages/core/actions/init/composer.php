@@ -57,17 +57,13 @@ if(!file_exists(EQ_BASEDIR.'/composer.phar')) {
     }
 }
 
-if(!file_exists(EQ_BASEDIR.'/composer.lock')) {
-    // run composer to install dependencies (quiet mode, no interactions)
-    if(exec('php composer.phar install -q -n') === false) {
-        throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
-    }
+if(file_exists(EQ_BASEDIR.'/composer.lock')) {
+    unlink(EQ_BASEDIR.'/composer.lock');
 }
-else {
-    // run composer update
-    if(exec('php composer.phar update -q -n') === false) {
-        throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
-    }
+
+// run composer to install dependencies (quiet mode, no interactions)
+if(exec('php composer.phar install -q -n') === false) {
+    throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 
 $context->httpResponse()
