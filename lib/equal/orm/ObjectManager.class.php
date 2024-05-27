@@ -1778,6 +1778,9 @@ class ObjectManager extends Service {
                     $values[$subfield] = null;
                 }
                 foreach($ids as $oid) {
+                    if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
+                        continue;
+                    }
                     $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
                     // allow cascade update (circular dependencies are checked in `core_test_package`)
                     $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
