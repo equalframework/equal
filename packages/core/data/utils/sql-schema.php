@@ -143,7 +143,7 @@ foreach($classes as $class) {
                     // default is a scalar value
                     $default = $description['default'];
                 }
-                $result[] = $db->getQuerySetRecords($table, [$field => $description['default']]);
+                $result[] = $db->getQuerySetRecords($table, [$field => $default]);
             }
         }
         elseif($description['type'] == 'computed') {
