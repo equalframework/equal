@@ -309,7 +309,10 @@ class Setting extends Model {
         $GLOBALS['_equal_core_setting_cache'][$index] = $value;
     }
 
-    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, int $user_id=0, string $lang='en') {
+    /**
+     * $selector is expected to hold any additional field that can be used to differentiate a SettingValue record (fields can be added in inherited classes)
+     */
+    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, array $selector=[], string $lang='en') {
         $result = null;
 
         $providers = \eQual::inject(['orm']);
@@ -339,7 +342,7 @@ class Setting extends Model {
                 $setting_values = $orm->read(SettingValue::getType(), $setting['setting_values_ids'], ['id', 'user_id'], $values_lang);
                 if($setting_values > 0) {
                     foreach($setting_values as $setting_value) {
-                        if($setting_value['user_id'] == $user_id) {
+                        if(intval($setting_value['user_id']) == intval($selector['user_id'] ?? 0)) {
                             $setting_id = $setting_value['id'];
                             break;
                         }
