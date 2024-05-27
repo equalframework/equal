@@ -748,10 +748,8 @@ class ObjectManager extends Service {
                 $missing_ids = [];
                 // if store attribute is set and no result was found, we need to compute the value
                 foreach($ids as $id) {
-                    if(!array_key_exists($table_name, $this->cache)
-                        || !array_key_exists($id, $this->cache[$table_name])
-                        || !array_key_exists($lang, $this->cache[$table_name][$id])
-                        || !array_key_exists($field, $this->cache[$table_name][$id][$lang])
+                    // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
+                    if(!isset($this->cache[$table_name][$id][$lang][$field])
                         || is_null($this->cache[$table_name][$id][$lang][$field])) {
                         $missing_ids[] = $id;
                     }
