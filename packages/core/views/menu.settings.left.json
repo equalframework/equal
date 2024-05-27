@@ -60,6 +60,63 @@
                 ]
             },
             {
+                "id": "communication",
+                "label": "Communication",
+                "description": "",
+                "icon": "mode_comment",
+                "type": "parent",
+                "children": [
+                    {
+                        "id": "communication.alerts",
+                        "label": "Alerts",
+                        "description": "",
+                        "icon": "chrome_reader_mode",
+                        "type": "parent",
+                        "children": [
+                            {
+                                "id": "communication.alert.messages",
+                                "type": "entry",
+                                "label": "All messages",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\alert\\Message",
+                                    "view": "list.default"
+                                }
+                            },
+                            {
+                                "id": "communication.alert.message_models",
+                                "type": "entry",
+                                "label": "Message models",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\alert\\MessageModel",
+                                    "view": "list.default"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "id": "communication.emails",
+                        "label": "Emails",
+                        "description": "",
+                        "icon": "alternate_email",
+                        "type": "parent",
+                        "children": [
+                            {
+                                "id": "communication.emails.all",
+                                "type": "entry",
+                                "label": "All emails",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\Mail",
+                                    "view": "list.default"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "id": "settings",
                 "label": "Configuration",
                 "description": "",
@@ -81,6 +138,17 @@
                                 "context": {
                                     "entity": "core\\Task",
                                     "view": "list.default"
+                                }
+                            },
+                            {
+                                "id": "settings.cron.tasks.recurring",
+                                "type": "entry",
+                                "label": "Recurring tasks",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\Task",
+                                    "view": "list.default",
+                                    "domain": ["is_recurring", "=", true]
                                 }
                             }
                         ]
