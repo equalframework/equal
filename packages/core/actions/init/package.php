@@ -28,7 +28,7 @@ list($params, $providers) = eQual::announce([
         'import' => [
             'description'   => 'Request importing initial data.',
             'type'          => 'boolean',
-            'default'       => false
+            'default'       => true
         ],
         'import_cascade' => [
             'description'   => 'Import initial data for dependencies as well.',
@@ -80,12 +80,11 @@ $db_class = get_class($db);
 
 // 1) Check in manifest.json for prerequisite initialization
 
-if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'])) {
-    $GLOBALS['QN_INIT_DEPENDENCIES'] = [];
-}
-
 // mark current package as being initialized (to prevent recursion)
-$GLOBALS['QN_INIT_DEPENDENCIES'][$params['package']] = true;
+if(!isset($GLOBALS['EQ_INIT_DEPENDENCIES'])) {
+    $GLOBALS['EQ_INIT_DEPENDENCIES'] = [];
+}
+$GLOBALS['EQ_INIT_DEPENDENCIES'][$params['package']] = true;
 
 // retrieve manifest of target package, if any
 $package_manifest = [];
@@ -100,7 +99,7 @@ if(file_exists("packages/{$params['package']}/manifest.json")) {
 if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($package_manifest['depends_on'])) {
     // initiate dependency packages that are not yet processed, if requested
     foreach($package_manifest['depends_on'] as $dependency) {
-        if(!isset($GLOBALS['QN_INIT_DEPENDENCIES'][$dependency])) {
+        if(!isset($GLOBALS['EQ_INIT_DEPENDENCIES'][$dependency])) {
             try {
                 // init package of sub packages (perform as root script)
                 eQual::run('do', 'init_package', [
@@ -163,7 +162,9 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
                 if(isset($odata['id'])) {
                     $res = $orm->search($entity, ['id', '=', $odata['id']]);
                     if($res > 0 && count($res)) {
-                        // object already exist, but either values or language might differ
+                        // object already exists (either values or language might differ)
+                        // ignore
+                        continue;
                     }
                     else {
                         $orm->create($entity, ['id' => $odata['id']], $lang, false);
