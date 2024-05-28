@@ -163,8 +163,6 @@ if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
                     $res = $orm->search($entity, ['id', '=', $odata['id']]);
                     if($res > 0 && count($res)) {
                         // object already exists (either values or language might differ)
-                        // ignore
-                        continue;
                     }
                     else {
                         $orm->create($entity, ['id' => $odata['id']], $lang, false);
