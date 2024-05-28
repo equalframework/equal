@@ -109,7 +109,8 @@ class Setting extends Model {
                 'selection'         => [
                     'select',
                     'toggle',
-                    'input'
+                    'input',
+                    'textarea'
                 ],
                 'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
