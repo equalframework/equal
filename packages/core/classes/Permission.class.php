@@ -33,8 +33,8 @@ class Permission extends Model {
                 'required'          => true
             ],
 
-            // #deprecated (use `getRole()` for each specific Model)
             'domain' => [
+                'deprecated'        => "use `getRole()` for each specific Model",
                 'type'              => 'string',
                 'description'       => "JSON value of the constraints domain (ex. ['creator', '=', '1'])",
                 'default'           => NULL
@@ -49,7 +49,7 @@ class Permission extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Group',
                 'description'       => "Targeted group, if permission applies to a group.",
-                'default'           => QN_DEFAULT_GROUP_ID
+                'default'           => EQ_DEFAULT_GROUP_ID
             ],
 
             'user_id' => [
@@ -61,7 +61,7 @@ class Permission extends Model {
             'rights' => [
                 'type' 	            => 'integer',
                 'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)",
-                'dependencies'      => ['rights_txt']
+                'dependents'        => ['rights_txt']
             ],
 
             // virtual field, used in list views
@@ -74,20 +74,30 @@ class Permission extends Model {
         ];
     }
 
-    public static function calcRightsTxt($om, $ids, $lang) {
-        $res = [];
-        $values = $om->read(__CLASS__, $ids, ['rights'], $lang);
-        foreach($ids as $id) {
-            $rights_txt = [];
-            $rights = $values[$id]['rights'];
-            if($rights & QN_R_CREATE)   $rights_txt[] = 'create';
-            if($rights & QN_R_READ)     $rights_txt[] = 'read';
-            if($rights & QN_R_WRITE)    $rights_txt[] = 'write';
-            if($rights & QN_R_DELETE)   $rights_txt[] = 'delete';
-            if($rights & QN_R_MANAGE)   $rights_txt[] = 'manage';
-            $res[$id] = implode(', ', $rights_txt);
+    public static function calcRightsTxt($self) {
+        $result = [];
+        $self->read(['rights']);
+        foreach($self as $id => $permission) {
+            $txt = [];
+            $rights = $permission['rights'];
+            if($rights & EQ_R_CREATE) {
+                $txt[] = 'create';
+            }
+            if($rights & EQ_R_READ) {
+                $txt[] = 'read';
+            }
+            if($rights & EQ_R_WRITE) {
+                $txt[] = 'write';
+            }
+            if($rights & EQ_R_DELETE) {
+                $txt[] = 'delete';
+            }
+            if($rights & EQ_R_MANAGE) {
+                $txt[] = 'manage';
+            }
+            $result[$id] = implode(', ', $txt);
         }
-        return $res;
+        return $result;
     }
 
 }
