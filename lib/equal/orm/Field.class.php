@@ -86,14 +86,13 @@ class Field {
 
     public function getUsage(): Usage {
         if(is_null($this->usage)) {
+            // by default, use the usage string for which the field type is an alias
+            $str_usage = $this->getUsageString();
             // use usage string from the descriptor if present
             if(isset($this->descriptor['usage']) && strlen($this->descriptor['usage']) > 0) {
-                $this->usage = UsageFactory::create($this->descriptor['usage']);
+                $str_usage = $this->descriptor['usage'];
             }
-            // otherwise, use the usage string of which the field type is an alias
-            else {
-                $this->usage = UsageFactory::create($this->getUsageString());
-            }
+            $this->usage = UsageFactory::create($str_usage);
         }
         return $this->usage;
     }
