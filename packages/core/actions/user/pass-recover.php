@@ -10,7 +10,7 @@ use core\User;
 use core\Mail;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Send password recovery instructions to current user.",
     'params' 		=>	[
         'email' =>  [

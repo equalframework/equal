@@ -7,13 +7,12 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Validate a user subscription. This controller is meant to be requested through a link sent by email.",
     'params' 		=>	[
         'code' => [
             'description'   => 'Code for authenticating user.',
             'type'          => 'string',
-            'usage'         => 'email',
             'required'      => true
         ],
         'redirect' => [
@@ -23,7 +22,7 @@ list($params, $providers) = announce([
             'default'       => 'auth/#/signin'
         ]
     ],
-    'constants'     => ['ROOT_APP_URL'],
+    'constants'     => ['BACKEND_URL'],
     'access'        => [
         'visibility'        => 'public'
     ],
@@ -47,14 +46,14 @@ $auth->su();
 $ids = $om->search('core\User', [['login', '=', $login]]);
 
 if(!count($ids)) {
-    throw new Exception('invalid_request', QN_ERROR_INVALID_USER);
+    throw new Exception('invalid_request', EQ_ERROR_INVALID_USER);
 }
 
 $list = $om->read(User::getType(), $ids, ['id', 'login', 'password']);
 $user = reset($list);
 
 if(!password_verify($password, $user['password'])) {
-    throw new \Exception('invalid_request', QN_ERROR_INVALID_USER);
+    throw new \Exception('invalid_request', EQ_ERROR_INVALID_USER);
 }
 
 // mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)
@@ -63,7 +62,7 @@ $om->update(User::getType(), $user['id'], ['validated' => true]);
 $response = $context->httpResponse();
 
 if(strlen($params['redirect'])) {
-    $url = rtrim(constant('ROOT_APP_URL'), '/').'/'.ltrim($params['redirect'], '/');
+    $url = rtrim(constant('BACKEND_URL'), '/').'/'.ltrim($params['redirect'], '/');
     header('Location: '.$url);
     exit();
 }
