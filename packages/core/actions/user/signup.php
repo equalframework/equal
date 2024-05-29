@@ -180,6 +180,5 @@ if($send_confirm) {
 }
 
 $context->httpResponse()
-    ->status(200)
     ->body(['message_id' => $message_id])
     ->send();
