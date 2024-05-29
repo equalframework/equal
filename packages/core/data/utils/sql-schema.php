@@ -1,16 +1,18 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\ObjectManager;
 use equal\db\DBConnector;
+use equal\data\adapt\DataAdapterProviderSql;
+use equal\orm\Field;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=> "Returns the schema of the specified package in standard SQL ('CREATE' statements with 'IF NOT EXISTS' clauses).",
     'params'        => [
         'package'   => [
@@ -103,9 +105,22 @@ foreach($classes as $class) {
         if(isset($processed_columns[$table][$field])) {
             continue;
         }
-        $description = $schema[$field];
-        if(in_array($description['type'], array_keys($db_class::$types_associations))) {
-            $type = $db->getSqlType($description['type']);
+        $descriptor = $schema[$field];
+
+        /*
+        $f = new Field($descriptor, $field);
+        $this->dap = new DataAdapterProviderSql();
+        $usage = $f->getUsage();
+        $str_usage = $usage->getName();
+        $adapter = $this->dap->get($str_usage);
+        $type = $adapter->castOutType();
+        if(!strlen($type)) {
+            throw new Exception('unknown_sql_type', EQ_ERROR_INVALID_CONFIG);
+        }
+        */
+
+        if(in_array($descriptor['type'], array_keys($db_class::$types_associations))) {
+            $type = $db->getSqlType($descriptor['type']);
 
             $column_descriptor = [
                     'type'      => $type,
@@ -113,8 +128,8 @@ foreach($classes as $class) {
                 ];
 
             // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
-            if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
-                // $type = ObjectManager::$usages_associations[$description['usage']];
+            if(isset($descriptor['usage']) && isset(ObjectManager::$usages_associations[$descriptor['usage']])) {
+                // $type = ObjectManager::$usages_associations[$descriptor['usage']];
             }
 
             if($field == 'id') {
@@ -129,37 +144,37 @@ foreach($classes as $class) {
 
             // #memo - default is supported and handled by the ORM, not by the DBMS
             // if table already exists, set column value according to default, for all existing records
-            if(count($columns) && isset($description['default'])) {
+            if(count($columns) && isset($descriptor['default'])) {
                 // #todo - computed defaults are not supported for existing objects
                 $default = null;
-                if(is_callable($description['default'])) {
+                if(is_callable($descriptor['default'])) {
                     // either a php function (or a function from the global scope) or a closure object
-                    if(is_object($description['default'])) {
+                    if(is_object($descriptor['default'])) {
                         // default is a closure
-                        $default = $description['default']();
+                        $default = $descriptor['default']();
                     }
                 }
-                elseif(!is_string($description['default']) || !method_exists($model->getType(), $description['default'])) {
+                elseif(!is_string($descriptor['default']) || !method_exists($model->getType(), $descriptor['default'])) {
                     // default is a scalar value
-                    $default = $description['default'];
+                    $default = $descriptor['default'];
                 }
                 $result[] = $db->getQuerySetRecords($table, [$field => $default]);
             }
         }
-        elseif($description['type'] == 'computed') {
-            if(!isset($description['store']) || !$description['store']) {
+        elseif($descriptor['type'] == 'computed') {
+            if(!isset($descriptor['store']) || !$descriptor['store']) {
                 // skip non-stored computed fields
                 continue;
             }
             $result[] = $db->getQueryAddColumn($table, $field, [
-                    'type'      => $db->getSqlType($description['result_type']),
+                    'type'      => $db->getSqlType($descriptor['result_type']),
                     'null'      => true,
                     'default'   => null
                 ]);
         }
-        elseif($description['type'] == 'many2many') {
-            if(!isset($m2m_tables[$description['rel_table']])) {
-                $m2m_tables[$description['rel_table']] = [ $description['rel_foreign_key'],  $description['rel_local_key'] ];
+        elseif($descriptor['type'] == 'many2many') {
+            if(!isset($m2m_tables[$descriptor['rel_table']])) {
+                $m2m_tables[$descriptor['rel_table']] = [ $descriptor['rel_foreign_key'],  $descriptor['rel_local_key'] ];
             }
         }
         $processed_columns[$table][$field] = true;
