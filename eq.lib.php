@@ -115,7 +115,7 @@ namespace {
      *
      * Note: ensure http service has read/write permissions on this directory
      */
-    define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');
+    define('QN_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('html_errors', false);                              // prevent HTML in logs
@@ -256,18 +256,18 @@ namespace {
      * (which cannot be modified by other scripts)
      */
     $constants_schema = [];
-    if(!file_exists(QN_BASEDIR.'/config/schema.json')) {
+    if(!file_exists(EQ_BASEDIR.'/config/schema.json')) {
         die('Missing mandatory config schema.');
     }
     else {
-        $data = file_get_contents(QN_BASEDIR.'/config/schema.json');
+        $data = file_get_contents(EQ_BASEDIR.'/config/schema.json');
         if(!($constants_schema = json_decode($data, true))) {
             die('Invalid config schema.');
         }
 
         // pass-1 - process properties defined in config file
-        if(file_exists(QN_BASEDIR.'/config/config.json')) {
-            $data = file_get_contents(QN_BASEDIR.'/config/config.json');
+        if(file_exists(EQ_BASEDIR.'/config/config.json')) {
+            $data = file_get_contents(EQ_BASEDIR.'/config/config.json');
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
                     config\define($property, $value);
@@ -546,11 +546,11 @@ namespace config {
          * @static
          */
         public static function init() {
-            chdir(QN_BASEDIR.'/');
+            chdir(EQ_BASEDIR.'/');
 
             // enable inclusion and autoload of external classes
-            if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
-                include_once(QN_BASEDIR.'/vendor/autoload.php');
+            if(file_exists(EQ_BASEDIR.'/vendor/autoload.php')) {
+                include_once(EQ_BASEDIR.'/vendor/autoload.php');
             }
 
             // register own class loader
@@ -775,7 +775,7 @@ namespace config {
                     }
                     $cache_id = md5($request_id);
                     // retrieve related filename
-                    $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
+                    $cache_filename = EQ_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
                     $context->set('cache-id', $cache_id);
@@ -1207,8 +1207,8 @@ namespace config {
             }
 
             // load package custom configuration, if any
-            if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
-                $data = file_get_contents(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json');
+            if(!is_null($resolved['package']) && is_file(EQ_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
+                $data = file_get_contents(EQ_BASEDIR.'/packages/'.$resolved['package'].'/config.json');
                 if(($config = json_decode($data, true))) {
                     foreach($config as $property => $value) {
                         \config\define($property, $value);
@@ -1247,12 +1247,12 @@ namespace config {
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) {
                     $resolved['script'] = constant('DEFAULT_APP').'.php';
                 }
-                $filename = QN_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
+                $filename = EQ_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
                 if(!is_file($filename)) {
                     // always try to fallback to core package (for short syntax calls)
-                    $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    $filename = EQ_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        $filename = EQ_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
                             throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['operation']} ({$resolved['script']})", EQ_ERROR_UNKNOWN_OBJECT);
                         }
@@ -1281,7 +1281,7 @@ namespace config {
                         }
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
-                        file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
+                        file_put_contents(EQ_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
                         $reporter->debug("API::stored cache-id {$cache_id}");
                     }
                 }
@@ -1332,7 +1332,7 @@ namespace config {
             else {
                 // mark class as being loaded
                 $GLOBALS['eQual_loading_classes'][$class_name] = true;
-                $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
+                $file_path = EQ_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use 'class.php' extension
                 if(file_exists($file_path.'.class.php')) {
                     $result = include_once $file_path.'.class.php';
