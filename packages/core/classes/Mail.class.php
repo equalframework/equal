@@ -111,15 +111,16 @@ class Mail extends Model {
             'cc'            => implode(',', (array) $email->cc),
             'bcc'           => implode(',', (array) $email->bcc),
             'subject'       => $email->subject,
-            // #todo - set DB to UTF8mb4 by default
             // remove utf8mb4 chars (emojis)
-            'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
+            // 'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
+            // #memo - DB is set to UTF8mb4 by default
+            'body'          => $email->body,
             'attachments'   => '',
             'object_class'  => $object_class,
             'object_id'     => $object_id
         ];
 
-        if(isset($email->reply_to)) {
+        if(isset($email->reply_to) && !empty($email->reply_to)) {
             $values['reply_to'] = $email->reply_to;
         }
         // extract attachment names, if any
