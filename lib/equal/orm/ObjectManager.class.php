@@ -1324,7 +1324,7 @@ class ObjectManager extends Service {
                 continue;
             }
             if($value === null) {
-                // all fields can be reset to null (unless required)
+                // all fields can be reset to null (unless marked as `required`)
                 continue;
             }
             foreach($constraints[$field] as $error_id => $constraint) {
