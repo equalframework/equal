@@ -70,6 +70,8 @@ foreach($paths as $item) {
         continue;
     }
 
+    list('path' => $path, 'rights' => $mask) = $item;
+
     chgrp($path, $uid);
 
     $perms = fileperms($path);
