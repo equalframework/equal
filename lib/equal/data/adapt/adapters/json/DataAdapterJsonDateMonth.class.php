@@ -14,6 +14,14 @@ class DataAdapterJsonDateMonth implements DataAdapter {
         return 'json/date.month';
     }
 
+    public function castInType(): string {
+        return 'integer';
+    }
+
+    public function castOutType(): string {
+        return 'Number';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

@@ -14,6 +14,14 @@ class DataAdapterSqlTime implements DataAdapter {
         return 'sql/time';
     }
 
+    public function castInType(): string {
+        return 'integer';
+    }
+
+    public function castOutType(): string {
+        return 'TIME';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from SQL type to PHP type (SQL -> PHP).

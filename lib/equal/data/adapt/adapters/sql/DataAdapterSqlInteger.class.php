@@ -14,6 +14,14 @@ class DataAdapterSqlInteger implements DataAdapter {
         return 'sql/integer';
     }
 
+    public function castInType(): string {
+        return 'integer';
+    }
+
+    public function castOutType(): string {
+        return 'INTEGER';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from SQL type to PHP type (SQL -> PHP).

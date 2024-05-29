@@ -16,6 +16,14 @@ class DataAdapterSqlReal implements DataAdapter {
         return 'sql/real';
     }
 
+    public function castInType(): string {
+        return 'float';
+    }
+
+    public function castOutType(): string {
+        return 'FLOAT';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from SQL type to PHP type (SQL -> PHP).

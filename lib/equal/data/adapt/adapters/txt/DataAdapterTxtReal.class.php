@@ -18,6 +18,14 @@ class DataAdapterTxtReal implements DataAdapter {
         return 'txt/real';
     }
 
+    public function castInType(): string {
+        return 'float';
+    }
+
+    public function castOutType(): string {
+        return '';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from TXT type to PHP type (TXT -> PHP).

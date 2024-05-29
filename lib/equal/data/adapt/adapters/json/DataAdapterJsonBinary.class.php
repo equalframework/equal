@@ -14,6 +14,14 @@ class DataAdapterJsonBinary implements DataAdapter {
         return 'json/binary';
     }
 
+    public function castInType(): string {
+        return 'string';
+    }
+
+    public function castOutType(): string {
+        return 'String';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

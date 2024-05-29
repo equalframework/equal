@@ -14,6 +14,14 @@ class DataAdapterJsonBoolean implements DataAdapter {
         return 'json/boolean';
     }
 
+    public function castInType(): string {
+        return 'boolean';
+    }
+
+    public function castOutType(): string {
+        return 'Boolean';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

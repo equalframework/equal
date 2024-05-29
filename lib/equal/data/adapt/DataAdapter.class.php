@@ -15,8 +15,23 @@ interface DataAdapter {
      */
     public function getType();
 
+
     /**
-     * Handles the conversion to the PHP type equivalent.
+     * Returns the equivalent PHP type.
+     *
+     * @return string
+     */
+    public function castInType(): string;
+
+    /**
+     * Returns the type of the DataAdapter target.
+     *
+     * @return string
+     */
+    public function castOutType(): string;
+
+    /**
+     * Handles the conversion to a value using a PHP type.
      * Adapts the input value from external type to PHP type (x -> PHP).
      *
      * @param mixed         $value      Value to be adapted.
