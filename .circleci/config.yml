@@ -18,6 +18,8 @@ jobs:
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
+      # assign folders permissions
+      - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
       # check ability to connect to the dbms service
@@ -70,6 +72,8 @@ jobs:
       - run: docker-php-ext-enable mysqli
       - checkout:
           path: ~/repo
+      # assign folders permissions
+      - run: php run.php --do=init_fs
       # check that mandatory directories are present and have correct access rights set
       - run: php run.php --do=test_fs-consistency
       # check ability to connect to the dbms service
