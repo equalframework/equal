@@ -39,7 +39,12 @@ class UsageText extends Usage {
                             $doc = new \DOMDocument();
                             libxml_use_internal_errors(true);
                             $doc->loadHTML($value);
-                            return empty(libxml_get_errors());
+                            // discard warnings
+                            $filtered_errors = array_filter(libxml_get_errors(), function($error) {
+                                // #todo - add constant for strict HTML validation [LIBXML_ERR_WARNING, LIBXML_ERR_ERROR, LIBXML_ERR_FATAL]
+                                return in_array($error->level, [LIBXML_ERR_FATAL]);
+                            });
+                            return empty($filtered_errors);
                             break;
                         case 'xml':
                             $xml = new \XMLReader();
