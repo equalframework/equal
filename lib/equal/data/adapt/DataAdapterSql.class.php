@@ -28,7 +28,7 @@ class DataAdapterSql implements DataAdapter {
         return '';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return '';
     }
 

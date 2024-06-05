@@ -18,7 +18,7 @@ class DataAdapterTxtArray implements DataAdapter {
         return 'array';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return '';
     }
     /**

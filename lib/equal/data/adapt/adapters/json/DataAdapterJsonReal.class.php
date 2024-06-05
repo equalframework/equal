@@ -20,7 +20,7 @@ class DataAdapterJsonReal implements DataAdapter {
         return 'float';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return 'Number';
     }
 

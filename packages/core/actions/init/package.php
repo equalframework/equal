@@ -365,6 +365,7 @@ file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT)
 
 // if script is running at top-level, run composer to install vendor dependencies
 if($params['root'] && $params['composer']) {
+    // #todo - check if composer file has changed or not
     eQual::run('do', 'init_composer');
 }
 

@@ -19,7 +19,7 @@ class DataAdapterTxtInteger implements DataAdapter {
         return 'integer';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return '';
     }
 

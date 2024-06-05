@@ -18,8 +18,8 @@ class DataAdapterJsonDateYear implements DataAdapter {
         return 'integer';
     }
 
-    public function castOutType(): string {
-        return 'integer';
+    public function castOutType($usage=null): string {
+        return 'Number';
     }
 
     /**

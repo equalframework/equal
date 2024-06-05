@@ -18,7 +18,7 @@ class DataAdapterJsonBoolean implements DataAdapter {
         return 'boolean';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return 'Boolean';
     }
 

@@ -18,7 +18,7 @@ class DataAdapterJsonText implements DataAdapter {
         return 'string';
     }
 
-    public function castOutType(): string {
+    public function castOutType($usage=null): string {
         return 'String';
     }
 

@@ -18,8 +18,8 @@ class DataAdapterJsonTime implements DataAdapter {
         return 'integer';
     }
 
-    public function castOutType(): string {
-        return 'string';
+    public function castOutType($usage=null): string {
+        return 'String';
     }
 
     /**
