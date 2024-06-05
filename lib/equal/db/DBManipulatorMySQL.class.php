@@ -518,8 +518,13 @@ final class DBManipulatorMySQL extends DBManipulator {
     public function incRecords($table, $ids, $field, $increment, $id_field='id') {
         $res = null;
         $this->sendQuery('LOCK TABLES `'.$table.'` WRITE;');
-        $res = $this->sendQuery("SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");");
-        $this->sendQuery("UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");");
+        try {
+            $res = $this->sendQuery("SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");");
+            $this->sendQuery("UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");");
+        }
+        catch(\Exception $e) {
+            // prevent interruption before unlocking the table
+        }
         $this->sendQuery('UNLOCK TABLES;');
         return $res;
     }
