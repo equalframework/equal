@@ -83,6 +83,13 @@ class Setting extends Model {
                 'multilang'         => true
             ],
 
+            'is_sequence' => [
+                'type'              => 'boolean',
+                'description'       => "Marks the setting as a numeric sequence.",
+                 'help'              => "Some settings must have a numeric value, meant to be incremented, and that must match a numeric SQL field in the related table. For tht reason, we use a distinct entity `SettingSequence` for which the `value` field/column is an integer.",
+                'default'           => false
+            ],
+
             'type' => [
                 'type'              => 'string',
                 'selection'         => [
@@ -92,19 +99,15 @@ class Setting extends Model {
                     'string'
                 ],
                 'description'       => 'The format of data stored by the param.',
-                'required'          => true
+                'default'           => 'string',
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'is_multilang' => [
                 'type'              => 'boolean',
                 'description'       => "Marks the setting as translatable.",
-                'default'           => false
-            ],
-
-            'is_sequence' => [
-                'type'              => 'boolean',
-                'description'       => "Marks the setting as a numeric sequence.",
-                'default'           => false
+                'default'           => false,
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'form_control' => [
@@ -117,7 +120,9 @@ class Setting extends Model {
                 ],
                 'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
-                'multilang'         => true
+                'default'           => 'input',
+                'multilang'         => true,
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'setting_values_ids' => [
@@ -144,7 +149,8 @@ class Setting extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\setting\SettingChoice',
                 'foreign_field'     => 'setting_id',
-                'description'       => 'List of possible values related to the setting.'
+                'description'       => 'List of possible values related to the setting.',
+                'visible'           => ['is_sequence', '=', false]
             ]
 
         ];
