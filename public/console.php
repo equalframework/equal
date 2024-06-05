@@ -378,7 +378,14 @@ if(!count($_GET)) {
                 content = content.replaceAll("$type", info.type);
                 content = content.replaceAll("$class", info.class);
                 content = content.replaceAll("$icon", info.icon);
-                content = content.replaceAll("$msg", line.message);
+                content = content.replaceAll(
+                            "$msg",
+                            line.message.replace(/&/g, "&amp;")
+                                        .replace(/</g, "&lt;")
+                                        .replace(/>/g, "&gt;")
+                                        .replace(/"/g, "&quot;")
+                                        .replace(/\'/g, "&#039;")
+                          );
                 div.innerHTML = content;
 
                 if(line.match) {
@@ -491,7 +498,7 @@ if(!count($_GET)) {
 
 
         <div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
-            <form id="searchForm" style="padding: 20px; background: #f5f5f5; margin: 5px; border: solid 1px #dfdfdf; border-radius: 5px;">
+            <form id="searchForm" style="padding: 20px; background: #f5f5f5; margin: 5px; border: solid 1px #dfdfdf; border-radius: 15px;">
                 <div style="display: flex; align-items: flex-end;">
                     <div style="display: flex; flex-direction: column;">
                         <label>Level:</label>
@@ -533,10 +540,10 @@ if(!count($_GET)) {
                         <button type="submit" class="btn btn-info">Go</button>
                     </div>
                     <div style="display: flex; flex-direction: column; margin-left:50px">
-                        <a href="#end" class="btn btn-info" title="Jump to bottom" style="width: 34px;"><i class="fa fa-long-arrow-down"></i></a>
+                        <a href="#end" class="btn btn-info" title="Jump to bottom" style="border-radius: 50%; width: 34px;"><i class="fa fa-long-arrow-down"></i></a>
                     </div>
                     <div style="display: flex; flex-direction: column; margin-left:10px">
-                        <a href="#start" class="btn btn-info" title="Jump to top" style="width: 34px;"><i class="fa fa-long-arrow-up"></i></a>
+                        <a href="#start" class="btn btn-info" title="Jump to top" style="border-radius: 50%; width: 34px;"><i class="fa fa-long-arrow-up"></i></a>
                     </div>
                     <div style="margin-left: auto;">
                         <label>File:</label>
