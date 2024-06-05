@@ -33,7 +33,15 @@
             {
                 "type": "field",
                 "value": "type",
-                "width": "10%"
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "is_sequence",
+                "label": "sequence",
+                "width": "10%",
+                "sortable": true
             },
             {
                 "type": "field",

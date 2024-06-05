@@ -36,17 +36,15 @@ class Setting extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
-                'onupdate'          => 'onupdateCode',
                 'required'          => true,
-                'dependencies'      => ['name']
+                'dependents'        => ['name', 'setting_values_ids' => ['name']]
             ],
 
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
-                'onupdate'          => 'onupdatePackage',
                 'default'           => 'core',
-                'dependencies'      => ['name']
+                'dependents'        => ['name', 'setting_values_ids' => ['name']]
             ],
 
             'section' => [
@@ -61,10 +59,9 @@ class Setting extends Model {
             'section_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\SettingSection',
-                'onupdate'          => 'onupdateSectionId',
                 'description'       => 'Section the setting relates to.',
                 'required'          => true,
-                'dependencies'      => ['section', 'name']
+                'dependents'        => ['section', 'name', 'setting_values_ids' => ['name']]
             ],
 
             'title' => [
@@ -100,7 +97,13 @@ class Setting extends Model {
 
             'is_multilang' => [
                 'type'              => 'boolean',
-                'description'       => "Mark setting as translatable.",
+                'description'       => "Marks the setting as translatable.",
+                'default'           => false
+            ],
+
+            'is_sequence' => [
+                'type'              => 'boolean',
+                'description'       => "Marks the setting as a numeric sequence.",
                 'default'           => false
             ],
 
@@ -123,7 +126,18 @@ class Setting extends Model {
                 'foreign_field'     => 'setting_id',
                 'sort'              => 'asc',
                 'order'             => 'user_id',
-                'description'       => 'List of values related to the setting.'
+                'description'       => 'List of values related to the setting.',
+                'visible'           => ['is_sequence', '=', false]
+            ],
+
+            'setting_sequences_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\setting\SettingSequence',
+                'foreign_field'     => 'setting_id',
+                'sort'              => 'asc',
+                'order'             => 'user_id',
+                'description'       => 'List of sequences related to the setting.',
+                'visible'           => ['is_sequence', '=', true]
             ],
 
             'setting_choices_ids' => [
@@ -136,45 +150,20 @@ class Setting extends Model {
         ];
     }
 
-    public static function onupdateCode($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function onupdateSectionId($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function onupdatePackage($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function calcSection($om, $ids, $lang) {
+    public static function calcSection($self) {
         $result = [];
-        $settings = $om->read(self::getType(), $ids, ['section_id.code'], $lang);
-        if($settings > 0 && count($settings)) {
-            foreach($settings as $id => $setting) {
-                $result[$id] = $setting['section_id.code'];
-            }
+        $self->read(['section_id' => 'code']);
+        foreach($self as $id => $setting) {
+            $result[$id] = $setting['section_id']['code'];
         }
         return $result;
     }
 
-    public static function calcName($om, $oids, $lang) {
+    public static function calcName($self) {
         $result = [];
-        $settings = $om->read(self::getType(), $oids, ['package', 'section', 'code'], $lang);
-        if($settings > 0 && count($settings)) {
-            foreach($settings as $oid => $odata) {
-                $result[$oid] = $odata['package'].'.'.$odata['section'].'.'.$odata['code'];
-            }
+        $self->read(['package', 'section', 'code']);
+        foreach($self as $id => $setting) {
+            $result[$id] = $setting['package'].'.'.$setting['section'].'.'.$setting['code'];
         }
         return $result;
     }
@@ -184,7 +173,6 @@ class Setting extends Model {
             ['package', 'section_id', 'code']
         ];
     }
-
 
 
     /**
@@ -328,29 +316,22 @@ class Setting extends Model {
 
         if($settings_ids > 0 && count($settings_ids)) {
 
-            $settings = $orm->read(self::getType(), $settings_ids, ['type', 'is_multilang', 'setting_values_ids']);
+            $settings = $orm->read(self::getType(), $settings_ids, ['type', 'setting_sequences_ids']);
 
             if($settings > 0 && count($settings)) {
                 // #memo - there should be exactly one setting matching the criterias
                 $setting = array_pop($settings);
 
-                $values_lang = constant('DEFAULT_LANG');
-                if($setting['is_multilang']) {
-                    $values_lang = $lang;
-                }
-
-                $setting_id = 0;
-                $setting_values = $orm->read(SettingValue::getType(), $setting['setting_values_ids'], ['id', 'user_id'], $values_lang);
-                if($setting_values > 0) {
-                    foreach($setting_values as $setting_value) {
-                        if(intval($setting_value['user_id']) == intval($selector['user_id'] ?? 0)) {
-                            $setting_id = $setting_value['id'];
-                            break;
-                        }
+                $setting_sequence_id = 0;
+                $setting_sequences = $orm->read(SettingSequence::getType(), $setting['setting_sequences_ids'], ['id']);
+                if($setting_sequences > 0) {
+                    foreach($setting_sequences as $sequence) {
+                        $setting_sequence_id = $sequence['id'];
+                        break;
                     }
                 }
-                if($setting_id > 0) {
-                    $result = $orm->fetchAndAdd(SettingValue::getType(), $setting_id, 'value', $increment);
+                if($setting_sequence_id > 0) {
+                    $result = $orm->fetchAndAdd(SettingSequence::getType(), $setting_sequence_id, 'value', $increment);
                 }
             }
         }

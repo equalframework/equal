@@ -8,7 +8,7 @@ namespace core\setting;
 
 use equal\orm\Model;
 
-class SettingValue extends Model {
+class SettingSequence extends Model {
 
     public static function getName() {
         return 'Configuration value';
@@ -33,24 +33,16 @@ class SettingValue extends Model {
             'setting_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\Setting',
-                'description'       => 'Setting the value relates to.',
+                'description'       => 'Setting the sequence relates to.',
                 'ondelete'          => 'cascade',
                 'required'          => true
             ],
 
-            'user_id' => [
-                'type'              => 'many2one',
-                'foreign_object'    => 'core\User',
-                'description'       => 'User the setting is specific to (optional).',
-                'default'           => 0,
-                'ondelete'          => 'cascade'
-            ],
-
             'value' => [
-                'type'              => 'string',
-                'description'       => 'JSON value of the parameter.',
-                'help'              => 'For settings not having the is_multilang field set, translations are ignored.',
-                'multilang'         => true
+                'type'              => 'integer',
+                'description'       => 'Value of the sequence.',
+                'help'              => 'A sequence is always a positive integer. Sequences can benefit from the fetch_and_add method.',
+                'multilang'         => false
             ]
 
         ];
@@ -59,15 +51,15 @@ class SettingValue extends Model {
     public static function calcName($self) {
         $result = [];
         $self->read(['setting_id' => ['name']]);
-        foreach($self as $id => $value) {
-            $result[$id] = $value['setting_id']['name'];
+        foreach($self as $id => $sequence) {
+            $result[$id] = $sequence['setting_id']['name'];
         }
         return $result;
     }
 
     public function getUnique() {
         return [
-            ['setting_id', 'user_id']
+            ['setting_id']
         ];
     }
 }
