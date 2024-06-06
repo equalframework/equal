@@ -13,5 +13,15 @@
             "admins"
         ]
     },
+    "params": {
+        "menus": {
+          "left": "settings.left"
+        },
+        "context": {
+          "description": "Setting App root context.",
+          "entity": "core\\Setting",
+          "view": "list.default"
+        }
+    },
     "show_in_apps": true
 }
