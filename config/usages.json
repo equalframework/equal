@@ -1,4 +1,5 @@
 {
+
     "string" : {
         "application" : {
             "subusages" : {
@@ -38,29 +39,33 @@
             "length_free" : true,
             "boundary" : true
         },
-        "url" : {
+        "uri" : {
             "subusages" : {
-                "mailto": {},
-                "payto" : {},
-                "tel"   : {},
-                "http"  : {},
-                "ftp"   : {}
-            }
-        },
-        "urn" : {
-            "subusages" : {
-                "isbn" : {
-                    "length" : [
-                        10,
-                        13
-                    ],
+                "url" : {
                     "variations" : {
-                        "10" : {},
-                        "13" : {}
+                        "mailto": {},
+                        "payto" : {},
+                        "tel"   : {},
+                        "http"  : {},
+                        "ftp"   : {}
                     }
                 },
-                "iban" : {},
-                "ean"  : {}
+                "urn" : {
+                    "variations" : {
+                        "iban": {},
+                        "isbn" : {
+                            "length" : [
+                                10,
+                                13
+                            ]
+                        },
+                        "ean"   : {
+                            "length" : [
+                                13
+                            ]
+                        }
+                    }
+                }
             }
         },
         "email" : {},
@@ -184,6 +189,15 @@
             }
         }
     },
+    "boolean" : {
+        "number" : {
+            "subusages" : {
+                "boolean" : {}
+            },
+            "length_free" : true,
+            "boundary" : true
+        }
+    },
     "integer" : {
         "number" : {
             "subusages" : {
@@ -224,21 +238,6 @@
         },
         "length_free" : true,
         "boundary" : true
-    },
-    "array" : {
-        "array" : {
-            "subusages" :  {
-                "plain" : {
-                    "boundary" : true
-                },
-                "domain" : {
-                    "boundary" : false
-                },
-                "clause" : {
-                    "boundary" : false
-                }
-            }
-        }
     },
     "binary" : {
         "image" : {
@@ -281,6 +280,21 @@
         "video" : {
             "x-msvideo" : {},
             "webm" : {}
+        }
+    },
+    "array" : {
+        "array" : {
+            "subusages" :  {
+                "plain" : {
+                    "boundary" : true
+                },
+                "domain" : {
+                    "boundary" : false
+                },
+                "clause" : {
+                    "boundary" : false
+                }
+            }
         }
     }
 }
