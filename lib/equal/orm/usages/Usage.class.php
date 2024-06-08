@@ -111,7 +111,6 @@ class Usage {
      * @var array */
     private $variations = [];
 
-
     /**
      * @param string $usage_str   Usage string: string describing the usage.
      *
