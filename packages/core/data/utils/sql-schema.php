@@ -7,7 +7,6 @@
 use equal\orm\ObjectManager;
 use equal\db\DBConnector;
 use equal\data\adapt\DataAdapterProviderSql;
-use equal\orm\Field;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -41,19 +40,13 @@ list($params, $providers) = eQual::announce([
  */
 ['context' => $context, 'orm' => $orm] = $providers;
 
-$json = run('do', 'test_db-access');
-if(strlen($json)) {
-    // relay result
-    print($json);
-    // return an error code
-    exit(1);
-}
+eQual::run('do', 'test_db-access');
 
 // retrieve connection object
 $db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 if(!$db) {
-    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_database', EQ_ERROR_INVALID_CONFIG);
 }
 
 $dap = new DataAdapterProviderSql();
@@ -74,7 +67,7 @@ foreach($classes as $class) {
     $model = $orm->getModel($entity);
 
     if(!is_object($model)) {
-        throw new Exception("unknown class '{$entity}'", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown class '{$entity}'", EQ_ERROR_UNKNOWN_OBJECT);
     }
 
     // get the complete schema of the object (including special fields)
@@ -87,8 +80,7 @@ foreach($classes as $class) {
         $processed_columns[$table] = [];
     }
 
-    // #memo - deleting tables prevents keeping data across inherited classes
-    // $result[] = "DROP TABLE IF EXISTS `{$table_name}`;";
+    // #memo - we cannot delete tables since it prevents keeping data across inherited classes
 
     // fetch existing column
     $columns = $db->getTableColumns($table);
@@ -108,7 +100,7 @@ foreach($classes as $class) {
 
         $processed_columns[$table][$field] = true;
 
-        $f = new Field($schema[$field], $field);
+        $f = $model->getField($field);
         $descriptor = $f->getDescriptor();
 
         if($descriptor['type'] == 'one2many') {
@@ -127,15 +119,14 @@ foreach($classes as $class) {
             }
         }
 
-        $usage = $f->getUsage();
-
-        $adapter = $dap->get($usage->getName());
+        $adapter = $dap->get($f->getContentType());
         if(!$adapter) {
             throw new Exception('unresolved_adapter', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $type = $adapter->castOutType($usage);
+        $type = $adapter->castOutType($f->getUsage());
         if(!strlen($type)) {
+            trigger_error("ORM::unresolved type for usage {$usage->getName()}", EQ_REPORT_DEBUG);
             throw new Exception('unresolved_sql_type', EQ_ERROR_INVALID_CONFIG);
         }
 
@@ -186,9 +177,9 @@ foreach($classes as $class) {
         $constraints = (array) $model->getUnique();
         $map_index_fields = [];
         foreach($constraints as $uniques) {
-            foreach((array) $uniques as $unique) {
-                if(isset($schema[$unique])) {
-                    $map_index_fields[$unique] = true;
+            foreach((array) $uniques as $unique_field) {
+                if(isset($schema[$unique_field])) {
+                    $map_index_fields[$unique_field] = true;
                 }
             }
         }
@@ -220,7 +211,7 @@ foreach($m2m_tables as $table => $columns) {
             continue;
         }
 
-        $adapter = $dap->get('number/integer');
+        $adapter = $dap->get('number/natural');
 
         $result[] = $db->getQueryAddColumn($table, $column, [
             'type'      => $adapter->castOutType(),
