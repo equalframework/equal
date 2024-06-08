@@ -34,7 +34,7 @@ class DataAdapterProvider extends Service implements AdapterProvider {
      *  application/sql.t-sql
      *
      */
-    public function get(string $content_type) {
+    public function get(string $content_type): DataAdapter {
         static $adapters = [];
 
         /** @var DataAdapter */
