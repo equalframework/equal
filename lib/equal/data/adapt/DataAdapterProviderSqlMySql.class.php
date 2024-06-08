@@ -12,40 +12,40 @@ class DataAdapterProviderSqlMySql implements AdapterProvider {
     const CONFIG = [
         // keys match the name of the supported UsageTypes
         'number' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'boolean'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBoolean',
-            'natural'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'integer'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'real'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlReal'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlIntegerMySql',
+            'boolean'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlBooleanMySql',
+            'natural'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlIntegerMySql',
+            'integer'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlIntegerMySql',
+            'real'          => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlRealMySql'
         ],
         'amount' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlReal'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlRealMySql'
         ],
         'text'      => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTextMySql'
         ],
         'time' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlTime'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlTimeMySql'
         ],
         'datetime' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlDateTimeMySql'
         ],
         'date' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlDate',
-            'plain'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlDate',
-            'datetime'      => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
-            'time'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
-            'year'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'month'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlDateMySql',
+            'plain'         => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlDateMySql',
+            'datetime'      => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlDateTimeMySql',
+            'time'          => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlDateTimeMySql',
+            'year'          => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlIntegerMySql',
+            'month'         => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlIntegerMySql'
         ],
         'image'     => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBinary'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlBinaryMySql'
         ],
         'binary'    => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBinary'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlBinaryMySql'
         ],
         'array'     => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlArray'
+            'default'       => 'equal\data\adapt\adapters\sql\mysql\DataAdapterSqlArrayMySql'
         ]
     ];
 
