@@ -62,9 +62,25 @@ class UsageFactory {
         $usageInstance = null;
 
         switch($type) {
-            // string usages
+            case 'number':
+                $usageInstance = new UsageNumber($usage);
+                break;
             case 'text':
                 $usageInstance = new UsageText($usage);
+                break;
+            case 'date':
+                $usageInstance = new UsageDate($usage);
+                break;
+            case 'time':
+                $usageInstance = new UsageTime($usage);
+                break;
+            case 'array':
+                $usageInstance = new UsageArray($usage);
+                break;
+
+            /* non-generic content-types */
+            case 'amount':
+                $usageInstance = new UsageAmount($usage);
                 break;
             case 'coordinate':
                 break;
@@ -73,13 +89,6 @@ class UsageFactory {
                 break;
             case 'currency':
                 $usageInstance = new UsageCurrency($usage);
-                break;
-            // datetime usages
-            case 'date':
-                $usageInstance = new UsageDate($usage);
-                break;
-            case 'time':
-                $usageInstance = new UsageTime($usage);
                 break;
             case 'email':
                 $usageInstance = new UsageEmail($usage);
@@ -95,13 +104,6 @@ class UsageFactory {
             case 'language':
                 $usageInstance = new UsageLanguage($usage);
                 break;
-            // numeric usages
-            case 'amount':
-                $usageInstance = new UsageAmount($usage);
-                break;
-            case 'number':
-                $usageInstance = new UsageNumber($usage);
-                break;
             case 'password':
                 $usageInstance = new UsagePassword($usage);
                 break;
@@ -110,9 +112,6 @@ class UsageFactory {
                 break;
             case 'uri':
                 $usageInstance = new UsageUri($usage);
-                break;
-            case 'array':
-                $usageInstance = new UsageArray($usage);
                 break;
             default:
                 $usageInstance = new Usage($usage);
