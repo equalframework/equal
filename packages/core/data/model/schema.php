@@ -93,7 +93,7 @@ if(!count($data)) {
             if(is_callable($defaults[$field])) {
                 $default = call_user_func($defaults[$field], $orm);
             }
-            $f = new Field($schema[$field]);
+            $f = $model->getField($field);
             $data['fields'][$field]['default'] = $adapter->adaptOut($default, $f->getUsage());
         }
     }
