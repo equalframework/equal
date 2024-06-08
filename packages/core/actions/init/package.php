@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
@@ -12,16 +12,16 @@ use equal\orm\Field;
 $packages = eQual::run('get', 'config_packages');
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Initialize database for given package. If no package is given, initialize core package.',
+    'description'   => 'Initialize a package by populating the database with tables mapping the entities defined in the given package and its dependencies.',
     'params'        => [
         'package' => [
-            'description'   => 'Package for which we want SQL schema.',
+            'description'   => 'Package that must be initialized.',
             'type'          => 'string',
             'usage'         => 'orm/package',
-            'default'       => 'core'
+            'required'      => true
         ],
         'cascade' => [
-            'description'   => 'Cascade initialization of the packages marked as dependencies.',
+            'description'   => 'Request cascade initialization of the dependencies.',
             'type'          => 'boolean',
             'default'       => true
         ],
@@ -41,7 +41,7 @@ list($params, $providers) = eQual::announce([
             'default'       => false
         ],
         'composer' => [
-            'description'   => 'Flag for requesting initialization of composer dependencies.',
+            'description'   => 'Request initialization of composer dependencies (`/vendor`).',
             'type'          => 'boolean',
             'default'       => true
         ],
@@ -56,14 +56,13 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
- * @var \equal\error\Reporter            $reporter
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
+ * @var \equal\error\Reporter                   $reporter
  */
-list($context, $orm, $dap, $reporter) = [$providers['context'], $providers['orm'], $providers['adapt'], $providers['report']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
 
-/** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
 
 // make sure DB is available
@@ -73,7 +72,7 @@ eQual::run('do', 'test_db-access');
 $db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
 if(!$db) {
-    throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('missing_database', EQ_ERROR_INVALID_CONFIG);
 }
 
 $db_class = get_class($db);
@@ -91,7 +90,7 @@ $package_manifest = [];
 if(file_exists("packages/{$params['package']}/manifest.json")) {
     $package_manifest = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
     if(!$package_manifest) {
-        throw new Exception("Invalid manifest for package {$params['package']}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+        throw new Exception("Invalid manifest for package {$params['package']}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
     }
 }
 
@@ -112,7 +111,7 @@ if($params['cascade'] && isset($package_manifest['depends_on']) && is_array($pac
             }
             catch(Exception $e) {
                 if($e->getCode()) {
-                    throw new Exception("Unable to initialize dependency package {$dependency}: ".$e->getMessage(), QN_ERROR_UNKNOWN);
+                    throw new Exception("Unable to initialize dependency package {$dependency}: ".$e->getMessage(), EQ_ERROR_UNKNOWN);
                 }
             }
         }
@@ -281,7 +280,7 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         if(file_exists("$app_path/manifest.json")) {
             $app_manifest = json_decode(file_get_contents("$app_path/manifest.json"), true);
             if(!$package_manifest) {
-                throw new Exception("Invalid manifest for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+                throw new Exception("Invalid manifest for app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
             }
         }
 
@@ -289,15 +288,15 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         if(file_exists("public/$app")) {
             // remove existing folder, if present
             if(FS::removeDir("public/$app")) {
-                // trigger_error("PHP::error removing folder : $message", QN_REPORT_DEBUG);
-                // throw new Exception('fs_removing_file_failure', QN_ERROR_UNKNOWN);
+                // trigger_error("PHP::error removing folder : $message", EQ_REPORT_DEBUG);
+                // throw new Exception('fs_removing_file_failure', EQ_ERROR_UNKNOWN);
             }
         }
 
         // (re)create the (empty) folder
         if(!mkdir("public/$app")) {
-            // trigger_error("PHP::error moving file : $message", QN_REPORT_DEBUG);
-            // throw new Exception('fs_moving_file_failure', QN_ERROR_UNKNOWN);
+            // trigger_error("PHP::error moving file : $message", EQ_REPORT_DEBUG);
+            // throw new Exception('fs_moving_file_failure', EQ_ERROR_UNKNOWN);
         }
 
         // verify the checksum
@@ -305,14 +304,14 @@ if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
         if(isset($app_manifest['checksum'])) {
             if($version_md5 != $app_manifest['checksum']) {
                 // #todo - not required for now, nice to have: would increase version identification
-                // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+                // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
             }
         }
 
         // extract the app archive
         $zip = new ZipArchive;
         if (!$zip->open("$app_path/web.app")) {
-            throw new Exception("Unable to export app {$app}: ".json_last_error_msg().'.', QN_ERROR_UNKNOWN);
+            throw new Exception("Unable to export app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
         }
         // export to public folder
         $zip->extractTo("public/$app/");
