@@ -39,9 +39,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
-
-// $params['package'] = strtolower($params['package']);
+['context' => $context, 'orm' => $orm] = $providers;
 
 $json = run('do', 'test_db-access');
 if(strlen($json)) {
@@ -50,6 +48,7 @@ if(strlen($json)) {
     // return an error code
     exit(1);
 }
+
 // retrieve connection object
 $db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constant('DB_NAME'), constant('DB_USER'), constant('DB_PASSWORD'), constant('DB_DBMS'))->connect();
 
@@ -57,7 +56,8 @@ if(!$db) {
     throw new Exception('missing_database', QN_ERROR_INVALID_CONFIG);
 }
 
-$db_class = get_class($db);
+$dap = new DataAdapterProviderSql();
+
 $result = [];
 $m2m_tables = [];
 
@@ -105,86 +105,84 @@ foreach($classes as $class) {
         if(isset($processed_columns[$table][$field])) {
             continue;
         }
-        $descriptor = $schema[$field];
 
-        /*
-        $f = new Field($descriptor, $field);
-        $this->dap = new DataAdapterProviderSql();
-        $usage = $f->getUsage();
-        $str_usage = $usage->getName();
-        $adapter = $this->dap->get($str_usage);
-        $type = $adapter->castOutType();
-        if(!strlen($type)) {
-            throw new Exception('unknown_sql_type', EQ_ERROR_INVALID_CONFIG);
+        $processed_columns[$table][$field] = true;
+
+        $f = new Field($schema[$field], $field);
+        $descriptor = $f->getDescriptor();
+
+        if($descriptor['type'] == 'one2many') {
+            continue;
         }
-        */
-
-        if(in_array($descriptor['type'], array_keys($db_class::$types_associations))) {
-            $type = $db->getSqlType($descriptor['type']);
-
-            $column_descriptor = [
-                    'type'      => $type,
-                    'null'      => true
-                ];
-
-            // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
-            if(isset($descriptor['usage']) && isset(ObjectManager::$usages_associations[$descriptor['usage']])) {
-                // $type = ObjectManager::$usages_associations[$descriptor['usage']];
+        elseif($descriptor['type'] == 'many2many') {
+            if(!isset($m2m_tables[$descriptor['rel_table']])) {
+                $m2m_tables[$descriptor['rel_table']] = [ $descriptor['rel_foreign_key'],  $descriptor['rel_local_key'] ];
             }
-
-            if($field == 'id') {
-                continue;
-                // #memo - id column is added at table creation (auto_increment + primary key)
-            }
-            elseif(in_array($field, array('creator','modifier'))) {
-                $column_descriptor['null'] = false;
-            }
-            // generate SQL for column creation
-            $result[] = $db->getQueryAddColumn($table, $field, $column_descriptor);
-
-            // #memo - default is supported and handled by the ORM, not by the DBMS
-            // if table already exists, set column value according to default, for all existing records
-            if(count($columns) && isset($descriptor['default'])) {
-                // #todo - computed defaults are not supported for existing objects
-                $default = null;
-                if(is_callable($descriptor['default'])) {
-                    // either a php function (or a function from the global scope) or a closure object
-                    if(is_object($descriptor['default'])) {
-                        // default is a closure
-                        $default = $descriptor['default']();
-                    }
-                }
-                elseif(!is_string($descriptor['default']) || !method_exists($model->getType(), $descriptor['default'])) {
-                    // default is a scalar value
-                    $default = $descriptor['default'];
-                }
-                $result[] = $db->getQuerySetRecords($table, [$field => $default]);
-            }
+            continue;
         }
         elseif($descriptor['type'] == 'computed') {
             if(!isset($descriptor['store']) || !$descriptor['store']) {
                 // skip non-stored computed fields
                 continue;
             }
-            $result[] = $db->getQueryAddColumn($table, $field, [
-                    'type'      => $db->getSqlType($descriptor['result_type']),
-                    'null'      => true,
-                    'default'   => null
-                ]);
         }
-        elseif($descriptor['type'] == 'many2many') {
-            if(!isset($m2m_tables[$descriptor['rel_table']])) {
-                $m2m_tables[$descriptor['rel_table']] = [ $descriptor['rel_foreign_key'],  $descriptor['rel_local_key'] ];
+
+        $usage = $f->getUsage();
+
+        $adapter = $dap->get($usage->getName());
+        if(!$adapter) {
+            throw new Exception('unresolved_adapter', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        $type = $adapter->castOutType($usage);
+        if(!strlen($type)) {
+            throw new Exception('unresolved_sql_type', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        $column_descriptor = [
+                'type'      => $type,
+                'null'      => true
+            ];
+
+        // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
+        if(isset($descriptor['usage']) && isset(ObjectManager::$usages_associations[$descriptor['usage']])) {
+            // $type = ObjectManager::$usages_associations[$descriptor['usage']];
+        }
+
+        if($field == 'id') {
+            continue;
+            // #memo - id column is added at table creation (auto_increment + primary key)
+        }
+        elseif(in_array($field, array('creator','modifier'))) {
+            $column_descriptor['null'] = false;
+        }
+        // generate SQL for column creation
+        $result[] = $db->getQueryAddColumn($table, $field, $column_descriptor);
+
+        // #memo - default is supported and handled by the ORM, not by the DBMS
+        // if table already exists, set column value according to default, for all existing records
+        if(count($columns) && isset($descriptor['default'])) {
+            // #todo - computed defaults are not supported for existing objects
+            $default = null;
+            if(is_callable($descriptor['default'])) {
+                // either a php function (or a function from the global scope) or a closure object
+                if(is_object($descriptor['default'])) {
+                    // default is a closure
+                    $default = $descriptor['default']();
+                }
             }
+            elseif(!is_string($descriptor['default']) || !method_exists($model->getType(), $descriptor['default'])) {
+                // default is a scalar value
+                $default = $descriptor['default'];
+            }
+            $result[] = $db->getQuerySetRecords($table, [$field => $default]);
         }
-        $processed_columns[$table][$field] = true;
     }
 
     if(method_exists($model, 'getUnique')) {
         // #memo - Classes are allowed to override the getUnique method from their parent class. Unique checks are performed by ORM.
-        // So we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
+        // Therefore we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
         // However, even if check is made by ORM, each column member of a unique tuple must be indexed (for performance concerns).
-
         $constraints = (array) $model->getUnique();
         $map_index_fields = [];
         foreach($constraints as $uniques) {
@@ -221,9 +219,11 @@ foreach($m2m_tables as $table => $columns) {
         if(isset($processed_columns[$table][$column])) {
             continue;
         }
-        $type = $db->getSqlType('integer');
+
+        $adapter = $dap->get('number/integer');
+
         $result[] = $db->getQueryAddColumn($table, $column, [
-            'type'      => $type,
+            'type'      => $adapter->castOutType(),
             'null'      => false
         ]);
         $processed_columns[$table][$column] = true;
