@@ -46,6 +46,9 @@ class UsageText extends Usage {
                             });
                             return empty($filtered_errors);
                             break;
+                        case 'json':
+                            @json_decode($value);
+                            return (json_last_error() === JSON_ERROR_NONE);
                         case 'xml':
                             $xml = new \XMLReader();
                             $xml->xml($value);
