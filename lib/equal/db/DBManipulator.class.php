@@ -161,7 +161,8 @@ class DBManipulator {
     /**
      * Returns the SQL type to use for a given ORM type.
      * This method is meant to be overloaded in children DBManipulator classes.
-    */
+     * @deprecated - use DataAdapterProviderSql::get(<usage>)
+     */
     public function getSqlType($type) {
         return '';
     }
