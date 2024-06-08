@@ -925,7 +925,7 @@ namespace config {
                         $help .= str_pad("--".$name, 20, ' ', STR_PAD_RIGHT);
                         $required = (isset($info['required']))?'(required)':'';
                         $help .= str_pad($required, 12, ' ');
-                        $type = $info['type'].( (isset($info['usage']))?'>'.$info['usage']:'');
+                        $type = $info['type'].( (isset($info['usage']))?' > '.$info['usage']:'');
                         $help .= str_pad($type, 28, ' ');
                         $help .= $info['description']."\n";
                     }
