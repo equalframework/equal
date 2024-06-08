@@ -29,7 +29,7 @@ class Field {
     private $name = '';
 
     /**
-     * Pseudo type of the Field instance.
+     * ORM type of the Field instance.
      * @var string
      */
     private $type = null;
@@ -77,11 +77,31 @@ class Field {
             'many2many'     => 'array',
             'array'         => 'array'
         ];
-        $type = $this->type;
-        if($this->type == 'computed' && isset($this->descriptor['result_type'])) {
-            $type = $this->descriptor['result_type'];
-        }
+        $type = $this->descriptor['result_type'];
         return $map[$type] ?? $type;
+    }
+
+    /**
+     * Provides the pseudo Content-Type associated with the ORM type of the field.
+     * Such Content-Types should be recognized by any DataAdapter.
+     */
+    public function getContentType(): string {
+        static $map = [
+            'boolean'       => 'number/boolean',
+            'integer'       => 'number/integer',
+            'float'         => 'number/real',
+            'string'        => 'text/plain',
+            'date'          => 'date/plain',
+            'datetime'      => 'date/datetime',
+            'time'          => 'time/plain',
+            'binary'        => 'binary/plain',
+            'many2one'      => 'number/natural',
+            'one2many'      => 'array',
+            'many2many'     => 'array',
+            'array'         => 'array'
+        ];
+        $type = $this->descriptor['result_type'];
+        return $map[$type];
     }
 
     public function getUsage(): Usage {
