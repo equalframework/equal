@@ -35,7 +35,7 @@ class UsageNumber extends Usage {
         $length = parent::getLength();
         if($this->getSubtype() == 'real') {
             // single number as length means 'scale': use default precision
-            if($length && $length == $precision) {
+            if($length == $precision) {
                 $precision = 10;
             }
             else {
@@ -98,9 +98,9 @@ class UsageNumber extends Usage {
                         'message'   => 'Value does not comply with real number format.',
                         'function'  =>  function($value) {
                             // expected len format is `precision.scale`
-                            $scale = $this->getScale();
+                            $decimals = $this->getScale();
                             $integers = $this->getPrecision();
-                            return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$scale.'})?$/', (string) $value);
+                            return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$decimals.'})?$/', (string) $value);
                         }
                     ]
                 ];

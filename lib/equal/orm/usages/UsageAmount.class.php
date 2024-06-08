@@ -58,13 +58,13 @@ class UsageAmount extends Usage {
             'invalid_amount' => [
                 'message'   => 'Malformed amount or size overflow.',
                 'function'  =>  function($value) {
-                    $scale = $this->getScale();
-                    $precision = $this->getPrecision();
+                    $decimals = $this->getScale();
+                    $integers = $this->getPrecision();
                     switch($this->getSubtype()) {
                         case 'money':
                         case 'percent':
                         case 'rate':
-                            return preg_match('/^[+-]?[0-9]{0,'.$precision.'}(\.[0-9]{0,'.$scale.'})?$/', (string) $value);
+                            return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{0,'.$decimals.'})?$/', (string) $value);
                     }
                     return true;
                 }
