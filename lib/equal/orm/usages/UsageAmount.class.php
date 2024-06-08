@@ -35,11 +35,11 @@ class UsageAmount extends Usage {
         $precision = parent::getPrecision();
         $length = parent::getLength();
         // single number as length means 'scale': use default precision
-        if($length && $length == $precision) {
+        if($length == $precision) {
             $precision = 10;
         }
         else {
-            // use provided scale, fallback to default scale
+            // use provided precision, fallback to default
             $precision = ($precision)?$precision:2;
         }
         return $precision;
@@ -59,11 +59,12 @@ class UsageAmount extends Usage {
                 'message'   => 'Malformed amount or size overflow.',
                 'function'  =>  function($value) {
                     $scale = $this->getScale();
+                    $precision = $this->getPrecision();
                     switch($this->getSubtype()) {
                         case 'money':
                         case 'percent':
                         case 'rate':
-                            return preg_match('/^[+-]?[0-9]{0,9}(\.[0-9]{0,'.$scale.'})?$/', (string) $value);
+                            return preg_match('/^[+-]?[0-9]{0,'.$precision.'}(\.[0-9]{0,'.$scale.'})?$/', (string) $value);
                     }
                     return true;
                 }
