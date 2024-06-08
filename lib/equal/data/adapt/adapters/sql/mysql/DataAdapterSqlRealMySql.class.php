@@ -34,7 +34,7 @@ class DataAdapterSqlRealMySql extends DataAdapterSqlReal {
                 $usage = UsageFactory::create($usage);
             }
             $decimal_part = $usage->getScale();
-            $integer_part = $usage->getPrecision();
+            $integer_part = $usage->getPrecision() + $decimal_part;
         }
 
         return 'DECIMAL('.$integer_part.','.$decimal_part.')';
