@@ -37,7 +37,7 @@ class Log extends Model {
 
             'value' => [
                 'type'              => 'string',
-                'type'              => 'text/json',
+                'usage'             => 'text/json',
                 'description'       => "Changes (new values) made to the object, if any.",
                 'help'              => "JSON representation of the new values(diff) of the object (if changes were made)."
             ]
