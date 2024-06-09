@@ -80,37 +80,37 @@ list($context, $dap) = [$providers['context'], $providers['adapt']];
 $getImportConfig = function($config_file_path): array {
     $config_file_content = file_get_contents($config_file_path);
     if(!$config_file_content) {
-        throw new Exception('Missing import config file ' . $config_file_path, QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Missing import config file ' . $config_file_path, EQ_ERROR_INVALID_CONFIG);
     }
 
     $import_config = json_decode($config_file_content, true);
     if(!is_array($import_config)) {
-        throw new Exception('Invalid import configuration file', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Invalid import configuration file', EQ_ERROR_INVALID_CONFIG);
     }
 
     return $import_config;
 };
 
-$createOldDbConnection = function(string $dbms, string $host, int $port, string $name, string $user, string $password, string $charset, string $collation) {
-    $db_connection = DBConnection::create($dbms,$host, $port, $name, $user, $password, $charset, $collation);
+$create_old_db_connection = function(string $dbms, string $host, int $port, string $name, string $user, string $password, string $charset, string $collation) {
+    $db_connection = DBConnection::create($dbms, $host, $port, $name, $user, $password, $charset, $collation);
 
     $db_connection->connect();
     if(!$db_connection->connected()) {
         throw new Exception(
             'Unable to establish connection to DBMS host (wrong credentials) for old connection',
-            QN_ERROR_INVALID_CONFIG
+            EQ_ERROR_INVALID_CONFIG
         );
     }
 
     return $db_connection;
 };
 
-$createNewDbConnection = function() {
+$create_new_db_connection = function() {
     $db_connection = DBConnector::getInstance();
 
     $db_connection->connect();
     if(!$db_connection->connected()) {
-        throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Unable to establish connection to DBMS host (wrong credentials)', EQ_ERROR_INVALID_CONFIG);
     }
 
     return $db_connection;
@@ -261,7 +261,7 @@ $import_config = $getImportConfig(
 );
 
 /** @var DBManipulator */
-$old_db_connection = $createOldDbConnection(
+$old_db_connection = $create_old_db_connection(
         $params['db_dbms'],
         $params['db_host'],
         $params['db_port'],
@@ -273,7 +273,7 @@ $old_db_connection = $createOldDbConnection(
     );
 
 /** @var DBManipulator */
-$new_db_connection = $createNewDbConnection();
+$new_db_connection = $create_new_db_connection();
 
 $limit = 500;
 
