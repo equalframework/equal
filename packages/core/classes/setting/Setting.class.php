@@ -188,16 +188,16 @@ class Setting extends Model {
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
      * @param   $default    (optional) Default value to return if setting is not found.
-     * @param   $user_id    (optional) Retrieve the specific value assigned to a given user.
+     * @param   $selector   (optional) Retrieve the specific value assigned to a given user.
      * @param   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_value(string $package, string $section, string $code, $default=null, int $user_id=0, string $lang='en') {
+    public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang='en') {
         $result = $default;
 
         // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
-        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.$lang;
         if(!isset($GLOBALS['_equal_core_setting_cache'])) {
             $GLOBALS['_equal_core_setting_cache'] = [];
         }
@@ -234,8 +234,8 @@ class Setting extends Model {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
                     foreach($setting_values as $setting_value) {
-                        if($setting_value['user_id'] == $user_id) {
-                            $value = $setting_value['value'];
+                        $value = $setting_value['value'];
+                        if(isset($selector['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
                             break;
                         }
                     }
@@ -259,11 +259,11 @@ class Setting extends Model {
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
      * @param   $value      The new value that has to be assigned to the setting.
-     * @param   $user_id    (optional) Target the specific value assigned to a given user.
+     * @param   $selector   (optional) Target the specific value assigned to a given user.
      *
      * @return  void
      */
-    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0, $lang='en') {
+    public static function set_value(string $package, string $section, string $code, $value, array $selector=[], $lang='en') {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
@@ -286,10 +286,20 @@ class Setting extends Model {
         }
         $setting_id = reset($settings_ids);
 
-        $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
+        $domain = [ ['setting_id', '=', $setting_id] ];
+
+        foreach($selector as $field => $value) {
+            $domain[] = [$field, '=', $value];
+        }
+
+        $settings_values_ids = $om->search(SettingValue::getType(), $domain);
         if(!count($settings_values_ids)) {
+            $values = ['setting_id' => $setting_id, 'value' => $value];
+            foreach($selector as $field => $value) {
+                $values[$field] = $value;
+            }
             // value does not exist yet: create a new value
-            $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id], $lang);
+            $om->create(SettingValue::getType(), $values, $lang);
         }
         else {
             // update existing value
@@ -297,7 +307,7 @@ class Setting extends Model {
         }
 
         // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
-        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.$lang;
         if(!isset($GLOBALS['_equal_core_setting_cache'])) {
             $GLOBALS['_equal_core_setting_cache'] = [];
         }
