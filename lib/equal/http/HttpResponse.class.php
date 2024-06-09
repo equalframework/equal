@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\http;
@@ -99,7 +99,11 @@ class HttpResponse extends HttpMessage {
             case 'application/vnd.api+json':
             case 'application/x-json':
             case 'application/json':
-                $body = json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                $json_flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES;
+                if($this->headers()->getCharset() == 'UTF-8') {
+                    $json_flags |= JSON_UNESCAPED_UNICODE;
+                }
+                $body = json_encode($body, $json_flags);
                 if($body === false) {
                     throw new \Exception('invalid_json_input', QN_ERROR_UNKNOWN);
                 }
