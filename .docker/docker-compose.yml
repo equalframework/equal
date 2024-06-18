@@ -2,7 +2,7 @@ version: '3'
 services:
   equal_srv:
     image: cedricfrancoys/equal
-    container_name: equal.local    
+    container_name: equal.local
     restart: always
     ports:
       - 80:80
@@ -11,7 +11,7 @@ services:
     extra_hosts:
       - "equal.local:127.0.0.1"
     hostname: equal.local
-    domainname: local       
+    domainname: local
     environment:
       - EQ_DB_HOST=equal_db
       - EQ_DB_USER=root

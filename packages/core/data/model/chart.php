@@ -113,8 +113,8 @@ POLAR, DOUGHNUT, PIE : a single dataset, each value corresponds to a segment => 
     range_to                /
 
 Examples:
-    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-12-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]
-    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
+    /?get=model_chart&entity=sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-12-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]
+    /?get=model_chart&entity=sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
 
 */
 

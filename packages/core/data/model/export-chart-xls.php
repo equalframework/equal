@@ -108,7 +108,6 @@ foreach($params['params'] as $param => $value) {
 $values = eQual::run('get', $controller, $body, true);
 
 
-
 // generate a virtual layout
 $first = reset($values);
 $fields = array_keys($first);
