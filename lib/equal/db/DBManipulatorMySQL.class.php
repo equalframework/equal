@@ -519,8 +519,8 @@ final class DBManipulatorMySQL extends DBManipulator {
         $res = null;
         $this->sendQuery('LOCK TABLES `'.$table.'` WRITE;');
         try {
-            $res = $this->sendQuery("SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', $ids).");");
-            $this->sendQuery("UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', $ids).");");
+            $res = $this->sendQuery("SELECT `{$id_field}`, `{$field}` FROM `{$table}` WHERE `{$id_field}` in (".implode(',', (array) $ids).");");
+            $this->sendQuery("UPDATE `{$table}` SET `{$field}` = `{$field}` + $increment WHERE `{$id_field}` in (".implode(',', (array) $ids).");");
         }
         catch(\Exception $e) {
             // prevent interruption before unlocking the table
