@@ -2316,8 +2316,7 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
             // increment the field as an atomic operation
             $res = $db->incRecords($table_name, (array) $ids, $field, $increment);
-            // #todo - returned values must be similar to a
-            while ($row = $db->fetchArray($res)) {
+            while($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
                 $result[$row['id']] = $row[$field];
             }
