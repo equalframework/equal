@@ -45,6 +45,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'boolean',
             'default'       => false
         ],
+        'test' => [
+            'description'   => 'Request importing data intended for testing.',
+            'type'          => 'boolean',
+            'default'       => false
+        ],
         'composer' => [
             'description'   => 'Request initialization of composer dependencies (`/vendor`).',
             'type'          => 'boolean',
@@ -264,6 +269,57 @@ if(!$skip_package) {
         }
     }
 
+    // 2 ter) Populate tables with demo data, if requested
+    $test_folder = "packages/{$params['package']}/init/test";
+    if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
+        // handle JSON files
+        foreach (glob($test_folder."/*.json") as $json_file) {
+            $data = file_get_contents($json_file);
+            $classes = json_decode($data, true);
+            foreach($classes as $class) {
+                $entity = $class['name'];
+                $lang = $class['lang'];
+                $model = $orm->getModel($entity);
+                $schema = $model->getSchema();
+
+                $objects_ids = [];
+
+                foreach($class['data'] as $odata) {
+                    foreach($odata as $field => $value) {
+                        $f = new Field($schema[$field]);
+                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
+                    }
+
+                    if(isset($odata['id'])) {
+                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
+                        if($res > 0 && count($res)) {
+                            // object already exist, but either values or language might differ
+                        }
+                        else {
+                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
+                        }
+                        $id = $odata['id'];
+                        unset($odata['id']);
+                    }
+                    else {
+                        $id = $orm->create($entity, [], $lang);
+                    }
+                    $orm->update($entity, $id, $odata, $lang);
+                    $objects_ids[] = $id;
+                }
+
+                // force a first generation of computed fields, if any
+                $computed_fields = [];
+                foreach($schema as $field => $def) {
+                    if($def['type'] == 'computed') {
+                        $computed_fields[] = $field;
+                    }
+                }
+                $orm->read($entity, $objects_ids, $computed_fields, $lang);
+            }
+        }
+    }
+
     // 3) If a `bin` folder exists, copy its content to /bin/<package>/
     $bin_folder = "packages/{$params['package']}/init/bin";
     if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
@@ -370,6 +426,26 @@ if(!$skip_package) {
 
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
+
+    // 7) Inject config values, if present
+    if(isset($package_manifest['config']) && is_array($package_manifest['config'])) {
+        $config = [];
+
+        if(file_exists(EQ_BASEDIR.'/config/config.json')) {
+            $json = file_get_contents(EQ_BASEDIR.'/config/config.json');
+            $data = json_decode($json, true);
+            if($data) {
+                $config = $data;
+            }
+        }
+
+        foreach($package_manifest['config'] as $constant => $value) {
+            $config[$constant] = $value;
+        }
+
+        file_put_contents(EQ_BASEDIR.'/config/config.json', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
 
     // mark the package as initialized (installed)
 
