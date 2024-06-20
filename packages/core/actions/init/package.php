@@ -163,7 +163,7 @@ foreach($classes as $class) {
             }
             $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN `{$field}` {$type}";
         }
-        else if($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
+        elseif($description['type'] == 'computed' && isset($description['store']) && $description['store']) {
             $type = ObjectManager::$types_associations[$description['result_type']];
             // if a SQL type is associated to field 'usage', it prevails over the type association
             if( isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']]) ) {
@@ -171,8 +171,10 @@ foreach($classes as $class) {
             }
             $result[] = "ALTER TABLE `{$table_name}` ADD COLUMN  `{$field}` {$type} DEFAULT NULL";
         }
-        else if($description['type'] == 'many2many') {
-            if(!isset($m2m_tables[$description['rel_table']])) $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+        elseif($description['type'] == 'many2many') {
+            if(!isset($m2m_tables[$description['rel_table']])) {
+                $m2m_tables[$description['rel_table']] = array($description['rel_foreign_key'], $description['rel_local_key']);
+            }
         }
     }
     if(count($result)) {
