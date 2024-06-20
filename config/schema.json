@@ -1,4 +1,23 @@
 {
+    "APP_NAME": {
+        "type": "string",
+        "description": "Specific brand name of the application, if any.",
+        "default": "eQual"
+    },
+    "APP_LOGO_URL": {
+        "type": "string",
+        "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
+        "default": "/assets/img/logo.svg"
+    },
+    "BACKEND_URL": {
+        "type": "string",
+        "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "default": "http://equal.local",
+        "examples": [
+            "http://equal.local",
+            "http://equal.local/index.php"
+        ]
+    },
     "CIPHER_KEY": {
         "type": "string",
         "description": "Private key to use for secrets decryption. This property should be defined before any encryption/decryption operation.",
@@ -174,6 +193,11 @@
         "environment": "EQ_DB_NAME",
         "default": "equal"
     },
+    "ENV_MODE": {
+        "type": "string",
+        "description": "Possible values are: 'development', 'staging', 'production'",
+        "default": "development"
+    },
     "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
         "description": "Maximum authorized size for file upload (in octet). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
@@ -227,6 +251,25 @@
         "description": "Flag for limiting the sending of auth token to HTTPS.",
         "instant": true,
         "default": false
+    },
+    "ORG_NAME" : {
+        "type": "string",
+        "description": "Name of the organisation to which belongs the instance.",
+        "default": "eQual"
+    },
+    "ORG_URL": {
+        "type": "string",
+        "description": "URL of the official website of the organisation.",
+        "default": "https://equal.run"
+    },
+    "REST_API_URL": {
+        "type": "string",
+        "description": "The URL specific to the API path, if any. This URL should end with a slash ('/')",
+        "default": "http://equal.local/",
+        "examples": [
+            "http://equal.local/api/",
+            "http://equal.local/v1/"
+        ]
     },
     "ROOT_APP_URL": {
         "type": "string",
