@@ -113,9 +113,8 @@ foreach($classes as $class) {
                 ];
 
             // if a SQL type is associated to field 'usage', it prevails over the type association
-            // #todo
             if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
-                // $type = ObjectManager::$usages_associations[$description['usage']];
+                $column_descriptor['type'] = ObjectManager::$usages_associations[$description['usage']];
             }
 
             // #memo - default is supported by ORM, not DBMS
@@ -135,8 +134,14 @@ foreach($classes as $class) {
                 // skip non-stored computed fields
                 continue;
             }
+            $type = $db->getSqlType($description['result_type']);
+            // if a SQL type is associated to field 'usage', it prevails over the type association
+            if(isset($description['usage']) && isset(ObjectManager::$usages_associations[$description['usage']])) {
+                $type = ObjectManager::$usages_associations[$description['usage']];
+            }
+
             $result[] = $db->getQueryAddColumn($table, $field, [
-                    'type'      => $db->getSqlType($description['result_type']),
+                    'type'      => $type,
                     'null'      => true,
                     'default'   => null
                 ]);
