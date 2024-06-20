@@ -62,7 +62,7 @@ foreach($parents as $entity) {
     $package = array_shift($parts);
 
     $class_dir = implode('/', $parts);
-    $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
+    $file = EQ_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
     if(!file_exists($file)) {
         continue;
