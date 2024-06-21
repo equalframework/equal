@@ -78,6 +78,7 @@ class Tester {
             $args = [];
             $result = null;
             $success = true;
+            $start = time();
 
             if(isset($test['arrange']) && is_callable($test['arrange'])) {
                 try {
@@ -147,12 +148,44 @@ class Tester {
                 $this->failing[] = $id;
             }
 
-            if(isset($test['rollback']) && is_callable($test['rollback'])) {
-                try {
-                    $test['rollback']();
+            if(isset($test['rollback'])) {
+                if(is_callable($test['rollback'])) {
+                    try {
+                        $test['rollback']();
+                    }
+                    catch(\Exception $e) {
+                        $this->results[$id]['logs'][] = "Error while performing `rollback()`: ".$e->getMessage();
+                    }
                 }
-                catch(\Exception $e) {
-                    $this->results[$id]['logs'][] = "Error while performing `rollback()`: ".$e->getMessage();
+                elseif($test['rollback'] == 'auto') {
+                    try {
+                        $provider = \eQual::inject(['orm']);
+
+                        /** @var \equal\orm\ObjectManager $orm */
+                        $orm = $provider['orm'];
+
+                        $log_ids = $orm->search('core\Log', ['created', '>=', $start]);
+                        $logs = $orm->read('core\Log', $log_ids, ['action', 'object_class', 'object_id']);
+
+                        $map_object_to_delete = [];
+                        foreach($logs as $log) {
+                            if($log['action'] != 'create') {
+                                continue;
+                            }
+                            if(!isset($map_object_to_delete[$log['object_class']])) {
+                                $map_object_to_delete[$log['object_class']] = [];
+                            }
+                            $map_object_to_delete[$log['object_class']][] = $log['object_id'];
+                        }
+
+                        foreach($map_object_to_delete as $class => $ids) {
+                            $orm->delete($class, $ids, true);
+                        }
+
+                        $orm->delete('core\Log', $log_ids, true);
+                    } catch(\Exception $e) {
+                        $this->results[$id]['logs'][] = "Error while performing auto `rollback`: ".$e->getMessage();
+                    }
                 }
             }
 
