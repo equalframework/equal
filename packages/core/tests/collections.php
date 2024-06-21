@@ -40,5 +40,14 @@ $tests = [
                     }
                     return ($res[1]['name'] == 'admins' && $res[2]['users_ids'][1] == 'root@equal.local');
                 }
+        ],
+    '40102' => [
+            'description'       =>  "Check the return value of ::first() on an empty collection initialized with `id(\$non_existing_id)`.",
+            'act'               =>  function () use ($providers) {
+                    return User::id(9999999)->first();
+                },
+            'assert'            =>  function($result) {
+                    return $result === null;
+                }
         ]
 ];

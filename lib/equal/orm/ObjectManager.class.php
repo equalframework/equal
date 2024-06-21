@@ -460,19 +460,17 @@ class ObjectManager extends Service {
 
 
     /**
-     * Filter given identifiers and return only valid ones (whatever the status of the objects).
-     * Ids that do not match an object in the database are removed from the list.
-     * Ids of soft-deleted object are considered valid.
+     * Sanitize a value provided as `$ids`: a list of object identifiers.
+     * Return an array of valid identifiers (positive integers).
      *
-     * @param   $class
      * @param   $ids
      */
-    private function filterValidIdentifiers($class, $ids) {
+    private function sanitizeIdentifiers($ids) {
         // sanitize $ids
         if(!is_array($ids)) {
             $ids = (array) $ids;
         }
-        // pass-1 : ensure ids are positive integer values
+        // ensure ids are positive integer values
         foreach($ids as $i => $oid) {
             $id = intval($oid);
             if(!is_numeric($oid) || $id <= 0) {
@@ -483,11 +481,21 @@ class ObjectManager extends Service {
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
-        // #removed #memo - this leads to a lot of extra individual DB requests
-        /*
-        // process remaining identifiers
-        $valid_ids = [];
+        return $ids;
+    }
+
+    /**
+     * Filter given identifiers and return only valid ones (whatever the status of the objects).
+     * Ids that do not match an object in the database are removed from the list (Ids of soft-deleted object are considered valid).
+     *
+     * @param   $class
+     * @param   $ids
+     */
+    public function filterExistingIdentifiers($class, $ids) {
+        $ids = $this->sanitizeIdentifiers($ids);
+
         if(!empty($ids)) {
+            $map_valid_ids = [];
             // get DB handler (init DB connection if necessary)
             $db = $this->getDBHandler();
             $table_name = $this->getObjectTableName($class);
@@ -495,20 +503,18 @@ class ObjectManager extends Service {
             $result = $db->getRecords($table_name, 'id', $ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
-                $oid = (int) $row['id'];
-                $valid_ids[$oid] = true;
+                $id = (int) $row['id'];
+                $map_valid_ids[$id] = true;
+            }
+            foreach($ids as $i => $id) {
+                if(!isset($map_valid_ids[$id])) {
+                    unset($ids[$i]);
+                }
             }
         }
-        // pass-2 : remove ids not found in DB
-        foreach($ids as $i => $oid) {
-            if(!isset($valid_ids[$oid])) {
-                unset($ids[$i]);
-            }
-        }
-        */
+
         return $ids;
     }
-
     /**
      * Load given fields from specified class into the cache
      *
@@ -1608,7 +1614,7 @@ class ObjectManager extends Service {
                 $fields = (array) $fields;
             }
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
                 trigger_error("ORM::ignoring call with empty ids ", QN_REPORT_INFO);
@@ -1881,7 +1887,7 @@ class ObjectManager extends Service {
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
                 return $res;
@@ -2072,7 +2078,7 @@ class ObjectManager extends Service {
             // 1) pre-processing
 
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
             // ids that are left are the ones of the objects that will be (marked as) deleted
