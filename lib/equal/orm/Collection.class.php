@@ -326,29 +326,33 @@ class Collection implements \Iterator, \Countable {
      *   fields marked as readonly;
      *   and fields unknown to the current class.
      *
-     * @param   array   $fields             Associative array mapping field names with their values.
-     * @param   bool    $drop_readonly      If set to true, readonly fields are discarded.
+     * @param   array   $fields         Associative array mapping field names with their values.
+     * @param   string  $operation      If set to true, readonly fields are discarded.
      *
      * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields, bool $drop_readonly=true) {
+    private function filter(array $fields, string $operation) {
         $result = [];
         if(count($fields)) {
             $schema = $this->model->getSchema();
             // retrieve valid fields, i.e. fields from schema
             $allowed_fields = array_keys($schema);
-            if($drop_readonly) {
+            if($operation == 'create') {
+                // discard special fields (except `id` and `state`)
+                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','deleted']);
+                // #memo - all fields are allowed at creation (do not drop readonly)
+            }
+            elseif($operation == 'update') {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                    return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
-                });
+                        return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
+                    });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
+                // discard special fields (except `state`)
+                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
                 // log a notice about discarded readonly fields
                 trigger_error("ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
             }
-            // discard special fields
-            // #memo - `state` is left allowed for draft creation
-            $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
             // filter $fields argument
             $result = array_intersect_key($fields, array_flip($allowed_fields));
         }
@@ -606,8 +610,8 @@ class Collection implements \Iterator, \Countable {
 
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
-        // silently drop invalid fields (do not drop readonly: all fields are allowed at creation)
-        $values = $this->filter((array) $values, false);
+        // drop invalid fields
+        $values = $this->filter((array) $values, 'create');
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
                 return is_numeric($key)?$value:$key;
@@ -630,16 +634,16 @@ class Collection implements \Iterator, \Countable {
         $values['modifier'] = $user_id;
 
         // 4) create the new object
-        $oid = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
-        if($oid <= 0) {
-            throw new \Exception($this->orm->getLastError(), $oid);
+        $id = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
+        if($id <= 0) {
+            throw new \Exception($this->orm->getLastError(), $id);
         }
 
         // log action (if enabled)
-        $this->logger->log($user_id, 'create', $this->class, $oid, $values);
+        $this->logger->log($user_id, 'create', $this->class, $id, $values);
 
         // put new object in current collection
-        $this->id($oid)->read(['id']);
+        $this->id($id)->read(['id']);
 
         return $this;
     }
@@ -668,10 +672,10 @@ class Collection implements \Iterator, \Countable {
             // build a list of direct field to load (i.e. "object attributes")
             $requested_fields = [];
 
-            // 'id': we might access an object directly by giving its `id`.
-            // 'state': the state of the object is provided for concurrency control (check that a draft object is not instantiated twice).
-            // 'deleted': since some objects might have been soft-deleted, we need to load the `deleted` state in order to know if object needs to be in the result set or not.
-            // 'modified': the last update timestamp is always provided. At update, if `modified` is provided, it is compared to the current timestamp to detect concurrent changes.
+            // 'id'         : we might access an object directly by giving its `id`.
+            // 'state'      : the state of the object is provided for concurrency control (check that a draft object is not instantiated twice).
+            // 'deleted'    : since some objects might have been soft-deleted, we need to load the `deleted` state in order to know if object needs to be in the result set or not.
+            // 'modified'   : the last update timestamp is always provided. At update, if `modified` is provided, it is compared to the current timestamp to detect concurrent changes.
             // #memo - we cannot add 'name' by default since it might be (an alias to) a computed field (that could lead to a circular dependency)
             $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
 
@@ -796,7 +800,7 @@ class Collection implements \Iterator, \Countable {
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
-            $values = $this->filter($values);
+            $values = $this->filter($values, 'update');
             // retrieve targeted identifiers
             $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
             // retrieve targeted fields names
