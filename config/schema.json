@@ -15,6 +15,11 @@
         "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
         "default": "/assets/img/logo.svg"
     },
+    "APP_DEFAULT_LANG": {
+        "type": "string",
+        "description": "The language (ISO 639-1, amongst the installed languages) that must be selected by default in the Apps for displaying multilang contents.",
+        "default": "en"
+    },
     "AUTH_SECRET_KEY": {
         "type": "string",
         "description": "Secret key used for hashing JWT data.",
@@ -27,11 +32,6 @@
         "description": "Validity duration of the access token, in seconds.",
         "instant": true,
         "default": 3600
-    },
-    "AUTH_REFRESH_TOKEN_VALIDITY": {
-        "type": "integer",
-        "usage": "time/duration",
-        "default": "90d"
     },
     "AUTH_TOKEN_HTTPS":{
         "type": "boolean",
