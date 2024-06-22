@@ -8,6 +8,7 @@ namespace equal\data\adapt\adapters\sql\mysql;
 
 use equal\data\adapt\adapters\sql\DataAdapterSqlBinary;
 use equal\orm\UsageFactory;
+use equal\orm\usages\Usage;
 
 class DataAdapterSqlBinaryMySql extends DataAdapterSqlBinary {
 
