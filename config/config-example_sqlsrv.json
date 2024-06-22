@@ -19,7 +19,6 @@
     "VERSIONING_ENABLED": true,
     "AUTH_SECRET_KEY": "my_secret_key",
     "AUTH_ACCESS_TOKEN_VALIDITY": "1d",
-    "AUTH_REFRESH_TOKEN_VALIDITY": "90d",
     "AUTH_TOKEN_HTTPS": false,
     "ROOT_APP_URL": "http://equal.local"
 }

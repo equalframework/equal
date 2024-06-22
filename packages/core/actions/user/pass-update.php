@@ -37,7 +37,7 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ]
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
