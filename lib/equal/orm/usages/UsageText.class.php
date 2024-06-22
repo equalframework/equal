@@ -6,13 +6,47 @@
 */
 namespace equal\orm\usages;
 
-
 class UsageText extends Usage {
 
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
+
+        /*
+            text/plain.short (=text/plain:255)
+            text/plain.small (65KB)
+            text/plain.medium (16MB)
+            text/plain.long (4GB)
+        */
+        // #memo - $this->subtype holds the full tree
+        $subtype = $this->getSubtype();
+        switch($subtype) {
+            case 'plain':
+                $variant = $this->getSubtype(1);
+                switch($variant)  {
+                    case 'short':
+                        $this->length = 255;
+                        break;
+                    case 'small':
+                        $this->length = 65 * 000;
+                        break;
+                    case 'medium':
+                        $this->length = 16 * 1000 * 1000;
+                        break;
+                    case 'long':
+                        $this->length = 4 * 1000 * 1000 * 1000;
+                        break;
+                }
+                break;
+            case 'html':
+            case 'json':
+            case 'xml':
+            case 'wiki':
+                $this->length = max($this->length, 65 * 000);
+                break;
+        }
+
         if($this->length == 0) {
-            $this->length = 32000;
+            $this->length = 255;
         }
     }
 

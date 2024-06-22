@@ -19,7 +19,22 @@ class DataAdapterSqlBinaryMySql extends DataAdapterSqlBinary {
     }
 
     public function castOutType($usage=null): string {
-        return 'BLOB';
+        $type = 'BLOB';
+        if(!is_null($usage)) {
+            if(!($usage instanceof Usage)) {
+                $usage = UsageFactory::create($usage);
+            }
+            $length = $usage->getLength();
+            if($length > 16777215) {
+                // up to 4GB
+                $type = 'LONGBLOB';
+            }
+            elseif($length > 65535) {
+                // up to 16MB
+                $type = 'MEDIUMBLOB';
+            }
+        }
+        return $type;
     }
 
 }

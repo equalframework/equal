@@ -34,19 +34,24 @@ class Usage {
      */
     protected $is_array = false;
 
-    /** @var string
+    /**
      * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-    */
+     * @var string
+     */
     protected $length = '';
 
-    /** @var int */
+    /**
+     * @var int
+     */
     protected $precision = 0;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     protected $scale = 0;
 
     /**
-     * Size of the array (when usage targets an array of values)
+     * Size of the array (when usage targets an array of values).
      * @var int
      */
     protected $size = 0;
@@ -71,8 +76,22 @@ class Usage {
         return $this->type;
     }
 
-    final public function getSubtype(): string {
-        return $this->subtype;
+    /**
+     * Retrieve a component of the subtype (and its tree).
+     * By default it returns the subtype without the tree.
+     * Call $tree_index set to -1 to retrieve the subtype with full tree.
+     * @example For usage "text/plain.short"
+     *      getSubtype()   returns 'plain'
+     *      getSubtype(1)  returns 'short'
+     *      getSubtype(-1) returns 'plain.short'
+     */
+    final public function getSubtype($tree_index=0): string {
+        $result = $this->subtype;
+        if($tree_index >= 0) {
+            $tree = explode('.', $result);
+            $result = $tree[$tree_index] ?? null;
+        }
+        return $result;
     }
 
     /**
@@ -130,18 +149,21 @@ class Usage {
         }
         else {
             /*
-                group 1 = type
-                group 3 = array size
-                group 4 = subtype
-                group 6 = subtype tree
-                group 8 = length
-                group 9 = precision
-                group 10 = scale
-                group 12 = min
-                group 14 = max
+                Syntax: type[size]/subtype.t.r.e.e:precision.scale{min,max}
+
+                group 1 = type          : "type"
+                group 3 = size (array)  : "size"
+                group 4 = subtype       : "subtype"
+                group 6 = subtype tree  : "t.r.e.e"
+                group 8 = length        : "precision.scale"
+                group 9 = precision     : "precision"
+                group 10 = scale        : "scale"
+                group 12 = min          : "min"
+                group 14 = max          : "max"
             */
             // store original usage string
             $this->usage_str = $usage_str;
+            // assign parts to dedicated members
             $this->type = isset($matches[1])?$matches[1]:'';
             $this->is_array = isset($matches[2]) && strlen($matches[2]);
             $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;

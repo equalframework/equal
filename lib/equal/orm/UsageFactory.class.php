@@ -14,7 +14,7 @@ use equal\orm\usages\{
         UsageDate,
         UsageTime,
         UsageEmail,
-        UsageImage,
+        UsageBinary,
         UsageLanguage,
         UsageNumber,
         UsagePassword,
@@ -77,6 +77,12 @@ class UsageFactory {
             case 'array':
                 $usageInstance = new UsageArray($usage);
                 break;
+            case 'binary':
+            // #memo - file and image types are deprecated
+            case 'file':
+            case 'image':
+                $usageInstance = new UsageBinary($usage);
+                break;
 
             /* non-generic content-types */
             case 'amount':
@@ -94,12 +100,6 @@ class UsageFactory {
                 $usageInstance = new UsageEmail($usage);
                 break;
             case 'hash':
-                break;
-            // binary usages
-            case 'file':
-            case 'binary':
-            case 'image':
-                $usageInstance = new UsageImage($usage);
                 break;
             case 'language':
                 $usageInstance = new UsageLanguage($usage);
