@@ -85,7 +85,7 @@ class Usage {
      *      getSubtype(1)  returns 'short'
      *      getSubtype(-1) returns 'plain.short'
      */
-    final public function getSubtype($tree_index=0): string {
+    final public function getSubtype($tree_index=0): ?string {
         $result = $this->subtype;
         if($tree_index >= 0) {
             $tree = explode('.', $result);
