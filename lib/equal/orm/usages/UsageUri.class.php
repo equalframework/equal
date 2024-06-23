@@ -11,6 +11,20 @@ class UsageUri extends Usage {
 
     public function getConstraints(): array {
         switch($this->getSubtype()) {
+            case 'url.relative':
+                /*
+                    /a
+                    /a/b
+                    /a/b/c
+                */
+                return [
+                    'invalid_url' => [
+                        'message'   => 'String is not a valid relative URL.',
+                        'function'  =>  function($value) {
+                            return (bool) (preg_match('/^(\/([^\/])+)+$/', $value));
+                        }
+                    ]
+                ];
             case 'url':
                 /*
                     https://www.goo-gle.com:80/path/sub/?test&a=b#fragment
