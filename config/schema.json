@@ -247,8 +247,8 @@
     "ENV_MODE": {
         "type": "string",
         "description": "Possible values are: 'development', 'staging', 'production'",
-        "default": "development",
-        "instant": true
+        "instant": true,
+        "default": "development"
     },
     "FILE_STORAGE_MODE": {
         "type": "string",
