@@ -269,7 +269,7 @@ if(!$skip_package) {
         }
     }
 
-    // 2 ter) Populate tables with demo data, if requested
+    // 2 ter) Populate tables with test data (intended for tests), if requested
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         // handle JSON files
