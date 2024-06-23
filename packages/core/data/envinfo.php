@@ -21,7 +21,7 @@ list( $params, $providers ) = eQual::announce([
     ],
     'constants'   => [
         "ENV_MODE",
-        "DEFAULT_LANG",
+        "APP_DEFAULT_LANG",
         "L10N_LOCALE",
         "ORG_NAME",
         "ORG_URL",
