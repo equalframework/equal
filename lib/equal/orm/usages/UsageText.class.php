@@ -18,8 +18,7 @@ class UsageText extends Usage {
             text/plain.long (4GB)
         */
         // #memo - $this->subtype holds the full tree
-        $subtype = $this->getSubtype();
-        switch($subtype) {
+        switch($this->getSubtype(0)) {
             case 'plain':
                 $variant = $this->getSubtype(1);
                 switch($variant)  {
@@ -66,7 +65,7 @@ class UsageText extends Usage {
                 'message'   => 'String does not comply with usage format.',
                 'function'  =>  function($value) {
                     $len = intval($this->getLength());
-                    switch($this->getSubtype()) {
+                    switch($this->getSubtype(0)) {
                         case 'plain':
                             break;
                         case 'html':

@@ -32,11 +32,7 @@ class UsageDate extends Usage {
                     }
                 ]
             ];
-        $subtype = $this->getSubtype();
-        $main_subtype = ( explode('.', $subtype) )[0];
-
-                            ;
-        switch($main_subtype) {
+        switch($this->getSubtype(0)) {
             case 'day':
                 $constraints[] = [
                     'invalid_date' => [

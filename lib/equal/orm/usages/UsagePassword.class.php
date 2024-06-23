@@ -10,7 +10,7 @@ namespace equal\orm\usages;
 class UsagePassword extends Usage {
 
     public function getConstraints(): array {
-        switch($this->getSubtype()) {
+        switch($this->getSubtype(0)) {
             case 'enisa':
             case 'nist':
                 return [

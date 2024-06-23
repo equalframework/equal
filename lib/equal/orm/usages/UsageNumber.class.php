@@ -17,7 +17,7 @@ class UsageNumber extends Usage {
         $scale = parent::getScale();
         $precision = parent::getPrecision();
         $length = parent::getLength();
-        if($this->getSubtype() == 'real') {
+        if($this->getSubtype(0) == 'real') {
             // single number as length: use it as scale
             if($length && $length == $precision) {
                 $scale = $length;
@@ -33,7 +33,7 @@ class UsageNumber extends Usage {
     public function getPrecision(): int {
         $precision = parent::getPrecision();
         $length = parent::getLength();
-        if($this->getSubtype() == 'real') {
+        if($this->getSubtype(0) == 'real') {
             // single number as length means 'scale': use default precision
             if($length == $precision) {
                 $precision = 10;
@@ -49,7 +49,7 @@ class UsageNumber extends Usage {
     public function getLength(): int {
         $precision = parent::getPrecision();
         $length = parent::getLength();
-        if($this->getSubtype() == 'real') {
+        if($this->getSubtype(0) == 'real') {
             // single number as length means 'scale': use default precision
             if($length == $precision) {
                 $length = 10;
@@ -63,7 +63,7 @@ class UsageNumber extends Usage {
     }
 
     public function getConstraints(): array {
-        switch($this->getSubtype()) {
+        switch($this->getSubtype(0)) {
             case 'boolean':
                 return [
                     'not_boolean' => [

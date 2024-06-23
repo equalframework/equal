@@ -25,7 +25,7 @@ class UsageAmount extends Usage {
                 'percent'   => 6,
                 'rate'      => 4
             ];
-            $subtype = $this->getSubtype();
+            $subtype = $this->getSubtype(0);
             $scale = $map_default[$subtype] ?? 2;
         }
         return $scale;

@@ -77,15 +77,15 @@ class Usage {
     }
 
     /**
-     * Retrieve a component of the subtype (and its tree).
-     * By default it returns the subtype without the tree.
-     * Call $tree_index set to -1 to retrieve the subtype with full tree.
+     * Retrieve the subtype (all tree or a specific component).
+     * By default it returns the subtype with full tree.
+     * Call $tree_index set to 0 to retrieve the first level of the subtype.
      * @example For usage "text/plain.short"
      *      getSubtype()   returns 'plain'
      *      getSubtype(1)  returns 'short'
      *      getSubtype(-1) returns 'plain.short'
      */
-    final public function getSubtype($tree_index=0): ?string {
+    final public function getSubtype($tree_index=-1): ?string {
         $result = $this->subtype;
         if($tree_index >= 0) {
             $tree = explode('.', $result);
