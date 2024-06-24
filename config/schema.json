@@ -297,16 +297,17 @@
             "128MB"
         ]
     },
-    "MEM_LIMIT": {
+    "MEM_FREE_LIMIT": {
         "type": "integer",
         "usage": "amount/data",
-        "description": "Upper limit of total usable memory (in bytes) available for the whole instance.",
-        "help": "This parameter is a threshold that the system tries not to exceed (the task scheduler stops running tasks while above limit). However, under certain circumstances, this limit may still be surpassed. Besides, if that value is above the memory_limit set in php.ini, it will have no effect.",
+        "description": "Minimum amount of free memory (in bytes) of the system (instance) below which no new process should start.",
+        "help": "This parameter is a threshold that eQual tries not to exceed (the task scheduler stops running tasks while free memory is below limit). However, under certain circumstances, this limit may still be momentarily surpassed. That value is complementary to the memory_limit set in php.ini (that limits the amount of memory that each PHP threads can use).",
         "instant": true,
         "environment": "EQ_MEM_LIMIT",
-        "default": "512MB",
+        "default": "256MB",
         "examples": [
-            "200MB"
+            "512MB",
+            "1GB"
         ]
     },
     "ORG_NAME" : {
