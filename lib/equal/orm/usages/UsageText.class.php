@@ -27,14 +27,15 @@ class UsageText extends Usage {
                         case 'short':
                             $this->length = 255;
                             break;
-                        case 'small':
-                            $this->length = 65 * 1000;
-                            break;
                         case 'medium':
                             $this->length = 16 * 1000 * 1000;
                             break;
                         case 'long':
                             $this->length = 4 * 1000 * 1000 * 1000;
+                            break;
+                        case 'small':
+                        default:
+                            $this->length = 65 * 1000;
                             break;
                     }
                     break;
