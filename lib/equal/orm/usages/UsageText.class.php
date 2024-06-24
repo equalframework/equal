@@ -20,8 +20,7 @@ class UsageText extends Usage {
         // #memo - $this->subtype holds the full tree
         switch($this->getSubtype(0)) {
             case 'plain':
-                $variant = $this->getSubtype(1);
-                switch($variant)  {
+                switch($this->getSubtype(1))  {
                     case 'short':
                         $this->length = 255;
                         break;
