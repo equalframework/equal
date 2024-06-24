@@ -135,11 +135,6 @@ foreach($classes as $class) {
                 'null'      => true
             ];
 
-        // #todo - if a SQL type is associated to field 'usage', it prevails over the type association
-        if(isset($descriptor['usage']) && isset(ObjectManager::$usages_associations[$descriptor['usage']])) {
-            // $type = ObjectManager::$usages_associations[$descriptor['usage']];
-        }
-
         if($field == 'id') {
             continue;
             // #memo - id column is added at table creation (auto_increment + primary key)
