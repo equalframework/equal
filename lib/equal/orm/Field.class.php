@@ -62,6 +62,7 @@ class Field {
      * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
+        $result = $this->descriptor['usage'] ?? '';
         static $map = [
             'boolean'       => 'number/boolean',
             'integer'       => 'number/integer:9',
@@ -77,8 +78,11 @@ class Field {
             'many2many'     => 'array',
             'array'         => 'array'
         ];
-        $type = $this->descriptor['result_type'];
-        return $map[$type] ?? $type;
+        if(!strlen($result)) {
+            $type = $this->descriptor['result_type'];
+            $result = $map[$type] ?? $type;
+        }
+        return $result;
     }
 
     /**
@@ -107,12 +111,7 @@ class Field {
     public function getUsage(): Usage {
         if(is_null($this->usage)) {
             // by default, use the usage string for which the field type is an alias
-            $str_usage = $this->getUsageString();
-            // use usage string from the descriptor if present
-            if(isset($this->descriptor['usage']) && strlen($this->descriptor['usage']) > 0) {
-                $str_usage = $this->descriptor['usage'];
-            }
-            $this->usage = UsageFactory::create($str_usage);
+            $this->usage = UsageFactory::create($this->getUsageString());
         }
         return $this->usage;
     }
