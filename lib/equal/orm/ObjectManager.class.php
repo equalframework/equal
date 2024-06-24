@@ -139,6 +139,8 @@ class ObjectManager extends Service {
      * Each DBManipulator Service is in charge of converting ORM types matching its own native type.
      * Types that are ambiguous regarding their size (string, text, binary) or require additional info (decimal place for real numbers representations).
      * All ORM types have an equivalent in SQL.
+     *
+     * #todo - deprecate
      */
     public static $types_associations = [
         'integer'       => 'integer(4)',        // 4 bytes integer
@@ -146,30 +148,6 @@ class ObjectManager extends Service {
         'string'        => 'string(255)',       // 255 bytes string
         'text'          => 'string(32000)',     // 32 kilobytes string
         'binary'        => 'binary(64000000)'   // 64MB binary value
-    ];
-
-    public static $usages_associations = [
-        'amount/percent'            => 'float(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
-        'amount/rate'               => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/rate:4'             => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/money'              => 'float(15,2)',
-        'amount/money:2'            => 'float(15,2)',
-        'amount/money:4'            => 'float(13,4)',         // GAAP compliant
-        'coordinate'                => 'float(9,6)',          // any float value from -180 to 180 with 6 decimal digits
-        'coordinate/decimal'        => 'float(9,6)',
-        'country/iso-3166.numeric'  => 'integer(1)',          // 3-digits country code (ISO 3166-1)
-        'country/iso-3166:2'        => 'string(2)',           // 2-letters country code (ISO 3166-1)
-        'country/iso-3166:3'        => 'string(3)',           // 3-letters country code (ISO 3166-1)
-        'currency/iso-4217'         => 'string(3)',
-        'language/iso-639'          => 'string(5)',           // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
-        'language/iso-639:2'        => 'string(2)',           // languages codes alpha 2 (ISO 639-1)
-        'language/iso-639:3'        => 'string(3)',           // languages codes alpha 3 (ISO 639-3)
-        'markup/html'               => 'string(64000)',       // 64k chars html
-        'text/html'                 => 'string(64000)',
-        'text/plain'                => 'string(64000)',       // 64k chars text
-        'text/json'                 => 'string(64000)',       // 64k chars json
-        'email'                     => 'string(255)',
-        'phone'                     => 'string(20)'
     ];
 
     /**
