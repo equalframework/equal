@@ -251,6 +251,7 @@ if(isset($view['layout']['extends'])) {
         }
     }
     $view['layout'] = $parent_view['layout'];
+    $view['extends'] = $view_id;
 }
 
 $context->httpResponse()
