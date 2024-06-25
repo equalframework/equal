@@ -232,12 +232,12 @@ if(!isset($view['layout'])) {
 }
 
 // pass-2 : adapt the view if inheritance is involved
-if(isset($view['layout']['extends'])) {
-    if(!isset($view['layout']['extends']['view'])) {
+if(isset($view['extends'])) {
+    if(!isset($view['extends']['view'])) {
         throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
     }
-    $view_id = $view['layout']['extends']['view'];
-    $entity = $view['layout']['extends']['entity'] ?? $params['entity'];
+    $view_id = $view['extends']['view'];
+    $entity = $view['extends']['entity'] ?? $params['entity'];
     if($params['view_id'] == $view_id && $params['entity'] == $entity) {
         throw new Exception("cyclic_view_dependency", QN_ERROR_INVALID_CONFIG);
     }
@@ -251,7 +251,6 @@ if(isset($view['layout']['extends'])) {
         }
     }
     $view['layout'] = $parent_view['layout'];
-    $view['extends'] = $view_id;
 }
 
 $context->httpResponse()
