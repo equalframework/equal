@@ -41,7 +41,7 @@ class DataAdapterSqlTextMySql extends DataAdapterSqlText {
                 $type = 'TEXT';
             }
             else {
-                $type = 'VARCHAR('.$length.')';
+                $type = 'VARCHAR('.max($length, 1).')';
             }
         }
 

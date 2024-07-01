@@ -9,6 +9,13 @@ namespace equal\orm\usages;
 
 class UsagePassword extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 50;
+        }
+    }
+
     public function getConstraints(): array {
         switch($this->getSubtype(0)) {
             case 'enisa':
