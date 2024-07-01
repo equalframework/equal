@@ -32,6 +32,9 @@ class DataAdapterSqlTextSqlSrv extends DataAdapterSqlText {
                 // up to 1GB
                 $type = 'nvarchar(max)';
             }
+            else {
+                $type = 'nvarchar('.$length.')';
+            }
         }
 
         return $type;

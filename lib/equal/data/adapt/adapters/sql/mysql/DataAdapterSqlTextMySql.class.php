@@ -40,6 +40,9 @@ class DataAdapterSqlTextMySql extends DataAdapterSqlText {
                 // up to 65KB
                 $type = 'TEXT';
             }
+            else {
+                $type = 'VARCHAR('.$length.')';
+            }
         }
 
         return $type;
