@@ -1,0 +1,39 @@
+{
+    "name": "Groups list",
+    "description": "This view is intended for displaying basic listing of existing groups",
+    "order": "name",
+    "sort": "asc",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "policy_rule_type",
+                "width": "25%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "created",
+                "width": "10%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "10%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "description",
+                "width": "35%"
+            }
+        ]
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "name": "Policy Rule Values",
+    "description": "List of Policy Rule values.",
+    "order": "name",
+    "sort": "asc",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "25%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "security_policy_id",
+                "width": "15%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "policy_rule_id",
+                "width": "15%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "value",
+                "width": "35%"
+            }
+        ]
+    }
+}
