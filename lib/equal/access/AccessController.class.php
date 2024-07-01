@@ -6,6 +6,12 @@
 */
 namespace equal\access;
 
+use core\Assignment;
+use core\Group;
+use core\Permission;
+use core\security\SecurityPolicy;
+use core\security\SecurityPolicyRule;
+use core\security\SecurityPolicyRuleValue;
 use equal\orm\ObjectManager;
 use equal\organic\Service;
 use equal\services\Container;
@@ -350,17 +356,17 @@ class AccessController extends Service {
                     }
                     if(!$acl['rights']) {
                         // remove ACL if empty (no right granted)
-                        $orm->remove('core\Permission', $acl_id, true);
+                        $orm->remove(Permission::getType(), $acl_id, true);
                     }
                     else {
                         // update ACL with new permissions
-                        $orm->update('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+                        $orm->update(Permission::getType(), $acl_id, ['rights' => $acl['rights']]);
                     }
                 }
                 $rights = $acl['rights'];
             }
             else if($operator == '+') {
-                $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
+                $orm->create(Permission::getType(), ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
             }
             // update internal cache
             if($identity == 'user' && isset($this->permissionsTable[$identity_id])) {
@@ -426,7 +432,7 @@ class AccessController extends Service {
             unset($this->permissionsTable[$user_id]);
         }
         $orm = $this->container->get('orm');
-        return $orm->update('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
+        return $orm->update(Group::getType(), $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
     }
 
     /**
@@ -451,7 +457,7 @@ class AccessController extends Service {
         }
         if( !is_numeric($group) ) {
             // fetch all ACLs variants
-            $groups_ids = $orm->search('core\Group', ['name', '=', $group]);
+            $groups_ids = $orm->search(Group::getType(), ['name', '=', $group]);
             if($groups_ids < 0 || count($groups_ids) <= 0) {
                 return false;
             }
@@ -534,7 +540,7 @@ class AccessController extends Service {
         if(count($related_roles)) {
             foreach($objects_ids as $object_id) {
                 // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
-                $user_roles_ids = $orm->search('core\Assignment', [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
+                $user_roles_ids = $orm->search(Assignment::getType(), [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
                 if($user_roles_ids > 0 && count($user_roles_ids)) {
                     // map results on object_id
                     $result[$object_id] = true;
@@ -607,4 +613,69 @@ class AccessController extends Service {
         return $result;
     }
 
+    public function isRequestCompliant($user_id, $ip_address) {
+        $result = true;
+        $time = time();
+
+        // fetch policies
+        /** @var \equal\orm\ObjectManager */
+        $orm = $this->container->get('orm');
+        $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
+        if($security_policies_ids > 0 && count($security_policies_ids)) {
+            $result = false;
+            $policies = $orm->read(SecurityPolicy::getType(), $security_policies_ids, ['id', 'security_policies_ds']);
+
+            foreach($policies as $policy) {
+                $is_compliant = true;
+                // check all rules of the policy
+                $rules = $orm->read(SecurityPolicyRule::getType(), $policy['security_policies_ds'], ['user_id', 'policy_rule_type', 'rule_values_ids']);
+                foreach($rules as $rule) {
+                    $is_match = false;
+                    $values = $orm->read(SecurityPolicyRuleValue::getType(), $rule['rule_values_ids'], ['value']);
+                    foreach($values as $value) {
+                        switch($rule['policy_rule_type']) {
+                            case 'ip_address':
+                                $is_match = self::validateIpAddress($ip_address, $value);
+                                break;
+                        }
+                        // request match with one of the value of the rule
+                        if($is_match) {
+                            break;
+                        }
+                    }
+                    // none of rule values matches with the request
+                    if(!$is_match) {
+                        // one rule is not met : the request does not comply with the policy
+                        $is_compliant = false;
+                        break;
+                    }
+                }
+                // request is compliant, stop testing other policies
+                if($is_compliant) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return $result;
+    }
+
+    private static function validateIpAddress($ip, $pattern) {
+        if(strpos($pattern, '*') !== false) {
+            $pattern = str_replace(['.', '*'], ['\.', '[0-9]+'], $pattern);
+            if(preg_match('/^' . $pattern . '$/', $ip)) {
+                return true;
+            }
+        }
+        elseif(strpos($pattern, '/') !== false) {
+            list($subnet, $mask) = explode('/', $pattern);
+            if(ip2long($ip) >> (32 - $mask) == ip2long($subnet) >> (32 - $mask)) {
+                return true;
+            }
+        }
+        elseif($ip === $pattern) {
+            return true;
+        }
+        return false;
+    }
 }
