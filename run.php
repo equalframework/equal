@@ -56,15 +56,25 @@ try {
         header_remove('x-powered-by');
     }
 
-    // keep track of the access in the log
-    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => Container::getInstance()->get('auth')->userId() ]));
-
-    // 1) retrieve current HTTP context
-
     // get PHP context
     $context = Context::getInstance();
+
     // fetch current HTTP request from context
     $request = $context->getHttpRequest();
+
+    $auth = Container::getInstance()->get('auth');
+    $user_id = $auth->userId();
+
+    // keep track of the access in the log
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => $user_id]));
+
+    $ip_address = $request->getHeader('X-Forwarded-For');
+
+    $access = Container::getInstance()->get('access');
+    if(!$access->isRequestCompliant($user_id, $ip_address)) {
+        throw new Exception("Request rejected by Security Policies", QN_ERROR_NOT_ALLOWED);
+    }
+
     // get HTTP method of current request
     $method = $request->getMethod();
     // get HttpUri object (@see equal\http\HttpUri class for URI structure)
@@ -176,7 +186,7 @@ try {
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
                 'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
                 'end'       => microtime(true),
-                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+                'ip'        => $ip_address
             ])
         );
 }
