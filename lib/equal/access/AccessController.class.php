@@ -617,7 +617,7 @@ class AccessController extends Service {
         $result = true;
         $time = time();
 
-        // fetch policies
+        // fetch policies: request must be compliant with at least one policy.
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
@@ -627,7 +627,7 @@ class AccessController extends Service {
 
             foreach($policies as $policy) {
                 $is_compliant = true;
-                // check all rules of the policy
+                // request must comply with all rules of the policy to comply with the latter
                 $rules = $orm->read(SecurityPolicyRule::getType(), $policy['policy_rules_ids'], ['user_id', 'policy_rule_type', 'rule_values_ids']);
                 foreach($rules as $rule) {
                     $is_match = false;
@@ -636,6 +636,7 @@ class AccessController extends Service {
                         // ignore empty rules
                         continue;
                     }
+                    // request must comply with at least one value of a rule to comply with the latter
                     foreach($values as $value) {
                         switch($rule['policy_rule_type']) {
                             case 'ip_address':
@@ -667,6 +668,9 @@ class AccessController extends Service {
         return $result;
     }
 
+    /**
+     * tests: 192.168.1.123, 192.168.1.0/24, 192.168.*.*
+     */
     private static function validateIpAddress($ip, $pattern) {
         if(strpos($pattern, '*') !== false) {
             $pattern = str_replace(['.', '*'], ['\.', '[0-9]+'], $pattern);
@@ -686,6 +690,15 @@ class AccessController extends Service {
         return false;
     }
 
+    /**
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-wed@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-fri@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'thi@09:00-fri@17:00')); // false
+     * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@11:00')); // false
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-mon@11:00')); // false
+     * var_dump(validate_time_range(1719925622, 'tue@13:00-tue@14:00')); // true
+     */
     private static function validateTimeRange($time, $pattern) {
         list($hours, $minutes) = explode(':', date('H:i', $time));
         $time_of_day = ($hours * 3600) + ($minutes * 60);
