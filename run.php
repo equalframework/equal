@@ -71,8 +71,10 @@ try {
     $ip_address = $request->getHeader('X-Forwarded-For');
 
     $access = Container::getInstance()->get('access');
-    if(!$access->isRequestCompliant($user_id, $ip_address)) {
-        throw new Exception("Request rejected by Security Policies", QN_ERROR_NOT_ALLOWED);
+
+    // #memo - this call might be made while database is not yet present
+    if(php_sapi_name() != 'cli' && !$access->isRequestCompliant($user_id, $ip_address)) {
+        throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
     }
 
     // get HTTP method of current request
