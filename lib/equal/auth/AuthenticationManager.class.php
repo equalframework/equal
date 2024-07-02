@@ -181,7 +181,7 @@ class AuthenticationManager extends Service {
         }
 
         $ids = $orm->search('core\User', ['login', '=', $login]);
-        if(!count($ids)) {
+        if($ids < 0 || !count($ids)) {
             throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
         }
 
