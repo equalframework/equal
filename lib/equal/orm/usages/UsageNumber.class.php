@@ -21,22 +21,14 @@ class UsageNumber extends Usage {
         elseif($subtype == 'real') {
             // single number as length: use it as scale and set to default precision
             if(strpos($this->length_str, '.') === false) {
-                $this->scale = $this->length;
                 $this->precision = 10;
+                $this->scale = max($this->length, 2);
                 $this->length = $this->precision;
             }
             else {
                 // use provided precision, fallback to default
-                $this->precision = max($this->precision, 2);
-
-                // use scale according to subtype
-                $map_default = [
-                    'money'     => 4,
-                    'percent'   => 6,
-                    'rate'      => 4
-                ];
-                $subtype = $this->getSubtype(0);
-                $this->scale = $map_default[$subtype] ?? 2;
+                $this->precision = max($this->precision, 10);
+                $this->scale = max($this->scale, 2);
             }
         }
         else {

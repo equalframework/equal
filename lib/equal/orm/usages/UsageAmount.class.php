@@ -14,23 +14,23 @@ class UsageAmount extends Usage {
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
 
-        // single number as length: use it as scale and set to default precision
+        // single number as length
         if(strpos($this->length_str, '.') === false) {
-            $this->scale = $this->length;
-            $this->precision = 10;
-        }
-        else {
             // use provided precision, fallback to default
-            $this->precision = max($this->precision, 2);
+            $this->precision = 10;
 
-            // use scale according to subtype
-            $map_default = [
-                'money'     => 4,
-                'percent'   => 6,
-                'rate'      => 4
-            ];
-            $subtype = $this->getSubtype(0);
-            $this->scale = $map_default[$subtype] ?? 2;
+            if($this->length > 0) {
+                $this->scale = $this->length;
+            }
+            else {
+                // use scale according to subtype
+                $map_default = [
+                    'money'     => 4,
+                    'percent'   => 6,
+                    'rate'      => 4
+                ];
+                $this->scale = $map_default[$this->getSubtype(0)] ?? 2;
+            }
         }
     }
 
