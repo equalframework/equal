@@ -641,6 +641,9 @@ class AccessController extends Service {
                             case 'ip_address':
                                 $is_match = self::validateIpAddress($ip_address, $value['value']);
                                 break;
+                            case 'time_range':
+                                $is_match = self::validateTimeRange($time, $value['value']);
+                                break;
                         }
                         // request match with one of the value of the rule
                         if($is_match) {
@@ -682,4 +685,48 @@ class AccessController extends Service {
         }
         return false;
     }
+
+    private static function validateTimeRange($time, $pattern) {
+        list($hours, $minutes) = explode(':', date('H:i', $time));
+        $time_of_day = ($hours * 3600) + ($minutes * 60);
+
+        $map_days = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
+
+        $day_of_week = strtolower(date('D', $time));
+        if(!isset($map_days[$day_of_week])) {
+            return false;
+        }
+        $day_of_week = $map_days[$day_of_week];
+
+        list($start, $end) = explode('-', $pattern);
+        list($day_start, $time_start) = explode('@', $start);
+        list($day_end, $time_end) = explode('@', $end);
+
+        $day_start = strtolower(substr($day_start, 0, 3));
+        $day_end = strtolower(substr($day_end, 0, 3));
+
+        if (!isset($map_days[$day_start]) || !isset($map_days[$day_end])) {
+            return false;
+        }
+
+        $day_start = $map_days[$day_start];
+        $day_end = $map_days[$day_end];
+
+        list($hours, $minutes) = explode(':', $time_start);
+        $time_start_seconds = ($hours * 3600) + ($minutes * 60);
+
+        list($hours, $minutes) = explode(':', $time_end);
+        $time_end_seconds = ($hours * 3600) + ($minutes * 60);
+
+        if ($day_start < $day_end || ($day_start == $day_end && $time_start_seconds <= $time_end_seconds)) {
+            return ($day_of_week > $day_start || ($day_of_week == $day_start && $time_of_day >= $time_start_seconds)) &&
+                ($day_of_week < $day_end || ($day_of_week == $day_end && $time_of_day <= $time_end_seconds));
+        }
+        else {
+            return ($day_of_week > $day_start || ($day_of_week == $day_start && $time_of_day >= $time_start_seconds)) ||
+                ($day_of_week < $day_end || ($day_of_week == $day_end && $time_of_day <= $time_end_seconds));
+        }
+        return false;
+    }
+
 }
