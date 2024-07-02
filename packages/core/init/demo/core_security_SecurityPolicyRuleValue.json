@@ -1,0 +1,44 @@
+[
+    {
+        "name": "core\\security\\SecurityPolicyRuleValue",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "security_policy_id": 1,
+                "policy_rule_id": 1,
+                "value": "109.135.28.87"
+            },
+            {
+                "id": 2,
+                "security_policy_id": 1,
+                "policy_rule_id": 2,
+                "value": "mon@8:00-mon@18:30"
+            },
+            {
+                "id": 3,
+                "security_policy_id": 1,
+                "policy_rule_id": 2,
+                "value": "tue@8:00-tue@18:30"
+            },
+            {
+                "id": 4,
+                "security_policy_id": 1,
+                "policy_rule_id": 2,
+                "value": "wed@8:00-wed@18:30"
+            },
+            {
+                "id": 5,
+                "security_policy_id": 1,
+                "policy_rule_id": 2,
+                "value": "thu@8:00-thu@18:30"
+            },
+            {
+                "id": 6,
+                "security_policy_id": 1,
+                "policy_rule_id": 2,
+                "value": "fri@8:00-fri@18:30"
+            }
+        ]
+    }
+]

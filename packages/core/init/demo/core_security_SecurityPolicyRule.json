@@ -1,0 +1,24 @@
+[
+    {
+        "name": "core\\security\\SecurityPolicyRule",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "name": "Ip address (for Everyone)",
+                "user_id": null,
+                "security_policy_id": 1,
+                "policy_rule_type": "ip_address",
+                "description": "Request IP address match against one or more values."
+            },
+            {
+                "id": 2,
+                "name": "Time range (for Everyone)",
+                "user_id": null,
+                "security_policy_id": 1,
+                "policy_rule_type": "time_range",
+                "description": "Time of Request included in at least one the listed time ranges."
+            }
+        ]
+    }
+]
