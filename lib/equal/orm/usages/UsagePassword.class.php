@@ -11,11 +11,13 @@ class UsagePassword extends Usage {
 
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
-        if($this->length == 0) {
-            $this->length = 50;
-        }
+        // force allowing enough bytes for `password_hash()` result (depends on `PASSWORD_DEFAULT`)
+        $this->length = 255;
         if($this->min == 0) {
             $this->min = 8;
+        }
+        if($this->max > 70) {
+            $this->max = 70;
         }
     }
 
