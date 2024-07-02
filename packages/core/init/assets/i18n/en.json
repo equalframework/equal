@@ -1,5 +1,4 @@
 {
-
     "SB_DIALOG_ACCEPT": "Accept",
     "SB_DIALOG_SEND": "Ok",
     "SB_DIALOG_CANCEL": "Cancel",
@@ -148,11 +147,5 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Rename",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Cancel",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Delete",
-    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?",
-
-
-    "BOOKING_PLANNING_HEADER_TODAY": "Today",
-
-
-    "empty_booking": "The booking is empty."
+    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?"
 }
