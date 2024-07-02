@@ -258,29 +258,36 @@ final class DBManipulatorMySQL extends DBManipulator {
             return;
         }
 
-        if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
-            throw new \Exception(__METHOD__.' : query failure. '.mysqli_error($this->dbms_handler).'. For query: "'.$query.'"', QN_ERROR_SQL);
-        }
-        // everything went well: perform additional operations (replication & info about query result)
-        else {
-            // update $affected_rows, $last_query, $last_id (depending on the performed operation)
-            $sql_operation = strtolower((explode(' ', $query, 2))[0]);
-            $this->setLastQuery($query);
-            if($sql_operation == 'select' || $sql_operation == 'show') {
-                $this->setAffectedRows(mysqli_num_rows($result));
+        try {
+            if(($result = mysqli_query($this->dbms_handler, $query)) === false) {
+                $error_msg = mysqli_error($this->dbms_handler);
+                trigger_error("SQL::error while executing query: {$error_msg}", QN_REPORT_ERROR);
+                throw new \Exception(__METHOD__.' : query failure ('.$error_msg.') for query: "'.$query.'"', QN_ERROR_SQL);
             }
+            // everything went well: perform additional operations (replication & info about query result)
             else {
-                // for WRITE operations, relay query to members of the replica
-                if(in_array($sql_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
-                    foreach($this->members as $member) {
-                        $member->sendQuery($query);
+                // update $affected_rows, $last_query, $last_id (depending on the performed operation)
+                $sql_operation = strtolower((explode(' ', $query, 2))[0]);
+                $this->setLastQuery($query);
+                if($sql_operation == 'select' || $sql_operation == 'show') {
+                    $this->setAffectedRows(mysqli_num_rows($result));
+                }
+                else {
+                    // for WRITE operations, relay query to members of the replica
+                    if(in_array($sql_operation, ['insert', 'update', 'delete', 'drop', 'create'])) {
+                        foreach($this->members as $member) {
+                            $member->sendQuery($query);
+                        }
                     }
+                    if($sql_operation =='insert') {
+                        $this->setLastId(mysqli_insert_id($this->dbms_handler));
+                    }
+                    $this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
                 }
-                if($sql_operation =='insert') {
-                    $this->setLastId(mysqli_insert_id($this->dbms_handler));
-                }
-                $this->setAffectedRows(mysqli_affected_rows($this->dbms_handler));
             }
+        }
+        catch(\Exception $e) {
+            throw new \Exception($e->getMessage().' ('.$e->getCode().')', QN_ERROR_SQL);
         }
         return $result;
     }
