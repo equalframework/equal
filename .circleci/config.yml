@@ -57,6 +57,8 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
+      - store_artifacts:
+        path: ~/repo/log/eq_error.log
   php_8-3:
     docker:
     - image: php:8.3-apache
@@ -84,6 +86,8 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
+      - store_artifacts:
+        path: ~/repo/log/eq_error.log
 
 # Orchestrate our job run sequence
 workflows:
