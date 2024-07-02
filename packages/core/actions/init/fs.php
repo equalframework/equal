@@ -55,9 +55,14 @@ $username = constant('HTTP_PROCESS_USERNAME');
 
 // get UID of a user by its name
 $output = [];
-if(!exec("id -u \"$username\" 2>&1", $output)) {
-    throw new Exception('uid_unavailable', EQ_ERROR_UNKNOWN);
+$result_code = 0;
+exec("id -u \"$username\" 2>&1", $output, $result_code);
+
+if($result_code !== 0) {
+    throw new Exception('uid_unavailable : '.implode("\n", $output), EQ_ERROR_UNKNOWN);
 }
+
+$output = (array) $output;
 
 if(count($output)) {
     $uid = intval(reset($output));
