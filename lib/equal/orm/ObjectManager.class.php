@@ -2755,6 +2755,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
             $result = $e->getCode();
         }
         return $result;
