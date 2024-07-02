@@ -27,7 +27,7 @@ class UsageNumber extends Usage {
             }
             else {
                 // use provided precision, fallback to default
-                $this->precision = max($this->precision, 10);
+                $this->precision = max($this->precision, 2);
                 $this->scale = max($this->scale, 2);
             }
         }
