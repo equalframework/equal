@@ -22,7 +22,8 @@ class SecurityPolicyRule extends Model {
         return [
 
             'name' => [
-                'type'              => 'string',
+                'type'              => 'computed',
+                'result_type'       => 'string',
                 'description'       => "Name, based on rule type and user.",
                 'function'          => 'calcName',
                 'store'             => true,
