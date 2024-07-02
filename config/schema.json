@@ -175,7 +175,7 @@
         "type": "integer",
         "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
         "instant": true,
-        "default": 0,
+        "default": "E_ALL & E_ALL",
         "examples": [
             "EQ_REPORT_DEBUG | EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR | EQ_REPORT_FATAL",
             "EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR",
