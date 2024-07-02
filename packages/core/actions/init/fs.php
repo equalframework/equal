@@ -78,7 +78,7 @@ foreach($paths as $item) {
         continue;
     }
 
-    list('path' => $path, 'rights' => $mask) = $item;
+    ['path' => $path, 'rights' => $mask] = $item;
 
     chgrp($path, $uid);
 
