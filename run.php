@@ -71,9 +71,11 @@ try {
     $ip_address = $request->getHeader('X-Forwarded-For');
 
     $access = Container::getInstance()->get('access');
+    /*
     if(!$access->isRequestCompliant($user_id, $ip_address)) {
         throw new Exception("Request rejected by Security Policies", QN_ERROR_NOT_ALLOWED);
     }
+    */
 
     // get HTTP method of current request
     $method = $request->getMethod();

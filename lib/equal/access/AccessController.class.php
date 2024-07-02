@@ -458,7 +458,7 @@ class AccessController extends Service {
         if( !is_numeric($group) ) {
             // fetch all ACLs variants
             $groups_ids = $orm->search(Group::getType(), ['name', '=', $group]);
-            if($groups_ids < 0 || count($groups_ids) <= 0) {
+            if($groups_ids < 0 || empty($groups_ids)) {
                 return false;
             }
             $group = $groups_ids[0];

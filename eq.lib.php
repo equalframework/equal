@@ -485,7 +485,7 @@ namespace config {
         // handle shorthand notations
         if(isset($constants_schema[$property]) && $constants_schema[$property]['type'] == 'integer') {
             // handle binary masks on arbitrary values or pre-defined constants
-            if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
+            if( is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false) ) {
                 try {
                     $value = eval("return $value;");
                 }
