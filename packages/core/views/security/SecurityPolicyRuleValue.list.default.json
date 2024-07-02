@@ -16,6 +16,7 @@
             {
                 "type": "field",
                 "value": "security_policy_id",
+                "label": "Security Policy",
                 "width": "15%",
                 "widget": {
                     "sortable": true
@@ -24,6 +25,7 @@
             {
                 "type": "field",
                 "value": "policy_rule_id",
+                "label": "Policy Rule",
                 "width": "15%",
                 "widget": {
                     "sortable": true

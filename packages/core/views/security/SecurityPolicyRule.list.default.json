@@ -7,7 +7,7 @@
         "items": [
             {
                 "type": "field",
-                "value": "policy_rule_type",
+                "value": "name",
                 "width": "25%",
                 "widget": {
                     "sortable": true
