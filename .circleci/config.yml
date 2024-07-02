@@ -30,6 +30,14 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
+      # export logs on failure
+      - run:
+          command: |
+            mkdir -p /tmp/dumps
+            cp ~/repo/log/equal.log /tmp/dumps
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/dumps
   php_8-1:
     docker:
     - image: php:8.1-apache
@@ -57,6 +65,14 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
+      # export logs on failure
+      - run:
+          command: |
+            mkdir -p /tmp/dumps
+            cp ~/repo/log/equal.log /tmp/dumps
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/dumps
   php_8-3:
     docker:
     - image: php:8.3-apache
@@ -84,6 +100,7 @@ jobs:
       - run: php run.php --do=init_package --package=core --import=true
       # run test units
       - run: php run.php --do=test_package --package=core
+      # export logs on failure
       - run:
           command: |
             mkdir -p /tmp/dumps
