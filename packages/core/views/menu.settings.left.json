@@ -54,6 +54,17 @@
                                     "entity": "core\\Group",
                                     "view": "list.default"
                                 }
+                            },
+                            {
+                                "id": "policies",
+                                "type": "entry",
+                                "label": "Security Policies",
+                                "icon": "badge",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\security\\SecurityPolicy",
+                                    "view": "list.default"
+                                }
                             }
                         ]
                     }
