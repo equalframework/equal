@@ -37,7 +37,8 @@ class SecurityPolicyRuleValue extends Model {
             'policy_rule_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\security\SecurityPolicyRule',
-                'description'       => 'Security policy rule the value relates to.'
+                'description'       => 'Security policy rule the value relates to.',
+                'onupdate'          => 'onupdatePolicyRuleId'
             ],
 
             'value' => [
@@ -49,4 +50,10 @@ class SecurityPolicyRuleValue extends Model {
         ];
     }
 
+    public static function onupdatePolicyRuleId($self) {
+        $self->read(['policy_rule_id' => ['security_policy_id']]);
+        foreach($self as $id => $value) {
+            $value::update(['security_policy_id' => $value['policy_rule_id']['security_policy_id']]);
+        }
+    }
 }
