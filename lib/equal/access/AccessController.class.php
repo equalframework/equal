@@ -623,12 +623,12 @@ class AccessController extends Service {
         $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
         if($security_policies_ids > 0 && count($security_policies_ids)) {
             $result = false;
-            $policies = $orm->read(SecurityPolicy::getType(), $security_policies_ids, ['id', 'security_policies_ds']);
+            $policies = $orm->read(SecurityPolicy::getType(), $security_policies_ids, ['id', 'security_policies_ids']);
 
             foreach($policies as $policy) {
                 $is_compliant = true;
                 // check all rules of the policy
-                $rules = $orm->read(SecurityPolicyRule::getType(), $policy['security_policies_ds'], ['user_id', 'policy_rule_type', 'rule_values_ids']);
+                $rules = $orm->read(SecurityPolicyRule::getType(), $policy['security_policies_ids'], ['user_id', 'policy_rule_type', 'rule_values_ids']);
                 foreach($rules as $rule) {
                     $is_match = false;
                     $values = $orm->read(SecurityPolicyRuleValue::getType(), $rule['rule_values_ids'], ['value']);
