@@ -635,7 +635,7 @@ class AccessController extends Service {
                     foreach($values as $value) {
                         switch($rule['policy_rule_type']) {
                             case 'ip_address':
-                                $is_match = self::validateIpAddress($ip_address, $value);
+                                $is_match = self::validateIpAddress($ip_address, $value['value']);
                                 break;
                         }
                         // request match with one of the value of the rule

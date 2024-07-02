@@ -32,11 +32,6 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "security_policy_id",
-                                                "width": "100%"
-                                            },
-                                            {
-                                                "type": "field",
                                                 "value": "policy_rule_id",
                                                 "width": "100%"
                                             }

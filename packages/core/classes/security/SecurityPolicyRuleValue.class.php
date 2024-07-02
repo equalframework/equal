@@ -29,16 +29,19 @@ class SecurityPolicyRuleValue extends Model {
             ],
 
             'security_policy_id' => [
-                'type'              => 'many2one',
+                'type'              => 'computed',
+                'result_type'       => 'many2one',
                 'foreign_object'    => 'core\security\SecurityPolicy',
-                'description'       => 'Security policy the value relates to.'
+                'description'       => 'Security policy the value relates to.',
+                'function'          => 'calcSecurityPolicyId',
+                'store'             => true
             ],
 
             'policy_rule_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\security\SecurityPolicyRule',
                 'description'       => 'Security policy rule the value relates to.',
-                'onupdate'          => 'onupdatePolicyRuleId'
+                'dependents'        => ['security_policy_id']
             ],
 
             'value' => [
@@ -50,10 +53,12 @@ class SecurityPolicyRuleValue extends Model {
         ];
     }
 
-    public static function onupdatePolicyRuleId($self) {
+    public static function calcSecurityPolicyId($self) {
+        $result = [];
         $self->read(['policy_rule_id' => ['security_policy_id']]);
         foreach($self as $id => $value) {
-            $value::update(['security_policy_id' => $value['policy_rule_id']['security_policy_id']]);
+            $result[$id] = $value['policy_rule_id']['security_policy_id'];
         }
+        return $result;
     }
 }
