@@ -80,12 +80,12 @@ class SecurityPolicyRule extends Model {
         $result = [];
         $self->read(['policy_rule_type', 'user_id' => ['login']]);
         foreach($self as $id => $rule) {
-            $name = ucfirst(str_replace('_', ' ', $rule['policy_rule_type'])) . ' for ';
+            $name = ucfirst(str_replace('_', ' ', $rule['policy_rule_type'])) . ' (for ';
             if(!$rule['user_id']) {
-                $name .= 'Everyone';
+                $name .= 'Everyone)';
             }
             else {
-                $name .= $rule['user_id']['login'];
+                $name .= 'User '.$rule['user_id']['login'].')';
             }
             $result[$id] = $name;
         }

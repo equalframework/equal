@@ -632,6 +632,10 @@ class AccessController extends Service {
                 foreach($rules as $rule) {
                     $is_match = false;
                     $values = $orm->read(SecurityPolicyRuleValue::getType(), $rule['rule_values_ids'], ['value']);
+                    if($values < 0 || empty($values)) {
+                        // ignore empty rules
+                        continue;
+                    }
                     foreach($values as $value) {
                         switch($rule['policy_rule_type']) {
                             case 'ip_address':
