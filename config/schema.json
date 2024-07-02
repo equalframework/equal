@@ -186,7 +186,7 @@
         "type": "integer",
         "description": "Classes of report-messages to log (non-matching messages are ignored).",
         "instant": true,
-        "default": 0,
+        "default": "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL",
         "examples": [
             "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
         ]

@@ -2463,6 +2463,8 @@ class ObjectManager extends Service {
      * @return  integer|array   Returns an array of matching objects ids sorted according to the $sort param, or a negative integer in case of error.
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
+        $result = [];
+
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -2486,8 +2488,6 @@ class ObjectManager extends Service {
                     $domain = array($domain);
                 }
             }
-
-            $res_list = [];
 
             $conditions = [[]];
             // join conditions that have to be additionally applied to all clauses
@@ -2748,15 +2748,15 @@ class ObjectManager extends Service {
             $res = $db->getRecords($tables, $select_fields, null, $conditions, $table_alias.'.id', $order_clause, $start, $limit);
             while ($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
-                $res_list[] = $row['id'];
+                $result[] = $row['id'];
             }
             // remove duplicates, if any
-            $res_list = array_unique($res_list);
+            $result = array_unique($result);
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
-            $res_list = $e->getCode();
+            $result = $e->getCode();
         }
-        return $res_list;
+        return $result;
     }
 }

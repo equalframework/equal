@@ -621,6 +621,10 @@ class AccessController extends Service {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
+        ob_start();
+        var_dump($security_policies_ids);
+        $out = ob_get_clean();
+        trigger_error("ORM::returned security policies".$out, QN_REPORT_DEBUG);
         if($security_policies_ids > 0 && count($security_policies_ids)) {
             /*
             $result = false;
