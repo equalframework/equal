@@ -64,6 +64,7 @@
                     {
                         "label":"Rules",
                         "id": "section.rules",
+                        "visible": ["is_active", "=", true],
                         "rows": [
                             {
                                 "columns": [

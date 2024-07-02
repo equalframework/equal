@@ -28,8 +28,7 @@ class SecurityPolicy extends Model {
             'is_active' => [
                 'type'              => 'boolean',
                 'description'       => "Marks the setting as translatable.",
-                'default'           => false,
-                'visible'           => ['is_sequence', '=', false]
+                'default'           => false
             ],
 
             'description' => [
