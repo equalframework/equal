@@ -21,11 +21,8 @@ class SecurityPolicyRuleValue extends Model {
     public static function getColumns() {
         return [
             'name' => [
-                'type'              => 'string',
-                'description'       => "Full path setting code to serve as reference (unique).",
-                'function'          => 'calcName',
-                'store'             => true,
-                'readonly'          => true
+                'type'              => 'alias',
+                'alias'             => 'value'
             ],
 
             'security_policy_id' => [

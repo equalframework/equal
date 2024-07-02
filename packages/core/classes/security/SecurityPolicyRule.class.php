@@ -21,6 +21,14 @@ class SecurityPolicyRule extends Model {
     public static function getColumns() {
         return [
 
+            'name' => [
+                'type'              => 'string',
+                'description'       => "Name, based on rule type and user.",
+                'function'          => 'calcName',
+                'store'             => true,
+                'readonly'          => true
+            ],
+
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
@@ -66,6 +74,22 @@ class SecurityPolicyRule extends Model {
             ]
 
         ];
+    }
+
+    public static function calcName($self) {
+        $result = [];
+        $self->read(['policy_rule_type', 'user_id' => ['login']]);
+        foreach($self as $id => $rule) {
+            $name = ucfirst(str_replace('_', ' ', $rule['policy_rule_type'])) . ' for ';
+            if(!$rule['user_id']) {
+                $name .= 'Everyone';
+            }
+            else {
+                $name .= $rule['user_id']['login'];
+            }
+            $result[$id] = $name;
+        }
+        return $result;
     }
 
     public static function calcDescription($self) {
