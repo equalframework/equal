@@ -10,56 +10,40 @@ use equal\locale\Locale;
 
 class UsageNumber extends Usage {
 
-    /**
-     * Adds support for shortcut notation number/real:5 (equivalent to number/real:10.5)
-     */
-    public function getScale(): int {
-        $scale = parent::getScale();
-        $precision = parent::getPrecision();
-        $length = parent::getLength();
-        if($this->getSubtype(0) == 'real') {
-            // single number as length: use it as scale
-            if($length && $length == $precision) {
-                $scale = $length;
-            }
-            else {
-                // use provided scale, fallback to default scale
-                $scale = ($scale)?$scale:2;
-            }
-        }
-        return $scale;
-    }
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
 
-    public function getPrecision(): int {
-        $precision = parent::getPrecision();
-        $length = parent::getLength();
-        if($this->getSubtype(0) == 'real') {
-            // single number as length means 'scale': use default precision
-            if($length == $precision) {
-                $precision = 10;
-            }
-            else {
-                // use provided scale, fallback to default scale
-                $precision = ($precision)?$precision:2;
-            }
-        }
-        return $precision;
-    }
+        $subtype = $this->getSubtype(0);
 
-    public function getLength(): int {
-        $precision = parent::getPrecision();
-        $length = parent::getLength();
-        if($this->getSubtype(0) == 'real') {
-            // single number as length means 'scale': use default precision
-            if($length == $precision) {
-                $length = 10;
+        if($subtype == 'boolean') {
+            $this->length = 1;
+        }
+        elseif($subtype == 'real') {
+            // single number as length: use it as scale and set to default precision
+            if(strpos($this->length_str, '.') === false) {
+                $this->scale = $this->length;
+                $this->precision = 10;
+                $this->length = $this->precision;
             }
             else {
-                // use provided scale, fallback to default scale
-                $length = ($length)?$length:2;
+                // use provided precision, fallback to default
+                $this->precision = max($this->precision, 2);
+
+                // use scale according to subtype
+                $map_default = [
+                    'money'     => 4,
+                    'percent'   => 6,
+                    'rate'      => 4
+                ];
+                $subtype = $this->getSubtype(0);
+                $this->scale = $map_default[$subtype] ?? 2;
             }
         }
-        return $length;
+        else {
+            if($this->length == 0) {
+                $this->length = 10;
+            }
+        }
     }
 
     public function getConstraints(): array {
@@ -78,10 +62,16 @@ class UsageNumber extends Usage {
                     'not_integer' => [
                         'message'   => 'Value is not an integer.',
                         'function'  =>  function($value) {
-                            $len = intval($this->getLength());
-                            // if length is empty, default to 18 (max)
-                            $len = ($len)?$len:18;
-                            return preg_match('/^[+-]?[0-9]{0,'.$len.'}$/', (string) $value);
+                            return preg_match('/^[+-]?[0-9]{0,'.$this->getLength().'}$/', (string) $value);
+                        }
+                    ]
+                ];
+            case 'natural':
+                return [
+                    'not_natural' => [
+                        'message'   => 'Value is not a natural number.',
+                        'function'  =>  function($value) {
+                            return preg_match('/^[0-9]{0,'.$this->getLength().'}$/', (string) $value);
                         }
                     ]
                 ];
@@ -98,21 +88,9 @@ class UsageNumber extends Usage {
                         'message'   => 'Value does not comply with real number format.',
                         'function'  =>  function($value) {
                             // expected len format is `precision.scale`
-                            $decimals = $this->getScale();
                             $integers = $this->getPrecision();
+                            $decimals = $this->getScale();
                             return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$decimals.'})?$/', (string) $value);
-                        }
-                    ]
-                ];
-            case 'hexadecimal':
-                return [
-                    'broken_usage' => [
-                        'message'   => 'Number does not match usage or length constraint.',
-                        'function'  =>  function($value) {
-                            $len = intval($this->getLength());
-                            // if length is empty, default to 255 (max)
-                            $len = ($len)?$len:255;
-                            return preg_match('/^[0-9A-F]{0,'.$len.'}$/', (string) $value);
                         }
                     ]
                 ];

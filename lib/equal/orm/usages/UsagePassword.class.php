@@ -14,6 +14,9 @@ class UsagePassword extends Usage {
         if($this->length == 0) {
             $this->length = 50;
         }
+        if($this->min == 0) {
+            $this->min = 8;
+        }
     }
 
     public function getConstraints(): array {
@@ -35,8 +38,7 @@ class UsagePassword extends Usage {
                     'invalid_password' => [
                         'message'   => 'Password too short.',
                         'function'  =>  function($value) {
-                            $min_len = ($this->getLength() > 0)?$this->getLength():8;
-                            return strlen($value) >= $min_len;
+                            return (strlen($value) >= $this->getMin());
                         }
                     ]
                 ];

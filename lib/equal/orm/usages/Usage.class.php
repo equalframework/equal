@@ -36,9 +36,15 @@ class Usage {
 
     /**
      * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+     * @var int
+     */
+    protected $length = 0;
+
+    /**
+     * Raw length notation.
      * @var string
      */
-    protected $length = '';
+    protected $length_str = '';
 
     /**
      * @var int
@@ -55,6 +61,18 @@ class Usage {
      * @var int
      */
     protected $size = 0;
+
+    /**
+     * Minimum length or lower value of possible values range.
+     * @var int|float
+     */
+    protected $min = 0;
+
+    /**
+     * Maximum length or higher value of possible values range.
+     * @var int|float
+     */
+    protected $max = 0;
 
     /**
      * Return the constraints descriptors, according to the Usage instance.
@@ -106,6 +124,14 @@ class Usage {
         return $this->length;
     }
 
+    public function getMin(): int {
+        return $this->min;
+    }
+
+    public function getMax(): int {
+        return $this->max;
+    }
+
     /**
      * The precision indicates the number of digits in the integer part of a floating number.
      * It is expected to be an integer value completed with a scale (that defaults to 0).
@@ -155,7 +181,7 @@ class Usage {
                 group 3 = size (array)  : "size"
                 group 4 = subtype       : "subtype"
                 group 6 = subtype tree  : "t.r.e.e"
-                group 8 = length        : "precision.scale"
+                group 8 = length        : "precision.scale" or "length"
                 group 9 = precision     : "precision"
                 group 10 = scale        : "scale"
                 group 12 = min          : "min"
@@ -172,10 +198,13 @@ class Usage {
             if(strlen($tree) > 0) {
                 $this->subtype .= '.'.$tree;
             }
-            // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+            // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5.3'), or {shortcut} (ex. 'medium'))
+            $this->length_str = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:'';
             $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
             $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
             $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
+            $this->min = (isset($matches[12]) && strlen($matches[12]))? +$matches[12] : 0;
+            $this->max = (isset($matches[14]) && strlen($matches[14]))? +$matches[14] : 0;
         }
 
     }
