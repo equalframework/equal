@@ -66,9 +66,7 @@ try {
     $user_id = $auth->userId();
 
     // keep track of the access in the log
-//     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => $user_id]));
-
-    trigger_error("AAA::".json_encode(['type' => 'auth', 'user_id' => $user_id]), EQ_REPORT_SYSTEM);
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'auth', 'user_id' => $user_id]));
 
     $ip_address = $request->getHeader('X-Forwarded-For');
 
@@ -76,8 +74,7 @@ try {
 
     // #memo - this call might be made while database is not yet present
     if(php_sapi_name() != 'cli' && !$access->isRequestCompliant($user_id, $ip_address)) {
-        // Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['user_id' => $user_id]));
-        trigger_error("AAA::".json_encode(['type' => 'denied_request']), EQ_REPORT_SYSTEM);
+        Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
         throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
     }
 
