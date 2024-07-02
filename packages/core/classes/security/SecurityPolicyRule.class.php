@@ -61,7 +61,6 @@ class SecurityPolicyRule extends Model {
             'description' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
-                'usage'             => 'text/plain',
                 'description'       => "Description of the role and tests performed by the policy.",
                 'function'          => 'calcDescription',
                 'store'             => true

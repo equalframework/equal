@@ -34,21 +34,12 @@
                                         ]
                                     }
                                 ]
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "sections": [
-                    {
-                        "label":"Details",
-                        "id": "section.details",
-                        "rows": [
+                            },
                             {
                                 "columns": [
                                     {
-                                        "width": "100%",
+                                        "width": "50%",
+                                        "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
@@ -60,7 +51,11 @@
                                 ]
                             }
                         ]
-                    },
+                    }
+                ]
+            },
+            {
+                "sections": [
                     {
                         "label":"Values",
                         "id": "section.values",
