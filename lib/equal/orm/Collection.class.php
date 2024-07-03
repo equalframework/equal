@@ -635,7 +635,7 @@ class Collection implements \Iterator, \Countable {
         // 4) create the new object
         $id = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
         if($id <= 0) {
-            throw new \Exception($this->orm->getLastError(), $id);
+            throw new \Exception('creation_failed', EQ_ERROR_UNKNOWN);
         }
 
         // log action (if enabled)
