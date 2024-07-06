@@ -86,12 +86,12 @@ class Collection implements \Iterator, \Countable {
         $this->logger = $logger;
         // check mandatory services
         if(!$this->orm || !$this->ac) {
-            throw new \Exception(__CLASS__, QN_ERROR_UNKNOWN);
+            throw new \Exception(__CLASS__, EQ_ERROR_UNKNOWN);
         }
         // retrieve static instance for target class
         $this->model = $this->orm->getModel($class);
         if($this->model === false) {
-            throw new \Exception($class, QN_ERROR_UNKNOWN_OBJECT);
+            throw new \Exception($class, EQ_ERROR_UNKNOWN_OBJECT);
         }
         // discard all fields but `id`
         $schema = $this->model->getSchema();
@@ -198,7 +198,7 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = reset($this->objects);
-        return ($to_array)?$this->get_raw_object($object, $to_array):$object;
+        return ($to_array)?$this->_getRawObject($object, $to_array):$object;
     }
 
     /**
@@ -213,7 +213,7 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = end($this->objects);
-        return ($to_array)?$this->get_raw_object($object, $to_array):$object;
+        return ($to_array)?$this->_getRawObject($object, $to_array):$object;
     }
 
     /**
@@ -226,7 +226,7 @@ class Collection implements \Iterator, \Countable {
     public function get($to_array=false) {
         $result = [];
         foreach($this->objects as $id => $object) {
-            $result[$id] = $this->get_raw_object($object, $to_array);
+            $result[$id] = $this->_getRawObject($object, $to_array);
         }
         if($to_array) {
             $result = array_values($result);
@@ -241,7 +241,7 @@ class Collection implements \Iterator, \Countable {
      * @param   Model   $object         Object to be converted to an array representation.
      * @param   boolean $to_array       Flag for requesting sub-collections as arrays (instead of a maps)
      */
-    private function get_raw_object($object, $to_array=false) {
+    private function _getRawObject($object, $to_array=false) {
         $result = [];
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
@@ -252,7 +252,7 @@ class Collection implements \Iterator, \Countable {
                 $result[$field] = $value->get($to_array);
             }
             elseif($value instanceof Model) {
-                $result[$field] = $this->get_raw_object($value, $to_array);
+                $result[$field] = $this->_getRawObject($value, $to_array);
             }
             else {
                 if($to_array && $this->adapter) {
@@ -260,7 +260,7 @@ class Collection implements \Iterator, \Countable {
                     $f = $object->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", QN_REPORT_INFO);
+                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", EQ_REPORT_INFO);
                         $result[$field] = $value;
                         continue;
                     }
@@ -305,7 +305,7 @@ class Collection implements \Iterator, \Countable {
     public function ids() {
         $args = func_get_args();
         if(count($args) <= 0) {
-            return array_keys($this->objects);
+            return array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         }
         else {
             $ids = $this->orm->filterExistingIdentifiers($this->class, (array) $args[0]);
@@ -350,7 +350,7 @@ class Collection implements \Iterator, \Countable {
                 // discard special fields (except `state`)
                 $allowed_fields = array_diff($allowed_fields, ['id','creator','created','modifier','modified','deleted']);
                 // log a notice about discarded readonly fields
-                trigger_error("ORM::discarding readonly fields ".implode(', ', $readonly_fields), QN_REPORT_INFO);
+                trigger_error("ORM::discarding readonly fields ".implode(', ', $readonly_fields), EQ_REPORT_INFO);
             }
             // filter $fields argument
             $result = array_intersect_key($fields, array_flip($allowed_fields));
@@ -409,11 +409,11 @@ class Collection implements \Iterator, \Countable {
      */
     public function grant($users_ids, $operation, $fields=[]) {
         // retrieve targeted identifiers
-        $ids = array_keys($this->objects);
+        $ids = $this->ids();
 
         // 2) check that current user has enough privilege to perform READ operation
-        if(!$this->ac->isAllowed(QN_R_MANAGE, $this->class, $fields, $ids)) {
-            throw new \Exception('MANAGE,'.$this->class, QN_ERROR_NOT_ALLOWED);
+        if(!$this->ac->isAllowed(EQ_R_MANAGE, $this->class, $fields, $ids)) {
+            throw new \Exception('MANAGE,'.$this->class, EQ_ERROR_NOT_ALLOWED);
         }
         $this->ac->grantUsers($users_ids, $operation, $this->class, $fields, $ids);
         return $this;
@@ -450,7 +450,7 @@ class Collection implements \Iterator, \Countable {
             $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
-                throw new \Exception(serialize(['invalid_domain' => Domain::toString($domain)]), QN_ERROR_INVALID_PARAM);
+                throw new \Exception(serialize(['invalid_domain' => Domain::toString($domain)]), EQ_ERROR_INVALID_PARAM);
             }
         }
 
@@ -461,7 +461,7 @@ class Collection implements \Iterator, \Countable {
             // find all roles for which a READ right is granted
             foreach($this->class::getRoles() as $role => $descriptor) {
                 if(isset($descriptor['rights'])) {
-                    if($descriptor['rights'] & QN_R_READ) {
+                    if($descriptor['rights'] & EQ_R_READ) {
                         $roles[] = $role;
                     }
                 }
@@ -477,9 +477,9 @@ class Collection implements \Iterator, \Countable {
         }
         else {
             // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight($user_id, QN_R_READ, $this->class)) {
+            if(!$this->ac->hasRight($user_id, EQ_R_READ, $this->class)) {
                 // find the objects for which the user is explicitly granted for READ
-                $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', QN_R_READ], ['object_class', '=', $this->class] ]);
+                $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
                 if($permissions_ids > 0 && count($permissions_ids)) {
                     $permissions = $this->orm->read('core\Permission', $permissions_ids, ['object_id']);
                     $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($permissions));
@@ -509,6 +509,7 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+
     /**
      * Create new instances by cloning the ones present in current Collection.
      *
@@ -520,36 +521,40 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
 
-        $schema = $this->model->getSchema();
-        // retrieve targeted identifiers
-        $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
         // get full list of available fields
+        $schema = $this->model->getSchema();
         $fields = array_keys($schema);
 
         // 2) check that current user has enough privilege to perform CREATE operation
-        if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
-            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+        if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
+            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', EQ_ERROR_NOT_ALLOWED);
         }
 
-        $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
-        $uniques = $this->model->getUnique();
+        $canclone = $this->call('canclone');
+        if(!empty($canclone)) {
+            throw new \Exception(serialize($canclone), EQ_ERROR_NOT_ALLOWED);
+        }
+
+        // retrieve targeted identifiers
+        $ids = $this->ids();
 
         $res = $this->orm->read($this->class, $ids, $fields, ($lang)?$lang:$this->lang);
 
         // #todo - this should be done in ObjectManager
+        $uniques = $this->model->getUnique();
 
         // 3) duplicate each object of the collection
         foreach($res as $id => $obj) {
-            $original = is_array($obj) ? $obj : $obj->toArray();
+            $values = is_array($obj) ? $obj : $obj->toArray();
 
             // make unique fields complying with related constraints
             foreach($uniques as $unique) {
                 $domain = [];
                 foreach($unique as $field) {
-                    if(!isset($original[$field])) {
+                    if(!isset($values[$field])) {
                         continue 2;
                     }
-                    $domain[] = [$field, '=',  $original[$field]];
+                    $domain[] = [$field, '=',  $values[$field]];
                 }
                 $duplicate_ids = $this->orm->search($this->class, $domain);
 
@@ -557,12 +562,12 @@ class Collection implements \Iterator, \Countable {
                     foreach($unique as $field) {
                         // #todo - when renaming, we should favor name field if defined
                         if(in_array($schema[$field]['type'], ['string', 'text'])) {
-                            $original[$field] = 'copy - '.$original[$field];
+                            $values[$field] = 'copy - '.$values[$field];
                         }
                         else {
                             // #todo - this does not guarantee that there will be no duplicate
                             // remove latest field to prevent duplicate issue
-                            unset($original[$field]);
+                            unset($values[$field]);
                         }
                         break;
                     }
@@ -570,31 +575,38 @@ class Collection implements \Iterator, \Countable {
             }
 
             if(isset($schema['name']['type']) && $schema['name']['type'] == 'string') {
-                $original['name'] = $original['name'].' - copy';
+                $values['name'] = $values['name'].' - copy';
             }
 
             // set current user as creator and modifier
-            $original['creator'] = $user_id;
-            $original['modifier'] = $user_id;
+            $values['creator'] = $user_id;
+            $values['modifier'] = $user_id;
 
             // validate : check unique keys
-            $this->validate($original, [], true);
+            $this->validate($values, [], true);
+
+            $cancreate = $this->call('cancreate', $values);
+            if(!empty($cancreate)) {
+                throw new \Exception(serialize($cancreate), EQ_ERROR_NOT_ALLOWED);
+            }
 
             // create the clone
-            $oid = $this->orm->clone($this->class, $id, $original, $lang);
-            if($oid <= 0) {
+            $new_id = $this->orm->clone($this->class, $id, $values, $lang);
+            if($new_id <= 0) {
                 // error at creation (possibly duplicate_index)
-                throw new \Exception($this->class.'::'.implode(',', $fields), $oid);
+                throw new \Exception($this->class.'::'.implode(',', $fields), $new_id);
             }
 
             // log action (if enabled)
-            $this->logger->log($user_id, 'create', $this->class, $oid);
+            $this->logger->log($user_id, 'create', $this->class, $new_id);
             // store new object in current collection
-            $this->objects[$oid] = ['id' => $oid];
+            // #todo - this should be an object
+            $this->objects[$new_id] = ['id' => $new_id];
         }
 
         return $this;
     }
+
 
     /**
      * Creates a new Object.
@@ -618,8 +630,8 @@ class Collection implements \Iterator, \Countable {
             $values, array_keys($values));
 
         // 2) check that current user has enough privilege to perform CREATE operation
-        if(!$this->ac->isAllowed(QN_R_CREATE, $this->class, $fields)) {
-            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', QN_ERROR_NOT_ALLOWED);
+        if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
+            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', EQ_ERROR_NOT_ALLOWED);
         }
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
@@ -628,9 +640,15 @@ class Collection implements \Iterator, \Countable {
         // 3) validate : check required fields accordingly
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
         $this->validate($values, [], true, $check_required);
+
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
+
+        $cancreate = $this->call('cancreate', $values);
+        if(!empty($cancreate)) {
+            throw new \Exception(serialize($cancreate), EQ_ERROR_NOT_ALLOWED);
+        }
 
         // 4) create the new object
         $id = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
@@ -646,6 +664,51 @@ class Collection implements \Iterator, \Countable {
 
         return $this;
     }
+
+    public function call($method_name, $values=[]) {
+        $result = [];
+
+        if(!method_exists($this->class, $method_name)) {
+            return $result;
+        }
+
+        $method = new \ReflectionMethod($this->class, $method_name);
+        $params = $method->getParameters();
+
+        $args = [];
+        foreach($params as $param) {
+            $param_name = $param->getName();
+            if(in_array($param_name, ['om', 'orm'])) {
+                $args[] = $this->orm;
+            }
+            elseif(in_array($param_name, ['ids', 'oids'])) {
+                $args[] = $this->ids();;
+            }
+            elseif($param_name == 'values') {
+                $args[] = $values;
+            }
+            elseif($param_name == 'lang') {
+                $args[] = $this->lang;
+            }
+            elseif($param_name == 'self') {
+                $args[] = $this;
+            }
+        }
+
+        try {
+            $res = $this->class::$method_name(...$args);
+            if($res !== null) {
+                $result = $res;
+            }
+        }
+        catch(\Exception $e) {
+            trigger_error("ORM::unexpected error when calling {$method_name} on {$this->class}", EQ_REPORT_ERROR);
+            throw new \Exception('method_call_failed', EQ_ERROR_UNKNOWN);
+        }
+
+        return $result;
+    }
+
 
     /**
      * When $field argument is empty, only `id` and `name` fields are loaded.
@@ -698,11 +761,17 @@ class Collection implements \Iterator, \Countable {
             }
 
             // retrieve targeted identifiers (remove null entries)
-            $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
+            $ids = $this->ids();
 
 			// 2) check that current user has enough privilege to perform READ operation
-			if(!$this->ac->isAllowed(QN_R_READ, $this->class, $requested_fields, $ids)) {
-                throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), QN_ERROR_NOT_ALLOWED);
+			if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
+                throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), EQ_ERROR_NOT_ALLOWED);
+            }
+
+            // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
+            $canread = $this->call('canread', $requested_fields);
+            if(!empty($canread)) {
+                throw new \Exception(serialize($canread), EQ_ERROR_NOT_ALLOWED);
             }
 
             // 3) read values
@@ -786,6 +855,7 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+
     /**
      *
      * @param   array       $values   associative array mapping fields and values
@@ -801,13 +871,13 @@ class Collection implements \Iterator, \Countable {
             // silently drop invalid fields
             $values = $this->filter($values, 'update');
             // retrieve targeted identifiers
-            $ids = array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
+            $ids = $this->ids();
             // retrieve targeted fields names
             $fields = array_keys($values);
 
             // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(QN_R_WRITE, $this->class, $fields, $ids)) {
-                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
+                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
             }
 
             // if object is not yet an instance, check required fields (otherwise, we allow partial update)
@@ -823,9 +893,16 @@ class Collection implements \Iterator, \Countable {
             if(!isset($values['state']) || $values['state'] == 'draft') {
                 $values['state'] = 'instance';
             }
+
+            $canupdate = $this->call('canupdate', $values);
+            if(!empty($canupdate)) {
+                throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
+            }
+
             $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
             if($res <= 0) {
-                throw new \Exception($this->orm->getLastError(), $res);
+                trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
+                throw new \Exception('update_failed', $res);
             }
 
             foreach($ids as $oid) {
@@ -841,6 +918,7 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+
     /**
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
@@ -850,17 +928,23 @@ class Collection implements \Iterator, \Countable {
 
             // 1) sanitize and retrieve necessary values
             // retrieve targeted identifiers
-            $ids = array_keys($this->objects);
+            $ids = $this->ids();
 
             // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(QN_R_DELETE, $this->class, [], $ids)) {
-                throw new \Exception($user_id.';DELETE,'.$this->class.'['.implode(',', $ids).']', QN_ERROR_NOT_ALLOWED);
+            if(!$this->ac->isAllowed(EQ_R_DELETE, $this->class, [], $ids)) {
+                throw new \Exception($user_id.';DELETE,'.$this->class.'['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
+            }
+
+            $candelete = $this->call('candelete');
+            if(!empty($candelete)) {
+                throw new \Exception(serialize($candelete), EQ_ERROR_NOT_ALLOWED);
             }
 
             // 3) delete objects
             $res = $this->orm->delete($this->class, $ids, $permanent);
             if($res <= 0) {
-                throw new \Exception($this->orm->getLastError(), $res);
+                trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
+                throw new \Exception('deletion_failed', $res);
             }
             else {
                 $ids = $res;
@@ -877,6 +961,7 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+
     /**
      * Attempts to perform a specific action to a series of objects.
      * If no workflow is defined, the call is ignored (no action is taken).
@@ -888,7 +973,7 @@ class Collection implements \Iterator, \Countable {
         // retrieve targeted identifiers
         $res = $this->orm->transition($this->class, $this->ids(), $transition);
         if(count($res)) {
-            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
         }
         return $this;
     }
@@ -905,173 +990,21 @@ class Collection implements \Iterator, \Countable {
     public function do($action) {
         // check if action can be performed
         $user_id = $this->am->userId();
-        $res = $this->ac->canPerform($user_id, $action, $this->class, $this->ids());
+        $ids = $this->ids();
+        $res = $this->ac->canPerform($user_id, $action, $this->class, $ids);
         if(count($res)) {
-            throw new \Exception(serialize($res), QN_ERROR_NOT_ALLOWED);
+            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
         }
 
         $actions = $this->class::getActions();
 
         if(isset($actions[$action]) && isset($actions[$action]['function'])) {
-            // retrieve targeted identifiers
-            $ids = array_keys($this->objects);
             if(count($ids)) {
-                $this->orm->callonce($this->class, $actions[$action]['function'], $ids);
+                $this->call($actions[$action]['function']);
             }
         }
 
         return $this;
     }
 
-    /**
-     * Following methods are defined here because we want children classes to have arbitrary parameters (the only constraint is for multiple inheritance: children classes must implement a method the same way their parent does).
-     * In case these methods are invoked on the Model class, the code ends up here.
-     */
-
-    /**
-     * Check wether an object can be read by current user.
-     * This method can be overridden to define a custom set of tests (based on roles and/or policies).
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers for which reading is requested.
-     * @param  array            $fields     List of fields for which reading is requested.
-     * @param  string           $lang       Language in which multilang fields are being read.
-     * @return array            Returns an associative array mapping ids and fields with their error messages. An empty array means that object has been successfully processed and can be read.
-     */
-    public static function canread($orm, $ids=[], $fields=[], $lang='en') {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be created.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
-     */
-    public static function cancreate($orm, $values=[], $lang='en') {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be updated.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @param  array            $values     Associative array holding the new values to be assigned.
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canupdate($orm, $ids=[], $values=[], $lang='en') {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be cloned.
-     * These tests come in addition to the unique constraints return by method `getUnique()`.
-     * This method can be overridden to define a custom set of tests.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be updated.
-     */
-    public static function canclone($orm, $ids=[]) {
-        return [];
-    }
-
-    /**
-     * Check wether an object can be deleted.
-     * This method can be overridden to define a custom set of tests.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be deleted.
-     */
-    public static function candelete($orm, $ids=[]) {
-        return [];
-    }
-
-    /**
-     * Hook invoked after object creation for performing object-specific additional operations.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers. Should contain only the id of the object just created.
-     * @param  array            $values     Associative array holding the newly assigned values.
-     * @param  string           $lang       Language in which multilang fields are being created.
-     * @return void
-     */
-    public static function oncreate($orm, $ids=[], $values=[], $lang='en') {
-    }
-
-    /**
-     * Hook invoked before object update for performing object-specific additional operations.
-     * Current values of the object can still be read for comparing with new values.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm        ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @param  array            $values     Associative array holding the new values that have been assigned.
-     * @param  string           $lang       Language in which multilang fields are being updated.
-     * @return void
-     */
-    public static function onupdate($orm, $ids=[], $values=[], $lang='en') {
-    }
-
-    /**
-     * Hook invoked after object cloning for performing object-specific additional operations.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm         ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @return void
-     */
-    public static function onclone($orm, $ids=[]) {
-    }
-
-    /**
-     * Hook invoked before object deletion for performing object-specific additional operations.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm         ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @return void
-     */
-    public static function ondelete($orm, $ids=[]) {
-    }
-
-    /**
-     * Signature for single object values change in UI.
-     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
-     *
-     * Accepts variable list of arguments, based on their names :
-     * @param  Collection       $self       Collection holding a series of objects of current class.
-     * @param  ObjectManager    $orm         ObjectManager instance.
-     * @param  array            $ids        List of objects identifiers.
-     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
-     * @param  array            $values     Copy of the current (partial) state of the object.
-     * @return array            Returns an associative array mapping fields with their resulting values.
-     */
-    public static function onchange($orm, $event=[], $values=[], $lang='en') {
-        return [];
-    }
 }

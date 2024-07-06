@@ -1468,10 +1468,13 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be updated
 
+            /*
+            // #moved to Collection
             $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $special_fields), $lang, ['values', 'lang']);
             if(!empty($cancreate)) {
                 throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) garbage collect: check for expired draft object
 
@@ -1632,10 +1635,13 @@ class ObjectManager extends Service {
                     }
                 }
                 // #todo - split the tests with status check against the object workflow
+                /*
+                // #moved to Collection
                 $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
                 if($canupdate > 0 && !empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
+                */
             }
 
             // #memo - writing an object does not change its state, unless when explicitly set in $fields
@@ -1911,10 +1917,13 @@ class ObjectManager extends Service {
             }
 
             // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
+            /*
+            // #moved to Collection
             $canread = $this->callonce($class, 'canread', $ids, $requested_fields, $lang);
             if($canread > 0 && !empty($canread)) {
                 throw new \Exception(serialize($canread), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 
@@ -2068,10 +2077,13 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be deleted
 
+            /*
+            // #moved to Collection
             $candelete = $this->call($class, 'candelete', $ids, [], null, ['ids']);
             if(!empty($candelete)) {
                 throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
             // #todo allow explicit notation 'onbeforedelete'
@@ -2195,10 +2207,13 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
 
+            /*
+            // #moved to Collection
             $canclone = $this->call($class, 'canclone', (array) $id, [], $lang, ['ids']);
             if(!empty($canclone)) {
                 throw new \Exception(serialize($canclone), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // read full object
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
