@@ -54,6 +54,74 @@
                                     "entity": "core\\Group",
                                     "view": "list.default"
                                 }
+                            },
+                            {
+                                "id": "policies",
+                                "type": "entry",
+                                "label": "Security Policies",
+                                "icon": "badge",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\security\\SecurityPolicy",
+                                    "view": "list.default"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "communication",
+                "label": "Communication",
+                "description": "",
+                "icon": "mode_comment",
+                "type": "parent",
+                "children": [
+                    {
+                        "id": "communication.alerts",
+                        "label": "Alerts",
+                        "description": "",
+                        "icon": "chrome_reader_mode",
+                        "type": "parent",
+                        "children": [
+                            {
+                                "id": "communication.alert.messages",
+                                "type": "entry",
+                                "label": "All messages",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\alert\\Message",
+                                    "view": "list.default"
+                                }
+                            },
+                            {
+                                "id": "communication.alert.message_models",
+                                "type": "entry",
+                                "label": "Message models",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\alert\\MessageModel",
+                                    "view": "list.default"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "id": "communication.emails",
+                        "label": "Emails",
+                        "description": "",
+                        "icon": "alternate_email",
+                        "type": "parent",
+                        "children": [
+                            {
+                                "id": "communication.emails.all",
+                                "type": "entry",
+                                "label": "All emails",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\Mail",
+                                    "view": "list.default"
+                                }
                             }
                         ]
                     }
@@ -82,6 +150,17 @@
                                     "entity": "core\\Task",
                                     "view": "list.default"
                                 }
+                            },
+                            {
+                                "id": "settings.cron.tasks.recurring",
+                                "type": "entry",
+                                "label": "Recurring tasks",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\Task",
+                                    "view": "list.default",
+                                    "domain": ["is_recurring", "=", true]
+                                }
                             }
                         ]
                     },
@@ -93,6 +172,16 @@
                         "type": "parent",
                         "children": [
                             {
+                                "id": "settings.settings.settings",
+                                "type": "entry",
+                                "label": "Available Settings",
+                                "description": "",
+                                "context": {
+                                    "entity": "core\\setting\\Setting",
+                                    "view": "list.default"
+                                }
+                            },
+                            {
                                 "id": "settings.settings.settings_values",
                                 "type": "entry",
                                 "label": "Settings values",
@@ -103,22 +192,12 @@
                                 }
                             },
                             {
-                                "id": "settings.settings.settings_choices",
+                                "id": "settings.settings.settings_sequences",
                                 "type": "entry",
-                                "label": "Settings choices",
+                                "label": "Settings sequences",
                                 "description": "",
                                 "context": {
-                                    "entity": "core\\setting\\SettingChoice",
-                                    "view": "list.default"
-                                }
-                            },
-                            {
-                                "id": "settings.settings.settings",
-                                "type": "entry",
-                                "label": "Available Settings",
-                                "description": "",
-                                "context": {
-                                    "entity": "core\\setting\\Setting",
+                                    "entity": "core\\setting\\SettingSequence",
                                     "view": "list.default"
                                 }
                             }

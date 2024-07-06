@@ -84,42 +84,45 @@ $updateNode = function (&$layout, $id, $node) {
     $target_type = '';
     $index = 0;
     $target_parent = null;
-    foreach($layout['groups'] as $group_index => $group) {
-        if(isset($group['id']) && $group['id'] == $id) {
-            $target = &$layout['groups'][$group_index];
-            break;
-        }
-        $target_parent = &$layout['groups'][$group_index]['sections'];
-        foreach($group['sections'] as $section_index => $section) {
-            if(isset($section['id']) && $section['id'] == $id) {
-                $target = &$layout['groups'][$group_index]['sections'][$section_index];
-                $target_type = 'section';
-                $index = $section_index;
-                break 2;
+
+    if(isset($layout['groups'])) {
+        foreach($layout['groups'] as $group_index => $group) {
+            if(isset($group['id']) && $group['id'] == $id) {
+                $target = &$layout['groups'][$group_index];
+                break;
             }
-            $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'];
-            foreach($section['rows'] as $row_index => $row) {
-                if(isset($row['id']) && $row['id'] == $id) {
-                    $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index];
-                    $target_type = 'row';
-                    $index = $row_index;
-                    break 3;
+            $target_parent = &$layout['groups'][$group_index]['sections'];
+            foreach($group['sections'] as $section_index => $section) {
+                if(isset($section['id']) && $section['id'] == $id) {
+                    $target = &$layout['groups'][$group_index]['sections'][$section_index];
+                    $target_type = 'section';
+                    $index = $section_index;
+                    break 2;
                 }
-                $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'];
-                foreach($row['columns'] as $column_index => $column) {
-                    if(isset($column['id']) && $column['id'] == $id) {
-                        $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index];
-                        $target_type = 'column';
-                        $index = $column_index;
-                        break 4;
+                $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'];
+                foreach($section['rows'] as $row_index => $row) {
+                    if(isset($row['id']) && $row['id'] == $id) {
+                        $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index];
+                        $target_type = 'row';
+                        $index = $row_index;
+                        break 3;
                     }
-                    $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'];
-                    foreach($column['items'] as $item_index => $item) {
-                        if(isset($item['id']) && $item['id'] == $id) {
-                            $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'][$item_index];
-                            $target_type = 'item';
-                            $index = $item_index;
-                            break 5;
+                    $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'];
+                    foreach($row['columns'] as $column_index => $column) {
+                        if(isset($column['id']) && $column['id'] == $id) {
+                            $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index];
+                            $target_type = 'column';
+                            $index = $column_index;
+                            break 4;
+                        }
+                        $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'];
+                        foreach($column['items'] as $item_index => $item) {
+                            if(isset($item['id']) && $item['id'] == $id) {
+                                $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'][$item_index];
+                                $target_type = 'item';
+                                $index = $item_index;
+                                break 5;
+                            }
                         }
                     }
                 }
@@ -229,12 +232,12 @@ if(!isset($view['layout'])) {
 }
 
 // pass-2 : adapt the view if inheritance is involved
-if(isset($view['layout']['extends'])) {
-    if(!isset($view['layout']['extends']['view'])) {
+if(isset($view['extends'])) {
+    if(!isset($view['extends']['view'])) {
         throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
     }
-    $view_id = $view['layout']['extends']['view'];
-    $entity = $view['layout']['extends']['entity'] ?? $params['entity'];
+    $view_id = $view['extends']['view'];
+    $entity = $view['extends']['entity'] ?? $params['entity'];
     if($params['view_id'] == $view_id && $params['entity'] == $entity) {
         throw new Exception("cyclic_view_dependency", QN_ERROR_INVALID_CONFIG);
     }

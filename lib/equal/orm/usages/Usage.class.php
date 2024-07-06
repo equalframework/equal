@@ -34,22 +34,45 @@ class Usage {
      */
     protected $is_array = false;
 
-    /** @var string
+    /**
      * Accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
-    */
-    protected $length = '';
+     * @var int
+     */
+    protected $length = 0;
 
-    /** @var int */
+    /**
+     * Raw length notation.
+     * @var string
+     */
+    protected $length_str = '';
+
+    /**
+     * @var int
+     */
     protected $precision = 0;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     protected $scale = 0;
 
     /**
-     * Size of the array (when usage targets an array of values)
+     * Size of the array (when usage targets an array of values).
      * @var int
      */
     protected $size = 0;
+
+    /**
+     * Minimum length or lower value of possible values range.
+     * @var int|float
+     */
+    protected $min = 0;
+
+    /**
+     * Maximum length or higher value of possible values range.
+     * @var int|float
+     */
+    protected $max = 0;
 
     /**
      * Return the constraints descriptors, according to the Usage instance.
@@ -71,8 +94,22 @@ class Usage {
         return $this->type;
     }
 
-    final public function getSubtype(): string {
-        return $this->subtype;
+    /**
+     * Retrieve the subtype (all tree or a specific component).
+     * By default it returns the subtype with full tree.
+     * Call $tree_index set to 0 to retrieve the first level of the subtype.
+     * @example For usage "text/plain.short"
+     *      getSubtype()   returns 'plain'
+     *      getSubtype(1)  returns 'short'
+     *      getSubtype(-1) returns 'plain.short'
+     */
+    final public function getSubtype($tree_index=-1): ?string {
+        $result = $this->subtype;
+        if($tree_index >= 0) {
+            $tree = explode('.', $result);
+            $result = $tree[$tree_index] ?? null;
+        }
+        return $result;
     }
 
     /**
@@ -85,6 +122,14 @@ class Usage {
 
     public function getLength(): int {
         return $this->length;
+    }
+
+    public function getMin(): int {
+        return $this->min;
+    }
+
+    public function getMax(): int {
+        return $this->max;
     }
 
     /**
@@ -111,7 +156,6 @@ class Usage {
      * @var array */
     private $variations = [];
 
-
     /**
      * @param string $usage_str   Usage string: string describing the usage.
      *
@@ -131,18 +175,21 @@ class Usage {
         }
         else {
             /*
-                group 1 = type
-                group 3 = array size
-                group 4 = subtype
-                group 6 = subtype tree
-                group 8 = length
-                group 9 = precision
-                group 10 = scale
-                group 12 = min
-                group 14 = max
+                Syntax: type[size]/subtype.t.r.e.e:precision.scale{min,max}
+
+                group 1 = type          : "type"
+                group 3 = size (array)  : "size"
+                group 4 = subtype       : "subtype"
+                group 6 = subtype tree  : "t.r.e.e"
+                group 8 = length        : "precision.scale" or "length"
+                group 9 = precision     : "precision"
+                group 10 = scale        : "scale"
+                group 12 = min          : "min"
+                group 14 = max          : "max"
             */
             // store original usage string
             $this->usage_str = $usage_str;
+            // assign parts to dedicated members
             $this->type = isset($matches[1])?$matches[1]:'';
             $this->is_array = isset($matches[2]) && strlen($matches[2]);
             $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;
@@ -151,10 +198,13 @@ class Usage {
             if(strlen($tree) > 0) {
                 $this->subtype .= '.'.$tree;
             }
-            // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5:3'), or {shortcut} (ex. 'medium'))
+            // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5.3'), or {shortcut} (ex. 'medium'))
+            $this->length_str = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:'';
             $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
             $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
             $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
+            $this->min = (isset($matches[12]) && strlen($matches[12]))? +$matches[12] : 0;
+            $this->max = (isset($matches[14]) && strlen($matches[14]))? +$matches[14] : 0;
         }
 
     }

@@ -1,0 +1,20 @@
+{
+    "name": "Config params sequences",
+    "description": "Default listing of configuration sequences.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "label": "Name",
+                "width": "30%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "value",
+                "width": "25%"
+            }
+        ]
+    }
+}

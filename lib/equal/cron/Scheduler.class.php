@@ -20,7 +20,25 @@ class Scheduler extends Service {
     }
 
     public static function constants() {
-        return [];
+        return ['MEM_FREE_LIMIT'];
+    }
+
+    private static function computeAvailableMemory() {
+        $memory = 0;
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            if($output = shell_exec('wmic OS get FreePhysicalMemory /Value')) {
+                preg_match('/FreePhysicalMemory=(\d+)/', $output, $matches);
+                $memory = isset($matches[1]) ? intval($matches[1]) : 0;
+            }
+        }
+        else {
+            $meminfo = @file_get_contents('/proc/meminfo');
+            if($meminfo !== false) {
+                preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $matches);
+                $memory = isset($matches[1]) ? intval($matches[1]) : 0;
+            }
+        }
+        return $memory * 1000;
     }
 
     /**
@@ -52,8 +70,12 @@ class Scheduler extends Service {
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
 
-            // #todo - do not try to run the task if current memory use is above MEM_LIMIT
-            // if(total_machine_mem_use >= constant('MEM_LIMIT')) { }
+            // do not run the task if current available memory is below MEM_FREE_LIMIT
+            $mem_available = self::computeAvailableMemory();
+            if($mem_available < constant('MEM_FREE_LIMIT')) {
+                trigger_error("PHP::Ignoring scheduler batch because free memory is below MEM_FREE_LIMIT (".$mem_available."/".constant('MEM_FREE_LIMIT').")", QN_REPORT_INFO);
+                return;
+            }
 
             // if an exclusive task is already running, ignore current batch
             $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running'], ['is_exclusive', '=', true]]);

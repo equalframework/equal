@@ -8,10 +8,10 @@ spool/*
 !spool/.gitkeep
 bin/*
 !bin/.gitkeep
-config/config.inc.php
 config/config.json
 config/routing/*
 !config/routing/.gitkeep
+composer.json
 composer.phar
 composer.lock
 .vscode
@@ -20,4 +20,3 @@ public/*
 !public/index.php
 !public/console.php
 !public/assets
-public/assets/env/config.json

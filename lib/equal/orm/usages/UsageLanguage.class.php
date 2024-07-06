@@ -9,6 +9,13 @@ namespace equal\orm\usages;
 
 class UsageLanguage extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 2;
+        }
+    }
+
     public function getConstraints(): array {
         // subtype is expected to be iso-639
         switch($this->getLength()) {

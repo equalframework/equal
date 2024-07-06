@@ -224,38 +224,36 @@ class Context extends Service {
                 }
             }
             // handle Authorization header
-            if (!isset($headers['Authorization'])) {
-                if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            if(!isset($headers['Authorization'])) {
+                if(isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
                     $headers['Authorization'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
                 }
-                elseif (isset($_SERVER['PHP_AUTH_USER'])) {
-                    $basic_pass = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+                elseif(isset($_SERVER['PHP_AUTH_USER'])) {
+                    $basic_pass = $_SERVER['PHP_AUTH_PW'] ?? '';
                     $headers['Authorization'] = 'Basic ' . base64_encode($_SERVER['PHP_AUTH_USER'] . ':' . $basic_pass);
                 }
-                elseif (isset($_SERVER['PHP_AUTH_DIGEST'])) {
+                elseif(isset($_SERVER['PHP_AUTH_DIGEST'])) {
                     $headers['Authorization'] = $_SERVER['PHP_AUTH_DIGEST'];
                 }
             }
             // handle ETags
             if(!isset($headers['ETag'])) {
-                if(isset($headers['If-None-Match'])) {
-                    $headers['ETag'] = $headers['If-None-Match'];
-                }
-                else {
-                    $headers['ETag'] = '';
-                }
+                $headers['ETag'] = $headers['If-None-Match'] ?? '';
             }
-            // handle client's IP address : we make sure that 'X-Forwarded-For' is always set with the most probable client IP
-            // fallback to localhost (using CLI, REMOTE_ADDR is not set), so we default to '127.0.0.1'
+            // handle client IP address: make sure that 'X-Forwarded-For' is always set with the most probable client IP
+            // fallback to localhost/127.0.0.1 (using CLI, REMOTE_ADDR is not set)
             $client_ip = '127.0.0.1';
-            if(isset($_SERVER['REMOTE_ADDR'])) {
+            if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $client_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            }
+            elseif(isset($_SERVER['REMOTE_ADDR'])) {
                 $client_ip = $_SERVER['REMOTE_ADDR'];
             }
             if(!isset($headers['X-Forwarded-For'])) {
                 $headers['X-Forwarded-For'] = $client_ip;
             }
             // assign X-Forwarded-For with a single IP (first in list)
-            $headers['X-Forwarded-For'] = stristr($headers['X-Forwarded-For'],',') ? stristr($headers['X-Forwarded-For'],',',true) : $headers['X-Forwarded-For'];
+            $headers['X-Forwarded-For'] = explode(',', $headers['X-Forwarded-For'])[0];
         }
         if(isset($headers['content-type'])) {
             $headers['Content-Type'] = $headers['content-type'];

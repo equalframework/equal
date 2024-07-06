@@ -24,6 +24,14 @@ class DataAdapterTxt implements DataAdapter {
         return $this->type;
     }
 
+    public function castInType(): string {
+        return '';
+    }
+
+    public function castOutType($usage=null): string {
+        return '';
+    }
+
     /**
      * Retrieves the appropriate TXT DataAdapter and adapts the input value from TXT type to PHP type (TXT -> PHP).
      * @param mixed         $value      Value to be adapted.

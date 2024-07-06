@@ -73,7 +73,7 @@ class Domain {
     }
 
     /**
-     * Add a clause at the Domain level : the clause is appened to the Domain
+     * Add a clause at the Domain level : the clause is append to the Domain
      */
     public function addClause($clause) {
         $this->clauses[] = $clause;
@@ -109,7 +109,7 @@ class Domain {
     }
 
     /**
-     * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.
+     * Update domain by parsing conditions and replace any occurrence of `object.` and `user.` notations with related attributes of given objects.
      *
      * @param values
      * @returns Domain  Returns current instance with updated values.
@@ -144,16 +144,15 @@ class Domain {
                     }
                 }
                 // handle user references as `value` part
-                else if(is_string($value) && strpos($value, 'user.') == 0) {
+                elseif(is_string($value) && strpos($value, 'user.') == 0) {
                     $target = substr($value, 0, strlen('user.'));
                     if(!$user || !isset($user[$target])) {
                         continue;
                     }
                     $value = $user[$target];
                 }
-                else if(is_string($value) && strpos($value, 'date.') == 0) {
-                    // #todo
-                    // $value = (new DateReference($value)).getDate().toISOString();
+                elseif(is_string($value) && strpos($value, 'date.') == 0) {
+                    $value = (new DateReference($value)).getDate();
                 }
 
                 $condition->value = $value;
@@ -164,7 +163,7 @@ class Domain {
 
     /**
      * Evaluate domain for a given object.
-     * Object structure has to comply with the operands mentionned in the conditions of the domain. If no, related conditions are ignored (skipped).
+     * Object structure has to comply with the operands mentioned in the conditions of the domain. If no, related conditions are ignored (skipped).
      *
      * @param object
      * @return boolean Return true if the object matches the domain, false otherwise.

@@ -6,26 +6,6 @@
 */
 namespace equal\orm;
 
-/**
- *
- *   - either a string representing a date in ISO format (ISO 8601)
- *   - either a string representing the description of a date, wit a format relating to NOW
- *
- *   Result of the parsing is always a timestamp.
- *
- *
- *   Syntax:
- *    date.[this|prev|next].[day|week|month|quarter|semester|year].[first|last]
- *
- *
- *   - today = date.this.day
- *   - first day of current year = date.this.year.first
- *   - last day of last week = date.prev.week.last*
- *
- *
- */
-
-
 class DateReference {
 
     private $date;
@@ -36,58 +16,211 @@ class DateReference {
     }
 
     /**
+     * Parse a descriptor and assign `$date` member to the retrieved date (as a timestamp)
      *
-     * descriptor syntax: date.[this|prev|next].[day|week|month|quarter|semester|year].[first|last]
-     * 
      * @param string $descriptor
+     *   - either a string representing a date in ISO format (ISO 8601)
+     *   - either a string representing the description of a date, wit a format relating to NOW
+     *
+     *   Result of the parsing is always a timestamp.
+     *
+     *   Syntax:
+     *      date.{this|prev|next}[(<offset>)].{day|week|month|quarter|semester|year}.{first|last|get(reference:index)}
+     *
+     *  Examples:
+     *   - today = date.this.day
+     *   - first day of current year = date.this.year.first
+     *   - last day of last week = date.prev.week.last*
+     *
      */
     public function parse($descriptor) {
         if(is_numeric($descriptor)) {
             $this->date = $descriptor;
         }
         else {
-            // init at today
-            $date = time();
+            $matches = [];
             $descriptor = strtolower($descriptor);
-            if(strpos($descriptor, 'date.') == 0) {
-                $parts = explode('.', $descriptor);
-                $len = count($parts);
-                if($len > 2) {
-                    $offset = ($parts[1] == 'prev')? -1 : (($parts[1] == 'next')? 1 : 0);
-                    $day = ($len >= 4 && $parts[3] == 'last')?'last':'first';
 
-                    switch($parts[2]) {
+            if(preg_match('/date\.(this|prev|next)(\((\d*)\))?\.(day|week|month|quarter|semester|year)(\.(first|last|get\((.+)\)))?/', $descriptor, $matches)) {
+                // init at today
+                $date = new DateTime();
+
+                $origin = $matches[1];
+                $offset = isset($matches[3]) && $matches[3] !== '' ? (int)$matches[3] : 1;
+                $interval = isset($matches[4]) ? $matches[4] : null;
+                $method = isset($matches[6]) ? $matches[6] : null;
+                $args = isset($matches[7]) ? $matches[7] : '';
+
+                if($origin === 'prev') {
+                    $offset = -$offset;
+                }
+                if($interval) {
+                    $sign = ($offset >= 0 ? '+' : '');
+                    switch($interval) {
                         case 'day':
-                            $date += ($offset * 86400);
+                            $date->modify($sign.$offset.' day');
                             break;
                         case 'week':
-                            $dow = date('w', $date);
-                            $diff = -$dow + ($dow == 0 ? -6:1);
-                            $date += $diff + ($offset * 7);
-                            if($day == 'last') {
-                                $date += 6 * 86400;
-                            }
+                            $date->modify($sign.$offset.' week');
                             break;
                         case 'month':
-                            $date = mktime(0, 0, 0, date('n', $date)+$offset, 1, date('Y', $date));
-                            if($day == 'last') {
-                                $date = mktime(0, 0, 0, date('n', $date)+$offset+1, 0, date('Y', $date));
-                            }
+                            $date->modify($sign.$offset.' month');
                             break;
                         case 'quarter':
+                            $date->modify($sign.($offset * 3).' month');
                             break;
                         case 'semester':
+                            $date->modify($sign.($offset * 6).' month');
                             break;
                         case 'year':
-                            $date = mktime(0, 0, 0, 1, 1, date('Y', $date)+$offset);
-                            if($day == 'last') {
-		                        $date = mktime(0, 0, 0, 12, 31, date('Y', $date)+$offset);
-                            }
+                            $date->modify($sign.$offset.' year');
                             break;
                     }
                 }
+
+                if($method) {
+                    $month = (int)$date->format('n');
+                    switch($method) {
+                        case 'first':
+                            switch($interval) {
+                                case 'week':
+                                    $date->setISODate((int)$date->format('o'), (int)$date->format('W'), 1);
+                                    break;
+                                case 'month':
+                                    $date->modify('first day of this month');
+                                    break;
+                                case 'quarter':
+                                    $quarter_start = (int)(($month - 1) / 3) * 3 + 1;
+                                    $date->setDate($date->format('Y'), $quarter_start, 1);
+                                    break;
+                                case 'semester':
+                                    $semester_start = $month <= 6 ? 1 : 7;
+                                    $date->setDate($date->format('Y'), $semester_start, 1);
+                                    break;
+                                case 'year':
+                                    $date->setDate($date->format('Y'), 1, 1);
+                                    break;
+                            }
+                            break;
+                        case 'last':
+                            switch($interval) {
+                                case 'week':
+                                    $date->setISODate((int)$date->format('o'), (int)$date->format('W'), 7);
+                                    break;
+                                case 'month':
+                                    $date->modify('last day of this month');
+                                    break;
+                                case 'quarter':
+                                    $quarter_end = (int)(($month - 1) / 3) * 3 + 3;
+                                    $date->setDate($date->format('Y'), $quarter_end, 1);
+                                    $date->modify('last day of this month');
+                                    break;
+                                case 'semester':
+                                    $semester_end = $month <= 6 ? 6 : 12;
+                                    $date->setDate($date->format('Y'), $semester_end, 1);
+                                    $date->modify('last day of this month');
+                                    break;
+                                case 'year':
+                                    $date->setDate($date->format('Y'), 12, 31);
+                                    break;
+                            }
+                            break;
+                        default:
+                            $parts = explode(':', $args);
+                            if(count($parts) != 2) {
+                                break;
+                            }
+                            [$reference, $index] = $parts;
+
+                            $start = clone $date;
+                            $end = clone $date;
+
+                            switch ($interval) {
+                                case 'week':
+                                    $day_of_week = $start->format('w');
+                                    $start->modify('-'.$day_of_week.' days');
+                                    $end->modify('+'.(6 - $day_of_week).' days');
+                                    break;
+                                case 'month':
+                                    $start->modify('first day of this month');
+                                    $end->modify('last day of this month');
+                                    break;
+                                case 'quarter':
+                                    $current_month = (int)$start->format('n');
+                                    $quarter_start = (int)(($current_month - 1) / 3) * 3 + 1;
+                                    $quarter_end = $quarter_start + 2;
+                                    $start->setDate($start->format('Y'), $quarter_start, 1);
+                                    $end->setDate($start->format('Y'), $quarter_end, 1)->modify('last day of this month');
+                                    break;
+                                case 'semester':
+                                    $current_month = (int)$start->format('n');
+                                    $semester_start = $current_month <= 6 ? 1 : 7;
+                                    $semester_end = $semester_start + 5;
+                                    $start->setDate($start->format('Y'), $semester_start, 1);
+                                    $end->setDate($start->format('Y'), $semester_end, 1)->modify('last day of this month');
+                                    break;
+                                case 'year':
+                                    $start->setDate($start->format('Y'), 1, 1);
+                                    $end->setDate($start->format('Y'), 12, 31);
+                                    break;
+                            }
+
+                            switch ($reference) {
+                                case 'day':
+                                    if(is_numeric($index)) {
+                                        $start->modify('+' . ($index - 1) . ' days');
+                                    }
+                                    elseif($index == 'last') {
+                                        $start = $end;
+                                    }
+                                    break;
+                                case 'week':
+                                    if(is_numeric($index)) {
+                                        $start->modify('+' . ($index - 1) . ' weeks');
+                                    }
+                                    elseif($index == 'last') {
+                                        $start = $end;
+                                    }
+                                    $day_of_week = $start->format('w');
+                                    $start->modify('-'.$day_of_week.' days');
+                                    break;
+                                default:
+                                    $days = array_flip([1 => 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+                                    if(in_array($reference, array_keys($days))) {
+                                        $day_of_week = $days[$reference];
+
+                                        $dates = [];
+                                        $current = clone $start;
+
+                                        while($current <= $end) {
+                                            if($current->format('N') == $day_of_week) {
+                                                $dates[] = clone $current;
+                                                $current->modify('+7 day');
+                                            }
+                                            else {
+                                                $current->modify('+1 day');
+                                            }
+                                        }
+
+                                        if($index === 'first') {
+                                            $start = $dates[0];
+                                        }
+                                        elseif($index === 'last') {
+                                            $start = $dates[count($dates) - 1];
+                                        }
+                                        else {
+                                            $start = $dates[$index - 1];
+                                        }
+                                    }
+                                    break;
+                            }
+                            $date = $start;
+                            break;
+                    }
+                }
+
+                $this->date = $date->getTimestamp();
             }
-            $this->date = $date;
         }
     }
 

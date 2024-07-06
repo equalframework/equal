@@ -6,8 +6,15 @@
 */
 namespace equal\orm\usages;
 
+class UsageBinary extends Usage {
 
-class UsageImage extends Usage {
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+
+        if($this->length == 0) {
+            $this->length = constant('UPLOAD_MAX_FILE_SIZE');
+        }
+    }
 
     public function getConstraints(): array {
         return [

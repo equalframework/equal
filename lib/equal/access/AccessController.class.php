@@ -6,6 +6,12 @@
 */
 namespace equal\access;
 
+use core\Assignment;
+use core\Group;
+use core\Permission;
+use core\security\SecurityPolicy;
+use core\security\SecurityPolicyRule;
+use core\security\SecurityPolicyRuleValue;
 use equal\orm\ObjectManager;
 use equal\organic\Service;
 use equal\services\Container;
@@ -141,7 +147,7 @@ class AccessController extends Service {
         if(!class_exists($object_class)) {
             return 0;
         }
-
+        /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
 
         // get all user's groups
@@ -175,7 +181,7 @@ class AccessController extends Service {
 
         // if no ACL found, lookup for ACLs set on parent class
         if($result == 0) {
-            $parent_classes = $orm->getObjectParentsClasses($object_class);
+            $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
             if(count($parent_classes)) {
                 $classes = [];
                 $table_name = $orm->getObjectTableName($object_class);
@@ -272,7 +278,7 @@ class AccessController extends Service {
 
         // retrieve applicable parent classes (object from classes sharing same objects ids)
         $classes = [$object_class];
-        $parent_classes = $orm->getObjectParentsClasses($object_class);
+        $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
 
         $table_name = $orm->getObjectTableName($object_class);
         foreach($parent_classes as $class) {
@@ -350,17 +356,17 @@ class AccessController extends Service {
                     }
                     if(!$acl['rights']) {
                         // remove ACL if empty (no right granted)
-                        $orm->remove('core\Permission', $acl_id, true);
+                        $orm->remove(Permission::getType(), $acl_id, true);
                     }
                     else {
                         // update ACL with new permissions
-                        $orm->update('core\Permission', $acl_id, ['rights' => $acl['rights']]);
+                        $orm->update(Permission::getType(), $acl_id, ['rights' => $acl['rights']]);
                     }
                 }
                 $rights = $acl['rights'];
             }
             else if($operator == '+') {
-                $orm->create('core\Permission', ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
+                $orm->create(Permission::getType(), ['class_name' => $object_class, $identity.'_id' => $identity_id, 'rights' => $rights]);
             }
             // update internal cache
             if($identity == 'user' && isset($this->permissionsTable[$identity_id])) {
@@ -426,7 +432,7 @@ class AccessController extends Service {
             unset($this->permissionsTable[$user_id]);
         }
         $orm = $this->container->get('orm');
-        return $orm->update('core\Group', $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
+        return $orm->update(Group::getType(), $groups_ids, ['users_ids' => ["+{$user_id}"] ]);
     }
 
     /**
@@ -451,8 +457,8 @@ class AccessController extends Service {
         }
         if( !is_numeric($group) ) {
             // fetch all ACLs variants
-            $groups_ids = $orm->search('core\Group', ['name', '=', $group]);
-            if($groups_ids < 0 || count($groups_ids) <= 0) {
+            $groups_ids = $orm->search(Group::getType(), ['name', '=', $group]);
+            if($groups_ids < 0 || empty($groups_ids)) {
                 return false;
             }
             $group = $groups_ids[0];
@@ -534,7 +540,7 @@ class AccessController extends Service {
         if(count($related_roles)) {
             foreach($objects_ids as $object_id) {
                 // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
-                $user_roles_ids = $orm->search('core\Assignment', [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
+                $user_roles_ids = $orm->search(Assignment::getType(), [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
                 if($user_roles_ids > 0 && count($user_roles_ids)) {
                     // map results on object_id
                     $result[$object_id] = true;
@@ -605,6 +611,135 @@ class AccessController extends Service {
             }
         }
         return $result;
+    }
+
+    public function isRequestCompliant($user_id, $ip_address) {
+        $result = true;
+        $time = time();
+
+        // fetch policies: request must be compliant with at least one policy.
+        /** @var \equal\orm\ObjectManager */
+        $orm = $this->container->get('orm');
+        $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
+        if($security_policies_ids > 0 && count($security_policies_ids)) {
+            $result = false;
+            $policies = $orm->read(SecurityPolicy::getType(), $security_policies_ids, ['id', 'policy_rules_ids']);
+
+            foreach($policies as $policy) {
+                $is_compliant = true;
+                // request must comply with all rules of the policy to comply with the latter
+                $rules = $orm->read(SecurityPolicyRule::getType(), $policy['policy_rules_ids'], ['user_id', 'policy_rule_type', 'rule_values_ids']);
+                foreach($rules as $rule) {
+                    $is_match = false;
+                    $values = $orm->read(SecurityPolicyRuleValue::getType(), $rule['rule_values_ids'], ['value']);
+                    if($values < 0 || empty($values)) {
+                        // ignore empty rules
+                        continue;
+                    }
+                    // request must comply with at least one value of a rule to comply with the latter
+                    foreach($values as $value) {
+                        switch($rule['policy_rule_type']) {
+                            case 'ip_address':
+                                $is_match = self::validateIpAddress($ip_address, $value['value']);
+                                break;
+                            case 'time_range':
+                                $is_match = self::validateTimeRange($time, $value['value']);
+                                break;
+                        }
+                        // request match with one of the value of the rule
+                        if($is_match) {
+                            break;
+                        }
+                    }
+                    // none of rule values matches with the request
+                    if(!$is_match) {
+                        // one rule is not met : the request does not comply with the policy
+                        $is_compliant = false;
+                        break;
+                    }
+                }
+                // request is compliant, stop testing other policies
+                if($is_compliant) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * tests: 192.168.1.123, 192.168.1.0/24, 192.168.*.*
+     */
+    private static function validateIpAddress($ip, $pattern) {
+        if(strpos($pattern, '*') !== false) {
+            $pattern = str_replace(['.', '*'], ['\.', '[0-9]+'], $pattern);
+            if(preg_match('/^' . $pattern . '$/', $ip)) {
+                return true;
+            }
+        }
+        elseif(strpos($pattern, '/') !== false) {
+            list($subnet, $mask) = explode('/', $pattern);
+            if(ip2long($ip) >> (32 - $mask) == ip2long($subnet) >> (32 - $mask)) {
+                return true;
+            }
+        }
+        elseif($ip === $pattern) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-wed@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-fri@17:00')); // true
+     * var_dump(validate_time_range(1719925622, 'thi@09:00-fri@17:00')); // false
+     * var_dump(validate_time_range(1719925622, 'tue@09:00-tue@11:00')); // false
+     * var_dump(validate_time_range(1719925622, 'mon@09:00-mon@11:00')); // false
+     * var_dump(validate_time_range(1719925622, 'tue@13:00-tue@14:00')); // true
+     */
+    private static function validateTimeRange($time, $pattern) {
+        list($hours, $minutes) = explode(':', date('H:i', $time));
+        $time_of_day = ($hours * 3600) + ($minutes * 60);
+
+        $map_days = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
+
+        $day_of_week = strtolower(date('D', $time));
+        if(!isset($map_days[$day_of_week])) {
+            return false;
+        }
+        $day_of_week = $map_days[$day_of_week];
+
+        list($start, $end) = explode('-', $pattern);
+        list($day_start, $time_start) = explode('@', $start);
+        list($day_end, $time_end) = explode('@', $end);
+
+        $day_start = strtolower(substr($day_start, 0, 3));
+        $day_end = strtolower(substr($day_end, 0, 3));
+
+        if (!isset($map_days[$day_start]) || !isset($map_days[$day_end])) {
+            return false;
+        }
+
+        $day_start = $map_days[$day_start];
+        $day_end = $map_days[$day_end];
+
+        list($hours, $minutes) = explode(':', $time_start);
+        $time_start_seconds = ($hours * 3600) + ($minutes * 60);
+
+        list($hours, $minutes) = explode(':', $time_end);
+        $time_end_seconds = ($hours * 3600) + ($minutes * 60);
+
+        if ($day_start < $day_end || ($day_start == $day_end && $time_start_seconds <= $time_end_seconds)) {
+            return ($day_of_week > $day_start || ($day_of_week == $day_start && $time_of_day >= $time_start_seconds)) &&
+                ($day_of_week < $day_end || ($day_of_week == $day_end && $time_of_day <= $time_end_seconds));
+        }
+        else {
+            return ($day_of_week > $day_start || ($day_of_week == $day_start && $time_of_day >= $time_start_seconds)) ||
+                ($day_of_week < $day_end || ($day_of_week == $day_end && $time_of_day <= $time_end_seconds));
+        }
+        return false;
     }
 
 }

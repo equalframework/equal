@@ -68,6 +68,32 @@
                                                 "type": "field",
                                                 "value": "is_multilang",
                                                 "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "is_sequence",
+                                                "width": "50%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.choices",
+                        "label": "Setting choices",
+                        "visible": ["form_control", "=", "select"],
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_choices_ids",
+                                                "width": "100%"
                                             }
                                         ]
                                     }
@@ -78,6 +104,7 @@
                     {
                         "id": "section.values",
                         "label": "Setting values",
+                        "visible": ["is_sequence", "=", false],
                         "rows": [
                             {
                                 "columns": [
@@ -87,6 +114,27 @@
                                             {
                                                 "type": "field",
                                                 "value": "setting_values_ids",
+                                                "width": "100%"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "section.sequences",
+                        "label": "Setting sequences",
+                        "visible": ["is_sequence", "=", true],
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "setting_sequences_ids",
                                                 "width": "100%"
                                             }
                                         ]

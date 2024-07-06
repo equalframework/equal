@@ -9,6 +9,13 @@ namespace equal\orm\usages;
 
 class UsageCurrency extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 3;
+        }
+    }
+
     public function getConstraints(): array {
         if($this->getSubtype() == 'iso-4217.numeric') {
             return [

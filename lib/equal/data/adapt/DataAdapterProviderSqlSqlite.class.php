@@ -35,8 +35,8 @@ class DataAdapterProviderSqlSqlite implements AdapterProvider {
             'plain'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlDate',
             'datetime'      => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
             'time'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
-            'year'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateYear',
-            'month'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateMonth'
+            'year'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
+            'month'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger'
         ],
         'image'     => [
             'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBinary'

@@ -339,7 +339,7 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * @return Field        Associative array mapping fields names with their related Field instances.
      */
-    public final function getField($field) {
+    public final function getField($field): Field {
         if(isset($this->schema[$field])) {
             $type = $this->schema[$field]['type'];
             while($type == 'alias') {

@@ -14,6 +14,14 @@ class DataAdapterJsonTime implements DataAdapter {
         return 'json/time';
     }
 
+    public function castInType(): string {
+        return 'integer';
+    }
+
+    public function castOutType($usage=null): string {
+        return 'String';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

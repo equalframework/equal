@@ -4,7 +4,7 @@
     "layout": {
         "groups": [
             {
-                "sections": [                    
+                "sections": [
                     {
                         "rows": [
                             {
@@ -29,11 +29,11 @@
                                                 "width": "33%"
                                             }
                                         ]
-                                    }                                   
+                                    }
                                 ]
                             }
                         ]
-                    }            
+                    }
                 ]
             }
         ]

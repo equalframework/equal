@@ -24,6 +24,14 @@ class DataAdapterSql implements DataAdapter {
         return $this->type;
     }
 
+    public function castInType(): string {
+        return '';
+    }
+
+    public function castOutType($usage=null): string {
+        return '';
+    }
+
     /**
      * Retrieves the appropriate SQL DataAdapter and adapts the input value from SQL type to PHP type (SQL -> PHP).
      * @param mixed         $value      Value to be adapted.

@@ -15,6 +15,11 @@
         "description": "The URL of the image to be displayed in UI as App logo in the top left corner.",
         "default": "/assets/img/logo.svg"
     },
+    "APP_DEFAULT_LANG": {
+        "type": "string",
+        "description": "The language (ISO 639-1, amongst the installed languages) that must be selected by default in the Apps for displaying multilang contents.",
+        "default": "en"
+    },
     "AUTH_SECRET_KEY": {
         "type": "string",
         "description": "Secret key used for hashing JWT data.",
@@ -27,11 +32,6 @@
         "description": "Validity duration of the access token, in seconds.",
         "instant": true,
         "default": 3600
-    },
-    "AUTH_REFRESH_TOKEN_VALIDITY": {
-        "type": "integer",
-        "usage": "time/duration",
-        "default": "90d"
     },
     "AUTH_TOKEN_HTTPS":{
         "type": "boolean",
@@ -144,6 +144,7 @@
     "DEFAULT_LANG": {
         "type": "string",
         "description": "The language (ISO 639-1) in which the multilang content must be provided/stored by default.",
+        "help": "This values impacts the way translations are stored. For a multilang application, unless specific conditions, this value should remain assigned to 'english' in order to allow correct management of multilang values.",
         "instant": true,
         "default": "en"
     },
@@ -174,7 +175,7 @@
         "type": "integer",
         "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
         "instant": true,
-        "default": 0,
+        "default": "E_ALL | E_ALL",
         "examples": [
             "EQ_REPORT_DEBUG | EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR | EQ_REPORT_FATAL",
             "EQ_REPORT_INFO | EQ_REPORT_WARNING | EQ_REPORT_ERROR",
@@ -185,7 +186,7 @@
         "type": "integer",
         "description": "Classes of report-messages to log (non-matching messages are ignored).",
         "instant": true,
-        "default": 0,
+        "default": "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL",
         "examples": [
             "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
         ]
@@ -246,6 +247,7 @@
     "ENV_MODE": {
         "type": "string",
         "description": "Possible values are: 'development', 'staging', 'production'",
+        "instant": true,
         "default": "development"
     },
     "FILE_STORAGE_MODE": {
@@ -295,16 +297,17 @@
             "128MB"
         ]
     },
-    "MEM_LIMIT": {
+    "MEM_FREE_LIMIT": {
         "type": "integer",
         "usage": "amount/data",
-        "description": "Upper limit of total usable memory (in bytes) available for the whole instance.",
-        "help": "This parameter is a threshold that the system tries not to exceed (the task scheduler stops running tasks while above limit). However, under certain circumstances, this limit may still be surpassed. Besides, if that value is above the memory_limit set in php.ini, it will have no effect.",
+        "description": "Minimum amount of free memory (in bytes) of the system (instance) below which no new process should start.",
+        "help": "This parameter is a threshold that eQual tries not to exceed (the task scheduler stops running tasks while free memory is below limit). However, under certain circumstances, this limit may still be momentarily surpassed. That value is complementary to the memory_limit set in php.ini (that limits the amount of memory that each PHP threads can use).",
         "instant": true,
         "environment": "EQ_MEM_LIMIT",
-        "default": "512MB",
+        "default": "256MB",
         "examples": [
-            "200MB"
+            "512MB",
+            "1GB"
         ]
     },
     "ORG_NAME" : {

@@ -29,7 +29,7 @@ class Field {
     private $name = '';
 
     /**
-     * Pseudo type of the Field instance.
+     * ORM type of the Field instance.
      * @var string
      */
     private $type = null;
@@ -62,6 +62,7 @@ class Field {
      * This method maps `types` (implicit usage format) with explicit usage formats.
      */
     protected function getUsageString(): string {
+        $result = $this->descriptor['usage'] ?? '';
         static $map = [
             'boolean'       => 'number/boolean',
             'integer'       => 'number/integer:9',
@@ -71,29 +72,46 @@ class Field {
             'date'          => 'date/plain',
             'datetime'      => 'date/time',
             'time'          => 'time/plain',
-            'binary'        => 'binary/plain:64000000',
+            'binary'        => 'binary/plain:16000000',
             'many2one'      => 'number/integer:9',
             'one2many'      => 'array',
             'many2many'     => 'array',
             'array'         => 'array'
         ];
-        $type = $this->type;
-        if($this->type == 'computed' && isset($this->descriptor['result_type'])) {
+        if(!strlen($result)) {
             $type = $this->descriptor['result_type'];
+            $result = $map[$type] ?? $type;
         }
-        return $map[$type] ?? $type;
+        return $result;
+    }
+
+    /**
+     * Provides the pseudo Content-Type associated with the ORM type of the field.
+     * Such Content-Types should be recognized by any DataAdapter.
+     */
+    public function getContentType(): string {
+        static $map = [
+            'boolean'       => 'number/boolean',
+            'integer'       => 'number/integer',
+            'float'         => 'number/real',
+            'string'        => 'text/plain',
+            'date'          => 'date/plain',
+            'datetime'      => 'date/datetime',
+            'time'          => 'time/plain',
+            'binary'        => 'binary/plain',
+            'many2one'      => 'number/natural',
+            'one2many'      => 'array',
+            'many2many'     => 'array',
+            'array'         => 'array'
+        ];
+        $type = $this->descriptor['result_type'];
+        return $map[$type];
     }
 
     public function getUsage(): Usage {
         if(is_null($this->usage)) {
-            // use usage string from the descriptor if present
-            if(isset($this->descriptor['usage']) && strlen($this->descriptor['usage']) > 0) {
-                $this->usage = UsageFactory::create($this->descriptor['usage']);
-            }
-            // otherwise, use the usage string of which the field type is an alias
-            else {
-                $this->usage = UsageFactory::create($this->getUsageString());
-            }
+            // by default, use the usage string for which the field type is an alias
+            $this->usage = UsageFactory::create($this->getUsageString());
         }
         return $this->usage;
     }
@@ -106,36 +124,9 @@ class Field {
     public function getConstraints(): array {
         $constraints = $this->getUsage()->getConstraints();
 
-        // generate constraint based on type
-        $result_type = $this->descriptor['result_type'];
+        // #memo - strict type constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
 
-        /*
-        // #memo - strict constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
-        $constraints['invalid_type'] = [
-                'message'   => "Value is not of type {$result_type}.",
-                'function'  =>  function($value) use($result_type) {
-                    static $map = [
-                        'bool'      => 'boolean',
-                        'int'       => 'integer',
-                        'float'     => 'double',
-                        'text'      => 'string',
-                        'date'      => 'integer',
-                        'datetime'  => 'integer',
-                        'time'      => 'integer',
-                        'file'      => 'string',
-                        'binary'    => 'string',
-                        'many2one'  => 'integer',
-                        'one2many'  => 'array',
-                        'many2many' => 'array'
-                    ];
-                    // fix types to match values returned by PHP `gettype()`
-                    $mapped_type = $map[$result_type] ?? $result_type;
-                    return (gettype($value) == $mapped_type);
-                }
-            ];
-        */
-
-        // add constraint based on selection, if present
+        // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
             $constraints['invalid_value'] = [
@@ -146,7 +137,18 @@ class Field {
                 ];
         }
 
-        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in', 'pattern'
+        // add constraint based on 'pattern', if present
+        if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
+            $pattern = $this->descriptor['pattern'];
+            $constraints['invalid_value'] = [
+                    'message'   => "Value does not match provided pattern.",
+                    'function'  =>  function($value) use($pattern) {
+                        return preg_match($pattern, $value);
+                    }
+                ];
+        }
+
+        // #todo - handle other possible descriptor attributes :'min', 'max', 'in', 'not in'
         // @see DataValidator
 
         return $constraints;

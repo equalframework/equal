@@ -15,25 +15,40 @@ interface DataAdapter {
      */
     public function getType();
 
+
     /**
-     * Handles the conversion to the PHP type equivalent.
+     * Returns the equivalent PHP type.
+     *
+     * @return string
+     */
+    public function castInType(): string;
+
+    /**
+     * Returns the type of the DataAdapter target.
+     *
+     * @return string
+     */
+    public function castOutType($usage=null): string;
+
+    /**
+     * Handles the conversion to a value using a PHP type.
      * Adapts the input value from external type to PHP type (x -> PHP).
      *
      * @param mixed         $value      Value to be adapted.
-     * @param string|Usage  $usage      The usage descriptor the adaptation is requested for.
+     * @param string|Usage  $usage      The usage (descriptor) the adaptation is requested for.
      * @param string        $locale     The locale to be used for adaptation.
      * @return mixed
      */
-	public function adaptIn($value, $type, $locale='en');
+	public function adaptIn($value, $usage, $locale='en');
 
     /**
      * Handles the conversion to the type targeted by the DataAdapter.
      * Adapts the input value from PHP type to external type (PHP -> x).
      *
      * @param mixed         $value      Value to be adapted.
-     * @param string|Usage  $usage      The usage descriptor the adaptation is requested for.
+     * @param string|Usage  $usage      The usage (descriptor) the adaptation is requested for.
      * @param string        $locale     The locale to be used for adaptation.
      * @return mixed
      */
-    public function adaptOut($value, $type, $locale='en');
+    public function adaptOut($value, $usage, $locale='en');
 }

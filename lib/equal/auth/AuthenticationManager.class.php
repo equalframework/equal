@@ -29,7 +29,7 @@ class AuthenticationManager extends Service {
     }
 
     public static function constants() {
-        return ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'QN_ROOT_USER_ID'];
+        return ['AUTH_SECRET_KEY', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'EQ_ROOT_USER_ID'];
     }
 
     /**
@@ -103,7 +103,7 @@ class AuthenticationManager extends Service {
     public function userId($token=null) {
         // grant all rights when using CLI
         if(php_sapi_name() === 'cli') {
-            $this->user_id = QN_ROOT_USER_ID;
+            $this->user_id = EQ_ROOT_USER_ID;
         }
 
         // return user_id member, if already resolved
@@ -126,14 +126,11 @@ class AuthenticationManager extends Service {
                     // retrieve JWT token
                     list($jwt) = sscanf($auth_header, 'Bearer %s');
                 }
-                else if(strpos($auth_header, 'Basic ') !== false) {
+                elseif(strpos($auth_header, 'Basic ') !== false) {
                     list($token) = sscanf($auth_header, 'Basic %s');
                     list($username, $password) = explode(':', base64_decode($token));
                     // leave $jwt unset and authenticate (sets $user_id)
                     $this->authenticate($username, $password);
-                }
-                else if(strpos($auth_header, 'Digest ') !== false) {
-                    // #todo
                 }
             }
         }
@@ -159,26 +156,14 @@ class AuthenticationManager extends Service {
                 $payload = $decoded['payload'];
             }
             catch(\Exception $e) {
-                trigger_error("API::Unable to decode token: ".$e->getMessage(), QN_REPORT_ERROR);
+                trigger_error("API::Unable to decode token: ".$e->getMessage(), EQ_REPORT_ERROR);
             }
             if($payload) {
                 if($payload['exp'] < time()) {
                     // generate a 401 Unauthorized HTTP response
-                    throw new \Exception('auth_expired_token', QN_ERROR_INVALID_USER);
+                    throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
                 }
                 $this->user_id = $payload['id'];
-                // make sure token remains valid for the upcoming hour
-                // #todo - use a distinct flow with a refresh_token
-                if($payload['exp'] < time() + 3600) {
-                    $token = $this->token($this->user_id, 3600);
-                    $context
-                        ->httpResponse()
-                        ->cookie('access_token', $token, [
-                                'expires'   => time() + 3600,
-                                'httponly'  => true,
-                                'secure'    => constant('AUTH_TOKEN_HTTPS')
-                            ]);
-                }
             }
         }
         return $this->user_id;
@@ -192,19 +177,19 @@ class AuthenticationManager extends Service {
 
         $errors = $orm->validate('core\User', [], ['login' => $login]);
         if(count($errors)) {
-            throw new \Exception('invalid_username', QN_ERROR_INVALID_PARAM);
+            throw new \Exception('invalid_username', EQ_ERROR_INVALID_PARAM);
         }
 
         $ids = $orm->search('core\User', ['login', '=', $login]);
-        if(!count($ids)) {
-            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
+        if($ids < 0 || !count($ids)) {
+            throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
         }
 
         $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
         $user = array_shift($list);
 
         if(!password_verify($password, $user['password'])) {
-            throw new \Exception('invalid_credentials', QN_ERROR_INVALID_USER);
+            throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
         }
 
         // remember current user identifier
@@ -220,7 +205,7 @@ class AuthenticationManager extends Service {
      *
      * @param   $user_id    integer Identifier of an existing user account.
      */
-    public function su(int $user_id = QN_ROOT_USER_ID) {
+    public function su(int $user_id = EQ_ROOT_USER_ID) {
         if($user_id >= 0) {
             // update current user identifier
             $this->user_id = $user_id;

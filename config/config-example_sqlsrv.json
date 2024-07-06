@@ -1,6 +1,5 @@
 {
     "CIPHER_KEY": "xxxxxxxxxxxxxxxxxxxxxxxx",
-    "ROUTING_METHOD": "JSON",
     "FILE_STORAGE_MODE":"DB",
     "DEFAULT_RIGHTS": "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE",
     "DEBUG_MODE": "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL",
@@ -20,7 +19,6 @@
     "VERSIONING_ENABLED": true,
     "AUTH_SECRET_KEY": "my_secret_key",
     "AUTH_ACCESS_TOKEN_VALIDITY": "1d",
-    "AUTH_REFRESH_TOKEN_VALIDITY": "90d",
     "AUTH_TOKEN_HTTPS": false,
     "ROOT_APP_URL": "http://equal.local"
 }

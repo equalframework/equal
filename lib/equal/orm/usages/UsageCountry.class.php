@@ -9,6 +9,13 @@ namespace equal\orm\usages;
 
 class UsageCountry extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 3;
+        }
+    }
+
     public function getConstraints(): array {
         if($this->getSubtype() == 'country.numeric') {
             return [

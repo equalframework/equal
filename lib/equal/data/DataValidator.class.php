@@ -366,7 +366,7 @@ class DataValidator extends Service {
                             if($value < $constraint['rule']) return false;
                             break;
                         case 'array':
-                            if(count($value) < $constraint['rule']) return false;
+                            if(count((array)$value) < $constraint['rule']) return false;
                             break;
                         default:
                             // error : unhandled value type for constraint 'min'
@@ -386,7 +386,7 @@ class DataValidator extends Service {
                             if($value > $constraint['rule']) return false;
                             break;
                         case 'array':
-                            if(count($value) > $constraint['rule']) return false;
+                            if(count((array)$value) > $constraint['rule']) return false;
                             break;
                         default:
                             // error : unhandled value type for constraint 'max'

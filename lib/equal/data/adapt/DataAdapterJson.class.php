@@ -24,6 +24,14 @@ class DataAdapterJson implements DataAdapter {
         return $this->type;
     }
 
+    public function castInType(): string {
+        return '';
+    }
+
+    public function castOutType($usage=null): string {
+        return '';
+    }
+
     /**
      * Retrieves the appropriate JSON DataAdapter and adapts the input value from JSON type to PHP type (JSON -> PHP).
      * @param mixed         $value      Value to be adapted.

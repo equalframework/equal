@@ -14,6 +14,14 @@ class DataAdapterDefault implements DataAdapter {
         return 'default';
     }
 
+    public function castInType(): string {
+        return '';
+    }
+
+    public function castOutType($usage=null): string {
+        return '';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

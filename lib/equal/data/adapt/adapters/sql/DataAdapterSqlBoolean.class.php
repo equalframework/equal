@@ -14,6 +14,14 @@ class DataAdapterSqlBoolean implements DataAdapter {
         return 'sql/boolean';
     }
 
+    public function castInType(): string {
+        return 'boolean';
+    }
+
+    public function castOutType($usage=null): string {
+        return 'BOOLEAN';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from SQL type to PHP type (SQL -> PHP).

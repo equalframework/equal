@@ -9,8 +9,29 @@ namespace equal\orm\usages;
 
 class UsageUri extends Usage {
 
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 1024;
+        }
+    }
+
     public function getConstraints(): array {
         switch($this->getSubtype()) {
+            case 'url.relative':
+                /*
+                    /a
+                    /a/b
+                    /a/b/c
+                */
+                return [
+                    'invalid_url' => [
+                        'message'   => 'String is not a valid relative URL.',
+                        'function'  =>  function($value) {
+                            return (bool) (preg_match('/^(\/([^\/])+)+$/', $value));
+                        }
+                    ]
+                ];
             case 'url':
                 /*
                     https://www.goo-gle.com:80/path/sub/?test&a=b#fragment
@@ -69,6 +90,7 @@ class UsageUri extends Usage {
                     ]
                 ];
         }
+        return [];
     }
 
 }

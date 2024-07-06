@@ -46,25 +46,22 @@ class SettingValue extends Model {
                 'ondelete'          => 'cascade'
             ],
 
-            // #memo - for settings not having the is_multilang field set, translations are ignored
             'value' => [
                 'type'              => 'string',
                 'description'       => 'JSON value of the parameter.',
+                'help'              => 'For settings not having the is_multilang field set, translations are ignored.',
                 'multilang'         => true
             ]
 
         ];
     }
 
-    public static function calcName($om, $oids, $lang) {
+    public static function calcName($self) {
         $result = [];
-
-        $settingValues = $om->read(self::getType(), $oids, ['setting_id.name'], $lang);
-
-        foreach($settingValues as $oid => $odata) {
-            $result[$oid] = $odata['setting_id.name'];
+        $self->read(['setting_id' => ['name']]);
+        foreach($self as $id => $value) {
+            $result[$id] = $value['setting_id']['name'];
         }
-
         return $result;
     }
 

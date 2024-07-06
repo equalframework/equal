@@ -14,6 +14,14 @@ class DataAdapterJsonArray implements DataAdapter {
         return 'json/array';
     }
 
+    public function castInType(): string {
+        return 'array';
+    }
+
+    public function castOutType($usage=null): string {
+        return 'Array';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (JSON -> PHP).

@@ -139,6 +139,8 @@ class ObjectManager extends Service {
      * Each DBManipulator Service is in charge of converting ORM types matching its own native type.
      * Types that are ambiguous regarding their size (string, text, binary) or require additional info (decimal place for real numbers representations).
      * All ORM types have an equivalent in SQL.
+     *
+     * #todo - deprecate
      */
     public static $types_associations = [
         'integer'       => 'integer(4)',        // 4 bytes integer
@@ -146,30 +148,6 @@ class ObjectManager extends Service {
         'string'        => 'string(255)',       // 255 bytes string
         'text'          => 'string(32000)',     // 32 kilobytes string
         'binary'        => 'binary(64000000)'   // 64MB binary value
-    ];
-
-    public static $usages_associations = [
-        'amount/percent'            => 'float(5,4)',          // float in interval [0, 1] (suitable for vat rate, completeness, success rate)
-        'amount/rate'               => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/rate:4'             => 'float(10,4)',         // float to be used as factor, with 4 decimal digits (change rate)
-        'amount/money'              => 'float(15,2)',
-        'amount/money:2'            => 'float(15,2)',
-        'amount/money:4'            => 'float(13,4)',         // GAAP compliant
-        'coordinate'                => 'float(9,6)',          // any float value from -180 to 180 with 6 decimal digits
-        'coordinate/decimal'        => 'float(9,6)',
-        'country/iso-3166.numeric'  => 'integer(1)',          // 3-digits country code (ISO 3166-1)
-        'country/iso-3166:2'        => 'string(2)',           // 2-letters country code (ISO 3166-1)
-        'country/iso-3166:3'        => 'string(3)',           // 3-letters country code (ISO 3166-1)
-        'currency/iso-4217'         => 'string(3)',
-        'language/iso-639'          => 'string(5)',           // locale representation : iso-639:2 OR {iso-639:2}-{iso-3166:2}
-        'language/iso-639:2'        => 'string(2)',           // languages codes alpha 2 (ISO 639-1)
-        'language/iso-639:3'        => 'string(3)',           // languages codes alpha 3 (ISO 639-3)
-        'markup/html'               => 'string(64000)',       // 64k chars html
-        'text/html'                 => 'string(64000)',
-        'text/plain'                => 'string(64000)',       // 64k chars text
-        'text/json'                 => 'string(64000)',       // 64k chars json
-        'email'                     => 'string(255)',
-        'phone'                     => 'string(20)'
     ];
 
     /**
@@ -341,6 +319,12 @@ class ObjectManager extends Service {
     public static function getObjectRootClass($class) {
         $entity = $class;
         while(true) {
+            if(method_exists($class, 'getTable')) {
+                $reflectionClass = new \ReflectionClass($class);
+                if($reflectionClass->getMethod('getTable')->class == $class) {
+                    break;
+                }
+            }
             $parent = (class_exists($entity))?get_parent_class($entity):false;
             if(!$parent || $parent == 'equal\orm\Model') {
                 break;
@@ -454,19 +438,17 @@ class ObjectManager extends Service {
 
 
     /**
-     * Filter given identifiers and return only valid ones (whatever the status of the objects).
-     * Ids that do not match an object in the database are removed from the list.
-     * Ids of soft-deleted object are considered valid.
+     * Sanitize a value provided as `$ids`: a list of object identifiers.
+     * Return an array of valid identifiers (positive integers).
      *
-     * @param   $class
      * @param   $ids
      */
-    private function filterValidIdentifiers($class, $ids) {
+    private function sanitizeIdentifiers($ids) {
         // sanitize $ids
         if(!is_array($ids)) {
             $ids = (array) $ids;
         }
-        // pass-1 : ensure ids are positive integer values
+        // ensure ids are positive integer values
         foreach($ids as $i => $oid) {
             $id = intval($oid);
             if(!is_numeric($oid) || $id <= 0) {
@@ -477,11 +459,21 @@ class ObjectManager extends Service {
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
-        // #removed #memo - this leads to a lot of extra individual DB requests
-        /*
-        // process remaining identifiers
-        $valid_ids = [];
+        return $ids;
+    }
+
+    /**
+     * Filter given identifiers and return only valid ones (whatever the status of the objects).
+     * Ids that do not match an object in the database are removed from the list (Ids of soft-deleted object are considered valid).
+     *
+     * @param   $class
+     * @param   $ids
+     */
+    public function filterExistingIdentifiers($class, $ids) {
+        $ids = $this->sanitizeIdentifiers($ids);
+
         if(!empty($ids)) {
+            $map_valid_ids = [];
             // get DB handler (init DB connection if necessary)
             $db = $this->getDBHandler();
             $table_name = $this->getObjectTableName($class);
@@ -489,20 +481,18 @@ class ObjectManager extends Service {
             $result = $db->getRecords($table_name, 'id', $ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
-                $oid = (int) $row['id'];
-                $valid_ids[$oid] = true;
+                $id = (int) $row['id'];
+                $map_valid_ids[$id] = true;
+            }
+            foreach($ids as $i => $id) {
+                if(!isset($map_valid_ids[$id])) {
+                    unset($ids[$i]);
+                }
             }
         }
-        // pass-2 : remove ids not found in DB
-        foreach($ids as $i => $oid) {
-            if(!isset($valid_ids[$oid])) {
-                unset($ids[$i]);
-            }
-        }
-        */
+
         return $ids;
     }
-
     /**
      * Load given fields from specified class into the cache
      *
@@ -739,21 +729,21 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                $oids = [];
+                $missing_ids = [];
                 // if store attribute is set and no result was found, we need to compute the value
-                // #memo - we use is_null() rather than empty() because an empty value could be the result of a calculation
-                // (this implies that the DB schema has 'DEFAULT null' for columns associated to computed fields)
-                foreach($ids as $oid) {
-                    if(is_null($this->cache[$table_name][$oid][$lang][$field])) {
-                        $oids[] = $oid;
+                foreach($ids as $id) {
+                    // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
+                    if(!isset($this->cache[$table_name][$id][$lang][$field])
+                        || is_null($this->cache[$table_name][$id][$lang][$field])) {
+                        $missing_ids[] = $id;
                     }
                 }
-                if(count($oids)) {
+                if(count($missing_ids)) {
                     // compute field for incomplete objects
-                    $load_fields['computed']($this, $oids, array($field));
+                    $load_fields['computed']($this, $missing_ids, array($field));
                     try {
                         // store newly computed fields to database ('store' attribute set to true)
-                        $this->store($class, $oids, array($field), $lang);
+                        $this->store($class, $missing_ids, array($field), $lang);
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
@@ -1318,7 +1308,7 @@ class ObjectManager extends Service {
                 continue;
             }
             if($value === null) {
-                // all fields can be reset to null (unless required)
+                // all fields can be reset to null (unless marked as `required`)
                 continue;
             }
             foreach($constraints[$field] as $error_id => $constraint) {
@@ -1478,10 +1468,13 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be updated
 
+            /*
+            // #moved to Collection
             $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $special_fields), $lang, ['values', 'lang']);
             if(!empty($cancreate)) {
                 throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) garbage collect: check for expired draft object
 
@@ -1602,7 +1595,7 @@ class ObjectManager extends Service {
                 $fields = (array) $fields;
             }
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
                 trigger_error("ORM::ignoring call with empty ids ", QN_REPORT_INFO);
@@ -1642,10 +1635,13 @@ class ObjectManager extends Service {
                     }
                 }
                 // #todo - split the tests with status check against the object workflow
+                /*
+                // #moved to Collection
                 $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
                 if($canupdate > 0 && !empty($canupdate)) {
                     throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
                 }
+                */
             }
 
             // #memo - writing an object does not change its state, unless when explicitly set in $fields
@@ -1771,6 +1767,9 @@ class ObjectManager extends Service {
                     $values[$subfield] = null;
                 }
                 foreach($ids as $oid) {
+                    if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
+                        continue;
+                    }
                     $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
                     // allow cascade update (circular dependencies are checked in `core_test_package`)
                     $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
@@ -1872,7 +1871,7 @@ class ObjectManager extends Service {
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
                 return $res;
@@ -1918,10 +1917,13 @@ class ObjectManager extends Service {
             }
 
             // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
+            /*
+            // #moved to Collection
             $canread = $this->callonce($class, 'canread', $ids, $requested_fields, $lang);
             if($canread > 0 && !empty($canread)) {
                 throw new \Exception(serialize($canread), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) check, amongst requested fields, which ones are not yet present in the internal buffer
 
@@ -1965,7 +1967,7 @@ class ObjectManager extends Service {
                             $target_field = $schema[$target_field]['alias'];
                         }
                         // use final notation
-                        $res[$oid][$field] = $this->cache[$table_name][$oid][$lang][$target_field];
+                        $res[$oid][$field] = isset($this->cache[$table_name][$oid][$lang][$target_field]) ? $this->cache[$table_name][$oid][$lang][$target_field] : null;
                     }
                 }
             }
@@ -2063,7 +2065,7 @@ class ObjectManager extends Service {
             // 1) pre-processing
 
             // keep only valid objects identifiers
-            $ids = $this->filterValidIdentifiers($class, $ids);
+            $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) return $res;
             // ids that are left are the ones of the objects that will be (marked as) deleted
@@ -2075,10 +2077,13 @@ class ObjectManager extends Service {
 
             // 2) make sure objects in the collection can be deleted
 
+            /*
+            // #moved to Collection
             $candelete = $this->call($class, 'candelete', $ids, [], null, ['ids']);
             if(!empty($candelete)) {
                 throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
             // #todo allow explicit notation 'onbeforedelete'
@@ -2202,10 +2207,13 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
 
+            /*
+            // #moved to Collection
             $canclone = $this->call($class, 'canclone', (array) $id, [], $lang, ['ids']);
             if(!empty($canclone)) {
                 throw new \Exception(serialize($canclone), QN_ERROR_NOT_ALLOWED);
             }
+            */
 
             // read full object
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
@@ -2306,9 +2314,8 @@ class ObjectManager extends Service {
             }
             $table_name = $this->getObjectTableName($class);
             // increment the field as an atomic operation
-            $res = $db->incRecords($table_name, $ids, $field, $increment);
-            // #todo - returned values must be similar to a
-            while ($row = $db->fetchArray($res)) {
+            $res = $db->incRecords($table_name, (array) $ids, $field, $increment);
+            while($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
                 $result[$row['id']] = $row[$field];
             }
@@ -2471,6 +2478,8 @@ class ObjectManager extends Service {
      * @return  integer|array   Returns an array of matching objects ids sorted according to the $sort param, or a negative integer in case of error.
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
+        $result = [];
+
         // get DB handler (init DB connection if necessary)
         $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -2494,8 +2503,6 @@ class ObjectManager extends Service {
                     $domain = array($domain);
                 }
             }
-
-            $res_list = [];
 
             $conditions = [[]];
             // join conditions that have to be additionally applied to all clauses
@@ -2756,15 +2763,16 @@ class ObjectManager extends Service {
             $res = $db->getRecords($tables, $select_fields, null, $conditions, $table_alias.'.id', $order_clause, $start, $limit);
             while ($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
-                $res_list[] = $row['id'];
+                $result[] = $row['id'];
             }
             // remove duplicates, if any
-            $res_list = array_unique($res_list);
+            $result = array_unique($result);
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
-            $res_list = $e->getCode();
+            $this->last_error = $e->getMessage();
+            $result = $e->getCode();
         }
-        return $res_list;
+        return $result;
     }
 }

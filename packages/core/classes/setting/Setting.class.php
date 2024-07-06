@@ -36,17 +36,15 @@ class Setting extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Unique code of the parameter.',
-                'onupdate'          => 'onupdateCode',
                 'required'          => true,
-                'dependencies'      => ['name']
+                'dependents'        => ['name', 'setting_values_ids' => ['name']]
             ],
 
             'package' => [
                 'type'              => 'string',
                 'description'       => 'Package which the param refers to, if any.',
-                'onupdate'          => 'onupdatePackage',
                 'default'           => 'core',
-                'dependencies'      => ['name']
+                'dependents'        => ['name', 'setting_values_ids' => ['name']]
             ],
 
             'section' => [
@@ -61,10 +59,9 @@ class Setting extends Model {
             'section_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\SettingSection',
-                'onupdate'          => 'onupdateSectionId',
                 'description'       => 'Section the setting relates to.',
                 'required'          => true,
-                'dependencies'      => ['section', 'name']
+                'dependents'        => ['section', 'name', 'setting_values_ids' => ['name']]
             ],
 
             'title' => [
@@ -86,6 +83,13 @@ class Setting extends Model {
                 'multilang'         => true
             ],
 
+            'is_sequence' => [
+                'type'              => 'boolean',
+                'description'       => "Marks the setting as a numeric sequence.",
+                 'help'              => "Some settings must have a numeric value, meant to be incremented, and that must match a numeric SQL field in the related table. For tht reason, we use a distinct entity `SettingSequence` for which the `value` field/column is an integer.",
+                'default'           => false
+            ],
+
             'type' => [
                 'type'              => 'string',
                 'selection'         => [
@@ -95,13 +99,15 @@ class Setting extends Model {
                     'string'
                 ],
                 'description'       => 'The format of data stored by the param.',
-                'required'          => true
+                'default'           => 'string',
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'is_multilang' => [
                 'type'              => 'boolean',
-                'description'       => "Mark setting as translatable.",
-                'default'           => false
+                'description'       => "Marks the setting as translatable.",
+                'default'           => false,
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'form_control' => [
@@ -110,11 +116,13 @@ class Setting extends Model {
                     'select',
                     'toggle',
                     'input',
-                    'text'
+                    'textarea'
                 ],
                 'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
-                'multilang'         => true
+                'default'           => 'input',
+                'multilang'         => true,
+                'visible'           => ['is_sequence', '=', false]
             ],
 
             'setting_values_ids' => [
@@ -123,58 +131,45 @@ class Setting extends Model {
                 'foreign_field'     => 'setting_id',
                 'sort'              => 'asc',
                 'order'             => 'user_id',
-                'description'       => 'List of values related to the setting.'
+                'description'       => 'List of values related to the setting.',
+                'visible'           => ['is_sequence', '=', false]
+            ],
+
+            'setting_sequences_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\setting\SettingSequence',
+                'foreign_field'     => 'setting_id',
+                'sort'              => 'asc',
+                'order'             => 'user_id',
+                'description'       => 'List of sequences related to the setting.',
+                'visible'           => ['is_sequence', '=', true]
             ],
 
             'setting_choices_ids' => [
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\setting\SettingChoice',
                 'foreign_field'     => 'setting_id',
-                'description'       => 'List of possible values related to the setting.'
+                'description'       => 'List of possible values related to the setting.',
+                'visible'           => ['is_sequence', '=', false]
             ]
 
         ];
     }
 
-    public static function onupdateCode($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function onupdateSectionId($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function onupdatePackage($om, $ids, $values, $lang) {
-        $settings = $om->read(self::getType(), $ids, ['setting_values_ids'], $lang);
-        foreach($settings as $oid => $setting) {
-            $om->update(SettingValue::getType(), $setting['setting_values_ids'], ['name' => null], $lang);
-        }
-    }
-
-    public static function calcSection($om, $ids, $lang) {
+    public static function calcSection($self) {
         $result = [];
-        $settings = $om->read(self::getType(), $ids, ['section_id.code'], $lang);
-        if($settings > 0 && count($settings)) {
-            foreach($settings as $id => $setting) {
-                $result[$id] = $setting['section_id.code'];
-            }
+        $self->read(['section_id' => 'code']);
+        foreach($self as $id => $setting) {
+            $result[$id] = $setting['section_id']['code'];
         }
         return $result;
     }
 
-    public static function calcName($om, $oids, $lang) {
+    public static function calcName($self) {
         $result = [];
-        $settings = $om->read(self::getType(), $oids, ['package', 'section', 'code'], $lang);
-        if($settings > 0 && count($settings)) {
-            foreach($settings as $oid => $odata) {
-                $result[$oid] = $odata['package'].'.'.$odata['section'].'.'.$odata['code'];
-            }
+        $self->read(['package', 'section', 'code']);
+        foreach($self as $id => $setting) {
+            $result[$id] = $setting['package'].'.'.$setting['section'].'.'.$setting['code'];
         }
         return $result;
     }
@@ -186,7 +181,6 @@ class Setting extends Model {
     }
 
 
-
     /**
      * Retrieve the value of a given setting.
      *
@@ -194,16 +188,16 @@ class Setting extends Model {
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
      * @param   $default    (optional) Default value to return if setting is not found.
-     * @param   $user_id    (optional) Retrieve the specific value assigned to a given user.
+     * @param   $selector   (optional) Retrieve the specific value assigned to a given user.
      * @param   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
-    public static function get_value(string $package, string $section, string $code, $default=null, int $user_id=0, string $lang='en') {
+    public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang='en') {
         $result = $default;
 
         // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
-        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.$lang;
         if(!isset($GLOBALS['_equal_core_setting_cache'])) {
             $GLOBALS['_equal_core_setting_cache'] = [];
         }
@@ -240,8 +234,8 @@ class Setting extends Model {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
                     foreach($setting_values as $setting_value) {
-                        if($setting_value['user_id'] == $user_id) {
-                            $value = $setting_value['value'];
+                        $value = $setting_value['value'];
+                        if(isset($selector['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
                             break;
                         }
                     }
@@ -265,11 +259,11 @@ class Setting extends Model {
      * @param   $section    Specific section within the package.
      * @param   $code       Unique code of the setting within the given package and section.
      * @param   $value      The new value that has to be assigned to the setting.
-     * @param   $user_id    (optional) Target the specific value assigned to a given user.
+     * @param   $selector   (optional) Target the specific value assigned to a given user.
      *
      * @return  void
      */
-    public static function set_value(string $package, string $section, string $code, $value, int $user_id=0, $lang='en') {
+    public static function set_value(string $package, string $section, string $code, $value, array $selector=[], $lang='en') {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
@@ -292,10 +286,20 @@ class Setting extends Model {
         }
         $setting_id = reset($settings_ids);
 
-        $settings_values_ids = $om->search(SettingValue::getType(), [ ['setting_id', '=', $setting_id], ['user_id', '=', $user_id] ]);
+        $domain = [ ['setting_id', '=', $setting_id] ];
+
+        foreach($selector as $field => $value) {
+            $domain[] = [$field, '=', $value];
+        }
+
+        $settings_values_ids = $om->search(SettingValue::getType(), $domain);
         if(!count($settings_values_ids)) {
+            $values = ['setting_id' => $setting_id, 'value' => $value];
+            foreach($selector as $field => $value) {
+                $values[$field] = $value;
+            }
             // value does not exist yet: create a new value
-            $om->create(SettingValue::getType(), ['setting_id' => $setting_id, 'value' => $value, 'user_id' => $user_id], $lang);
+            $om->create(SettingValue::getType(), $values, $lang);
         }
         else {
             // update existing value
@@ -303,11 +307,55 @@ class Setting extends Model {
         }
 
         // #memo - we use a dedicated cache since several o2m fields are involved and we want to prevent loading the same value multiple times in a same thread
-        $index = $package.'.'.$section.'.'.$code.'.'.$user_id.'.'.$lang;
+        $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.$lang;
         if(!isset($GLOBALS['_equal_core_setting_cache'])) {
             $GLOBALS['_equal_core_setting_cache'] = [];
         }
         $GLOBALS['_equal_core_setting_cache'][$index] = $value;
+    }
+
+    /**
+     * $selector is expected to hold any additional field that can be used to differentiate a SettingValue record (fields can be added in inherited classes)
+     */
+    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, array $selector=[], string $lang='en') {
+        $result = null;
+
+        $providers = \eQual::inject(['orm']);
+        /** @var \equal\orm\ObjectManager */
+        $orm = $providers['orm'];
+
+        $settings_ids = $orm->search(self::getType(), [
+                ['package', '=', $package],
+                ['section', '=', $section],
+                ['code', '=', $code]
+            ]);
+
+        if($settings_ids > 0 && count($settings_ids)) {
+
+            $settings = $orm->read(self::getType(), $settings_ids, ['type', 'setting_sequences_ids']);
+
+            if($settings > 0 && count($settings)) {
+                // #memo - there should be exactly one setting matching the criterias
+                $setting = array_pop($settings);
+
+                $setting_sequence_id = 0;
+                $setting_sequences = $orm->read(SettingSequence::getType(), $setting['setting_sequences_ids'], ['id']);
+                if($setting_sequences > 0) {
+                    foreach($setting_sequences as $sequence) {
+                        $setting_sequence_id = $sequence['id'];
+                        break;
+                    }
+                }
+                if($setting_sequence_id > 0) {
+                    $res = $orm->fetchAndAdd(SettingSequence::getType(), $setting_sequence_id, 'value', $increment);
+                    if($res > 0 && count($res)) {
+                        $result = $res[$setting_sequence_id];
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     public static function format_number($number, $decimal_precision=null) {

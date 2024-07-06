@@ -77,7 +77,6 @@ if(method_exists($params['entity'], 'onchange')) {
     // adapt fields in $values array
     foreach($values as $field => $value) {
         try {
-            /** @var equal\orm\Field */
             $f = $model->getField($field);
             // adapt received values based on their type (as defined in schema)
             $values[$field] = $adapter->adaptIn($value, $f->getUsage());
@@ -91,7 +90,7 @@ if(method_exists($params['entity'], 'onchange')) {
     // adapt fields in $changes array
     foreach($changes as $field => $value) {
         try {
-            $f = new Field($schema[$field]);
+            $f = $model->getField($field);
             // adapt received values based on their type (as defined in schema)
             $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
         }
@@ -155,7 +154,7 @@ if(method_exists($params['entity'], 'onchange')) {
             }
         }
         else {
-            $f = new Field($schema[$field]);
+            $f = $model->getField($field);
             // adapt received values based on their type (as defined in schema)
             $result[$field] = $adapter->adaptOut($value, $f->getUsage());
         }

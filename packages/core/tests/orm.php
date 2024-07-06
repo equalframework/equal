@@ -350,7 +350,7 @@ $tests = [
                                                     // grant READ operation on all classes
                                                     $providers['access']->grant(QN_R_READ);
 
-                                                    $values = User::search(array(array('groups_ids', 'contains', array(1, 2, 3))))
+                                                    $values = User::search([['groups_ids', 'contains', [1, 2, 3]]])
                                                           ->read(['id', 'login'])
                                                           ->get();
                                                 }

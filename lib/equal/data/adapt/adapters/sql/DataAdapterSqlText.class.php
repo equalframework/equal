@@ -14,6 +14,14 @@ class DataAdapterSqlText implements DataAdapter {
         return 'sql/text';
     }
 
+    public function castInType(): string {
+        return 'string';
+    }
+
+    public function castOutType($usage=null): string {
+        return 'TEXT';
+    }
+
     /**
      * Handles the conversion to the PHP type equivalent.
      * Adapts the input value from JSON type to PHP type (SQL -> PHP).

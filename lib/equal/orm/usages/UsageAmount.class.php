@@ -11,20 +11,27 @@ use core\setting\Setting;
 
 class UsageAmount extends Usage {
 
-    public function getScale(): int {
-        $scale = intval($this->getLength());
-        switch($this->getSubtype()) {
-            case 'money':
-                $scale = ($scale)?$scale:4;
-                break;
-            case 'percent':
-                $scale = ($scale)?$scale:6;
-                break;
-            case 'rate':
-                $scale = ($scale)?$scale:4;
-                break;
+    public function __construct(string $usage_str) {
+        parent::__construct($usage_str);
+
+        // single number as length
+        if(strpos($this->length_str, '.') === false) {
+            // use provided precision, fallback to default
+            $this->precision = 10;
+
+            if($this->length > 0) {
+                $this->scale = $this->length;
+            }
+            else {
+                // use scale according to subtype
+                $map_default = [
+                    'money'     => 4,
+                    'percent'   => 6,
+                    'rate'      => 4
+                ];
+                $this->scale = $map_default[$this->getSubtype(0)] ?? 2;
+            }
         }
-        return $scale;
     }
 
     /**
@@ -40,12 +47,13 @@ class UsageAmount extends Usage {
             'invalid_amount' => [
                 'message'   => 'Malformed amount or size overflow.',
                 'function'  =>  function($value) {
-                    $scale = $this->getScale();
+                    $decimals = $this->getScale();
+                    $integers = $this->getPrecision();
                     switch($this->getSubtype()) {
                         case 'money':
                         case 'percent':
                         case 'rate':
-                            return preg_match('/^[+-]?[0-9]{0,9}(\.[0-9]{0,'.$scale.'})?$/', (string) $value);
+                            return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{0,'.$decimals.'})?$/', (string) $value);
                     }
                     return true;
                 }

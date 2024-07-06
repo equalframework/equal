@@ -8,7 +8,7 @@
                 "value": "name",
                 "label": "Name",
                 "width": "30%",
-                "sortable": true                
+                "sortable": true
             },
             {
                 "type": "field",
@@ -16,7 +16,7 @@
                 "label": "User",
                 "width": "25%",
                 "sortable": true
-            },  
+            },
             {
                 "type": "field",
                 "value": "value",

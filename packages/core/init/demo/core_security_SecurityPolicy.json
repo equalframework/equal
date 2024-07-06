@@ -1,0 +1,14 @@
+[
+    {
+        "name": "core\\security\\SecurityPolicy",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "name": "default policy",
+                "is_active": true,
+                "description": null
+            }
+        ]
+    }
+]

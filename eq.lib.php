@@ -115,7 +115,7 @@ namespace {
      *
      * Note: ensure http service has read/write permissions on this directory
      */
-    define('QN_LOG_STORAGE_DIR', QN_BASEDIR.'/log');
+    define('QN_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('html_errors', false);                              // prevent HTML in logs
@@ -256,18 +256,18 @@ namespace {
      * (which cannot be modified by other scripts)
      */
     $constants_schema = [];
-    if(!file_exists(QN_BASEDIR.'/config/schema.json')) {
+    if(!file_exists(EQ_BASEDIR.'/config/schema.json')) {
         die('Missing mandatory config schema.');
     }
     else {
-        $data = file_get_contents(QN_BASEDIR.'/config/schema.json');
+        $data = file_get_contents(EQ_BASEDIR.'/config/schema.json');
         if(!($constants_schema = json_decode($data, true))) {
             die('Invalid config schema.');
         }
 
         // pass-1 - process properties defined in config file
-        if(file_exists(QN_BASEDIR.'/config/config.json')) {
-            $data = file_get_contents(QN_BASEDIR.'/config/config.json');
+        if(file_exists(EQ_BASEDIR.'/config/config.json')) {
+            $data = file_get_contents(EQ_BASEDIR.'/config/config.json');
             if(($config = json_decode($data, true))) {
                 foreach($config as $property => $value) {
                     config\define($property, $value);
@@ -485,7 +485,7 @@ namespace config {
         // handle shorthand notations
         if(isset($constants_schema[$property]) && $constants_schema[$property]['type'] == 'integer') {
             // handle binary masks on arbitrary values or pre-defined constants
-            if(is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false)) {
+            if( is_string($value) && (strpos($value, '|') !== false || strpos($value, '&') !== false) ) {
                 try {
                     $value = eval("return $value;");
                 }
@@ -546,11 +546,11 @@ namespace config {
          * @static
          */
         public static function init() {
-            chdir(QN_BASEDIR.'/');
+            chdir(EQ_BASEDIR.'/');
 
             // enable inclusion and autoload of external classes
-            if(file_exists(QN_BASEDIR.'/vendor/autoload.php')) {
-                include_once(QN_BASEDIR.'/vendor/autoload.php');
+            if(file_exists(EQ_BASEDIR.'/vendor/autoload.php')) {
+                include_once(EQ_BASEDIR.'/vendor/autoload.php');
             }
 
             // register own class loader
@@ -775,7 +775,7 @@ namespace config {
                     }
                     $cache_id = md5($request_id);
                     // retrieve related filename
-                    $cache_filename = QN_BASEDIR.'/cache/'.$cache_id;
+                    $cache_filename = EQ_BASEDIR.'/cache/'.$cache_id;
                     // update context for further processing
                     $context->set('cache', true);
                     $context->set('cache-id', $cache_id);
@@ -925,7 +925,7 @@ namespace config {
                         $help .= str_pad("--".$name, 20, ' ', STR_PAD_RIGHT);
                         $required = (isset($info['required']))?'(required)':'';
                         $help .= str_pad($required, 12, ' ');
-                        $type = $info['type'].( (isset($info['usage']))?'>'.$info['usage']:'');
+                        $type = $info['type'].( (isset($info['usage']))?' > '.$info['usage']:'');
                         $help .= str_pad($type, 28, ' ');
                         $help .= $info['description']."\n";
                     }
@@ -1207,8 +1207,8 @@ namespace config {
             }
 
             // load package custom configuration, if any
-            if(!is_null($resolved['package']) && is_file(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
-                $data = file_get_contents(QN_BASEDIR.'/packages/'.$resolved['package'].'/config.json');
+            if(!is_null($resolved['package']) && is_file(EQ_BASEDIR.'/packages/'.$resolved['package'].'/config.json')) {
+                $data = file_get_contents(EQ_BASEDIR.'/packages/'.$resolved['package'].'/config.json');
                 if(($config = json_decode($data, true))) {
                     foreach($config as $property => $value) {
                         \config\define($property, $value);
@@ -1247,12 +1247,12 @@ namespace config {
                 if(empty($resolved['script']) && defined('DEFAULT_APP')) {
                     $resolved['script'] = constant('DEFAULT_APP').'.php';
                 }
-                $filename = QN_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
+                $filename = EQ_BASEDIR.'/packages/'.$resolved['package'].'/'.$operation_conf['dir'].'/'.$resolved['script'];
                 if(!is_file($filename)) {
                     // always try to fallback to core package (for short syntax calls)
-                    $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
+                    $filename = EQ_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'/'.$resolved['script'];
                     if(!is_file($filename)) {
-                        $filename = QN_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
+                        $filename = EQ_BASEDIR.'/packages/core/'.$operation_conf['dir'].'/'.$resolved['package'].'.php';
                         if(!is_file($filename)) {
                             throw new \Exception("Unknown {$operation_conf['kind']} ({$resolved['type']}) {$resolved['operation']} ({$resolved['script']})", EQ_ERROR_UNKNOWN_OBJECT);
                         }
@@ -1281,7 +1281,7 @@ namespace config {
                         }
                         $context->httpResponse()->header('Etag', $cache_id);
                         $headers = $context->httpResponse()->headers()->toArray();
-                        file_put_contents(QN_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
+                        file_put_contents(EQ_BASEDIR.'/cache/'.$cache_id, serialize([$headers, $result]));
                         $reporter->debug("API::stored cache-id {$cache_id}");
                     }
                 }
@@ -1332,7 +1332,7 @@ namespace config {
             else {
                 // mark class as being loaded
                 $GLOBALS['eQual_loading_classes'][$class_name] = true;
-                $file_path = QN_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
+                $file_path = EQ_BASEDIR.'/lib/'.str_replace('\\', '/', $class_name);
                 // use 'class.php' extension
                 if(file_exists($file_path.'.class.php')) {
                     $result = include_once $file_path.'.class.php';
@@ -1387,15 +1387,15 @@ namespace {
          * (So it can be used with the global exceptions logic or with local try/catch blocks.)
          *
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
-         * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
+         * @param string    $controller     Path of the controller to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked).
+         * @param boolean   $root           Flag to run the controller as a first (root) call (following calls are stacked).
          *
-         * @return  array        Associative array holding the result of the call.
+         * @return  mixed        Result of the call, according to the controller response.
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
-        public static function run($type, $operation, $body=[], $root=false) {
-            $result = config\eQual::run($type, $operation, $body, $root);
+        public static function run($type, $controller, $body=[], $root=false) {
+            $result = config\eQual::run($type, $controller, $body, $root);
             $data = json_decode($result, true);
             // if result is not JSON, return raw data
             if(is_null($data)) {
