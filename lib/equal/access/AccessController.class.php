@@ -640,10 +640,13 @@ class AccessController extends Service {
                     foreach($values as $value) {
                         switch($rule['policy_rule_type']) {
                             case 'ip_address':
-                                $is_match = self::validateIpAddress($ip_address, $value['value']);
+                                $is_match = $this->validateIpAddress($ip_address, $value['value']);
                                 break;
                             case 'time_range':
-                                $is_match = self::validateTimeRange($time, $value['value']);
+                                $is_match = $this->validateTimeRange($time, $value['value']);
+                                break;
+                            case 'user_group':
+                                $is_match = $this->validateUserGroup($user_id, $value['value']);
                                 break;
                         }
                         // request match with one of the value of the rule
@@ -668,10 +671,14 @@ class AccessController extends Service {
         return $result;
     }
 
+    private function validateUserGroup($user_id, $group) {
+        return $this->hasGroup($group, $user_id);
+    }
+
     /**
      * tests: 192.168.1.123, 192.168.1.0/24, 192.168.*.*
      */
-    private static function validateIpAddress($ip, $pattern) {
+    private function validateIpAddress($ip, $pattern) {
         if(strpos($pattern, '*') !== false) {
             $pattern = str_replace(['.', '*'], ['\.', '[0-9]+'], $pattern);
             if(preg_match('/^' . $pattern . '$/', $ip)) {
@@ -699,7 +706,7 @@ class AccessController extends Service {
      * var_dump(validate_time_range(1719925622, 'mon@09:00-mon@11:00')); // false
      * var_dump(validate_time_range(1719925622, 'tue@13:00-tue@14:00')); // true
      */
-    private static function validateTimeRange($time, $pattern) {
+    private function validateTimeRange($time, $pattern) {
         list($hours, $minutes) = explode(':', date('H:i', $time));
         $time_of_day = ($hours * 3600) + ($minutes * 60);
 
