@@ -118,10 +118,8 @@ class Setting extends Model {
                     'input',
                     'textarea'
                 ],
-                'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
                 'default'           => 'input',
-                'multilang'         => true,
                 'visible'           => ['is_sequence', '=', false]
             ],
 
