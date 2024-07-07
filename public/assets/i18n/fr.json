@@ -1,5 +1,4 @@
 {
-
     "SB_DIALOG_ACCEPT": "Valider",
     "SB_DIALOG_SEND": "Ok",
     "SB_DIALOG_CANCEL": "Annuler",
@@ -87,6 +86,7 @@
     "AUTH_SIGNUP_TITLE": "Nouveau compte",
     "AUTH_SIGNUP_SIGNUP": "S'inscrire",
     "AUTH_SIGNUP_USERNAME": "Nom d'utilisateur",
+    "AUTH_SIGNUP_EMAIL": "Email",
     "AUTH_SIGNUP_PASSWORD": "Mot de passe",
     "AUTH_SIGNUP_CONFIRM": "Confirmation",
     "AUTH_SIGNUP_ACTION_SIGNUP": "S'inscrire",
@@ -146,11 +146,5 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Renommer",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Annuler",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
-    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?",
-
-
-    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
-
-
-    "empty_booking": "La réservation est vide."
+    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?"
 }
