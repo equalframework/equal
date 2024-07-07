@@ -8,26 +8,31 @@
     "layout": {
         "items": [
             {
+                "id": "components",
                 "type": "entry",
                 "label": "Components",
                 "icon": "category",
-                "context": [],
-                "children": []
+                "route": "/"
             },
             {
-                "id": "uml.drawer",
+                "id": "pipelines",
+                "type": "entry",
+                "label": "Pipelines",
+                "icon": "insights",
+                "route": "/pipelines"
+            },
+            {
+                "id": "uml",
                 "type": "parent",
                 "label": "UML",
                 "icon": "schema",
-                "context": [],
                 "children": [
                     {
-                        "id": "uml",
+                        "id": "uml.erd",
                         "type": "entry",
                         "label": "ERD",
                         "icon": "account_tree",
-                        "context": [],
-                        "children": []
+                        "route": "/uml"
                     }
                 ]
             }
