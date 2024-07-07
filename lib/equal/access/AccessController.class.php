@@ -18,6 +18,8 @@ use equal\services\Container;
 
 class AccessController extends Service {
 
+    private $is_request_compliant;
+
     private $permissionsTable;
 
     private $groupsTable;
@@ -30,6 +32,7 @@ class AccessController extends Service {
      * This method cannot be called directly (should be invoked through Singleton::getInstance).
      */
     protected function __construct(Container $container) {
+        $this->is_request_compliant = false;
         $this->permissionsTable = array();
         $this->groupsTable = array();
         $this->usersTable = array();
@@ -614,6 +617,10 @@ class AccessController extends Service {
     }
 
     public function isRequestCompliant($user_id, $ip_address) {
+        // if compliance has already been evaluated to true, do not re-run the process
+        if($this->is_request_compliant) {
+            return true;
+        }
         $result = true;
         $time = time();
 
@@ -668,6 +675,7 @@ class AccessController extends Service {
                 }
             }
         }
+        $this->is_request_compliant = $result;
         return $result;
     }
 
