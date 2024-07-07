@@ -54,7 +54,7 @@ class SecurityPolicyRule extends Model {
                     'user_login',
                     'time_range'
                 ],
-                'dependents'        => ['description'],
+                'dependents'        => ['name', 'description'],
                 'description'       => 'Type of rule (kind of test to perform).'
             ],
 
