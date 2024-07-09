@@ -20,7 +20,7 @@ list($params, $providers) = announce([
         ],
         'test_id'   => [
             'description'   =>  "ID of the specific test to perform (by default all tests are performed).",
-            'type'          =>  'integer',
+            'type'          =>  'string',
             'default'       =>  0
         ],
         'logs'      => [
