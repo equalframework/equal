@@ -54,7 +54,7 @@ class SecurityPolicyRule extends Model {
                     'user_login',
                     'time_range'
                 ],
-                'dependents'        => ['description'],
+                'dependents'        => ['name', 'description'],
                 'description'       => 'Type of rule (kind of test to perform).'
             ],
 
@@ -97,23 +97,37 @@ class SecurityPolicyRule extends Model {
         $self->read(['policy_rule_type']);
 
         foreach($self as $id => $rule) {
-            switch($rule['policy_rule_type']) {
-                case 'ip_address':
-                    $result[$id] = 'Request IP address match against one or more values.';
-                    break;
-                case 'location':
-                    $result[$id] = 'Request geo-location matching one value against a set of cities or regions.';
-                    break;
-                case 'user_group':
-                    $result[$id] = 'User belonging to at least one of the listed groups.';
-                    break;
-                case 'user_login':
-                    $result[$id] = 'User login (email) matching a given pattern.';
-                    break;
-                case 'time_range':
-                    $result[$id] = 'Time of Request included in at least one the listed time ranges.';
-                    break;
-            }
+            $result[$id] = self::computeDescription($rule['policy_rule_type']);
+        }
+        return $result;
+    }
+
+    public static function onchange($event) {
+        $result = [];
+        if(isset($event['policy_rule_type'])) {
+            $result['role'] = self::computeDescription($event['policy_rule_type']);
+        }
+        return $result;
+    }
+
+    public static function computeDescription($rule_type) {
+        $result = '';
+        switch($rule_type) {
+            case 'ip_address':
+                $result = 'Request IP address match against one or more values.';
+                break;
+            case 'location':
+                $result = 'Request geo-location matching one value against a set of cities or regions.';
+                break;
+            case 'user_group':
+                $result = 'User belonging to at least one of the listed groups.';
+                break;
+            case 'user_login':
+                $result = 'User login (email) matching a given pattern.';
+                break;
+            case 'time_range':
+                $result = 'Time of Request included in at least one the listed time ranges.';
+                break;
         }
         return $result;
     }

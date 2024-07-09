@@ -86,7 +86,7 @@ class Setting extends Model {
             'is_sequence' => [
                 'type'              => 'boolean',
                 'description'       => "Marks the setting as a numeric sequence.",
-                 'help'              => "Some settings must have a numeric value, meant to be incremented, and that must match a numeric SQL field in the related table. For tht reason, we use a distinct entity `SettingSequence` for which the `value` field/column is an integer.",
+                'help'              => "Some settings must have a numeric value, meant to be incremented, and that must match a numeric SQL field in the related table. For tht reason, we use a distinct entity `SettingSequence` for which the `value` field/column is an integer.",
                 'default'           => false
             ],
 
@@ -118,10 +118,8 @@ class Setting extends Model {
                     'input',
                     'textarea'
                 ],
-                'usage'             => 'text/plain',
                 'description'       => 'Way in which the form is presented to the User.',
                 'default'           => 'input',
-                'multilang'         => true,
                 'visible'           => ['is_sequence', '=', false]
             ],
 
