@@ -42,8 +42,12 @@ $schema = $model->getSchema();
 
 $fields = [];
 
-foreach($schema as $field => $descr) {
-    if($descr['type'] != 'one2many' && $descr['type'] != 'computed') {
+foreach($schema as $field => $descriptor) {
+    $type = $descriptor['type'];
+    if(isset($descriptor['result_type'])) {
+        $type = $descriptor['result_type'];
+    }
+    if(!in_array($type, ['one2many', 'many2many'])) {
         $fields[] = $field;
     }
 }
