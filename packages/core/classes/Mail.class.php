@@ -13,7 +13,7 @@ use equal\email\EmailAttachment;
 
 class Mail extends Model {
 
-    const MESSAGE_FOLDER = QN_BASEDIR.'/spool';
+    const MESSAGE_FOLDER = EQ_BASEDIR.'/spool';
 
     public static function getColumns() {
         return [
@@ -101,19 +101,19 @@ class Mail extends Model {
      * @param   Email   $email           Email message to be sent.
      * @param   string  $object_class    Class of the object associated with the sending (optional).
      * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     * @param   boolean $instant         Optional flag for requesting instant sending (default is deferred).
+     *
      * @return  int     Upon success, this method returns the id of the `core\Mail` object created for the sending.
      * @throws  \Exception                This method raises an Exception in case of error.
      */
-    public static function queue(Email $email, string $object_class='', int $object_id=0): int {
-        // create an Object
+    public static function queue(Email $email, string $object_class = '', int $object_id = 0, $instant = false): int {
         $values = [
             'to'            => $email->to,
             'cc'            => implode(',', (array) $email->cc),
             'bcc'           => implode(',', (array) $email->bcc),
             'subject'       => $email->subject,
-            // remove utf8mb4 chars (emojis)
+            // #memo - utf8mb4 chars should be removed if DB charset does not support it
             // 'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
-            // #memo - DB is set to UTF8mb4 by default
             'body'          => $email->body,
             'attachments'   => '',
             'object_class'  => $object_class,
@@ -128,19 +128,45 @@ class Mail extends Model {
             $attachments = array_map(function ($a) {return $a->name;}, $email->attachments);
             $values['attachments'] = implode("\n", $attachments);
         }
-        // create the Mail object
+
+        // create the core\Mail object
         $mail = Mail::create($values)->read(['id'])->first(true);
-        // create JSON data (append newly created object ID)
-        $values = $email->setId($mail['id'])->toArray();
-        // convert to JSON
-        $data = json_encode($values, JSON_PRETTY_PRINT);
-        if($data === false) {
-            throw new \Exception('failed_json_conversion', QN_ERROR_UNKNOWN);
+        if(!$mail) {
+            throw new \Exception('failed_creating_mail', EQ_ERROR_UNKNOWN);
         }
-        // export to outbox
-        $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
-        if(file_put_contents($filename, $data) === false) {
-            throw new \Exception('failed_file_creation', QN_ERROR_UNKNOWN);
+
+        // export resulting message as array
+        $message = $email->setId($mail['id'])->toArray();
+
+        if($instant) {
+            // get SMTP mailer
+            $mailer = self::provideMailer();
+            if(!$mailer) {
+                throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
+            }
+            // build envelope
+            $envelope = self::computeEnvelope($message);
+            if(!$envelope) {
+                throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
+            }
+            // send email message
+            if($mailer->send($envelope) == 0) {
+                throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
+            }
+            // update the core\Mail object status
+            self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
+        }
+        else {
+            // convert to JSON
+            $data = json_encode($message, JSON_PRETTY_PRINT);
+            if($data === false) {
+                throw new \Exception('failed_json_conversion', EQ_ERROR_UNKNOWN);
+            }
+            // export to outbox
+            $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
+            if(file_put_contents($filename, $data) === false) {
+                throw new \Exception('failed_file_creation', EQ_ERROR_UNKNOWN);
+            }
         }
 
         return $mail['id'];
@@ -172,18 +198,46 @@ class Mail extends Model {
         return false;
     }
 
-    /**
-     * Send all messages currently in the outbox.
-     *
-     */
-    public static function flush() {
-        // load dependencies
-        if(!file_exists(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-            throw new \Exception("missing_dependency", QN_ERROR_INVALID_CONFIG);
+    private function provideMailer() {
+        $mailer = null;
+
+        try {
+            // load dependencies
+            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
+            }
+            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
+
+            // setup SMTP settings
+            $transport = new \Swift_SmtpTransport(
+                constant('EMAIL_SMTP_HOST'),
+                constant('EMAIL_SMTP_PORT'),
+                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
+            );
+
+            $transport
+                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
+                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+
+            if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
+                $transport->setStreamOptions([
+                    'ssl' => [
+                        'allow_self_signed'     => true,
+                        'verify_peer'           => false
+                    ]
+                ]);
+            }
+
+            $mailer = new \Swift_Mailer($transport);
+        }
+        catch(\Exception $e) {
+            // #todo - log error
         }
 
-        require_once(QN_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
+        return $mailer;
+    }
 
+    private static function fetchQueue() {
         // load pending messages by reading all files in `$messages_folder` (outbox) directory
         $queue = [];
         $files = scandir(self::MESSAGE_FOLDER);
@@ -212,111 +266,128 @@ class Mail extends Model {
             }
             $queue[$file] = $message;
         }
+        return $queue;
+    }
 
-        // setup SMTP settings
-        $transport = new \Swift_SmtpTransport(
-            constant('EMAIL_SMTP_HOST'),
-            constant('EMAIL_SMTP_PORT'),
-            (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
-        );
+    private static function computeEnvelope($message): \Swift_Message {
+        $envelope = null;
 
-        $transport
-            ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
-            ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+        try {
+            // load dependencies
+            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
+            }
+            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
 
-        if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
-            $transport->setStreamOptions([
-                'ssl' => [
-                    'allow_self_signed'     => true,
-                    'verify_peer'           => false
-                ]
-            ]);
+            $body = (isset($message['body']))?$message['body']:'';
+            $subject = (isset($message['subject']))?$message['subject']:'';
+
+            $envelope = new \Swift_Message();
+            // set sender and recipients
+            $envelope
+                ->setTo($message['to'])
+                ->setCc($message['cc'])
+                ->setBcc($message['bcc'])
+                ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+
+            if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
+                $envelope->setReplyTo($message['reply_to']);
+            }
+
+            // add subject
+            $envelope->setSubject($subject);
+
+            // process body according to content type
+            if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
+                $envelope->setContentType('text/html');
+                // handle embedded images, if any
+                $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                    function ($matches) use (&$envelope) {
+                        $cid = $matches[2];
+                        if(substr($cid, 4, 1) == ':') {
+                            list($scheme, $data) = explode(':', $cid);
+                            if($scheme == 'data') {
+                                list($content_type, $data) = explode(';', $data);
+                                list($encoding, $raw) = explode(',', $data);
+                                if($encoding == 'base64') {
+                                    $raw = base64_decode($raw);
+                                }
+                                list($type, $extension) = explode('/', $content_type);
+                                $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                $img->setDisposition('inline');
+                                $cid = $envelope->embed($img);
+                            }
+                        }
+                        return $matches[1].$cid.$matches[3];
+                    },
+                    $body);
+            }
+
+            // add body
+            $envelope->setBody($body);
+
+            // add attachments
+            if(isset($message['attachments']) && count($message['attachments'])) {
+                foreach($message['attachments'] as $key => $attachment) {
+                    $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
+                }
+            }
+        }
+        catch(\Exception $e) {
+            // #todo - log error
         }
 
-        // setup SMTP settings
-        $mailer = new \Swift_Mailer($transport);
+        return $envelope;
+    }
+
+    /**
+     * Send all messages currently in the outbox.
+     *
+     */
+    public static function flush() {
+
+        // retrieve messages from files under `/spool`
+        $queue = self::fetchQueue();
+
+        // get SMTP mailer
+        $mailer = self::provideMailer();
+        if(!$mailer) {
+            throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
+        }
 
         // #todo - store as setting
         $max = 10;
         $i = 0;
         // loop through messages
         foreach($queue as $file => $message) {
-            // prevent handling more than $max messages (successfully sent)
-            if($i > $max) {
-                break;
-            }
-
-            if(isset($message['id'])) {
-                $mailMessage = self::id($message['id'])->read(['status'])->first();
-                // prevent re-sending already sent messages
-                if($mailMessage['status'] == 'sent') {
-                    unlink(self::MESSAGE_FOLDER.'/'.$file);
-                    continue;
-                }
-            }
-
-            $body = (isset($message['body']))?$message['body']:'';
-            $subject = (isset($message['subject']))?$message['subject']:'';
-
             try {
-                if(!isset($message['to']) || strlen($message['to']) <= 0) {
-                    throw new \Exception('empty_recipient', QN_ERROR_INVALID_PARAM);
+                // prevent handling more than $max messages (successfully sent)
+                if($i > $max) {
+                    break;
                 }
 
-                $envelope = new \Swift_Message();
-                // set sender and recipients
-                $envelope
-                    ->setTo($message['to'])
-                    ->setCc($message['cc'])
-                    ->setBcc($message['bcc'])
-                    ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
-
-                if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
-                    $envelope->setReplyTo($message['reply_to']);
-                }
-
-                // add subject
-                $envelope->setSubject($subject);
-
-                // process body according to content type
-                if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
-                    $envelope->setContentType('text/html');
-                    // handle embedded images, if any
-                    $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
-                        function ($matches) use (&$envelope) {
-                            $cid = $matches[2];
-                            if(substr($cid, 4, 1) == ':') {
-                                list($scheme, $data) = explode(':', $cid);
-                                if($scheme == 'data') {
-                                    list($content_type, $data) = explode(';', $data);
-                                    list($encoding, $raw) = explode(',', $data);
-                                    if($encoding == 'base64') {
-                                        $raw = base64_decode($raw);
-                                    }
-                                    list($type, $extension) = explode('/', $content_type);
-                                    $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
-                                    $img->setDisposition('inline');
-                                    $cid = $envelope->embed($img);
-                                }
-                            }
-                            return $matches[1].$cid.$matches[3];
-                        },
-                        $body);
-                }
-
-                // add body
-                $envelope->setBody($body);
-
-                // add attachments
-                if(isset($message['attachments']) && count($message['attachments'])) {
-                    foreach($message['attachments'] as $key => $attachment) {
-                        $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
+                if(isset($message['id'])) {
+                    $mailMessage = self::id($message['id'])->read(['status'])->first();
+                    // prevent re-sending already sent messages
+                    if($mailMessage['status'] == 'sent') {
+                        unlink(self::MESSAGE_FOLDER.'/'.$file);
+                        continue;
                     }
+                }
+
+                if(!isset($message['to']) || strlen($message['to']) <= 0) {
+                    throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
+                }
+
+                $envelope = self::computeEnvelope($message);
+
+                if(!$envelope) {
+                    throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
                 }
 
                 // send email
                 if($mailer->send($envelope) == 0) {
-                    throw new \Exception('recipients_unreachable', QN_ERROR_UNKNOWN);
+                    throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
                 }
 
                 // upon successful sending, remove the mail from the outbox
@@ -342,6 +413,5 @@ class Mail extends Model {
             }
         }
     }
-
 
 }
