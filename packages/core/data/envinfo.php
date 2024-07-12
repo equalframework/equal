@@ -43,7 +43,6 @@ $envinfo = [
     "rest_api_url"  => constant('REST_API_URL'),
     "lang"          => constant('APP_DEFAULT_LANG'),
     "locale"        => constant('L10N_LOCALE'),
-    "version"       => constant('EQ_VERSION'),
     "company_name"  => constant('ORG_NAME'),
     "company_url"   => constant('ORG_URL'),
     "app_name"      => constant('APP_NAME'),
@@ -55,6 +54,9 @@ $user_id = $auth->userId();
 
 // append settings values if request is made by an authenticated user
 if($user_id) {
+    // disclose version only to authenticated users
+    $envinfo["version"] = constant('EQ_VERSION');
+
     // 1) read global settings
     $settings = SettingValue::search(['user_id', '=', 0])->read(['name', 'value'])->get();
 
