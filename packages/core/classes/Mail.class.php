@@ -35,7 +35,8 @@ class Mail extends Model {
 
             'to' => [
                 'type'              => 'string',
-                'usage'             => 'email'
+                'usage'             => 'email',
+                'required'          => true
             ],
 
             'reply_to' => [
@@ -54,12 +55,14 @@ class Mail extends Model {
             ],
 
             'subject' => [
-                'type'              => 'string'
+                'type'              => 'string',
+                'required'          => true
             ],
 
             'body' => [
                 'type'              => 'string',
-                'usage'             => 'text/html'
+                'usage'             => 'text/html',
+                'required'          => true
             ],
 
             'attachments' => [
@@ -95,57 +98,55 @@ class Mail extends Model {
     }
 
     /**
-     * Add a message to the email outbox.
-     * This method is a substitute for the create() method.
+     * Queue a message in the email outbox (/spool).
      *
      * @param   Email   $email           Email message to be sent.
      * @param   string  $object_class    Class of the object associated with the sending (optional).
      * @param   string  $object_id       Identifier of the object associated with the sending (optional).
-     * @param   boolean $instant         Optional flag for requesting instant sending (default is deferred).
      *
-     * @return  int     Upon success, this method returns the id of the `core\Mail` object created for the sending.
+     * @return  int     Upon success, this method returns the id of the queued `core\Mail` object.
+     *
      * @throws  \Exception                This method raises an Exception in case of error.
      */
-    public static function queue(Email $email, string $object_class = '', int $object_id = 0, $instant = false): int {
-        $values = [
-            'to'            => $email->to,
-            'cc'            => implode(',', (array) $email->cc),
-            'bcc'           => implode(',', (array) $email->bcc),
-            'subject'       => $email->subject,
-            // #memo - utf8mb4 chars should be removed if DB charset does not support it
-            // 'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
-            'body'          => $email->body,
-            'attachments'   => '',
-            'object_class'  => $object_class,
-            'object_id'     => $object_id
-        ];
+    public static function queue(Email $email, string $object_class = '', int $object_id = 0): int {
+        $mail = self::createMail($email, $object_class, $object_id);
 
-        if(isset($email->reply_to) && !empty($email->reply_to)) {
-            $values['reply_to'] = $email->reply_to;
+        // convert to JSON
+        $data = json_encode($mail, JSON_PRETTY_PRINT);
+        if($data === false) {
+            throw new \Exception('failed_json_conversion', EQ_ERROR_UNKNOWN);
         }
-        // extract attachment names, if any
-        if(count($email->attachments)) {
-            $attachments = array_map(function ($a) {return $a->name;}, $email->attachments);
-            $values['attachments'] = implode("\n", $attachments);
+        // export to outbox
+        $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
+        if(file_put_contents($filename, $data) === false) {
+            throw new \Exception('failed_file_creation', EQ_ERROR_UNKNOWN);
         }
 
-        // create the core\Mail object
-        $mail = Mail::create($values)->read(['id'])->first(true);
-        if(!$mail) {
-            throw new \Exception('failed_creating_mail', EQ_ERROR_UNKNOWN);
-        }
+        return $mail['id'];
+    }
 
-        // export resulting message as array
-        $message = $email->setId($mail['id'])->toArray();
+    /**
+     * Instantly send a message (skip outbox).
+     *
+     * @param   Email   $email           Email message to be sent.
+     * @param   string  $object_class    Class of the object associated with the sending (optional).
+     * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     *
+     * @return  int     Upon success, this method returns the id of the created `core\Mail` object created.
+     *
+     * @throws  \Exception                This method raises an Exception in case of error.
+     */
+    public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
+        $mail = self::createMail($email, $object_class, $object_id);
 
-        if($instant) {
+        try {
             // get SMTP mailer
             $mailer = self::provideMailer();
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
             // build envelope
-            $envelope = self::computeEnvelope($message);
+            $envelope = self::createEnvelope($mail);
             if(!$envelope) {
                 throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
             }
@@ -156,23 +157,15 @@ class Mail extends Model {
             // update the core\Mail object status
             self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
         }
-        else {
-            // convert to JSON
-            $data = json_encode($message, JSON_PRETTY_PRINT);
-            if($data === false) {
-                throw new \Exception('failed_json_conversion', EQ_ERROR_UNKNOWN);
-            }
-            // export to outbox
-            $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
-            if(file_put_contents($filename, $data) === false) {
-                throw new \Exception('failed_file_creation', EQ_ERROR_UNKNOWN);
-            }
+        catch(\Exception $e) {
+            self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
 
         return $mail['id'];
     }
 
-    public static function isQueued(int $message_id) {
+    public static function isQueued(int $id): bool {
         $files = scandir(self::MESSAGE_FOLDER);
         foreach($files as $file) {
             // skip special files
@@ -191,50 +184,81 @@ class Mail extends Model {
                 // ignore invalid messages
                 continue;
             }
-            if($message['id'] == $message_id) {
+            if($message['id'] == $id) {
                 return true;
             }
         }
         return false;
     }
 
-    private function provideMailer() {
-        $mailer = null;
+    /**
+     * Send a batch of messages that are queued in the outbox.
+     *
+     */
+    public static function flush() {
 
-        try {
-            // load dependencies
-            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
-            }
-            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
+        // retrieve messages from files under `/spool`
+        $queue = self::fetchQueue();
 
-            // setup SMTP settings
-            $transport = new \Swift_SmtpTransport(
-                constant('EMAIL_SMTP_HOST'),
-                constant('EMAIL_SMTP_PORT'),
-                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
-            );
-
-            $transport
-                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
-                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
-
-            if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
-                $transport->setStreamOptions([
-                    'ssl' => [
-                        'allow_self_signed'     => true,
-                        'verify_peer'           => false
-                    ]
-                ]);
-            }
-
-            $mailer = new \Swift_Mailer($transport);
-        }
-        catch(\Exception $e) {
-            // #todo - log error
+        // get SMTP mailer
+        $mailer = self::provideMailer();
+        if(!$mailer) {
+            throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
         }
 
-        return $mailer;
+        // #todo - store as setting
+        $max = 10;
+        $i = 0;
+        // loop through messages
+        foreach($queue as $file => $message) {
+            try {
+                // prevent handling more than $max messages (successfully sent)
+                if($i > $max) {
+                    break;
+                }
+
+                if(isset($message['id'])) {
+                    $mailMessage = self::id($message['id'])->read(['status'])->first();
+                    // prevent re-sending already sent messages
+                    if($mailMessage['status'] == 'sent') {
+                        unlink(self::MESSAGE_FOLDER.'/'.$file);
+                        continue;
+                    }
+                }
+
+                $envelope = self::createEnvelope($message);
+
+                if(!$envelope) {
+                    throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
+                }
+
+                // send email
+                if($mailer->send($envelope) == 0) {
+                    throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
+                }
+
+                // upon successful sending, remove the mail from the outbox
+                $filename = self::MESSAGE_FOLDER.'/'.$file;
+                unlink($filename);
+
+                // if the message is linked to a core\Mail object, update the latter's status
+                if(isset($message['id'])) {
+                    self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
+                }
+
+                // prevent flooding the SMTP (wait 100 ms)
+                usleep(100 *1000);
+                ++$i;
+            }
+            catch(\Exception $e) {
+                // sending failed
+                // if the message is linked to a core\Mail object, update the latter's status
+                if(isset($message['id'])) {
+                    self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+                }
+                // #todo : add support for choosing what to do upon failure (retry, delete, notify)
+            }
+        }
     }
 
     private static function fetchQueue() {
@@ -269,7 +293,44 @@ class Mail extends Model {
         return $queue;
     }
 
-    private static function computeEnvelope($message): \Swift_Message {
+    /**
+     * Create a Mail object and return an associative array representation of it.
+     * The Mail object is attached to an object, if provided ($object_class::$object_id).
+     */
+    private static function createMail(Email $email, string $object_class = '', int $object_id = 0): array {
+        $values = [
+            'to'            => $email->to,
+            'cc'            => implode(',', (array) $email->cc),
+            'bcc'           => implode(',', (array) $email->bcc),
+            'subject'       => $email->subject,
+            // #memo - utf8mb4 chars should be removed if DB charset does not support it
+            // 'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
+            'body'          => $email->body,
+            'attachments'   => '',
+            'object_class'  => $object_class,
+            'object_id'     => $object_id
+        ];
+
+        if(isset($email->reply_to) && !empty($email->reply_to)) {
+            $values['reply_to'] = $email->reply_to;
+        }
+        // extract attachment names, if any
+        if(count($email->attachments)) {
+            $attachments = array_map(function ($a) {return $a->name;}, $email->attachments);
+            $values['attachments'] = implode("\n", $attachments);
+        }
+
+        // create the core\Mail object
+        $mail = Mail::create($values)->read(['id'])->first(true);
+        if(!$mail) {
+            throw new \Exception('failed_creating_mail', EQ_ERROR_UNKNOWN);
+        }
+
+        // export resulting message as array
+        return $email->setId($mail['id'])->toArray();
+    }
+
+    private static function createEnvelope($message): \Swift_Message {
         $envelope = null;
 
         try {
@@ -281,6 +342,10 @@ class Mail extends Model {
 
             $body = (isset($message['body']))?$message['body']:'';
             $subject = (isset($message['subject']))?$message['subject']:'';
+
+            if(!isset($message['to']) || strlen($message['to']) <= 0) {
+                throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
+            }
 
             $envelope = new \Swift_Message();
             // set sender and recipients
@@ -334,84 +399,49 @@ class Mail extends Model {
             }
         }
         catch(\Exception $e) {
-            // #todo - log error
+            trigger_error("ORM::createEnvelope: ".$e->getMessage(), QN_REPORT_ERROR);
         }
 
         return $envelope;
     }
 
-    /**
-     * Send all messages currently in the outbox.
-     *
-     */
-    public static function flush() {
+    private static function provideMailer() {
+        $mailer = null;
 
-        // retrieve messages from files under `/spool`
-        $queue = self::fetchQueue();
+        try {
+            // load dependencies
+            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
+                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
+            }
+            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
 
-        // get SMTP mailer
-        $mailer = self::provideMailer();
-        if(!$mailer) {
-            throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
+            // setup SMTP settings
+            $transport = new \Swift_SmtpTransport(
+                constant('EMAIL_SMTP_HOST'),
+                constant('EMAIL_SMTP_PORT'),
+                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
+            );
+
+            $transport
+                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
+                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+
+            if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
+                $transport->setStreamOptions([
+                    'ssl' => [
+                        'allow_self_signed'     => true,
+                        'verify_peer'           => false
+                    ]
+                ]);
+            }
+
+            $mailer = new \Swift_Mailer($transport);
+        }
+        catch(\Exception $e) {
+            // #todo - log error
         }
 
-        // #todo - store as setting
-        $max = 10;
-        $i = 0;
-        // loop through messages
-        foreach($queue as $file => $message) {
-            try {
-                // prevent handling more than $max messages (successfully sent)
-                if($i > $max) {
-                    break;
-                }
-
-                if(isset($message['id'])) {
-                    $mailMessage = self::id($message['id'])->read(['status'])->first();
-                    // prevent re-sending already sent messages
-                    if($mailMessage['status'] == 'sent') {
-                        unlink(self::MESSAGE_FOLDER.'/'.$file);
-                        continue;
-                    }
-                }
-
-                if(!isset($message['to']) || strlen($message['to']) <= 0) {
-                    throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
-                }
-
-                $envelope = self::computeEnvelope($message);
-
-                if(!$envelope) {
-                    throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
-                }
-
-                // send email
-                if($mailer->send($envelope) == 0) {
-                    throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
-                }
-
-                // upon successful sending, remove the mail from the outbox
-                $filename = self::MESSAGE_FOLDER.'/'.$file;
-                unlink($filename);
-
-                // if the message is linked to a core\Mail object, update the latter's status
-                if(isset($message['id'])) {
-                    self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
-                }
-
-                // prevent flooding the SMTP (wait 100 ms)
-                usleep(100 *1000);
-                ++$i;
-            }
-            catch(\Exception $e) {
-                // sending failed
-                // if the message is linked to a core\Mail object, update the latter's status
-                if(isset($message['id'])) {
-                    self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
-                }
-                // #todo : add support for choosing what to do upon failure (retry, delete, notify)
-            }
-        }
+        return $mailer;
     }
 
 }

@@ -16,15 +16,16 @@ list($params, $providers) = eQual::announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context', 'auth']
+    'providers'     => ['context']
 ]);
 
-list($context, $auth) = [ $providers['context'], $providers['auth'] ];
+/**
+ * @var \equal\php\Context  $context
+ */
+['context' => $context] = $providers;
 
-// read template according to user requested language
-$file = EQ_BASEDIR."/packages/core/i18n/en/mail_test.html";
-
-if(!($html = @file_get_contents($file))) {
+// fetch content of test message
+if(!($html = @file_get_contents(EQ_BASEDIR."/packages/core/i18n/en/mail_test.html"))) {
     throw new Exception("missing_template", EQ_ERROR_INVALID_CONFIG);
 }
 
@@ -48,7 +49,7 @@ $message->setTo(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))
     ->setBody($body);
 
 // send instant message
-Mail::queue($message, '', 0, true);
+Mail::send($message);
 
 $context->httpResponse()
         ->status(204)
