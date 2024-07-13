@@ -127,12 +127,13 @@ namespace {
      */
     define('EQ_R_CREATE',    1);
     define('EQ_R_READ',      2);
-    define('EQ_R_WRITE',     4);
+    define('EQ_R_UPDATE',    4);
     define('EQ_R_DELETE',    8);
     define('EQ_R_MANAGE',   16);
     define('EQ_R_ALL',      31);
     // equivalence map for constant names migration
     // #deprecated
+    define('EQ_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_CREATE',       EQ_R_CREATE);
     define('QN_R_READ',         EQ_R_READ);
     define('QN_R_WRITE',        EQ_R_WRITE);
