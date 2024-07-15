@@ -71,7 +71,7 @@ class AccessController extends Service {
 
             $implied_roles = [];
             foreach($roles as $key => $value) {
-                if(isset($value['implied_by']) && in_array($role, $value['implied_by'])) {
+                if(isset($value['implied_by']) && in_array($role, (array) $value['implied_by'])) {
                     $implied_roles[] = $key;
                     $implied_roles = array_merge($implied_roles, $getImpliedRoles($key));
                 }
@@ -158,7 +158,7 @@ class AccessController extends Service {
     }
 
     /**
-     * Retrieve the permissions (ACL) that apply for a given user on a target entity.
+     * Retrieve the permissions (ACL) that apply for a given user on a target entity and/or on a set of specific objects.
      * This method use the AccessController cache to provide previously requested Rights.
      *
      * @param   int     $user_id         Identifier of the user for which the permissions are requested.
@@ -562,12 +562,13 @@ class AccessController extends Service {
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
         // force cast ids to array (passing a single id is accepted)
         $objects_ids = (array) $objects_ids;
-        // permission query is for class and/or fields only (no specific objects)
+        // retrieve most permissive right that use has on targeted entities/objects.
         $user_rights = $this->getUserRights($user_id, $object_class, $objects_ids, $operation);
-
-        // retrieve permissions from roles, if set for given class
-        $user_roles = $this->getUserRoles($user_id, $object_class, $objects_ids);
-        $user_rights |= $this->getRightsFromRoles($user_roles, $object_class);
+        if(strpos($object_class, '*') === false) {
+            // retrieve permissions from roles, if set for given class
+            $user_roles = $this->getUserRoles($user_id, $object_class, $objects_ids);
+            $user_rights |= $this->getRightsFromRoles($user_roles, $object_class);
+        }
         // if all bits of operation are granted, then user has requested rights
         return (($user_rights & $operation) == $operation);
     }
