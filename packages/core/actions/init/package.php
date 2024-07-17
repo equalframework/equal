@@ -167,12 +167,18 @@ if(!$skip_package) {
     $data_folder = "packages/{$params['package']}/init/data";
     if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
         // handle JSON files
-        foreach (glob($data_folder."/*.json") as $json_file) {
+        foreach(glob($data_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? 'en';
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -222,12 +228,18 @@ if(!$skip_package) {
     $demo_folder = "packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
         // handle JSON files
-        foreach (glob($demo_folder."/*.json") as $json_file) {
+        foreach(glob($demo_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? 'en';
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -273,12 +285,18 @@ if(!$skip_package) {
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         // handle JSON files
-        foreach (glob($test_folder."/*.json") as $json_file) {
+        foreach(glob($test_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? 'en';
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
