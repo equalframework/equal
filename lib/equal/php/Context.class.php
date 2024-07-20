@@ -240,18 +240,12 @@ class Context extends Service {
             if(!isset($headers['ETag'])) {
                 $headers['ETag'] = $headers['If-None-Match'] ?? '';
             }
-            // handle client IP address - make sure that 'X-Forwarded-For' is always set, fallback to localhost/127.0.0.1
+            // handle client IP address
+            // use only REMOTE_ADDR, if present (to prevent spoofing) - fallback to localhost
+            $headers['X-Forwarded-For'] = '127.0.0.1';
             // #memo - using CLI, REMOTE_ADDR is not set
-            if(!isset($headers['X-Forwarded-For'])) {
-                if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                    $headers['X-Forwarded-For'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
-                }
-                elseif(isset($_SERVER['REMOTE_ADDR'])) {
-                    $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'];
-                }
-                else {
-                    $headers['X-Forwarded-For'] = '127.0.0.1';
-                }
+            if(isset($_SERVER['REMOTE_ADDR'])) {
+                $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'];
             }
         }
 
