@@ -191,7 +191,7 @@ class ObjectManager extends Service {
      *
      * @return DBConnector
      */
-    private function getDBHandler() {
+    private function getDbHandler() {
         // open DB connection, if not connected yet
         if(!$this->db->connected()) {
             if($this->db->connect() === false) {
@@ -472,10 +472,13 @@ class ObjectManager extends Service {
     public function filterExistingIdentifiers($class, $ids) {
         $ids = $this->sanitizeIdentifiers($ids);
 
-        if(!empty($ids)) {
-            $map_valid_ids = [];
+        if(empty($ids)) {
+            return [];
+        }
+        try {
             // get DB handler (init DB connection if necessary)
-            $db = $this->getDBHandler();
+            $db = $this->getDbHandler();
+            $map_valid_ids = [];
             $table_name = $this->getObjectTableName($class);
             // get all records at once
             $result = $db->getRecords($table_name, 'id', $ids);
@@ -489,6 +492,9 @@ class ObjectManager extends Service {
                     unset($ids[$i]);
                 }
             }
+        }
+        catch(\Exception $e) {
+            // unexpected error (DB connection)
         }
 
         return $ids;
@@ -504,12 +510,13 @@ class ObjectManager extends Service {
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
         $schema = $object->getSchema();
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         // retrieve the name of the DB table associated to the class
         $table_name = $this->getObjectTableName($class);
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
+
             // array holding functions to load each type of fields
             $load_fields = [
                 // 'alias'
@@ -771,12 +778,12 @@ class ObjectManager extends Service {
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
         $schema = $object->getSchema();
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         // retrieve the name of the DB table associated to the class
         $table_name = $this->getObjectTableName($class);
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
             // array holding functions to store each type of fields
             $store_fields = array(
             // 'multilang' is a particular case of simple field)
@@ -1435,11 +1442,12 @@ class ObjectManager extends Service {
      */
     public function create($class, $fields=null, $lang=null, $use_draft=true) {
         $res = 0;
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
+            // get static instance (checks that given class exists)
             $object = $this->getStaticInstance($class, $fields);
             // retrieve schema
             $schema = $object->getSchema();
@@ -1582,11 +1590,11 @@ class ObjectManager extends Service {
     public function update($class, $ids=null, $fields=null, $lang=null, $create=false) {
         // init result
         $res = [];
-        // get DB handler (init DB connection if necessary)
-        $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
 
             // 1) pre-processing - $ids sanitization
 
@@ -1850,11 +1858,11 @@ class ObjectManager extends Service {
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
         $res = [];
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
 
             // 1) pre-processing: params sanitization
 
@@ -2056,11 +2064,11 @@ class ObjectManager extends Service {
      * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occurred.
      */
     public function delete($class, $ids, $permanent=false) {
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         $res = [];
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
 
             // 1) pre-processing
 
@@ -2299,8 +2307,10 @@ class ObjectManager extends Service {
      */
     public function fetchAndAdd($class, $ids, $field, $increment) {
         $result = [];
-        $db = $this->getDBHandler();
+
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
             // get static instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
             // retrieve schema
@@ -2479,12 +2489,12 @@ class ObjectManager extends Service {
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         $result = [];
-
-        // get DB handler (init DB connection if necessary)
-        $db = $this->getDBHandler();
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
 
         try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
+
             if(empty($sort)) {
                 throw new Exception("sorting order field cannot be empty", QN_ERROR_MISSING_PARAM);
             }
