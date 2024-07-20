@@ -226,61 +226,56 @@ class HttpHeaders {
 
 
     /**
-     * Returns the client IP addresses.
+     * Returns the IP addresses of the HTTP message.
+     * List contains original IP (for) and, if set, a series of IP of used proxies that passed the request.
      *
-     * List is based on proxies order set in the header.
-     *
-     *
-     * @return array The client IP addresses
+     * @return array The IP addresses of the HTTP message.
      *
      * @see getIpAddress()
      */
     private function getIpAddresses() {
-        $client_ips = array();
+        $ip_addresses = [];
 
         if(isset($this->headers['Forwarded'])) {
-            preg_match_all('{(for)=("?\[?)([a-z0-9\.:_\-/]*)}', $this->headers['X-Forwarded-For'], $matches);
-            $client_ips = $matches[3];
+            preg_match_all('/(for)=("?\[?)([a-z0-9\.:_\-\/]*)/', $this->headers['Forwarded'], $matches);
+            foreach($matches as $match) {
+                $ip_addresses[] = $match[3];
+            }
+            preg_match_all('/(by)=("?\[?)([a-z0-9\.:_\-\/]*)/', $this->headers['Forwarded'], $matches);
+            foreach($matches as $match) {
+                $ip_addresses[] = $match[3];
+            }
         }
         elseif(isset($this->headers['X-Forwarded-For'])) {
-            $client_ips = array_map('trim', explode(',', $this->headers['X-Forwarded-For']));
+            $ip_addresses = array_map('trim', explode(',', $this->headers['X-Forwarded-For']));
         }
 
-        foreach($client_ips as $key => $client_ip) {
+        foreach($ip_addresses as $key => $client_ip) {
             // remove port, if any
             if (preg_match('{((?:\d+\.){3}\d+)\:\d+}', $client_ip, $match)) {
-                $client_ips[$key] = $client_ip = $match[1];
+                $ip_addresses[$key] = $match[1];
             }
             // remove invalid addresses
-            if (!filter_var($client_ip, FILTER_VALIDATE_IP)) {
-                unset($client_ips[$key]);
+            if (!filter_var($ip_addresses[$key], FILTER_VALIDATE_IP)) {
+                unset($ip_addresses[$key]);
                 continue;
             }
         }
 
-        // the IP chain contains only untrusted proxies and the client IP
-        return array_reverse($client_ips) ;
+        return $ip_addresses;
     }
 
     /**
-     * Returns the client IP address.
+     * Returns the original client IP address.
      *
-     * This method can read the client IP address from the "X-Forwarded-For" header
-     * when trusted proxies were set via "setTrustedProxies()". The "X-Forwarded-For"
-     * header value is a comma+space separated list of IP addresses, the left-most
-     * being the original client, and each successive proxy that passed the request
-     * adding the IP address where it received the request from.
+     * @return string The IP address of the client from which the message originates.
      *
-     * @return string The client IP address
-     *
-     * @see getIpAddresses()
      * @see http://en.wikipedia.org/wiki/X-Forwarded-For
      */
     public function getIpAddress() {
-        $ipAddresses = $this->getIpAddresses();
-        return (count($ipAddresses))?$ipAddresses[0]:'';
+        $ip_addresses = $this->getIpAddresses();
+        return count($ip_addresses) ? $ip_addresses[0] : '127.0.0.1';
     }
-
 
     /**
      * Gets the format associated with the request.
