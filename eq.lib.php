@@ -450,20 +450,20 @@ namespace config {
      * Register a service by assigning an identifier (name) to a class (stored under `/lib`).
      *
      * This method can be invoked in local config files to register a custom service and/or to override any existing service,
-     * and uses the `QN_SERVICES_POOL` global array which is used by the root container.
+     * and uses the `EQ_SERVICES_POOL` global array which is used by the root container.
      *
      */
     function register($name, $class=null) {
-        if(!isset($GLOBALS['QN_SERVICES_POOL'])) {
-            $GLOBALS['QN_SERVICES_POOL'] = [];
+        if(!isset($GLOBALS['EQ_SERVICES_POOL'])) {
+            $GLOBALS['EQ_SERVICES_POOL'] = [];
         }
         if(is_array($name)) {
             foreach($name as $service => $class) {
-                $GLOBALS['QN_SERVICES_POOL'][$service] = $class;
+                $GLOBALS['EQ_SERVICES_POOL'][$service] = $class;
             }
         }
         else {
-            $GLOBALS['QN_SERVICES_POOL'][$name] = $class;
+            $GLOBALS['EQ_SERVICES_POOL'][$name] = $class;
         }
     }
 
@@ -641,10 +641,11 @@ namespace config {
             $container = Container::getInstance();
             // retrieve required services
             /**
-             * @var \equal\php\Context      $context
-             * @var \equal\error\Reporter   $reporter
+             * @var \equal\php\Context                  $context
+             * @var \equal\auth\AuthenticationManager   $auth
+             * @var \equal\error\Reporter               $reporter
              */
-            list($context, $reporter) = $container->get(['context', 'report']);
+            list($context, $auth, $reporter) = $container->get(['context', 'auth', 'report']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
             $body = (array) $request->body();
@@ -764,7 +765,6 @@ namespace config {
                     if(isset($announcement['response']['cache-vary'])) {
                         $vary = (array) $announcement['response']['cache-vary'];
                         if(in_array('user', $vary)) {
-                            list($auth) = $container->get(['auth']);
                             $request_id .= '-'.$auth->userId();
                         }
                         if(in_array('origin', $vary)) {
@@ -855,7 +855,6 @@ namespace config {
 
             // check access restrictions
             if($announcement['access']['visibility'] != 'public' && php_sapi_name() != 'cli') {
-                list($access, $auth) = $container->get(['access', 'auth']);
                 // private is only allowed in CLI
                 if($announcement['access']['visibility'] == 'private') {
                     throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
@@ -866,9 +865,14 @@ namespace config {
                     throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
                 }
                 // check Security Policies
+                /** @var \equal\access\AccessController */
+                $access = $container->get('access');
                 if(!$access->isRequestCompliant($user_id, $request->getHeaders()->getIpAddress())) {
                     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
                     throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
+                }
+                else {
+                    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'accepted', 'policy_id' => $access->getComplyingPolicyId()]));
                 }
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
