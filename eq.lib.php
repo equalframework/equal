@@ -843,19 +843,32 @@ namespace config {
                 }
             }
 
+            if(!isset($announcement['access'])) {
+                $announcement['access'] = [];
+            }
+
+            if( !isset($announcement['access']['visibility'])
+                || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private'])
+                ) {
+                $announcement['access']['visibility'] = 'protected';
+            }
+
             // check access restrictions
-            if(isset($announcement['access']) && $method != 'OPTIONS') {
+            if($announcement['access']['visibility'] != 'public' && php_sapi_name() != 'cli') {
                 list($access, $auth) = $container->get(['access', 'auth']);
-                if(isset($announcement['access']['visibility'])) {
-                    if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
-                        throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
-                    }
-                    if($announcement['access']['visibility'] == 'protected')  {
-                        // #memo - regular rules will apply (non identified user shouldn't be granted unless DEFAULT_RIGHTS allow it)
-                        if($auth->userId() <= 0) {
-                            throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
-                        }
-                    }
+                // private is only allowed in CLI
+                if($announcement['access']['visibility'] == 'private') {
+                    throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
+                }
+                $user_id = $auth->userId();
+                // user must be authenticated for protected
+                if($user_id <= 0) {
+                    throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
+                }
+                // check Security Policies
+                if(!$access->isRequestCompliant($user_id, $request->getHeaders()->getIpAddress())) {
+                    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
+                    throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
                 }
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
