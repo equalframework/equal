@@ -196,14 +196,14 @@ class Context extends Service {
             // 1) retrieve headers
 
             $headers = [];
-            if (function_exists('getallheaders')) {
+            if(function_exists('getallheaders')) {
                 $all_headers = (array) getallheaders();
                 foreach($all_headers as $header => $value) {
                     $headers[HttpHeaders::normalizeName($header)] = $value;
                 }
             }
             else {
-                foreach ($_SERVER as $header => $value) {
+                foreach($_SERVER as $header => $value) {
                     // convert back headers with `HTTP_` prefix
                     if(substr($header, 0, 5) === 'HTTP_' || in_array($header, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'])) {
                         $header = str_replace(['HTTP_', '_'], '', $header);
@@ -240,34 +240,30 @@ class Context extends Service {
             if(!isset($headers['ETag'])) {
                 $headers['ETag'] = $headers['If-None-Match'] ?? '';
             }
-            // handle client IP address: make sure that 'X-Forwarded-For' is always set with the most probable client IP
-            // fallback to localhost/127.0.0.1 (using CLI, REMOTE_ADDR is not set)
-            $client_ip = '127.0.0.1';
-            if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $client_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-            }
-            elseif(isset($_SERVER['REMOTE_ADDR'])) {
-                $client_ip = $_SERVER['REMOTE_ADDR'];
-            }
+            // handle client IP address - make sure that 'X-Forwarded-For' is always set, fallback to localhost/127.0.0.1
+            // #memo - using CLI, REMOTE_ADDR is not set
             if(!isset($headers['X-Forwarded-For'])) {
-                $headers['X-Forwarded-For'] = $client_ip;
-            }
-            // assign X-Forwarded-For with a single IP (first in list)
-            $headers['X-Forwarded-For'] = explode(',', $headers['X-Forwarded-For'])[0];
-        }
-        if(isset($headers['content-type'])) {
-            $headers['Content-Type'] = $headers['content-type'];
-        }
-        // adapt Content-Type for multipart/form-data (already parsed by PHP)
-        if(isset($headers['Content-Type'])) {
-            if($this->getHttpMethod() == 'POST' && strpos($headers['Content-Type'], 'multipart/form-data') === 0) {
-                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                    $headers['X-Forwarded-For'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+                }
+                elseif(isset($_SERVER['REMOTE_ADDR'])) {
+                    $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'];
+                }
+                else {
+                    $headers['X-Forwarded-For'] = '127.0.0.1';
+                }
             }
         }
-        else {
-            // will be parsed using parse_str
+
+        // set default content type to 'application/x-www-form-urlencoded'
+        if(!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
+        // adapt Content-Type for multipart/form-data (already parsed by PHP)
+        elseif($this->getHttpMethod() == 'POST' && strpos($headers['Content-Type'], 'multipart/form-data') === 0) {
+            $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
+
         return $headers;
     }
 
