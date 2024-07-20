@@ -20,6 +20,8 @@ class AccessController extends Service {
 
     private $is_request_compliant;
 
+    private $complying_policy_id;
+
     private $permissionsTable;
 
     private $groupsTable;
@@ -33,6 +35,7 @@ class AccessController extends Service {
      */
     protected function __construct(Container $container) {
         $this->is_request_compliant = false;
+        $this->complying_policy_id = 0;
         $this->permissionsTable = array();
         $this->groupsTable = array();
         $this->usersTable = array();
@@ -716,6 +719,10 @@ class AccessController extends Service {
         return $result;
     }
 
+    public function getComplyingPolicyId() {
+        return $this->complying_policy_id;
+    }
+
     public function isRequestCompliant($user_id, $ip_address) {
         // if compliance has already been evaluated to true, do not re-run the process
         if($this->is_request_compliant) {
@@ -771,6 +778,7 @@ class AccessController extends Service {
                 // request is compliant, stop testing other policies
                 if($is_compliant) {
                     $result = true;
+                    $this->complying_policy_id = $policy['id'];
                     break;
                 }
             }
