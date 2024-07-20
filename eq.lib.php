@@ -304,6 +304,7 @@ namespace {
 }
 namespace config {
     use equal\services\Container;
+    use equal\error\Reporter;
     use equal\orm\Field;
 
     /*
