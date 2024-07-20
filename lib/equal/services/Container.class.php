@@ -19,11 +19,11 @@ class Container extends Service {
 
     public function __construct() {
         $this->instances = [];
-        $this->register = &$GLOBALS['QN_SERVICES_POOL'];
+        $this->register = &$GLOBALS['EQ_SERVICES_POOL'];
     }
 
     public static function constants() {
-        return ['QN_ERROR_UNKNOWN_SERVICE'];
+        return ['EQ_ERROR_UNKNOWN_SERVICE'];
     }
 
     public function register($name='', $class=null) {
@@ -155,7 +155,7 @@ class Container extends Service {
                 }
                 // some dependencies are missing
                 else {
-                    throw new \Exception($name, QN_ERROR_UNKNOWN_SERVICE);
+                    throw new \Exception($name, EQ_ERROR_UNKNOWN_SERVICE);
                 }
             }
             // push instance into result array (instance might be null)
@@ -165,7 +165,7 @@ class Container extends Service {
         if(count($names) == 1) {
             $instances = (count($instances))?$instances[0]:false;
         }
-        else if(count($names) != count($instances)) {
+        elseif(count($names) != count($instances)) {
             $instances = false;
         }
         return $instances;
