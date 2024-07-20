@@ -1,13 +1,13 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use core\User;
 use core\Group;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'List all groups of a given user.',
     'response'      => [
         'content-type'  => 'application/json',
@@ -48,9 +48,9 @@ $groups_ids = $ac->getUserGroups($user_id);
 
 $groups = Group::ids($groups_ids)->read(['id', 'name'])->get();
 
-$groups_txt = array_map(function($a) {return $a['name'];}, $groups);
+$groups_names = array_map(function($a) {return $a['name'];}, $groups);
 
 $context->httpResponse()
         ->status(200)
-        ->body(['result' => implode(', ', $groups_txt)])
+        ->body($groups_names)
         ->send();
