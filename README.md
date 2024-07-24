@@ -5,13 +5,14 @@ eQual is a versatile, language-agnostic and web-oriented open-source low-code fr
 🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨  
 
 [![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
-[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 ![Number of contributors](https://img.shields.io/github/contributors/equalframework/equal)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/equalframework/equal/pulls)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
 
-
-<img align="center" src="https://github.com/equalframework/equal/blob/master/public/assets/img/equal_logo.png?raw=true" alt="eQual - Create great Apps, your way!">
+<p align="center">
+    <img align="center" src="https://github.com/equalframework/equal/blob/master/public/assets/img/equal_logo.png?raw=true" alt="eQual - Create great Apps, your way!" />
+</p>
 
 # eQual - Create great Apps, your way!
 
