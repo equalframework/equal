@@ -6,6 +6,8 @@
 */
 namespace equal\test;
 
+use equal\orm\Model;
+
 class Tester {
 
     // array of failing tests
@@ -157,7 +159,15 @@ class Tester {
             }
 
             $this->results[$id]['status'] = $success?'ok':'ko';
-            $this->results[$id]['result'] = (gettype($result) == 'object')?'('.get_class($result).' object)':$result;
+
+            $result_txt = $result;
+            if(gettype($result) == 'object') {
+                $result_txt = get_class($result).' object';
+                if(is_a($result, Model::getType())) {
+                    $result_txt .= ':'.json_encode($result->toArray());
+                }
+            }
+            $this->results[$id]['result'] = $result_txt;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];
