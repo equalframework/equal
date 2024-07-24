@@ -560,6 +560,7 @@ class Model implements \ArrayAccess, \Iterator {
     /**
      * Handler for virtual static methods: use classname to invoke a Collection method, if available.
      * #todo - deprecate : since we cover all entry points with static methods, magic methods should no longer be involved.
+     * (in order to do this, we must streamline the signatures for on...() and can...() methods )
      *
      * @param  string   $name       Name of the called method.
      * @param  array    $arguments  Array holding a list of arguments to relay to the invoked method.
