@@ -2018,9 +2018,9 @@ class ObjectManager extends Service {
                     foreach($ids as $oid) {
                         // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
                         $sub_ids = $this->cache[$table_name][$oid][$lang][$field];
-                        if(isset($sub_ids) || count($sub_ids)) {
+                        if(isset($sub_ids)) {
                             $sub_values = $this->read($descriptor['foreign_object'], (array) $sub_ids, (array) $sub_path, $lang);
-                            if($sub_values <= 0) {
+                            if($sub_values <= 0 || !count($sub_values)) {
                                 continue;
                             }
                             if($field_type == 'many2one') {
