@@ -318,6 +318,10 @@ class Collection implements \Iterator, \Countable {
      * @return Collection       current instance
      */
     public function adapt($to='txt', $lang=null) {
+        // #memo - temporary handling for transition to equal 2.0
+        if($to == 'json') {
+            $to = 'txt';
+        }
         $schema = $this->model->getSchema();
         foreach($this->objects as $id => $object) {
             foreach($object as $field => $value) {
