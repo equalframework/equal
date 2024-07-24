@@ -61,7 +61,7 @@ list($params, $providers) = eQual::announce([
             'default'       => true
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm', 'adapt', 'report'],
 ]);
 
@@ -178,7 +178,7 @@ if(!$skip_package) {
                 if(!$entity) {
                     continue;
                 }
-                $lang = $class['lang'] ?? 'en';
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -239,7 +239,7 @@ if(!$skip_package) {
                 if(!$entity) {
                     continue;
                 }
-                $lang = $class['lang'] ?? 'en';
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -296,7 +296,7 @@ if(!$skip_package) {
                 if(!$entity) {
                     continue;
                 }
-                $lang = $class['lang'] ?? 'en';
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -440,6 +440,15 @@ if(!$skip_package) {
 
         foreach($package_manifest['requires'] as $dependency => $version) {
             $map_composer['require'][$dependency] = $version;
+        }
+
+        // remove unused/empty
+        if(empty($map_composer['require'])) {
+            unset($map_composer['require']);
+        }
+
+        if(empty($map_composer['require-dev'])) {
+            unset($map_composer['require-dev']);
         }
 
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
