@@ -61,8 +61,8 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
     unlink(EQ_BASEDIR.'/composer.lock');
 }
 
-// run composer to install dependencies (quiet mode, no interactions)
-if(exec('php composer.phar install -q -n') === false) {
+// run composer to install dependencies (quiet mode, no interactions, ignore PHP version)
+if(exec('php composer.phar install --ignore-platform-reqs -q -n') === false) {
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 
