@@ -83,7 +83,13 @@ if(file_exists("log/packages.json")) {
     }
 }
 
-if(!$skip_package) {
+if($skip_package) {
+    if($params['root']) {
+        throw new Exception('package_already_initialized', EQ_ERROR_CONFLICT_OBJECT);
+    }
+    // silently ignore package when dependency of another
+}
+else {
     // retrieve adapter for converting data from JSON files
     $adapter = $dap->get('json');
 
