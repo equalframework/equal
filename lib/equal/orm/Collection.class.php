@@ -875,30 +875,30 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
-                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
-            }
-
-            // if object is not yet an instance, check required fields (otherwise, we allow partial update)
-            $check_required = (isset($values['state']) && $values['state'] == 'draft')?true:false;
-
-            // 3) validate : check unique keys and required fields
-            $this->validate($values, $ids, true, $check_required);
-
-            // 4) update objects
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
-            // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
+            // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
             if(!isset($values['state']) || $values['state'] == 'draft') {
                 $values['state'] = 'instance';
             }
 
-            $canupdate = $this->call('canupdate', $values);
+            // 2) check that current user has enough privilege to perform the operation
+            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
+                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
+            }
+
+            // 3) validate : check unique keys and required fields
+            // if object is not yet an instance, check required fields (otherwise, partial update is allowed)
+            $check_required = (isset($values['state']) && $values['state'] == 'draft') ? true : false;
+            $this->validate($values, $ids, true, $check_required);
+
+            // check if fields (other than special columns) can be updated
+            $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
             if(!empty($canupdate)) {
                 throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
             }
 
+            // 4) update objects
             $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
             if($res <= 0) {
                 trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
@@ -1005,6 +1005,159 @@ class Collection implements \Iterator, \Countable {
         }
 
         return $this;
+    }
+
+    /**
+     * Following methods are defined here because we want children classes to have arbitrary parameters.
+     * (The only constraint is for multiple inheritance: children classes must implement a method the same way their parent does.)
+     * In case these methods are invoked on the Model class, the code ends up here.
+     */
+
+    /**
+     * Check wether an object can be read by current user.
+     * This method can be overridden to define a custom set of tests (based on roles and/or policies).
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers for which reading is requested.
+     * @param  array            $fields     List of fields for which reading is requested.
+     * @param  string           $lang       Language in which multilang fields are being read.
+     * @return array            Returns an associative array mapping ids and fields with their error messages. An empty array means that object has been successfully processed and can be read.
+     */
+    public static function canread($orm, $ids=[], $fields=[], $lang=null) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be created.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $values     Associative array holding the values to be assigned to the new instance (not all fields might be set).
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
+     */
+    public static function cancreate($orm, $values=[], $lang=null) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be updated.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values to be assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canupdate($orm, $ids=[], $values=[], $lang=null) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be cloned.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canclone($orm, $ids=[]) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be deleted.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     */
+    public static function candelete($orm, $ids=[]) {
+        return [];
+    }
+
+    /**
+     * Hook invoked after object creation for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers. Should contain only the id of the object just created.
+     * @param  array            $values     Associative array holding the newly assigned values.
+     * @param  string           $lang       Language in which multilang fields are being created.
+     * @return void
+     */
+    public static function oncreate($orm, $ids=[], $values=[], $lang=null) {
+    }
+
+    /**
+     * Hook invoked before object update for performing object-specific additional operations.
+     * Current values of the object can still be read for comparing with new values.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm        ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $values     Associative array holding the new values that have been assigned.
+     * @param  string           $lang       Language in which multilang fields are being updated.
+     * @return void
+     */
+    public static function onupdate($orm, $ids=[], $values=[], $lang=null) {
+    }
+
+    /**
+     * Hook invoked after object cloning for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return void
+     */
+    public static function onclone($orm, $ids=[]) {
+    }
+
+    /**
+     * Hook invoked before object deletion for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @return void
+     */
+    public static function ondelete($orm, $ids=[]) {
+    }
+
+    /**
+     * Signature for single object values change in UI.
+     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
+     *
+     * Accepts variable list of arguments, based on their names :
+     * @param  Collection       $self       Collection holding a series of objects of current class.
+     * @param  ObjectManager    $orm         ObjectManager instance.
+     * @param  array            $ids        List of objects identifiers.
+     * @param  array            $event      Associative array holding changed fields as keys, and their related new values.
+     * @param  array            $values     Copy of the current (partial) state of the object.
+     * @return array            Returns an associative array mapping fields with their resulting values.
+     */
+    public static function onchange($orm, $event=[], $values=[], $lang=null) {
+        return [];
     }
 
 }
