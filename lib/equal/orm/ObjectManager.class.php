@@ -174,7 +174,7 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-        return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY'];
+        return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY', 'ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION'];
     }
 
     /**
@@ -1718,7 +1718,7 @@ class ObjectManager extends Service {
 
             // 7) second pass : handle onupdate events, if any
 
-            if(!$create) {
+            if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
                 if(count($onupdate_fields)) {
                     // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
