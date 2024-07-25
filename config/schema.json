@@ -320,6 +320,12 @@
         "description": "URL of the official website of the organisation.",
         "default": "https://equal.run"
     },
+    "ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION": {
+        "type": "boolean",
+        "description": "Flag for forcing ORM to invoke `onupdate` callback at object creation (i.e. when using `create()` method).",
+        "default": false,
+        "instant": true
+    },
     "REST_API_URL": {
         "type": "string",
         "description": "The URL specific to the API path, if any. This URL should end with a slash ('/')",
