@@ -2094,8 +2094,13 @@ class ObjectManager extends Service {
             */
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
-            // #todo allow explicit notation 'onbeforedelete'
-            $this->callonce($class, 'ondelete', $ids, [], null, ['ids']);
+
+            if(method_exists($class, 'onbeforedelete')) {
+                $this->callonce($class, 'onbeforedelete', $ids, [], null, ['ids']);
+            }
+            else {
+                $this->callonce($class, 'ondelete', $ids, [], null, ['ids']);
+            }
 
             // 4) cascade deletions / relations updates
 
