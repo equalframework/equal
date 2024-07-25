@@ -61,7 +61,7 @@ list($params, $providers) = eQual::announce([
             'default'       => true
         ]
     ],
-    'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
+    'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm', 'adapt', 'report'],
 ]);
 
@@ -83,7 +83,13 @@ if(file_exists("log/packages.json")) {
     }
 }
 
-if(!$skip_package) {
+if($skip_package) {
+    if($params['root']) {
+        throw new Exception('package_already_initialized', EQ_ERROR_CONFLICT_OBJECT);
+    }
+    // silently ignore package when dependency of another
+}
+else {
     // retrieve adapter for converting data from JSON files
     $adapter = $dap->get('json');
 
@@ -167,12 +173,18 @@ if(!$skip_package) {
     $data_folder = "packages/{$params['package']}/init/data";
     if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
         // handle JSON files
-        foreach (glob($data_folder."/*.json") as $json_file) {
+        foreach(glob($data_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -222,12 +234,18 @@ if(!$skip_package) {
     $demo_folder = "packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
         // handle JSON files
-        foreach (glob($demo_folder."/*.json") as $json_file) {
+        foreach(glob($demo_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -273,12 +291,18 @@ if(!$skip_package) {
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         // handle JSON files
-        foreach (glob($test_folder."/*.json") as $json_file) {
+        foreach(glob($test_folder."/*.json") as $json_file) {
             $data = file_get_contents($json_file);
             $classes = json_decode($data, true);
+            if(!$classes) {
+                continue;
+            }
             foreach($classes as $class) {
-                $entity = $class['name'];
-                $lang = $class['lang'];
+                $entity = $class['name'] ?? null;
+                if(!$entity) {
+                    continue;
+                }
+                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
@@ -422,6 +446,15 @@ if(!$skip_package) {
 
         foreach($package_manifest['requires'] as $dependency => $version) {
             $map_composer['require'][$dependency] = $version;
+        }
+
+        // remove unused/empty
+        if(empty($map_composer['require'])) {
+            unset($map_composer['require']);
+        }
+
+        if(empty($map_composer['require-dev'])) {
+            unset($map_composer['require-dev']);
         }
 
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));

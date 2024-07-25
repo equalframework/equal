@@ -53,7 +53,8 @@
                                                 "value": "description",
                                                 "width": "100%",
                                                 "widget": {
-                                                    "type": "text"
+                                                    "type": "text",
+                                                    "height": 100
                                                 }
                                             }
                                         ]

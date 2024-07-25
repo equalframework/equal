@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -219,14 +219,14 @@ class Collection implements \Iterator, \Countable {
     /**
      * Provide the whole collection as a map (by default) or as an array.
      *
-     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is an of objects with keys holding indexes (and no ids).
+     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is a list of objects (with keys holding indexes and not ids).
      * @return  array                   Returns an associative array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays and keys are no longer mapping objects identifiers.
      *                                  If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
         foreach($this->objects as $id => $object) {
-            $result[$id] = $this->_getRawObject($object, $to_array);
+            $result[$id] = $this->_getRawObject($object, $to_array, true);
         }
         if($to_array) {
             $result = array_values($result);
@@ -239,9 +239,10 @@ class Collection implements \Iterator, \Countable {
      * handling sub-Collection instances either as maps or arrays.
      *
      * @param   Model   $object         Object to be converted to an array representation.
-     * @param   boolean $to_array       Flag for requesting sub-collections as arrays (instead of a maps)
+     * @param   boolean $to_array       Flag for requesting sub-collections as lists. Default is associative array (ids mapping related objects).
+     * @param   boolean $adapt          Flag for requesting recursive adaptation for values (set to true only in call from `get()` method).
      */
-    private function _getRawObject($object, $to_array=false) {
+    private function _getRawObject($object, $to_array=false, $adapt=false) {
         $result = [];
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
@@ -255,12 +256,11 @@ class Collection implements \Iterator, \Countable {
                 $result[$field] = $this->_getRawObject($value, $to_array);
             }
             else {
-                if($to_array && $this->adapter) {
-                    /** @var \equal\orm\Field */
+                if($this->adapter && ($to_array || $adapt)) {
                     $f = $object->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", EQ_REPORT_INFO);
+                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", EQ_REPORT_WARNING);
                         $result[$field] = $value;
                         continue;
                     }
@@ -276,8 +276,9 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Provide the whole collection as an array.
-    */
+     * Provide the whole Collection as an array.
+     * Objects and sub-collections will be converted to arrays as well.
+     */
     public function toArray() {
         return $this->get(true);
     }
@@ -875,30 +876,30 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted fields names
             $fields = array_keys($values);
 
-            // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
-                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
-            }
-
-            // if object is not yet an instance, check required fields (otherwise, we allow partial update)
-            $check_required = (isset($values['state']) && $values['state'] == 'draft')?true:false;
-
-            // 3) validate : check unique keys and required fields
-            $this->validate($values, $ids, true, $check_required);
-
-            // 4) update objects
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
-            // unless explicitly assigned (to another value than 'draft'), update operation always sets state to 'instance'
+            // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
             if(!isset($values['state']) || $values['state'] == 'draft') {
                 $values['state'] = 'instance';
             }
 
-            $canupdate = $this->call('canupdate', $values);
+            // 2) check that current user has enough privilege to perform the operation
+            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
+                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
+            }
+
+            // 3) validate : check unique keys and required fields
+            // if object is not yet an instance, check required fields (otherwise, partial update is allowed)
+            $check_required = (isset($values['state']) && $values['state'] == 'draft') ? true : false;
+            $this->validate($values, $ids, true, $check_required);
+
+            // check if fields (other than special columns) can be updated
+            $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
             if(!empty($canupdate)) {
                 throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
             }
 
+            // 4) update objects
             $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
             if($res <= 0) {
                 trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
@@ -1005,6 +1006,119 @@ class Collection implements \Iterator, \Countable {
         }
 
         return $this;
+    }
+
+    /**
+     * Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
+     * These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
+     * Collection::call() method which, in turn, invokes the class the Collection relates to.
+     * If the method is not defined in the child class, a new Collection is instantiated and the call is applied to it (hence their definition here).
+     */
+
+    /**
+     * Check wether an object can be read by current user.
+     * This method can be overridden to define a custom set of tests (based on roles and/or policies).
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return array            Returns an associative array mapping ids and fields with their error messages. An empty array means that object has been successfully processed and can be read.
+     */
+    public static function canread(...$params) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be created.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be created.
+     */
+    public static function cancreate(...$params) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be updated.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return array            Returns an associative array mapping fields with their error messages. An empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canupdate(...$params) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be cloned.
+     * These tests come in addition to the unique constraints return by method `getUnique()`.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be updated.
+     */
+    public static function canclone(...$params) {
+        return [];
+    }
+
+    /**
+     * Check wether an object can be deleted.
+     * This method can be overridden to define a custom set of tests.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return array            Returns an associative array mapping ids with their error messages. An empty array means that object has been successfully processed and can be deleted.
+     */
+    public static function candelete(...$params) {
+        return [];
+    }
+
+    /**
+     * Hook invoked after object creation for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function oncreate(...$params) {
+    }
+
+    /**
+     * Hook invoked before object update for performing object-specific additional operations.
+     * Current values of the object can still be read for comparing with new values.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onupdate(...$params) {
+    }
+
+    /**
+     * Hook invoked after object cloning for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onclone(...$params) {
+    }
+
+    /**
+     * Hook invoked before object deletion for performing object-specific additional operations.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function ondelete(...$params) {
+    }
+
+    /**
+     * Hook invoked by UI for single object values change.
+     * This method does not imply an actual update of the model, but a potential one (not made yet) and is intended for front-end only.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onchange(...$params) {
+        return [];
     }
 
 }

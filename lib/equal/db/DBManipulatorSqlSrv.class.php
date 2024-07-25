@@ -55,7 +55,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
     public function connect($auto_select=true) {
         $result = false;
         if(!function_exists('sqlsrv_connect')) {
-            throw new \Exception('Missing mandatory driver (sqlsrv).', QN_ERROR_UNKNOWN_SERVICE);
+            throw new \Exception('Missing mandatory driver (sqlsrv).', EQ_ERROR_UNKNOWN_SERVICE);
         }
         if($this->canConnect($this->host, $this->port)) {
             // prevent warnings from raising errors

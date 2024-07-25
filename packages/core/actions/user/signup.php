@@ -51,7 +51,6 @@ list($params, $providers) = announce([
             'default'       => 0
         ]
     ],
-    'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
     'access'        => [
         'visibility'        => 'public'
     ],
@@ -60,6 +59,7 @@ list($params, $providers) = announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
+    'constants'     => ['USER_ACCOUNT_REGISTRATION', 'DEFAULT_LANG', 'EMAIL_SMTP_HOST', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 

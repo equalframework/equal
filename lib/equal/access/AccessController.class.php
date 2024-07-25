@@ -20,6 +20,8 @@ class AccessController extends Service {
 
     private $is_request_compliant;
 
+    private $complying_policy_id;
+
     private $permissionsTable;
 
     private $groupsTable;
@@ -33,6 +35,7 @@ class AccessController extends Service {
      */
     protected function __construct(Container $container) {
         $this->is_request_compliant = false;
+        $this->complying_policy_id = 0;
         $this->permissionsTable = array();
         $this->groupsTable = array();
         $this->usersTable = array();
@@ -59,6 +62,88 @@ class AccessController extends Service {
         return $groups_ids;
     }
 
+    private function getRolesImplications($object_class) {
+        $map_roles = [];
+
+        $roles = object_class::getRoles();
+
+        $getImpliedRoles = function($role) use (&$getImpliedRoles, &$roles, &$map_roles) {
+            if(isset($map_roles[$role])) {
+                return $map_roles[$role];
+            }
+
+            $implied_roles = [];
+            foreach($roles as $key => $value) {
+                if(isset($value['implied_by']) && in_array($role, (array) $value['implied_by'])) {
+                    $implied_roles[] = $key;
+                    $implied_roles = array_merge($implied_roles, $getImpliedRoles($key));
+                }
+            }
+
+            $map_roles[$role] = array_unique($implied_roles);
+            return $map_roles[$role];
+        };
+
+        foreach(array_keys($roles) as $role) {
+            $getImpliedRoles($role, $roles, $map_roles);
+        }
+
+        return $map_roles;
+    }
+
+    public function getUserRoles($user_id, $object_class, $objects_ids) {
+        $roles = [];
+
+        $def_roles = $object_class::getRoles();
+
+        if(count($def_roles)) {
+            $map_user_roles = [];
+            $orm = $this->container->get('orm');
+            $roles_implications = $this->getRolesImplications($object_class);
+            $first = true;
+
+            $getResultingRoles = function($role) use($roles_implications) {
+                $map_roles = [$role => true];
+                if(isset($roles_implications[$role])) {
+                    foreach((array) $roles_implications[$role] as $implied_role) {
+                        $map_roles[$implied_role] = true;
+                    }
+                }
+                return array_keys($map_roles);
+            };
+
+            foreach($objects_ids as $object_id) {
+                $assignments_ids = $orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id] ]);
+                $assignments = $orm->read('core\Assignment', (array) $assignments_ids, ['role']);
+                if($assignments > 0 && count($assignments)) {
+                    $map_assignment_roles = [];
+                    foreach($assignments as $aid => $assignment) {
+                        foreach($getResultingRoles($assignment['role']) as $resulting_role) {
+                            $map_assignment_roles[$resulting_role] = true;
+                        }
+                    }
+                    if($first) {
+                        $map_user_roles = $map_assignment_roles;
+                    }
+                    else {
+                        foreach($map_user_roles as $r => $v) {
+                            if(!isset($map_assignment_roles[$r])) {
+                                unset($map_user_roles[$r]);
+                            }
+                        }
+                        if(!count($map_user_roles)) {
+                            break;
+                        }
+                    }
+                    $first = false;
+                }
+            }
+            $roles = array_keys($map_user_roles);
+        }
+
+        return $roles;
+    }
+
     public function getGroupUsers($group_id) {
         $users_ids = [];
         if(!isset($this->usersTable[$group_id])) {
@@ -76,7 +161,7 @@ class AccessController extends Service {
     }
 
     /**
-     * Retrieve the permissions (ACL) that apply for a given user on a target entity.
+     * Retrieve the permissions (ACL) that apply for a given user on a target entity and/or on a set of specific objects.
      * This method use the AccessController cache to provide previously requested Rights.
      *
      * @param   int     $user_id         Identifier of the user for which the permissions are requested.
@@ -480,8 +565,13 @@ class AccessController extends Service {
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
         // force cast ids to array (passing a single id is accepted)
         $objects_ids = (array) $objects_ids;
-        // permission query is for class and/or fields only (no specific objects)
+        // retrieve most permissive right that use has on targeted entities/objects.
         $user_rights = $this->getUserRights($user_id, $object_class, $objects_ids, $operation);
+        if(strpos($object_class, '*') === false) {
+            // retrieve permissions from roles, if set for given class
+            $user_roles = $this->getUserRoles($user_id, $object_class, $objects_ids);
+            $user_rights |= $this->getRightsFromRoles($user_roles, $object_class);
+        }
         // if all bits of operation are granted, then user has requested rights
         return (($user_rights & $operation) == $operation);
     }
@@ -490,7 +580,7 @@ class AccessController extends Service {
      *  Check if current user (retrieved using Auth service) has rights to perform a given operation.
      *
      *  This method is called by the Collection service, when performing CRUD.
-     *  #todo #confirm - deprecate $object_fields (how individual can...() checks are made on fields ?)
+     *  #todo #confirm - deprecate $object_fields (instead rely on individual can...() checks)
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
@@ -510,48 +600,61 @@ class AccessController extends Service {
     }
 
     /**
+     * Retrieve granted rights based on an exhaustive list of roles.
+     * Rights are retrieved based on the 'rights' property ('implied_by' directive is not handled here).
+     */
+    public function getRightsFromRoles(array $roles, string $object_class): int {
+        $rights = 0;
+        if(count($roles)) {
+            $def_roles = $object_class::getRoles();
+            foreach($roles as $role) {
+                if(isset($def_roles[$role])) {
+                    $rights |= $def_roles[$role]['rights'] ?? 0;
+                }
+            }
+        }
+        return $rights;
+    }
+
+    /**
      * Check if a given user is granted a role on a collection of objects.
      *
-     * @var integer         $user_id          The identifier of the user for which the test is requested.
-     * @var string          $role             The role for which assignment is being tested.
+     * @param integer       $user_id          The identifier of the user for which the test is requested.
+     * @param string        $role             The role for which assignment is being tested.
      * @param string        $object_class     Class on which the check must be performed.
      * @param int[]         $object_ids       List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
-    public function hasRole($user_id, $role, $object_class, $objects_ids=[]) {
-        // associative array with keys holding objects ids for which role is granted
-        $result = [];
+    public function hasRole($user_id, $role, $object_class, $objects_ids=[]): bool {
+        $result = true;
 
-        /** @var \equal\orm\ObjectManager */
-        $orm = $this->container->get('orm');
-
-        // build a list of all roles that cover the given role (see implied_by)
-        $def_roles = $object_class::getRoles();
-        $map_roles = [];
-
-        if(isset($def_roles[$role])) {
-            $map_roles[$role] = true;
-            $desc = $def_roles[$role];
-            while(isset($desc['implied_by'])) {
-                foreach((array) $desc['implied_by'] as $r) {
-                    $map_roles[$r] = true;
-                }
-                $desc = $desc['implied_by'];
-            }
+        if(!count($object_class::getRoles())) {
+            $result = false;
         }
+        else {
+            /** @var \equal\orm\ObjectManager */
+            $orm = $this->container->get('orm');
 
-        $related_roles = array_keys($map_roles);
-        if(count($related_roles)) {
+            $map_role_matches = [];
+            $map_role_matches[$role] = true;
+
+            $roles_implications = $this->getRolesImplications($object_class);
+            foreach((array) $roles_implications as $r => $implied_roles) {
+                if(in_array($role, $implied_roles)) {
+                    $map_role_matches[$r] = true;
+                }
+            }
+
             foreach($objects_ids as $object_id) {
                 // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
-                $user_roles_ids = $orm->search(Assignment::getType(), [['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', $related_roles]]);
-                if($user_roles_ids > 0 && count($user_roles_ids)) {
-                    // map results on object_id
-                    $result[$object_id] = true;
+                $assignments_ids = $orm->search(Assignment::getType(), [ ['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', array_keys($map_role_matches)] ]);
+                if($assignments_ids <= 0 || !count($assignments_ids)) {
+                    $result = false;
+                    break;
                 }
             }
         }
 
-        return (count(array_keys($result)) == count($objects_ids));
+        return $result;
     }
 
     /**
@@ -616,6 +719,10 @@ class AccessController extends Service {
         return $result;
     }
 
+    public function getComplyingPolicyId() {
+        return $this->complying_policy_id;
+    }
+
     public function isRequestCompliant($user_id, $ip_address) {
         // if compliance has already been evaluated to true, do not re-run the process
         if($this->is_request_compliant) {
@@ -671,6 +778,7 @@ class AccessController extends Service {
                 // request is compliant, stop testing other policies
                 if($is_compliant) {
                     $result = true;
+                    $this->complying_policy_id = $policy['id'];
                     break;
                 }
             }

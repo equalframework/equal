@@ -3,7 +3,7 @@
 *    This file is part of the eQual framework.
 *    https://github.com/equalframework/equal
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2021
+*    Some Rights Reserved, Cedric Francoys, 2010-2024
 *    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -19,15 +19,12 @@
 *    You should have received a copy of the GNU Lesser General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-use equal\auth\AuthenticationManager;
 use equal\error\Reporter;
 use equal\php\Context;
 use equal\route\Router;
 use equal\services\Container;
 
 /*
-
    This is the root entry point and acts as dispatcher.
    Its role is to set up the context and handle the client request.
    Dispatching consists of resolving targeted operation and include related script file.
@@ -40,53 +37,44 @@ use equal\services\Container;
              /?get=resiway_tests&id=1&test=2
      PHP
              run('get', 'utils_sql-schema', ['package'=>'core']);
-
 */
 
 // Bootstrap the library holding system constants and functions definitions and autoload support.
 $bootstrap = dirname(__FILE__).'/eq.lib.php';
 
 if( (include($bootstrap)) === false ) {
-    die('eQual lib is missing.');
+    die('Great Scott! eQual lib is missing.');
+}
+// remove PHP signature in prod
+if(constant('ENV_MODE') == 'production') {
+    header_remove('x-powered-by');
 }
 
-try {
-    // remove PHP signature in prod
-    if(constant('ENV_MODE') == 'production') {
-        header_remove('x-powered-by');
-    }
+// get PHP context
+/** @var \equal\php\Context */
+$context = Context::getInstance();
 
-    // get PHP context
-    $context = Context::getInstance();
+try {
+    // 1) retrieve current HTTP context
 
     // fetch current HTTP request from context
     $request = $context->getHttpRequest();
-
+    // retrieve current user
     $auth = Container::getInstance()->get('auth');
-    $user_id = $auth->userId();
-
     // keep track of the access in the log
-    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'auth', 'user_id' => $user_id]));
-
-    $ip_address = $request->getHeader('X-Forwarded-For');
-
-    $access = Container::getInstance()->get('access');
-
-    // #memo - this call might be made while database is not yet present
-    if(php_sapi_name() != 'cli' && !$access->isRequestCompliant($user_id, $ip_address)) {
-        Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
-        throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
-    }
-
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'auth', 'user_id' => $auth->userId(), 'ip_address' => $request->getHeaders()->getIpAddress()]));
     // get HTTP method of current request
     $method = $request->getMethod();
     // get HttpUri object (@see equal\http\HttpUri class for URI structure)
     $uri = $request->getUri();
     // retrieve additional info from URI
     list($path, $route) = [
-        $uri->getPath(),       // current URI path
-        $uri->get('route')     // 'route' param from URI query string, if any
+        $uri->getPath(),
+        $uri->get('route')
     ];
+
+    // 2) handle routing, if required (i.e. URL to operation translation)
+
     // adjust path to route param, if set
     if($route) {
         $parts = explode(':', $route);
@@ -101,15 +89,16 @@ try {
         $request->del('route');
     }
 
-    // 2) handle routing, if required (i.e. URL to operation translation)
-
     // if routing is required
-    if( strlen($path) > 1 && !in_array(basename($path), [
-            'index.php',                // HTTP request
-            'run.php',                  // CLI
-            'equal.php'                 // integration with other frameworks relying on `index.php` (e.g. WP)
+    if( strlen($path) > 1
+        && !in_array(basename($path), [
+            // HTTP request
+            'index.php',
+            // CLI
+            'run.php',
+            // HTTP request with another framework relying on `index.php` (e.g. WP)
+            'equal.php'
         ]) ) {
-
         $router = Router::getInstance();
         // add routes providers according to current request
         $router->add(QN_BASEDIR.'/config/routing/*.json');
@@ -189,7 +178,7 @@ try {
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
                 'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
                 'end'       => microtime(true),
-                'ip'        => $ip_address
+                'ip'        => $request->getHeaders()->getIpAddress()
             ])
         );
 }
@@ -205,7 +194,7 @@ catch(Throwable $e) {
     if($error_code != 0) {
         Reporter::handleThrowable($e);
         // retrieve info from HTTP request (we don't ask for $context->httpResponse() since it might have raised the current exception)
-        $request = $context->httpRequest();
+        $request = $context->getHttpRequest();
         $request_method = $request->getMethod();
         $request_headers = $request->getHeaders(true);
         // get HTTP status code according to raised exception
@@ -250,7 +239,7 @@ catch(Throwable $e) {
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
                 'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
                 'end'       => microtime(true),
-                'ip'        => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1' )
+                'ip'        => $request->getHeaders()->getIpAddress()
             ])
         );
     // an exception with code 0 is an explicit request to halt process with no error

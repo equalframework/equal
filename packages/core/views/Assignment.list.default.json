@@ -1,0 +1,36 @@
+{
+    "name": "Assignments",
+    "description": "List of existing Role assignments granted to users.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "object_class",
+                "width": "20%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "object_id",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "15%"
+            },
+            {
+                "type": "field",
+                "value": "role",
+                "width": "25%"
+            }
+        ]
+    }
+}

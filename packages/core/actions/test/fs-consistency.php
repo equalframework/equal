@@ -82,7 +82,7 @@ function check_permissions($path, $mask, $uid=0) {
             }
         }
         // check group permissions
-        else if($fgid == $uid) {
+        elseif($fgid == $uid) {
             if( ($mask & EQ_R_READ) && !($perms & 0x0020)) {
                 return -EQ_R_READ;
             }
@@ -135,7 +135,7 @@ foreach($paths as $item) {
             default:
                 $missing = '';
         }
-        throw new Exception("PHP or HTTP process has no {$missing} access on {$item['path']}", EQ_ERROR_INVALID_CONFIG);
+        throw new Exception("PHP or HTTP process ($username) has no {$missing} access on {$item['path']}", EQ_ERROR_INVALID_CONFIG);
     }
 }
 

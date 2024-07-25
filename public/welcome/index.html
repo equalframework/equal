@@ -105,7 +105,7 @@ function addLettersRecursive(container, s) {
 
 $( document ).ready(function() {
 
-    setPrompt('user', 'equal.run');
+    setPrompt('user', 'equal.local');
 
     var lines = $('textarea').val().split('\n');
 
@@ -131,12 +131,12 @@ $( document ).ready(function() {
 </head>
 <body>
     <div style="display: flex; justify-content: center;">
-        <div style="margin-top: 10%;"><img alt="" src="http://doc.equal.run/assets/img/equal_logo_w_bg.png"></div>
+        <div style="margin-top: 10%;"><img alt="" src="/assets/img/equal_logo.png"></div>
     </div>
     <div style="display: flex; justify-content: center; margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; width: 756px;">
             <div style="margin: 10px 20px;"><a href="https://doc.equal.run" target="_blank">Documentation</a></div>
-            <div style="margin: 10px;"><a href="https://discord.gg/BNCPYxD9kk" target="_blank">Discord</a></div>
+            <div style="margin: 10px;"><a href="https://discord.gg/xNAXyhbYBp" target="_blank">Discord</a></div>
             <div style="margin: 10px;"><a href="https://github.com/equalframework/equal" target="_blank">Github</a></div>
             <div style="margin: 10px;"><a href="https://hub.docker.com/repository/docker/cedricfrancoys/equal" target="_blank">Dockerhub</a></div>
         </div>
@@ -155,13 +155,13 @@ $ ./equal.run --get=model_collect --entity='core\User'
 [
     {
         "id": 1,
-        "name": "root@host.local",
+        "name": "root@equal.local",
         "state": "instance",
         "modified": "2023-07-31T09:01:09+00:00"
     },
     {
         "id": 2,
-        "name": "root@equal.run",
+        "name": "user@equal.local",
         "state": "instance",
         "modified": "2023-07-31T11:13:26+00:00"
     }
@@ -169,8 +169,8 @@ $ ./equal.run --get=model_collect --entity='core\User'
 $ ./equal.run --get=model_read --entity='core\User' --ids=[2] --fields='{firstname,lastname,groups_ids:{id,name}}'
 [
     {
-        "firstname": "C\u00e9dric",
-        "lastname": "Fran\u00e7oys",
+        "firstname": "First",
+        "lastname": "USER",
         "groups_ids": [
             {
                 "id": 2,
@@ -179,7 +179,7 @@ $ ./equal.run --get=model_read --entity='core\User' --ids=[2] --fields='{firstna
                 "modified": "2023-07-31T00:00:00+00:00"
             }
         ],
-        "name": "cedric@equal.run",
+        "name": "user@equal.local",
         "id": 2,
         "state": "instance",
         "modified": "2023-07-31T11:13:26+00:00"

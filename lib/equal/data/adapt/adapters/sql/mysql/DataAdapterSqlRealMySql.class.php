@@ -25,19 +25,19 @@ class DataAdapterSqlRealMySql extends DataAdapterSqlReal {
      */
     public function castOutType($usage=null): string {
         // default values
-        $integer_part = 10;
-        $decimal_part = 2;
+        $precision = 10;
+        $scale = 2;
 
         // arg represents a numeric value (either numeric type or string)
         if(!is_null($usage)) {
             if(!($usage instanceof Usage)) {
                 $usage = UsageFactory::create($usage);
             }
-            $decimal_part = $usage->getScale();
-            $integer_part = $usage->getPrecision() + $decimal_part;
+            $scale = $usage->getScale();
+            $precision = $usage->getPrecision() + $scale;
         }
 
-        return 'DECIMAL('.$integer_part.','.$decimal_part.')';
+        return 'DECIMAL('.$precision.','.$scale.')';
     }
 
 }

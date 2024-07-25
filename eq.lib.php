@@ -127,12 +127,13 @@ namespace {
      */
     define('EQ_R_CREATE',    1);
     define('EQ_R_READ',      2);
-    define('EQ_R_WRITE',     4);
+    define('EQ_R_UPDATE',    4);
     define('EQ_R_DELETE',    8);
     define('EQ_R_MANAGE',   16);
     define('EQ_R_ALL',      31);
     // equivalence map for constant names migration
     // #deprecated
+    define('EQ_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_CREATE',       EQ_R_CREATE);
     define('QN_R_READ',         EQ_R_READ);
     define('QN_R_WRITE',        EQ_R_WRITE);
@@ -303,6 +304,7 @@ namespace {
 }
 namespace config {
     use equal\services\Container;
+    use equal\error\Reporter;
     use equal\orm\Field;
 
     /*
@@ -449,20 +451,20 @@ namespace config {
      * Register a service by assigning an identifier (name) to a class (stored under `/lib`).
      *
      * This method can be invoked in local config files to register a custom service and/or to override any existing service,
-     * and uses the `QN_SERVICES_POOL` global array which is used by the root container.
+     * and uses the `EQ_SERVICES_POOL` global array which is used by the root container.
      *
      */
     function register($name, $class=null) {
-        if(!isset($GLOBALS['QN_SERVICES_POOL'])) {
-            $GLOBALS['QN_SERVICES_POOL'] = [];
+        if(!isset($GLOBALS['EQ_SERVICES_POOL'])) {
+            $GLOBALS['EQ_SERVICES_POOL'] = [];
         }
         if(is_array($name)) {
             foreach($name as $service => $class) {
-                $GLOBALS['QN_SERVICES_POOL'][$service] = $class;
+                $GLOBALS['EQ_SERVICES_POOL'][$service] = $class;
             }
         }
         else {
-            $GLOBALS['QN_SERVICES_POOL'][$name] = $class;
+            $GLOBALS['EQ_SERVICES_POOL'][$name] = $class;
         }
     }
 
@@ -640,10 +642,11 @@ namespace config {
             $container = Container::getInstance();
             // retrieve required services
             /**
-             * @var \equal\php\Context      $context
-             * @var \equal\error\Reporter   $reporter
+             * @var \equal\php\Context                  $context
+             * @var \equal\auth\AuthenticationManager   $auth
+             * @var \equal\error\Reporter               $reporter
              */
-            list($context, $reporter) = $container->get(['context', 'report']);
+            list($context, $auth, $reporter) = $container->get(['context', 'auth', 'report']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
             $body = (array) $request->body();
@@ -763,7 +766,6 @@ namespace config {
                     if(isset($announcement['response']['cache-vary'])) {
                         $vary = (array) $announcement['response']['cache-vary'];
                         if(in_array('user', $vary)) {
-                            list($auth) = $container->get(['auth']);
                             $request_id .= '-'.$auth->userId();
                         }
                         if(in_array('origin', $vary)) {
@@ -842,19 +844,36 @@ namespace config {
                 }
             }
 
+            if(!isset($announcement['access'])) {
+                $announcement['access'] = [];
+            }
+
+            if( !isset($announcement['access']['visibility'])
+                || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private'])
+                ) {
+                $announcement['access']['visibility'] = 'protected';
+            }
+
             // check access restrictions
-            if(isset($announcement['access']) && $method != 'OPTIONS') {
-                list($access, $auth) = $container->get(['access', 'auth']);
-                if(isset($announcement['access']['visibility'])) {
-                    if($announcement['access']['visibility'] == 'private' && php_sapi_name() != 'cli') {
-                        throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
-                    }
-                    if($announcement['access']['visibility'] == 'protected')  {
-                        // #memo - regular rules will apply (non identified user shouldn't be granted unless DEFAULT_RIGHTS allow it)
-                        if($auth->userId() <= 0) {
-                            throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
-                        }
-                    }
+            if($announcement['access']['visibility'] != 'public' && php_sapi_name() != 'cli') {
+                // private is only allowed in CLI
+                if($announcement['access']['visibility'] == 'private') {
+                    throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
+                }
+                $user_id = $auth->userId();
+                // user must be authenticated for protected
+                if($user_id <= 0) {
+                    throw new \Exception('protected_operation', EQ_ERROR_NOT_ALLOWED);
+                }
+                // check Security Policies
+                /** @var \equal\access\AccessController */
+                $access = $container->get('access');
+                if(!$access->isRequestCompliant($user_id, $request->getHeaders()->getIpAddress())) {
+                    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
+                    throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
+                }
+                else {
+                    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'accepted', 'policy_id' => $access->getComplyingPolicyId()]));
                 }
                 if(isset($announcement['access']['users'])) {
                     // disjunctions on users
