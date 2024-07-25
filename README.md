@@ -1,6 +1,6 @@
-eQual is a versatile, language-agnostic and web-oriented open-source low-code framework, designed to efficiently create and manage modern softwares that can adapt to any Application Logic.
+eQual is an open-source low-code framework, at once versatile, language-agnostic and web-oriented, designed to efficiently create and manage modern softwares that can adapt to any Application Logic.
 
-⭐ If you find eQual useful, relevant, or simply beautiful, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.  
+⭐ If you find eQual useful, nice, or simply relevant, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.  
 
 🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨  
 
@@ -11,7 +11,7 @@ eQual is a versatile, language-agnostic and web-oriented open-source low-code fr
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
 
 <p align="center">
-    <img align="center" src="https://github.com/equalframework/equal/blob/master/public/assets/img/equal_logo.png?raw=true" alt="eQual - Create great Apps, your way!" />
+    <img src="https://github.com/equalframework/equal/blob/master/public/assets/img/equal_logo.png?raw=true" alt="eQual - Create great Apps, your way!" />
 </p>
 
 # eQual - Create great Apps, your way!
