@@ -59,7 +59,7 @@ $result_code = 0;
 exec("id -u \"$username\" 2>&1", $output, $result_code);
 
 if($result_code !== 0) {
-    throw new Exception('uid_unavailable : '.implode("\n", $output), EQ_ERROR_UNKNOWN);
+    throw new Exception(serialize(['uid_unavailable' => implode("\n", $output)]), EQ_ERROR_UNKNOWN);
 }
 
 $output = (array) $output;
