@@ -31,10 +31,10 @@ use equal\services\Container;
  *
  * 2) `on...()` methods - event handlers:
  * @method array    onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method void     oncreate(mixed ...$params)      Hook invoked after object creation for performing object-specific additional operations.
- * @method void     onupdate(mixed ...$params)      Hook invoked before object update for performing object-specific additional operations.
- * @method void     ondelete(mixed ...$params)      Hook invoked before object deletion for performing object-specific additional operations.
- * @method void     onclone(mixed ...$params)       Hook invoked after object cloning for performing object-specific additional operations.
+ * @method void     oncreate(mixed ...$params)      Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method void     onupdate(mixed ...$params)      Hook invoked BEFORE object update for performing object-specific additional operations.
+ * @method void     ondelete(mixed ...$params)      Hook invoked BEFORE object deletion for performing object-specific additional operations.
+ * @method void     onclone(mixed ...$params)       Hook invoked AFTER object cloning for performing object-specific additional operations.
  *
  * Possible params:
  * - Collection                         $self       Collection holding a series of objects of current class.
