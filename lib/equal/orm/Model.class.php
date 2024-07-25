@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -10,7 +10,7 @@ use equal\services\Container;
 
 /**
  * Root Model for all Object definitions.
- * This class holds the description of an object along with the values of the currently assigned fields.
+ * This class holds the description of an object along with the values of the currently loaded/assigned fields.
  *
  * List of static methods for building new Collection objects (accessed through magic methods):
  * @method \equal\orm\Collection id($id)
@@ -18,17 +18,36 @@ use equal\services\Container;
  * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=null)
  * @method \equal\orm\Collection create(array $values=null, $lang=null)
  *
- * List of static method with variable parameters:
- * @method array canread($orm, $ids=[], $fields=[], $lang='en')
- * @method array cancreate($orm, $values=[], $lang='en')
- * @method array canupdate($orm, $ids=[], $values=[], $lang='en')
- * @method array canclone($orm, $ids=[])
- * @method array candelete($orm, $ids=[])
- * @method array onchange($orm, $event=[], $values=[], $lang='en')
- * @method void oncreate($orm, $ids=[], $values=[], $lang='en')
- * @method void onupdate($orm, $ids=[], $values=[], $lang='en')
- * @method void onclone($orm, $ids=[])
- * @method void ondelete($orm, $ids=[])
+ * List of static methods with variable parameters:
+ * (These methods are handled through __callStatic method to prevent PHP strict errors & aot warnings.)
+ *
+ * 1) `can...()` methods - consistency checkers:
+ * These methods return an associative array mapping fields with their error messages. An empty array means that use can perform the action.
+ * @method array    canread(mixed ...$params)       Check wether an object can be read by current user.
+ * @method array    cancreate(mixed ...$params)     Check wether an object can be created.
+ * @method array    canupdate(mixed ...$params)     Check wether an object can be updated.
+ * @method array    candelete(mixed ...$params)     Check wether an object can be deleted.
+ * @method array    canclone(mixed ...$params)      Check wether an object can be cloned.
+ *
+ * 2) `on...()` methods - event handlers:
+ * @method array    onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
+ * @method void     oncreate(mixed ...$params)      Hook invoked after object creation for performing object-specific additional operations.
+ * @method void     onupdate(mixed ...$params)      Hook invoked before object update for performing object-specific additional operations.
+ * @method void     ondelete(mixed ...$params)      Hook invoked before object deletion for performing object-specific additional operations.
+ * @method void     onclone(mixed ...$params)       Hook invoked after object cloning for performing object-specific additional operations.
+ *
+ * Possible params:
+ * - Collection                         $self       Collection holding a series of objects of current class.
+ * - array                              $ids        List of objects identifiers in current collection.
+ * - array                              $event      Associative array holding changed fields as keys, and their related new values.
+ * - array                              $values     Copy of the current (partial) state of the object.
+ * - string                             $lang       Lang ISO code, falls back to DEFAULT_LANG.
+ * - equal\orm\ObjectManager            $orm        Instance of ObjectManager service.
+ * - equal\access\AccessController      $access     Instance of AccessController service.
+ * - equal\auth\AuthenticationManager   $auth       Instance of AuthenticationManager service.
+ * - equal\php\Context                  $context    Instance of Context service.
+ * - equal\error\Reporter               $reporter   Instance of error Reporter service.
+ * - equal\data\DataAdapter             $adapt      Instance of DataAdapter service.
  */
 class Model implements \ArrayAccess, \Iterator {
 
@@ -520,51 +539,11 @@ class Model implements \ArrayAccess, \Iterator {
         return strtolower(str_replace('\\', '_', $entity));
     }
 
-    public static function id($id) {
-        return self::ids((array) $id);
-    }
-
-    public static function ids($ids) {
-        if(is_callable('equal\orm\Collections::getInstance')) {
-            /** @var Collections */
-            $factory = Collections::getInstance();
-            /** @var Collection */
-            $collection = $factory->create(get_called_class());
-            return $collection->ids($ids);
-        }
-        return null;
-    }
-
-    public static function search(array $domain=[], array $params=[], $lang=null) {
-        if(is_callable('equal\orm\Collections::getInstance')) {
-            /** @var Collections */
-            $factory = Collections::getInstance();
-            /** @var Collection */
-            $collection = $factory->create(get_called_class());
-            return $collection->search($domain, $params, $lang);
-        }
-        return null;
-    }
-
-    public static function create(array $values=null, $lang=null) {
-        if(is_callable('equal\orm\Collections::getInstance')) {
-            /** @var Collections */
-            $factory = Collections::getInstance();
-            /** @var Collection */
-            $collection = $factory->create(get_called_class());
-            return $collection->create($values, $lang);
-        }
-        return null;
-    }
-
     /**
      * Handler for virtual static methods: use classname to invoke a Collection method, if available.
-     * #todo - deprecate : since we cover all entry points with static methods, magic methods should no longer be involved.
-     * (in order to do this, we must streamline the signatures for on...() and can...() methods )
      *
      * @param  string   $name       Name of the called method.
      * @param  array    $arguments  Array holding a list of arguments to relay to the invoked method.
-     * @deprecated
      */
     public static function __callStatic($name, $arguments) {
         if(is_callable('equal\orm\Collections::getInstance')) {
