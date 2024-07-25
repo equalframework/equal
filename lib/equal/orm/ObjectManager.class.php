@@ -1474,17 +1474,7 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 2) make sure objects in the collection can be updated
-
-            /*
-            // #moved to Collection
-            $cancreate = $this->call($class, 'cancreate', [], array_diff_key($fields, $special_fields), $lang, ['values', 'lang']);
-            if(!empty($cancreate)) {
-                throw new \Exception(serialize($cancreate), QN_ERROR_NOT_ALLOWED);
-            }
-            */
-
-            // 3) garbage collect: check for expired draft object
+            // 2) garbage collect: check for expired draft object
 
             // by default, request a new object ID
             $oid = 0;
@@ -1522,7 +1512,7 @@ class ObjectManager extends Service {
                 $oid = (int) $creation_array['id'];
             }
 
-            // 4) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
+            // 3) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
             $sql_values = [];
             /** @var \equal\data\adapt\DataAdapterProvider */
             $dap = $this->container->get('adapt');
@@ -1545,7 +1535,7 @@ class ObjectManager extends Service {
             // in any case, we return the object id
             $res = $oid;
 
-            // 5) update new object with given fields values, if any
+            // 4) update new object with given fields values, if any
 
             // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
@@ -1716,7 +1706,7 @@ class ObjectManager extends Service {
             $this->store($class, $ids, array_keys($fields), $lang);
 
 
-            // 7) second pass : handle onupdate events, if any
+            // 7) second pass : handle fields onupdate events, if any
 
             if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
@@ -2219,14 +2209,6 @@ class ObjectManager extends Service {
         try {
             $object = $this->getStaticInstance($class);
             $schema = $object->getSchema();
-
-            /*
-            // #moved to Collection
-            $canclone = $this->call($class, 'canclone', (array) $id, [], $lang, ['ids']);
-            if(!empty($canclone)) {
-                throw new \Exception(serialize($canclone), QN_ERROR_NOT_ALLOWED);
-            }
-            */
 
             // read full object
             $res_r = $this->read($class, $id, array_keys($schema), $lang);
