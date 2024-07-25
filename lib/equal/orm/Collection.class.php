@@ -219,14 +219,14 @@ class Collection implements \Iterator, \Countable {
     /**
      * Provide the whole collection as a map (by default) or as an array.
      *
-     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is an of objects with keys holding indexes (and no ids).
+     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is a list of objects (with keys holding indexes and not ids).
      * @return  array                   Returns an associative array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays and keys are no longer mapping objects identifiers.
      *                                  If the collection is empty, an empty array is returned.
      */
     public function get($to_array=false) {
         $result = [];
         foreach($this->objects as $id => $object) {
-            $result[$id] = $this->_getRawObject($object, $to_array);
+            $result[$id] = $this->_getRawObject($object, $to_array, true);
         }
         if($to_array) {
             $result = array_values($result);
@@ -239,9 +239,10 @@ class Collection implements \Iterator, \Countable {
      * handling sub-Collection instances either as maps or arrays.
      *
      * @param   Model   $object         Object to be converted to an array representation.
-     * @param   boolean $to_array       Flag for requesting sub-collections as arrays (instead of a maps)
+     * @param   boolean $to_array       Flag for requesting sub-collections as lists. Default is associative array (ids mapping related objects).
+     * @param   boolean $adapt          Flag for requesting recursive adaptation for values (set to true only in call from `get()` method).
      */
-    private function _getRawObject($object, $to_array=false) {
+    private function _getRawObject($object, $to_array=false, $adapt=false) {
         $result = [];
         foreach($object as $field => $value) {
             if($value instanceof Collection) {
@@ -255,12 +256,11 @@ class Collection implements \Iterator, \Countable {
                 $result[$field] = $this->_getRawObject($value, $to_array);
             }
             else {
-                if($to_array && $this->adapter) {
-                    /** @var \equal\orm\Field */
+                if($this->adapter && ($to_array || $adapt)) {
                     $f = $object->getField($field);
                     if(!$f) {
                         // log an error and ignore adaptation
-                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", EQ_REPORT_INFO);
+                        trigger_error("ORM::unexpected error when retrieving Field object for $field ({$object->getType()})", EQ_REPORT_WARNING);
                         $result[$field] = $value;
                         continue;
                     }
@@ -276,8 +276,9 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Provide the whole collection as an array.
-    */
+     * Provide the whole Collection as an array.
+     * Objects and sub-collections will be converted to arrays as well.
+     */
     public function toArray() {
         return $this->get(true);
     }
