@@ -1,8 +1,8 @@
 <?php
 /*
-    This file is part of Symbiose Community Edition <https://github.com/yesbabylon/symbiose>
-    Some Rights Reserved, Yesbabylon SRL, 2020-2021
-    Licensed under GNU AGPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
 list($params, $providers) = eQual::announce([
@@ -30,11 +30,10 @@ list($params, $providers) = eQual::announce([
  * @var \equal\auth\AuthenticationManager $auth
  * @var \equal\dispatch\Dispatcher $dispatch
  */
-list($context, $auth, $dispatch) = [ $providers['context'], $providers['auth'], $providers['dispatch']];
-
-$user_id = $auth->userId();
+['context' => $context, 'auth' => $auth, 'dispatch' => $dispatch] = $providers;
 
 // #todo - restrict access based on link between MessageModel and user groups
+$user_id = $auth->userId();
 
 // If the alert is not found, the call is ignored. If a controller is mentioned in the alert it is called.
 $dispatch->dismiss($params['id']);
