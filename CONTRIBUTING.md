@@ -13,7 +13,7 @@ This document contains notes and guidelines on how to contribute to eQual.
 
 ## Joining the project
 
-Active committers and contributors are invited to introduce themselves and request commit access to the project on the Discord [#join](https://discord.gg/65WcBQFVg6) channel. If you think you can help, we'd love to have you!
+Active committers and contributors are invited to introduce themselves and request commit access to the project on the Discord [#join](https://discord.com/invite/xNAXyhbYBp) channel. If you think you can help, we'd love to have you!
 
 
 ## Bugs and Issues
