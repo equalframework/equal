@@ -1,8 +1,10 @@
 eQual is an open-source low-code framework, at once versatile, language-agnostic and web-oriented, designed to efficiently create and manage modern softwares that can adapt to any Application Logic.
 
-⭐ If you find eQual useful, nice, or simply relevant, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.  
+"Not everyone can be a fullstack developer, but with eQual, anyone can develop like one." Developing an end-to-end application is extremely complex and requires a wide range of skills that few people possess on their own. eQual's mission is to enable any developer to create an end-to-end application by helping them compensate for the aspects they are less proficient in.
 
-🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨  
+⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.
+
+🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
 
 [![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
 ![Number of contributors](https://img.shields.io/github/contributors/equalframework/equal)
@@ -14,7 +16,9 @@ eQual is an open-source low-code framework, at once versatile, language-agnostic
     <img src="https://raw.githubusercontent.com/equalframework/equal/dev-2.0/packages/core/init/assets/img/equal_logo.png" alt="eQual - Create great Apps, your way!" />
 </p>
 
-# eQual - Create great Apps, your way!
+<h1 align="center">
+  ✨ eQual - Create great Apps, your way! ✨
+</h1>
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/equalframework/equal/dev-2.0/packages/core/init/assets/img/equal_summary.png" alt="eQual - Create great Apps, your way!" />
