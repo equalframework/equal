@@ -145,6 +145,128 @@ class Mail extends Model {
         return $mail['id'];
     }
 
+    /**
+     * Instantly send a message (skip outbox).
+     *
+     * @param   Email   $email           Email message to be sent.
+     * @param   string  $object_class    Class of the object associated with the sending (optional).
+     * @param   string  $object_id       Identifier of the object associated with the sending (optional).
+     *
+     * @return  int     Upon success, this method returns the id of the created `core\Mail` object created.
+     *
+     * @throws  \Exception                This method raises an Exception in case of error.
+     */
+    public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
+        try {
+            // create an Object
+            $values = [
+                'to'            => $email->to,
+                'cc'            => implode(',', (array) $email->cc),
+                'bcc'           => implode(',', (array) $email->bcc),
+                'subject'       => $email->subject,
+                // #todo - set DB to UTF8mb4 by default
+                // remove utf8mb4 chars (emojis)
+                'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
+                'attachments'   => '',
+                'object_class'  => $object_class,
+                'object_id'     => $object_id
+            ];
+
+            if(isset($email->reply_to)) {
+                $values['reply_to'] = $email->reply_to;
+            }
+
+            // create the Mail object
+            $mail = Mail::create($values)->read(['id'])->first(true);
+
+            // setup SMTP settings
+            $transport = new \Swift_SmtpTransport(
+                constant('EMAIL_SMTP_HOST'),
+                constant('EMAIL_SMTP_PORT'),
+                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
+            );
+
+            $transport
+                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
+                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+
+            if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
+                $transport->setStreamOptions([
+                    'ssl' => [
+                        'allow_self_signed'     => true,
+                        'verify_peer'           => false
+                    ]
+                ]);
+            }
+
+            // setup SMTP settings
+            $mailer = new \Swift_Mailer($transport);
+
+            $body = (isset($values['body']))?$values['body']:'';
+            $subject = (isset($messvaluesage['subject']))?$values['subject']:'';
+
+            if(isset($values['to']) && strlen($values['to']) > 0) {
+                $envelope = new \Swift_Message();
+
+                // set sender and recipients
+                $envelope
+                    ->setTo($values['to'])
+                    ->setCc($values['cc'])
+                    ->setBcc($values['bcc'])
+                    ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+
+                if(isset($values['reply_to']) && strlen($values['reply_to']) > 0) {
+                    $envelope->setReplyTo($values['reply_to']);
+                }
+
+                // add subject
+                $envelope->setSubject($subject);
+
+                // process body according to content type
+                if(isset($values['content-type']) && $values['content-type'] == 'text/html') {
+                    $envelope->setContentType('text/html');
+                    // handle embedded images, if any
+                    $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
+                        function ($matches) use (&$envelope) {
+                            $cid = $matches[2];
+                            if(substr($cid, 4, 1) == ':') {
+                                list($scheme, $data) = explode(':', $cid);
+                                if($scheme == 'data') {
+                                    list($content_type, $data) = explode(';', $data);
+                                    list($encoding, $raw) = explode(',', $data);
+                                    if($encoding == 'base64') {
+                                        $raw = base64_decode($raw);
+                                    }
+                                    list($type, $extension) = explode('/', $content_type);
+                                    $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
+                                    $img->setDisposition('inline');
+                                    $cid = $envelope->embed($img);
+                                }
+                            }
+                            return $matches[1].$cid.$matches[3];
+                        },
+                        $body);
+                }
+
+                // add body
+                $envelope->setBody($body);
+
+                // #memo - no support for attachment in instant sending
+
+                // send email
+                $mailer->send($envelope);
+
+                self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
+            }
+        }
+        catch(\Exception $e) {
+            throw new \Exception($e->getMessage(), $e->getCode());
+        }
+
+        return $mail['id'];
+    }
+
+
     public static function isQueued(int $message_id) {
         $files = scandir(self::MESSAGE_FOLDER);
         foreach($files as $file) {
