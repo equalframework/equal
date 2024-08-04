@@ -144,7 +144,7 @@
     "DEFAULT_LANG": {
         "type": "string",
         "description": "The language (ISO 639-1) in which the multilang content must be provided/stored by default.",
-        "help": "This values impacts the way translations are stored. For a multilang application, unless specific conditions, this value should remain assigned to 'english' in order to allow correct management of multilang values.",
+        "help": "This values impacts the way translations are stored. For a multilang application, unless specific conditions, this value should remain assigned to English ('en') in order to allow correct management of multilang values.",
         "instant": true,
         "default": "en"
     },
