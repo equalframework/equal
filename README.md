@@ -12,7 +12,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
 [![GitHub stars](https://img.shields.io/github/stars/equalframework/equal)](https://github.com/equalframework/equal/stargazers)
-[![Discord](https://img.shields.io/discord/999933707475501097)](https://discord.gg/xNAXyhbYBp)
+[![Discord](https://img.shields.io/discord/999933707475501097?label=Discord&logo=discord)](https://discord.gg/xNAXyhbYBp)
 [![Follow us on X, formerly Twitter](https://img.shields.io/twitter/follow/equalframework?style=social)](https://x.com/equalframework)
 [![Follow us on Mastodon](https://img.shields.io/mastodon/follow/112820075870021767?domain=https%3A%2F%2Fmastodon.social&style=social)](https://mastodon.social/@equalframework)
 
@@ -49,59 +49,59 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 
 
 ### Low-Code
-:white_check_mark: **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, menus, workflow).
-:white_check_mark: **Instant APIs Without Code**: Auto-documented controllers with an announcement system.
-:white_check_mark: **Desktop & mobile**: Customizable layout to fit any device screen.
-:white_check_mark: **Views**: Create any view without coding - form, lists, menus, charts, Dashboard.
+:white_check_mark: **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, menus, workflow).  
+:white_check_mark: **Instant APIs Without Code**: Auto-documented controllers with an announcement system.  
+:white_check_mark: **Desktop & mobile**: Customizable layout to fit any device screen.  
+:white_check_mark: **Views**: Create any view without coding - form, lists, menus, charts, Dashboard.  
 
 ### Architecture
-:white_check_mark: **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers.
-:white_check_mark: **MVC segregation**: Strict distinction between Models (entites), Views and Controllers.
-:white_check_mark: **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere.
-:white_check_mark: **Data Adaptation**: Automatically transform received data based on format and context.
-:white_check_mark: **Services Extensibility**: Ability to extend services behavior, and to register custom ones.
-:white_check_mark: **Cascading Configuration**: Overridable settings at different levels (default, global, package).
-:white_check_mark: **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'aplication/json').
+:white_check_mark: **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers.  
+:white_check_mark: **MVC segregation**: Strict distinction between Models (entites), Views and Controllers.  
+:white_check_mark: **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere.  
+:white_check_mark: **Data Adaptation**: Automatically transform received data based on format and context.  
+:white_check_mark: **Services Extensibility**: Ability to extend services behavior, and to register custom ones.  
+:white_check_mark: **Cascading Configuration**: Overridable settings at different levels (default, global, package).  
+:white_check_mark: **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'aplication/json').  
 
 ### Entities & ORM
-:white_check_mark: **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events
-:white_check_mark: **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.
-:white_check_mark: **Domains**: Simple array notation for describing any possible boolean condition, either directly or through references.
-:white_check_mark: **Date References**: Enables defining a date relative to another date using specific syntactic notations.
-:white_check_mark: **Explicit typing (Usages)**: Attach any value to a Usage that can be flawlessly adapted (converted) to any other language or environment.
+:white_check_mark: **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events.  
+:white_check_mark: **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.  
+:white_check_mark: **Domains**: Simple array notation for describing any possible boolean condition, either directly or through references.  
+:white_check_mark: **Date References**: Enables defining a date relative to another date using specific syntactic notations.  
+:white_check_mark: **Explicit typing (Usages)**: Attach any value to a Usage that can be flawlessly adapted (converted) to any other language or environment.  
 
 ### Security
-:white_check_mark: **Authentication Management**: HTTP Auth support (JWT) & 3 levels of visibility (public, protected, private)
-:white_check_mark: **Granular access control**: Set permissions of any kind at any level (ACL, RBAC, PBAC, ABAC, ReBAC)
-:white_check_mark: **Security Policies**: Restrict access to a set of users or groups, based on their IP or Schedule.
-:white_check_mark: **Secure**: All the credentials are securely encrypted using bcrypt 448-bits with random salt.
+:white_check_mark: **Authentication Management**: HTTP Auth support (JWT) & 3 levels of visibility (public, protected, private).  
+:white_check_mark: **Granular access control**: Set permissions of any kind at any level (ACL, RBAC, PBAC, ABAC, ReBAC).  
+:white_check_mark: **Security Policies**: Restrict access to a set of users or groups, based on their IP or Schedule.  
+:white_check_mark: **Secure**: All the credentials are securely encrypted using bcrypt 448-bits with random salt.  
 
 ### Native Features
-:white_check_mark: **Settings values**: Global, group, user, with multilingual support.
-:white_check_mark: **Emails sending**: Send emails via SMTP, either instantly or queued.
-:white_check_mark: **Multi-formats exports**: Export any Controller data in TXT, CSV, or PDF formats.
+:white_check_mark: **Settings values**: Global, group, user, with multilingual support.  
+:white_check_mark: **Emails sending**: Send emails via SMTP, either instantly or queued.  
+:white_check_mark: **Multi-formats exports**: Export any Controller data in TXT, CSV, or PDF formats.  
 
 ### Miscellaneous
-:white_check_mark: **Database**: Ablity to connect to various data source (DBMS), with guidelines to develop your own if needed.
-:white_check_mark: **Multi-user**: Allows concurrency through Optimistic Concurrency Control.
-:white_check_mark: **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.
-:white_check_mark: **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.
-:white_check_mark: **Embedded documentation**: Embeds end-user documentation directly in Apps.
-:white_check_mark: **CLI**: Powerful command-line tool to easily discover available controllers and their roles and expected params, as if using an HTTP Rest API.
-:white_check_mark: **Auto-documented Controllers**: Description with parameters along with their types and attributes.
-:white_check_mark: **Logging**: Recording of the history of changes made to entities, including user and date.
-:white_check_mark: **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time.
-:white_check_mark: **Alerts system**: Allows to manage alerts (notice or error) linked to Controllers, with ability to ignore retry execution.
+:white_check_mark: **Database**: Ablity to connect to various data source (DBMS), with guidelines to develop your own if needed.  
+:white_check_mark: **Multi-user**: Allows concurrency through Optimistic Concurrency Control.  
+:white_check_mark: **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.  
+:white_check_mark: **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.  
+:white_check_mark: **Embedded documentation**: Embeds end-user documentation directly in Apps.  
+:white_check_mark: **CLI**: Powerful command-line tool to easily discover available controllers and their roles and expected params, as if using an HTTP Rest API.  
+:white_check_mark: **Auto-documented Controllers**: Description with parameters along with their types and attributes.  
+:white_check_mark: **Logging**: Recording of the history of changes made to entities, including user and date.  
+:white_check_mark: **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time.  
+:white_check_mark: **Alerts system**: Allows to manage alerts (notice or error) linked to Controllers, with ability to ignore retry execution.  
 
 ### Coding Amenities
-:white_check_mark: **Selectable debug levels and modes**: Report anything, anywhere in the code, with 6 levels and 7 modes.
-:white_check_mark: **Unit testing**: Use AAA (Arrange, Act, Assert) pattern and support for rollback.
-:white_check_mark: **Debug Console**: Search amongst logs, grouped by threads, with keywords, level or mode.
+:white_check_mark: **Selectable debug levels and modes**: Report anything, anywhere in the code, with 6 levels and 7 modes.  
+:white_check_mark: **Unit testing**: Use AAA (Arrange, Act, Assert) pattern and support for rollback.  
+:white_check_mark: **Debug Console**: Search amongst logs, grouped by threads, with keywords, level or mode.  
 
 ### Upcoming features
-:black_square_button: **Version control**: Keep track of all versions of any object.
-:black_square_button: **Authentication Policies**: Set the level of required auth (token, password, mfa) based on the context (trust).
-:black_square_button: **Pipelines**: Ability to visually create and edit data flow by chaining controllers together.
+:black_square_button: **Version control**: Keep track of all versions of any object.  
+:black_square_button: **Authentication Policies**: Set the level of required auth (token, password, mfa) based on the context (trust).  
+:black_square_button: **Pipelines**: Ability to visually create and edit data flow by chaining controllers together.  
 
 
 ## Benefits
