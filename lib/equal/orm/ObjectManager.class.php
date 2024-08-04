@@ -2747,6 +2747,7 @@ class ObjectManager extends Service {
                         $select_fields[] = $related_table_alias.'.'.$sort_field;
                     }
                     else {
+                        $order_table_alias = $table_alias;
                         $select_fields[] = $table_alias.'.'.$sort_field;
                     }
                 }
