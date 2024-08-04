@@ -2,7 +2,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 
 "Not everyone can be a fullstack developer, but with eQual, anyone can develop like one": Developing an application from end to end is extremely complex and requires a wide range of skills that few people possess on their own. eQual's mission is to **enable any developer to create production-ready applications** by helping them compensate for the aspects they are less proficient in.
 
-⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.
+⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider <a href="#">giving us a star on GitHub</a>! Your support encourages us and will help making eQual the most powerful framework ever.
 
 🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
 
@@ -49,7 +49,7 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 
 
 ### Low-Code
-:white_check_mark: **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, menus, workflow).  
+:white_check_mark: **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, ...).  
 :white_check_mark: **Instant APIs Without Code**: Auto-documented controllers with an announcement system.  
 :white_check_mark: **Desktop & mobile**: Customizable layout to fit any device screen.  
 :white_check_mark: **Views**: Create any view without coding - form, lists, menus, charts, Dashboard.  
@@ -66,7 +66,7 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 ### Entities & ORM
 :white_check_mark: **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events.  
 :white_check_mark: **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.  
-:white_check_mark: **Domains**: Simple array notation for describing any possible boolean condition, either directly or through references.  
+:white_check_mark: **Domains**: Simple array notation for any possible boolean condition, either directly or with references.  
 :white_check_mark: **Date References**: Enables defining a date relative to another date using specific syntactic notations.  
 :white_check_mark: **Explicit typing (Usages)**: Attach any value to a Usage that can be flawlessly adapted (converted) to any other language or environment.  
 
@@ -87,7 +87,7 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 :white_check_mark: **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.  
 :white_check_mark: **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.  
 :white_check_mark: **Embedded documentation**: Embeds end-user documentation directly in Apps.  
-:white_check_mark: **CLI**: Powerful command-line tool to easily discover available controllers and their roles and expected params, as if using an HTTP Rest API.  
+:white_check_mark: **CLI**: Powerful command-line tool to easily discover available controllers and their roles & expected params.  
 :white_check_mark: **Auto-documented Controllers**: Description with parameters along with their types and attributes.  
 :white_check_mark: **Logging**: Recording of the history of changes made to entities, including user and date.  
 :white_check_mark: **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time.  
@@ -148,6 +148,14 @@ If you'd like to contribute, please kindly read our [Contributing Guide](https:/
 <a href="https://github.com/equalframework/equal/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=equalframework/equal&max=400&columns=20" />
 </a>
+
+## Stats
+
+![Alt](https://repobeats.axiom.co/api/embed/5f9dfe02bd01e5a3d95b1e2ffde811c02f169000.svg "Repobeats Analytics")
+
+## Questions & Support
+
+For questions or any type of support, you can reach out via [Discord](https://discord.gg/xNAXyhbYBp)
 
 ## License
 
