@@ -321,7 +321,7 @@ class Mail extends Model {
         }
 
         // create the core\Mail object
-        $mail = Mail::create($values)->read(['id'])->first(true);
+        $mail = self::create($values)->read(['id'])->first(true);
         if(!$mail) {
             throw new \Exception('failed_creating_mail', EQ_ERROR_UNKNOWN);
         }
