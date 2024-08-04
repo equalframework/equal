@@ -1,6 +1,6 @@
-eQual is an open-source low-code framework, at once versatile, language-agnostic and web-oriented, designed to efficiently create and manage modern softwares that can adapt to any Application Logic.
+eQual is a complete open-source low-code web-based framework, designed to efficiently create and manage **modern softwares** that can **adapt to any Application Logic**.
 
-"Not everyone can be a fullstack developer, but with eQual, anyone can develop like one." Developing an end-to-end application is extremely complex and requires a wide range of skills that few people possess on their own. eQual's mission is to enable any developer to create an end-to-end application by helping them compensate for the aspects they are less proficient in.
+"Not everyone can be a fullstack developer, but with eQual, anyone can develop like one": Developing an application from end to end is extremely complex and requires a wide range of skills that few people possess on their own. eQual's mission is to **enable any developer to create production-ready applications** by helping them compensate for the aspects they are less proficient in.
 
 ⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider giving us a star on GitHub! Your support encourages us and will help making eQual the most powerful framework ever.
 
@@ -11,6 +11,10 @@ eQual is an open-source low-code framework, at once versatile, language-agnostic
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/equalframework/equal/pulls)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
+[![GitHub stars](https://img.shields.io/github/stars/equalframework/equal)](https://github.com/equalframework/equal/stargazers)
+[![Discord](https://img.shields.io/discord/999933707475501097)](https://discord.gg/xNAXyhbYBp)
+[![Follow us on X, formerly Twitter](https://img.shields.io/twitter/follow/equalframework?style=social)](https://x.com/equalframework)
+[![Follow us on Mastodon](https://img.shields.io/mastodon/follow/112820075870021767?domain=https%3A%2F%2Fmastodon.social&style=social)](https://mastodon.social/@equalframework)
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/equalframework/equal/dev-2.0/packages/core/init/assets/img/equal_logo.png" alt="eQual - Create great Apps, your way!" />
@@ -38,6 +42,68 @@ It also has a rendering engine that allows views and menus to be assembled in or
 This mechanism enables eQual to generate an application without writing a single line of code, providing both a user interface and an API that can be connected to any external service.
 
 
+
+## Features
+
+Beside its revolutionary edge, eQal is a fully-featured framework providing an amazing set of both traditional and innovative features.
+
+
+### Low-Code
+:white_check_mark: **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, menus, workflow).
+:white_check_mark: **Instant APIs Without Code**: Auto-documented controllers with an announcement system.
+:white_check_mark: **Desktop & mobile**: Customizable layout to fit any device screen.
+:white_check_mark: **Views**: Create any view without coding - form, lists, menus, charts, Dashboard.
+
+### Architecture
+:white_check_mark: **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers.
+:white_check_mark: **MVC segregation**: Strict distinction between Models (entites), Views and Controllers.
+:white_check_mark: **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere.
+:white_check_mark: **Data Adaptation**: Automatically transform received data based on format and context.
+:white_check_mark: **Services Extensibility**: Ability to extend services behavior, and to register custom ones.
+:white_check_mark: **Cascading Configuration**: Overridable settings at different levels (default, global, package).
+:white_check_mark: **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'aplication/json').
+
+### Entities & ORM
+:white_check_mark: **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events
+:white_check_mark: **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.
+:white_check_mark: **Domains**: Simple array notation for describing any possible boolean condition, either directly or through references.
+:white_check_mark: **Date References**: Enables defining a date relative to another date using specific syntactic notations.
+:white_check_mark: **Explicit typing (Usages)**: Attach any value to a Usage that can be flawlessly adapted (converted) to any other language or environment.
+
+### Security
+:white_check_mark: **Authentication Management**: HTTP Auth support (JWT) & 3 levels of visibility (public, protected, private)
+:white_check_mark: **Granular access control**: Set permissions of any kind at any level (ACL, RBAC, PBAC, ABAC, ReBAC)
+:white_check_mark: **Security Policies**: Restrict access to a set of users or groups, based on their IP or Schedule.
+:white_check_mark: **Secure**: All the credentials are securely encrypted using bcrypt 448-bits with random salt.
+
+### Native Features
+:white_check_mark: **Settings values**: Global, group, user, with multilingual support.
+:white_check_mark: **Emails sending**: Send emails via SMTP, either instantly or queued.
+:white_check_mark: **Multi-formats exports**: Export any Controller data in TXT, CSV, or PDF formats.
+
+### Miscellaneous
+:white_check_mark: **Database**: Ablity to connect to various data source (DBMS), with guidelines to develop your own if needed.
+:white_check_mark: **Multi-user**: Allows concurrency through Optimistic Concurrency Control.
+:white_check_mark: **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.
+:white_check_mark: **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.
+:white_check_mark: **Embedded documentation**: Embeds end-user documentation directly in Apps.
+:white_check_mark: **CLI**: Powerful command-line tool to easily discover available controllers and their roles and expected params, as if using an HTTP Rest API.
+:white_check_mark: **Auto-documented Controllers**: Description with parameters along with their types and attributes.
+:white_check_mark: **Logging**: Recording of the history of changes made to entities, including user and date.
+:white_check_mark: **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time.
+:white_check_mark: **Alerts system**: Allows to manage alerts (notice or error) linked to Controllers, with ability to ignore retry execution.
+
+### Coding Amenities
+:white_check_mark: **Selectable debug levels and modes**: Report anything, anywhere in the code, with 6 levels and 7 modes.
+:white_check_mark: **Unit testing**: Use AAA (Arrange, Act, Assert) pattern and support for rollback.
+:white_check_mark: **Debug Console**: Search amongst logs, grouped by threads, with keywords, level or mode.
+
+### Upcoming features
+:black_square_button: **Version control**: Keep track of all versions of any object.
+:black_square_button: **Authentication Policies**: Set the level of required auth (token, password, mfa) based on the context (trust).
+:black_square_button: **Pipelines**: Ability to visually create and edit data flow by chaining controllers together.
+
+
 ## Benefits
 
 **Rock Solid Security** Secure every API endpoint with User Management, Role-Based Access Controls, SSO Authentication, JWT, CORS, and OAuth.
@@ -46,23 +112,13 @@ This mechanism enables eQual to generate an application without writing a single
 
 **Low-Code Instant APIs** Automatically generate a complete set of ReST API endpoints with live documentation for any SQL or NoSQL database, file storage system, or external service.
 
-## Example
 
-### CLI
-`$ ./equal.run --get=demo_first`
+## Documentation
 
-### HTTP
-`GET /?get=demo_first HTTP/1.1`
+For a comprehensive documentation that includes examples and step-by-step instructions, please visit our full documentation at https://doc.equal.run.
 
-### Source
-```
-<?php
-// Tired of steep learning curves?
-echo "This Contoller is valid and generates a HTTP compliant response!";
-```
 
 ## Requirements
-
 eQual requires the following environment:
 
 * **PHP 7+** with extensions mysqli (mandatory) + gd opcache zip tidy (optional)
@@ -82,110 +138,17 @@ git clone https://github.com/equalframework/equal.git
 
 For more info, see : [http://doc.equal.run/getting-started/installation](http://doc.equal.run/getting-started/installation/)
 
+## Contributing
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create.
 
-## CLI autocomplete
-To ease commands typing in CLI, you can enable autocompletion by running `source autocomplete`.
+If you'd like to contribute, please kindly read our [Contributing Guide](https://github.com/equalframework/equal/blob/master/CONTRIBUTING.md) to familiarize yourself with our development process, how to suggest bug fixes and improvements, and the steps for building and testing your changes.
 
+## Contributors
 
-## Code Coverage setup
+<a href="https://github.com/equalframework/equal/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=equalframework/equal&max=400&columns=20" />
+</a>
 
-Config for PHP 7.4 with xdebug
+## License
 
-In dockerfile, xdebug can be added with following command
-```
-RUN pecl install xdebug-3.1.6
-```
-
-php.ini
-```
-zend_extension=xdebug
-```
-
-Create tests directory
-```
-mkdir tests
-```
-
-Create `tests/CoverageTest.php` file
-```
-<?php
-use PHPUnit\Framework\TestCase;
-use equal\test\Tester;
-include('eq.lib.php');
-
-final class CoverageTest extends TestCase {
-
-	public function test(): void {
-		$tests_path = "packages/core/tests";
-		if(is_dir($tests_path)) {
-			foreach (glob($tests_path."/*.php") as $filename) {
-				include($filename);
-				$tester = new Tester($tests);
-				$tester->test()->toArray();
-			}
-		}
-		$this->assertTrue(true);
-	}
-
-}
-```
-
-composer.json
-```
-{
-    "require": {
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "phpunit/php-code-coverage": "^9.2",
-        "symplify/easy-coding-standard": "^11.1"
-    }
-}
-```
-
-Install composer and dependencies
-```
-./equal.run --do=init_composer
-```
-
-phpunit.xml
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         cacheResultFile="cache/test-results"
-         executionOrder="depends,defects"
-         forceCoversAnnotation="false"
-         beStrictAboutCoversAnnotation="false"
-         beStrictAboutOutputDuringTests="true"
-         beStrictAboutTodoAnnotatedTests="true"
-         convertDeprecationsToExceptions="true"
-         failOnRisky="false"
-         failOnWarning="true"
-         verbose="true">
-    <testsuites>
-        <testsuite name="default">
-            <directory>tests</directory>
-        </testsuite>
-    </testsuites>
-
-    <coverage cacheDirectory="cache/code-coverage"
-              processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">lib</directory>
-        </include>
-    </coverage>
-</phpunit>
-```
-
-Alternate script generation:
-```
-./vendor/bin/phpunit --generate-configuration
-```
-
-
-Run coverage tests and HTML reporting
-```
-XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html tests/report
-```
+eQual framework project - Released under the GNU Lesser General Public License v3.0.
