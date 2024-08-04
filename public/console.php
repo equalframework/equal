@@ -37,6 +37,8 @@ if(!count($_GET)) {
                 width: 40px;
                 height: 40px;
                 margin-right: 20px;
+                cursor: pointer;
+                display: block;
             }
 
             .equal-logo::after {
@@ -678,7 +680,7 @@ if(!count($_GET)) {
         <div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
             <form id="searchForm" style="padding: 25px 20px 15px 20px; background: #f5f5f5; margin: 5px; border: solid 1px #dfdfdf; border-radius: 15px;">
                 <div style="display: flex; align-items: flex-end;">
-                    <div class="equal-logo"></div>
+                    <a class="equal-logo" href=""></a>
                     <div class="material-select" style="width: 100px;">
                         <select name="level">
                             <option value="">All</option>
@@ -714,7 +716,7 @@ if(!count($_GET)) {
 
                     <div class="material-input" style="width: 200px;">
                         <input name="date" type="date" value="">
-                        <label>Date:</label>
+                        <label>Date</label>
                         <div class="bar"></div>
                     </div>
 
@@ -739,7 +741,7 @@ if(!count($_GET)) {
                                 <option value="">'.$log_file.'</option>'.
                                 implode(PHP_EOL, array_map(function($a) {return '<option value="'.$a.'" '.((isset($_GET['f']) && $_GET['f'] == $a)?'selected':'').'>'.$a.'</option>';}, $log_variations)).'
                             </select>
-                            <label>File:</label>
+                            <label>File</label>
                             <div class="bar"></div>
                         </div>
                     </div>
