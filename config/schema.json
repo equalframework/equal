@@ -144,7 +144,7 @@
     "DEFAULT_LANG": {
         "type": "string",
         "description": "The language (ISO 639-1) in which the multilang content must be provided/stored by default.",
-        "help": "This values impacts the way translations are stored. For a multilang application, unless specific conditions, this value should remain assigned to 'english' in order to allow correct management of multilang values.",
+        "help": "This values impacts the way translations are stored. For a multilang application, unless specific conditions, this value should remain assigned to English ('en') in order to allow correct management of multilang values.",
         "instant": true,
         "default": "en"
     },
@@ -322,7 +322,8 @@
     },
     "ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION": {
         "type": "boolean",
-        "description": "Flag for forcing ORM to invoke `onupdate` callback at object creation (i.e. when using `create()` method).",
+        "description": "Flag for forcing ORM to invoke `onupdate` callbacks at object creation (i.e. when using `create()` method). This flag is for handling specific situations and should be left to false.",
+        "help": "When creating an object, some (or all of the) fields are assigned. This flag tells how the ORM should behave regarding the `onupdate` property of those fields, when present. By default, `onupdate` callbacks are not invoked when the assignation of the fields results from an object creation.",
         "default": false,
         "instant": true
     },

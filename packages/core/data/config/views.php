@@ -36,11 +36,13 @@ if(isset($params['package'])) {
     if(!file_exists("packages/{$params['package']}")) {
         throw new Exception('missing_package_dir', QN_ERROR_INVALID_CONFIG);
     }
-    if(!file_exists("packages/{$params['package']}/views")) {
-        throw new Exception('missing_views_dir', QN_ERROR_INVALID_CONFIG);
+    if(file_exists("packages/{$params['package']}/views")) {
+        // recurse through all sub-folders of `views` directory
+        $result = recurse_dir("packages/{$params['package']}/views", 'json', $params['package']);
     }
-    // recurse through all sub-folders of `views` directory
-    $result = recurse_dir("packages/{$params['package']}/views", 'json', $params['package']);
+    else {
+        trigger_error("APP::missing views folder for package {$params['package']}", EQ_ERROR_INVALID_CONFIG);
+    }
 }
 else {
     if(!isset($params['entity'])) {

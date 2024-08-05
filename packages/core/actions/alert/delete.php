@@ -4,9 +4,10 @@
     Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+use core\alert\Message;
 
 list($params, $providers) = eQual::announce([
-    'description'   => "Tries to dismiss a message. Should be invoked as a user request for removing the message. If the situation is still occurring an identical alert will be re-created.",
+    'description'   => "Remove the alert without retrying to perform related verification (issue might still be present).",
     'params'        => [
         'id' =>  [
             'description'   => 'Identifier of the alert to dismiss.',
@@ -30,13 +31,13 @@ list($params, $providers) = eQual::announce([
  * @var \equal\auth\AuthenticationManager $auth
  * @var \equal\dispatch\Dispatcher $dispatch
  */
-['context' => $context, 'auth' => $auth, 'dispatch' => $dispatch] = $providers;
+list($context, $auth, $dispatch) = [ $providers['context'], $providers['auth'], $providers['dispatch']];
 
-// #todo - restrict access based on link between MessageModel and user groups
 $user_id = $auth->userId();
 
 // If the alert is not found, the call is ignored. If a controller is mentioned in the alert it is called.
-$dispatch->dismiss($params['id']);
+Message::id($params['id'])->delete(true);
 
 $context->httpResponse()
+        ->status(205)
         ->send();

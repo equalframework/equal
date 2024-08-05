@@ -22,19 +22,18 @@
                 "route": "/pipelines"
             },
             {
-                "id": "uml",
-                "type": "parent",
-                "label": "UML",
-                "icon": "schema",
-                "children": [
-                    {
-                        "id": "uml.erd",
-                        "type": "entry",
-                        "label": "ERD",
-                        "icon": "account_tree",
-                        "route": "/uml"
-                    }
-                ]
+                "id": "uml.erd",
+                "type": "entry",
+                "label": "ERD",
+                "icon": "account_tree",
+                "route": "/uml"
+            },
+            {
+                "id": "routes",
+                "type": "entry",
+                "label": "Routes",
+                "icon": "route",
+                "route": "/routes"
             }
         ]
     }

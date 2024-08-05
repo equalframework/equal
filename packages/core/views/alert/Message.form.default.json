@@ -8,6 +8,13 @@
             "description": "Retry the check that generated the alert. Message will be dismissed if alert is no longer present.",
             "controller": "core_alert_dismiss",
             "confirm": false
+        },
+        {
+            "id": "action.delete",
+            "label": "Ignore",
+            "description": "Remove the alert without retrying to perform related verification (issue might still be present).",
+            "controller": "core_alert_delete",
+            "confirm": false
         }
     ],
     "layout": {

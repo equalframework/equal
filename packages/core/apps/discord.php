@@ -8,6 +8,6 @@ list($params, $providers) = eQual::announce([
     'description'   => 'Redirect to eQual Discord server.',
     'params'        => [],
     'response'      => [
-        'location'      => 'https://discord.gg/BNCPYxD9kk'
+        'location'      => 'https://discord.gg/xNAXyhbYBp'
     ]
 ]);

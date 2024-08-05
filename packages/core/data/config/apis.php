@@ -4,12 +4,13 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns a list of existing API (string identifiers).\nResult is based on json files stored into config/routing.\nExpected format is api_{identifier}",
     'deprecated'    => true,
     'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'utf-8'
+        'content-type'      => 'application/json',
+        'charset'           => 'utf-8',
+        'accept-origin'     => '*'
     ],
     'providers'     => ['context']
 ]);

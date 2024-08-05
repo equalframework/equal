@@ -1304,7 +1304,7 @@ namespace config {
                         $reporter->debug("API::stored cache-id {$cache_id}");
                     }
                 }
-                trigger_error("API::result: $result", QN_REPORT_DEBUG);
+                trigger_error("API::result for {$resolved['type']}:{$resolved['operation']}: $result", QN_REPORT_DEBUG);
             }
 
             // restore context
