@@ -169,7 +169,8 @@ class Mail extends Model {
                 'body'          => preg_replace('/(?:\xF0[\x90-\xBF][\x80-\xBF]{2} | [\xF1-\xF3][\x80-\xBF]{3} | \xF4[\x80-\x8F][\x80-\xBF]{2})/xs', '', $email->body),
                 'attachments'   => '',
                 'object_class'  => $object_class,
-                'object_id'     => $object_id
+                'object_id'     => $object_id,
+                'content-type'  => $email->content_type
             ];
 
             if(isset($email->reply_to)) {
@@ -203,7 +204,7 @@ class Mail extends Model {
             $mailer = new \Swift_Mailer($transport);
 
             $body = (isset($values['body']))?$values['body']:'';
-            $subject = (isset($messvaluesage['subject']))?$values['subject']:'';
+            $subject = (isset($values['subject']))?$values['subject']:'';
 
             if(isset($values['to']) && strlen($values['to']) > 0) {
                 $envelope = new \Swift_Message();
@@ -211,9 +212,15 @@ class Mail extends Model {
                 // set sender and recipients
                 $envelope
                     ->setTo($values['to'])
-                    ->setCc($values['cc'])
-                    ->setBcc($values['bcc'])
                     ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+
+                if(isset($values['cc']) && strlen($values['cc']) > 0) {
+                    $envelope->setCc($values['cc']);
+                }
+
+                if(isset($values['bcc']) && strlen($values['bcc']) > 0) {
+                    $envelope->setCc($values['bcc']);
+                }
 
                 if(isset($values['reply_to']) && strlen($values['reply_to']) > 0) {
                     $envelope->setReplyTo($values['reply_to']);
@@ -254,13 +261,13 @@ class Mail extends Model {
                 // #memo - no support for attachment in instant sending
 
                 // send email
-                $mailer->send($envelope);
+                $result = $mailer->send($envelope);
 
                 self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
             }
         }
         catch(\Exception $e) {
-            throw new \Exception($e->getMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), EQ_ERROR_UNKNOWN);
         }
 
         return $mail['id'];
@@ -385,9 +392,15 @@ class Mail extends Model {
                     // set sender and recipients
                     $envelope
                         ->setTo($message['to'])
-                        ->setCc($message['cc'])
-                        ->setBcc($message['bcc'])
                         ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+
+                    if(isset($message['cc']) && strlen($message['cc']) > 0) {
+                        $envelope->setCc($message['cc']);
+                    }
+
+                    if(isset($message['bcc']) && strlen($message['bcc']) > 0) {
+                        $envelope->setBcc($message['bcc']);
+                    }
 
                     if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
                         $envelope->setReplyTo($message['reply_to']);
