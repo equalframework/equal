@@ -671,7 +671,7 @@ class ObjectManager extends Service {
                             }
                         }
                         if(count($missing_ids)) {
-                            $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang, ['ids', 'lang']);
+                            $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
                             if($res > 0) {
                                 foreach($missing_ids as $oid) {
                                     if(isset($res[$oid])) {
@@ -1620,31 +1620,10 @@ class ObjectManager extends Service {
 
 
             // 3) make sure objects in the collection can be updated
-
-            // if current call results from an object creation, the cancreate hook prevails over canupdate and we ignore the later
-            if(!$create) {
-                // always allow special fields to be updated
-                // #todo - is it right to do so?
-                $fields_to_check = array_diff_key($fields, $object::getSpecialColumns());
-                foreach($fields_to_check as $field => $value) {
-                    // always allow computed fields to be reset
-                    if($schema[$field]['type'] == 'computed' && $value === null) {
-                        unset($fields_to_check[$field]);
-                    }
-                }
-                // #todo - split the tests with status check against the object workflow
-                /*
-                // #moved to Collection
-                $canupdate = $this->callonce($class, 'canupdate', $ids, $fields_to_check, $lang);
-                if($canupdate > 0 && !empty($canupdate)) {
-                    throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
-                }
-                */
-            }
+            // #memo - moved to Collection
 
             // #memo - writing an object does not change its state, unless when explicitly set in $fields
             $fields['modified'] = time();
-
 
             // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
 
@@ -1714,13 +1693,13 @@ class ObjectManager extends Service {
                     // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
                     foreach($onupdate_fields as $field) {
                         // run onupdate callback (ignore undefined methods)
-                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang);
                     }
                 }
                 if(count($onrevert_fields)) {
                     foreach($onrevert_fields as $field) {
                         // run onrevert callback (ignore undefined methods)
-                        $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang, ['ids', 'values', 'lang']);
+                        $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang);
                     }
                 }
             }
@@ -2086,10 +2065,10 @@ class ObjectManager extends Service {
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
 
             if(method_exists($class, 'onbeforedelete')) {
-                $this->callonce($class, 'onbeforedelete', $ids, [], null, ['ids']);
+                $this->callonce($class, 'onbeforedelete', $ids);
             }
             else {
-                $this->callonce($class, 'ondelete', $ids, [], null, ['ids']);
+                $this->callonce($class, 'ondelete', $ids);
             }
 
             // 4) cascade deletions / relations updates
@@ -2119,7 +2098,7 @@ class ObjectManager extends Service {
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
                             if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
-                                $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids, [], null, ['ids']);
+                                $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
                                 // for unknown method, check special keywords 'cascade' and 'null'
                                 if($call_res < 0) {
                                     switch($rel_schema[$def['foreign_field']]['ondelete']) {
@@ -2178,7 +2157,7 @@ class ObjectManager extends Service {
 
             // 4) call 'onafterdelete' hook
 
-            $this->callonce($class, 'onafterdelete', $ids, [], null, ['ids']);
+            $this->callonce($class, 'onafterdelete', $ids);
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);

@@ -59,6 +59,12 @@ class Logger extends Service {
             $user_id = QN_ROOT_USER_ID;
         }
 
+        /*
+        // #todo - this feature is disabled and should be replaced with a link (m2o) to a Change object
+        //     holding the optional payload of the event
+
+        // #memo - with time, core_log table grows big and should only contain essential (meta) data
+
         $json = json_encode($fields);
         // discard faulty JSON
         if($json === false) {
@@ -69,12 +75,14 @@ class Logger extends Service {
             // drop payload
             $json = '{"ignored": "resulting JSON too large"}';
         }
+        */
+
         $values = [
             'action'        => $action,
             'object_class'  => $object_class,
             'object_id'     => $object_id,
             'user_id'       => $user_id,
-            'value'         => $json
+            // 'value'         => $json
         ];
 
         // logs are system objects (no permissions must be applied)
