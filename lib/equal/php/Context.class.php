@@ -48,6 +48,10 @@ class Context extends Service {
         return 'This is the PHP context instance.';
     }
 
+    public static function constants() {
+        return ['HTTP_TRUSTED_HEADERS', 'HTTP_TRUSTED_PROXIES'];
+    }
+
     public function get($var, $default=null) {
         if(isset($this->params[$var])) {
             return $this->params[$var];
@@ -240,13 +244,24 @@ class Context extends Service {
             if(!isset($headers['ETag'])) {
                 $headers['ETag'] = $headers['If-None-Match'] ?? '';
             }
-            // handle client IP address
-            // use only REMOTE_ADDR, if present (to prevent spoofing) - fallback to localhost
-            $headers['X-Forwarded-For'] = '127.0.0.1';
-            // #memo - using CLI, REMOTE_ADDR is not set
-            if(isset($_SERVER['REMOTE_ADDR'])) {
-                $headers['X-Forwarded-For'] = $_SERVER['REMOTE_ADDR'];
+            // store client IP address in `X-Forwarded-For` header
+            // use original `X-Forwarded-For` only if trusted or present in trusted proxies (to prevent spoofing) - fallback on REMOTE_ADDR, or localhost
+            $ip = '127.0.0.1';
+            if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && in_array('X-Forwarded-For', constant('HTTP_TRUSTED_HEADERS'))) {
+                $client_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+                $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+                foreach(array_reverse($client_ips) as $client_ip) {
+                    $client_ip = trim($client_ip);
+                    if(!in_array($client_ip, constant('HTTP_TRUSTED_PROXIES'))) {
+                        $ip = $client_ip;
+                        break;
+                    }
+                }
             }
+            elseif(isset($_SERVER['REMOTE_ADDR'])) {
+                $ip = $_SERVER['REMOTE_ADDR'];
+            }
+            $headers['X-Forwarded-For'] = $ip;
         }
 
         // set default content type to 'application/x-www-form-urlencoded'
