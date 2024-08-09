@@ -159,4 +159,4 @@ For questions or any type of support, you can reach out via [Discord](https://di
 
 ## License
 
-eQual framework project - Released under the GNU Lesser General Public License v3.0.
+eQual framework project - Released under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0).
