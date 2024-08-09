@@ -256,6 +256,20 @@
         "instant": true,
         "default": "DB"
     },
+    "HTTP_TRUSTED_HEADERS": {
+        "type": "array",
+        "usage": "text/plain[]",
+        "description": "Specific HTTP headers that are used to pass information from a proxy or load balancer to the backend server.",
+        "instant": true,
+        "default": []
+    },
+    "HTTP_TRUSTED_PROXIES": {
+        "type": "array",
+        "usage": "ipv4/ddn[]",
+        "description": "Specific proxy servers or load balancers that an application or server is configured to trust when handling incoming request.",
+        "instant": true,
+        "default": []
+    },
     "HTTP_REQUEST_TIMEOUT": {
         "type": "integer",
         "usage": "time/duration",
