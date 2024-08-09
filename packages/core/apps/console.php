@@ -192,9 +192,9 @@ $thread_filter = function (array $thread, array $params) {
 
 $result = [];
 
-if(file_exists(QN_BASEDIR.'/log/eq_error.log')) {
+if(file_exists(QN_BASEDIR.'/log/equal.log')) {
     // read raw data from pointer log file
-    $fp = fopen(QN_BASEDIR.'/log/eq_error.log', "r");
+    $fp = fopen(QN_BASEDIR.'/log/equal.log', "r");
     $result[] = "START LOG";
     $i = 0;
     $prev_thread_id = 0;
