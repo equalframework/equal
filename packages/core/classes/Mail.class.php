@@ -394,11 +394,13 @@ class Mail extends Model {
                         ->setTo($message['to'])
                         ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
-                    if(isset($message['cc']) && strlen($message['cc']) > 0) {
+                    // #memo - cc is an array
+                    if(isset($message['cc']) && count($message['cc']) > 0) {
                         $envelope->setCc($message['cc']);
                     }
 
-                    if(isset($message['bcc']) && strlen($message['bcc']) > 0) {
+                    // #memo - bcc is an array
+                    if(isset($message['bcc']) && count($message['bcc']) > 0) {
                         $envelope->setBcc($message['bcc']);
                     }
 
