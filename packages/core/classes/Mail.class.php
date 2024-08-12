@@ -219,7 +219,7 @@ class Mail extends Model {
                 }
 
                 if(isset($values['bcc']) && strlen($values['bcc']) > 0) {
-                    $envelope->setCc($values['bcc']);
+                    $envelope->setBcc($values['bcc']);
                 }
 
                 if(isset($values['reply_to']) && strlen($values['reply_to']) > 0) {
