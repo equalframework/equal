@@ -45,7 +45,7 @@ This mechanism enables eQual to generate an application without writing a single
 
 ## Features
 
-Beside its revolutionary edge, eQal is a fully-featured framework providing an amazing set of both traditional and innovative features.
+Beside its revolutionary edge, eQual is a fully-featured framework providing an amazing set of both traditional and innovative features.
 
 
 ### Low-Code
@@ -56,12 +56,12 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 
 ### Architecture
 :white_check_mark: **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers.  
-:white_check_mark: **MVC segregation**: Strict distinction between Models (entites), Views and Controllers.  
+:white_check_mark: **MVC segregation**: Strict distinction between Models (entities), Views and Controllers.  
 :white_check_mark: **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere.  
 :white_check_mark: **Data Adaptation**: Automatically transform received data based on format and context.  
 :white_check_mark: **Services Extensibility**: Ability to extend services behavior, and to register custom ones.  
 :white_check_mark: **Cascading Configuration**: Overridable settings at different levels (default, global, package).  
-:white_check_mark: **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'aplication/json').  
+:white_check_mark: **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'application/json').  
 
 ### Entities & ORM
 :white_check_mark: **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events.  
@@ -82,7 +82,7 @@ Beside its revolutionary edge, eQal is a fully-featured framework providing an a
 :white_check_mark: **Multi-formats exports**: Export any Controller data in TXT, CSV, or PDF formats.  
 
 ### Miscellaneous
-:white_check_mark: **Database**: Ablity to connect to various data source (DBMS), with guidelines to develop your own if needed.  
+:white_check_mark: **Database**: Ability to connect to various data source (DBMS), with guidelines to develop your own if needed.  
 :white_check_mark: **Multi-user**: Allows concurrency through Optimistic Concurrency Control.  
 :white_check_mark: **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.  
 :white_check_mark: **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.  
@@ -121,9 +121,9 @@ For a comprehensive documentation that includes examples and step-by-step instru
 ## Requirements
 eQual requires the following environment:
 
-* **PHP 7+** with extensions mysqli (mandatory) + gd opcache zip tidy (optional)
+* **PHP 8+** with extensions (opcache, zip, tidy, ...)
 * **Apache 2+** or **Nginx**
-* **MySQL 5+** compatible DBMS (tested up to MySQL 5.7 and MariaDB 10.3)
+* **SQL:2011** compatible DBMS (SQLite, MariaDB Server, Microsoft SQL Server, Oracle MySQL)
 
 ## Install
 
