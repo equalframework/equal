@@ -114,6 +114,7 @@ class Field {
         if(is_null($this->usage)) {
             // by default, use the usage string for which the field type is an alias
             $this->usage = UsageFactory::create($this->getUsageString());
+            trigger_error("ORM::no usage set for field `{$this->name}`: assigned to `".$this->getUsageString()."`", EQ_REPORT_INFO);
         }
         return $this->usage;
     }

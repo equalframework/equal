@@ -83,12 +83,12 @@ class UsageFactory {
             case 'image':
                 $usageInstance = new UsageBinary($str_usage);
                 break;
-
             /* non-generic content-types */
             case 'amount':
                 $usageInstance = new UsageAmount($str_usage);
                 break;
             case 'coordinate':
+            // #todo
                 break;
             case 'country':
                 $usageInstance = new UsageCountry($str_usage);

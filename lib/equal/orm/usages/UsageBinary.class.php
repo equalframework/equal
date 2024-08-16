@@ -19,7 +19,7 @@ class UsageBinary extends Usage {
     public function getConstraints(): array {
         return [
             'size_exceeded' => [
-                'message'   => 'Image exceeds length constraint.',
+                'message'   => 'Binary exceeds length constraint.',
                 'function'  =>  function($value) {
                     $len = intval($this->getLength());
                     $strlen = strlen($value);
