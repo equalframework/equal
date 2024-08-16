@@ -263,7 +263,7 @@ class DataValidator extends Service {
                 if(!isset($constraint['message'])) {
                     $constraint['message'] = 'Invalid field.';
                 }
-                trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                trigger_error("ORM::given value for field `{$field}` violates constraint `{$error_id}`: {$constraint['message']}", EQ_REPORT_WARNING);
                 $result[$error_id] = $constraint['message'];
             }
         }

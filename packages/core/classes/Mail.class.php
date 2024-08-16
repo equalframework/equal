@@ -353,12 +353,18 @@ class Mail extends Model {
                 ->setTo($message['to'])
                 ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
 
-            if(isset($message['cc']) && strlen($message['cc']) > 0) {
-                $envelope->setCc($message['cc']);
+            if(isset($message['cc'])) {
+                if( (is_array($message['cc']) && count($message['cc']) > 0)
+                        || (is_string($message['cc']) && strlen($message['cc']) > 0) ) {
+                    $envelope->setCc($message['cc']);
+                }
             }
 
-            if(isset($message['bcc']) && strlen($message['bcc']) > 0) {
-                $envelope->setBcc($message['bcc']);
+            if(isset($message['bcc'])) {
+                if( (is_array($message['bcc']) && count($message['bcc']) > 0)
+                        || (is_string($message['bcc']) && strlen($message['bcc']) > 0) ) {
+                    $envelope->setBcc($message['bcc']);
+                }
             }
 
             if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {

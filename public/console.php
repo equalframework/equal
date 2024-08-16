@@ -210,9 +210,27 @@ if(!count($_GET)) {
                 width: 50%;
             }
 
-            #start {
-                padding-top:  120px;
+            #header {
+                position: fixed;
+                top: 0;
+                height: 105px;
+                width: 100%;
+                background: white;
+                z-index: 4;
             }
+
+            #searchForm {
+                padding: 25px 20px 15px 20px;
+                background: #f5f5f5;
+                margin: 10px;
+                border: solid 1px #dfdfdf;
+                border-radius: 15px;
+            }
+
+            #start {
+                padding-top:  110px;
+            }
+
             .loader-overlay {
                 display: none;
                 position: relative;
@@ -677,8 +695,8 @@ if(!count($_GET)) {
         </div>
 
 
-        <div id="header" style="position: fixed; top: 0; height: 100px; width: 100%; background: white; z-index: 4;">
-            <form id="searchForm" style="padding: 25px 20px 15px 20px; background: #f5f5f5; margin: 5px; border: solid 1px #dfdfdf; border-radius: 15px;">
+        <div id="header">
+            <form id="searchForm">
                 <div style="display: flex; align-items: flex-end;">
                     <a class="equal-logo" href=""></a>
                     <div class="material-select" style="width: 100px;">
