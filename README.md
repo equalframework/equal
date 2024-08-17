@@ -4,7 +4,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 
 ⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider <a href="#">giving us a star on GitHub</a>! Your support encourages us and will help making eQual the most powerful framework ever.
 
-🛠️ [Contributors welcome!](CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
+🛠️ [Contributors welcome!](https://github.com/equalframework/equal/blob/master/.github/CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
 
 [![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
 ![Number of contributors](https://img.shields.io/github/contributors/equalframework/equal)
@@ -17,7 +17,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 [![Follow us on Mastodon](https://img.shields.io/mastodon/follow/112820075870021767?domain=https%3A%2F%2Fmastodon.social&style=social)](https://mastodon.social/@equalframework)
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/equalframework/equal/dev-2.0/packages/core/init/assets/img/equal_logo.png" alt="eQual - Create great Apps, your way!" />
+    <img src="https://raw.githubusercontent.com/equalframework/equal/master/packages/core/init/assets/img/equal_logo.png" alt="eQual - Create great Apps, your way!" />
 </p>
 
 <h1 align="center">
@@ -25,7 +25,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 </h1>
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/equalframework/equal/dev-2.0/packages/core/init/assets/img/equal_summary.png" alt="eQual - Create great Apps, your way!" />
+    <img src="https://raw.githubusercontent.com/equalframework/equal/master/packages/core/init/assets/img/equal_summary.png" alt="eQual - Create great Apps, your way!" />
 </p>
 
 
@@ -141,7 +141,7 @@ For more info, see : [http://doc.equal.run/getting-started/installation](http://
 ## Contributing
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create.
 
-If you'd like to contribute, please kindly read our [Contributing Guide](https://github.com/equalframework/equal/blob/master/CONTRIBUTING.md) to familiarize yourself with our development process, how to suggest bug fixes and improvements, and the steps for building and testing your changes.
+If you'd like to contribute, please kindly read our [Contributing Guide](https://github.com/equalframework/equal/blob/master/.github/CONTRIBUTING.md) to familiarize yourself with our development process, how to suggest bug fixes and improvements, and the steps for building and testing your changes.
 
 ## Contributors
 
