@@ -1415,6 +1415,7 @@ namespace {
          */
         public static function run($type, $controller, $body=[], $root=false) {
             $result = config\eQual::run($type, $controller, $body, $root);
+            // #todo - adapt values if controller has a response schema
             $data = json_decode($result, true);
             // if result is not JSON, return raw data
             if(is_null($data)) {
