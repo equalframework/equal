@@ -81,7 +81,7 @@ foreach($paths as $item) {
         mkdir($path, 0754, true);
     }
 
-    if(file_exists($path)) {
+    if(!file_exists($path)) {
         throw new Exception(serialize(['missing_mandatory_folder' => "$path not found"]), EQ_ERROR_UNKNOWN);
     }
 
