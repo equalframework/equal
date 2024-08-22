@@ -74,11 +74,16 @@ if(!$uid) {
 
 // set mod
 foreach($paths as $item) {
-    if(!file_exists($item['path'])) {
-        continue;
-    }
 
     ['path' => $path, 'rights' => $mask] = $item;
+
+    if(!file_exists($path) && ($mask & EQ_R_WRITE)) {
+        mkdir($path, 0754, true);
+    }
+
+    if(file_exists($path)) {
+        throw new Exception(serialize(['missing_mandatory_folder' => "$path not found"]), EQ_ERROR_UNKNOWN);
+    }
 
     chgrp($path, $uid);
 
