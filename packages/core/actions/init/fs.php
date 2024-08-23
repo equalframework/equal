@@ -68,7 +68,7 @@ if(count($output)) {
     $uid = intval(reset($output));
 }
 
-if(!$uid) {
+if(!$uid && PHP_OS_FAMILY != 'Windows') {
     throw new Exception(serialize(['unknown_user' => $username]), EQ_ERROR_INVALID_CONFIG);
 }
 
