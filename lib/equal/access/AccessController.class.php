@@ -65,7 +65,7 @@ class AccessController extends Service {
     private function getRolesImplications($object_class) {
         $map_roles = [];
 
-        $roles = object_class::getRoles();
+        $roles = $object_class::getRoles();
 
         $getImpliedRoles = function($role) use (&$getImpliedRoles, &$roles, &$map_roles) {
             if(isset($map_roles[$role])) {
