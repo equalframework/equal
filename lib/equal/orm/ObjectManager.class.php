@@ -1585,7 +1585,20 @@ class ObjectManager extends Service {
                 $res = $res_w;
             }
 
-            // call 'oncreate' hook
+            // 5) force computing 'instant' computed fields
+            $map_instant_fields = [];
+
+            foreach($schema as $field => $descriptor) {
+                if($descriptor['type'] == 'computed' && ($descriptor['instant'] ?? false) == true) {
+                    $map_instant_fields[$field] = true;
+                }
+            }
+            // re-compute local 'instant' computed field, if any
+            if(count($map_instant_fields)) {
+                $this->load($class, (array) $oid, array_keys($map_instant_fields), $lang);
+            }
+
+            // 6) call 'oncreate' hook
             $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
 
         }
@@ -1743,74 +1756,79 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 8) handle the resetting of the dependent computed fields
 
-            $dependents = [
-                'primary' => [],
-                'related' => []
-            ];
-            foreach($fields as $field => $value) {
-                // remember fields whose modification triggers resetting computed fields
-                // #todo - deprecate 'dependencies' : use dependents
-                if(isset($schema[$field]['dependencies'])) {
-                    foreach((array) $schema[$field]['dependencies'] as $dependent) {
-                        $dependents['primary'][$dependent] = true;
+            // 8) handle the resetting of dependent computed fields
+
+            // #memo - upon creation computed fields should remain to null: we want to avoid unnecessary computations at object creation
+            if(!$create) {
+                $dependents = [
+                    'primary' => [],
+                    'related' => []
+                ];
+
+                foreach($fields as $field => $value) {
+                    // remember fields whose modification triggers resetting computed fields
+                    // #todo - deprecate 'dependencies' : use dependents
+                    if(isset($schema[$field]['dependencies'])) {
+                        foreach((array) $schema[$field]['dependencies'] as $dependent) {
+                            $dependents['primary'][$dependent] = true;
+                        }
                     }
-                }
 
-                if(isset($schema[$field]['dependents'])) {
-                    foreach((array) $schema[$field]['dependents'] as $key => $val) {
-                        // handle array notation
-                        if(!is_numeric($key)) {
-                            if(!isset($dependents['related'][$key])) {
-                                $dependents['related'][$key] = [];
+                    if(isset($schema[$field]['dependents'])) {
+                        foreach((array) $schema[$field]['dependents'] as $key => $val) {
+                            // handle array notation
+                            if(!is_numeric($key)) {
+                                if(!isset($dependents['related'][$key])) {
+                                    $dependents['related'][$key] = [];
+                                }
+                                $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
                             }
-                            $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
-                        }
-                        else {
-                            $dependents['primary'][$val] = true;
+                            else {
+                                $dependents['primary'][$val] = true;
+                            }
                         }
                     }
                 }
-            }
 
-            // read all target fields at once
-            $this->load($class, $ids, array_keys($dependents['related']), $lang);
+                // read all target fields at once
+                $this->load($class, $ids, array_keys($dependents['related']), $lang);
 
-            foreach($dependents['related'] as $field => $subfields) {
+                foreach($dependents['related'] as $field => $subfields) {
+                    $values = [];
+                    foreach($subfields as $subfield) {
+                        $values[$subfield] = null;
+                    }
+                    foreach($ids as $oid) {
+                        if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
+                            continue;
+                        }
+                        $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                        // allow cascade update (circular dependencies are checked in `core_test_package`)
+                        $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
+                    }
+                }
+
+                // handle fields that must be re-computed instantly
                 $values = [];
-                foreach($subfields as $subfield) {
-                    $values[$subfield] = null;
-                }
-                foreach($ids as $oid) {
-                    if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
-                        continue;
+                foreach(array_keys($dependents['primary']) as $field) {
+                    if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
+                        if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
+                            $instant_fields[$field] = true;
+                        }
+                        $values[$field] = null;
                     }
-                    $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                }
+
+                if(count($values)) {
                     // allow cascade update (circular dependencies are checked in `core_test_package`)
-                    $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
+                    $this->update($class, $ids, $values, $lang);
                 }
-            }
 
-            // handle fields that must be re-computed instantly
-            $values = [];
-            foreach(array_keys($dependents['primary']) as $field) {
-                if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
-                    if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
-                        $instant_fields[$field] = true;
-                    }
-                    $values[$field] = null;
+                if(count($instant_fields)) {
+                    // re-compute local 'instant' computed field
+                    $this->load($class, $ids, array_keys($instant_fields), $lang);
                 }
-            }
-
-            if(count($values)) {
-                // allow cascade update (circular dependencies are checked in `core_test_package`)
-                $this->update($class, $ids, $values, $lang);
-            }
-
-            if(count($instant_fields)) {
-                // re-compute local 'instant' computed field
-                $this->load($class, $ids, array_keys($instant_fields), $lang);
             }
 
 
@@ -1833,8 +1851,9 @@ class ObjectManager extends Service {
                 $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
             }
 
-            // #todo - move this to a dedicated controller for CRON
+
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+            // #todo - move this to a dedicated controller for CRON
 
             if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
                 $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', $class], ['object_id', 'in', $ids] ] );
