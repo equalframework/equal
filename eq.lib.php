@@ -986,9 +986,9 @@ namespace config {
                                     $default_value = $default_value();
                                 }
                             }
-                            else {
+                            elseif(is_string($default_value)) {
                                 list($class_name, $method_name) = explode('::', $default_value);
-                                if(is_string($default_value) && method_exists($class_name, $method_name)) {
+                                if(method_exists($class_name, $method_name)) {
                                     /** @var \equal\orm\ObjectManager */
                                     $orm = $container->get('orm');
                                     $default_value = $orm->callonce($class_name, $method_name);
