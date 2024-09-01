@@ -491,6 +491,7 @@ $context->httpResponse()
  * @param array $group_by   Descriptor of the fields grouping
  */
 function groupObjects($schema, $objects, $group_by) {
+    global $settings;
     $groups = [];
 
     // group objects
@@ -533,7 +534,7 @@ function groupObjects($schema, $objects, $group_by) {
 
             if(in_array($model_def['type'], ['date', 'datetime'])) {
                 // #todo - convert according to settings (date format)
-                $label = date('d/m/Y', $key);
+                $label = date($settings['date_format'], $key);
                 $key = date('Y-m-d', $key);
             }
             else if(isset($model_def['usage'])) {
