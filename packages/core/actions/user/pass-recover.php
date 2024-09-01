@@ -28,7 +28,7 @@ list($params, $providers) = eQual::announce([
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'constants'     => ['ROOT_APP_URL', 'EMAIL_SMTP_ABUSE_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
+    'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ABUSE_EMAIL', 'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'],
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
@@ -80,7 +80,7 @@ try {
                                 return $params['user']['firstname'];
                             },
         'recovery_url'	=>	function ($params, $attributes) {
-                                $url = constant('ROOT_APP_URL')."/auth/#/reset/{$params['token']}";
+                                $url = constant('BACKEND_URL')."/auth/#/reset/{$params['token']}";
                                 return "<a href=\"$url\">{$attributes['title']}</a>";
                             },
         'origin'        =>  function ($params, $attributes) {
