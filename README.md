@@ -9,6 +9,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 [![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
 ![Number of contributors](https://img.shields.io/github/contributors/equalframework/equal)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/equalframework/equal/pulls)
+[![first-timers-only](https://img.shields.io/badge/first--timers--only-friendly-blue.svg?style=flat-square)](https://github.com/equalframework/equal/labels/first-timers-only)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/equalframework/equal)
 [![GitHub stars](https://img.shields.io/github/stars/equalframework/equal)](https://github.com/equalframework/equal/stargazers)

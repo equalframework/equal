@@ -136,7 +136,7 @@ foreach($classes as $class) {
             continue;
         }
         if(!$orm::checkFieldAttributes($orm::$mandatory_attributes, $schema, $field)) {
-            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".implode(', ', $orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
+            $result[] = "ERROR - ORM - Class $class: Missing at least one mandatory attribute for field '$field' ({$descriptor['type']}) - mandatory attributes are : ".json_encode($orm::$mandatory_attributes[$descriptor['type']])." ($class_filename)";
             $is_error = true;
             continue;
         }
@@ -481,9 +481,11 @@ foreach($classes as $class) {
             $is_error = true;
         }
         else {
-        // 3) verify types compatibility
+            // 3) verify types compatibility
             $type = $schema[$field]['type'];
-            if(in_array($type, array('computed', 'related'))) $type = $schema[$field]['result_type'];
+            if(in_array($type, array('computed', 'related'))) {
+                $type = $schema[$field]['result_type'];
+            }
             if(!in_array($db_schema[$field]['type'], $allowed_types_associations[$type])) {
                 $result[] = "ERROR - DBM - Class $class: Non compatible type in database ({$db_schema[$field]['type']}) for field $field ({$schema[$field]['type']}) ($class_filename)";
                 $is_error = true;

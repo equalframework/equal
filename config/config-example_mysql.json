@@ -21,5 +21,6 @@
     "AUTH_SECRET_KEY": "my_secret_key",
     "AUTH_ACCESS_TOKEN_VALIDITY": "1h",
     "AUTH_TOKEN_HTTPS": false,
-    "ROOT_APP_URL": "http://equal.local"
+    "REST_API_URL": "http://equal.local/",
+    "BACKEND_URL": "http://equal.local"
 }

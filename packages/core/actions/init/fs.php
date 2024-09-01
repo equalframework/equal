@@ -58,7 +58,7 @@ $output = [];
 $result_code = 0;
 exec("id -u \"$username\" 2>&1", $output, $result_code);
 
-if($result_code !== 0) {
+if($result_code !== 0 && PHP_OS_FAMILY != 'Windows') {
     throw new Exception(serialize(['uid_unavailable' => implode("\n", $output)]), EQ_ERROR_UNKNOWN);
 }
 
@@ -68,17 +68,22 @@ if(count($output)) {
     $uid = intval(reset($output));
 }
 
-if(!$uid) {
+if(!$uid && PHP_OS_FAMILY != 'Windows') {
     throw new Exception(serialize(['unknown_user' => $username]), EQ_ERROR_INVALID_CONFIG);
 }
 
 // set mod
 foreach($paths as $item) {
-    if(!file_exists($item['path'])) {
-        continue;
-    }
 
     ['path' => $path, 'rights' => $mask] = $item;
+
+    if(!file_exists($path) && ($mask & EQ_R_WRITE)) {
+        mkdir($path, 0754, true);
+    }
+
+    if(!file_exists($path)) {
+        throw new Exception(serialize(['missing_mandatory_folder' => "$path not found"]), EQ_ERROR_UNKNOWN);
+    }
 
     chgrp($path, $uid);
 

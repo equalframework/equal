@@ -26,7 +26,7 @@ namespace {
     define('__EQ_LIB', true) or die('fatal error: __EQ_LIB already defined or cannot be defined');
 
     /**
-     *    All constants required by the core are prefixed with QN_
+     *    All constants required by the core are prefixed with EQ_
      *    (in addition, user might define its own constants following his own formatting rules)
      */
 
@@ -978,7 +978,23 @@ namespace config {
                     foreach((array) $announcement['params'] as $param => $config) {
                         if(isset($config['default'])) {
                             $f = new Field($config, $param);
-                            $announcement['params'][$param]['default'] = $adapter->adaptOut($config['default'], $f->getUsage());
+                            $default_value = $config['default'];
+                            if(is_callable($default_value)) {
+                                // either a php function (or a function from the global scope) or a closure object
+                                if(is_object($default_value)) {
+                                    // default is a closure
+                                    $default_value = $default_value();
+                                }
+                            }
+                            elseif(is_string($default_value)) {
+                                list($class_name, $method_name) = explode('::', $default_value);
+                                if(method_exists($class_name, $method_name)) {
+                                    /** @var \equal\orm\ObjectManager */
+                                    $orm = $container->get('orm');
+                                    $default_value = $orm->callonce($class_name, $method_name);
+                                }
+                            }
+                            $announcement['params'][$param]['default'] = $adapter->adaptOut($default_value, $f->getUsage());
                         }
                     }
                 }
@@ -1415,6 +1431,7 @@ namespace {
          */
         public static function run($type, $controller, $body=[], $root=false) {
             $result = config\eQual::run($type, $controller, $body, $root);
+            // #todo - adapt values if controller has a response schema
             $data = json_decode($result, true);
             // if result is not JSON, return raw data
             if(is_null($data)) {

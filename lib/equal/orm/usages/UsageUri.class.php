@@ -44,12 +44,13 @@ class UsageUri extends Usage {
                     dns://192.168.1.1/ftp.example.org?type=A
                     file://localhost/path
                     ircs://irc.example.com:6697/#channel1,#channel2
+                    https://username:password@example.com:443
                 */
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^([a-z]*:)?(\/\/)([a-zA-Z0-9-]+)*(\.[a-zA-Z0-9-]*)*(:[0-9]{1,5})?(\/.*)?$/', $value));
+                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|\[[0-9:.]+\])(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-]*)*$/', $value));
                         }
                     ]
                 ];

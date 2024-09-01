@@ -89,7 +89,7 @@ class ObjectManager extends Service {
         'many2one'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'required', 'deprecated', 'foreign_object', 'domain', 'onupdate', 'ondelete', 'multilang'),
         'one2many'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'domain', 'onupdate', 'ondetach', 'order', 'sort'),
         'many2many'     => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key', 'domain', 'onupdate'),
-        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'onupdate', 'onrevert', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
+        'computed'      => array('description', 'help', 'type', 'visible', 'default', 'dependencies', 'dependents', 'readonly', 'deprecated', 'result_type', 'usage', 'function', 'relation', 'onupdate', 'onrevert', 'store', 'instant', 'multilang', 'selection', 'foreign_object')
     ];
 
     public static $mandatory_attributes = [
@@ -107,7 +107,7 @@ class ObjectManager extends Service {
         'many2one'      => array('type', 'foreign_object'),
         'one2many'      => array('type', 'foreign_object', 'foreign_field'),
         'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
-        'computed'      => array('type', 'result_type', 'function')
+        'computed'      => array('type', 'result_type', ['function', 'relation'])
     ];
 
     public static $valid_operators = [
@@ -429,11 +429,25 @@ class ObjectManager extends Service {
     * @return bool      Returns true if all attributes in $check_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
-        if (!isset($schema) || !isset($schema[$field])) {
+        if (!isset($schema) || !isset($schema[$field]) || !isset($schema[$field]['type'])) {
             throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
         }
-        $attributes = $check_array[$schema[$field]['type']];
-        return !(count(array_intersect($attributes, array_keys($schema[$field]))) < count($attributes));
+        $required_attributes = $check_array[$schema[$field]['type']];
+        $map_attributes = $schema[$field];
+        $attributes = array_keys($map_attributes);
+        foreach($required_attributes as $rule) {
+            if(is_array($rule)) {
+                if(count(array_intersect($attributes, $rule)) <= 0) {
+                    return false;
+                }
+            }
+            else {
+                if(!isset($map_attributes[$rule])) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 
@@ -671,18 +685,43 @@ class ObjectManager extends Service {
                             }
                         }
                         if(count($missing_ids)) {
-                            $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
-                            if($res > 0) {
-                                foreach($missing_ids as $oid) {
-                                    if(isset($res[$oid])) {
-                                        // #memo - do not adapt : we're dealing with PHP not SQL
-                                        $value = $res[$oid];
+                            if(isset($schema[$field]['function'])) {
+                                $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
+                                if($res > 0) {
+                                    foreach($missing_ids as $oid) {
+                                        if(isset($res[$oid])) {
+                                            $value = $res[$oid];
+                                        }
+                                        else {
+                                            $value = null;
+                                        }
+                                        $om->cache[$table_name][$oid][$lang][$field] = $value;
                                     }
-                                    else {
-                                        $value = null;
-                                    }
-                                    $om->cache[$table_name][$oid][$lang][$field] = $value;
                                 }
+                            }
+                            elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
+                                try {
+                                    $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
+                                    foreach($res as $elem) {
+                                        $id = $elem['id'];
+                                        $relation = $schema[$field]['relation'];
+                                        while(is_array($relation)) {
+                                            $target = array_key_first($relation);
+                                            if(is_numeric($target)) {
+                                                $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]];
+                                                break;
+                                            }
+                                            else {
+                                                $elem = $elem[$target];
+                                                $relation = $relation[$target];
+                                            }
+                                        }
+                                    }
+                                }
+                                catch(Exception $e) {
+                                    trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), QN_REPORT_ERROR);
+                                }
+
                             }
                         }
                     }
@@ -1546,7 +1585,20 @@ class ObjectManager extends Service {
                 $res = $res_w;
             }
 
-            // call 'oncreate' hook
+            // 5) force computing 'instant' computed fields
+            $map_instant_fields = [];
+
+            foreach($schema as $field => $descriptor) {
+                if($descriptor['type'] == 'computed' && ($descriptor['instant'] ?? false) == true) {
+                    $map_instant_fields[$field] = true;
+                }
+            }
+            // re-compute local 'instant' computed field, if any
+            if(count($map_instant_fields)) {
+                $this->load($class, (array) $oid, array_keys($map_instant_fields), $lang);
+            }
+
+            // 6) call 'oncreate' hook
             $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
 
         }
@@ -1704,74 +1756,79 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 8) handle the resetting of the dependent computed fields
 
-            $dependents = [
-                'primary' => [],
-                'related' => []
-            ];
-            foreach($fields as $field => $value) {
-                // remember fields whose modification triggers resetting computed fields
-                // #todo - deprecate 'dependencies' : use dependents
-                if(isset($schema[$field]['dependencies'])) {
-                    foreach((array) $schema[$field]['dependencies'] as $dependent) {
-                        $dependents['primary'][$dependent] = true;
+            // 8) handle the resetting of dependent computed fields
+
+            // #memo - upon creation computed fields should remain to null: we want to avoid unnecessary computations at object creation
+            if(!$create) {
+                $dependents = [
+                    'primary' => [],
+                    'related' => []
+                ];
+
+                foreach($fields as $field => $value) {
+                    // remember fields whose modification triggers resetting computed fields
+                    // #todo - deprecate 'dependencies' : use dependents
+                    if(isset($schema[$field]['dependencies'])) {
+                        foreach((array) $schema[$field]['dependencies'] as $dependent) {
+                            $dependents['primary'][$dependent] = true;
+                        }
                     }
-                }
 
-                if(isset($schema[$field]['dependents'])) {
-                    foreach((array) $schema[$field]['dependents'] as $key => $val) {
-                        // handle array notation
-                        if(!is_numeric($key)) {
-                            if(!isset($dependents['related'][$key])) {
-                                $dependents['related'][$key] = [];
+                    if(isset($schema[$field]['dependents'])) {
+                        foreach((array) $schema[$field]['dependents'] as $key => $val) {
+                            // handle array notation
+                            if(!is_numeric($key)) {
+                                if(!isset($dependents['related'][$key])) {
+                                    $dependents['related'][$key] = [];
+                                }
+                                $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
                             }
-                            $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
-                        }
-                        else {
-                            $dependents['primary'][$val] = true;
+                            else {
+                                $dependents['primary'][$val] = true;
+                            }
                         }
                     }
                 }
-            }
 
-            // read all target fields at once
-            $this->load($class, $ids, array_keys($dependents['related']), $lang);
+                // read all target fields at once
+                $this->load($class, $ids, array_keys($dependents['related']), $lang);
 
-            foreach($dependents['related'] as $field => $subfields) {
+                foreach($dependents['related'] as $field => $subfields) {
+                    $values = [];
+                    foreach($subfields as $subfield) {
+                        $values[$subfield] = null;
+                    }
+                    foreach($ids as $oid) {
+                        if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
+                            continue;
+                        }
+                        $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                        // allow cascade update (circular dependencies are checked in `core_test_package`)
+                        $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
+                    }
+                }
+
+                // handle fields that must be re-computed instantly
                 $values = [];
-                foreach($subfields as $subfield) {
-                    $values[$subfield] = null;
-                }
-                foreach($ids as $oid) {
-                    if(!isset($this->cache[$table_name][$oid][$lang][$field])) {
-                        continue;
+                foreach(array_keys($dependents['primary']) as $field) {
+                    if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
+                        if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
+                            $instant_fields[$field] = true;
+                        }
+                        $values[$field] = null;
                     }
-                    $target_ids = (array) $this->cache[$table_name][$oid][$lang][$field];
+                }
+
+                if(count($values)) {
                     // allow cascade update (circular dependencies are checked in `core_test_package`)
-                    $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
+                    $this->update($class, $ids, $values, $lang);
                 }
-            }
 
-            // handle fields that must be re-computed instantly
-            $values = [];
-            foreach(array_keys($dependents['primary']) as $field) {
-                if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
-                    if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
-                        $instant_fields[$field] = true;
-                    }
-                    $values[$field] = null;
+                if(count($instant_fields)) {
+                    // re-compute local 'instant' computed field
+                    $this->load($class, $ids, array_keys($instant_fields), $lang);
                 }
-            }
-
-            if(count($values)) {
-                // allow cascade update (circular dependencies are checked in `core_test_package`)
-                $this->update($class, $ids, $values, $lang);
-            }
-
-            if(count($instant_fields)) {
-                // re-compute local 'instant' computed field
-                $this->load($class, $ids, array_keys($instant_fields), $lang);
             }
 
 
@@ -1794,8 +1851,9 @@ class ObjectManager extends Service {
                 $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
             }
 
-            // #todo - move this to a dedicated controller for CRON
+
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+            // #todo - move this to a dedicated controller for CRON
 
             if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
                 $messages_ids = $this->search('core\alert\Message', [ ['object_class', '=', $class], ['object_id', 'in', $ids] ] );
