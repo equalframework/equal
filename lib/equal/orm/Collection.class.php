@@ -219,7 +219,7 @@ class Collection implements \Iterator, \Countable {
     /**
      * Provide the whole collection as a map (by default) or as an array.
      *
-     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is a list of objects (with keys holding indexes and not ids).
+     * @param   boolean $to_array       Flag to force conversion to an array (instead of a map). If set to true, the returned result is a list of objects with keys holding indexes and not ids. This is applied recursively.
      * @return  array                   Returns an associative array holding objects of the collection. If $to_array is set to true, all sub-collections are recursively converted to arrays and keys are no longer mapping objects identifiers.
      *                                  If the collection is empty, an empty array is returned.
      */
@@ -744,7 +744,7 @@ class Collection implements \Iterator, \Countable {
 
             foreach($fields as $key => $val ) {
                 // handle array notation
-                $field = (!is_numeric($key))?$key:$val;
+                $field = (!is_numeric($key)) ? $key : $val;
                 // check fields validity (and silently drop invalid fields)
                 if(!in_array($field, $allowed_fields)) {
                     unset($fields[$key]);
