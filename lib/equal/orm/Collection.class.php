@@ -126,7 +126,7 @@ class Collection implements \Iterator, \Countable {
 
     /* Iterator  methods */
 
-    public function current() {
+    public function current(): Model {
         return current($this->objects);
     }
 
