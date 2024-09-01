@@ -107,7 +107,7 @@ class ObjectManager extends Service {
         'many2one'      => array('type', 'foreign_object'),
         'one2many'      => array('type', 'foreign_object', 'foreign_field'),
         'many2many'     => array('type', 'foreign_object', 'foreign_field', 'rel_table', 'rel_local_key', 'rel_foreign_key'),
-        'computed'      => array('type', 'result_type', 'function')
+        'computed'      => array('type', 'result_type', ['function', 'relation'])
     ];
 
     public static $valid_operators = [
@@ -429,11 +429,25 @@ class ObjectManager extends Service {
     * @return bool      Returns true if all attributes in $check_array actually exist in the given schema.
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
-        if (!isset($schema) || !isset($schema[$field])) {
+        if (!isset($schema) || !isset($schema[$field]) || !isset($schema[$field]['type'])) {
             throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
         }
-        $attributes = $check_array[$schema[$field]['type']];
-        return !(count(array_intersect($attributes, array_keys($schema[$field]))) < count($attributes));
+        $required_attributes = $check_array[$schema[$field]['type']];
+        $map_attributes = $schema[$field];
+        $attributes = array_keys($map_attributes);
+        foreach($required_attributes as $rule) {
+            if(is_array($rule)) {
+                if(count(array_intersect($attributes, $rule)) <= 0) {
+                    return false;
+                }
+            }
+            else {
+                if(!isset($map_attributes[$rule])) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 
