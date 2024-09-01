@@ -671,18 +671,43 @@ class ObjectManager extends Service {
                             }
                         }
                         if(count($missing_ids)) {
-                            $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
-                            if($res > 0) {
-                                foreach($missing_ids as $oid) {
-                                    if(isset($res[$oid])) {
-                                        // #memo - do not adapt : we're dealing with PHP not SQL
-                                        $value = $res[$oid];
+                            if(isset($schema[$field]['function'])) {
+                                $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
+                                if($res > 0) {
+                                    foreach($missing_ids as $oid) {
+                                        if(isset($res[$oid])) {
+                                            $value = $res[$oid];
+                                        }
+                                        else {
+                                            $value = null;
+                                        }
+                                        $om->cache[$table_name][$oid][$lang][$field] = $value;
                                     }
-                                    else {
-                                        $value = null;
-                                    }
-                                    $om->cache[$table_name][$oid][$lang][$field] = $value;
                                 }
+                            }
+                            elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
+                                try {
+                                    $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
+                                    foreach($res as $elem) {
+                                        $id = $elem['id'];
+                                        $relation = $schema[$field]['relation'];
+                                        while(is_array($relation)) {
+                                            $target = array_key_first($relation);
+                                            if(is_numeric($target)) {
+                                                $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]];
+                                                break;
+                                            }
+                                            else {
+                                                $elem = $elem[$target];
+                                                $relation = $relation[$target];
+                                            }
+                                        }
+                                    }
+                                }
+                                catch(Exception $e) {
+                                    trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), QN_REPORT_ERROR);
+                                }
+
                             }
                         }
                     }
