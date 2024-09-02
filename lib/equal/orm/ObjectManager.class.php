@@ -710,12 +710,12 @@ class ObjectManager extends Service {
                                         while(is_array($relation)) {
                                             $target = array_key_first($relation);
                                             if(is_numeric($target)) {
-                                                $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]];
+                                                $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]] ?? null;
                                                 break;
                                             }
                                             else {
-                                                $elem = $elem[$target];
-                                                $relation = $relation[$target];
+                                                $elem = $elem[$target] ?? null;
+                                                $relation = isset($relation[$target]) ? (array) $relation[$target] : null;
                                             }
                                         }
                                     }
