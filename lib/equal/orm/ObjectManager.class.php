@@ -686,6 +686,7 @@ class ObjectManager extends Service {
                         }
                         if(count($missing_ids)) {
                             if(isset($schema[$field]['function'])) {
+                                trigger_error("ORM::computing 'function' for '$field' of class '$class'", QN_REPORT_INFO);
                                 $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
                                 if($res > 0) {
                                     foreach($missing_ids as $oid) {
@@ -701,6 +702,7 @@ class ObjectManager extends Service {
                             }
                             elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
                                 try {
+                                    trigger_error("ORM::computing 'relation' for '$field' of class '$class'", QN_REPORT_INFO);
                                     $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
                                     foreach($res as $elem) {
                                         $id = $elem['id'];
