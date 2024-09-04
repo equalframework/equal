@@ -43,8 +43,10 @@ class DataGenerator {
         return trim(substr($random_text, 0, $random_length));
     }
 
-    public static function boolean(): bool {
-        return boolval(mt_rand(0, 1));
+    public static function boolean($probability = 0.5): bool {
+        $probability = max(0, min(1, $probability));
+
+        return mt_rand() / mt_getrandmax() < $probability;
     }
 
     public static function integer(int $length): int {

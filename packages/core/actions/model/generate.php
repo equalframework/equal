@@ -219,8 +219,14 @@ foreach($schema as $field => $conf) {
         }
     }
     elseif(isset($conf['usage'])) {
-        $usage = UsageFactory::create($conf['usage']);
-        $new_entity[$field] = $usage->generateRandomValue();
+        $required = $conf['required'] ?? false;
+        if(!$required && DataGenerator::boolean(0.1)) {
+            $new_entity[$field] = null;
+        }
+        else {
+            $usage = UsageFactory::create($conf['usage']);
+            $new_entity[$field] = $usage->generateRandomValue();
+        }
     }
     elseif(in_array($field, $recognizable_fields)) {
         $new_entity[$field] = $generateRecognizableFieldRandomValue($field);
