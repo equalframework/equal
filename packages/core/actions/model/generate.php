@@ -46,8 +46,8 @@ list($params, $providers) = eQual::announce([
 ]);
 
 /**
- * @var \equal\php\Context      $context
- * @var \equal\orm\ObjectManager $orm
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
 list('context' => $context, 'orm' => $orm) = $providers;
 
@@ -124,9 +124,13 @@ $schema = $model->getSchema();
 foreach($schema as $field => $conf) {
     if(isset($params['fields'][$field])) {
         $new_entity[$field] = $params['fields'][$field];
+        continue;
     }
-
-    if(
+    elseif(isset($conf['generator_function']) && method_exists($params['entity'], $conf['generator_function'])) {
+        $new_entity[$field] = $params['entity']::{$conf['generator_function']}();
+        continue;
+    }
+    elseif(
         in_array($field, $root_fields)
         || in_array($conf['type'], ['alias', 'computed', 'one2many'])
         || (in_array($conf['type'], ['many2one', 'many2many']) && !isset($params['relations'][$field]))
@@ -138,12 +142,7 @@ foreach($schema as $field => $conf) {
         $ids = $conf['foreign_object']::search([])->ids();
         $mode = $params['relations'][$field]['mode'] ?? 'use-existing-or-create';
         if($mode === 'use-existing-or-create') {
-            if(empty($ids)) {
-                $mode = 'create';
-            }
-            else {
-                $mode = mt_rand(0, 1) === 1 ? 'use-existing' : 'create';
-            }
+            $mode = empty($ids) || DataGenerator::boolean() ? 'create' : 'use-existing';
         }
 
         switch($mode) {
