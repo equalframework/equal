@@ -7,6 +7,8 @@
 namespace equal\orm\usages;
 
 
+use equal\data\DataGenerator;
+
 class UsagePhone extends Usage {
 
     public function __construct(string $usage_str) {
@@ -25,6 +27,10 @@ class UsagePhone extends Usage {
                 }
             ]
         ];
+    }
+
+    public function generateRandomValue(): string {
+        return DataGenerator::phoneNumberE164();
     }
 
 }

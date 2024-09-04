@@ -6,8 +6,7 @@
 */
 namespace equal\orm\usages;
 
-use equal\locale\Locale;
-use core\setting\Setting;
+use equal\data\DataGenerator;
 
 class UsageTime extends Usage {
 
@@ -21,6 +20,10 @@ class UsageTime extends Usage {
         }
         */
         return [];
+    }
+
+    public function generateRandomValue(): string {
+        return DataGenerator::time();
     }
 
 }

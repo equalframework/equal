@@ -83,6 +83,10 @@ class Usage {
         return [];
     }
 
+    public function generateRandomValue() {
+        return null;
+    }
+
     final public function getName() : string {
         return $this->usage_str;
     }
