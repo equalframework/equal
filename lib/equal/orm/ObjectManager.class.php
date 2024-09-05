@@ -1266,8 +1266,8 @@ class ObjectManager extends Service {
             $model = $this->getStaticInstance($class);
         }
         catch(Exception $e) {
-            trigger_error($e->getMessage(), QN_REPORT_ERROR);
-            // #memo - another autoload handler might be registered, so no exception can be raised
+            // #memo - another autoload handler might be registered, so no exception must be raised here
+            trigger_error('ORM::'.$e->getMessage(), QN_REPORT_ERROR);
         }
         return $model;
     }
