@@ -71,7 +71,8 @@ class DataAdapterJsonTime implements DataAdapter {
         }
         $hours = floor($value / 3600);
         $minutes = floor(($value % 3600) / 60);
-        return sprintf("%02d:%02d", $hours, $minutes);
+        $seconds = $value % (60);
+        return sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
     }
 
 }
