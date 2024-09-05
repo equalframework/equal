@@ -262,12 +262,12 @@ class DataGenerator {
 
     public static function username(): string {
         $usernames = [
-            'user1234', 'coolUser88', 'jane_doe22', 'johnnyBravo', 'theRealMike',
-            'superstar7', 'gameMaster1', 'techGuru42', 'quickSilver', 'happyCamper',
-            'blueSky5', 'codingWizard', 'magicMikey', 'fastTrack99', 'misterX',
+            'user', 'coolUser', 'jane_doe', 'johnnyBravo', 'theRealMike',
+            'superstar', 'gameMaster', 'techGuru', 'quickSilver', 'happyCamper',
+            'blueSky', 'codingWizard', 'magicMikey', 'fastTrack', 'misterX',
             'adventureSeeker', 'pixelPioneer', 'ninjaWarrior', 'starGazer', 'drSmart',
             'boldExplorer', 'zenMaster', 'risingStar', 'rocketRider', 'digitalNomad',
-            'echoEcho', 'nightOwl21', 'lightSpeed', 'trueBeliever', 'cyberHawk',
+            'echoEcho', 'nightOwl', 'lightSpeed', 'trueBeliever', 'cyberHawk',
             'galacticHero', 'luckyCharm', 'urbanVibes', 'silentStorm', 'wildWanderer',
             'moonWalker', 'brightStar', 'vividDreamer', 'vortexVoyager', 'infiniteLoop',
             'horizonChaser', 'quickSilverFox', 'shadowKnight', 'dataMaster', 'epicQuest',
@@ -279,58 +279,149 @@ class DataGenerator {
             'lunarExplorer', 'plasmaBolt', 'infinityEdge', 'quantumQuest', 'stellarVoyager'
         ];
 
-        return $usernames[array_rand($usernames)];
+        $number = mt_rand(0, 9999);
+
+        return $usernames[array_rand($usernames)] . $number;
     }
 
-    public static function firstname(): string {
-        $firstnames = [
-            'John', 'Jane', 'Michael', 'Emily', 'Robert', 'Jessica', 'David', 'Sarah',
-            'James', 'Laura', 'Daniel', 'Sophia', 'Matthew', 'Olivia', 'Andrew', 'Isabella',
-            'William', 'Mia', 'Joseph', 'Charlotte', 'Charles', 'Amelia', 'Thomas', 'Harper',
-            'Christopher', 'Evelyn', 'Benjamin', 'Abigail', 'Samuel', 'Ella', 'Henry', 'Avery',
-            'Lucas', 'Sofia', 'Jack', 'Grace', 'Jackson', 'Chloe', 'Ethan', 'Zoe', 'Alexander',
-            'Lily', 'Ryan', 'Hannah', 'Nathan', 'Scarlett', 'Gabriel', 'Aria', 'Carter', 'Mila',
-            'Isaac', 'Ella', 'Luke', 'Madison', 'Owen', 'Penelope', 'Caleb', 'Riley', 'Aiden',
-            'Samantha', 'Dylan', 'Eleanor', 'Joshua', 'Layla', 'Mason', 'Nora', 'Logan', 'Lila',
-            'Eli', 'Hazel', 'Cameron', 'Audrey', 'Sebastian', 'Ellie', 'Grayson', 'Stella',
-            'Julian', 'Luna', 'Hudson', 'Lila', 'Wyatt', 'Nina', 'Mateo', 'Cora', 'Isaiah',
-            'Vivian', 'Jordan', 'Katherine', 'Leo', 'Mackenzie', 'Harrison', 'Paige', 'Evan',
-            'Alice', 'Jaxon', 'Eliana', 'Asher', 'Lydia', 'Leo', 'Julia', 'Miles', 'Caroline',
-            'Jeremiah', 'Kylie', 'Jasper', 'Adeline', 'Roman', 'Piper', 'Ezekiel', 'Claire',
-            'Xavier', 'Riley', 'Sawyer', 'Serenity', 'Kinsley', 'Maya', 'Zachary', 'Madeline',
-            'Ariana', 'Aiden', 'Eliza', 'Avery', 'Liam', 'Sophie', 'Jaxon', 'Evangeline',
-            'Daniel', 'Anna', 'Hudson', 'Natalie', 'Eli', 'Mia', 'Sebastian', 'Quinn',
-            'Jameson', 'Everly', 'Santiago', 'Aurora', 'Roman', 'Naomi', 'Jackson', 'Ivy'
+    public static function firstname($lang = null): string {
+        $map_lang_firstnames = [
+            'en' => [
+                'John', 'Jane', 'Michael', 'Emily', 'Robert', 'Jessica', 'David', 'Sarah',
+                'James', 'Laura', 'Daniel', 'Sophia', 'Matthew', 'Olivia', 'Andrew', 'Isabella',
+                'William', 'Mia', 'Joseph', 'Charlotte', 'Charles', 'Amelia', 'Thomas', 'Harper',
+                'Christopher', 'Evelyn', 'Benjamin', 'Abigail', 'Samuel', 'Ella', 'Henry', 'Avery',
+                'Lucas', 'Sofia', 'Jack', 'Grace', 'Jackson', 'Chloe', 'Ethan', 'Zoe', 'Alexander',
+                'Lily', 'Ryan', 'Hannah', 'Nathan', 'Scarlett', 'Gabriel', 'Aria', 'Carter', 'Mila',
+                'Isaac', 'Ella', 'Luke', 'Madison', 'Owen', 'Penelope', 'Caleb', 'Riley', 'Aiden',
+                'Samantha', 'Dylan', 'Eleanor', 'Joshua', 'Layla', 'Mason', 'Nora', 'Logan', 'Lila',
+                'Eli', 'Hazel', 'Cameron', 'Audrey', 'Sebastian', 'Ellie', 'Grayson', 'Stella',
+                'Julian', 'Luna', 'Hudson', 'Lila', 'Wyatt', 'Nina', 'Mateo', 'Cora', 'Isaiah',
+                'Vivian', 'Jordan', 'Katherine', 'Leo', 'Mackenzie', 'Harrison', 'Paige', 'Evan',
+                'Alice', 'Jaxon', 'Eliana', 'Asher', 'Lydia', 'Leo', 'Julia', 'Miles', 'Caroline',
+                'Jeremiah', 'Kylie', 'Jasper', 'Adeline', 'Roman', 'Piper', 'Ezekiel', 'Claire',
+                'Xavier', 'Riley', 'Sawyer', 'Serenity', 'Kinsley', 'Maya', 'Zachary', 'Madeline',
+                'Ariana', 'Aiden', 'Eliza', 'Avery', 'Liam', 'Sophie', 'Jaxon', 'Evangeline',
+                'Daniel', 'Anna', 'Hudson', 'Natalie', 'Eli', 'Mia', 'Sebastian', 'Quinn',
+                'Jameson', 'Everly', 'Santiago', 'Aurora', 'Roman', 'Naomi', 'Jackson', 'Ivy',
+                'Finn', 'Riley', 'Oliver', 'Jade', 'Landon', 'Brianna', 'Gavin', 'Savannah',
+                'Connor', 'Lily', 'Parker', 'Aubrey', 'Nolan', 'Violet', 'Bentley', 'Clara',
+                'Levi', 'Ruby', 'Carson', 'Alyssa', 'Hunter', 'Faith', 'Eli', 'Zoey', 'Adrian',
+                'Sienna', 'Cooper', 'Elise', 'Brody', 'Genesis', 'Grant', 'Harley', 'Tristan',
+                'Eva', 'Easton', 'Sage', 'Tanner', 'Summer', 'Dominic', 'Maddie', 'Micah',
+                'Tessa', 'Elias', 'Brooke', 'Elliot', 'Mallory', 'Theo', 'Delilah', 'Ryder',
+                'Lana', 'Beckett', 'Reese', 'Axel', 'Anastasia', 'Malachi', 'Gemma', 'Bennett',
+                'Talia', 'Brayden', 'Nadia', 'Silas', 'Camila', 'Jonah', 'Iris', 'Maxwell',
+                'Isla', 'Tyler', 'Jasmine', 'Diego', 'Nova', 'Eric', 'Maren', 'Dean', 'Bianca',
+                'Lincoln', 'Paisley', 'Hayden', 'Rose', 'Declan', 'Carmen', 'Oscar', 'Willa',
+                'Griffin', 'Aspen', 'Ronan', 'Freya', 'Ezra', 'Willow', 'Kaden', 'Georgia'
+            ],
+            'fr' => [
+                'Jean', 'Marie', 'Pierre', 'Sophie', 'Louis', 'Camille', 'Paul', 'Juliette',
+                'Jacques', 'Chloé', 'Léon', 'Clara', 'Henri', 'Lucie', 'Thomas', 'Élodie',
+                'Philippe', 'Manon', 'Michel', 'Léa', 'Nicolas', 'Amandine', 'François', 'Anaïs',
+                'Antoine', 'Aurélie', 'Guillaume', 'Margaux', 'Étienne', 'Charlotte', 'Benoît',
+                'Alice', 'Maxime', 'Julie', 'Hugo', 'Emilie', 'Théo', 'Isabelle', 'Vincent',
+                'Valérie', 'Laurent', 'Cécile', 'Olivier', 'Maëlys', 'Damien', 'Catherine',
+                'Adrien', 'Amélie', 'Georges', 'Émilie', 'Baptiste', 'Inès', 'Rémi', 'Océane',
+                'Mathieu', 'Florian', 'Yves', 'Elsa', 'René', 'Jade', 'Claude', 'Clémentine',
+                'André', 'Victoria', 'Gérard', 'Laure', 'Lucas', 'Sarah', 'Alain', 'Gabrielle',
+                'Patrick', 'Madeleine', 'Simon', 'Louise', 'Raphaël', 'Soline', 'Arnaud', 'Léna',
+                'Sébastien', 'Victoire', 'Gaspard', 'Maëlle', 'Charles', 'Rose', 'Mathis', 'Fanny',
+                'Luc', 'Noémie', 'Christophe', 'Caroline', 'David', 'Jeanne', 'Emmanuel', 'Justine',
+                'Xavier', 'Adèle', 'Pascal', 'Diane', 'Romain', 'Noé', 'Marc', 'Marion', 'Gaël',
+                'Coralie', 'Cédric', 'Ariane','Françoise', 'Yvonne', 'Clément', 'Solange', 'Mathilde',
+                'Bérénice', 'Thierry', 'Agnès', 'Pascaline', 'Alix', 'Roland', 'Brigitte', 'Sylvain',
+                'Estelle', 'Fabrice', 'Lilian', 'Josiane', 'Éric', 'Serge', 'Cyril', 'Bernadette',
+                'Guilhem', 'Axelle', 'Dominique', 'Ludovic', 'Véronique', 'Raymond', 'Sandrine',
+                'Patrice', 'Colette', 'Basile', 'Félix', 'Jean-Marc', 'Maurice', 'Sylvie', 'Jacqueline',
+                'Augustin', 'Gaston', 'Jean-Baptiste', 'Odile', 'Arlette', 'Marius', 'Christiane',
+                'Fabien', 'Louison', 'Léonie', 'Yann', 'Noémie', 'Raphaëlle', 'Sébastienne', 'Florence',
+                'Lucien', 'Jean-Luc', 'Fernand', 'Antoinette', 'Gisèle', 'Solène', 'Angèle', 'Edmond',
+                'Céleste', 'Hélène', 'Violette'
+            ]
         ];
 
-        return $firstnames[array_rand($firstnames)];
+        if(is_null($lang) || !isset($map_lang_firstnames[$lang])) {
+            $all_firstnames = array_merge(
+                $map_lang_firstnames['en'],
+                $map_lang_firstnames['fr']
+            );
+
+            return $all_firstnames[array_rand($all_firstnames)];
+        }
+
+        return $map_lang_firstnames[$lang][array_rand($map_lang_firstnames[$lang])];
     }
 
-    public static function lastname(): string {
-        $lastnames = [
-            'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson',
-            'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin',
-            'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis',
-            'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'King', 'Wright', 'Scott', 'Torres',
-            'Nguyen', 'Hill', 'Adams', 'Baker', 'Nelson', 'Carter', 'Mitchell', 'Perez',
-            'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards',
-            'Collins', 'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed', 'Cook', 'Morgan',
-            'Bell', 'Murphy', 'Bailey', 'Rivera', 'Cooper', 'Richardson', 'Cox', 'Howard',
-            'Ward', 'Flores', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Cruz',
-            'Hughes', 'Price', 'Myers', 'Long', 'Foster', 'Sanders', 'Ross', 'Morales',
-            'Powell', 'Jenkins', 'Perry', 'Butler', 'Barnes', 'Fisher', 'Henderson',
-            'Coleman', 'Simmons', 'Patterson', 'Jordan', 'Reynolds', 'Hamilton',
-            'Graham', 'Kim', 'Gonzalez', 'Vasquez', 'Sullivan', 'Bryant', 'Alexander',
-            'Russell', 'Griffin', 'Diaz', 'Hayes', 'Wells', 'Chavez', 'Burke', 'Wood',
-            'Harrison', 'Gordon', 'Walters', 'McDonald', 'Murray', 'Ford', 'Hamilton',
-            'Gibson', 'Ellis', 'Ramos', 'Fisher', 'George', 'Miller', 'Harris', 'James',
-            'Stone', 'Richards', 'Hunter', 'Bennett', 'Perry', 'Matthews', 'Hughes',
-            'Palmer', 'Burns', 'Floyd', 'Nguyen', 'Snyder', 'Bishop', 'Newman', 'Boone',
-            'Dean', 'Carr', 'Cunningham', 'Sampson', 'Marshall', 'Barnett', 'Farrell',
-            'Weaver', 'Wade', 'Bradley', 'Mason', 'Newton', 'Olson'
+    public static function lastname($lang = null): string {
+        $map_lang_lastnames = [
+            'en' => [
+                'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson',
+                'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin',
+                'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Rodriguez', 'Lewis',
+                'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'King', 'Wright', 'Scott', 'Torres',
+                'Nguyen', 'Hill', 'Adams', 'Baker', 'Nelson', 'Carter', 'Mitchell', 'Perez',
+                'Roberts', 'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards',
+                'Collins', 'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed', 'Cook', 'Morgan',
+                'Bell', 'Murphy', 'Bailey', 'Rivera', 'Cooper', 'Richardson', 'Cox', 'Howard',
+                'Ward', 'Flores', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Cruz',
+                'Hughes', 'Price', 'Myers', 'Long', 'Foster', 'Sanders', 'Ross', 'Morales',
+                'Powell', 'Jenkins', 'Perry', 'Butler', 'Barnes', 'Fisher', 'Henderson',
+                'Coleman', 'Simmons', 'Patterson', 'Jordan', 'Reynolds', 'Hamilton',
+                'Graham', 'Kim', 'Gonzalez', 'Vasquez', 'Sullivan', 'Bryant', 'Alexander',
+                'Russell', 'Griffin', 'Diaz', 'Hayes', 'Wells', 'Chavez', 'Burke', 'Wood',
+                'Harrison', 'Gordon', 'Walters', 'McDonald', 'Murray', 'Ford', 'Hamilton',
+                'Gibson', 'Ellis', 'Ramos', 'Fisher', 'George', 'Miller', 'Harris', 'James',
+                'Stone', 'Richards', 'Hunter', 'Bennett', 'Perry', 'Matthews', 'Hughes',
+                'Palmer', 'Burns', 'Floyd', 'Nguyen', 'Snyder', 'Bishop', 'Newman', 'Boone',
+                'Dean', 'Carr', 'Cunningham', 'Sampson', 'Marshall', 'Barnett', 'Farrell',
+                'Weaver', 'Wade', 'Bradley', 'Mason', 'Newton', 'Olson',
+                'Hawkins', 'Chapman', 'Bowman', 'Lawrence', 'Glover', 'Barber', 'Grant', 'Wallace',
+                'Keller', 'Webb', 'Spencer', 'Harvey', 'Brooks', 'Pearson', 'Francis', 'Burgess',
+                'Graves', 'Lambert', 'Cross', 'Tucker', 'Fields', 'Reeves', 'Gibbs', 'Porter',
+                'Daniels', 'Brady', 'Owen', 'Horton', 'McCarthy', 'Fletcher', 'Simon', 'Norris',
+                'Clayton', 'Kemp', 'Fuller', 'Tyler', 'Pearce', 'Moss', 'Rowe', 'Hodges', 'Barker',
+                'Hardy', 'Jennings', 'Gilbert', 'Payne', 'Webster', 'Neal', 'Sutton', 'Davidson',
+                'Carlson', 'Morton', 'Kirk', 'Holland', 'Greer', 'Wheeler', 'Peters', 'Fordham'
+            ],
+            'fr' => [
+                'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau',
+                'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier',
+                'Morel', 'Girard', 'Andre', 'Lefevre', 'Mercier', 'Dupont', 'Lambert', 'Bonnet', 'Francois', 'Martinez',
+                'Legrand', 'Garnier', 'Faure', 'Rousseau', 'Blanc', 'Guerin', 'Muller', 'Henry', 'Roussel', 'Nicolas',
+                'Perrin', 'Morin', 'Mathieu', 'Clement', 'Gauthier', 'Dumont', 'Lopez', 'Fontaine', 'Chevalier',
+                'Robin', 'Masson', 'Sanchez', 'Gerard', 'Nguyen', 'Boyer', 'Denis', 'Lemoine', 'Duval', 'Joly',
+                'Gautier', 'Roger', 'Renaud', 'Gaillard', 'Hamond', 'Boucher', 'Carpentier', 'Menard', 'Marechal',
+                'Charpentier', 'Dupuis', 'Leclerc', 'Poirier', 'Guillaume', 'Leconte', 'Benoit', 'Collet',
+                'Perrot', 'Jacquet', 'Rey', 'Gilles', 'Herve', 'Charrier', 'Schmitt', 'Baron', 'Perret',
+                'Leblanc', 'Verdier', 'Giraud', 'Marty', 'Lemoine', 'Poulain', 'Vallet', 'Renard',
+                'Marion', 'Marchand', 'Chauvin', 'Langlois', 'Teixeira', 'Bellamy', 'Lemoigne', 'Bazin',
+                'Da Silva', 'Delorme', 'Aubry', 'Ferreira', 'Chauvet', 'Delaunay', 'Joubert', 'Vidal',
+                'Pires', 'Blondel', 'Noel', 'Collin', 'Lucas', 'Monnier', 'Breton', 'Lejeune', 'Prevost',
+                'Allard', 'Pichon', 'Le Gall', 'Lavigne', 'Roy', 'Gros', 'Chartier', 'Briand', 'Maillet',
+                'Lemois', 'Dufour', 'Boutin', 'Guichard', 'Vasseur', 'Hoarau', 'Lebrun', 'Giraudet',
+                'Dubois', 'Maillard', 'Millet', 'Carre', 'Coste', 'Laborde', 'Bertin', 'Moulin',
+                'Turpin', 'Deschamps', 'Barthelemy', 'Descamps', 'Riviere', 'Guilbert', 'Tanguy',
+                'Duchamp', 'Pasquier', 'Gaudin', 'Vial', 'Letellier', 'Meunier', 'Bouchet', 'Hebert',
+                'Gosselin', 'Le Roux', 'Renou', 'Guillon', 'Delattre', 'Lefranc', 'Peltier', 'Delacroix',
+                'Labbe', 'Bellanger', 'Perrier', 'Chretien', 'Bouvet', 'Ferrand', 'Vallee', 'Boulanger',
+                'Vautier', 'Morvan', 'Leclercq', 'Picard', 'Jourdain', 'Cornu', 'Bodin', 'Courtois',
+                'Duhamel', 'Leveque', 'Leconte', 'Aubert', 'Delaire', 'Letourneau', 'Tessier', 'Barre',
+                'Fleury', 'Mallet', 'Deniau', 'Royer', 'Rigal', 'Levy', 'Bouchard', 'Charron', 'Laroche'
+            ]
         ];
 
-        return $lastnames[array_rand($lastnames)];
+        if(is_null($lang) || !isset($map_lang_firstnames[$lang])) {
+            $all_lastnames = array_merge(
+                $map_lang_lastnames['en'],
+                $map_lang_lastnames['fr']
+            );
+
+            return $all_lastnames[array_rand($all_lastnames)];
+        }
+
+        return $map_lang_lastnames[$lang][array_rand($map_lang_lastnames[$lang])];
     }
 
     public static function fullname(): string {
