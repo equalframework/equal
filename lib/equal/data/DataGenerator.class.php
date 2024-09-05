@@ -262,21 +262,21 @@ class DataGenerator {
 
     public static function username(): string {
         $usernames = [
-            'user', 'coolUser', 'jane_doe', 'johnnyBravo', 'theRealMike',
+            'user', 'coolUser', 'jane-doe', 'johnnyBravo', 'theRealMike',
             'superstar', 'gameMaster', 'techGuru', 'quickSilver', 'happyCamper',
             'blueSky', 'codingWizard', 'magicMikey', 'fastTrack', 'misterX',
-            'adventureSeeker', 'pixelPioneer', 'ninjaWarrior', 'starGazer', 'drSmart',
-            'boldExplorer', 'zenMaster', 'risingStar', 'rocketRider', 'digitalNomad',
+            'adventureSeeker', 'pixelPioneer', 'ninja-warrior', 'starGazer', 'drSmart',
+            'boldExplorer', 'zenMaster', 'risingStar', 'rocket-rider', 'digitalNomad',
             'echoEcho', 'nightOwl', 'lightSpeed', 'trueBeliever', 'cyberHawk',
             'galacticHero', 'luckyCharm', 'urbanVibes', 'silentStorm', 'wildWanderer',
             'moonWalker', 'brightStar', 'vividDreamer', 'vortexVoyager', 'infiniteLoop',
             'horizonChaser', 'quickSilverFox', 'shadowKnight', 'dataMaster', 'epicQuest',
             'cosmicDancer', 'virtualVictor', 'alphaBravo', 'gammaRay', 'quantumLeap',
-            'alphaWolf', 'digitalDynamo', 'codeNinja', 'retroRider', 'futureFreak',
+            'alphaWolf', 'digitalDynamo', 'codeNinja', 'retro-rider', 'futureFreak',
             'hyperLink', 'wizardKing', 'neonNinja', 'techTitan', 'starshipPilot',
             'legendaryHero', 'phantomShadow', 'urbanLegend', 'novaStar', 'daringDiva',
             'trailBlazer', 'cyberChampion', 'epicGamer', 'stellarScribe', 'stormChaser',
-            'lunarExplorer', 'plasmaBolt', 'infinityEdge', 'quantumQuest', 'stellarVoyager'
+            'lunarExplorer', 'plasma-bolt', 'infinityEdge', 'quantumQuest', 'stellar-voyager'
         ];
 
         $number = mt_rand(0, 9999);
