@@ -13,10 +13,10 @@ use equal\services\Container;
  * This class holds the description of an object along with the values of the currently loaded/assigned fields.
  *
  * List of static methods for building new Collection objects (accessed through magic methods):
- * @method \equal\orm\Collection id($id)
- * @method \equal\orm\Collection ids(array $ids=[])
- * @method \equal\orm\Collection search(array $domain=[], array $params=[], $lang=null)
- * @method \equal\orm\Collection create(array $values=null, $lang=null)
+ * @method static \equal\orm\Collection id($id)
+ * @method static \equal\orm\Collection static ids(array $ids=[])
+ * @method static \equal\orm\Collection static search(array $domain=[], array $params=[], $lang=null)
+ * @method static \equal\orm\Collection static create(array $values=null, $lang=null)
  *
  * List of static methods with variable parameters:
  * (These methods are handled through __callStatic method to prevent PHP strict errors & aot warnings.)
@@ -143,7 +143,7 @@ class Model implements \ArrayAccess, \Iterator {
                         $this->values[$field] = $defaults[$field]();
                     }
                     else {
-                        // do not call since there is an ambiguity (e.g. 'time')
+                        // do not call since there is an ambiguity with scalar (e.g. 'time')
                         $this->values[$field] = $defaults[$field];
                     }
                 }
@@ -210,7 +210,7 @@ class Model implements \ArrayAccess, \Iterator {
      * Iterator methods
      */
 
-    public function rewind() : void {
+    public function rewind(): void {
         reset($this->values);
     }
 
@@ -218,15 +218,15 @@ class Model implements \ArrayAccess, \Iterator {
         return current($this->values);
     }
 
-    public function key() : string {
+    public function key(): string {
         return key($this->values);
     }
 
-    public function next() : void {
+    public function next(): void {
         next($this->values);
     }
 
-    public function valid() : bool {
+    public function valid(): bool {
         $key = key($this->values);
         $res = ($key !== null && $key !== false);
         return $res;
