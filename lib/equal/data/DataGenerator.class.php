@@ -7,7 +7,66 @@
 
 namespace equal\data;
 
+use equal\orm\UsageFactory;
+
 class DataGenerator {
+
+    /**
+     * @return array|bool|float|int|mixed|string|null
+     */
+    public static function generateByFieldConf(string $field, array $field_conf, string $lang = null) {
+        if(isset($conf['usage'])) {
+            try {
+                $usage = UsageFactory::create($conf['usage']);
+                return $usage->generateRandomValue();
+            }
+            catch(\Exception $e) {
+                // Usage problem
+            }
+        }
+
+        switch($field) {
+            case 'username':
+                return self::username();
+            case 'firstname':
+                return self::firstname($lang);
+            case 'lastname':
+                return self::lastname($lang);
+            case 'fullname':
+                return self::fullname($lang);
+            case 'address_street':
+                return self::addressStreet($lang);
+            case 'address_zip':
+                return self::addressZip();
+            case 'address_city':
+                return self::addressCity($lang);
+            case 'address_country':
+                return self::addressCountry($lang);
+            case 'address':
+                return self::address($lang);
+        }
+
+        switch($field_conf['type']) {
+            case 'string':
+                if(!empty($field_conf['selection'])) {
+                    $values = array_values($field_conf['selection']);
+                    return $values[array_rand($values)];
+                }
+                elseif(isset($field_conf['default'])) {
+                    return $field_conf['default'];
+                }
+
+                return self::plainText();
+            case 'boolean':
+                return self::boolean();
+            case 'integer':
+                return self::integer(9);
+            case 'float':
+                return self::realNumber(9, 2);
+        }
+
+        return null;
+    }
 
     public static function plainText($max_length = 255): string {
         $words = [
@@ -420,8 +479,8 @@ class DataGenerator {
         return $map_lang_lastnames[$lang][array_rand($map_lang_lastnames[$lang])];
     }
 
-    public static function fullname(): string {
-        return sprintf('%s %s', self::firstname(), self::lastname());
+    public static function fullname($lang = null): string {
+        return sprintf('%s %s', self::firstname($lang), self::lastname($lang));
     }
 
     public static function addressStreet($lang = null): string {

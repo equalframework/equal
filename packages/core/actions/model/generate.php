@@ -52,58 +52,6 @@ list($params, $providers) = eQual::announce([
 list('context' => $context, 'orm' => $orm) = $providers;
 
 /**
- * Methods
- */
-
-$generateRecognizableFieldRandomValue = function($field) {
-    switch($field) {
-        case 'username':
-            return DataGenerator::username();
-        case 'firstname':
-            return DataGenerator::firstname();
-        case 'lastname':
-            return DataGenerator::lastname();
-        case 'fullname':
-            return DataGenerator::fullname();
-        case 'address_street':
-            return DataGenerator::addressStreet();
-        case 'address_zip':
-            return DataGenerator::addressZip();
-        case 'address_city':
-            return DataGenerator::addressCity();
-        case 'address_country':
-            return DataGenerator::addressCountry();
-        case 'address':
-            return DataGenerator::address();
-    }
-
-    return null;
-};
-
-$generateFieldRandomValue = function($field_conf) {
-    switch($field_conf['type']) {
-        case 'string':
-            if(!empty($field_conf['selection'])) {
-                $values = array_values($field_conf['selection']);
-                return $values[array_rand($values)];
-            }
-            elseif(isset($field_conf['default'])) {
-                return $field_conf['default'];
-            }
-
-            return DataGenerator::plainText();
-        case 'boolean':
-            return DataGenerator::boolean();
-        case 'integer':
-            return DataGenerator::integer(9);
-        case 'float':
-            return DataGenerator::realNumber(9, 2);
-    }
-
-    return null;
-};
-
-/**
  * Action
  */
 
@@ -115,10 +63,6 @@ if(!$model) {
 }
 
 $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
-$recognizable_fields = [
-    'username', 'firstname', 'lastname', 'fullname',
-    'address', 'address_street', 'address_zip', 'address_city', 'address_country'
-];
 
 $model_unique_conf = [];
 if(method_exists($params['entity'], 'getUnique')) {
@@ -128,7 +72,7 @@ if(method_exists($params['entity'], 'getUnique')) {
 $schema = $model->getSchema();
 foreach($schema as $field => $conf) {
     $field_value_forced = isset($params['fields'][$field]);
-    $field_has_generate_function = isset($conf['generator_function']) && method_exists($params['entity'], $conf['generator_function']);
+    $field_has_generate_function = isset($conf['generate']) && method_exists($params['entity'], $conf['generate']);
 
     if(
         !$field_value_forced
@@ -161,7 +105,7 @@ foreach($schema as $field => $conf) {
             $new_entity[$field] = $params['fields'][$field];
         }
         elseif($field_has_generate_function) {
-            $new_entity[$field] = $params['entity']::{$conf['generator_function']}();
+            $new_entity[$field] = $params['entity']::{$conf['generate']}();
         }
         elseif($conf['type'] === 'many2one') {
             $ids = $conf['foreign_object']::search([])->ids();
@@ -181,16 +125,16 @@ foreach($schema as $field => $conf) {
                     }
                     break;
                 case 'create':
-                    $relation_param = [
+                    $relation_params = [
                         'entity' => $conf['foreign_object']
                     ];
                     foreach(['fields', 'relations'] as $param_key) {
                         if(isset($params['relations'][$field][$param_key])) {
-                            $relation_param[$param_key] = $params['relations'][$field][$param_key];
+                            $relation_params[$param_key] = $params['relations'][$field][$param_key];
                         }
                     }
 
-                    $result = eQual::run('do', 'core_model_generate', $relation_param);
+                    $result = eQual::run('do', 'core_model_generate', $relation_params);
                     $new_entity[$field] = $result['id'];
                     break;
             }
@@ -220,19 +164,19 @@ foreach($schema as $field => $conf) {
                     }
                     break;
                 case 'create':
-                    $relation_param = [
+                    $relation_params = [
                         'entity'    => $conf['foreign_object'],
                         'lang'      => $params['lang']
                     ];
                     foreach(['fields', 'relations'] as $param_key) {
                         if(isset($params['relations'][$field][$param_key])) {
-                            $relation_param[$param_key] = $params['relations'][$field][$param_key];
+                            $relation_params[$param_key] = $params['relations'][$field][$param_key];
                         }
                     }
 
                     $new_relation_entities_ids = [];
                     for($i = 0; $i < $qty; $i++) {
-                        $result = eQual::run('do', 'core_model_generate', $relation_param);
+                        $result = eQual::run('do', 'core_model_generate', $relation_params);
                         $new_relation_entities_ids[] = $result['id'];
                     }
 
@@ -242,21 +186,14 @@ foreach($schema as $field => $conf) {
                     break;
             }
         }
-        elseif(isset($conf['usage'])) {
+        else {
             $required = $conf['required'] ?? false;
-            if(!$required && DataGenerator::boolean(0.1)) {
+            if(!$required && DataGenerator::boolean(0.05)) {
                 $new_entity[$field] = null;
             }
             else {
-                $usage = UsageFactory::create($conf['usage']);
-                $new_entity[$field] = $usage->generateRandomValue();
+                $new_entity[$field] = DataGenerator::generateByFieldConf($field, $conf, $params['lang']);
             }
-        }
-        elseif(in_array($field, $recognizable_fields)) {
-            $new_entity[$field] = $generateRecognizableFieldRandomValue($field);
-        }
-        else {
-            $new_entity[$field] = $generateFieldRandomValue($conf);
         }
 
         if($should_be_unique) {
@@ -287,24 +224,24 @@ foreach($schema as $field => $conf) {
     $qty_conf = $params['relations'][$field]['qty'] ?? [0, 3];
     $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
 
-    $relation_param = [
+    $relation_params = [
         'entity'    => $conf['foreign_object'],
         'lang'      => $params['lang']
     ];
     foreach(['fields', 'relations'] as $param_key) {
         if(isset($params['relations'][$field][$param_key])) {
-            $relation_param[$param_key] = $params['relations'][$field][$param_key];
+            $relation_params[$param_key] = $params['relations'][$field][$param_key];
         }
     }
 
-    if(!isset($relation_param['fields'])) {
-        $relation_param['fields'] = [];
+    if(!isset($relation_params['fields'])) {
+        $relation_params['fields'] = [];
     }
-    $relation_param['fields'][$conf['foreign_field']] = $instance['id'];
+    $relation_params['fields'][$conf['foreign_field']] = $instance['id'];
 
     $new_relation_entities_ids = [];
     for($i = 0; $i < $qty; $i++) {
-        $result = eQual::run('do', 'core_model_generate', $relation_param);
+        $result = eQual::run('do', 'core_model_generate', $relation_params);
         $new_relation_entities_ids[] = $result['id'];
     }
 
