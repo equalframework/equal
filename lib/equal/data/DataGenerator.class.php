@@ -78,7 +78,13 @@ class DataGenerator {
     }
 
     public static function email(): string {
-        $domains = ['example.com', 'test.com', 'demo.com', 'sample.org', 'mywebsite.net'];
+        $domains = [
+            'example.com', 'test.com', 'demo.com', 'sample.org', 'mywebsite.net',
+            'mail.com', 'webmail.org', 'inbox.net', 'mailservice.io', 'emailprovider.co',
+            'messaging.com', 'mailbox.org', 'fastmail.com', 'corpmail.net', 'freemail.org',
+            'onlinemail.io', 'postbox.com', 'securemail.net', 'cloudmail.org', 'hostmail.co',
+            'netmail.com', 'simplemail.io', 'yourmail.net', 'webservice.org', 'globalmail.com'
+        ];
 
         $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
         $username_length = mt_rand(5, 10);
@@ -168,17 +174,7 @@ class DataGenerator {
     }
 
     public static function urlTel(): string {
-        $generateRandomNumber = function($length) {
-            $number = '';
-            for ($i = 0; $i < $length; $i++) {
-                $number .= mt_rand(0, 9);
-            }
-            return $number;
-        };
-
-        $phoneNumber = $generateRandomNumber(10);
-
-        return 'tel:' . '+32' . $phoneNumber;
+        return 'tel:' . self::phoneNumberE164();
     }
 
     public static function urlMailto(): string {
@@ -412,7 +408,7 @@ class DataGenerator {
             ]
         ];
 
-        if(is_null($lang) || !isset($map_lang_firstnames[$lang])) {
+        if(is_null($lang) || !isset($map_lang_lastnames[$lang])) {
             $all_lastnames = array_merge(
                 $map_lang_lastnames['en'],
                 $map_lang_lastnames['fr']
@@ -428,157 +424,258 @@ class DataGenerator {
         return sprintf('%s %s', self::firstname(), self::lastname());
     }
 
-    public static function addressStreet(): string {
+    public static function addressStreet($lang = null): string {
         $number = mt_rand(1, 1200);
 
-        $streets = [
-            'Red Street', 'Blue Avenue', 'Green Lane', 'Yellow Road',
-            'Orange Boulevard', 'Purple Drive', 'Pink Place', 'Brown Terrace',
-            'Gray Court', 'White Crescent', 'Black Alley', 'Silver Way',
-            'Gold Street', 'Copper Crescent', 'Bronze Drive', 'Platinum Road',
-            'Emerald Lane', 'Ruby Street', 'Sapphire Avenue', 'Topaz Boulevard',
-            'Diamond Drive', 'Jade Place', 'Onyx Terrace', 'Quartz Way',
-            'Amethyst Avenue', 'Turquoise Road', 'Opal Lane', 'Amber Street',
-            'Lime Boulevard', 'Violet Drive', 'Indigo Crescent', 'Teal Place',
-            'Cyan Court', 'Magenta Terrace', 'Coral Way', 'Lavender Road',
-            'Cherry Lane', 'Rose Avenue', 'Marigold Street', 'Daisy Boulevard',
-            'Sunflower Drive', 'Iris Place', 'Lily Court', 'Poppy Way',
-            'Hibiscus Terrace', 'Gardenia Road', 'Holly Lane', 'Tulip Avenue',
-            'Azalea Boulevard', 'Dandelion Drive', 'Aster Street', 'Cosmos Place',
-            'Bluebell Road ', 'Hyacinth Court', 'Buttercup Avenue', 'Foxglove Lane'
+        $map_lang_streets = [
+            'en' => [
+                'High Street', 'Main Road', 'Church Lane', 'King Street', 'Victoria Avenue', 'Queen’s Road',
+                'Park Lane', 'Elm Street', 'Bridge Road', 'Cedar Drive', 'Oxford Street', 'Market Square',
+                'Mill Lane', 'Greenwich Way', 'Meadow Road', 'Kingfisher Close', 'Rosemary Avenue',
+                'West End', 'Holly Road', 'Sunset Boulevard', 'Newcastle Street', 'Broadway', 'Pine Hill',
+                'St. James’s Street', 'Bayview Road', 'Shakespeare Avenue', 'Cloverleaf Drive', 'Springfield Road',
+                'Wellington Street', 'Harrison Close', 'Golden Grove', 'Elmwood Avenue', 'Rose Lane',
+                'Abbey Road', 'Silver Street', 'Orchard Way', 'Granite Road', 'Oakfield Drive', 'Riverside Walk',
+                'Broad Street', 'Main Avenue', 'River Lane', 'Hampton Road', 'Baker Street', 'Long Lane',
+                'Park Avenue', 'Crescent Road', 'Hilltop Drive', 'Northgate Street', 'Cleveland Avenue',
+                'St. John’s Road', 'Meadowbrook Lane', 'Silverwood Drive', 'Greenfield Road', 'Windsor Crescent',
+                'Castle Street', 'Fairview Avenue', 'Ridgeway Road', 'Cumberland Street', 'Abbey Lane',
+                'Kingsway', 'Dove Court', 'Hollingsworth Road', 'Starlight Avenue', 'Sunrise Lane',
+                'Copperfield Road', 'Thornfield Drive', 'Holly Hill', 'Fairfax Street', 'Violet Lane',
+                'Laurel Avenue', 'Tudor Street', 'Bramble Road', 'Claremont Drive', 'Woodland Avenue',
+                'Glenwood Road', 'Beaumont Street', 'Ridgewood Avenue', 'Daisy Lane', 'Waverley Road',
+                'King’s Crescent', 'Hawthorn Road', 'Elmwood Drive', 'Haven Street', 'Meadow Street'
+            ],
+            'fr' => [
+                'Rue de la Paix', 'Avenue des Champs-Élysées', 'Boulevard Saint-Germain', 'Place de la Concorde',
+                'Rue de Rivoli', 'Avenue Victor Hugo', 'Boulevard Haussmann', 'Rue du Faubourg Saint-Honoré',
+                'Avenue de l\'Opéra', 'Rue Saint-Denis', 'Place Vendôme', 'Rue de la République',
+                'Boulevard Voltaire', 'Rue Lafayette', 'Avenue de la Grande Armée', 'Rue du Bac',
+                'Avenue Montaigne', 'Boulevard de Sébastopol', 'Place d’Italie', 'Rue de la Fontaine',
+                'Rue des Rosiers', 'Rue de Vaugirard', 'Avenue de Paris', 'Boulevard de Strasbourg',
+                'Place des Vosges', 'Rue Monge', 'Avenue Foch', 'Rue de la Garenne', 'Boulevard Saint-Michel',
+                'Rue de la Chapelle', 'Place du Trocadéro', 'Rue de l’Université', 'Boulevard Diderot',
+                'Rue des Écoles', 'Avenue de l\'Alma', 'Rue du Temple', 'Boulevard de la Madeleine',
+                'Rue du Commerce', 'Avenue des Ternes', 'Boulevard de la Liberté', 'Place des Jardins',
+                'Rue du Pont-Neuf', 'Avenue de la République', 'Boulevard de la Gare', 'Rue des Fleurs',
+                'Place du Marché', 'Rue du Général Leclerc', 'Avenue des Écoles', 'Boulevard du Palais',
+                'Rue des Lilas', 'Avenue de la Mairie', 'Boulevard des Capucines', 'Place des Armes',
+                'Rue des Peupliers', 'Avenue du Président Wilson', 'Boulevard de l’Indépendance', 'Rue des Roses',
+                'Place du Général de Gaulle', 'Rue des Pommiers', 'Avenue de la Victoire', 'Boulevard de la Mer',
+                'Rue des Vergers', 'Avenue des Arts', 'Boulevard de la Côte', 'Place du Château', 'Rue de la Gare',
+                'Rue de l’Église', 'Avenue de la Forêt', 'Boulevard du Parc', 'Place du Soleil', 'Rue des Vignes',
+                'Rue de la Liberté', 'Avenue des Érables', 'Boulevard des Temples', 'Place de la République',
+                'Rue des Champs', 'Avenue des Pyramides', 'Boulevard des Pruniers', 'Place de la Bastille'
+            ]
         ];
 
-        return $streets[array_rand($streets)] . ' ' . $number;
+        if(is_null($lang) || !isset($map_lang_streets[$lang])) {
+            $all_streets = array_merge(
+                $map_lang_streets['en'],
+                $map_lang_streets['fr']
+            );
+
+            return $all_streets[array_rand($all_streets)] . ' ' . $number;
+        }
+
+        return $map_lang_streets[$lang][array_rand($map_lang_streets[$lang])] . ' ' . $number;
     }
 
     public static function addressZip(): string {
-        return str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+        return mt_rand(1000, 9999);
     }
 
-    public static function addressCity(): string {
-        $cities = [
-            // United States
-            'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
-            'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
-
-            // Canada
-            'Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Edmonton',
-            'Ottawa', 'Winnipeg', 'Quebec City', 'Hamilton', 'Kitchener',
-
-            // United Kingdom
-            'London', 'Birmingham', 'Manchester', 'Glasgow', 'Liverpool',
-            'Edinburgh', 'Leeds', 'Sheffield', 'Bristol', 'Cardiff',
-
-            // Australia
-            'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide',
-            'Gold Coast', 'Canberra', 'Hobart', 'Darwin', 'Newcastle',
-
-            // Germany
-            'Berlin', 'Hamburg', 'Munich', 'Cologne', 'Frankfurt',
-            'Stuttgart', 'Dusseldorf', 'Dortmund', 'Essen', 'Leipzig',
-
-            // France
-            'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice',
-            'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille',
-
-            // Italy
-            'Rome', 'Milan', 'Naples', 'Turin', 'Palermo',
-            'Genoa', 'Bologna', 'Florence', 'Catania', 'Venice',
-
-            // Spain
-            'Madrid', 'Barcelona', 'Valencia', 'Seville', 'Zaragoza',
-            'Malaga', 'Murcia', 'Palma', 'Las Palmas', 'Bilbao',
-
-            // Belgium
-            'Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Liege',
-            'Namur', 'Ostend', 'Leuven', 'Hasselt', 'Mechelen',
-
-            // Netherlands
-            'Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven',
-            'Groningen', 'Maastricht', 'Arnhem', 'Nijmegen', 'Haarlem',
-
-            // Switzerland
-            'Zurich', 'Geneva', 'Bern', 'Basel', 'Lausanne',
-            'Lucerne', 'St. Moritz', 'Zug', 'Neuchatel', 'La Chaux-de-Fonds',
-
-            // Japan
-            'Tokyo', 'Osaka', 'Kyoto', 'Nagoya', 'Hiroshima',
-            'Fukuoka', 'Kobe', 'Yokohama', 'Sapporo', 'Sendai',
-
-            // China
-            'Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu',
-            'Hong Kong', 'Hangzhou', 'Nanjing', 'Wuhan', 'Xi\'an',
-
-            // India
-            'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Ahmedabad',
-            'Chennai', 'Kolkata', 'Pune', 'Jaipur', 'Surat',
-
-            // Brazil
-            'Sao Paulo', 'Rio de Janeiro', 'Salvador', 'Fortaleza', 'Belo Horizonte',
-            'Brasilia', 'Curitiba', 'Manaus', 'Recife', 'Porto Alegre',
-
-            // South Africa
-            'Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Port Elizabeth',
-            'Bloemfontein', 'East London', 'Polokwane', 'Nelspruit', 'Mbombela'
+    public static function addressCity($lang = null): string {
+        $map_lang_cities = [
+            'en' => [
+                'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
+                'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
+                'Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Edmonton',
+                'Ottawa', 'Winnipeg', 'Quebec City', 'Hamilton', 'Kitchener',
+                'London', 'Birmingham', 'Manchester', 'Glasgow', 'Liverpool',
+                'Edinburgh', 'Leeds', 'Sheffield', 'Bristol', 'Cardiff',
+                'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide',
+                'Gold Coast', 'Canberra', 'Hobart', 'Darwin', 'Newcastle',
+                'Berlin', 'Hamburg', 'Munich', 'Cologne', 'Frankfurt',
+                'Stuttgart', 'Dusseldorf', 'Dortmund', 'Essen', 'Leipzig',
+                'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice',
+                'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille',
+                'Rome', 'Milan', 'Naples', 'Turin', 'Palermo',
+                'Genoa', 'Bologna', 'Florence', 'Catania', 'Venice',
+                'Madrid', 'Barcelona', 'Valencia', 'Seville', 'Zaragoza',
+                'Malaga', 'Murcia', 'Palma', 'Las Palmas', 'Bilbao',
+                'Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Liege',
+                'Namur', 'Ostend', 'Leuven', 'Hasselt', 'Mechelen',
+                'Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven',
+                'Groningen', 'Maastricht', 'Arnhem', 'Nijmegen', 'Haarlem',
+                'Zurich', 'Geneva', 'Bern', 'Basel', 'Lausanne',
+                'Lucerne', 'St. Moritz', 'Zug', 'Neuchatel', 'La Chaux-de-Fonds',
+                'Tokyo', 'Osaka', 'Kyoto', 'Nagoya', 'Hiroshima',
+                'Fukuoka', 'Kobe', 'Yokohama', 'Sapporo', 'Sendai',
+                'Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu',
+                'Hong Kong', 'Hangzhou', 'Nanjing', 'Wuhan', 'Xi\'an',
+                'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Ahmedabad',
+                'Chennai', 'Kolkata', 'Pune', 'Jaipur', 'Surat',
+                'Sao Paulo', 'Rio de Janeiro', 'Salvador', 'Fortaleza', 'Belo Horizonte',
+                'Brasilia', 'Curitiba', 'Manaus', 'Recife', 'Porto Alegre',
+                'Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Port Elizabeth',
+                'Bloemfontein', 'East London', 'Polokwane', 'Nelspruit', 'Mbombela'
+            ],
+            'fr' => [
+                'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
+                'Philadelphie', 'San Antonio', 'San Diego', 'Dallas', 'San José',
+                'Toronto', 'Vancouver', 'Montréal', 'Calgary', 'Edmonton',
+                'Ottawa', 'Winnipeg', 'Québec', 'Hamilton', 'Kitchener',
+                'Londres', 'Birmingham', 'Manchester', 'Glasgow', 'Liverpool',
+                'Édimbourg', 'Leeds', 'Sheffield', 'Bristol', 'Cardiff',
+                'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adélaïde',
+                'Gold Coast', 'Canberra', 'Hobart', 'Darwin', 'Newcastle',
+                'Berlin', 'Hambourg', 'Munich', 'Cologne', 'Francfort',
+                'Stuttgart', 'Dusseldorf', 'Dortmund', 'Essen', 'Leipzig',
+                'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice',
+                'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille',
+                'Rome', 'Milan', 'Naples', 'Turin', 'Palermo',
+                'Gênes', 'Bologne', 'Florence', 'Catane', 'Venise',
+                'Madrid', 'Barcelone', 'Valence', 'Séville', 'Saragosse',
+                'Malaga', 'Murcie', 'Palma', 'Las Palmas', 'Bilbao',
+                'Bruxelles', 'Anvers', 'Gand', 'Bruges', 'Liège',
+                'Namur', 'Ostende', 'Leuven', 'Hasselt', 'Malines',
+                'Amsterdam', 'Rotterdam', 'La Haye', 'Utrecht', 'Eindhoven',
+                'Groningue', 'Maastricht', 'Arnhem', 'Nijmegen', 'Haarlem',
+                'Zurich', 'Genève', 'Berne', 'Bâle', 'Lausanne',
+                'Lucerne', 'Saint-Moritz', 'Zoug', 'Neuchâtel', 'La Chaux-de-Fonds',
+                'Tokyo', 'Osaka', 'Kyoto', 'Nagoya', 'Hiroshima',
+                'Fukuoka', 'Kobe', 'Yokohama', 'Sapporo', 'Sendai',
+                'Pékin', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu',
+                'Hong Kong', 'Hangzhou', 'Nankin', 'Wuhan', 'Xi’an',
+                'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Ahmedabad',
+                'Chennai', 'Kolkata', 'Pune', 'Jaipur', 'Surat',
+                'Sao Paulo', 'Rio de Janeiro', 'Salvador', 'Fortaleza', 'Belo Horizonte',
+                'Brasilia', 'Curitiba', 'Manaus', 'Recife', 'Porto Alegre',
+                'Johannesbourg', 'Le Cap', 'Durban', 'Prétoria', 'Port Elizabeth',
+                'Bloemfontein', 'East London', 'Polokwane', 'Nelspruit', 'Mbombela'
+            ]
         ];
 
-        return $cities[array_rand($cities)];
+        if(is_null($lang) || !isset($map_lang_cities[$lang])) {
+            $all_cities = array_merge(
+                $map_lang_cities['en'],
+                $map_lang_cities['fr']
+            );
+
+            return $all_cities[array_rand($all_cities)];
+        }
+
+        return $map_lang_cities[$lang][array_rand($map_lang_cities[$lang])];
     }
 
-    public static function addressCountry(): string {
-        $countries = [
-            'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
-            'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
-            'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
-            'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
-            'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei',
-            'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
-            'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile',
-            'China', 'Colombia', 'Comoros', 'Congo, Democratic Republic of the', 'Congo, Republic of the',
-            'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic',
-            'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
-            'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea',
-            'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji',
-            'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
-            'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
-            'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras',
-            'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
-            'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica',
-            'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
-            'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan',
-            'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia',
-            'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar',
-            'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta',
-            'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia',
-            'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
-            'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
-            'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria',
-            'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau',
-            'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines',
-            'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
-            'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa',
-            'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia',
-            'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
-            'Solomon Islands', 'Somalia', 'South Africa', 'South Sudan', 'Spain',
-            'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland',
-            'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
-            'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia',
-            'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine',
-            'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
-            'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen',
-            'Zambia', 'Zimbabwe'
+    public static function addressCountry($lang = null): string {
+        $map_lang_countries = [
+            'en' => [
+                'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
+                'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+                'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
+                'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+                'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei',
+                'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
+                'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile',
+                'China', 'Colombia', 'Comoros', 'Congo, Democratic Republic of the', 'Congo, Republic of the',
+                'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic',
+                'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+                'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea',
+                'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji',
+                'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
+                'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
+                'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras',
+                'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
+                'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica',
+                'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
+                'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan',
+                'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia',
+                'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar',
+                'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta',
+                'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia',
+                'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
+                'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
+                'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria',
+                'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau',
+                'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines',
+                'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
+                'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa',
+                'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia',
+                'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+                'Solomon Islands', 'Somalia', 'South Africa', 'South Sudan', 'Spain',
+                'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland',
+                'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
+                'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia',
+                'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine',
+                'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
+                'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen',
+                'Zambia', 'Zimbabwe'
+            ],
+            'fr' => [
+                'Afghanistan', 'Albanie', 'Algérie', 'Andorre', 'Angola',
+                'Antigua-et-Barbuda', 'Argentine', 'Arménie', 'Australie', 'Autriche',
+                'Azerbaïdjan', 'Bahamas', 'Bahreïn', 'Bangladesh', 'Barbade',
+                'Bélarus', 'Belgique', 'Belize', 'Bénin', 'Bhoutan',
+                'Bolivie', 'Bosnie-Herzégovine', 'Botswana', 'Brésil', 'Brunei',
+                'Bulgarie', 'Burkina Faso', 'Burundi', 'Cap-Vert', 'Cambodge',
+                'Cameroun', 'Canada', 'République Centrafricaine', 'Tchad', 'Chili',
+                'Chine', 'Colombie', 'Comores', 'République Démocratique du Congo', 'République du Congo',
+                'Côte d\'Ivoire', 'Costa Rica', 'Croatie', 'Cuba', 'Chypre',
+                'République tchèque', 'Danemark', 'Djibouti', 'Dominique', 'République Dominicaine',
+                'Timor oriental', 'Équateur', 'Égypte', 'El Salvador', 'Guinée équatoriale',
+                'Érythrée', 'Estonie', 'Eswatini', 'Éthiopie', 'Fidji',
+                'Finlande', 'France', 'Gabon', 'Gambie', 'Géorgie',
+                'Allemagne', 'Ghana', 'Grèce', 'Grenade', 'Guatemala',
+                'Guinée', 'Guinée-Bissau', 'Guyane', 'Haïti', 'Honduras',
+                'Hongrie', 'Islande', 'Inde', 'Indonésie', 'Iran',
+                'Irak', 'Irlande', 'Israël', 'Italie', 'Jamaïque',
+                'Japon', 'Jordanie', 'Kazakhstan', 'Kenya', 'Kiribati',
+                'Corée du Nord', 'Corée du Sud', 'Kosovo', 'Koweït', 'Kyrgyzstan',
+                'Laos', 'Lettonie', 'Liban', 'Lesotho', 'Liberia',
+                'Libye', 'Liechtenstein', 'Lituanie', 'Luxembourg', 'Madagascar',
+                'Malawi', 'Malaisie', 'Maldives', 'Mali', 'Malte',
+                'Îles Marshall', 'Mauritanie', 'Maurice', 'Mexique', 'Micronésie',
+                'Moldova', 'Monaco', 'Mongolie', 'Monténégro', 'Maroc',
+                'Mozambique', 'Myanmar', 'Namibie', 'Nauru', 'Népal',
+                'Pays-Bas', 'Nouvelle-Zélande', 'Nicaragua', 'Niger', 'Nigeria',
+                'Macédoine du Nord', 'Norvège', 'Oman', 'Pakistan', 'Palaos',
+                'Panama', 'Papouasie-Nouvelle-Guinée', 'Paraguay', 'Pérou', 'Philippines',
+                'Pologne', 'Portugal', 'Qatar', 'Roumanie', 'Russie',
+                'Rwanda', 'Saint-Kitts-et-Nevis', 'Sainte-Lucie', 'Saint-Vincent-et-les-Grenadines', 'Samoa',
+                'Saint-Marin', 'Sao Tomé-et-Principe', 'Arabie Saoudite', 'Sénégal', 'Serbie',
+                'Seychelles', 'Sierra Leone', 'Singapour', 'Slovaquie', 'Slovénie',
+                'Îles Salomon', 'Somalie', 'Afrique du Sud', 'Soudan du Sud', 'Espagne',
+                'Sri Lanka', 'Soudan', 'Suriname', 'Suède', 'Suisse',
+                'Syrie', 'Taïwan', 'Tadjikistan', 'Tanzanie', 'Thaïlande',
+                'Timor-Leste', 'Togo', 'Tonga', 'Trinité-et-Tobago', 'Tunisie',
+                'Turquie', 'Turkménistan', 'Tuvalu', 'Ouganda', 'Ukraine',
+                'Émirats Arabes Unis', 'Royaume-Uni', 'États-Unis', 'Uruguay', 'Ouzbékistan',
+                'Vanuatu', 'Vatican', 'Venezuela', 'Vietnam', 'Yémen',
+                'Zambie', 'Zimbabwe'
+            ]
         ];
 
-        return $countries[array_rand($countries)];
+        if(is_null($lang) || !isset($map_lang_countries[$lang])) {
+            $all_countries = array_merge(
+                $map_lang_countries['en'],
+                $map_lang_countries['fr']
+            );
+
+            return $all_countries[array_rand($all_countries)];
+        }
+
+        return $map_lang_countries[$lang][array_rand($map_lang_countries[$lang])];
     }
 
-    public static function address(): string {
+    public static function address($lang = null): string {
         return sprintf(
             '%s, %s %s, %s',
-            self::addressStreet(),
+            self::addressStreet($lang),
             self::addressZip(),
-            self::addressCity(),
-            self::addressCountry()
+            self::addressCity($lang),
+            self::addressCountry($lang)
         );
     }
 
