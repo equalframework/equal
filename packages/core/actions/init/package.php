@@ -190,32 +190,50 @@ else {
 
                 $objects_ids = [];
 
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        if(!isset($schema[$field])) {
-                            $reporter->warning("ORM::unknown field {$field} in json file '{$json_file}'.");
-                            continue;
+                if(isset($class['data'])) {
+                    foreach($class['data'] as $odata) {
+                        foreach($odata as $field => $value) {
+                            if(!isset($schema[$field])) {
+                                $reporter->warning("ORM::unknown field {$field} in json file '{$json_file}'.");
+                                continue;
+                            }
+                            $f = new Field($schema[$field]);
+                            $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
                         }
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
 
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exists (either values or language might differ)
+                        if(isset($odata['id'])) {
+                            $res = $orm->search($entity, ['id', '=', $odata['id']]);
+                            if($res > 0 && count($res)) {
+                                // object already exists (either values or language might differ)
+                            }
+                            else {
+                                $orm->create($entity, ['id' => $odata['id']], $lang, false);
+                            }
+                            $id = $odata['id'];
+                            unset($odata['id']);
                         }
                         else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
+                            $id = $orm->create($entity, [], $lang);
                         }
-                        $id = $odata['id'];
-                        unset($odata['id']);
+                        $orm->update($entity, $id, $odata, $lang);
+                        $objects_ids[] = $id;
                     }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
+                }
+                elseif(isset($class['qty'])) {
+                    $qty = is_array($class['qty']) ? mt_rand($class['qty'][0], $class['qty'][1]) : $class['qty'];
+                    $generate_params = [
+                        'entity'    => $entity,
+                        'lang'      => $class['lang']
+                    ];
+                    foreach(['fields', 'relations'] as $param_key) {
+                        if(isset($class[$param_key])) {
+                            $generate_params[$param_key] = $class[$param_key];
+                        }
                     }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
+
+                    for($i = 0; $i < $qty; $i++) {
+                        eQual::run('do', 'core_model_generate', $generate_params);
+                    }
                 }
 
                 // force a first generation of computed fields, if any
