@@ -49,7 +49,12 @@ class DataGenerator {
         switch($field_conf['type']) {
             case 'string':
                 if(!empty($field_conf['selection'])) {
-                    $values = array_values($field_conf['selection']);
+                    if(isset($field_conf['selection'][0])) {
+                        $values = array_values($field_conf['selection']);
+                    }
+                    else {
+                        $values = array_keys($field_conf['selection']);
+                    }
                     return $values[array_rand($values)];
                 }
                 elseif(isset($field_conf['default'])) {

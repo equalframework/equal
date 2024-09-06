@@ -6,7 +6,6 @@
 */
 
 use equal\data\DataGenerator;
-use equal\orm\UsageFactory;
 
 list($params, $providers) = eQual::announce([
     'description'   => "Generate a new object with random data and given values.",
