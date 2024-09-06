@@ -75,7 +75,7 @@ class DataGenerator {
         return null;
     }
 
-    public static function plainText($max_length = 255): string {
+    public static function plainText($min = 0, $max = 255): string {
         $words = [
             'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur',
             'adipiscing', 'elit', 'sed', 'do', 'eiusmod', 'tempor',
@@ -94,7 +94,7 @@ class DataGenerator {
             return ucfirst(implode(' ', $sentence)) . '.';
         };
 
-        $random_length = mt_rand(0, $max_length);
+        $random_length = mt_rand($min, $max);
         $random_text = '';
 
         while (strlen($random_text) < $random_length) {

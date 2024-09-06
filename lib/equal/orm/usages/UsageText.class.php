@@ -103,7 +103,7 @@ class UsageText extends Usage {
     }
 
     public function generateRandomValue(): string {
-        return DataGenerator::plainText($this->getLength());
+        return DataGenerator::plainText($this->getMin(), $this->getMax());
     }
 
 }
