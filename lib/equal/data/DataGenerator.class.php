@@ -34,6 +34,8 @@ class DataGenerator {
                 return self::lastname($lang);
             case 'fullname':
                 return self::fullname($lang);
+            case 'legal_name':
+                return self::legalName($lang);
             case 'address_street':
                 return self::addressStreet($lang);
             case 'address_zip':
@@ -489,6 +491,78 @@ class DataGenerator {
 
     public static function fullname($lang = null): string {
         return sprintf('%s %s', self::firstname($lang), self::lastname($lang));
+    }
+
+    public static function legalName($lang = null): string {
+        $map_lang_legalNames = [
+            'en' => [
+                'Pinnacle Innovations Ltd.', 'GlobalTech Solutions LLC',
+                'Blue Horizon Enterprises Inc.', 'Silverline Consulting Group',
+                'Evergreen Holdings Co.', 'Brightway Capital Partners',
+                'NextGen Software Corp.', 'Summit Legal Advisors LLP',
+                'Aspire Marketing Associates', 'Crestview Financial Services',
+                'Vanguard Media Networks', 'Oceanic Development Group',
+                'Phoenix Engineering Systems', 'Cascade Resource Management',
+                'Momentum Logistics Group', 'EagleRock Ventures LLC',
+                'Fusion Health & Wellness Inc.', 'Broadway Research Institute',
+                'Skyline Construction Co.', 'Peak Performance Consulting',
+                'Heritage Legal Solutions LLP', 'Infinity Investment Trust',
+                'Starlight Communications Inc.', 'Aurora Environmental Services',
+                'Velocity Tech Innovators LLC', 'Redwood Analytics Solutions',
+                'Everest Property Management', 'Sapphire Insurance Group Ltd.',
+                'Nova Digital Media Inc.', 'Paramount Energy Solutions',
+                'UrbanCore Construction Co.', 'TerraNova Agricultural Services',
+                'Quantum Financial Consulting', 'Synergy Global Partners',
+                'Horizon Security Solutions LLC', 'NorthStar Investments Group',
+                'Zenith Technology Ventures', 'PrimeCare Medical Solutions',
+                'Aurora Legal Advisory Group', 'Lakeside Manufacturing Co.',
+                'Falcon Ridge Asset Management', 'Emerald Coast Logistics LLC',
+                'Atlas Legal Services LLP', 'Titanium Energy Systems',
+                'Genesis Marketing Innovations', 'Renaissance Capital Advisors',
+                'TrueNorth Consulting Group', 'BluePeak Industries Inc.',
+                'Omega Transportation Services', 'GoldenBridge Infrastructure Co.',
+                'Sunrise Financial Holdings', 'Pioneer Technology Group LLC'
+            ],
+            'fr' => [
+                'Solutions Pinnacle SARL', 'GlobalTech Innovations SAS',
+                'Horizon Bleu Entreprises SA', 'Consulting Silverline Group',
+                'Evergreen Holdings SARL', 'Capital Brightway Partners',
+                'NextGen Software Corp.', 'Conseil Juridique Summit SCP',
+                'Aspire Marketing Associés', 'Services Financiers Crestview',
+                'Vanguard Médias Réseaux SARL', 'Groupe de Développement Océanique',
+                'Phoenix Ingénierie Systèmes', 'Gestion des Ressources Cascade',
+                'Momentum Logistique SARL', 'EagleRock Ventures SAS',
+                'Fusion Santé & Bien-être Inc.', 'Institut de Recherche Broadway',
+                'Construction Skyline SARL', 'Performance Consulting Peak',
+                'Solutions Juridiques Héritage SCP', 'Infinity Investissement Trust',
+                'Communications Starlight Inc.', 'Services Environnementaux Aurora',
+                'Innovateurs Technologiques Velocity SAS', 'Alpha Conseil et Stratégie',
+                'Groupe Nexus Immobilier', 'Aquitaine Développement Durable',
+                'Astéria Informatique SARL', 'Helios Technologies SAS',
+                'Artisanat Moderne & Tradition', 'Biotech Avancée France SA',
+                'Espace Vert Solutions', 'Union des Commerçants Réunis',
+                'Nouvelle Génération Énergies', 'Réseaux Mondial Média',
+                'EcoSys Environnement SAS', 'Orion Énergie Renouvelable',
+                'Alliance Pharmaceutique France', 'Cœur de Ville Projets Urbains',
+                'Pôle d\'Innovation Numérique', 'Ciel Bleu Aviation SARL',
+                'Altura Services Financiers', 'Vision Logistique Internationale',
+                'Verdi Éco-Construction SARL', 'Genèse Création et Design',
+                'Solstice Groupe Juridique', 'TechnoVentures France',
+                'Esprit Nature & Bien-être SARL', 'Voies Nouvelles Mobilité SAS',
+                'Groupe Horizon Santé SAS'
+            ]
+        ];
+
+        if(is_null($lang) || !isset($map_lang_legalNames[$lang])) {
+            $all_legal_names = array_merge(
+                $map_lang_legalNames['en'],
+                $map_lang_legalNames['fr']
+            );
+
+            return $all_legal_names[array_rand($all_legal_names)];
+        }
+
+        return $map_lang_legalNames[$lang][array_rand($map_lang_legalNames[$lang])];
     }
 
     public static function addressStreet($lang = null): string {
