@@ -15,9 +15,9 @@ class DataGenerator {
      * @return array|bool|float|int|mixed|string|null
      */
     public static function generateByFieldConf(string $field, array $field_conf, string $lang = null) {
-        if(isset($conf['usage'])) {
+        if(isset($field_conf['usage'])) {
             try {
-                $usage = UsageFactory::create($conf['usage']);
+                $usage = UsageFactory::create($field_conf['usage']);
                 return $usage->generateRandomValue();
             }
             catch(\Exception $e) {
