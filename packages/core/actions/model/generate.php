@@ -6,6 +6,7 @@
 */
 
 use equal\data\DataGenerator;
+use equal\orm\Domain;
 
 list($params, $providers) = eQual::announce([
     'description'   => "Generate a new object with random data and given values.",
@@ -25,6 +26,14 @@ list($params, $providers) = eQual::announce([
             'type'          => 'array',
             'default'       => []
 
+        ],
+        'add_to_domain_data' => [
+            'description'   => 'Data to add to global domain data.',
+            'type'          => 'array'
+        ],
+        'domain_data' => [
+            'description'   => 'Global domain data.',
+            'type'          => 'array'
         ],
         'lang' => [
             'description '  => 'Specific language for multilang field.',
@@ -107,6 +116,13 @@ foreach($schema as $field => $conf) {
             $new_entity[$field] = $params['entity']::{$conf['generate']}();
         }
         elseif($conf['type'] === 'many2one') {
+            $domain = [];
+            if($conf['domain']) {
+                $domain = (new Domain($conf['domain']))
+                    ->parse(array_merge($new_entity, $params['domain_data'] ?? []))
+                    ->toArray();
+            }
+
             $ids = $conf['foreign_object']::search([])->ids();
             $mode = $params['relations'][$field]['mode'] ?? 'use-existing-or-create';
             if($mode === 'use-existing-or-create') {
@@ -211,9 +227,22 @@ foreach($schema as $field => $conf) {
     }
 }
 
+$field_to_read = [];
+if(isset($params['add_to_domain_data'])) {
+    $field_to_read = array_values($params['add_to_domain_data']);
+}
+
 $instance = $params['entity']::create($new_entity, $params['lang'])
+    ->read($field_to_read)
     ->adapt('json')
     ->first(true);
+
+$domain_data = $params['domain_data'] ?? [];
+foreach($params['add_to_domain_data'] ?? [] as $key => $field) {
+    if(isset($instance[$field])) {
+        $domain_data[$key] = $instance[$field];
+    }
+}
 
 foreach($schema as $field => $conf) {
     if($conf['type'] !== 'one2many' || !isset($params['relations'][$field])) {
@@ -237,6 +266,10 @@ foreach($schema as $field => $conf) {
         $relation_params['fields'] = [];
     }
     $relation_params['fields'][$conf['foreign_field']] = $instance['id'];
+
+    if(!empty($domain_data)) {
+        $relation_params['domain_data'] = $domain_data;
+    }
 
     $new_relation_entities_ids = [];
     for($i = 0; $i < $qty; $i++) {

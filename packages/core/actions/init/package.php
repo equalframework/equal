@@ -225,7 +225,7 @@ else {
                         'entity'    => $entity,
                         'lang'      => $class['lang']
                     ];
-                    foreach(['fields', 'relations'] as $param_key) {
+                    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
                         if(isset($class[$param_key])) {
                             $generate_params[$param_key] = $class[$param_key];
                         }
