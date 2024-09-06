@@ -203,9 +203,12 @@ class DataGenerator {
         return $url_path;
     }
 
-    public static function url(): string {
+    public static function url($protocol = null): string {
         $protocols = ['http', 'https', 'ldap', 'dns', 'ftp'];
-        $protocol = $protocols[array_rand($protocols)];
+
+        if(is_null($protocol)) {
+            $protocol = $protocols[array_rand($protocols)];
+        }
 
         $domain_length = mt_rand(3, 10);
         $path_depth = mt_rand(0, 5);
