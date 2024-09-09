@@ -28,7 +28,7 @@ list($params, $providers) = eQual::announce([
 
         ],
         'add_to_domain_data' => [
-            'description'   => 'Data to add to global domain data.',
+            'description'   => 'Global domain data.',
             'type'          => 'array'
         ],
         'domain_data' => [
@@ -58,10 +58,6 @@ list($params, $providers) = eQual::announce([
  * @var \equal\orm\ObjectManager    $orm
  */
 list('context' => $context, 'orm' => $orm) = $providers;
-
-/**
- * Action
- */
 
 $new_entity = [];
 
@@ -117,13 +113,13 @@ foreach($schema as $field => $conf) {
         }
         elseif($conf['type'] === 'many2one') {
             $domain = [];
-            if($conf['domain']) {
-                $domain = (new Domain($conf['domain']))
+            if($params['relations'][$field]['domain']) {
+                $domain = (new Domain($params['relations'][$field]['domain']))
                     ->parse(array_merge($new_entity, $params['domain_data'] ?? []))
                     ->toArray();
             }
 
-            $ids = $conf['foreign_object']::search([])->ids();
+            $ids = $conf['foreign_object']::search($domain)->ids();
             $mode = $params['relations'][$field]['mode'] ?? 'use-existing-or-create';
             if($mode === 'use-existing-or-create') {
                 $mode = empty($ids) || DataGenerator::boolean() ? 'create' : 'use-existing';
@@ -140,16 +136,20 @@ foreach($schema as $field => $conf) {
                     }
                     break;
                 case 'create':
-                    $relation_params = [
+                    $model_generate_params = [
                         'entity' => $conf['foreign_object']
                     ];
                     foreach(['fields', 'relations'] as $param_key) {
                         if(isset($params['relations'][$field][$param_key])) {
-                            $relation_params[$param_key] = $params['relations'][$field][$param_key];
+                            $model_generate_params[$param_key] = $params['relations'][$field][$param_key];
                         }
                     }
 
-                    $result = eQual::run('do', 'core_model_generate', $relation_params);
+                    if(!empty($params['domain_data'])) {
+                        $model_generate_params['domain_data'] = $params['domain_data'];
+                    }
+
+                    $result = eQual::run('do', 'core_model_generate', $model_generate_params);
                     $new_entity[$field] = $result['id'];
                     break;
             }
@@ -162,7 +162,14 @@ foreach($schema as $field => $conf) {
 
             switch($mode) {
                 case 'use-existing':
-                    $ids = $conf['foreign_object']::search([])->ids();
+                    $domain = [];
+                    if($params['relations'][$field]['domain']) {
+                        $domain = (new Domain($params['relations'][$field]['domain']))
+                            ->parse(array_merge($new_entity, $params['domain_data'] ?? []))
+                            ->toArray();
+                    }
+
+                    $ids = $conf['foreign_object']::search($domain)->ids();
                     $random_ids = [];
                     for($i = 0; $i < $qty; $i++) {
                         if(empty($ids)) {
@@ -179,20 +186,24 @@ foreach($schema as $field => $conf) {
                     }
                     break;
                 case 'create':
-                    $relation_params = [
+                    $model_generate_params = [
                         'entity'    => $conf['foreign_object'],
                         'lang'      => $params['lang']
                     ];
                     foreach(['fields', 'relations'] as $param_key) {
                         if(isset($params['relations'][$field][$param_key])) {
-                            $relation_params[$param_key] = $params['relations'][$field][$param_key];
+                            $model_generate_params[$param_key] = $params['relations'][$field][$param_key];
                         }
                     }
 
                     $new_relation_entities_ids = [];
                     for($i = 0; $i < $qty; $i++) {
-                        $result = eQual::run('do', 'core_model_generate', $relation_params);
+                        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
                         $new_relation_entities_ids[] = $result['id'];
+                    }
+
+                    if(!empty($params['domain_data'])) {
+                        $model_generate_params['domain_data'] = $params['domain_data'];
                     }
 
                     if(!empty($new_relation_entities_ids)) {
@@ -252,28 +263,28 @@ foreach($schema as $field => $conf) {
     $qty_conf = $params['relations'][$field]['qty'] ?? [0, 3];
     $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
 
-    $relation_params = [
+    $model_generate_params = [
         'entity'    => $conf['foreign_object'],
         'lang'      => $params['lang']
     ];
-    foreach(['fields', 'relations'] as $param_key) {
+    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
         if(isset($params['relations'][$field][$param_key])) {
-            $relation_params[$param_key] = $params['relations'][$field][$param_key];
+            $model_generate_params[$param_key] = $params['relations'][$field][$param_key];
         }
     }
 
-    if(!isset($relation_params['fields'])) {
-        $relation_params['fields'] = [];
+    if(!isset($model_generate_params['fields'])) {
+        $model_generate_params['fields'] = [];
     }
-    $relation_params['fields'][$conf['foreign_field']] = $instance['id'];
+    $model_generate_params['fields'][$conf['foreign_field']] = $instance['id'];
 
     if(!empty($domain_data)) {
-        $relation_params['domain_data'] = $domain_data;
+        $model_generate_params['domain_data'] = $domain_data;
     }
 
     $new_relation_entities_ids = [];
     for($i = 0; $i < $qty; $i++) {
-        $result = eQual::run('do', 'core_model_generate', $relation_params);
+        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
         $new_relation_entities_ids[] = $result['id'];
     }
 
