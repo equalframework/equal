@@ -59,6 +59,90 @@ list($params, $providers) = eQual::announce([
  */
 list('context' => $context, 'orm' => $orm) = $providers;
 
+/**
+ * Methods
+ */
+
+$generateMany2One = function($field_conf, $relation_conf, $lang, $domain_data) {
+    $model_generate_params = [
+        'entity'    => $field_conf['foreign_object'],
+        'lang'      => $lang
+    ];
+    foreach(['fields', 'relations'] as $param_key) {
+        if(isset($relation_conf[$param_key])) {
+            $model_generate_params[$param_key] = $relation_conf[$param_key];
+        }
+    }
+
+    if(!empty($domain_data)) {
+        $model_generate_params['domain_data'] = $domain_data;
+    }
+
+    $result = eQual::run('do', 'core_model_generate', $model_generate_params);
+
+    return $result['id'];
+};
+
+$generateMany2Many = function($qty, $field_conf, $relation_conf, $lang, $domain_data) {
+    $model_generate_params = [
+        'entity'    => $field_conf['foreign_object'],
+        'lang'      => $lang
+    ];
+    foreach(['fields', 'relations'] as $param_key) {
+        if(isset($relation_conf[$param_key])) {
+            $model_generate_params[$param_key] = $relation_conf[$param_key];
+        }
+    }
+
+    if(!empty($domain_data)) {
+        $model_generate_params['domain_data'] = $domain_data;
+    }
+
+    $new_relation_entities_ids = [];
+    for($i = 0; $i < $qty; $i++) {
+        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
+        $new_relation_entities_ids[] = $result['id'];
+    }
+
+    return $new_relation_entities_ids;
+};
+
+$generateOne2Many = function($id, $field_conf, $relation_conf, $lang, $domain_data) {
+    $qty_conf = $relation_conf['qty'] ?? [0, 3];
+    $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
+
+    $model_generate_params = [
+        'entity'    => $field_conf['foreign_object'],
+        'lang'      => $lang
+    ];
+    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
+        if(isset($relation_conf[$param_key])) {
+            $model_generate_params[$param_key] = $relation_conf[$param_key];
+        }
+    }
+
+    if(!isset($model_generate_params['fields'])) {
+        $model_generate_params['fields'] = [];
+    }
+    $model_generate_params['fields'][$field_conf['foreign_field']] = $id;
+
+    if(!empty($domain_data)) {
+        $model_generate_params['domain_data'] = $domain_data;
+    }
+
+    $new_relation_entities_ids = [];
+    for($i = 0; $i < $qty; $i++) {
+        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
+        $new_relation_entities_ids[] = $result['id'];
+    }
+
+    return $new_relation_entities_ids;
+};
+
+/**
+ * Action
+ */
+
 $new_entity = [];
 
 $model = $orm->getModel($params['entity']);
@@ -83,8 +167,7 @@ foreach($schema as $field => $field_conf) {
         && !$field_has_generate_function
         && (
             in_array($field, $root_fields)
-            || in_array($field_conf['type'], ['alias', 'computed', 'one2many'])
-            || in_array($field_conf['type'], ['many2one', 'many2many'])
+            || in_array($field_conf['type'], ['alias', 'computed', 'one2many', 'many2one', 'many2many'])
         )
     ) {
         continue;
@@ -170,21 +253,9 @@ foreach($params['relations'] as $field => $relation_conf) {
                     }
                     break;
                 case 'create':
-                    $model_generate_params = [
-                        'entity' => $field_conf['foreign_object']
-                    ];
-                    foreach(['fields', 'relations'] as $param_key) {
-                        if(isset($relation_conf[$param_key])) {
-                            $model_generate_params[$param_key] = $relation_conf[$param_key];
-                        }
-                    }
+                    $new_relation_entity_id = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['domain_data'] ?? []);
 
-                    if(!empty($params['domain_data'])) {
-                        $model_generate_params['domain_data'] = $params['domain_data'];
-                    }
-
-                    $result = eQual::run('do', 'core_model_generate', $model_generate_params);
-                    $new_entity[$field] = $result['id'];
+                    $new_entity[$field] = $new_relation_entity_id;
                     break;
             }
             break;
@@ -220,25 +291,7 @@ foreach($params['relations'] as $field => $relation_conf) {
                     }
                     break;
                 case 'create':
-                    $model_generate_params = [
-                        'entity'    => $field_conf['foreign_object'],
-                        'lang'      => $params['lang']
-                    ];
-                    foreach(['fields', 'relations'] as $param_key) {
-                        if(isset($relation_conf[$param_key])) {
-                            $model_generate_params[$param_key] = $relation_conf[$param_key];
-                        }
-                    }
-
-                    $new_relation_entities_ids = [];
-                    for($i = 0; $i < $qty; $i++) {
-                        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
-                        $new_relation_entities_ids[] = $result['id'];
-                    }
-
-                    if(!empty($params['domain_data'])) {
-                        $model_generate_params['domain_data'] = $params['domain_data'];
-                    }
+                    $new_relation_entities_ids = $generateMany2Many($qty, $field_conf, $relation_conf, $params['lang'], $params['domain_data'] ?? []);
 
                     if(!empty($new_relation_entities_ids)) {
                         $new_entity[$field] = $new_relation_entities_ids;
@@ -271,35 +324,7 @@ foreach($params['relations'] as $field => $relation_conf) {
         continue;
     }
 
-    $field_conf = $schema[$field];
-
-    $qty_conf = $relation_conf['qty'] ?? [0, 3];
-    $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
-
-    $model_generate_params = [
-        'entity'    => $field_conf['foreign_object'],
-        'lang'      => $params['lang']
-    ];
-    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
-        if(isset($relation_conf[$param_key])) {
-            $model_generate_params[$param_key] = $relation_conf[$param_key];
-        }
-    }
-
-    if(!isset($model_generate_params['fields'])) {
-        $model_generate_params['fields'] = [];
-    }
-    $model_generate_params['fields'][$field_conf['foreign_field']] = $instance['id'];
-
-    if(!empty($domain_data)) {
-        $model_generate_params['domain_data'] = $domain_data;
-    }
-
-    $new_relation_entities_ids = [];
-    for($i = 0; $i < $qty; $i++) {
-        $result = eQual::run('do', 'core_model_generate', $model_generate_params);
-        $new_relation_entities_ids[] = $result['id'];
-    }
+    $new_relation_entities_ids = $generateOne2Many($instance['id'], $schema[$field], $relation_conf, $params['lang'], $domain_data);
 
     if(!empty($new_relation_entities_ids)) {
         $new_entity[$field] = $new_relation_entities_ids;
