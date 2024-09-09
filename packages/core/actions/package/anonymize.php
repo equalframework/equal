@@ -11,11 +11,12 @@ list($params, $providers) = eQual::announce([
         'package' =>  [
             'description'   => 'Name of the package to anonymize.',
             'type'          => 'string',
+            'usage'         => 'orm/package',
             'required'      => true
         ],
         'config_file' => [
             'description'   => 'Name of the configuration file to use to anonymize data.',
-            'help'          => 'Configuration file must match the format {package}/anonymize/{config_file}.json',
+            'help'          => 'Configuration file must match the format "{package}/anonymize/{config_file}.json"',
             'type'          => 'string',
             'required'      => true
         ]
