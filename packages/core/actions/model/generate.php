@@ -25,7 +25,6 @@ list($params, $providers) = eQual::announce([
             'description'   => 'How to handle the object relations (many2one, one2many and many2many)',
             'type'          => 'array',
             'default'       => []
-
         ],
         'add_to_domain_data' => [
             'description'   => 'Global domain data.',
