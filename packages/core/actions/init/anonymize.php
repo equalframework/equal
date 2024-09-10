@@ -61,7 +61,7 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
             ];
             foreach(['lang', 'fields', 'relations', 'domain'] as $param_key) {
                 if(isset($class[$param_key])) {
-                    $generate_params[$param_key] = $class[$param_key];
+                    $anonymize_params[$param_key] = $class[$param_key];
                 }
             }
 
