@@ -13,6 +13,12 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'usage'         => 'orm/package',
             'required'      => true
+        ],
+        'config_file' => [
+            'description'   => 'Name of the configuration file to use to anonymize data.',
+            'help'          => 'Configuration file must match the format "{package}/init/seed/{config_file}.json".'
+                                . ' If no config file specified, then all files of seed folder are used.',
+            'type'          => 'string'
         ]
     ],
     'response'      => [
@@ -38,6 +44,10 @@ $data_folder = "packages/{$params['package']}/init/seed";
 if(file_exists($data_folder) && is_dir($data_folder)) {
     // handle JSON files
     foreach(glob("$data_folder/*.json") as $json_file) {
+        if(isset($params['config_file']) && $params['config_file'] !== $json_file) {
+            continue;
+        }
+
         $data = file_get_contents($json_file);
         $classes = json_decode($data, true);
         if(!$classes) {

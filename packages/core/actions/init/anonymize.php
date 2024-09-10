@@ -16,9 +16,9 @@ list($params, $providers) = eQual::announce([
         ],
         'config_file' => [
             'description'   => 'Name of the configuration file to use to anonymize data.',
-            'help'          => 'Configuration file must match the format "{package}/anonymize/{config_file}.json"',
-            'type'          => 'string',
-            'required'      => true
+            'help'          => 'Configuration file must match the format "{package}/init/anonymize/{config_file}.json".'
+                                . ' If no config file specified, then all files of anonymize folder are used.',
+            'type'          => 'string'
         ]
     ],
     'response'      => [
@@ -37,38 +37,24 @@ list($params, $providers) = eQual::announce([
  */
 list('context' => $context) = $providers;
 
-/**
- * Methods
- */
+$data_folder = "packages/{$params['package']}/init/anonymize";
 
-$getAnonymizeConfig = function($config_file_path): array {
-    $config_file_content = file_get_contents($config_file_path);
-    if(!$config_file_content) {
-        throw new Exception('Missing anonymization config file ' . $config_file_path, EQ_ERROR_INVALID_CONFIG);
+if(file_exists($data_folder) && is_dir($data_folder)) {
+    // handle JSON files
+    foreach(glob("$data_folder/*.json") as $json_file) {
+        if(isset($params['config_file']) && $params['config_file'] !== $json_file) {
+            continue;
+        }
+
+        $entities_config = file_get_contents($json_file);
+        if(!empty($entities_config) && !isset($entities_config[0])) {
+            $entities_config = [$entities_config];
+        }
+
+        foreach($entities_config as $entity_config) {
+            eQual::run('do', 'core_model_anonymize', $entity_config);
+        }
     }
-
-    $import_config = json_decode($config_file_content, true);
-    if(!is_array($import_config)) {
-        throw new Exception('Invalid anonymization configuration file', EQ_ERROR_INVALID_CONFIG);
-    }
-
-    return $import_config;
-};
-
-/**
- * Action
- */
-
-$entities_config = $getAnonymizeConfig(
-    sprintf('%s/packages/%s/anonymize/%s.json', QN_BASEDIR, $params['package'], $params['config_file'])
-);
-
-if(!isset($entities_config[0])) {
-    $entities_config = [$entities_config];
-}
-
-foreach($entities_config as $entity_config) {
-    eQual::run('do', 'core_model_anonymize', $entity_config);
 }
 
 $context->httpResponse()
