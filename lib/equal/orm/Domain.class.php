@@ -122,7 +122,7 @@ class Domain {
 
                 // handle object references as `value` part
                 if(is_string($value) && strpos($value, 'object.') == 0 ) {
-                    $target = substr($value, 0, strlen('object.'));
+                    $target = substr($value, strlen('object.'));
                     if(!$object || !isset($object[$target])) {
                         continue;
                     }
@@ -145,7 +145,7 @@ class Domain {
                 }
                 // handle user references as `value` part
                 elseif(is_string($value) && strpos($value, 'user.') == 0) {
-                    $target = substr($value, 0, strlen('user.'));
+                    $target = substr($value, strlen('user.'));
                     if(!$user || !isset($user[$target])) {
                         continue;
                     }
