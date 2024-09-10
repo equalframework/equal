@@ -6,7 +6,7 @@
 */
 namespace equal\orm\usages;
 
-use equal\locale\Locale;
+use equal\data\DataGenerator;
 
 class UsageNumber extends Usage {
 
@@ -89,6 +89,24 @@ class UsageNumber extends Usage {
             default:
                 return [];
         }
+    }
+
+    /**
+     * @return bool|float|int|string|null
+     */
+    public function generateRandomValue() {
+        switch($this->getSubtype(0)) {
+            case 'boolean':
+                return DataGenerator::boolean();
+            case 'integer':
+                return DataGenerator::integer($this->getLength());
+            case 'real':
+                return DataGenerator::realNumber($this->getPrecision(), $this->getScale());
+            case 'hexadecimal':
+                return DataGenerator::hexadecimal($this->getLength());
+        }
+
+        return 0;
     }
 
 }

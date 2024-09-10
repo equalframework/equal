@@ -26,4 +26,8 @@ class UsageArray extends Usage {
         ];
     }
 
+    public function generateRandomValue(): array {
+        return [];
+    }
+
 }

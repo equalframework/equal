@@ -7,6 +7,8 @@
 namespace equal\orm\usages;
 
 
+use equal\data\DataGenerator;
+
 class UsageUri extends Usage {
 
     public function __construct(string $usage_str) {
@@ -92,6 +94,24 @@ class UsageUri extends Usage {
                 ];
         }
         return [];
+    }
+
+    public function generateRandomValue(): string {
+        switch($this->getSubtype()) {
+            case 'url.relative':
+                return DataGenerator::relativeUrl();
+            case 'url.tel':
+                return DataGenerator::urlTel();
+            case 'url.mailto':
+                return DataGenerator::urlMailto();
+            case 'urn.iban':
+                return DataGenerator::iban();
+            case 'urn.ean':
+                return DataGenerator::ean13();
+            case 'url':
+            default:
+                return DataGenerator::url();
+        }
     }
 
 }
