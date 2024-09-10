@@ -217,13 +217,13 @@ foreach($schema as $field => $field_conf) {
 }
 
 foreach($params['relations'] as $field => $relation_conf) {
-    if(!isset($schema[$field]) || !in_array($schema[$field]['type'], ['many2one', 'many2many'])) {
+    $field_conf = $schema[$field] ?? null;
+    $field_type = $field_conf['result_type'] ?? $field_conf['type'] ?? null;
+    if(is_null($field_conf) || !in_array($field_type, ['many2one', 'many2many'])) {
         continue;
     }
 
-    $field_conf = $schema[$field];
-
-    switch($field_conf['type']) {
+    switch($field_type) {
         case 'many2one':
             $domain = [];
             if($relation_conf['domain']) {
@@ -317,11 +317,13 @@ foreach($params['add_to_domain_data'] ?? [] as $key => $field) {
 }
 
 foreach($params['relations'] as $field => $relation_conf) {
-    if(!isset($schema[$field]) || $schema[$field]['type'] !== 'one2many') {
+    $field_conf = $schema[$field] ?? null;
+    $field_type = $field_conf['result_type'] ?? $field_conf['type'] ?? null;
+    if(is_null($field_conf) || $field_type !== 'one2many') {
         continue;
     }
 
-    $results = $generateOne2Many($instance['id'], $schema[$field], $relation_conf, $params['lang'], $domain_data);
+    $results = $generateOne2Many($instance['id'], $field_conf, $relation_conf, $params['lang'], $domain_data);
 
     $new_relation_entities_ids = array_column($results, 'id');
     if(!empty($new_relation_entities_ids)) {
