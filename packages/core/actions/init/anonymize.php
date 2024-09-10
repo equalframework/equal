@@ -42,7 +42,7 @@ $data_folder = "packages/{$params['package']}/init/anonymize";
 if(file_exists($data_folder) && is_dir($data_folder)) {
     // handle JSON files
     foreach(glob("$data_folder/*.json") as $json_file) {
-        if(isset($params['config_file']) && $params['config_file'] !== $json_file) {
+        if(isset($params['config_file']) && $params['config_file'] !== basename($json_file, '.json')) {
             continue;
         }
 
