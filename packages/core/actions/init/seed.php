@@ -6,16 +6,16 @@
 */
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'Seed data for package using json configuration files in "package/init/seed/".',
+    'description'   => 'Seed objects for package using json configuration files in "{package}/init/seed/".',
     'params'        => [
         'package' =>  [
-            'description'   => 'Name of the package to anonymize.',
+            'description'   => 'Name of the package to seed.',
             'type'          => 'string',
             'usage'         => 'orm/package',
             'required'      => true
         ],
         'config_file' => [
-            'description'   => 'Name of the configuration file to use to anonymize data.',
+            'description'   => 'Name of the configuration file to use to seed objects.',
             'help'          => 'Configuration file must match the format "{package}/init/seed/{config_file}.json".'
                                 . ' If no config file specified, then all files of seed folder are used.',
             'type'          => 'string'

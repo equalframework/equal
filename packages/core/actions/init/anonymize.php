@@ -6,7 +6,7 @@
 */
 
 list($params, $providers) = eQual::announce([
-    'description'   => "Anonymize an existing object with random data and given values.",
+    'description'   => 'Anonymize objects using json configuration files in "{package}/init/anonymize/".',
     'params'        => [
         'package' =>  [
             'description'   => 'Name of the package to anonymize.',
@@ -15,7 +15,7 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ],
         'config_file' => [
-            'description'   => 'Name of the configuration file to use to anonymize data.',
+            'description'   => 'Name of the configuration file to use to anonymize objects.',
             'help'          => 'Configuration file must match the format "{package}/init/anonymize/{config_file}.json".'
                                 . ' If no config file specified, then all files of anonymize folder are used.',
             'type'          => 'string'
