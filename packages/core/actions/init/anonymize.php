@@ -46,13 +46,26 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
             continue;
         }
 
-        $entities_config = file_get_contents($json_file);
-        if(!empty($entities_config) && !isset($entities_config[0])) {
-            $entities_config = [$entities_config];
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        if(!$classes) {
+            continue;
         }
+        foreach($classes as $class) {
+            if(!isset($class['name'])) {
+                continue;
+            }
 
-        foreach($entities_config as $entity_config) {
-            eQual::run('do', 'core_model_anonymize', $entity_config);
+            $anonymize_params = [
+                'entity'    => $class['name'],
+            ];
+            foreach(['lang', 'fields', 'relations', 'domain'] as $param_key) {
+                if(isset($class[$param_key])) {
+                    $generate_params[$param_key] = $class[$param_key];
+                }
+            }
+
+            eQual::run('do', 'core_model_anonymize', $anonymize_params);
         }
     }
 }

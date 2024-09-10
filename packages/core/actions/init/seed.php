@@ -30,14 +30,13 @@ list($params, $providers) = eQual::announce([
         'visibility'    => 'protected'
     ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context  $context
  */
-list('context' => $context, 'orm' => $orm) = $providers;
+list('context' => $context) = $providers;
 
 $data_folder = "packages/{$params['package']}/init/seed";
 
@@ -54,31 +53,20 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
             continue;
         }
         foreach($classes as $class) {
-            $entity = $class['name'] ?? null;
-            if(!$entity) {
-                continue;
-            }
-            $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-            $model = $orm->getModel($entity);
-            $schema = $model->getSchema();
-
-            $objects_ids = [];
-
-            if(!isset($class['qty'])) {
+            if(!isset($class['name'], $class['qty'])) {
                 continue;
             }
 
-            $qty = is_array($class['qty']) ? mt_rand($class['qty'][0], $class['qty'][1]) : $class['qty'];
             $generate_params = [
-                'entity'    => $entity,
-                'lang'      => $class['lang']
+                'entity'    => $class['name'],
             ];
-            foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
+            foreach(['lang', 'fields', 'relations', 'add_to_domain_data'] as $param_key) {
                 if(isset($class[$param_key])) {
                     $generate_params[$param_key] = $class[$param_key];
                 }
             }
 
+            $qty = is_array($class['qty']) ? mt_rand($class['qty'][0], $class['qty'][1]) : $class['qty'];
             for($i = 0; $i < $qty; $i++) {
                 eQual::run('do', 'core_model_generate', $generate_params);
             }
