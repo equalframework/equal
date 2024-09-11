@@ -870,7 +870,7 @@ namespace config {
                 $access = $container->get('access');
                 if(!$access->isRequestCompliant($user_id, $request->getHeaders()->getIpAddress())) {
                     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
-                    throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
+                    throw new \Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
                 }
                 else {
                     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'accepted', 'policy_id' => $access->getComplyingPolicyId()]));
