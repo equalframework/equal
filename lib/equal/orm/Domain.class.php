@@ -245,8 +245,8 @@ class Domain {
 
     /*
     * Domain checks and operations.
-    * a domain should always be composed of a serie of clauses against which a OR test is made
-    * a clause should always be composed of a serie of conditions agaisnt which a AND test is made
+    * a domain should always be composed of a series of clauses against which a OR test is made
+    * a clause should always be composed of a series of conditions against which a AND test is made
     * a condition should always be composed of a property operand, an operator, and a value
     */
 
