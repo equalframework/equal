@@ -154,11 +154,12 @@ class Mail extends Model {
             if($mailer->send($envelope) == 0) {
                 throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
             }
-            trigger_error("APP::sent email message {$mail['id']}", EQ_REPORT_INFO);
+            trigger_error("APP::Mail::send() successfully sent email message {$mail['id']}", EQ_REPORT_INFO);
             // update the core\Mail object status
             self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
         }
         catch(\Exception $e) {
+            trigger_error("APP::Mail::send() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
             self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
             throw new \Exception($e->getMessage(), $e->getCode());
         }
@@ -238,6 +239,8 @@ class Mail extends Model {
                     throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
                 }
 
+                trigger_error("APP::Mail::send() successfully sent email message {$message['id']}", EQ_REPORT_INFO);
+
                 // upon successful sending, remove the mail from the outbox
                 $filename = self::MESSAGE_FOLDER.'/'.$file;
                 unlink($filename);
@@ -253,6 +256,7 @@ class Mail extends Model {
             }
             catch(\Exception $e) {
                 // sending failed
+                trigger_error("APP::Mail::flush() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
                 // if the message is linked to a core\Mail object, update the latter's status
                 if(isset($message['id'])) {
                     self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
