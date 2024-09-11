@@ -154,6 +154,7 @@ class Mail extends Model {
             if($mailer->send($envelope) == 0) {
                 throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
             }
+            trigger_error("APP::sent email message {$mail['id']}", EQ_REPORT_INFO);
             // update the core\Mail object status
             self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
         }
@@ -411,7 +412,7 @@ class Mail extends Model {
             }
         }
         catch(\Exception $e) {
-            trigger_error("ORM::createEnvelope: ".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::createEnvelope: ".$e->getMessage(), EQ_REPORT_ERROR);
         }
 
         return $envelope;
