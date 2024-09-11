@@ -174,13 +174,13 @@ if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
-$new_entity = [];
 $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
 
 $qty = $getQty($params['qty'], $params['random_qty']);
 
 $results = [];
 for($i = 0; $i < $qty; $i++) {
+    $new_entity = [];
     $model_unique_conf = [];
     if(method_exists($params['entity'], 'getUnique')) {
         $model_unique_conf = (new $params['entity'])->getUnique();
@@ -201,6 +201,8 @@ for($i = 0; $i < $qty; $i++) {
         ) {
             continue;
         }
+
+        $is_required = $field_conf['required'] ?? false;
 
         $should_be_unique = $field_conf['unique'] ?? false;
         if(!$should_be_unique && !empty($model_unique_conf)) {
@@ -224,8 +226,7 @@ for($i = 0; $i < $qty; $i++) {
                 $new_entity[$field] = $params['entity']::{$field_conf['generate']}();
             }
             else {
-                $required = $field_conf['required'] ?? false;
-                if(!$required && DataGenerator::boolean(0.05)) {
+                if(!$is_required && DataGenerator::boolean(0.05)) {
                     $new_entity[$field] = null;
                 }
                 else {
@@ -237,6 +238,10 @@ for($i = 0; $i < $qty; $i++) {
                 $ids = $params['entity']::search([$field, '=', $new_entity[$field]])->ids();
                 if(empty($ids)) {
                     $field_value_allowed = true;
+                }
+                elseif($field_value_forced && $is_required) {
+                    // Skip object creation because not possible
+                    continue 3;
                 }
             }
             else {
