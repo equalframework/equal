@@ -77,6 +77,17 @@ list('context' => $context, 'orm' => $orm) = $providers;
  * Methods
  */
 
+$getQty = function($qty, $random_qty) {
+    if(count($random_qty) === 2) {
+        $min = $random_qty[0];
+        $max = $random_qty[1];
+
+        $qty = rand($min, $max);
+    }
+
+    return $qty;
+};
+
 $getRelationItemsIds = function(string $entity, array $relation_domain, array $object_data) use ($orm) {
     $model = $orm->getModel($entity);
     if(!$model) {
@@ -166,13 +177,7 @@ if(!$model) {
 $new_entity = [];
 $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
 
-$qty = $params['qty'];
-if(!empty($params['random_qty']) && count($params['random_qty']) === 2) {
-    $min = $params['random_qty'][0];
-    $max = $params['random_qty'][1];
-
-    $qty = rand($min, $max);
-}
+$qty = $getQty($params['qty'], $params['random_qty']);
 
 $results = [];
 for($i = 0; $i < $qty; $i++) {
@@ -289,8 +294,10 @@ for($i = 0; $i < $qty; $i++) {
             case 'many2many':
                 switch($mode) {
                     case 'use-existing':
+                        $relation_qty = $getQty($relation_conf['qty'] ?? 1, $relation_conf['random_qty'] ?? []);
+
                         $random_ids = [];
-                        for($j = 0; $j < $qty; $j++) {
+                        for($j = 0; $j < $relation_qty; $j++) {
                             if(empty($ids)) {
                                 break;
                             }
