@@ -240,7 +240,7 @@ for($i = 0; $i < $qty; $i++) {
                     $field_value_allowed = true;
                 }
                 elseif($field_value_forced && $is_required) {
-                    // Skip object creation because not possible
+                    trigger_error("PHP::skip creation of {$params['entity']} because of value $new_entity[$field] for $field field.", QN_REPORT_WARNING);
                     continue 3;
                 }
             }
@@ -250,7 +250,13 @@ for($i = 0; $i < $qty; $i++) {
         }
 
         if(!$field_value_allowed) {
-            unset($new_entity[$field]);
+            if($is_required) {
+                trigger_error("PHP::skip creation of {$params['entity']} because not able to generate a unique value for $field field.", QN_REPORT_WARNING);
+                continue 2;
+            }
+            else {
+                unset($new_entity[$field]);
+            }
         }
     }
 
