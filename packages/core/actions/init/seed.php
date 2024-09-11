@@ -60,7 +60,7 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
             $generate_params = [
                 'entity'    => $class['name'],
             ];
-            foreach(['lang', 'fields', 'relations', 'add_to_domain_data'] as $param_key) {
+            foreach(['lang', 'fields', 'relations', 'set_object_data'] as $param_key) {
                 if(isset($class[$param_key])) {
                     $generate_params[$param_key] = $class[$param_key];
                 }

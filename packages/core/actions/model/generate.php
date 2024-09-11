@@ -26,13 +26,14 @@ list($params, $providers) = eQual::announce([
             'type'          => 'array',
             'default'       => []
         ],
-        'add_to_domain_data' => [
-            'description'   => 'Global domain data.',
+        'set_object_data' => [
+            'description'   => 'Associative array of the generated object data to add to the object.',
+            'help'          => 'The object is accessible in domain like this "object.{field}"',
             'type'          => 'array',
             'default'       => []
         ],
-        'domain_data' => [
-            'description'   => 'Global domain data.',
+        'object_data' => [
+            'description'   => 'Current object data.',
             'type'          => 'array',
             'default'       => []
         ],
@@ -64,38 +65,43 @@ list('context' => $context, 'orm' => $orm) = $providers;
  * Methods
  */
 
-$generateMany2One = function($field_conf, $relation_conf, $lang, $domain_data) {
+$getRelationItemsIds = function($item_class, $relation_domain, $object_data) {
+    $domain = [];
+    if(!empty($relation_domain)) {
+        $domain = (new Domain($relation_domain))
+            ->parse($object_data)
+            ->toArray();
+    }
+
+    return $item_class::search($domain)->ids();
+};
+
+$createGenerateParams = function($field_conf, $relation_conf, $object_data, $lang) {
     $model_generate_params = [
         'entity'    => $field_conf['foreign_object'],
         'lang'      => $lang
     ];
-    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
+    foreach(['fields', 'relations', 'set_object_data'] as $param_key) {
         if(isset($relation_conf[$param_key])) {
             $model_generate_params[$param_key] = $relation_conf[$param_key];
         }
     }
 
-    if(!empty($domain_data)) {
-        $model_generate_params['domain_data'] = $domain_data;
+    if(!empty($object_data)) {
+        $model_generate_params['object_data'] = $object_data;
     }
+
+    return $model_generate_params;
+};
+
+$generateMany2One = function($field_conf, $relation_conf, $lang, $object_data) use ($createGenerateParams) {
+    $model_generate_params = $createGenerateParams($field_conf, $relation_conf, $object_data, $lang);
 
     return eQual::run('do', 'core_model_generate', $model_generate_params);
 };
 
-$generateMany2Many = function($qty, $field_conf, $relation_conf, $lang, $domain_data) {
-    $model_generate_params = [
-        'entity'    => $field_conf['foreign_object'],
-        'lang'      => $lang
-    ];
-    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
-        if(isset($relation_conf[$param_key])) {
-            $model_generate_params[$param_key] = $relation_conf[$param_key];
-        }
-    }
-
-    if(!empty($domain_data)) {
-        $model_generate_params['domain_data'] = $domain_data;
-    }
+$generateMany2Many = function($qty, $field_conf, $relation_conf, $lang, $object_data) use ($createGenerateParams) {
+    $model_generate_params = $createGenerateParams($field_conf, $relation_conf, $object_data, $lang);
 
     $results = [];
     for($i = 0; $i < $qty; $i++) {
@@ -105,25 +111,13 @@ $generateMany2Many = function($qty, $field_conf, $relation_conf, $lang, $domain_
     return $results;
 };
 
-$generateOne2Many = function($id, $qty, $field_conf, $relation_conf, $lang, $domain_data) {
-    $model_generate_params = [
-        'entity'    => $field_conf['foreign_object'],
-        'lang'      => $lang
-    ];
-    foreach(['fields', 'relations', 'add_to_domain_data'] as $param_key) {
-        if(isset($relation_conf[$param_key])) {
-            $model_generate_params[$param_key] = $relation_conf[$param_key];
-        }
-    }
+$generateOne2Many = function($id, $qty, $field_conf, $relation_conf, $lang, $object_data) use ($createGenerateParams) {
+    $model_generate_params = $createGenerateParams($field_conf, $relation_conf, $object_data, $lang);
 
     if(!isset($model_generate_params['fields'])) {
         $model_generate_params['fields'] = [];
     }
     $model_generate_params['fields'][$field_conf['foreign_field']] = $id;
-
-    if(!empty($domain_data)) {
-        $model_generate_params['domain_data'] = $domain_data;
-    }
 
     $results = [];
     for($i = 0; $i < $qty; $i++) {
@@ -137,13 +131,12 @@ $generateOne2Many = function($id, $qty, $field_conf, $relation_conf, $lang, $dom
  * Action
  */
 
-$new_entity = [];
-
 $model = $orm->getModel($params['entity']);
 if(!$model) {
     throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
+$new_entity = [];
 $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
 
 $model_unique_conf = [];
@@ -221,21 +214,20 @@ foreach($params['relations'] as $field => $relation_conf) {
         continue;
     }
 
+    $mode = $relation_conf['mode'] ?? 'use-existing-or-create';
+    if($mode !== 'create') {
+        $ids = $getRelationItemsIds(
+            $field_conf['foreign_object'],
+            $relation_conf['domain'] ?? [],
+            array_merge($new_entity, $params['object_data'])
+        );
+        if($mode === 'use-existing-or-create') {
+            $mode = empty($ids) || DataGenerator::boolean() ? 'create' : 'use-existing';
+        }
+    }
+
     switch($field_type) {
         case 'many2one':
-            $domain = [];
-            if($relation_conf['domain']) {
-                $domain = (new Domain($relation_conf['domain']))
-                    ->parse(array_merge($new_entity, $params['domain_data'] ?? []))
-                    ->toArray();
-            }
-
-            $ids = $field_conf['foreign_object']::search($domain)->ids();
-            $mode = $relation_conf['mode'] ?? 'use-existing-or-create';
-            if($mode === 'use-existing-or-create') {
-                $mode = empty($ids) || DataGenerator::boolean() ? 'create' : 'use-existing';
-            }
-
             switch($mode) {
                 case 'use-existing':
                     if(!empty($ids)) {
@@ -247,34 +239,24 @@ foreach($params['relations'] as $field => $relation_conf) {
                     }
                     break;
                 case 'create':
-                    $result = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['domain_data'] ?? []);
+                    $result = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['object_data']);
 
                     $new_entity[$field] = $result['id'];
 
-                    foreach(array_keys($relation_conf['add_to_domain_data'] ?? []) as $key) {
-                        if(isset($result['domain_data'][$key])) {
-                            $params['domain_data']["$field.$key"] = $result['domain_data'][$key];
+                    foreach(array_keys($relation_conf['set_object_data'] ?? []) as $key) {
+                        if(isset($result['object_data'][$key])) {
+                            $params['object_data']["$field.$key"] = $result['object_data'][$key];
                         }
                     }
                     break;
             }
             break;
         case 'many2many':
-            $mode = $relation_conf['mode'] ?? 'use-existing-or-create';
-
-            $qty_conf = $relation_conf['qty'] ?? [0, 5];
+            $qty_conf = $relation_conf['qty'];
             $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
 
             switch($mode) {
                 case 'use-existing':
-                    $domain = [];
-                    if($relation_conf['domain']) {
-                        $domain = (new Domain($relation_conf['domain']))
-                            ->parse(array_merge($new_entity, $params['domain_data'] ?? []))
-                            ->toArray();
-                    }
-
-                    $ids = $field_conf['foreign_object']::search($domain)->ids();
                     $random_ids = [];
                     for($i = 0; $i < $qty; $i++) {
                         if(empty($ids)) {
@@ -291,7 +273,7 @@ foreach($params['relations'] as $field => $relation_conf) {
                     }
                     break;
                 case 'create':
-                    $results = $generateMany2Many($qty, $field_conf, $relation_conf, $params['lang'], $params['domain_data'] ?? []);
+                    $results = $generateMany2Many($qty, $field_conf, $relation_conf, $params['lang'], $params['object_data']);
 
                     $new_relation_entities_ids = array_column($results, 'id');
                     if(!empty($new_relation_entities_ids)) {
@@ -300,9 +282,9 @@ foreach($params['relations'] as $field => $relation_conf) {
 
                     $i = 0;
                     foreach($results as $result) {
-                        foreach(array_keys($relation_conf['add_to_domain_data'] ?? []) as $key) {
-                            if(isset($result['domain_data'][$key])) {
-                                $params['domain_data']["$field.$i.$key"] = $result['domain_data'][$key];
+                        foreach(array_keys($relation_conf['set_object_data'] ?? []) as $key) {
+                            if(isset($result['object_data'][$key])) {
+                                $params['object_data']["$field.$i.$key"] = $result['object_data'][$key];
                             }
                         }
                         $i++;
@@ -313,16 +295,16 @@ foreach($params['relations'] as $field => $relation_conf) {
     }
 }
 
-$field_to_read = array_values($params['add_to_domain_data']);
+$field_to_read = array_values($params['set_object_data']);
 
 $instance = $params['entity']::create($new_entity, $params['lang'])
     ->read($field_to_read)
     ->adapt('json')
     ->first(true);
 
-foreach($params['add_to_domain_data'] as $key => $field) {
+foreach($params['set_object_data'] as $key => $field) {
     if(isset($instance[$field])) {
-        $params['domain_data'][$key] = $instance[$field];
+        $params['object_data'][$key] = $instance[$field];
     }
 }
 
@@ -333,10 +315,10 @@ foreach($params['relations'] as $field => $relation_conf) {
         continue;
     }
 
-    $qty_conf = $relation_conf['qty'] ?? [0, 3];
+    $qty_conf = $relation_conf['qty'];
     $qty = is_array($qty_conf) ? mt_rand($qty_conf[0], $qty_conf[1]) : $qty_conf;
 
-    $results = $generateOne2Many($instance['id'], $qty, $field_conf, $relation_conf, $params['lang'], $params['domain_data']);
+    $results = $generateOne2Many($instance['id'], $qty, $field_conf, $relation_conf, $params['lang'], $params['object_data']);
 
     $new_relation_entities_ids = array_column($results, 'id');
     if(!empty($new_relation_entities_ids)) {
@@ -345,9 +327,9 @@ foreach($params['relations'] as $field => $relation_conf) {
 
     $i = 0;
     foreach($results as $result) {
-        foreach(array_keys($relation_conf['add_to_domain_data'] ?? []) as $key) {
-            if(isset($result['domain_data'][$key])) {
-                $params['domain_data']["$field.$i.$key"] = $result['domain_data'][$key];
+        foreach(array_keys($relation_conf['set_object_data'] ?? []) as $key) {
+            if(isset($result['object_data'][$key])) {
+                $params['object_data']["$field.$i.$key"] = $result['object_data'][$key];
             }
         }
         $i++;
@@ -357,7 +339,7 @@ foreach($params['relations'] as $field => $relation_conf) {
 $result = [
     'entity'        => $params['entity'],
     'id'            => $instance['id'],
-    'domain_data'   => $params['domain_data']
+    'object_data'   => $params['object_data']
 ];
 
 $context->httpResponse()
