@@ -99,9 +99,17 @@ class UsageNumber extends Usage {
             case 'boolean':
                 return DataGenerator::boolean();
             case 'integer':
-                return DataGenerator::integer($this->getLength());
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::integerByLength($this->getLength());
+                }
+
+                return DataGenerator::integer($this->getMin(), $this->getMax());
             case 'real':
-                return DataGenerator::realNumber($this->getPrecision(), $this->getScale());
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::realNumberByLength($this->getLength(), $this->getScale());
+                }
+
+                return DataGenerator::realNumber($this->getMin(), $this->getMax(), $this->getScale());
             case 'hexadecimal':
                 return DataGenerator::hexadecimal($this->getLength());
         }
