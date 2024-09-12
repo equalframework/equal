@@ -178,15 +178,16 @@ $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', '
 
 $qty = $getQty($params['qty'], $params['random_qty']);
 
+$model_unique_conf = [];
+if(method_exists($params['entity'], 'getUnique')) {
+    $model_unique_conf = $model->getUnique();
+}
+
+$schema = $model->getSchema();
+
 $results = [];
 for($i = 0; $i < $qty; $i++) {
     $new_entity = [];
-    $model_unique_conf = [];
-    if(method_exists($params['entity'], 'getUnique')) {
-        $model_unique_conf = (new $params['entity'])->getUnique();
-    }
-
-    $schema = $model->getSchema();
     foreach($schema as $field => $field_conf) {
         $field_value_forced = isset($params['fields'][$field]);
         $field_has_generate_function = isset($field_conf['generate']) && method_exists($params['entity'], $field_conf['generate']);
