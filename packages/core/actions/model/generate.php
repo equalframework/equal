@@ -125,7 +125,7 @@ $createGenerateParams = function(array $field_conf, array $relation_conf, array 
 $generateMany2One = function(array $field_conf, array $relation_conf, string $lang, array $object_data) use ($createGenerateParams) {
     $model_generate_params = $createGenerateParams($field_conf, $relation_conf, $object_data, $lang);
 
-    return eQual::run('do', 'core_model_generate', $model_generate_params)[0];
+    return eQual::run('do', 'core_model_generate', $model_generate_params);
 };
 
 $generateMany2Many = function(array $field_conf, array $relation_conf, string $lang, array $object_data) use ($createGenerateParams) {
@@ -300,12 +300,17 @@ for($i = 0; $i < $qty; $i++) {
                         $new_entity[$field] = $ids[array_rand($ids)];
                         break;
                     case 'create':
-                        $relation_result = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['object_data']);
+                        $relation_results = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['object_data']);
+                        if(count($relation_results) === 1) {
+                            $new_entity[$field] = $relation_results[0]['id'];
 
-                        $new_entity[$field] = $relation_result['id'];
-
-                        if(!empty($relation_conf['set_object_data'])) {
-                            $addRelationResultToObjectData($params['object_data'], $field, $relation_conf['set_object_data'], $relation_result);
+                            if(!empty($relation_conf['set_object_data'])) {
+                                $addRelationResultToObjectData($params['object_data'], $field, $relation_conf['set_object_data'], $relation_results[0]);
+                            }
+                        }
+                        elseif($is_required) {
+                            trigger_error("PHP::skip creation of {$params['entity']} because not able to generate object for $field field.", QN_REPORT_WARNING);
+                            continue 4;
                         }
                         break;
                 }
@@ -336,10 +341,10 @@ for($i = 0; $i < $qty; $i++) {
                         $new_relation_entities_ids = array_column($relation_results, 'id');
                         if(!empty($new_relation_entities_ids)) {
                             $new_entity[$field] = $new_relation_entities_ids;
-                        }
 
-                        if(!empty($relation_conf['set_object_data'])) {
-                            $addRelationResultsToObjectData($params['object_data'], $field, $relation_conf['set_object_data'], $relation_results);
+                            if(!empty($relation_conf['set_object_data'])) {
+                                $addRelationResultsToObjectData($params['object_data'], $field, $relation_conf['set_object_data'], $relation_results);
+                            }
                         }
                         break;
                 }
@@ -369,12 +374,7 @@ for($i = 0; $i < $qty; $i++) {
 
         $relation_results = $generateOne2Many($instance['id'], $field_conf, $relation_conf, $params['lang'], $params['object_data']);
 
-        $new_relation_entities_ids = array_column($relation_results, 'id');
-        if(!empty($new_relation_entities_ids)) {
-            $new_entity[$field] = $new_relation_entities_ids;
-        }
-
-        if(!empty($relation_conf['set_object_data'])) {
+        if(!empty($relation_conf['set_object_data']) && !empty($relation_results)) {
             $addRelationResultsToObjectData($params['object_data'], $field, $relation_conf['set_object_data'], $relation_results);
         }
     }
