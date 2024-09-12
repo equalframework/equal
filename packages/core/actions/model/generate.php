@@ -178,6 +178,8 @@ $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', '
 
 $qty = $getQty($params['qty'], $params['random_qty']);
 
+// TODO: Handle multi columns unique (only single column unique is handled)
+// TODO: Handle unique for many2one relations
 $model_unique_conf = [];
 if(method_exists($params['entity'], 'getUnique')) {
     $model_unique_conf = $model->getUnique();
@@ -268,6 +270,9 @@ for($i = 0; $i < $qty; $i++) {
             continue;
         }
 
+        $is_required = $field_conf['required'] ?? false;
+
+        $ids = [];
         $mode = $relation_conf['mode'] ?? 'use-existing-or-create';
         if($mode !== 'create') {
             $ids = $getRelationItemsIds(
@@ -278,19 +283,21 @@ for($i = 0; $i < $qty; $i++) {
             if($mode === 'use-existing-or-create') {
                 $mode = empty($ids) || DataGenerator::boolean() ? 'create' : 'use-existing';
             }
+            elseif($mode === 'use-existing' && empty($ids)) {
+                $mode = 'create';
+                trigger_error("PHP::cannot use 'use-existing' for {$field_conf['foreign_object']} relation of {$params['entity']} because nothing to link, fallback on 'create'.", QN_REPORT_WARNING);
+            }
         }
 
         switch($field_type) {
             case 'many2one':
                 switch($mode) {
                     case 'use-existing':
-                        if(!empty($ids)) {
-                            if(!($field_conf['required'] ?? false)) {
-                                $ids[] = null;
-                            }
-
-                            $new_entity[$field] = $ids[array_rand($ids)];
+                        if(!$is_required) {
+                            $ids[] = null;
                         }
+
+                        $new_entity[$field] = $ids[array_rand($ids)];
                         break;
                     case 'create':
                         $relation_result = $generateMany2One($field_conf, $relation_conf, $params['lang'], $params['object_data']);
