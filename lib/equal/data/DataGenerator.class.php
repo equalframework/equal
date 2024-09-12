@@ -67,9 +67,9 @@ class DataGenerator {
             case 'boolean':
                 return self::boolean();
             case 'integer':
-                return self::integer(9);
+                return self::integerByLength(9);
             case 'float':
-                return self::realNumber(9, 2);
+                return self::realNumberByLength(9, 2);
         }
 
         return null;
@@ -115,14 +115,18 @@ class DataGenerator {
         return mt_rand() / mt_getrandmax() < $probability;
     }
 
-    public static function integer(int $length): int {
+    public static function integerByLength(int $length): int {
         $min = (pow(10, $length) - 1) * -1;
         $max = pow(10, $length) - 1;
 
         return mt_rand($min, $max);
     }
 
-    public static function realNumber(int $precision, int $scale): float {
+    public static function integer(int $min, int $max): int {
+        return mt_rand($min, $max);
+    }
+
+    public static function realNumberByLength(int $precision, int $scale): float {
         $max_int_part = pow(10, $precision) - 1;
         $min_int_part = -$max_int_part;
 
@@ -133,6 +137,12 @@ class DataGenerator {
         $random_float = $int_part + $fractional_part;
 
         return round($random_float, $scale);
+    }
+
+    public static function realNumber(float $min, float $max, int $decimals): float {
+        $scale = pow(10, $decimals);
+
+        return mt_rand($min * $scale, $max * $scale) / $scale;
     }
 
     public static function hexadecimal(int $length): string {

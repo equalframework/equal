@@ -53,23 +53,20 @@ if(file_exists($data_folder) && is_dir($data_folder)) {
             continue;
         }
         foreach($classes as $class) {
-            if(!isset($class['name'], $class['qty'])) {
+            if(!isset($class['name'])) {
                 continue;
             }
 
             $generate_params = [
                 'entity'    => $class['name'],
             ];
-            foreach(['lang', 'fields', 'relations', 'add_to_domain_data'] as $param_key) {
+            foreach(['qty', 'random_qty', 'fields', 'relations', 'set_object_data', 'lang'] as $param_key) {
                 if(isset($class[$param_key])) {
                     $generate_params[$param_key] = $class[$param_key];
                 }
             }
 
-            $qty = is_array($class['qty']) ? mt_rand($class['qty'][0], $class['qty'][1]) : $class['qty'];
-            for($i = 0; $i < $qty; $i++) {
-                eQual::run('do', 'core_model_generate', $generate_params);
-            }
+            eQual::run('do', 'core_model_generate', $generate_params);
         }
     }
 }
