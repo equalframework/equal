@@ -39,13 +39,13 @@ class User extends Model {
                 'usage'             => 'email',
                 'required'          => true,
                 'unique'            => true,
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'username' => [
                 'type'              => 'string',
                 'unique'            => true,
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'password' => [
@@ -62,18 +62,20 @@ class User extends Model {
 
             'firstname' => [
                 'type'              => 'string',
-                'dependencies'      => ['fullname', 'name']
+                'dependents'        => ['fullname', 'name']
             ],
 
             'lastname' => [
                 'type'              => 'string',
-                'dependencies'      => ['fullname', 'name']
+                'dependents'        => ['fullname', 'name'],
+                'sensitive'         => true
             ],
 
             'fullname' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
-                'function'          => 'calcFullname'
+                'function'          => 'calcFullname',
+                'sensitive'         => true
             ],
 
             // #todo - add a distinct field for 'locale'
