@@ -12,12 +12,15 @@ use equal\orm\UsageFactory;
 class DataGenerator {
 
     /**
+     * @param string    $field              Field name.
+     * @param string    $field_descriptor   Field descriptor.
+     * @param string    $lang               Lang code of the language in which the value must be generated (for multilang fields).
      * @return array|bool|float|int|mixed|string|null
      */
-    public static function generateByFieldConf(string $field, array $field_conf, string $lang = null) {
-        if(isset($field_conf['usage'])) {
+    public static function generateFromField(string $field, array $field_descriptor, string $lang = null) {
+        if(isset($field_descriptor['usage'])) {
             try {
-                $usage = UsageFactory::create($field_conf['usage']);
+                $usage = UsageFactory::create($field_descriptor['usage']);
                 return $usage->generateRandomValue();
             }
             catch(\Exception $e) {
@@ -48,21 +51,20 @@ class DataGenerator {
                 return self::address($lang);
         }
 
-        switch($field_conf['type']) {
+        switch($field_descriptor['type']) {
             case 'string':
-                if(!empty($field_conf['selection'])) {
-                    if(isset($field_conf['selection'][0])) {
-                        $values = array_values($field_conf['selection']);
+                if(!empty($field_descriptor['selection'])) {
+                    if(isset($field_descriptor['selection'][0])) {
+                        $values = array_values($field_descriptor['selection']);
                     }
                     else {
-                        $values = array_keys($field_conf['selection']);
+                        $values = array_keys($field_descriptor['selection']);
                     }
                     return $values[array_rand($values)];
                 }
-                elseif(isset($field_conf['default'])) {
-                    return $field_conf['default'];
+                elseif(isset($field_descriptor['default'])) {
+                    return $field_descriptor['default'];
                 }
-
                 return self::plainText();
             case 'boolean':
                 return self::boolean();

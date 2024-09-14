@@ -1,7 +1,9 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, The eQual Framework, 2010-2024
+    Author: The eQual Framework Contributors
+    Original Author: Lucas Laurent
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -35,7 +37,7 @@ list($params, $providers) = eQual::announce([
 /**
  * @var \equal\php\Context  $context
  */
-list('context' => $context) = $providers;
+['context' => $context] = $providers;
 
 $data_folder = "packages/{$params['package']}/init/anonymize";
 

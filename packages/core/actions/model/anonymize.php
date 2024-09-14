@@ -1,10 +1,11 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, The eQual Framework, 2010-2024
+    Author: The eQual Framework Contributors
+    Original Author: Lucas Laurent
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 use equal\data\DataGenerator;
 
 list($params, $providers) = eQual::announce([
@@ -52,7 +53,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-list('context' => $context, 'orm' => $orm) = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
 
 $anonymized_values = [];
 
@@ -79,7 +80,7 @@ foreach($ids as $id) {
                 $anonymized_values[$field] = null;
             }
             else {
-                $anonymized_values[$field] = DataGenerator::generateByFieldConf($field, $conf, $params['lang']);
+                $anonymized_values[$field] = DataGenerator::generateFromField($field, $conf, $params['lang']);
             }
         }
     }
