@@ -143,7 +143,8 @@ $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
                 'value',
                 'cast_to',
                 'transform_by',
-                'field_contains_value'
+                'field_contains_value',
+                'map_values_ids' => ['old_value', 'new_value']
             ]
         ]
     ])
@@ -173,8 +174,8 @@ foreach($params['origin_data_rows'] as $row_index => $row) {
 
         $value = $castValue($column_mapping['origin_cast_type'], $column_data);
 
-        foreach($column_mapping['data_transformers_ids'] as $dataTransformer) {
-            $value = DataTransformer::transformValue($dataTransformer, $value);
+        foreach($column_mapping['data_transformers_ids'] as $data_transformer) {
+            $value = DataTransformer::transformValue($data_transformer, $value);
         }
 
         $new_entity[$column_mapping['target_name']] = $value;

@@ -33,8 +33,9 @@ class DataTransformer extends Model {
                     'multiply'                  => 'Multiply',
                     'divide'                    => 'Divide',
                     'field-contains'            => 'Field contains',
-                    'field-does-not-contain'    => 'Field does not contain'
-                    // TODO: add computed, map-value and query
+                    'field-does-not-contain'    => 'Field does not contain',
+                    'map-value'                 => 'Map value'
+                    // TODO: add computed and query
                 ],
                 'description'       => 'The type of transform operation to be applied on a column data to import.',
                 'default'           => 'value'
@@ -72,6 +73,13 @@ class DataTransformer extends Model {
                 'type'              => 'string',
                 'description'       => 'Value that must be found or not.',
                 'visible'           => ['transformer_type', 'in', ['field-contains', 'field-does-not-contain']]
+            ],
+
+            'map_values_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\import\DataTransformerMapValue',
+                'foreign_field'     => 'data_transformer_id',
+                'description'       => 'List a map values to replace a value by another.'
             ]
 
         ];
@@ -112,6 +120,17 @@ class DataTransformer extends Model {
                 break;
             case 'field-does-not-contain':
                 $value = strpos($value, $data_transformer['field_contains_value']) === false;
+                break;
+            case 'map-value':
+                foreach($data_transformer['map_values_ids'] as $map_value) {
+                    if($map_value['old_value'] != $value) {
+                        continue;
+                    }
+
+                    $value = $map_value['new_value'];
+                    break;
+                }
+
                 break;
         }
 
