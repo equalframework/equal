@@ -6,6 +6,7 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\import\DataTransformer;
 use core\import\EntityMapping;
 
 list($params, $providers) = eQual::announce([
@@ -93,7 +94,30 @@ $createMapColMapping = function($entity_mapping, $origin_data_rows, $origin_data
         }
     }
 
+    foreach($map_col_mapping as $col_mapping) {
+        usort($col_mapping['data_transformers_ids'], 'order');
+    }
+
     return $map_col_mapping;
+};
+
+$castValue = function(string $type, $value) {
+    switch($type) {
+        case 'string':
+            $value = (string) $value;
+            break;
+        case 'integer':
+            $value = (int) $value;
+            break;
+        case 'float':
+            $value = (float) $value;
+            break;
+        case 'boolean':
+            $value = (bool) $value;
+            break;
+    }
+
+    return $value;
 };
 
 /**
@@ -115,7 +139,11 @@ $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
             'data_transformers_ids' => [
                 'transformer_type',
                 'transformer_subtype',
-                'order'
+                'order',
+                'value',
+                'cast_to',
+                'transform_by',
+                'field_contains_value'
             ]
         ]
     ])
@@ -143,7 +171,13 @@ foreach($params['origin_data_rows'] as $row_index => $row) {
             continue;
         }
 
-        $new_entity[$column_mapping['target_name']] = $column_data;
+        $value = $castValue($column_mapping['origin_cast_type'], $column_data);
+
+        foreach($column_mapping['data_transformers_ids'] as $dataTransformer) {
+            $value = DataTransformer::transformValue($dataTransformer, $value);
+        }
+
+        $new_entity[$column_mapping['target_name']] = $value;
     }
 
     if(!empty($new_entity)) {

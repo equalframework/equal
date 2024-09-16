@@ -11,7 +11,7 @@ use equal\orm\Model;
 class DataTransformer extends Model {
 
     public static function getDescription(): string {
-        return '.';
+        return 'Transform step to adapt external data to eQual entity.';
     }
 
     public static function getColumns(): array {
@@ -28,33 +28,93 @@ class DataTransformer extends Model {
                 'type'              => 'string',
                 'selection'         => [
                     'value'                     => 'Value',
-                    'computed'                  => 'Computed',
                     'cast'                      => 'Cast',
                     'round'                     => 'Round',
                     'multiply'                  => 'Multiply',
                     'divide'                    => 'Divide',
                     'field-contains'            => 'Field contains',
-                    'field-does-not-contain'    => 'Field contains'
+                    'field-does-not-contain'    => 'Field does not contain'
+                    // TODO: add computed, map-value and query
                 ],
                 'description'       => 'The type of transform operation to be applied on a column data to import.',
                 'default'           => 'value'
-            ],
-
-            'transformer_subtype' => [
-                'type'              => 'string',
-                'selection'         => [
-                    'integer'   => 'Integer',
-                    'boolean'   => 'Boolean',
-                    'string'    => 'String'
-                ]
             ],
 
             'order' => [
                 'type'              => 'integer',
                 'description'       => 'For sorting the moments within a day.',
                 'default'           => 1
+            ],
+
+            'value' => [
+                'type'              => 'string',
+                'description'       => 'A static value to set'
+            ],
+
+            'cast_to' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'string'    => 'String',
+                    'integer'   => 'Integer',
+                    'float'     => 'Float',
+                    'boolean'   => 'Boolean'
+                ],
+                'visible'           => ['transformer_type', '=', 'cast'],
+            ],
+
+            'transform_by' => [
+                'type'              => 'integer',
+                'description'       => 'Value to multiply or divide by.',
+                'visible'           => ['transformer_type', 'in', ['multiply', 'divide']]
+            ],
+
+            'field_contains_value' => [
+                'type'              => 'string',
+                'description'       => 'Value that must be found or not.',
+                'visible'           => ['transformer_type', 'in', ['field-contains', 'field-does-not-contain']]
             ]
 
         ];
+    }
+
+    public static function transformValue($data_transformer, $value) {
+        switch($data_transformer['transformer_type']) {
+            case 'value':
+                $value = $data_transformer['value'];
+                break;
+            case 'cast':
+                switch($data_transformer['cast_to']) {
+                    case 'string':
+                        $value = (string) $value;
+                        break;
+                    case 'integer':
+                        $value = (int) $value;
+                        break;
+                    case 'float':
+                        $value = (float) $value;
+                        break;
+                    case 'boolean':
+                        $value = (boolean) $value;
+                        break;
+                }
+                break;
+            case 'round':
+                $value = round($value);
+                break;
+            case 'multiply':
+                $value = $value * $data_transformer['transform_by'];
+                break;
+            case 'divide':
+                $value = $value / $data_transformer['transform_by'];
+                break;
+            case 'field-contains':
+                $value = strpos($value, $data_transformer['field_contains_value']) !== false;
+                break;
+            case 'field-does-not-contain':
+                $value = strpos($value, $data_transformer['field_contains_value']) === false;
+                break;
+        }
+
+        return $value;
     }
 }
