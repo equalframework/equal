@@ -10,8 +10,8 @@ use core\import\DataTransformer;
 use core\import\EntityMapping;
 
 list($params, $providers) = eQual::announce([
-    'description' => 'Import eQual model data from external source.',
-    'params'      => [
+    'description'   => 'Import eQual model data from external source.',
+    'params'        => [
         'entity_mapping_id' => [
             'type'          => 'integer',
             'description'   => 'The ID of the entity mapping configuration to use.',
@@ -29,12 +29,12 @@ list($params, $providers) = eQual::announce([
             'help'          => 'Must be a list of strings. If empty the mapping is done on column index.'
         ]
     ],
-    'response'    => [
+    'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'providers'   => ['context']
+    'providers'     => ['context']
 ]);
 
 list('context' => $context) = $providers;
