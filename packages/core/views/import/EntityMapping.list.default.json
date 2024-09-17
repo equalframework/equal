@@ -13,14 +13,21 @@
             {
                 "type": "field",
                 "value": "name",
-                "width": "50%",
+                "width": "33%",
                 "sortable": true,
                 "readonly": false
             },
             {
                 "type": "field",
                 "value": "entity",
-                "width": "50%",
+                "width": "33%",
+                "sortable": true,
+                "readonly": false
+            },
+            {
+                "type": "field",
+                "value": "is_index_mapping",
+                "width": "25%",
                 "sortable": true,
                 "readonly": false
             }

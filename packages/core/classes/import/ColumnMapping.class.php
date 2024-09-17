@@ -24,15 +24,26 @@ class ColumnMapping extends Model {
                 'required'          => true
             ],
 
+            'is_index_mapping' => [
+                'type'              => 'computed',
+                'result_type'       => 'boolean',
+                'description'       => 'Is the data mapped by index or by name.',
+                'store'             => true,
+                'instant'           => true,
+                'function'          => 'calcIsIndexMapping'
+            ],
+
             'origin_name' => [
                 'type'              => 'string',
-                'description'       => 'Name of the column where the data is to be found.'
+                'description'       => 'Name of the column where the data is to be found.',
+                'visible'           => ['is_index_mapping', '=', false]
             ],
 
             'origin_index' => [
                 'type'              => 'integer',
                 'usage'             => 'number/integer{0,255}',
-                'description'       => 'Index of the column where the data is to be found.'
+                'description'       => 'Index of the column where the data is to be found.',
+                'visible'           => ['is_index_mapping', '=', true]
             ],
 
             'origin_cast_type' => [
@@ -61,5 +72,16 @@ class ColumnMapping extends Model {
             ]
 
         ];
+    }
+
+    public static function calcIsIndexMapping($self): array {
+        $result = [];
+        $self->read(['entity_mapping_id' => ['is_index_mapping']]);
+
+        foreach($self as $id => $column_mapping) {
+            $result[$id] = $column_mapping['entity_mapping_id']['is_index_mapping'];
+        }
+
+        return $result;
     }
 }

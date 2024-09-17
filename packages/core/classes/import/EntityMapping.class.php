@@ -29,6 +29,13 @@ class EntityMapping extends Model {
                 'required'          => true
             ],
 
+            'is_index_mapping' => [
+                'type'              => 'boolean',
+                'description'       => 'Is the data mapped by index or by name.',
+                'default'           => true,
+                'dependents'        => ['column_mappings_ids' => ['is_index_mapping']]
+            ],
+
             'column_mappings_ids' => [
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\import\ColumnMapping',

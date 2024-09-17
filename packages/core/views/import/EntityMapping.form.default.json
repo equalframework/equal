@@ -26,6 +26,11 @@
                                                 "type": "field",
                                                 "value": "entity",
                                                 "width": "33%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "is_index_mapping",
+                                                "width": "25%"
                                             }
                                         ]
                                     }
