@@ -46,6 +46,14 @@ class ColumnMapping extends Model {
                 'visible'           => ['is_index_mapping', '=', true]
             ],
 
+            'origin' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'description'       => 'Index or name of the column where the data is to be found.',
+                'store'             => false,
+                'function'          => 'calcOrigin'
+            ],
+
             'origin_cast_type' => [
                 'type'              => 'string',
                 'selection'         => [
@@ -80,6 +88,17 @@ class ColumnMapping extends Model {
 
         foreach($self as $id => $column_mapping) {
             $result[$id] = $column_mapping['entity_mapping_id']['is_index_mapping'];
+        }
+
+        return $result;
+    }
+
+    public static function calcOrigin($self): array {
+        $result = [];
+        $self->read(['is_index_mapping', 'origin_name', 'origin_index']);
+
+        foreach($self as $id => $column_mapping) {
+            $result[$id] = $column_mapping['is_index_mapping'] ? $column_mapping['origin_index'] : $column_mapping['origin_name'];
         }
 
         return $result;
