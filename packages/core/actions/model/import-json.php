@@ -46,7 +46,7 @@ if(empty($params['data'])) {
     throw new Exception('empty_data', EQ_ERROR_INVALID_PARAM);
 }
 
-eQual::run('do', 'core_model_import', [
+eQual::run('do', 'core_model_import-entity-mapping', [
     'entity_mapping_id' => $entity_mapping['id'],
     'origin_data_rows'  => json_decode($params['data'], true)
 ]);

@@ -50,7 +50,7 @@ if(strlen($params['data']) > constant('UPLOAD_MAX_FILE_SIZE')) {
     throw new Exception('maximum_size_exceeded', EQ_ERROR_INVALID_PARAM);
 }
 
-eQual::run('do', 'core_model_import', [
+eQual::run('do', 'core_model_import-entity-mapping', [
     'entity_mapping_id' => $entity_mapping['id'],
     'origin_data_rows'  => json_decode($params['data'], true)
 ]);

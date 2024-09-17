@@ -73,7 +73,7 @@ foreach($lines as $line) {
     }
 }
 
-eQual::run('do', 'core_model_import', [
+eQual::run('do', 'core_model_import-entity-mapping', [
     'entity_mapping_id' => $entity_mapping['id'],
     'origin_data_rows'  => $data
 ]);
