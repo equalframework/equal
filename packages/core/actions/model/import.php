@@ -26,7 +26,7 @@ list($params, $providers) = eQual::announce([
         'origin_data_columns_indexation' => [
             'type'          => 'array',
             'description'   => 'List of field keys that describe the indexation of origin data rows.',
-            'help'          => 'Must be a list of strings. If empty the mapping is done on column index.'
+            'help'          => 'Must be a list of strings. If empty the mapping is done on array index or key of associative array.'
         ]
     ],
     'response'      => [
