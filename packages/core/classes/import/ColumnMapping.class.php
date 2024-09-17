@@ -43,6 +43,7 @@ class ColumnMapping extends Model {
                     'float'     => 'Float',
                     'boolean'   => 'Boolean'
                 ],
+                'description'       => 'The type in which the data need to be casted in.',
                 'default'           => 'string'
             ],
 

@@ -49,7 +49,8 @@ class DataTransformer extends Model {
 
             'value' => [
                 'type'              => 'string',
-                'description'       => 'A static value to set'
+                'description'       => 'A static value to set',
+                'visible'           => ['transformer_type', '=', 'value']
             ],
 
             'cast_to' => [
@@ -60,7 +61,7 @@ class DataTransformer extends Model {
                     'float'     => 'Float',
                     'boolean'   => 'Boolean'
                 ],
-                'visible'           => ['transformer_type', '=', 'cast'],
+                'visible'           => ['transformer_type', '=', 'cast']
             ],
 
             'transform_by' => [
@@ -79,7 +80,8 @@ class DataTransformer extends Model {
                 'type'              => 'one2many',
                 'foreign_object'    => 'core\import\DataTransformerMapValue',
                 'foreign_field'     => 'data_transformer_id',
-                'description'       => 'List a map values to replace a value by another.'
+                'description'       => 'List a map values to replace a value by another.',
+                'visible'           => ['transformer_type', '=', 'map-value']
             ]
 
         ];

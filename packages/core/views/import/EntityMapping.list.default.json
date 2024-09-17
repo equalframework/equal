@@ -1,0 +1,29 @@
+{
+    "name": "Entity Mappings",
+    "description": "Listing view for Entity Mapping items.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%",
+                "sortable": true,
+                "readonly": true
+            },
+            {
+                "type": "field",
+                "value": "name",
+                "width": "50%",
+                "sortable": true,
+                "readonly": false
+            },
+            {
+                "type": "field",
+                "value": "entity",
+                "width": "50%",
+                "sortable": true,
+                "readonly": false
+            }
+        ]
+    }
+}
