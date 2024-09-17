@@ -18,8 +18,8 @@ list($params, $providers) = eQual::announce([
             'required'          => true
         ],
         'data' => [
-            'type'              => 'string',
-            'description'       => 'Text JSON payload.',
+            'type'              => 'binary',
+            'description'       => 'Payload of the file (raw file data).',
             'required'          => true
         ]
     ],
@@ -44,6 +44,10 @@ if(is_null($entity_mapping)) {
 
 if(empty($params['data'])) {
     throw new Exception('empty_data', EQ_ERROR_INVALID_PARAM);
+}
+
+if(strlen($params['data']) > constant('UPLOAD_MAX_FILE_SIZE')) {
+    throw new Exception('maximum_size_exceeded', EQ_ERROR_INVALID_PARAM);
 }
 
 eQual::run('do', 'core_model_import', [
