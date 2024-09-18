@@ -30,12 +30,6 @@
             },
             {
                 "type": "field",
-                "value": "origin_cast_type",
-                "width": "20%",
-                "sortable": true
-            },
-            {
-                "type": "field",
                 "value": "target_name",
                 "width": "20%",
                 "sortable": true

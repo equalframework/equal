@@ -54,18 +54,6 @@ class ColumnMapping extends Model {
                 'function'          => 'calcOrigin'
             ],
 
-            'origin_cast_type' => [
-                'type'              => 'string',
-                'selection'         => [
-                    'string'    => 'String',
-                    'integer'   => 'Integer',
-                    'float'     => 'Float',
-                    'boolean'   => 'Boolean'
-                ],
-                'description'       => 'The type in which the data need to be casted in.',
-                'default'           => 'string'
-            ],
-
             'target_name' => [
                 'type'              => 'string',
                 'description'       => 'Name of the target entity\'s column.',

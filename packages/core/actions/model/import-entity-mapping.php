@@ -9,7 +9,7 @@
 use core\import\DataTransformer;
 use core\import\EntityMapping;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Import eQual model data from external source.',
     'params'        => [
         'entity_mapping_id' => [
@@ -37,7 +37,7 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context']
 ]);
 
-list('context' => $context) = $providers;
+['context' => $context] = $providers;
 
 /**
  * Methods
@@ -101,25 +101,6 @@ $createMapColMapping = function($entity_mapping, $origin_data_rows, $origin_data
     return $map_col_mapping;
 };
 
-$castValue = function(string $type, $value) {
-    switch($type) {
-        case 'string':
-            $value = (string) $value;
-            break;
-        case 'integer':
-            $value = (int) $value;
-            break;
-        case 'float':
-            $value = (float) $value;
-            break;
-        case 'boolean':
-            $value = (bool) $value;
-            break;
-    }
-
-    return $value;
-};
-
 /**
  * Action
  */
@@ -134,7 +115,6 @@ $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
         'column_mappings_ids' => [
             'origin_name',
             'origin_index',
-            'origin_cast_type',
             'target_name',
             'data_transformers_ids' => [
                 'transformer_type',
@@ -171,8 +151,6 @@ foreach($params['origin_data_rows'] as $row_index => $row) {
         if(is_null($column_mapping)) {
             continue;
         }
-
-        $value = $castValue($column_mapping['origin_cast_type'], $column_data);
 
         foreach($column_mapping['data_transformers_ids'] as $data_transformer) {
             $value = DataTransformer::transformValue($data_transformer, $value);
