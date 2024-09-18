@@ -93,22 +93,27 @@ $entity = $extractEntity($params);
 $data = $extractData($params);
 $lang = $extractLang($params);
 
+$result = [];
 foreach($data as $entity_data) {
-    $entity_exists = false;
     if(isset($entity_data['id'])) {
-        $ids = $entity::id($entity_data['id'])->ids();
-        $entity_exists = !empty($ids);
-    }
+        $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
+        if($ids < 0 || !count($ids)) {
+            $orm->create($entity, ['id' => $entity_data['id']], $lang, false);
+        }
 
-    if($entity_exists) {
-        $entity::id($entity_data['id'])
-            ->update($entity_data, $lang);
+        $id = $entity_data['id'];
+        unset($entity_data['id']);
     }
     else {
-        $entity::create($entity_data, $lang);
+        $id = $orm->create($entity, [], $lang);
     }
+
+    $orm->update($entity, $id, $entity_data, $lang);
+
+    $result[] = ['id' => $id];
 }
 
 $context->httpResponse()
-        ->status(204)
+        ->body($result)
+        ->status(200)
         ->send();

@@ -188,8 +188,7 @@ else {
                 $model = $orm->getModel($entity);
                 $schema = $model->getSchema();
 
-                $objects_ids = [];
-
+                $objects = [];
                 foreach($class['data'] as $odata) {
                     foreach($odata as $field => $value) {
                         if(!isset($schema[$field])) {
@@ -200,23 +199,16 @@ else {
                         $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
                     }
 
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exists (either values or language might differ)
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
+                    $objects[] = $odata;
                 }
+
+                $result = eQual::run('do', 'core_model_import', [
+                    'entity'    => $entity,
+                    'data'      => $objects,
+                    'lang'      => $lang
+                ]);
+
+                $objects_ids = array_column($result, 'id');
 
                 // force a first generation of computed fields, if any
                 $computed_fields = [];
