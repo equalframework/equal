@@ -191,12 +191,11 @@ for($i = 0; $i < $qty; $i++) {
     $new_entity = [];
     foreach($schema as $field => $field_descriptor) {
         $field_value_forced = isset($params['fields'][$field]);
-        $field_has_generate_function = isset($field_descriptor['generate']) && method_exists($params['entity'], $field_descriptor['generate']);
+        $field_has_generate_function = isset($field_descriptor['generation']) && method_exists($params['entity'], $field_descriptor['generation']);
 
-        if(     !$field_value_forced
+        if( !$field_value_forced
                 && !$field_has_generate_function
-                && ( in_array($field, $root_fields)
-                     || in_array($field_descriptor['type'], ['alias', 'computed', 'one2many', 'many2one', 'many2many']) ) ) {
+                && ( in_array($field, $root_fields) || in_array($field_descriptor['type'], ['alias', 'computed', 'one2many', 'many2one', 'many2many']) ) ) {
             continue;
         }
 
@@ -220,8 +219,8 @@ for($i = 0; $i < $qty; $i++) {
             if($field_value_forced) {
                 $new_entity[$field] = $params['fields'][$field];
             }
-            elseif($field_has_generate_function && method_exists($params['entity'], $field_descriptor['generate'])) {
-                $new_entity[$field] = $params['entity']::{$field_descriptor['generate']}();
+            elseif($field_has_generate_function && method_exists($params['entity'], $field_descriptor['generation'])) {
+                $new_entity[$field] = $params['entity']::{$field_descriptor['generation']}();
             }
             else {
                 if(!$is_required && DataGenerator::boolean(0.05)) {
