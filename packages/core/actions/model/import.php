@@ -84,8 +84,20 @@ $data = $extractData($params);
 $entity = $extractEntity($params);
 $lang = $extractLang($params);
 
-foreach($data as $new_entity) {
-    $entity::create($new_entity, $lang);
+foreach($data as $entity_data) {
+    $entity_exists = false;
+    if(isset($entity_data['id'])) {
+        $ids = $entity::id($entity_data['id'])->ids();
+        $entity_exists = !empty($ids);
+    }
+
+    if($entity_exists) {
+        $entity::id($entity_data['id'])
+            ->update($entity_data, $lang);
+    }
+    else {
+        $entity::create($entity_data, $lang);
+    }
 }
 
 $context->httpResponse()
