@@ -87,7 +87,7 @@ class DataTransformer extends Model {
         ];
     }
 
-    public static function transformValue($data_transformer, $value) {
+    public static function transformValue(array $data_transformer, $value) {
         switch($data_transformer['transformer_type']) {
             case 'value':
                 $value = $data_transformer['value'];

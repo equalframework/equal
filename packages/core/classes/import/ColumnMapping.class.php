@@ -24,26 +24,26 @@ class ColumnMapping extends Model {
                 'required'          => true
             ],
 
-            'is_index_mapping' => [
+            'mapping_type' => [
                 'type'              => 'computed',
-                'result_type'       => 'boolean',
-                'description'       => 'Is the data mapped by index or by name.',
+                'result_type'       => 'string',
+                'description'       => 'Is the column data mapped by index or by name.',
                 'store'             => true,
                 'instant'           => true,
-                'function'          => 'calcIsIndexMapping'
+                'function'          => 'calcMappingType'
             ],
 
             'origin_name' => [
                 'type'              => 'string',
                 'description'       => 'Name of the column where the data is to be found.',
-                'visible'           => ['is_index_mapping', '=', false]
+                'visible'           => ['mapping_type', '=', 'name']
             ],
 
             'origin_index' => [
                 'type'              => 'integer',
                 'usage'             => 'number/integer{0,255}',
                 'description'       => 'Index of the column where the data is to be found.',
-                'visible'           => ['is_index_mapping', '=', true]
+                'visible'           => ['mapping_type', '=', 'index']
             ],
 
             'origin' => [
@@ -70,12 +70,12 @@ class ColumnMapping extends Model {
         ];
     }
 
-    public static function calcIsIndexMapping($self): array {
+    public static function calcMappingType($self): array {
         $result = [];
-        $self->read(['entity_mapping_id' => ['is_index_mapping']]);
+        $self->read(['entity_mapping_id' => ['mapping_type']]);
 
         foreach($self as $id => $column_mapping) {
-            $result[$id] = $column_mapping['entity_mapping_id']['is_index_mapping'];
+            $result[$id] = $column_mapping['entity_mapping_id']['mapping_type'];
         }
 
         return $result;
@@ -83,10 +83,10 @@ class ColumnMapping extends Model {
 
     public static function calcOrigin($self): array {
         $result = [];
-        $self->read(['is_index_mapping', 'origin_name', 'origin_index']);
+        $self->read(['mapping_type', 'origin_name', 'origin_index']);
 
         foreach($self as $id => $column_mapping) {
-            $result[$id] = $column_mapping['is_index_mapping'] ? $column_mapping['origin_index'] : $column_mapping['origin_name'];
+            $result[$id] = $column_mapping['mapping_type'] === 'index' ? $column_mapping['origin_index'] : $column_mapping['origin_name'];
         }
 
         return $result;

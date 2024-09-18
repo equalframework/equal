@@ -29,11 +29,15 @@ class EntityMapping extends Model {
                 'required'          => true
             ],
 
-            'is_index_mapping' => [
-                'type'              => 'boolean',
-                'description'       => 'Is the data mapped by index or by name.',
-                'default'           => true,
-                'dependents'        => ['column_mappings_ids' => ['is_index_mapping']]
+            'mapping_type' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'index' => 'Index',
+                    'name'  => 'Name'
+                ],
+                'description'       => 'Are the columns data mapped by index or by name.',
+                'default'           => 'index',
+                'dependents'        => ['column_mappings_ids' => ['mapping_type']]
             ],
 
             'column_mappings_ids' => [

@@ -19,7 +19,7 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "is_index_mapping",
+                                                "value": "mapping_type",
                                                 "visible": false
                                             }
                                         ]

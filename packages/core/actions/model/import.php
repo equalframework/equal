@@ -26,8 +26,7 @@ use equal\php\Context;
         'lang' => [
             'type'          => 'string',
             'description '  => 'Specific language for multilang field.',
-            'help'          => 'If not provided the DEFAULT_LANG is used.',
-            'default'       => constant('DEFAULT_LANG')
+            'help'          => 'If not provided the DEFAULT_LANG is used.'
         ]
     ],
     'response'      => [
@@ -49,17 +48,8 @@ use equal\php\Context;
  * Methods
  */
 
-$extractData = function(array $params) {
-    $data = $params['data']['data'] ?? $params['data'] ?? null;
-    if(is_null($data)) {
-        throw new Exception('missing_data', EQ_ERROR_INVALID_PARAM);
-    }
-
-    return $data;
-};
-
 $extractEntity = function($params) use ($orm) {
-    $entity = $params['data']['name'] ?? $params['entity'] ?? null;
+    $entity = $params['entity'] ?? $params['data']['name'] ?? null;
     if(is_null($entity)) {
         throw new Exception('missing_entity', EQ_ERROR_INVALID_PARAM);
     }
@@ -72,16 +62,35 @@ $extractEntity = function($params) use ($orm) {
     return $entity;
 };
 
+$extractData = function(array $params) {
+    if(isset($params['entity'])) {
+        $data = $params['data'];
+    }
+    else {
+        $data = $params['data']['data'] ?? null;
+    }
+
+    if(is_null($data)) {
+        throw new Exception('missing_data', EQ_ERROR_INVALID_PARAM);
+    }
+
+    return $data;
+};
+
 $extractLang = function($params) {
-    return $params['data']['lang'] ?? $params['lang'];
+    if(isset($params['entity'])) {
+        return $params['lang'] ?? constant('DEFAULT_LANG');
+    }
+
+    return $params['data']['lang'] ?? constant('DEFAULT_LANG');
 };
 
 /**
  * Action
  */
 
-$data = $extractData($params);
 $entity = $extractEntity($params);
+$data = $extractData($params);
 $lang = $extractLang($params);
 
 foreach($data as $entity_data) {
