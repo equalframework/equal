@@ -8,14 +8,15 @@
 
 use core\import\EntityMapping;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Import eQual database data from a csv external source.',
     'params'        => [
         'entity_mapping_id' => [
             'type'              => 'many2one',
             'foreign_object'    => 'core\import\EntityMapping',
             'description'       => 'The entity mapping to use to adapt given data to eQual entities.',
-            'required'          => true
+            'required'          => true,
+            'domain'            => ['mapping_type', '=', 'index']
         ],
         'csv_separator_character' => [
             'type'              => 'string',
@@ -50,7 +51,7 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context']
 ]);
 
-list('context' => $context) = $providers;
+['context' => $context] = $providers;
 
 $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
     ->read(['id'])
@@ -73,9 +74,9 @@ foreach($lines as $line) {
     }
 }
 
-eQual::run('do', 'core_model_import-entity-mapping', [
+eQual::run('do', 'core_model_import-mapped', [
     'entity_mapping_id' => $entity_mapping['id'],
-    'origin_data_rows'  => $data
+    'data'              => $data
 ]);
 
 $context->httpResponse()
