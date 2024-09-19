@@ -62,16 +62,14 @@ list($params, $providers) = eQual::announce([
         ]
     ],
     'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm', 'adapt', 'report'],
+    'providers'     => ['context', 'orm', 'adapt'],
 ]);
 
 /**
- * @var \equal\php\Context                      $context
- * @var \equal\orm\ObjectManager                $orm
- * @var \equal\data\adapt\DataAdapterProvider   $dap
- * @var \equal\error\Reporter                   $reporter
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
 
 $skip_package = false;
 
@@ -90,9 +88,6 @@ if($skip_package) {
     // silently ignore package when dependency of another
 }
 else {
-    // retrieve adapter for converting data from JSON files
-    $adapter = $dap->get('json');
-
     // make sure DB is available
     eQual::run('do', 'test_db-access');
 
@@ -185,39 +180,12 @@ else {
                     continue;
                 }
                 $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
 
-                $objects = [];
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        if(!isset($schema[$field])) {
-                            $reporter->warning("ORM::unknown field {$field} in json file '{$json_file}'.");
-                            continue;
-                        }
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    $objects[] = $odata;
-                }
-
-                $import_result = eQual::run('do', 'core_model_import', [
+                eQual::run('do', 'core_model_import', [
                     'entity'    => $entity,
-                    'data'      => $objects,
+                    'data'      => $class['data'],
                     'lang'      => $lang
                 ]);
-
-                $objects_ids = array_column($import_result, 'id');
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
             }
         }
     }
@@ -238,43 +206,12 @@ else {
                     continue;
                 }
                 $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
 
-                $objects_ids = [];
-
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exist, but either values or language might differ
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
-                }
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
+                eQual::run('do', 'core_model_import', [
+                    'entity'    => $entity,
+                    'data'      => $class['data'],
+                    'lang'      => $lang
+                ]);
             }
         }
     }
@@ -295,43 +232,12 @@ else {
                     continue;
                 }
                 $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
 
-                $objects_ids = [];
-
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exist, but either values or language might differ
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
-                }
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
+                eQual::run('do', 'core_model_import', [
+                    'entity'    => $entity,
+                    'data'      => $class['data'],
+                    'lang'      => $lang
+                ]);
             }
         }
     }

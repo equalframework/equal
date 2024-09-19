@@ -6,8 +6,11 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use equal\orm\Field;
 use equal\orm\ObjectManager;
 use equal\php\Context;
+use equal\data\adapt\DataAdapterProvider;
+use equal\error\Reporter;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Import eQual object from import format data.',
@@ -35,20 +38,24 @@ use equal\php\Context;
         'accept-origin' => '*'
     ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context', 'orm', 'adapt', 'report']
 ]);
 
 /**
- * @var Context         $context
- * @var ObjectManager   $orm
+ * @var Context             $context
+ * @var ObjectManager       $orm
+ * @var DataAdapterProvider $dap
+ * @var Reporter            $reporter
  */
-['context' => $context, 'orm' => $orm] = $providers;
+['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
+
+$adapter = $dap->get('json');
 
 /**
  * Methods
  */
 
-$extractEntity = function($params) use ($orm) {
+$extractEntityAndSchema = function($params) use ($orm): array {
     $entity = $params['entity'] ?? $params['data']['name'] ?? null;
     if(is_null($entity)) {
         throw new Exception('missing_entity', EQ_ERROR_INVALID_PARAM);
@@ -59,7 +66,7 @@ $extractEntity = function($params) use ($orm) {
         throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
     }
 
-    return $entity;
+    return [$entity, $model->getSchema()];
 };
 
 $extractData = function(array $params) {
@@ -89,12 +96,21 @@ $extractLang = function($params) {
  * Action
  */
 
-$entity = $extractEntity($params);
+[$entity, $schema] = $extractEntityAndSchema($params);
 $data = $extractData($params);
 $lang = $extractLang($params);
 
-$result = [];
+$object_ids = [];
 foreach($data as $entity_data) {
+    foreach($entity_data as $field => $value) {
+        if(!isset($schema[$field])) {
+            $reporter->warning("ORM::unknown field $field for entity $entity in given data.");
+            continue;
+        }
+        $f = new Field($schema[$field]);
+        $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
+    }
+
     if(isset($entity_data['id'])) {
         $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
         if($ids < 0 || !count($ids)) {
@@ -110,8 +126,26 @@ foreach($data as $entity_data) {
 
     $orm->update($entity, $id, $entity_data, $lang);
 
-    $result[] = ['id' => $id];
+    $object_ids[] = $id;
 }
+
+$computed_fields = [];
+foreach($schema as $field => $def) {
+    if($def['type'] === 'computed') {
+        $computed_fields[] = $field;
+    }
+}
+
+if(!empty($computed_fields)) {
+    $orm->read($entity, $object_ids, $computed_fields, $lang);
+}
+
+$result = array_map(
+    function($id) {
+        return ['id' => $id];
+    },
+    $object_ids
+);
 
 $context->httpResponse()
         ->body($result)
