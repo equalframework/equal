@@ -35,7 +35,6 @@ class DataTransformer extends Model {
                     'field-contains'            => 'Field contains',
                     'field-does-not-contain'    => 'Field does not contain',
                     'map-value'                 => 'Map value'
-                    // TODO: add computed and query
                 ],
                 'description'       => 'The type of transform operation to be applied on a column data to import.',
                 'default'           => 'value'
