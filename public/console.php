@@ -9,7 +9,7 @@
 error_reporting(0);
 
 // get log file, using variation from URL, if any
-$log_file = (isset($_GET['f']) && strlen($_GET['f']))?$_GET['f']:'equal.log';
+$log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
 
 // retrieve logs history (variations on filename)
 $log_variations = [];
@@ -312,7 +312,7 @@ if(!count($_GET)) {
                 bottom: 20px;
                 opacity: 1;
             }
-            div.no-result {
+            div.feedback {
                 margin-left: 20px;
             }
             div.no-result::before {
@@ -497,6 +497,11 @@ if(!count($_GET)) {
                     query = "a=1";
                 }
                 const response = await fetch("console.php?"+query);
+
+                if(response.status != 200) {
+                    throw new Error(response.status);
+                }
+
                 const data = await response.json();
                 return data;
             }
@@ -631,14 +636,20 @@ if(!count($_GET)) {
                 list.style.display = "none";
                 list.innerHTML = "";
                 document.getElementById("loader").style.display = "block";
-                const threads = await get_threads(params);
+                try {
+                    const threads = await get_threads(params);
 
-                for(const thread of threads) {
-                    let element = createThreadElement(thread, params);
-                    list.prepend(element);
+                    for(const thread of threads) {
+                        let element = createThreadElement(thread, params);
+                        list.prepend(element);
+                    }
+                    if(!threads.length) {
+                        list.innerHTML = "<div class=\"feedback no-result\"></div>";
+                    }
                 }
-                if(!threads.length) {
-                    list.innerHTML = "<div class=\"no-result\"></div>";
+                catch(status) {
+                    console.log("an error occurred", status);
+                    list.innerHTML = "<div class=\"feedback\">Filesize over limit. Parsing blocked to prevent overload.</div>";
                 }
                 document.getElementById("loader").style.display = "none";
                 list.style.display = "block";
@@ -810,6 +821,15 @@ else {
         }
         if(isset($_GET['date']) && $_GET['date'] == '') {
             unset($_GET['date']);
+        }
+
+        $filesize = filesize('../log/'.$log_file);
+        $MAX_FILESIZE = 100 * 1000 * 1000;
+        // limit processing base on filesize to prevent overload
+        if($filesize > $MAX_FILESIZE) {
+            // set response as 'no content'
+            http_response_code(204);
+            die();
         }
 
         // read raw data from log file
