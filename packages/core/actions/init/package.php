@@ -202,13 +202,13 @@ else {
                     $objects[] = $odata;
                 }
 
-                $result = eQual::run('do', 'core_model_import', [
+                $import_result = eQual::run('do', 'core_model_import', [
                     'entity'    => $entity,
                     'data'      => $objects,
                     'lang'      => $lang
                 ]);
 
-                $objects_ids = array_column($result, 'id');
+                $objects_ids = array_column($import_result, 'id');
 
                 // force a first generation of computed fields, if any
                 $computed_fields = [];

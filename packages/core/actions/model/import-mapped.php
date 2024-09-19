@@ -16,20 +16,20 @@ use equal\php\Context;
     'description'   => 'Import eQual model data from external source using EntityMapping.',
     'params'        => [
         'entity_mapping_id' => [
-            'type'          => 'integer',
-            'description'   => 'The ID of the entity mapping configuration to use.',
-            'min'           => 1,
-            'required'      => true
+            'type'              => 'many2one',
+            'foreign_object'    => 'core\import\EntityMapping',
+            'description'       => 'The entity mapping to use to adapt given data to eQual entities.',
+            'required'          => true
         ],
         'data' => [
-            'type'          => 'array',
-            'description'   => 'The data that needs to be imported.',
-            'required'      => true
+            'type'              => 'array',
+            'description'       => 'The data that needs to be imported.',
+            'required'          => true
         ],
         'indexation' => [
-            'type'          => 'array',
-            'description'   => 'List of field keys that describe the indexation of origin data rows.',
-            'help'          => 'Must be a list of strings. If empty the mapping is done on array index or key of associative array.'
+            'type'              => 'array',
+            'description'       => 'List of field keys that describe the indexation of origin data rows.',
+            'help'              => 'Must be a list of strings. If empty the mapping is done on array index or key of associative array.'
         ]
     ],
     'response'      => [

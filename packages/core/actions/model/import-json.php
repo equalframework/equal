@@ -29,7 +29,6 @@ use core\import\EntityMapping;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
-    'constants'     => ['UPLOAD_MAX_FILE_SIZE'],
     'providers'     => ['context']
 ]);
 
