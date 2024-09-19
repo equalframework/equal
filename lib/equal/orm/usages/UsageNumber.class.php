@@ -60,13 +60,13 @@ class UsageNumber extends Usage {
                     'too_low' => [
                         'message'   => 'Value is too low.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
                         }
                     ],
                     'too_high' => [
                         'message'   => 'Value is too high.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
                         }
                     ]
                 ];
@@ -81,13 +81,13 @@ class UsageNumber extends Usage {
                     'too_low' => [
                         'message'   => 'Value is too low.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
                         }
                     ],
                     'too_high' => [
                         'message'   => 'Value is too high.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
                         }
                     ]
                 ];
@@ -112,13 +112,13 @@ class UsageNumber extends Usage {
                     'too_low' => [
                         'message'   => 'Value is too low.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
                         }
                     ],
                     'too_high' => [
                         'message'   => 'Value is too high.',
                         'function'  =>  function($value) {
-                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
                         }
                     ]
                 ];
