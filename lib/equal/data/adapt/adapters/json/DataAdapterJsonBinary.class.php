@@ -55,7 +55,7 @@ class DataAdapterJsonBinary implements DataAdapter {
                 throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), QN_ERROR_INVALID_PARAM);
             }
             if(strlen($result) > constant('UPLOAD_MAX_FILE_SIZE')) {
-                throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
+                throw new \Exception("file_exceeds_maximum_size", QN_ERROR_INVALID_PARAM);
             }
         }
         else {
