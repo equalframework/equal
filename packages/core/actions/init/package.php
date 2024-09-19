@@ -62,7 +62,7 @@ list($params, $providers) = eQual::announce([
         ]
     ],
     'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm', 'adapt'],
+    'providers'     => ['context', 'orm'],
 ]);
 
 /**
@@ -70,6 +70,37 @@ list($params, $providers) = eQual::announce([
  * @var \equal\orm\ObjectManager    $orm
  */
 ['context' => $context, 'orm' => $orm] = $providers;
+
+/**
+ * Methods
+ */
+
+$importDataFromFolderJsonFiles = function($data_folder) {
+    foreach(glob("$data_folder/*.json") as $json_file) {
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        if(!$classes) {
+            continue;
+        }
+        foreach($classes as $class) {
+            $entity = $class['name'] ?? null;
+            if(!$entity) {
+                continue;
+            }
+            $lang = $class['lang'] ?? constant('DEFAULT_LANG');
+
+            eQual::run('do', 'core_model_import', [
+                'entity'    => $entity,
+                'data'      => $class['data'],
+                'lang'      => $lang
+            ]);
+        }
+    }
+};
+
+/**
+ * Action
+ */
 
 $skip_package = false;
 
@@ -167,79 +198,19 @@ else {
     // 2) Populate tables with predefined data
     $data_folder = "packages/{$params['package']}/init/data";
     if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
-        // handle JSON files
-        foreach(glob($data_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-
-                eQual::run('do', 'core_model_import', [
-                    'entity'    => $entity,
-                    'data'      => $class['data'],
-                    'lang'      => $lang
-                ]);
-            }
-        }
+        $importDataFromFolderJsonFiles($data_folder);
     }
 
     // 2 bis) Populate tables with demo data, if requested
     $demo_folder = "packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
-        // handle JSON files
-        foreach(glob($demo_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-
-                eQual::run('do', 'core_model_import', [
-                    'entity'    => $entity,
-                    'data'      => $class['data'],
-                    'lang'      => $lang
-                ]);
-            }
-        }
+        $importDataFromFolderJsonFiles($demo_folder);
     }
 
     // 2 ter) Populate tables with test data (intended for tests), if requested
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
-        // handle JSON files
-        foreach(glob($test_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-
-                eQual::run('do', 'core_model_import', [
-                    'entity'    => $entity,
-                    'data'      => $class['data'],
-                    'lang'      => $lang
-                ]);
-            }
-        }
+        $importDataFromFolderJsonFiles($test_folder);
     }
 
     // 3) If a `bin` folder exists, copy its content to /bin/<package>/
