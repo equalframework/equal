@@ -12,12 +12,15 @@ use equal\orm\UsageFactory;
 class DataGenerator {
 
     /**
+     * @param string    $field              Field name.
+     * @param string    $field_descriptor   Field descriptor.
+     * @param string    $lang               Lang code of the language in which the value must be generated (for multilang fields).
      * @return array|bool|float|int|mixed|string|null
      */
-    public static function generateByFieldConf(string $field, array $field_conf, string $lang = null) {
-        if(isset($field_conf['usage'])) {
+    public static function generateFromField(string $field, array $field_descriptor, string $lang = null) {
+        if(isset($field_descriptor['usage'])) {
             try {
-                $usage = UsageFactory::create($field_conf['usage']);
+                $usage = UsageFactory::create($field_descriptor['usage']);
                 return $usage->generateRandomValue();
             }
             catch(\Exception $e) {
@@ -48,28 +51,27 @@ class DataGenerator {
                 return self::address($lang);
         }
 
-        switch($field_conf['type']) {
+        switch($field_descriptor['type']) {
             case 'string':
-                if(!empty($field_conf['selection'])) {
-                    if(isset($field_conf['selection'][0])) {
-                        $values = array_values($field_conf['selection']);
+                if(!empty($field_descriptor['selection'])) {
+                    if(isset($field_descriptor['selection'][0])) {
+                        $values = array_values($field_descriptor['selection']);
                     }
                     else {
-                        $values = array_keys($field_conf['selection']);
+                        $values = array_keys($field_descriptor['selection']);
                     }
                     return $values[array_rand($values)];
                 }
-                elseif(isset($field_conf['default'])) {
-                    return $field_conf['default'];
+                elseif(isset($field_descriptor['default'])) {
+                    return $field_descriptor['default'];
                 }
-
                 return self::plainText();
             case 'boolean':
                 return self::boolean();
             case 'integer':
-                return self::integer(9);
+                return self::integerByLength(9);
             case 'float':
-                return self::realNumber(9, 2);
+                return self::realNumberByLength(9, 2);
         }
 
         return null;
@@ -115,14 +117,18 @@ class DataGenerator {
         return mt_rand() / mt_getrandmax() < $probability;
     }
 
-    public static function integer(int $length): int {
+    public static function integerByLength(int $length): int {
         $min = (pow(10, $length) - 1) * -1;
         $max = pow(10, $length) - 1;
 
         return mt_rand($min, $max);
     }
 
-    public static function realNumber(int $precision, int $scale): float {
+    public static function integer(int $min, int $max): int {
+        return mt_rand($min, $max);
+    }
+
+    public static function realNumberByLength(int $precision, int $scale): float {
         $max_int_part = pow(10, $precision) - 1;
         $min_int_part = -$max_int_part;
 
@@ -133,6 +139,12 @@ class DataGenerator {
         $random_float = $int_part + $fractional_part;
 
         return round($random_float, $scale);
+    }
+
+    public static function realNumber(float $min, float $max, int $decimals): float {
+        $scale = pow(10, $decimals);
+
+        return mt_rand($min * $scale, $max * $scale) / $scale;
     }
 
     public static function hexadecimal(int $length): string {

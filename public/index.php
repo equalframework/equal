@@ -1,8 +1,9 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2023
-    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+    Some Rights Reserved, The eQual Framework, 2010-2024
+    Original Author: Cedric Francoys
+    License:  GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
 /*

@@ -1,10 +1,11 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, The eQual Framework, 2010-2024
+    Author: The eQual Framework Contributors
+    Original Author: Lucas Laurent
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 use equal\data\DataGenerator;
 
 list($params, $providers) = eQual::announce([
@@ -52,7 +53,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context          $context
  * @var \equal\orm\ObjectManager    $orm
  */
-list('context' => $context, 'orm' => $orm) = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
 
 $anonymized_values = [];
 
@@ -65,21 +66,21 @@ $schema = $model->getSchema();
 
 $ids = $params['entity']::search($params['domain'])->ids();
 foreach($ids as $id) {
-    foreach($schema as $field => $conf) {
-        if(!($conf['sensitive'] ?? false) && !in_array($field, $params['fields'])) {
+    foreach($schema as $field => $descriptor) {
+        if(!($descriptor['sensitive'] ?? false) && !in_array($field, $params['fields'])) {
             continue;
         }
 
-        if(isset($conf['generate']) && method_exists($params['entity'], $conf['generate'])) {
-            $anonymized_values[$field] = $params['entity']::{$conf['generate']}();
+        if(isset($descriptor['generation']) && method_exists($params['entity'], $descriptor['generation'])) {
+            $anonymized_values[$field] = $params['entity']::{$descriptor['generation']}();
         }
         else {
-            $required = $conf['required'] ?? false;
+            $required = $descriptor['required'] ?? false;
             if(!$required && DataGenerator::boolean(0.05)) {
                 $anonymized_values[$field] = null;
             }
             else {
-                $anonymized_values[$field] = DataGenerator::generateByFieldConf($field, $conf, $params['lang']);
+                $anonymized_values[$field] = DataGenerator::generateFromField($field, $descriptor, $params['lang']);
             }
         }
     }
@@ -91,13 +92,13 @@ foreach($ids as $id) {
             ->first();
     }
 
-    foreach($schema as $field => $conf) {
-        if(!in_array($conf['type'], ['one2many', 'many2one']) || !isset($params['relations'][$field])) {
+    foreach($schema as $field => $descriptor) {
+        if(!in_array($descriptor['type'], ['one2many', 'many2one']) || !isset($params['relations'][$field])) {
             continue;
         }
 
         $relation_params = [
-            'entity'    => $conf['foreign_object'],
+            'entity'    => $descriptor['foreign_object'],
             'lang'      => $params['lang']
         ];
 
@@ -111,9 +112,9 @@ foreach($ids as $id) {
             $relation_params['domain'] = [];
         }
 
-        switch($conf['type']) {
+        switch($descriptor['type']) {
             case 'one2many':
-                $relation_params['domain'][] = [$conf['foreign_field'], '=', $id];
+                $relation_params['domain'][] = [$descriptor['foreign_field'], '=', $id];
                 break;
             case 'many2one':
                 $instance = $params['entity']::id($id)

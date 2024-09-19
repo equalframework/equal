@@ -65,7 +65,11 @@ class UsageAmount extends Usage {
             case 'money':
             case 'percent':
             case 'rate':
-                return DataGenerator::realNumber($this->getPrecision(), $this->getScale());
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::realNumberByLength($this->getLength(), $this->getScale());
+                }
+
+                return DataGenerator::realNumber($this->getMin(), $this->getMax(), $this->getScale());
         }
         return 0;
     }
