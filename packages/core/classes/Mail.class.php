@@ -154,14 +154,14 @@ class Mail extends Model {
             if($mailer->send($envelope) == 0) {
                 throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
             }
-            trigger_error("APP::Mail::send() successfully sent email message {$mail['id']}", EQ_REPORT_INFO);
+            trigger_error("PHP::Mail::send() successfully sent email message {$mail['id']}", EQ_REPORT_INFO);
             // update the core\Mail object status
             self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
         }
         catch(\Exception $e) {
-            trigger_error("APP::Mail::send() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
+            trigger_error("PHP::Mail::send() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
             self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
-            throw new \Exception($e->getMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), EQ_ERROR_UNKNOWN);
         }
 
         return $mail['id'];
