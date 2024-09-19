@@ -56,6 +56,18 @@ class UsageNumber extends Usage {
                         'function'  =>  function($value) {
                             return preg_match('/^[+-]?[0-9]{0,'.$this->getLength().'}$/', (string) $value);
                         }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
+                        }
                     ]
                 ];
             case 'natural':
@@ -64,6 +76,18 @@ class UsageNumber extends Usage {
                         'message'   => 'Value is not a natural number.',
                         'function'  =>  function($value) {
                             return preg_match('/^[0-9]{0,'.$this->getLength().'}$/', (string) $value);
+                        }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
                         }
                     ]
                 ];
@@ -83,6 +107,18 @@ class UsageNumber extends Usage {
                             $integers = $this->getPrecision();
                             $decimals = $this->getScale();
                             return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$decimals.'})?$/', (string) $value);
+                        }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return ($this->getMin() === 0 && $this->getMax() === 0) || $value <= $this->getMax();
                         }
                     ]
                 ];

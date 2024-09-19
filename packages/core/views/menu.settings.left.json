@@ -165,6 +165,26 @@
                         ]
                     },
                     {
+                        "id": "settings.import",
+                        "label": "Import",
+                        "description": "",
+                        "icon": "settings_applications",
+                        "type": "parent",
+                        "children": [
+                            {
+                                "id": "settings.import.entity-mappings",
+                                "label": "Entity mappings",
+                                "description": "",
+                                "icon": "device_hub",
+                                "type": "entry",
+                                "context": {
+                                    "entity": "core\\import\\EntityMapping",
+                                    "view": "list.default"
+                                }
+                            }
+                        ]
+                    },
+                    {
                         "id": "settings.settings",
                         "label": "Settings",
                         "description": "",
