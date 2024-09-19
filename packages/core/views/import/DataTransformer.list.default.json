@@ -1,0 +1,33 @@
+{
+    "name": "Data Transformers",
+    "description": "Listing view for Data Transformer items.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%",
+                "sortable": true,
+                "readonly": true
+            },
+            {
+                "type": "field",
+                "value": "column_mapping_id",
+                "width": "40%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "transformer_type",
+                "width": "40%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "order",
+                "width": "10%",
+                "sortable": true
+            }
+        ]
+    }
+}

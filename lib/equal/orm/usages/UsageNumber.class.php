@@ -6,7 +6,7 @@
 */
 namespace equal\orm\usages;
 
-use equal\locale\Locale;
+use equal\data\DataGenerator;
 
 class UsageNumber extends Usage {
 
@@ -56,6 +56,18 @@ class UsageNumber extends Usage {
                         'function'  =>  function($value) {
                             return preg_match('/^[+-]?[0-9]{0,'.$this->getLength().'}$/', (string) $value);
                         }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
+                        }
                     ]
                 ];
             case 'natural':
@@ -64,6 +76,18 @@ class UsageNumber extends Usage {
                         'message'   => 'Value is not a natural number.',
                         'function'  =>  function($value) {
                             return preg_match('/^[0-9]{0,'.$this->getLength().'}$/', (string) $value);
+                        }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
                         }
                     ]
                 ];
@@ -84,11 +108,49 @@ class UsageNumber extends Usage {
                             $decimals = $this->getScale();
                             return preg_match('/^[+-]?[0-9]{0,'.$integers.'}(\.[0-9]{1,'.$decimals.'})?$/', (string) $value);
                         }
+                    ],
+                    'too_low' => [
+                        'message'   => 'Value is too low.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value >= $this->getMin();
+                        }
+                    ],
+                    'too_high' => [
+                        'message'   => 'Value is too high.',
+                        'function'  =>  function($value) {
+                            return (!$this->getMin() && !$this->getMax()) || $value <= $this->getMax();
+                        }
                     ]
                 ];
             default:
                 return [];
         }
+    }
+
+    /**
+     * @return bool|float|int|string|null
+     */
+    public function generateRandomValue() {
+        switch($this->getSubtype(0)) {
+            case 'boolean':
+                return DataGenerator::boolean();
+            case 'integer':
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::integerByLength($this->getLength());
+                }
+
+                return DataGenerator::integer($this->getMin(), $this->getMax());
+            case 'real':
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::realNumberByLength($this->getLength(), $this->getScale());
+                }
+
+                return DataGenerator::realNumber($this->getMin(), $this->getMax(), $this->getScale());
+            case 'hexadecimal':
+                return DataGenerator::hexadecimal($this->getLength());
+        }
+
+        return 0;
     }
 
 }

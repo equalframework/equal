@@ -1,133 +1,153 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
-    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Lucas LAURENT
+    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\Field;
 
-list($params, $providers) = announce([
-    'description'   => "mark the given object(s) as archived.",
+use equal\orm\Field;
+use equal\orm\ObjectManager;
+use equal\php\Context;
+use equal\data\adapt\DataAdapterProvider;
+use equal\error\Reporter;
+
+[$params, $providers] = eQual::announce([
+    'description'   => 'Import eQual object from import format data.',
     'params'        => [
-        'json' =>  [
-            'description'   => 'Unique identifier of the object to remove.',
-            'type'          => 'text',
-            'default'       => ''
+        'entity' => [
+            'type'          => 'string',
+            'usage'         => 'orm/entity',
+            'description'   => 'Full name (including namespace) of the class to import (e.g. "core\\User").'
+        ],
+        'data' => [
+            'type'          => 'array',
+            'description'   => 'List of objects to import.',
+            'help'          => 'If the entity parameter is not provided, this parameter must match eQual export format (e.g. "{\"entity\":\"core\\\\User\",\"data\":[...]}").',
+            'required'      => true
+        ],
+        'lang' => [
+            'type'          => 'string',
+            'description '  => 'Specific language for multilang field.',
+            'help'          => 'If not provided the DEFAULT_LANG is used.'
         ]
     ],
-    'constants'     => ['UPLOAD_MAX_FILE_SIZE'],
     'response'      => [
         'content-type'  => 'application/json',
-        'charset'       => 'utf-8'
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'access' => [
-        'visibility'        => 'private'
-    ],
-    'providers'     => ['context', 'orm', 'access', 'adapt']
+    'constants'     => ['DEFAULT_LANG'],
+    'providers'     => ['context', 'orm', 'adapt', 'report']
 ]);
 
 /**
- * @var \equal\php\Context              $context
- * @var \equal\orm\ObjectManager        $orm
- * @var \equal\access\AccessController  $ac
- * @var \equal\data\DataAdapterProvider $dap
+ * @var Context             $context
+ * @var ObjectManager       $orm
+ * @var DataAdapterProvider $dap
+ * @var Reporter            $reporter
  */
-list($context, $orm, $ac, $dap) = [$providers['context'], $providers['orm'], $providers['access'], $providers['adapt']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
 
-/**
- * This script is meant to be run using CLI, in conjunction with -i arg.
- * In order to prevent the context service from consuming data from stdin.
- * Example: ./equal.run -i --do=model_import <tmp.json
- */
-$json = '';
-
-if($params['json']) {
-    $json = $params['json'];
-}
-else {
-    $stdin = fopen('php://stdin','r');
-    if(!stream_set_blocking($stdin, false)) {
-        // this doesn't work under Win64: if no json param is given, script will wait for an input
-        // throw new Exception('stream_unavailable', QN_ERROR_UNKNOWN);
-    }
-
-    $read = [$stdin];
-    $write = null;
-    $except = null;
-    $count = stream_select($read, $write, $except, 0, 1000);
-
-    if($count > 0) {
-        $bytes = 0;
-        $chunk_size = 1024;
-        $json = '';
-        while($s = fgets($stdin, $chunk_size)) {
-            $bytes += $chunk_size;
-            if($bytes > constant('UPLOAD_MAX_FILE_SIZE')) {
-                throw new Exception('max_size_exceeded', QN_ERROR_INVALID_PARAM);
-            }
-            $json .= $s;
-        }
-    }
-}
-
-$data = [];
-
-if(strlen($json)) {
-    $data = json_decode($json, true, 512, JSON_BIGINT_AS_STRING);
-    if(is_null($data)) {
-        throw new Exception('invalid json: '.json_last_error_msg(), QN_ERROR_INVALID_PARAM);
-    }
-}
-
-if(empty($data)) {
-    throw new Exception('missing_data', QN_ERROR_INVALID_PARAM);
-}
-
-/** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
 
-foreach($data as $class) {
+/**
+ * Methods
+ */
 
-    if(!isset($class['name']) || !isset($class['data'])) {
-        throw new Exception('invalid_schema', QN_ERROR_INVALID_PARAM);
+$extractEntityAndSchema = function($params) use ($orm): array {
+    $entity = $params['entity'] ?? $params['data']['name'] ?? null;
+    if(is_null($entity)) {
+        throw new Exception('missing_entity', EQ_ERROR_INVALID_PARAM);
     }
 
-    $entity = $class['name'];
-    $lang = $class['lang'];
     $model = $orm->getModel($entity);
-    $schema = $model->getSchema();
-
-    $objects_ids = [];
-
-    foreach($class['data'] as $odata) {
-        foreach($odata as $field => $value) {
-            /** @var equal\orm\Field */
-            $f = $model->getField($field);
-            $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-        }
-        if(isset($odata['id'])) {
-            $res = $orm->search($entity, ['id', '=', $odata['id']]);
-            if($res > 0 && count($res)) {
-                // object already exist, but either values or language differs
-                $id = $odata['id'];
-                $res = $orm->update($entity, $id, $odata, $lang);
-                $objects_ids[] = $id;
-            }
-            else {
-                $objects_ids[] = $orm->create($entity, $odata, $lang);
-            }
-        }
-        else {
-            $objects_ids[] = $orm->create($entity, $odata, $lang);
-        }
+    if(!$model) {
+        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
     }
 
-    // force a first generation of computed fields, if any
-    $computed_fields = [];
-    foreach($schema as $field => $def) {
-        if($def['type'] == 'computed') {
-            $computed_fields[] = $field;
-        }
+    return [$entity, $model->getSchema()];
+};
+
+$extractData = function(array $params) {
+    if(isset($params['entity'])) {
+        $data = $params['data'];
     }
-    $orm->read($entity, $objects_ids, $computed_fields, $lang);
+    else {
+        $data = $params['data']['data'] ?? null;
+    }
+
+    if(is_null($data)) {
+        throw new Exception('missing_data', EQ_ERROR_INVALID_PARAM);
+    }
+
+    return $data;
+};
+
+$extractLang = function($params) {
+    if(isset($params['entity'])) {
+        return $params['lang'] ?? constant('DEFAULT_LANG');
+    }
+
+    return $params['data']['lang'] ?? constant('DEFAULT_LANG');
+};
+
+/**
+ * Action
+ */
+
+[$entity, $schema] = $extractEntityAndSchema($params);
+$data = $extractData($params);
+$lang = $extractLang($params);
+
+$object_ids = [];
+foreach($data as $entity_data) {
+    foreach($entity_data as $field => $value) {
+        if(!isset($schema[$field])) {
+            $reporter->warning("ORM::unknown field $field for entity $entity in given data.");
+            continue;
+        }
+        $f = new Field($schema[$field]);
+        $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
+    }
+
+    if(isset($entity_data['id'])) {
+        $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
+        if($ids < 0 || !count($ids)) {
+            $orm->create($entity, ['id' => $entity_data['id']], $lang, false);
+        }
+
+        $id = $entity_data['id'];
+        unset($entity_data['id']);
+    }
+    else {
+        $id = $orm->create($entity, [], $lang);
+    }
+
+    $orm->update($entity, $id, $entity_data, $lang);
+
+    $object_ids[] = $id;
 }
+
+$computed_fields = [];
+foreach($schema as $field => $def) {
+    if($def['type'] === 'computed') {
+        $computed_fields[] = $field;
+    }
+}
+
+if(!empty($computed_fields)) {
+    $orm->read($entity, $object_ids, $computed_fields, $lang);
+}
+
+$result = array_map(
+    function($id) {
+        return ['id' => $id];
+    },
+    $object_ids
+);
+
+$context->httpResponse()
+        ->body($result)
+        ->status(200)
+        ->send();

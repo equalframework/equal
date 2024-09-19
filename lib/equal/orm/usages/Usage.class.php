@@ -83,6 +83,10 @@ class Usage {
         return [];
     }
 
+    public function generateRandomValue() {
+        return null;
+    }
+
     final public function getName() : string {
         return $this->usage_str;
     }
@@ -170,7 +174,7 @@ class Usage {
     public function __construct(string $usage_str) {
 
         // check usage string consistency
-        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({([0-9]+)(,([0-9]+))?})?/', $usage_str,  $matches)) {
+        if(!preg_match('/([a-z]+)(\[([0-9]+)\])?\/?([-a-z0-9]*)(\.([-a-z0-9.]*))?(:(([-0-9a-z]*)\.?([0-9]*)))?({(-?[0-9]+)(,(-?[0-9]+))?})?/', $usage_str,  $matches)) {
             trigger_error("ORM::invalid usage format $usage_str", QN_REPORT_WARNING);
         }
         else {

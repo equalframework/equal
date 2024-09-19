@@ -47,4 +47,15 @@ class UsagePassword extends Usage {
         }
     }
 
+    public function generateRandomValue(): string {
+        $password = '';
+        $dict = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $len = strlen($dict) - 1;
+        for ($i = 0; $i < 10; $i++) {
+            $password .= $dict[mt_rand(0, $len)];
+        }
+
+        return $password;
+    }
+
 }

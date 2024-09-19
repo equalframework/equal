@@ -6,6 +6,8 @@
 */
 namespace equal\orm\usages;
 
+use equal\data\DataGenerator;
+
 class UsageText extends Usage {
 
     /**
@@ -98,6 +100,15 @@ class UsageText extends Usage {
                 }
             ]
         ];
+    }
+
+    public function generateRandomValue(): string {
+        $max = $this->getMax();
+        if($max === 0) {
+            $max = $this->getLength();
+        }
+
+        return DataGenerator::plainText($this->getMin(), $max);
     }
 
 }

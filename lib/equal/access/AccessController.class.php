@@ -12,6 +12,7 @@ use core\Permission;
 use core\security\SecurityPolicy;
 use core\security\SecurityPolicyRule;
 use core\security\SecurityPolicyRuleValue;
+use core\setting\Setting;
 use equal\orm\ObjectManager;
 use equal\organic\Service;
 use equal\services\Container;
@@ -731,7 +732,7 @@ class AccessController extends Service {
         $result = true;
         $time = time();
 
-        // fetch policies: request must be compliant with at least one policy.
+        // fetch security policies: request must be compliant with at least one policy.
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
@@ -825,6 +826,11 @@ class AccessController extends Service {
     private function validateTimeRange($time, $pattern) {
         list($hours, $minutes) = explode(':', date('H:i', $time));
         $time_of_day = ($hours * 3600) + ($minutes * 60);
+
+        // retrieve timezone offset between local timezone and UTC (times in settings use local time)
+        $tz = new \DateTimeZone(Setting::get_value('core', 'locale', 'time_zone', 'Europe/Brussels'));
+        // apply timezone offset, in seconds to apply, depending on the date of the given date (based on received timestamp)
+        $time_of_day += $tz->getOffset(new \DateTime('@'.$time));
 
         $map_days = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
 

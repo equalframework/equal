@@ -1,0 +1,39 @@
+{
+    "name": "Column Mappings",
+    "description": "Listing view for Column Mapping items.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%",
+                "sortable": true,
+                "readonly": true
+            },
+            {
+                "type": "field",
+                "value": "entity_mapping_id",
+                "width": "20%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "mapping_type",
+                "width": "20%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "origin",
+                "width": "20%",
+                "sortable": true
+            },
+            {
+                "type": "field",
+                "value": "target_name",
+                "width": "20%",
+                "sortable": true
+            }
+        ]
+    }
+}

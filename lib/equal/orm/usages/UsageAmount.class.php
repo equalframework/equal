@@ -6,8 +6,7 @@
 */
 namespace equal\orm\usages;
 
-use equal\locale\Locale;
-use core\setting\Setting;
+use equal\data\DataGenerator;
 
 class UsageAmount extends Usage {
 
@@ -59,6 +58,20 @@ class UsageAmount extends Usage {
                 }
             ]
         ];
+    }
+
+    public function generateRandomValue(): float {
+        switch($this->getSubtype()) {
+            case 'money':
+            case 'percent':
+            case 'rate':
+                if($this->getMin() === 0 && $this->getMax() === 0) {
+                    return DataGenerator::realNumberByLength($this->getLength(), $this->getScale());
+                }
+
+                return DataGenerator::realNumber($this->getMin(), $this->getMax(), $this->getScale());
+        }
+        return 0;
     }
 
 }

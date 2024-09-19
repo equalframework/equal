@@ -1,8 +1,9 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
-    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cedric FRANCOYS
+    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
 use equal\fs\FSManipulator as FS;
@@ -62,16 +63,45 @@ list($params, $providers) = eQual::announce([
         ]
     ],
     'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
-    'providers'     => ['context', 'orm', 'adapt', 'report'],
+    'providers'     => ['context', 'orm'],
 ]);
 
 /**
- * @var \equal\php\Context                      $context
- * @var \equal\orm\ObjectManager                $orm
- * @var \equal\data\adapt\DataAdapterProvider   $dap
- * @var \equal\error\Reporter                   $reporter
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'report' => $reporter] = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
+
+/**
+ * Methods
+ */
+
+$importDataFromFolderJsonFiles = function($data_folder) {
+    foreach(glob("$data_folder/*.json") as $json_file) {
+        $data = file_get_contents($json_file);
+        $classes = json_decode($data, true);
+        if(!$classes) {
+            continue;
+        }
+        foreach($classes as $class) {
+            $entity = $class['name'] ?? null;
+            if(!$entity) {
+                continue;
+            }
+            $lang = $class['lang'] ?? constant('DEFAULT_LANG');
+
+            eQual::run('do', 'core_model_import', [
+                'entity'    => $entity,
+                'data'      => $class['data'],
+                'lang'      => $lang
+            ]);
+        }
+    }
+};
+
+/**
+ * Action
+ */
 
 $skip_package = false;
 
@@ -90,9 +120,6 @@ if($skip_package) {
     // silently ignore package when dependency of another
 }
 else {
-    // retrieve adapter for converting data from JSON files
-    $adapter = $dap->get('json');
-
     // make sure DB is available
     eQual::run('do', 'test_db-access');
 
@@ -172,176 +199,19 @@ else {
     // 2) Populate tables with predefined data
     $data_folder = "packages/{$params['package']}/init/data";
     if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
-        // handle JSON files
-        foreach(glob($data_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
-
-                $objects_ids = [];
-
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        if(!isset($schema[$field])) {
-                            $reporter->warning("ORM::unknown field {$field} in json file '{$json_file}'.");
-                            continue;
-                        }
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exists (either values or language might differ)
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
-                }
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
-            }
-        }
+        $importDataFromFolderJsonFiles($data_folder);
     }
 
     // 2 bis) Populate tables with demo data, if requested
     $demo_folder = "packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
-        // handle JSON files
-        foreach(glob($demo_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
-
-                $objects_ids = [];
-
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exist, but either values or language might differ
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
-                }
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
-            }
-        }
+        $importDataFromFolderJsonFiles($demo_folder);
     }
 
     // 2 ter) Populate tables with test data (intended for tests), if requested
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
-        // handle JSON files
-        foreach(glob($test_folder."/*.json") as $json_file) {
-            $data = file_get_contents($json_file);
-            $classes = json_decode($data, true);
-            if(!$classes) {
-                continue;
-            }
-            foreach($classes as $class) {
-                $entity = $class['name'] ?? null;
-                if(!$entity) {
-                    continue;
-                }
-                $lang = $class['lang'] ?? constant('DEFAULT_LANG');
-                $model = $orm->getModel($entity);
-                $schema = $model->getSchema();
-
-                $objects_ids = [];
-
-                foreach($class['data'] as $odata) {
-                    foreach($odata as $field => $value) {
-                        $f = new Field($schema[$field]);
-                        $odata[$field] = $adapter->adaptIn($value, $f->getUsage());
-                    }
-
-                    if(isset($odata['id'])) {
-                        $res = $orm->search($entity, ['id', '=', $odata['id']]);
-                        if($res > 0 && count($res)) {
-                            // object already exist, but either values or language might differ
-                        }
-                        else {
-                            $orm->create($entity, ['id' => $odata['id']], $lang, false);
-                        }
-                        $id = $odata['id'];
-                        unset($odata['id']);
-                    }
-                    else {
-                        $id = $orm->create($entity, [], $lang);
-                    }
-                    $orm->update($entity, $id, $odata, $lang);
-                    $objects_ids[] = $id;
-                }
-
-                // force a first generation of computed fields, if any
-                $computed_fields = [];
-                foreach($schema as $field => $def) {
-                    if($def['type'] == 'computed') {
-                        $computed_fields[] = $field;
-                    }
-                }
-                $orm->read($entity, $objects_ids, $computed_fields, $lang);
-            }
-        }
+        $importDataFromFolderJsonFiles($test_folder);
     }
 
     // 3) If a `bin` folder exists, copy its content to /bin/<package>/

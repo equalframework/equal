@@ -472,7 +472,7 @@ $tests = [
                     return $result;
                 },
             'assert'        =>  function($result) {
-                    return ($result === '10:00');
+                    return ($result === '10:00:00');
                 }
         ],
     '4108' => [

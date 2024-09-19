@@ -79,4 +79,30 @@ class UsageDate extends Usage {
         return $constraints;
     }
 
+    public function generateRandomValue(): int {
+        switch($this->getSubtype(0)) {
+            case 'day':
+                return mt_rand(1, 31);
+            case 'weekday.mon':
+                return mt_rand(1, 7);
+            case 'weekday.sun':
+                return mt_rand(0, 6);
+            case 'month':
+                return mt_rand(1, 12);
+            case 'year':
+                return mt_rand(1, 9999);
+            case 'yearweek':
+                return mt_rand(1, 52);
+            case 'yearday':
+                return mt_rand(1, 365);
+            case 'time':
+            case 'plain':
+            default:
+                $start_timestamp = strtotime('1970-01-01 00:00:00');
+                $end_timestamp = time();
+
+                return mt_rand($start_timestamp, $end_timestamp);
+        }
+    }
+
 }

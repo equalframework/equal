@@ -3,8 +3,9 @@
 *    This file is part of the eQual framework.
 *    https://github.com/equalframework/equal
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2024
-*    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*    Some Rights Reserved, The eQual Framework, 2010-2024
+*    Original Author: Cedric Francoys
+*    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
 *    it under the terms of the GNU Lesser General Public License as published by

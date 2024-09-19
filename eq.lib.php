@@ -1,10 +1,11 @@
 <?php
 /**
 *    This file is part of the eQual framework.
-*    https://github.com/cedricfrancoys/equal
+*    https://github.com/equalframework/equal
 *
-*    Some Rights Reserved, Cedric Francoys, 2010-2021
-*    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*    Some Rights Reserved, The eQual Framework, 2010-2024
+*    Original Author: Cedric Francoys
+*    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
 *    it under the terms of the GNU Lesser General Public License as published by
@@ -870,7 +871,7 @@ namespace config {
                 $access = $container->get('access');
                 if(!$access->isRequestCompliant($user_id, $request->getHeaders()->getIpAddress())) {
                     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'denied']));
-                    throw new Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
+                    throw new \Exception("Request rejected by Security Policies", EQ_ERROR_NOT_ALLOWED);
                 }
                 else {
                     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'policy', 'status' => 'accepted', 'policy_id' => $access->getComplyingPolicyId()]));

@@ -7,6 +7,8 @@
 namespace equal\orm\usages;
 
 
+use equal\data\DataGenerator;
+
 class UsageUri extends Usage {
 
     public function __construct(string $usage_str) {
@@ -45,12 +47,13 @@ class UsageUri extends Usage {
                     file://localhost/path
                     ircs://irc.example.com:6697/#channel1,#channel2
                     https://username:password@example.com:443
+                    https://discope.yb.run/support/#/ticket/833
                 */
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|\[[0-9:.]+\])(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-]*)*$/', $value));
+                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|\[[0-9:.]+\])(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*$/', $value));
                         }
                     ]
                 ];
@@ -92,6 +95,24 @@ class UsageUri extends Usage {
                 ];
         }
         return [];
+    }
+
+    public function generateRandomValue(): string {
+        switch($this->getSubtype()) {
+            case 'url.relative':
+                return DataGenerator::relativeUrl();
+            case 'url.tel':
+                return DataGenerator::urlTel();
+            case 'url.mailto':
+                return DataGenerator::urlMailto();
+            case 'urn.iban':
+                return DataGenerator::iban();
+            case 'urn.ean':
+                return DataGenerator::ean13();
+            case 'url':
+            default:
+                return DataGenerator::url();
+        }
     }
 
 }
