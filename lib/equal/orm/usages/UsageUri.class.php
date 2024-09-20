@@ -25,12 +25,14 @@ class UsageUri extends Usage {
                     /a
                     /a/b
                     /a/b/c
+                    /support/#/ticket/833
+                    /learning/#/course/0003/?mode=view&lang=en
                 */
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid relative URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^(\/([^\/])+)+$/', $value));
+                            return (bool) (preg_match('/^\/([^\/])+(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
                         }
                     ]
                 ];
