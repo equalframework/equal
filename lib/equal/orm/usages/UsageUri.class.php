@@ -47,13 +47,14 @@ class UsageUri extends Usage {
                     file://localhost/path
                     ircs://irc.example.com:6697/#channel1,#channel2
                     https://username:password@example.com:443
-                    https://discope.yb.run/support/#/ticket/833
+                    http://equal.run/support/#/ticket/833
+                    http://equal.local/learning/#/course/0003/?mode=view&lang=en
                 */
                 return [
                     'invalid_url' => [
                         'message'   => 'String is not a valid URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|\[[0-9:.]+\])(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*$/', $value));
+                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|[0-9:.]+)(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
                         }
                     ]
                 ];
