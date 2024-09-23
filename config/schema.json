@@ -221,6 +221,11 @@
         "default": true,
         "description": "Keep in mind that enabling logging increases I/O operations."
     },
+    "DRAFT_ENABLED": {
+        "type": "boolean",
+        "description": "Reuse draft objects (created but not saved, having status left to 'draft').",
+        "default": true
+    },
     "DRAFT_VALIDITY": {
         "type": "integer",
         "description": "Duration in days before recycling draft objects.",

@@ -187,7 +187,7 @@ class ObjectManager extends Service {
     }
 
     public static function constants() {
-        return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_VALIDITY'];
+        return ['DEFAULT_LANG', 'UPLOAD_MAX_FILE_SIZE', 'FILE_STORAGE_MODE', 'DRAFT_ENABLED', 'DRAFT_VALIDITY'];
     }
 
     public function getDB() {
@@ -1324,7 +1324,7 @@ class ObjectManager extends Service {
             $oid = 0;
 
             if(!isset($creation_array['id'])) {
-                if($use_draft) {
+                if(constant('DRAFT_ENABLED') && $use_draft) {
                     // list ids of records having creation date older than DRAFT_VALIDITY
                     $ids = $this->search($class, [['state', '=', 'draft'], ['created', '<', date("Y-m-d H:i:s", time()-(3600*24*constant('DRAFT_VALIDITY')))]], ['id' => 'asc']);
                     if(count($ids) && $ids[0] > 0) {
