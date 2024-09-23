@@ -1003,8 +1003,8 @@ namespace config {
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     $response->status(200)
-                        // allow browser to cache the response for 1 year
-                        ->header('Cache-Control', 'max-age=31536000')
+                        // disable browser cache to refresh computed default values
+                        ->header('Cache-Control', 'no-store, max-age=0')
                         // default content type and disposition
                         ->header('Content-Type', 'application/json')
                         ->header('Content-Disposition', 'inline')
