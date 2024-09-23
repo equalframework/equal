@@ -37,6 +37,9 @@ use equal\error\Reporter;
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt', 'report']
 ]);
