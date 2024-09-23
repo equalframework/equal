@@ -850,8 +850,7 @@ namespace config {
             }
 
             if( !isset($announcement['access']['visibility'])
-                || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private'])
-                ) {
+                    || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private']) ) {
                 $announcement['access']['visibility'] = 'protected';
             }
 
