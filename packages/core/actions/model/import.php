@@ -13,7 +13,7 @@ use equal\data\adapt\DataAdapterProvider;
 use equal\error\Reporter;
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Import eQual object from import format data.',
+    'description'   => 'Import eQual objects from a given data payload (export-formatted).',
     'params'        => [
         'entity' => [
             'type'          => 'string',
@@ -38,7 +38,8 @@ use equal\error\Reporter;
         'accept-origin' => '*'
     ],
     'access' => [
-        'visibility'        => 'protected'
+        'visibility'        => 'protected',
+        'groups'            => ['admins']
     ],
     'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm', 'adapt', 'report']
@@ -58,7 +59,7 @@ $adapter = $dap->get('json');
  * Methods
  */
 
-$extractEntityAndSchema = function($params) use ($orm): array {
+$extractEntityAndSchema = function(array $params) use ($orm): array {
     $entity = $params['entity'] ?? $params['data']['name'] ?? null;
     if(is_null($entity)) {
         throw new Exception('missing_entity', EQ_ERROR_INVALID_PARAM);
@@ -87,8 +88,8 @@ $extractData = function(array $params) {
     return $data;
 };
 
-$extractLang = function($params) {
-    if(isset($params['entity'])) {
+$extractLang = function(array $params) {
+    if(isset($params['lang'])) {
         return $params['lang'] ?? constant('DEFAULT_LANG');
     }
 

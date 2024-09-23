@@ -7,7 +7,11 @@
 $params = eQual::announce([
     'description'   => 'Checks current installation directories integrity.',
     'params'        => [],
-    'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME']
+    'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME'],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ]
 ]);
 
 // array holding files and directories to be tested
