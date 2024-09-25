@@ -9,7 +9,8 @@
     "requires": {
         "swiftmailer/swiftmailer": "^6.2",
         "phpoffice/phpspreadsheet": "^1.4",
-        "dompdf/dompdf": "^0.8.3"
+        "dompdf/dompdf": "^0.8.3",
+        "lbuchs/webauthn": "2.0.0"
     },
     "apps": [ "apps", "auth", "app", "settings", "workbench", "welcome" ]
 }
