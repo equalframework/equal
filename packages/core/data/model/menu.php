@@ -42,5 +42,5 @@ if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) 
 }
 
 $context->httpResponse()
-        ->body($view)
+        ->body($result)
         ->send();
