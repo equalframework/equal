@@ -191,6 +191,11 @@
             "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
         ]
     },
+    "DRAFT_ENABLED": {
+        "type": "boolean",
+        "description": "Reuse draft objects (created but not saved, having status left to 'draft').",
+        "default": true
+    },
     "DRAFT_VALIDITY": {
         "type": "integer",
         "description": "Duration in days before recycling draft objects.",
