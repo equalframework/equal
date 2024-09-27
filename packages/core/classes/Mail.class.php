@@ -168,7 +168,7 @@ class Mail extends Model {
     }
 
     public static function isQueued(int $id): bool {
-        $files = scandir(self::MESSAGE_FOLDER);
+        $files = scandir(self::MESSAGE_FOLDER) ?: [];
         foreach($files as $file) {
             // skip special files
             if(in_array($file, ['.', '..', '.gitkeep'])) {
@@ -269,7 +269,7 @@ class Mail extends Model {
     private static function fetchQueue() {
         // load pending messages by reading all files in `$messages_folder` (outbox) directory
         $queue = [];
-        $files = scandir(self::MESSAGE_FOLDER);
+        $files = scandir(self::MESSAGE_FOLDER) ?: [];
         foreach($files as $file) {
             // skip special files
             if(in_array($file, ['.', '..', '.gitkeep'])) {
