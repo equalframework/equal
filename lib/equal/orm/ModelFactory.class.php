@@ -36,33 +36,87 @@ class ModelFactory extends Service {
             throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
         }
 
+        $qty = $this->extractQtyFromOptions($options);
+        $sequences = $this->extractSequencesFromOptions($options);
+        $relationships = $this->extractRelationshipsFromOptions($options);
+
         $entities = [];
 
         $sequence_index = 0;
-        $values = !empty($options['sequences']) ? $options['sequences'][0] : ($options['values'] ?? []);
-
-        if(!isset($options['qty'])) {
-            $qty = 1;
-        }
-        elseif(is_array($options['qty'])) {
-            $qty = mt_rand($options['qty'][0], $options['qty'][1]);
-        }
-        else {
-            $qty = $options['qty'];
-        }
-
+        $values = !empty($sequences) ? $sequences[0] : [];
         $schema = $model->getSchema();
-        for($i = 1; $i <= $qty; $i++) {
-            $entities[] = $this->createEntityFromModelSchema($schema, $values, $options['relationships'] ?? []);
+        for($i = 1; $i <=$qty; $i++) {
+            $entities[] = $this->createEntityFromModelSchema($schema, $values, $relationships);
 
-            if(!empty($options['sequences'])) {
-                $sequence_index = isset($options['sequences'][++$sequence_index]) ? $sequence_index : 0;
+            if(!empty($sequences)) {
+                $sequence_index = isset($sequences[++$sequence_index]) ? $sequence_index : 0;
 
-                $values = $options['sequences'][$sequence_index];
+                $values = $sequences[$sequence_index];
             }
         }
 
         return $entities;
+    }
+
+    private function extractQtyFromOptions(array $options): int {
+        $qty = 1;
+
+        if(isset($options['qty'])) {
+            if(is_array($options['qty']) && count($options['qty']) === 2 && is_int($options['qty'][0]) && is_int($options['qty'][1])) {
+                $qty = mt_rand($options['qty'][0], $options['qty'][1]);
+            }
+            elseif(is_int($options['qty'])) {
+                $qty = $options['qty'];
+            } else {
+                throw new Exception('invalid_qty', EQ_ERROR_INVALID_PARAM);
+            }
+        }
+
+        return $qty;
+    }
+
+    private function extractSequencesFromOptions(array $options): array {
+        $sequences = [];
+
+        if(!empty($options['sequences'])) {
+            foreach($options['sequences'] as $index => $values) {
+                if(!is_int($index)) {
+                    throw new Exception('invalid_sequence_index_must_be_integer', EQ_ERROR_INVALID_PARAM);
+                }
+
+                foreach($values as $field => $value) {
+                    if(!is_string($field)) {
+                        throw new Exception('invalid_sequence_field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
+                    }
+                    if(is_array($value) || is_object($value)) {
+                        throw new Exception('invalid_sequence_not_expected_value', EQ_ERROR_INVALID_PARAM);
+                    }
+                }
+            }
+
+            $sequences = $options['sequences'];
+        }
+
+        return $sequences;
+    }
+
+    private function extractRelationshipsFromOptions(array $options): array {
+        $relationships = [];
+        if(!empty($options['relationships'])) {
+            foreach($options['relationships'] as $field => $factory_options) {
+                if(is_int($field) && is_string($factory_options)) {
+                    continue;
+                }
+
+                if(!is_string($field) || !is_array($factory_options)) {
+                    throw new Exception('invalid_relationship', EQ_ERROR_INVALID_PARAM);
+                }
+            }
+
+            $relationships = $options['relationships'];
+        }
+
+        return $relationships;
     }
 
     /**
@@ -96,6 +150,7 @@ class ModelFactory extends Service {
                 isset($object[$field])
                 || in_array($field, $this->root_fields)
                 || in_array($field_type, $this->relationship_field_types)
+                || $field_descriptor['type'] === 'computed'
             ) {
                 continue;
             }
