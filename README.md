@@ -4,7 +4,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 
 ⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider <a href="#">giving us a star on GitHub</a>! Your support encourages us and will help making eQual the most powerful framework ever.
 
-🛠️ [Contributors welcome!](https://github.com/equalframework/equal/blob/master/.github/CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
+🛠️ [Contributors welcome!](https://github.com/equalframework/equal/blob/master/CONTRIBUTING.md) You want to contribute to a great open-source project? We need help to keep on 🚀, finishing 🚧, fixing 🐛, and make it 🎨
 
 [![Build Status](https://circleci.com/gh/equalframework/equal.svg?style=shield)](https://circleci.com/gh/equalframework/equal)
 ![Number of contributors](https://img.shields.io/github/contributors/equalframework/equal)
