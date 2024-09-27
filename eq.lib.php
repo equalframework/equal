@@ -986,7 +986,7 @@ namespace config {
                                     $default_value = $default_value();
                                 }
                             }
-                            elseif(is_string($default_value)) {
+                            elseif(is_string($default_value) && strpos($default_value, '::')) {
                                 list($class_name, $method_name) = explode('::', $default_value);
                                 if(method_exists($class_name, $method_name)) {
                                     /** @var \equal\orm\ObjectManager */
