@@ -24,6 +24,14 @@ class ModelFactory extends Service {
      *
      * @param class-string $class
      * @param array $options Factory options like qty, values and sequences
+     *       - 'qty': int (optional) The quantity of items.
+     *            Example: 2
+     *       - 'values': array (optional) A list of values to force values of entity.ies.
+     *            Example: ['is_sent' => false]
+     *                      -> All entities created will have `is_sent` value to false
+     *      - 'sequences': array (optional) A list of values sequences to force values of multiple entities.
+     *           Example: [['name' => 'Group 1'], ['name' => 'Group 2']]
+     *                      -> First entity create will have name to "Group 1" and second will have "Group 2", etc.
      * @return array
      * @throws Exception
      */
