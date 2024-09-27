@@ -16,6 +16,8 @@ class ModelFactory extends Service {
 
     private $values = [];
 
+    private $sequences = [];
+
     private $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
 
     protected function __construct(Container $container) {
@@ -44,18 +46,62 @@ class ModelFactory extends Service {
      * @throws Exception
      */
     public function values(array $values): ModelFactory {
+        if(!empty($this->sequences)) {
+            throw new Exception('cannot_set_values_and_sequences', EQ_ERROR_INVALID_PARAM);
+        }
+
         foreach($values as $field => $value) {
             if(!is_string($field)) {
-                throw new Exception('field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
+                throw new Exception('invalid_value_field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
             }
             if(is_array($value) || is_object($value)) {
-                throw new Exception('not_expected_value', EQ_ERROR_INVALID_PARAM);
+                throw new Exception('invalid_value_not_expected_value', EQ_ERROR_INVALID_PARAM);
             }
         }
 
         $this->values = $values;
 
         return $this;
+    }
+
+    /**
+     * Sets sequences of forced values of models to create for the next `ModelFactory::create()` function call
+     *
+     * @link ModelFactory::create()
+     * @throws Exception
+     */
+    public function sequences(array $sequences): ModelFactory {
+        if(!empty($this->values)) {
+            throw new Exception('cannot_set_values_and_sequences', EQ_ERROR_INVALID_PARAM);
+        }
+
+        foreach($sequences as $index => $values) {
+            if(!is_int($index)) {
+                throw new Exception('invalid_sequence_index_must_be_integer', EQ_ERROR_INVALID_PARAM);
+            }
+
+            foreach($values as $field => $value) {
+                if(!is_string($field)) {
+                    throw new Exception('invalid_sequence_field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
+                }
+                if(is_array($value) || is_object($value)) {
+                    throw new Exception('invalid_sequence_not_expected_value', EQ_ERROR_INVALID_PARAM);
+                }
+            }
+        }
+
+        $this->sequences = $sequences;
+
+        return $this;
+    }
+
+    private function getIncrementedSequenceIndex(int $sequence_index): int {
+        $sequence_index++;
+        if(!isset($this->sequences[$sequence_index])) {
+            $sequence_index = 0;
+        }
+
+        return $sequence_index;
     }
 
     /**
@@ -76,9 +122,17 @@ class ModelFactory extends Service {
         }
 
         $entities = [];
+        $sequence_index = 0;
+        $values = !empty($this->sequences) ? $this->sequences[0] : $this->values;
+
         $schema = $model->getSchema();
         for($i = 1; $i <= $this->qty; $i++) {
-            $entities[] = $this->createEntityFromModelSchema($schema, $this->values);
+            $entities[] = $this->createEntityFromModelSchema($schema, $values);
+
+            if(!empty($this->sequences)) {
+                $sequence_index = $this->getIncrementedSequenceIndex($sequence_index);
+                $values = $this->sequences[$sequence_index];
+            }
         }
 
         $this->resetProperties();
