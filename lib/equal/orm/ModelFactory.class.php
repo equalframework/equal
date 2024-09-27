@@ -7,6 +7,9 @@ use equal\organic\Service;
 use equal\services\Container;
 use Exception;
 
+/**
+ * @method static ModelFactory getInstance()
+ */
 class ModelFactory extends Service {
 
     private $qty = 1;
@@ -56,9 +59,11 @@ class ModelFactory extends Service {
     }
 
     /**
+     * Returns one or multiple generated object(s) using the given class' model schema
+     *
      * @param class-string $class
-     * @see ModelFactory::qty() To set the quantity of objects to create
-     * @see ModelFactory::values() To set the forced values of objects to create
+     * @see ModelFactory::qty() To set the quantity of objects to create (default: `1`)
+     * @see ModelFactory::values() To set the forced values of objects to create (default: `[]`)
      * @throws Exception
      */
     public function create(string $class): array {
@@ -78,7 +83,7 @@ class ModelFactory extends Service {
 
         $this->resetProperties();
 
-        return $entities;
+        return count($entities) === 1 ? $entities[0] : $entities;
     }
 
     /**
