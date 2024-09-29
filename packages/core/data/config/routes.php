@@ -4,11 +4,10 @@
     Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 $packages = eQual::run('get', 'config_packages');
 
 list($params, $providers) = eQual::announce([
-    'description'   => 'This is the core_config_routes controller created with core_config_create-controller.',
+    'description'   => 'Returns all routes defined in a given package, based on content from `init/routes`. Routes being active depends on the package initialization and routes files priorities.',
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',

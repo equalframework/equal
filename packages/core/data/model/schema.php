@@ -8,7 +8,7 @@
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns the schema of given class (model) in JSON",
     'params'        => [
         'entity' =>  [
@@ -46,20 +46,20 @@ if(ctype_lower(substr($file, 0, 1))) {
     $path = implode('/', $parts);
     $operation = str_replace('\\', '_', $params['entity']);
 
-    if(file_exists(QN_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
+    if(file_exists(EQ_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
         $result = eQual::run('do', $operation, ['announce' => true]);
         $data = [
-            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
+            'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
         ];
     }
-    else if(file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
+    elseif(file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
         $result = eQual::run('get', $operation, ['announce' => true]);
         $data = [
-            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
+            'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
         ];
     }
     else {
-        throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 

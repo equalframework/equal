@@ -201,7 +201,10 @@ class Model implements \ArrayAccess, \Iterator {
         }
     }
 
-    public function offsetGet($field) {
+    /**
+     * @return mixed
+     */
+    public function offsetGet($field)/*: mixed*/ {
         return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
@@ -214,7 +217,7 @@ class Model implements \ArrayAccess, \Iterator {
         reset($this->values);
     }
 
-    public function current() {
+    public function current()/*: mixed*/ {
         return current($this->values);
     }
 

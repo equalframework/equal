@@ -1,0 +1,29 @@
+{
+    "name": "Meta values listing",
+    "description": "Full list of existing meta values.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "code",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "reference",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "value",
+                "width": "20%"
+            }
+
+        ]
+    }
+}

@@ -5,7 +5,8 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
-    'description'   => 'Returns all the routes with priority based on the number.',
+    'description'   => 'Returns currently active routes with priority based on the number.',
+    'help'          => 'Only one descriptor is return for each route. In case two identical routes co-exist, the one described in the file with highest priority will overwrite the previous.',
     'access' => [
         'visibility'        => 'protected'
     ],
@@ -24,7 +25,7 @@ list($params, $providers) = eQual::announce([
  */
 list($context, $router) = [$providers['context'], $providers['route']];
 
-// get all json routes descriptors sorted by filename in desc order
+// get all json routes descriptors sorted by filename in DESC order
 $files = array_reverse(glob(EQ_BASEDIR.'/config/routing/*.json'));
 
 $result = [];
