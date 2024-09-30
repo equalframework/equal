@@ -8,7 +8,7 @@ namespace core;
 
 use equal\orm\Model;
 use equal\email\Email;
-use equal\email\EmailAttachment;
+use equal\orm\usages\UsageEmail;
 
 
 class Mail extends Model {
@@ -46,12 +46,14 @@ class Mail extends Model {
 
             'cc' => [
                 'type'              => 'string',
-                'description'       => 'Comma separated list of carbon-copy recipients.'
+                'description'       => 'Comma separated list of carbon-copy recipients.',
+                'generation'        => 'generateCc'
             ],
 
             'bcc' => [
                 'type'              => 'string',
-                'description'       => 'Comma separated list of blind carbon-copy recipients.'
+                'description'       => 'Comma separated list of blind carbon-copy recipients.',
+                'generation'        => 'generateBcc'
             ],
 
             'subject' => [
@@ -68,7 +70,8 @@ class Mail extends Model {
             'attachments' => [
                 'type'              => 'string',
                 'usage'             => 'text/plain',
-                'description'       => 'List of documents names attached to the email, comma separated (no content).'
+                'description'       => 'List of documents names attached to the email, comma separated (no content).',
+                'generation'        => 'generateAttachments'
             ],
 
             'object_class' => [
@@ -84,14 +87,16 @@ class Mail extends Model {
             'response_status' => [
                 'type'              => 'integer',
                 'description'       => 'SMTP response status code.',
-                'visible'           => ['status', '<>', 'pending']
+                'visible'           => ['status', '<>', 'pending'],
+                'generation'        => 'generateResponseStatus'
             ],
 
             'response' => [
                 'type'              => 'string',
                 'description'       => 'SMTP response returned at sending.',
                 'default'           => '',
-                'visible'           => ['status', '<>', 'pending']
+                'visible'           => ['status', '<>', 'pending'],
+                'generation'        => 'generateResponse'
             ]
 
         ];
@@ -459,6 +464,80 @@ class Mail extends Model {
         }
 
         return $mailer;
+    }
+
+    public static function generateCc(): ?string {
+        return self::generateMultiEmailFieldValue();
+    }
+
+    public static function generateBcc(): ?string {
+        return self::generateMultiEmailFieldValue();
+    }
+
+    private static function generateMultiEmailFieldValue(): ?string {
+        $usageEmail = new UsageEmail('email');
+
+        $qty_of_cc = mt_rand(0, 3);
+        if($qty_of_cc === 0) {
+            return null;
+        }
+
+        $emails = [];
+        for($i = 0; $i < $qty_of_cc; $i++) {
+            $emails[] = $usageEmail->generateRandomValue();
+        }
+
+        return implode(',', $emails);
+    }
+
+    public static function generateResponseStatus(): ?string {
+        $smtp_codes = [
+            // 2xx Success
+            200 => 'Nonstandard success response',
+            211 => 'System status or system help reply',
+            214 => 'Help message',
+            220 => 'Service ready',
+            221 => 'Service closing transmission channel',
+            250 => 'Requested mail action completed',
+            251 => 'User not local; will forward',
+
+            // 3xx Intermediate Replies
+            354 => 'Start mail input; end with <CRLF>.<CRLF>',
+
+            // 4xx Temporary Failures
+            421 => 'Service not available, closing transmission channel',
+            450 => 'Requested mail action not taken: mailbox unavailable',
+            451 => 'Requested action aborted: local error in processing',
+            452 => 'Requested action not taken: insufficient system storage',
+
+            // 5xx Permanent Failures
+            500 => 'Syntax error, command unrecognized',
+            501 => 'Syntax error in parameters or arguments',
+            502 => 'Command not implemented',
+            503 => 'Bad sequence of commands',
+            504 => 'Command parameter not implemented',
+            550 => 'Requested action not taken: mailbox unavailable',
+            551 => 'User not local; please try a different path',
+            552 => 'Requested mail action aborted: exceeded storage allocation',
+            553 => 'Requested action not taken: mailbox name not allowed',
+            554 => 'Transaction failed',
+        ];
+
+        return $smtp_codes[mt_rand(0, count($smtp_codes) - 1)];
+    }
+
+    public static function generateResponse() {
+        return null;
+    }
+
+    public static function generateAttachments(): ?string {
+        $attachments = [];
+        for($i = 0; $i < mt_rand(0, 3); $i++) {
+            $extensions = ['pdf', 'docx', 'txt', 'xls', 'csv', 'ppt', 'jpg', 'png'];
+            $attachments[] = 'document ' . mt_rand(0, 100) . '.' . $extensions[mt_rand(0, count($extensions) - 1)];
+        }
+
+        return empty($attachments) ? null : implode(',', $attachments);
     }
 
 }
