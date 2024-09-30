@@ -590,6 +590,8 @@ namespace config {
                 $om = $container->get('orm');
                 // init collections provider
                 $container->get('equal\orm\Collections');
+                // init model factory provider
+                $container->get('equal\orm\ModelFactory');
                 spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
