@@ -179,7 +179,7 @@ $qty = $getQty($params['qty']);
 
 // #todo: Handle multi columns unique (only single column unique is handled)
 // #todo: Handle unique for many2one relations
-$model_unique_conf = $model->getConstraints();
+$model_unique_conf = $model->getUnique();
 
 $schema = $model->getSchema();
 

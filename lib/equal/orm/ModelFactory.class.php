@@ -199,7 +199,7 @@ class ModelFactory extends Service {
      */
     private function createUniqueEntityFromModel(array $other_entities, Model $model, array $forced_values = [], array $relationships = []): array {
         $schema = $model->getSchema();
-        $model_unique_conf = $model->getConstraints();
+        $model_unique_conf = $model->getUnique();
 
         $count = 10;
         while($count > 0) {
