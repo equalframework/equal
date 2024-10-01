@@ -175,7 +175,7 @@ class ModelFactory {
                 isset($entity[$field])
                 || in_array($field, self::$root_fields)
                 || in_array($field_type, self::$relationship_field_types)
-                || $field_descriptor['type'] === 'computed'
+                || in_array($field_descriptor['type'], ['computed', 'alias'])
             ) {
                 continue;
             }
