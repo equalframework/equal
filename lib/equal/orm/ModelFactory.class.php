@@ -3,52 +3,49 @@
 namespace equal\orm;
 
 use equal\data\DataGenerator;
-use equal\organic\Service;
-use equal\services\Container;
 use Exception;
 
-/**
- * @method static ModelFactory getInstance()
- */
-class ModelFactory extends Service {
+class ModelFactory {
 
-    private $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
+    private static $root_fields = ['id', 'creator', 'created', 'modifier', 'modified', 'deleted', 'state'];
 
-    private $relationship_field_types = ['many2one', 'one2many', 'many2many'];
-
-    protected function __construct(Container $container) {
-    }
+    private static $relationship_field_types = ['many2one', 'one2many', 'many2many'];
 
     /**
      * Returns one or multiple generated object(s) using the given class' model schema
      *
      * @param class-string $class
-     * @param array $options Factory options like qty, values and sequences
-     *       - 'qty': int (optional) The quantity of items.
-     *            Example: 2
+     * @param array $options Factory options like qty, values, sequences, unique and relations
+     *       - 'qty': int|array (optional) The quantity of items (default 1).
+     *            Example: (int): 2
+     *                    (array): [1, 5] (between 1 and 5 included)
      *       - 'values': array (optional) A list of values to force for all entities created.
      *            Example: ['is_sent' => false]
-     *                      -> All entities created will have `is_sent` value to false
+     *                      -> All entities created will have `is_sent` value to false.
      *      - 'sequences': array (optional) A list of values sequences to force for one entity.
-     *           Example: [['name' => 'Group 1'], ['name' => 'Group 2']]
+     *            Example: [['name' => 'Group 1'], ['name' => 'Group 2']]
      *                      -> First entity create will have name to "Group 1" and second will have "Group 2", etc.
-     *      - 'unique': bool (optional) Should the entities returned follow unique fields constraints
+     *      - 'unique': bool (optional) Should the entities returned follow unique fields constraints (default true).
+     *            Example: true
+     *      - 'relations': array (optional) Generate entities for relations.
+     *            Example: ['users_ids' => ['qty' => 2]]
+     *                      -> Keys are relation field names and values are Factory options.
      * @return array
      * @throws Exception
      */
-    public function create(string $class, array $options = []): array {
+    public static function create(string $class, array $options = []): array {
         /** @var ObjectManager $orm */
-        $orm = $this->container->get('orm');
+        ['orm' => $orm] = \eQual::inject(['orm']);
 
         $model = $orm->getModel($class);
         if(!$model) {
             throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
         }
 
-        $qty = $this->extractQtyFromOptions($options);
-        $sequences = $this->extractSequencesFromOptions($options);
-        $relationships = $this->extractRelationshipsFromOptions($options);
-        $should_be_unique = $this->extractUniqueFromOptions($options);
+        $qty = self::extractQtyFromOptions($options);
+        $sequences = self::extractSequencesFromOptions($options);
+        $relations = self::extractRelationsFromOptions($options);
+        $should_be_unique = self::extractUniqueFromOptions($options);
 
         $entities = [];
 
@@ -56,11 +53,11 @@ class ModelFactory extends Service {
         $values = !empty($sequences) ? $sequences[0] : [];
         for($i = 1; $i <= $qty; $i++) {
             if(!$should_be_unique) {
-                $entities[] = $this->createEntityFromModel($model, $values, $relationships);
+                $entities[] = self::createEntityFromModel($model, $values, $relations);
             }
             else {
                 try {
-                    $entities[] = $this->createUniqueEntityFromModel($entities, $model, $values, $relationships);
+                    $entities[] = self::createUniqueEntityFromModel($entities, $model, $values, $relations);
                 } catch(Exception $e) {
                     trigger_error("PHP::skip creation of $class because not able to create a valid unique entity.", EQ_REPORT_WARNING);
                 }
@@ -76,7 +73,7 @@ class ModelFactory extends Service {
         return $entities;
     }
 
-    private function extractQtyFromOptions(array $options): int {
+    private static function extractQtyFromOptions(array $options): int {
         $qty = 1;
 
         if(isset($options['qty'])) {
@@ -85,15 +82,16 @@ class ModelFactory extends Service {
             }
             elseif(is_int($options['qty'])) {
                 $qty = $options['qty'];
-            } else {
-                throw new Exception('invalid_qty', EQ_ERROR_INVALID_PARAM);
+            }
+            else {
+                throw new Exception('invalid_option_qty', EQ_ERROR_INVALID_PARAM);
             }
         }
 
         return $qty;
     }
 
-    private function extractSequencesFromOptions(array $options): array {
+    private static function extractSequencesFromOptions(array $options): array {
         $sequences = [];
 
         if(empty($options['sequences']) && !empty($options['values'])) {
@@ -103,15 +101,15 @@ class ModelFactory extends Service {
         if(!empty($options['sequences'])) {
             foreach($options['sequences'] as $index => $values) {
                 if(!is_int($index)) {
-                    throw new Exception('invalid_sequence_index_must_be_integer', EQ_ERROR_INVALID_PARAM);
+                    throw new Exception('invalid_option_sequences_index_must_be_integer', EQ_ERROR_INVALID_PARAM);
                 }
 
                 foreach($values as $field => $value) {
                     if(!is_string($field)) {
-                        throw new Exception('invalid_sequence_field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
+                        throw new Exception('invalid_option_sequences_field_must_be_a_string', EQ_ERROR_INVALID_PARAM);
                     }
                     if(is_array($value) || is_object($value)) {
-                        throw new Exception('invalid_sequence_not_expected_value', EQ_ERROR_INVALID_PARAM);
+                        throw new Exception('invalid_option_sequences_not_expected_value', EQ_ERROR_INVALID_PARAM);
                     }
                 }
             }
@@ -122,34 +120,34 @@ class ModelFactory extends Service {
         return $sequences;
     }
 
-    private function extractRelationshipsFromOptions(array $options): array {
-        $relationships = [];
-        if(!empty($options['relationships'])) {
-            foreach($options['relationships'] as $field => $factory_options) {
+    private static function extractRelationsFromOptions(array $options): array {
+        $relations = [];
+        if(!empty($options['relations'])) {
+            foreach($options['relations'] as $field => $factory_options) {
                 if(is_int($field) && is_string($factory_options)) {
                     continue;
                 }
 
                 if(!is_string($field) || !is_array($factory_options)) {
-                    throw new Exception('invalid_relationship', EQ_ERROR_INVALID_PARAM);
+                    throw new Exception('invalid_option_relations', EQ_ERROR_INVALID_PARAM);
                 }
             }
 
-            $relationships = $options['relationships'];
+            $relations = $options['relations'];
         }
 
-        return $relationships;
+        return $relations;
     }
 
-    private function extractUniqueFromOptions(array $options): bool {
+    private static function extractUniqueFromOptions(array $options): bool {
         if(isset($options['unique']) && !is_bool($options['unique'])) {
-            throw new Exception('invalid_unique', EQ_ERROR_INVALID_PARAM);
+            throw new Exception('invalid_option_unique', EQ_ERROR_INVALID_PARAM);
         }
 
-        return $options['unique'] ?? false;
+        return $options['unique'] ?? true;
     }
 
-    private function createEntityFromModel(Model $model, array $forced_values = [], array $relationships = []): array {
+    private static function createEntityFromModel(Model $model, array $forced_values = [], array $relations = []): array {
         $entity = [];
         foreach($model->getSchema() as $field => $field_descriptor) {
             $field_type = $field_descriptor['result_type'] ?? $field_descriptor['type'];
@@ -158,25 +156,25 @@ class ModelFactory extends Service {
                 continue;
             }
             elseif(
-                in_array($field_type, $this->relationship_field_types)
-                && (in_array($field, $relationships) || array_key_exists($field, $relationships))
+                in_array($field_type, self::$relationship_field_types)
+                && (in_array($field, $relations) || array_key_exists($field, $relations))
             ) {
                 if($field_type === 'many2one') {
-                    $factory_options = $relationships[$field] ?? [];
+                    $factory_options = $relations[$field] ?? [];
                     if(isset($factory_options['qty']) && $factory_options['qty'] !== 1) {
                         $factory_options['qty'] = 1;
                     }
 
-                    $entity[$field] = $this->create($field_descriptor['foreign_object'], $factory_options)[0];
+                    $entity[$field] = self::create($field_descriptor['foreign_object'], $factory_options)[0];
                 } else {
-                    $entity[$field] = $this->create($field_descriptor['foreign_object'], $relationships[$field] ?? []);
+                    $entity[$field] = self::create($field_descriptor['foreign_object'], $relations[$field] ?? []);
                 }
             }
 
             if(
                 isset($entity[$field])
-                || in_array($field, $this->root_fields)
-                || in_array($field_type, $this->relationship_field_types)
+                || in_array($field, self::$root_fields)
+                || in_array($field_type, self::$relationship_field_types)
                 || $field_descriptor['type'] === 'computed'
             ) {
                 continue;
@@ -197,13 +195,13 @@ class ModelFactory extends Service {
     /**
      * @throws Exception
      */
-    private function createUniqueEntityFromModel(array $other_entities, Model $model, array $forced_values = [], array $relationships = []): array {
+    private static function createUniqueEntityFromModel(array $other_entities, Model $model, array $forced_values = [], array $relations = []): array {
         $schema = $model->getSchema();
         $model_unique_conf = $model->getUnique();
 
         $count = 10;
         while($count > 0) {
-            $entity = $this->createEntityFromModel($model, $forced_values, $relationships);
+            $entity = self::createEntityFromModel($model, $forced_values, $relations);
 
             $unique_valid = true;
             foreach($other_entities as $ent) {
