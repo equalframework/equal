@@ -70,7 +70,9 @@ class ModelFactory {
             }
         }
 
-        return $entities;
+        $one_entity_wanted = ($options['qty'] ?? 1) === 1;
+
+        return $one_entity_wanted ? $entities[0] : $entities;
     }
 
     private static function extractQtyFromOptions(array $options): int {
@@ -165,9 +167,15 @@ class ModelFactory {
                         $factory_options['qty'] = 1;
                     }
 
-                    $entity[$field] = self::create($field_descriptor['foreign_object'], $factory_options)[0];
+                    $entity[$field] = self::create($field_descriptor['foreign_object'], $factory_options);
                 } else {
-                    $entity[$field] = self::create($field_descriptor['foreign_object'], $relations[$field] ?? []);
+                    $relation_entities = self::create($field_descriptor['foreign_object'], $relations[$field] ?? []);
+                    if(!isset($relation_entities[0])) {
+                        // If only one item returned put it in an array
+                        $relation_entities = [$relation_entities];
+                    }
+
+                    $entity[$field] = $relation_entities;
                 }
             }
 
