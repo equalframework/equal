@@ -21,10 +21,10 @@ class ModelFactory {
      *                     (array): [1, 5] (between 1 and 5 included)
      *       - 'values': array (optional) A list of values to force for all entities created.
      *            Example: ['is_sent' => false]
-     *                      -> All entities created will have `is_sent` value to false.
+     *                      -> All entities created will have `is_sent` set to false.
      *      - 'sequences': array (optional) A list of values sequences to force for one entity.
      *            Example: [['name' => 'Group 1'], ['name' => 'Group 2']]
-     *                      -> First entity create will have name to "Group 1" and second will have "Group 2", etc.
+     *                      -> First entity created will have `name` set to "Group 1" and second will have `name` set to "Group 2", etc.
      *      - 'unique': bool (optional) Should the entities returned follow unique fields constraints (default true).
      *            Example: true
      *      - 'relations': array (optional) Generate entities for relations.
