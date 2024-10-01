@@ -18,7 +18,7 @@ class ModelFactory {
      * @param array $options Factory options like qty, values, sequences, unique and relations
      *       - 'qty': int|array (optional) The quantity of items (default 1).
      *            Example: (int): 2
-     *                    (array): [1, 5] (between 1 and 5 included)
+     *                     (array): [1, 5] (between 1 and 5 included)
      *       - 'values': array (optional) A list of values to force for all entities created.
      *            Example: ['is_sent' => false]
      *                      -> All entities created will have `is_sent` value to false.
