@@ -179,15 +179,21 @@ class DataGenerator {
 
     public static function phoneNumberE164(): string {
         $country_codes = [
-            '+1', '+7', '+27', '+31', '+32', '+33', '+34', '+352', '+39', '+44', '+46',
-            '+47', '+48', '+49', '+55', '+61', '+64', '+81', '+86', '+90', '+91', '+972'
+            '+1', '+7', '+27', '+31', '+32', '+33', '+34', '+352', '+39', '+44',
+            '+46', '+47', '+48', '+49', '+55', '+61', '+64', '+81', '+86', '+91', '+972'
         ];
 
         $country_code = $country_codes[array_rand($country_codes)];
+        $country_code_length = strlen($country_code);
 
-        $number_length = 15 - strlen($country_code);
-        $number = '';
-        for ($i = 0; $i < $number_length; $i++) {
+        $max_number_length = 15 - $country_code_length;
+
+        $number_length = mt_rand(8, $max_number_length); // Generate between 8 and max possible length
+
+        $first_digit = mt_rand(2, 9);
+        $number = $first_digit;
+
+        for ($i = 1; $i < $number_length; $i++) {
             $number .= mt_rand(0, 9);
         }
 
