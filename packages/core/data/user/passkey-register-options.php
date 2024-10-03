@@ -16,11 +16,6 @@ use lbuchs\WebAuthn\WebAuthn;
             'type'          => 'string',
             'description'   => 'User login or username.',
             'required'      => true
-        ],
-        'password' => [
-            'type'          => 'string',
-            'description'   => 'User password.',
-            'required'      => true
         ]
     ],
     'response'      => [
@@ -29,7 +24,7 @@ use lbuchs\WebAuthn\WebAuthn;
         'accept-origin' => '*'
     ],
     'access' => [
-        'visibility'    => 'public'
+        'visibility'    => 'protected'
     ],
     'constants'     => ['AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
@@ -74,8 +69,6 @@ $getUserFromLoginParam = function(array $params): array {
  */
 
 $user = $getUserFromLoginParam($params);
-
-$auth->authenticate($user['login'], $params['password']);
 
 $rp_id = 'localhost';
 $formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];

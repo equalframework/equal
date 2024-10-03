@@ -51,6 +51,7 @@ use lbuchs\WebAuthn\WebAuthn;
     'access' => [
         'visibility'    => 'public'
     ],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -72,14 +73,32 @@ $signature = base64_decode($params['signature']);
 $user_handle = base64_decode($params['user_handle']);
 
 $passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id))->getHex()])
-    ->read(['user_id' => ['passkey_user_handle'], 'credential_public_key', 'signature_counter'])
+    ->read([
+        'user_id' => [
+            'id',
+            'login',
+            'username',
+            'validated',
+            'passkey_user_handle'
+        ],
+        'credential_public_key',
+        'signature_counter'
+    ])
     ->first();
 
 if(is_null($passkey)) {
     throw new Exception('passkey_not_found', EQ_ERROR_UNKNOWN_OBJECT);
 }
 
-if($user_handle !== $passkey['user_id']['passkey_user_handle']) {
+if(is_null($passkey['user_id'])) {
+    throw new Exception('user_not_found', EQ_ERROR_INVALID_USER);
+}
+
+if(!$passkey['user_id']['validated']) {
+    throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
+}
+
+if($passkey['user_id']['passkey_user_handle'] !== $user_handle) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
@@ -87,15 +106,20 @@ $auth_token = JWT::decode($params['auth_token']);
 
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
-// TODO: Generate access token and add it to cookies
-
 $sign_count = $webAuthn->getSignatureCounter();
 if(!is_null($sign_count)) {
     Passkey::id($passkey['id'])
         ->update(['signature_counter' => $webAuthn->getSignatureCounter()]);
 }
 
+$access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+
 $context->httpResponse()
-        ->status(200)
-        ->body(['success' => true])
+        ->cookie('access_token',  $access_token, [
+            'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+            'httponly'  => true,
+            'secure'    => constant('AUTH_TOKEN_HTTPS'),
+            'domain'    => parse_url(constant('BACKEND_URL'), PHP_URL_HOST)
+        ])
+        ->status(204)
         ->send();

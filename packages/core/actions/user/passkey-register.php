@@ -40,7 +40,7 @@ use lbuchs\WebAuthn\WebAuthn;
         'accept-origin' => '*'
     ],
     'access' => [
-        'visibility'    => 'public'
+        'visibility'    => 'protected'
     ],
     'constants'     => ['BACKEND_URL', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
     'providers'     => ['context', 'auth']
