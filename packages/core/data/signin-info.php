@@ -102,7 +102,7 @@ $propose_passkey_creation = Setting::get_value(
 
 $context->httpResponse()
         ->body([
-            'username'                  => $user['username'] ?? $user['login'],
+            'username'                  => trim($params['login']),
             'has_passkey'               => count($user['passkeys_ids']) > 0,
             'propose_passkey_creation'  => $propose_passkey_creation
         ])
