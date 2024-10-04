@@ -278,6 +278,182 @@
                 "description": "Propose passkey creation after login using password.",
                 "help": "Only proposes if the user hasn't any passkey yet.",
                 "type": "boolean"
+            },
+            {
+                "id": 20,
+                "code": "passkey_rp_id",
+                "title": "Passkey relying party id",
+                "package": "core",
+                "form_control": "input",
+                "section_id": 5,
+                "description": "The domain or unique identifier for the relying party.",
+                "help": "Enter the domain or identifier used by the relying party. This is typically a domain name (e.g., example.com).",
+                "type": "string"
+            },
+            {
+                "id": 21,
+                "code": "passkey_rp_name",
+                "title": "Passkey relying party name",
+                "package": "core",
+                "form_control": "input",
+                "section_id": 5,
+                "description": "The name of the relying party.",
+                "help": "Enter the full name of the relying party. This is usually the name of the website or application (e.g., Example Inc.).",
+                "type": "string"
+            },
+            {
+                "id": 22,
+                "code": "passkey_format_android-key",
+                "title": "Passkey format android-key",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for Android Key passkey format.",
+                "help": "Toggle this option if you want to allow passkeys to be verified using Android Key attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 23,
+                "code": "passkey_format_android-safetynet",
+                "title": "Passkey format android-safetynet",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for Android SafetyNet passkey format.",
+                "help": "Toggle this option to allow passkeys verified using Android SafetyNet attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 24,
+                "code": "passkey_format_apple",
+                "title": "Passkey format apple",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for Apple's passkey format.",
+                "help": "Toggle this option if you want to allow passkeys verified through Apple attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 25,
+                "code": "passkey_format_fido-u2f",
+                "title": "Passkey format fido-u2f",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for FIDO U2F passkey format.",
+                "help": "Toggle this option to allow passkeys verified using the FIDO U2F standard.",
+                "type": "boolean"
+            },
+            {
+                "id": 26,
+                "code": "passkey_format_none",
+                "title": "Passkey format none",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for passkeys without attestation format.",
+                "help": "Toggle this option to allow passkeys that do not require formal attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 27,
+                "code": "passkey_format_packed",
+                "title": "Passkey format packed",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for packed passkey format.",
+                "help": "Toggle this option to allow passkeys using the packed format for attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 28,
+                "code": "passkey_format_tpm",
+                "title": "Passkey format tpm",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable support for TPM (Trusted Platform Module) passkey format.",
+                "help": "Toggle this option to allow passkeys verified through TPM attestation.",
+                "type": "boolean"
+            },
+            {
+                "id": 29,
+                "code": "passkey_user_verification",
+                "title": "Passkey user verification",
+                "package": "core",
+                "form_control": "select",
+                "section_id": 5,
+                "description": "Select the level of user verification required during passkey authentication.",
+                "help": "Options: 'required' forces user verification (e.g., via biometrics or PIN), 'preferred' uses it if available, and 'discouraged' skips user verification.",
+                "type": "string"
+            },
+            {
+                "id": 30,
+                "code": "passkey_cross_platform",
+                "title": "Passkey cross platform",
+                "package": "core",
+                "form_control": "select",
+                "section_id": 5,
+                "description": "Choose the usage mode for passkeys across platforms.",
+                "help": "Options: 'all' for all types of passkeys, 'only cross-platform' for passkeys stored on external connected devices, or 'only platform' for passkeys limited to the device itself.",
+                "type": "string"
+            },
+            {
+                "id": 31,
+                "code": "passkey_authenticator_usb",
+                "title": "Passkey authenticator USB",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable the use of USB-based authenticators for passkey authentication.",
+                "help": "Toggle this option to allow or restrict the use of USB devices for passkey authentication.",
+                "type": "boolean"
+            },
+            {
+                "id": 32,
+                "code": "passkey_authenticator_nfc",
+                "title": "Passkey authenticator NFC",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable the use of NFC-based authenticators for passkey authentication.",
+                "help": "Toggle this option to allow or restrict the use of NFC-enabled devices for passkey authentication.",
+                "type": "boolean"
+            },
+            {
+                "id": 33,
+                "code": "passkey_authenticator_ble",
+                "title": "Passkey authenticator BLE",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable the use of Bluetooth Low Energy (BLE) authenticators for passkey authentication.",
+                "help": "Toggle this option to allow or restrict the use of BLE devices for passkey authentication.",
+                "type": "boolean"
+            },
+            {
+                "id": 34,
+                "code": "passkey_authenticator_hybrid",
+                "title": "Passkey authenticator hybrid",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable the use of hybrid authenticators that utilize multiple communication methods.",
+                "help": "Toggle this option to allow or restrict the use of hybrid authenticators for passkey authentication.",
+                "type": "boolean"
+            },
+            {
+                "id": 35,
+                "code": "passkey_authenticator_internal",
+                "title": "Passkey authenticator internal",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
+                "help": "Toggle this option to allow or restrict the use of internal authentication methods on devices.",
+                "type": "boolean"
             }
         ]
     },
@@ -398,7 +574,104 @@
                 "title": "Proposer la création de la première clé d'accès",
                 "description": "Proposer la création de la première clé d'accès après la connexion avec un mot de passe.",
                 "help": "Proposé uniquement si l'utilisateur n'a pas encore de clé d'accès."
+            },
+            {
+                "id": 20,
+                "title": "Passkey relying party id",
+                "description": "Le domaine ou identifiant unique du relying party.",
+                "help": "Entrez le domaine ou l'identifiant utilisé par le relying party. Il s'agit généralement d'un nom de domaine (ex. : example.com)."
+            },
+            {
+                "id": 21,
+                "title": "Passkey relying party id",
+                "description": "Le nom du relying party.",
+                "help": "Entrez le nom complet du relying party. Il s'agit généralement du nom du site web ou de l'application (ex. : Exemple Inc.)."
+            },
+            {
+                "id": 22,
+                "title": "Format de clé d'accès Android-Key",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Android Key.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation Android Key."
+            },
+            {
+                "id": 23,
+                "title": "Format de clé d'accès Android-SafetyNet",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Android SafetyNet.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation Android SafetyNet."
+            },
+            {
+                "id": 24,
+                "title": "Passkey format Apple",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès d'Apple.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation d'Apple."
+            },
+            {
+                "id": 25,
+                "title": "Passkey format FIDO U2F",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès FIDO U2F.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via la norme FIDO U2F."
+            },
+            {
+                "id": 26,
+                "title": "Passkey aucun format",
+                "description": "Activer ou désactiver la prise en charge d'une clé d'accès sans format d'attestation.",
+                "help": "Activez cette option pour permettre l'utilisation de clés d'accès sans attestation formelle."
+            },
+            {
+                "id": 27,
+                "title": "Passkey format Packed",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Packed.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès utilisant le format Packed."
+            },
+            {
+                "id": 28,
+                "title": "Passkey format TPM",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès TPM (Trusted Platform Module).",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation TPM."
+            },
+            {
+                "id": 29,
+                "title": "Passkey vérification utilisateur",
+                "description": "Sélectionnez le niveau de vérification de l'utilisateur requis pendant l'authentification par clé d'accès.",
+                "help": "Options : 'obligatoire' impose la vérification de l'utilisateur (ex. via biométrie ou code PIN), 'préféré' l'utilise si disponible, et 'découragé' évite la vérification de l'utilisateur."
+            },
+            {
+                "id": 30,
+                "title": "Passkey cross platform",
+                "description": "Sélectionnez le mode d'utilisation des clés d'acccès sur différentes plateformes.",
+                "help": "Options : 'all' pour tous les types de clés de sécurité, 'only cross-platform' pour les clés d'accès stockées sur des appareils externes connectés, ou 'only platform' pour les clés d'accès limitées à l'appareil lui-même."
+            },
+            {
+                "id": 31,
+                "title": "Passkey authenticator USB",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs USB pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils USB pour l'authentification par clé d'accès."
+            },
+            {
+                "id": 32,
+                "title": "Passkey authenticator NFC",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs NFC pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils compatibles NFC pour l'authentification par clé d'accès."
+            },
+            {
+                "id": 33,
+                "title": "Passkey authenticator BLE",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs Bluetooth Low Energy (BLE) pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils BLE pour l'authentification par clé d'accès."
+            },
+            {
+                "id": 34,
+                "title": "Passkey authenticator hybrid",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs hybrides qui utilisent plusieurs méthodes de communication.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'authentificateurs hybrides pour l'authentification par clé d'accès."
+            },
+            {
+                "id": 35,
+                "title": "Passkey authenticator internal",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs internes intégrés aux appareils, tels que les scanners d'empreintes digitales.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation de méthodes d'authentification internes sur les appareils."
             }
+
         ]
     },
     {
@@ -518,6 +791,102 @@
                 "name": "core.auth.propose_passkey_creation",
                 "setting_id": 19,
                 "value": "0"
+            },
+            {
+                "id": 20,
+                "name": "core.auth.passkey_rp_id",
+                "setting_id": 20,
+                "value": "equal.local"
+            },
+            {
+                "id": 21,
+                "name": "core.auth.passkey_rp_name",
+                "setting_id": 21,
+                "value": "eQual App"
+            },
+            {
+                "id": 22,
+                "name": "core.auth.passkey_format_android-key",
+                "setting_id": 22,
+                "value": "1"
+            },
+            {
+                "id": 23,
+                "name": "core.auth.passkey_format_android-safetynet",
+                "setting_id": 23,
+                "value": "1"
+            },
+            {
+                "id": 24,
+                "name": "core.auth.passkey_format_apple",
+                "setting_id": 24,
+                "value": "1"
+            },
+            {
+                "id": 25,
+                "name": "core.auth.passkey_format_fido-u2f",
+                "setting_id": 25,
+                "value": "1"
+            },
+            {
+                "id": 26,
+                "name": "core.auth.passkey_format_none",
+                "setting_id": 26,
+                "value": "1"
+            },
+            {
+                "id": 27,
+                "name": "core.auth.passkey_format_packed",
+                "setting_id": 27,
+                "value": "1"
+            },
+            {
+                "id": 28,
+                "name": "core.auth.passkey_format_tpm",
+                "setting_id": 28,
+                "value": "1"
+            },
+            {
+                "id": 29,
+                "name": "core.auth.passkey_user_verification",
+                "setting_id": 29,
+                "value": "preferred"
+            },
+            {
+                "id": 30,
+                "name": "core.auth.passkey_cross_platform",
+                "setting_id": 30,
+                "value": "all"
+            },
+            {
+                "id": 31,
+                "name": "core.auth.passkey_authenticator_usb",
+                "setting_id": 31,
+                "value": "1"
+            },
+            {
+                "id": 32,
+                "name": "core.auth.passkey_authenticator_nfc",
+                "setting_id": 32,
+                "value": "1"
+            },
+            {
+                "id": 33,
+                "name": "core.auth.passkey_authenticator_ble",
+                "setting_id": 33,
+                "value": "1"
+            },
+            {
+                "id": 34,
+                "name": "core.auth.passkey_authenticator_hybrid",
+                "setting_id": 34,
+                "value": "1"
+            },
+            {
+                "id": 35,
+                "name": "core.auth.passkey_authenticator_internal",
+                "setting_id": 35,
+                "value": "1"
             }
         ]
     },
@@ -1040,6 +1409,42 @@
                 "setting_id": 18,
                 "name": "Europe/Zurich",
                 "value": "Europe/Zurich"
+            },
+            {
+                "id": 1860,
+                "setting_id": 29,
+                "name": "required",
+                "value": "required"
+            },
+            {
+                "id": 1861,
+                "setting_id": 29,
+                "name": "preferred",
+                "value": "preferred"
+            },
+            {
+                "id": 1862,
+                "setting_id": 29,
+                "name": "discouraged",
+                "value": "discouraged"
+            },
+            {
+                "id": 1863,
+                "setting_id": 30,
+                "name": "all",
+                "value": "all"
+            },
+            {
+                "id": 1864,
+                "setting_id": 30,
+                "name": "only cross platform",
+                "value": "cross-platform"
+            },
+            {
+                "id": 1865,
+                "setting_id": 30,
+                "name": "only platform",
+                "value": "platform"
             }
         ]
     },
@@ -1154,6 +1559,30 @@
             {
                 "id": 1701,
                 "name": "mètre carré"
+            },
+            {
+                "id": 1860,
+                "name": "requise"
+            },
+            {
+                "id": 1861,
+                "name": "préférée"
+            },
+            {
+                "id": 1862,
+                "name": "découragée"
+            },
+            {
+                "id": 1863,
+                "name": "all"
+            },
+            {
+                "id": 1864,
+                "name": "seulement cross platform"
+            },
+            {
+                "id": 1865,
+                "name": "seulement platform"
             }
         ]
     }

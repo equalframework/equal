@@ -6,6 +6,7 @@
 */
 
 use core\Passkey;
+use core\setting\Setting;
 use core\User;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
@@ -68,10 +69,31 @@ $getUserFromLoginParam = function(array $params): array {
  * Action
  */
 
-$rp_id = 'localhost';
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
+$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
+$user_verification = Setting::get_value('core', 'auth', 'passkey_user_verification', 'preferred');
 
-$webAuthn = new WebAuthn('eQual Passkey', $rp_id, $formats);
+$cross_platform_attachment = Setting::get_value('core', 'auth', 'passkey_cross_platform', true);
+if($cross_platform_attachment === 'all') {
+    $cross_platform_attachment = null;
+}
+elseif($cross_platform_attachment === 'cross-platform') {
+    $cross_platform_attachment = true;
+}
+elseif($cross_platform_attachment === 'platform') {
+    $cross_platform_attachment = false;
+}
+
+$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$allowed_formats = [];
+foreach($formats as $format) {
+    $is_format_allowed = Setting::get_value('core', 'auth', "passkey_format_$format", false);
+    if($is_format_allowed) {
+        $allowed_formats[] = $format;
+    }
+}
+
+$webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $credential_ids = [];
 
@@ -94,7 +116,16 @@ if(!empty($params['login'])) {
     );
 }
 
-$auth_options = $webAuthn->getGetArgs($credential_ids, 20, true, true, true, true, true, true);
+$auth_options = $webAuthn->getGetArgs(
+    $credential_ids,
+    20,
+    Setting::get_value('core', 'auth', 'passkey_authenticator_usb', true),
+    Setting::get_value('core', 'auth', 'passkey_authenticator_nfc', true),
+    Setting::get_value('core', 'auth', 'passkey_authenticator_ble', true),
+    Setting::get_value('core', 'auth', 'passkey_authenticator_hybrid', true),
+    Setting::get_value('core', 'auth', 'passkey_authenticator_internal', true),
+    true
+);
 
 $auth_token = JWT::encode(
     ['challenge' => $webAuthn->getChallenge()->getHex()],
@@ -105,5 +136,5 @@ $auth_options->auth_token = $auth_token;
 
 $context->httpResponse()
         ->status(200)
-        ->body(json_encode($auth_options))
+        ->body((array) $auth_options)
         ->send();

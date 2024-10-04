@@ -5,6 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\setting\Setting;
 use core\User;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\WebAuthn;
@@ -70,10 +71,31 @@ $getUserFromLoginParam = function(array $params): array {
 
 $user = $getUserFromLoginParam($params);
 
-$rp_id = 'localhost';
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
+$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
+$user_verification = Setting::get_value('core', 'auth', 'passkey_user_verification', 'preferred');
 
-$webAuthn = new WebAuthn('eQual Passkey', $rp_id, $formats);
+$cross_platform_attachment = Setting::get_value('core', 'auth', 'passkey_cross_platform', true);
+if($cross_platform_attachment === 'all') {
+    $cross_platform_attachment = null;
+}
+elseif($cross_platform_attachment === 'cross-platform') {
+    $cross_platform_attachment = true;
+}
+elseif($cross_platform_attachment === 'platform') {
+    $cross_platform_attachment = false;
+}
+
+$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$allowed_formats = [];
+foreach($formats as $format) {
+    $is_format_allowed = Setting::get_value('core', 'auth', "passkey_format_$format", false);
+    if($is_format_allowed) {
+        $allowed_formats[] = $format;
+    }
+}
+
+$webAuthn = new WebAuthn($rp_name, $rp_id, $formats);
 
 $webAuthn->addRootCertificates(EQ_BASEDIR.'/mds-cert');
 
@@ -87,11 +109,11 @@ if(is_null($user_handle)) {
 $register_options = $webAuthn->getCreateArgs(
     $user_handle,
     $user['login'],
-    'User eQual',
+    $rp_name,
     20,
-    true,    // Discoverable key
-    true,  // User needs to verify
-    null // Let to null to accept all
+    true,
+    $user_verification,
+    $cross_platform_attachment
 );
 
 $data = [
@@ -108,5 +130,5 @@ $register_options->register_token = $registration_token;
 
 $context->httpResponse()
         ->status(200)
-        ->body(json_encode($register_options))
+        ->body((array) $register_options)
         ->send();

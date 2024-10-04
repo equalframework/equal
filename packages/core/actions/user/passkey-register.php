@@ -71,6 +71,5 @@ Passkey::create([
 ]);
 
 $context->httpResponse()
-        ->status(200)
-        ->body(['success' => true])
+        ->status(204)
         ->send();
