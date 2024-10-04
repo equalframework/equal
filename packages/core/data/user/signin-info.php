@@ -5,6 +5,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
@@ -24,6 +25,7 @@ use core\User;
     'access'        => [
         'visibility'    => 'public'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context']
 ]);
 
@@ -78,12 +80,31 @@ $getUserFromGivenLogin = function(string $login, array $fields_to_read) use ($cl
  * Action
  */
 
-$user = $getUserFromGivenLogin($params['login'], ['passkeys_ids', 'username', 'login']);
+$user = $getUserFromGivenLogin($params['login'], ['id', 'passkeys_ids', 'username', 'login']);
+
+$global_propose_first_passkey_creation = Setting::get_value(
+    'core',
+    'auth',
+    'propose_first_passkey_creation',
+    false,
+    ['user_id' => 0],
+    constant('DEFAULT_LANG')
+);
+
+$propose_first_passkey_creation = Setting::get_value(
+    'core',
+    'auth',
+    'propose_first_passkey_creation',
+    $global_propose_first_passkey_creation,
+    ['user_id' => $user['id']],
+    constant('DEFAULT_LANG')
+);
 
 $context->httpResponse()
         ->body([
-            'username'      => $user['username'] ?? $user['login'],
-            'has_passkey'   => count($user['passkeys_ids']) > 0
+            'username'                          => $user['username'] ?? $user['login'],
+            'has_passkey'                       => count($user['passkeys_ids']) > 0,
+            'propose_first_passkey_creation'    => $propose_first_passkey_creation
         ])
         ->status(200)
         ->send();

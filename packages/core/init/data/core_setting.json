@@ -26,6 +26,12 @@
                 "code": "units",
                 "name": "Units",
                 "description": "Measures and system units"
+            },
+            {
+                "id": 5,
+                "code": "auth",
+                "name": "Authentication",
+                "description": "User authentication settings"
             }
         ]
     },
@@ -52,6 +58,11 @@
                 "id": 4,
                 "name": "Unités",
                 "description": "Unités de mesures et systèmes d'unités"
+            },
+            {
+                "id": 5,
+                "name": "Authentification",
+                "description": "Paramètres d'authentification"
             }
         ]
     },
@@ -256,6 +267,17 @@
                 "description": "Time zone on which dates are based.",
                 "help": "Default timezone to be used at application level.",
                 "type": "string"
+            },
+            {
+                "id": 19,
+                "code": "propose_first_passkey_creation",
+                "title": "Propose first passkey creation",
+                "package": "core",
+                "form_control": "toggle",
+                "section_id": 5,
+                "description": "Propose passkey creation after login using password.",
+                "help": "Only proposes if the user hasn't any passkey yet.",
+                "type": "boolean"
             }
         ]
     },
@@ -370,6 +392,12 @@
                 "title": "Fuseau horaire",
                 "description": "Fuseau horaire sur lequel baser les dates.",
                 "help": "Fuseau horaire par défaut utiliser au niveau de l'application (back-end)."
+            },
+            {
+                "id": 19,
+                "title": "Proposer la création de la première clé d'accès",
+                "description": "Proposer la création de la première clé d'accès après la connexion avec un mot de passe.",
+                "help": "Proposé uniquement si l'utilisateur n'a pas encore de clé d'accès."
             }
         ]
     },
@@ -484,6 +512,12 @@
                 "name": "core.locale.time_zone",
                 "setting_id": 18,
                 "value": "Europe/Brussels"
+            },
+            {
+                "id": 19,
+                "name": "core.auth.propose_first_passkey_creation",
+                "setting_id": 19,
+                "value": "1"
             }
         ]
     },
