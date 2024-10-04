@@ -270,8 +270,8 @@
             },
             {
                 "id": 19,
-                "code": "propose_first_passkey_creation",
-                "title": "Propose first passkey creation",
+                "code": "propose_passkey_creation",
+                "title": "Propose passkey creation",
                 "package": "core",
                 "form_control": "toggle",
                 "section_id": 5,
@@ -515,9 +515,9 @@
             },
             {
                 "id": 19,
-                "name": "core.auth.propose_first_passkey_creation",
+                "name": "core.auth.propose_passkey_creation",
                 "setting_id": 19,
-                "value": "1"
+                "value": "0"
             }
         ]
     },
