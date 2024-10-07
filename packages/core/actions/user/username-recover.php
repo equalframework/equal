@@ -73,14 +73,14 @@ try {
 
     // define template `var` nodes parsing callbacks
     $template = new HtmlTemplate($html, [
-        'subject'		=>	function ($params, $attributes) use (&$subject) {
+        'subject'       =>	function ($params, $attributes) use (&$subject) {
                                 $subject = $attributes['title'];
                                 return '';
                             },
-        'firstname'		=>	function ($params, $attributes) {
+        'firstname'     =>	function ($params, $attributes) {
                                 return $params['user']['firstname'];
                             },
-        'username'		=>	function ($params, $attributes) {
+        'username'      =>  function ($params, $attributes) {
                                 return $params['user']['username'];
                             },
         'origin'        =>  function ($params, $attributes) {
