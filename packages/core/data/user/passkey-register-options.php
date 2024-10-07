@@ -95,7 +95,7 @@ foreach($formats as $format) {
     }
 }
 
-$webAuthn = new WebAuthn($rp_name, $rp_id, $formats);
+$webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $webAuthn->addRootCertificates(EQ_BASEDIR.'/mds-cert');
 

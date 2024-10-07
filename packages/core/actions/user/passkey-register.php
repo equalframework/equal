@@ -6,6 +6,7 @@
 */
 
 use core\Passkey;
+use core\setting\Setting;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
@@ -52,10 +53,19 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$rp_id = 'localhost';
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
+$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
 
-$webAuthn = new WebAuthn('eQual Passkey', $rp_id, $formats);
+$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$allowed_formats = [];
+foreach($formats as $format) {
+    $is_format_allowed = Setting::get_value('core', 'auth', "passkey_format_$format", false);
+    if($is_format_allowed) {
+        $allowed_formats[] = $format;
+    }
+}
+
+$webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $client_data_json = base64_decode($params['client_data_json']);
 $attestation_object = base64_decode($params['attestation_object']);
