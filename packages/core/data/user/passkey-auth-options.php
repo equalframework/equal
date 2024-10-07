@@ -124,7 +124,7 @@ $auth_options = $webAuthn->getGetArgs(
     Setting::get_value('core', 'auth', 'passkey_authenticator_ble', true),
     Setting::get_value('core', 'auth', 'passkey_authenticator_hybrid', true),
     Setting::get_value('core', 'auth', 'passkey_authenticator_internal', true),
-    true
+    $user_verification
 );
 
 $auth_token = JWT::encode(
