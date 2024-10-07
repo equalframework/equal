@@ -11,7 +11,7 @@ use core\User;
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns user sign in information.',
     'params'        => [
-        'login'		=>	[
+        'login' =>	[
             'description'   => 'User username or login (email).',
             'type'          => 'string',
             'required'      => true
