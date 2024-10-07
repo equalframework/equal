@@ -41,10 +41,14 @@ class DataGenerator {
                 return self::legalName($lang);
             case 'address_street':
                 return self::addressStreet($lang);
+            case 'address_dispatch':
+                return self::addressDispatch($lang);
             case 'address_zip':
                 return self::addressZip();
             case 'address_city':
                 return self::addressCity($lang);
+            case 'address_state':
+                return self::addressState();
             case 'address_country':
                 return self::addressCountry($lang);
             case 'address':
@@ -640,6 +644,14 @@ class DataGenerator {
         return $map_lang_streets[$lang][array_rand($map_lang_streets[$lang])] . ' ' . $number;
     }
 
+    public static function addressDispatch($lang = null): ?string {
+        $apartmentNumber = rand(-50, 50);
+
+        $apartment_name = $lang === 'fr' ? 'Bte' : 'Apartment';
+
+        return $apartmentNumber > 0 ? "$apartment_name $apartmentNumber" : null;
+    }
+
     public static function addressZip(): string {
         return mt_rand(1000, 9999);
     }
@@ -726,6 +738,39 @@ class DataGenerator {
         }
 
         return $map_lang_cities[$lang][array_rand($map_lang_cities[$lang])];
+    }
+
+    public static function addressState(): string {
+        $map_lang_states = [
+            // Belgium
+            'Antwerp', 'East Flanders', 'West Flanders', 'Flemish Brabant', 'Brussels-Capital Region', 'Hainaut',
+            'Liège', 'Luxembourg', 'Namur', 'Walloon Brabant', 'Brussels-Capital',
+
+            //France
+            'Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes', 'Nouvelle-Aquitaine', 'Occitanie',
+            'Hauts-de-France', 'Normandy', 'Brittany', 'Grand Est', 'Bourgogne-Franche-Comté', 'Pays de la Loire',
+            'Centre-Val de Loire', 'Alsace', 'Corsica', 'Mayotte',
+
+            // Netherlands
+            'Groningen', 'Friesland', 'Drenthe', 'Overijssel', 'Flevoland', 'Gelderland', 'Utrecht',
+            'North Holland', 'South Holland', 'Zeeland', 'North Brabant', 'Limburg',
+
+            // England
+            'Northumberland', 'County Durham', 'Tyne and Wear', 'Cheshire', 'Greater Manchester', 'Lancashire',
+            'Merseyside', 'East Riding of Yorkshire', 'North Yorkshire', 'South Yorkshire', 'West Yorkshire',
+            'Derbyshire', 'Leicestershire', 'Lincolnshire', 'Northamptonshire', 'Nottinghamshire', 'Herefordshire',
+            'Shropshire', 'Staffordshire', 'Warwickshire', 'Worcestershire', 'Bedfordshire', 'Cambridgeshire',
+            'Essex', 'Hertfordshire', 'Norfolk', 'Suffolk', 'Greater London', 'Berkshire', 'Buckinghamshire',
+            'East Sussex', 'Hampshire', 'Kent', 'Oxfordshire', 'Surrey', 'West Sussex', 'Cornwall', 'Devon',
+            'Dorset', 'Gloucestershire', 'Somerset', 'Wiltshire',
+
+            // Germany
+            'Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hesse', 'Lower Saxony',
+            'North Rhine-Westphalia', 'Rhineland-Palatinate', 'Saarland', 'Saxony', 'Saxony-Anhalt',
+            'Schleswig-Holstein', 'Thuringia', 'Mecklenburg-Vorpommern'
+        ];
+
+        return $map_lang_states[array_rand($map_lang_states)];
     }
 
     public static function addressCountry($lang = null): string {

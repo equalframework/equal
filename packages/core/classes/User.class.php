@@ -120,9 +120,10 @@ class User extends Model {
             'status' => [
                 'type'              => 'string',
                 // initial status
-                'default'           => 'created'
+                'default'           => 'created',
                 // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
-                // onupdate is allowed but it is better practice to rely on transitions and related function properties in the workflow descriptor
+                // onupdate is allowed, but it is better practice to rely on transitions and related function properties in the workflow descriptor
+                'generation'        => 'generateStatus'
             ]
         ];
     }
@@ -317,6 +318,12 @@ class User extends Model {
                 ]
             ]
         ];
+    }
+
+    public static function generateStatus(): string {
+        $statuses = array_keys(self::getWorkflow());
+
+        return $statuses[mt_rand(0, count($statuses) - 1)];
     }
 
 }
