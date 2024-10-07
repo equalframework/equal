@@ -42,6 +42,7 @@
     "BACKEND_URL": {
         "type": "string",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "instant": true,
         "default": "http://equal.local",
         "examples": [
             "http://equal.local",
@@ -362,6 +363,13 @@
         "deprecated": "Please use BACKEND_URL instead.",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
+    },
+    "TASK_EXECUTION_TIMEOUT": {
+        "type": "integer",
+        "usage": "time/duration",
+        "description": "Maximum duration, in seconds, allowed for a Task to be running. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": 3600
     },
     "USER_ACCOUNT_DISPLAYNAME": {
         "type": "string",

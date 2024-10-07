@@ -20,7 +20,7 @@ class Scheduler extends Service {
     }
 
     public static function constants() {
-        return ['MEM_FREE_LIMIT'];
+        return ['MEM_FREE_LIMIT', 'TASK_EXECUTION_TIMEOUT'];
     }
 
     private static function computeAvailableMemory() {
@@ -66,6 +66,16 @@ class Scheduler extends Service {
                     ['status', '=', 'idle'],
                     ['moment', '<=', $now]
                 ], ['moment' => 'asc'], 0, 10);
+        }
+
+        // handle erroneous `running` tasks, if any (marked as running while not, due to unexpected end of parent process)
+        $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running']]);
+        $res = $orm->read('core\Task', $running_tasks_ids, ['last_run', 'pid']);
+        foreach($res as $task_id => $task) {
+            if($now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
+                // #todo - check if related PID is running and matches
+                $orm->update('core\Task', $task_id, ['status' => 'idle']);
+            }
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
