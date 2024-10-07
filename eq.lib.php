@@ -979,7 +979,8 @@ namespace config {
                         if(isset($config['default'])) {
                             $f = new Field($config, $param);
                             $default_value = $config['default'];
-                            if(is_callable($default_value)) {
+                            // #memo - array can be used as callable descriptor but are not considered here
+                            if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                                 // either a php function (or a function from the global scope) or a closure object
                                 if(is_object($default_value)) {
                                     // default is a closure
