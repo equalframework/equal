@@ -55,6 +55,7 @@ use lbuchs\WebAuthn\WebAuthn;
 
 $rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
 $rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
+$user_verification = Setting::get_value('core', 'auth', 'passkey_user_verification', 'preferred');
 
 $formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
@@ -72,7 +73,12 @@ $attestation_object = base64_decode($params['attestation_object']);
 
 $register_token = JWT::decode($params['register_token']);
 
-$data = $webAuthn->processCreate($client_data_json, $attestation_object, ByteBuffer::fromHex($register_token['payload']['challenge']), false, true, false);
+$data = $webAuthn->processCreate(
+    $client_data_json,
+    $attestation_object,
+    ByteBuffer::fromHex($register_token['payload']['challenge']),
+    $user_verification === 'required'
+);
 
 Passkey::create([
     'user_id'               => $register_token['payload']['user_id'],
