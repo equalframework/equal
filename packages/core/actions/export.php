@@ -145,7 +145,8 @@ if(empty($packages)) {
     throw new Exception('no_packages_initialized', EQ_ERROR_NOT_ALLOWED);
 }
 
-$export_folder_path = EQ_BASEDIR.'/exports/'.date('Y_m_d_His');
+$timestamp = date('Y_m_d_His');
+$export_folder_path = EQ_BASEDIR.'/export/'.$timestamp;
 mkdir($export_folder_path, 0777, true);
 
 $translation_language_codes = $getTranslationLanguageCodes(constant('DEFAULT_LANG'));
@@ -202,7 +203,7 @@ foreach($packages as $package) {
 
         $name = str_replace('\\', '_', $entity);
         file_put_contents(
-            "$export_folder_path/$name.json",
+            "$export_folder_path/export_{$timestamp}_$name.json",
             json_encode($init_data, JSON_PRETTY_PRINT)
         );
     }
