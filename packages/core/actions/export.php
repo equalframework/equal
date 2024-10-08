@@ -10,7 +10,7 @@ use core\Translation;
 
 [$params, $providers] = eQual::announce([
         'description'   => 'Export data from eQual database to initialization json files.',
-        'help'          => '',
+        'help'          => 'Result export files can be found in export folder at root of project.',
         'params'        => [
             'package' => [
                 'description'   => 'Package that must be initialized (e.g. "core").',
