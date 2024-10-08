@@ -157,7 +157,7 @@ foreach($packages as $package) {
     }
 
     $entities = $getPackageEntities($package);
-    foreach ($entities as $entity) {
+    foreach($entities as $entity) {
         if(
             (isset($params['entity']) && $params['entity'] !== $entity)
             || $entity === 'core\Translation'
