@@ -30,7 +30,7 @@ use core\Translation;
             'charset'       => 'utf-8',
             'accept-origin' => '*'
         ],
-        'access' => [
+        'access'        => [
             'visibility'    => 'protected'
         ],
         'constants'     => ['DEFAULT_LANG'],
