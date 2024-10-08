@@ -48,22 +48,6 @@ use core\Translation;
  */
 
 /**
- * Returns the initialized packages
- *
- * @return string[]
- */
-$getInitializedPackages = function(): array {
-    $packages = [];
-    $packages_file_path = EQ_BASEDIR.'/log/packages.json';
-    if(file_exists($packages_file_path)) {
-        $packages_json = file_get_contents($packages_file_path);
-        $packages = array_keys(json_decode($packages_json, true));
-    }
-
-    return $packages;
-};
-
-/**
  * Returns all language codes except the default one
  *
  * @param string $default_lang_code
@@ -156,7 +140,7 @@ $getTranslationData = function(string $entity, string $lang_code): array {
  * Action
  */
 
-$packages = $getInitializedPackages();
+$packages = eQual::run('get', 'core_config_live_packages');
 if(empty($packages)) {
     throw new Exception('no_packages_initialized', EQ_ERROR_NOT_ALLOWED);
 }
