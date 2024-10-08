@@ -48,17 +48,70 @@ use core\Translation;
  */
 
 /**
+ * Returns the initialized packages
+ *
+ * @return string[]
+ */
+$getInitializedPackages = function(): array {
+    $packages = [];
+    $packages_file_path = EQ_BASEDIR.'/log/packages.json';
+    if(file_exists($packages_file_path)) {
+        $packages_json = file_get_contents($packages_file_path);
+        $packages = array_keys(json_decode($packages_json, true));
+    }
+
+    return $packages;
+};
+
+/**
  * Returns all language codes except the default one
  *
  * @param string $default_lang_code
  * @return string[]
  */
-$getTranslationLanguageCodes = function(string $default_lang_code) {
+$getTranslationLanguageCodes = function(string $default_lang_code): array {
     $languages = core\Lang::search(['code', '<>', $default_lang_code])
         ->read(['code'])
         ->get(true);
 
     return array_column($languages, 'code');
+};
+
+/**
+ * Returns all entities of given package
+ *
+ * @param string $package
+ * @return array
+ */
+$getPackageEntities = function(string $package): array {
+    $directory = new RecursiveDirectoryIterator(EQ_BASEDIR."/packages/$package/classes");
+    $iterator = new RecursiveIteratorIterator($directory);
+
+    $regex = new RegexIterator($iterator, '/^.+\.class\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+    $entities = [];
+    foreach ($regex as $file) {
+        $entities[] = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
+    }
+
+    return $entities;
+};
+
+/**
+ * Returns entity fields except one2many because not needed for export
+ *
+ * @param array $model_schema
+ * @return string[]
+ */
+$getEntityFieldsExceptOne2Many = function(array $model_schema): array {
+    $fields = [];
+    foreach($model_schema as $field => $field_descriptor) {
+        if(!in_array('one2many', [$field_descriptor['type'], $field_descriptor['result_type'] ?? ''])) {
+            $fields[] = $field;
+        }
+    }
+
+    return $fields;
 };
 
 /**
@@ -68,7 +121,7 @@ $getTranslationLanguageCodes = function(string $default_lang_code) {
  * @param string $lang_code
  * @return array
  */
-$getTranslationData = function(string $entity, string $lang_code) {
+$getTranslationData = function(string $entity, string $lang_code): array {
     $translation_data = Translation::search(
         [
             ['object_class', '=', $entity],
@@ -103,12 +156,9 @@ $getTranslationData = function(string $entity, string $lang_code) {
  * Action
  */
 
-$packages = [];
-
-$packages_file_path = 'log/packages.json';
-if(file_exists($packages_file_path)) {
-    $packages_json = file_get_contents($packages_file_path);
-    $packages = array_keys(json_decode($packages_json, true));
+$packages = $getInitializedPackages();
+if(empty($packages)) {
+    throw new Exception('no_packages_initialized', EQ_ERROR_NOT_ALLOWED);
 }
 
 $export_folder_path = EQ_BASEDIR.'/exports/'.date('Y_m_d_His');
@@ -121,19 +171,12 @@ foreach($packages as $package) {
         continue;
     }
 
-    $directory = new RecursiveDirectoryIterator(EQ_BASEDIR."/packages/$package/classes");
-    $iterator = new RecursiveIteratorIterator($directory);
-
-    $regex = new RegexIterator($iterator, '/^.+\.class\.php$/i', RecursiveRegexIterator::GET_MATCH);
-
-    foreach ($regex as $file) {
-        $entity = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
-
-        if(isset($params['entity']) && $params['entity'] !== $entity) {
-            continue;
-        }
-
-        if($entity === 'core\Translation') {
+    $entities = $getPackageEntities($package);
+    foreach ($entities as $entity) {
+        if(
+            (isset($params['entity']) && $params['entity'] !== $entity)
+            || $entity === 'core\Translation'
+        ) {
             continue;
         }
 
@@ -143,17 +186,7 @@ foreach($packages as $package) {
             continue;
         }
 
-        $fields = [];
-        $multilang_fields = [];
-        foreach($model->getSchema() as $field => $field_descriptor) {
-            if(!in_array('one2many', [$field_descriptor['type'], $field_descriptor['result_type'] ?? ''])) {
-                $fields[] = $field;
-
-                if($field_descriptor['multilang'] ?? false) {
-                    $multilang_fields[] = $field;
-                }
-            }
-        }
+        $fields = $getEntityFieldsExceptOne2Many($model->getSchema());
 
         $data = $entity::search([])
             ->read($fields)
