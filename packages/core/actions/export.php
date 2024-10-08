@@ -82,15 +82,18 @@ $getPackageEntities = function(string $package): array {
 };
 
 /**
- * Returns entity fields except one2many because not needed for export
+ * Returns entity fields except one2many and not stored computed fields because not needed for export
  *
  * @param array $model_schema
  * @return string[]
  */
-$getEntityFieldsExceptOne2Many = function(array $model_schema): array {
+$getEntityFieldsToExport = function(array $model_schema): array {
     $fields = [];
     foreach($model_schema as $field => $field_descriptor) {
-        if(!in_array('one2many', [$field_descriptor['type'], $field_descriptor['result_type'] ?? ''])) {
+        $isOne2ManyField = in_array('one2many', [$field_descriptor['type'], $field_descriptor['result_type'] ?? '']);
+        $isNotStoredComputedField = $field_descriptor['type'] === 'computed' && $field_descriptor['store'] ?? false;
+
+        if(!$isOne2ManyField && !$isNotStoredComputedField) {
             $fields[] = $field;
         }
     }
@@ -171,7 +174,7 @@ foreach($packages as $package) {
             continue;
         }
 
-        $fields = $getEntityFieldsExceptOne2Many($model->getSchema());
+        $fields = $getEntityFieldsToExport($model->getSchema());
 
         $data = $entity::search([])
             ->read($fields)
