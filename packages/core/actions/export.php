@@ -9,32 +9,32 @@
 use core\Translation;
 
 [$params, $providers] = eQual::announce([
-        'description'   => 'Export data from eQual database to initialization json files.',
-        'help'          => 'Result export files can be found in export folder at root of project.',
-        'params'        => [
-            'package' => [
-                'description'   => 'Package that must be initialized (e.g. "core").',
-                'help'          => 'All packages are exported if left empty.',
-                'type'          => 'string',
-                'usage'         => 'orm/package'
-            ],
-            'entity' => [
-                'description'   => 'Full name (including namespace) of the class to import (e.g. "core\\User").',
-                'help'          => 'All entities are exported if left empty.',
-                'type'          => 'string',
-                'usage'         => 'orm/entity'
-            ],
+    'description'   => 'Export data from eQual database to initialization json files.',
+    'help'          => 'Result export files can be found in export folder at root of project.',
+    'params'        => [
+        'package' => [
+            'description'   => 'Package that must be initialized (e.g. "core").',
+            'help'          => 'All packages are exported if left empty.',
+            'type'          => 'string',
+            'usage'         => 'orm/package'
         ],
-        'response'      => [
-            'content-type'  => 'application/json',
-            'charset'       => 'utf-8',
-            'accept-origin' => '*'
-        ],
-        'access'        => [
-            'visibility'    => 'protected'
-        ],
-        'constants'     => ['DEFAULT_LANG'],
-        'providers'     => ['context', 'orm']
+        'entity' => [
+            'description'   => 'Full name (including namespace) of the class to import (e.g. "core\\User").',
+            'help'          => 'All entities are exported if left empty.',
+            'type'          => 'string',
+            'usage'         => 'orm/entity'
+        ]
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ],
+    'access'        => [
+        'visibility'    => 'protected'
+    ],
+    'constants'     => ['DEFAULT_LANG'],
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
