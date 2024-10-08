@@ -6,6 +6,8 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\Translation;
+
 [$params, $providers] = eQual::announce([
         'description'   => 'Export data from eQual database to initialization json files.',
         'help'          => '',
@@ -45,16 +47,61 @@
  * Methods
  */
 
-$getLanguageCodesWithDefaultFirst = function($default_code) {
-    $languages = core\Lang::search(['code', '<>', $default_code])
+/**
+ * Returns all language codes except the default one
+ *
+ * @param string $default_lang_code
+ * @return string[]
+ */
+$getTranslationLanguageCodes = function(string $default_lang_code) {
+    $languages = core\Lang::search(['code', '<>', $default_lang_code])
         ->read(['code'])
         ->get(true);
 
-    return array_merge(
-        [$default_code],
-        array_column($languages, 'code')
-    );
+    return array_column($languages, 'code');
 };
+
+/**
+ * Returns the translated data of the given entity for the given language
+ *
+ * @param class-string $entity
+ * @param string $lang_code
+ * @return array
+ */
+$getTranslationData = function(string $entity, string $lang_code) {
+    $translation_data = Translation::search(
+        [
+            ['object_class', '=', $entity],
+            ['language', '=', $lang_code]
+        ],
+        ['sort' => ['object_id' => 'asc']]
+    )
+        ->read(['object_id', 'object_field', 'value'])
+        ->get(true);
+
+    $data = [];
+    foreach($translation_data as $translation_item) {
+        $item_index = null;
+        foreach($data as $index => $item) {
+            if($item['id'] === $translation_item['object_id']) {
+                $item_index = $index;
+            }
+        }
+
+        if(is_null($item_index)) {
+            $data[] = ['id' => $translation_item['object_id']];
+            $item_index = count($data) - 1;
+        }
+
+        $data[$item_index][$translation_item['object_field']] = $translation_item['value'];
+    }
+
+    return $data;
+};
+
+/**
+ * Action
+ */
 
 $packages = [];
 
@@ -67,7 +114,7 @@ if(file_exists($packages_file_path)) {
 $export_folder_path = EQ_BASEDIR.'/exports/'.date('Y_m_d_His');
 mkdir($export_folder_path, 0777, true);
 
-$language_codes = $getLanguageCodesWithDefaultFirst(constant('DEFAULT_LANG'));
+$translation_language_codes = $getTranslationLanguageCodes(constant('DEFAULT_LANG'));
 
 foreach($packages as $package) {
     if(isset($params['package']) && $params['package'] !== $package) {
@@ -80,15 +127,19 @@ foreach($packages as $package) {
     $regex = new RegexIterator($iterator, '/^.+\.class\.php$/i', RecursiveRegexIterator::GET_MATCH);
 
     foreach ($regex as $file) {
-        $class = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
+        $entity = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
 
-        if(isset($params['entity']) && $params['entity'] !== $class) {
+        if(isset($params['entity']) && $params['entity'] !== $entity) {
             continue;
         }
 
-        $model = $orm->getModel($class);
+        if($entity === 'core\Translation') {
+            continue;
+        }
+
+        $model = $orm->getModel($entity);
         if(!$model) {
-            trigger_error("ORM::$class does not exist", EQ_REPORT_WARNING);
+            trigger_error("ORM::$entity does not exist", EQ_REPORT_WARNING);
             continue;
         }
 
@@ -104,41 +155,35 @@ foreach($packages as $package) {
             }
         }
 
-        $init_data = [];
-        foreach($language_codes as $lang_code) {
-            $data = $class::search([], [], $lang_code)
-                ->read(constant('DEFAULT_LANG') === $lang_code ? $fields : $multilang_fields)
-                ->get(true);
+        $data = $entity::search([])
+            ->read($fields)
+            ->get(true);
 
-            if(empty($data)) {
-                continue;
-            }
-
-            $fields_to_remove = [];
-            if(constant('DEFAULT_LANG') !== $lang_code) {
-                $fields_to_remove = array_diff(array_keys($data[0]), array_merge(['id'], $multilang_fields));
-            }
-
-            foreach($data as &$item) {
-                foreach($fields_to_remove as $field) {
-                    unset($item[$field]);
-                }
-
-                if(constant('DEFAULT_LANG') !== $lang_code) {
-                    // Put id as first field
-                    $item = array_merge(
-                        ['id' => $item['id']],
-                        $item
-                    );
-                }
-
-                // TODO: get only translation
-            }
-
-            $init_data[] = ['name' => $class, 'lang' => $lang_code, 'data' => $data];
+        if(empty($data)) {
+            continue;
         }
 
-        $name = str_replace('\\', '_', $class);
+        $init_data = [
+            [
+                'name'  => $entity,
+                'lang'  => constant('DEFAULT_LANG'),
+                'data'  => $data
+            ]
+        ];
+
+        foreach($translation_language_codes as $lang_code) {
+            $translation_data = $getTranslationData($entity, $lang_code);
+
+            if(!empty($translation_data)) {
+                $init_data[] = [
+                    'name'  => $entity,
+                    'lang'  => $lang_code,
+                    'data'  => $translation_data
+                ];
+            }
+        }
+
+        $name = str_replace('\\', '_', $entity);
         file_put_contents(
             "$export_folder_path/$name.json",
             json_encode($init_data, JSON_PRETTY_PRINT)
