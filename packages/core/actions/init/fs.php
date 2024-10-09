@@ -5,7 +5,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 $params = eQual::announce([
-    'description'   => 'Checks current installation directories integrity.',
+    'description'   => 'Checks current installation directories integrity, create mandatory folders, and attempts to assign permissions.',
     'params'        => [],
     'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME'],
     'access'        => [
