@@ -683,7 +683,7 @@ class Collection implements \Iterator, \Countable {
                 $args[] = $this->orm;
             }
             elseif(in_array($param_name, ['ids', 'oids'])) {
-                $args[] = $this->ids();;
+                $args[] = $this->ids();
             }
             elseif($param_name == 'values') {
                 $args[] = $values;
