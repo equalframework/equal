@@ -12,31 +12,31 @@ use equal\services\Container;
  * Root Model for all Object definitions.
  * This class holds the description of an object along with the values of the currently loaded/assigned fields.
  *
- * List of static methods for building new Collection objects (accessed through magic methods):
- * @method static \equal\orm\Collection id($id)
- * @method static \equal\orm\Collection static ids(array $ids=[])
- * @method static \equal\orm\Collection static search(array $domain=[], array $params=[], $lang=null)
- * @method static \equal\orm\Collection static create(array $values=null, $lang=null)
+ * List of static methods for building new Collection objects (accessed through magic methods via `__callStatic()`):
+ * @method static \equal\orm\Collection id(int $id) Create a new Collection with a single object matching a given identifier.
+ * @method static \equal\orm\Collection ids(int[] $ids=[]) Create a new Collection by using a list of objects identifiers.
+ * @method static \equal\orm\Collection search(array $domain=[], array $params=[], string $lang=null) Create a new Collection by filtering existing objects with a given domain.
+ * @method static \equal\orm\Collection create(mixed[] $values=null, $lang=null) Create a new Collection by creating a new object assigned with the given values.
  *
  * List of static methods with variable parameters:
- * (These methods are handled through __callStatic method to prevent PHP strict errors & aot warnings.)
+ * (These are magic methods to allow dynamic signature and prevent PHP strict errors & aot warnings.)
  *
  * 1) `can...()` methods - consistency checkers:
  * These methods return an associative array mapping fields with their error messages. An empty array means that use can perform the action.
- * @method array    canread(mixed ...$params)       Check wether an object can be read by current user.
- * @method array    cancreate(mixed ...$params)     Check wether an object can be created.
- * @method array    canupdate(mixed ...$params)     Check wether an object can be updated.
- * @method array    candelete(mixed ...$params)     Check wether an object can be deleted.
- * @method array    canclone(mixed ...$params)      Check wether an object can be cloned.
+ * @method static array canread(mixed ...$params)   Check wether an object can be read by current user.
+ * @method static array cancreate(mixed ...$params) Check wether an object can be created.
+ * @method static array canupdate(mixed ...$params) Check wether an object can be updated.
+ * @method static array candelete(mixed ...$params) Check wether an object can be deleted.
+ * @method static array canclone(mixed ...$params)  Check wether an object can be cloned.
  *
  * 2) `on...()` methods - event handlers:
- * @method array    onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method void     oncreate(mixed ...$params)      Hook invoked AFTER object creation for performing object-specific additional operations.
- * @method void     onupdate(mixed ...$params)      Hook invoked BEFORE object update for performing object-specific additional operations.
- * @method void     ondelete(mixed ...$params)      Hook invoked BEFORE object deletion for performing object-specific additional operations.
- * @method void     onclone(mixed ...$params)       Hook invoked AFTER object cloning for performing object-specific additional operations.
+ * @method static array onchange(mixed ...$params)  Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
+ * @method static void oncreate(mixed ...$params)   Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method static void onupdate(mixed ...$params)   Hook invoked BEFORE object update for performing object-specific additional operations.
+ * @method static void ondelete(mixed ...$params)   Hook invoked BEFORE object deletion for performing object-specific additional operations.
+ * @method static void onclone(mixed ...$params)    Hook invoked AFTER object cloning for performing object-specific additional operations.
  *
- * Possible params:
+ * Possible params (handled by dependency injection):
  * - Collection                         $self       Collection holding a series of objects of current class.
  * - array                              $ids        List of objects identifiers in current collection.
  * - array                              $event      Associative array holding changed fields as keys, and their related new values.
