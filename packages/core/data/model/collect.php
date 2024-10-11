@@ -96,8 +96,8 @@ if(ctype_lower(substr($file, 0, 1))) {
     $operation = str_replace('\\', '_', $params['entity']);
     // retrieve announcement of target controller
     $data = eQual::run('get', $operation, ['announce' => true]);
-    $controller_schema = isset($data['announcement']['params'])?$data['announcement']['params']:[];
-    $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, $params['fields'] );
+    $controller_schema = $data['announcement']['params'] ?? [];
+    $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, (array) $params['fields'] );
     // generate a virtual (empty) object
     $object = ['id' => 0];
     foreach($requested_fields as $field) {
@@ -106,8 +106,10 @@ if(ctype_lower(substr($file, 0, 1))) {
         }
         $value = null;
         if(isset($controller_schema[$field]['default'])) {
-            $f = new Field($controller_schema[$field]);
-            $value = $adapter->adaptOut($controller_schema[$field]['default'], $f->getUsage());
+            // #memo - returned from a eQual::run call is an array containing values matching the content-type of the controller
+            // $f = new Field($controller_schema[$field]);
+            // $value = $adapter->adaptOut($controller_schema[$field]['default'], $f->getUsage());
+            $value = $controller_schema[$field]['default'];
         }
         $object[$field] = $value;
     }
