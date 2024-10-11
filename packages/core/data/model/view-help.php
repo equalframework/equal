@@ -42,6 +42,7 @@ list($params, $providers) = eQual::announce([
 $result = '';
 
 try {
+    // #todo - handle "controller" entities
     $entity = $params['entity'];
 
     $model = $orm->getModel($entity);
