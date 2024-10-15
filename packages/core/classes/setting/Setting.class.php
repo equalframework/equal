@@ -186,7 +186,7 @@ class Setting extends Model {
      * @param string        $section    Specific section within the package.
      * @param string        $code       Unique code of the setting within the given package and section.
      * @param mixed         $default    (optional) Default value to return if setting is not found.
-     * @param array         $selector   (optional) Retrieve the specific value assigned to a given user.
+     * @param array         $selector   (optional) Map used as filter to target a specific value (ex. `[user_id => 2]`).
      * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
@@ -259,7 +259,7 @@ class Setting extends Model {
      * @param string        $section    Specific section within the package.
      * @param string        $code       Unique code of the setting within the given package and section.
      * @param mixed         $value      The new value that has to be assigned to the setting.
-     * @param array         $selector   (optional) Target the specific value assigned to a given user.
+     * @param array         $selector   (optional) Map used as filter to target a specific value (ex. `[user_id => 2]`).
      * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  void
