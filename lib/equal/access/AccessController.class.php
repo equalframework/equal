@@ -175,7 +175,7 @@ class AccessController extends Service {
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
         // users are always granted the default permissions and root user always has full rights
-        $user_rights = ($user_id == QN_ROOT_USER_ID)?EQ_R_ALL:$this->default_rights;
+        $user_rights = ($user_id == QN_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
 
         // request for rights based on object_class and specific object_ids
         if(count($object_ids)) {
@@ -268,22 +268,21 @@ class AccessController extends Service {
             $result |= $this->getUserRightsOnWildcard($user_id, $wildcard);
         }
 
-        // if no ACL found, lookup for ACLs set on parent class
-        if($result == 0) {
-            $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
-            if(count($parent_classes)) {
-                $classes = [];
-                $table_name = $orm->getObjectTableName($object_class);
-                foreach($parent_classes as $class) {
-                    if($orm->getObjectTableName($class) == $table_name) {
-                        $classes[] = $class;
-                    }
+        // 3) lookup for ACLs set on parent class
+
+        $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
+        if(count($parent_classes)) {
+            $classes = [];
+            $table_name = $orm->getObjectTableName($object_class);
+            foreach($parent_classes as $class) {
+                if($orm->getObjectTableName($class) == $table_name) {
+                    $classes[] = $class;
                 }
-                foreach($classes as $class) {
-                    $result |= $this->getUserRightsOnClass($user_id, $class);
-                    if($result >= $operation) {
-                        break;
-                    }
+            }
+            foreach($classes as $class) {
+                $result |= $this->getUserRightsOnClass($user_id, $class);
+                if($result >= $operation) {
+                    break;
                 }
             }
         }
