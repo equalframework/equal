@@ -182,12 +182,12 @@ class Setting extends Model {
     /**
      * Retrieve the value of a given setting.
      *
-     * @param   $package    Package to which the setting relates to.
-     * @param   $section    Specific section within the package.
-     * @param   $code       Unique code of the setting within the given package and section.
-     * @param   $default    (optional) Default value to return if setting is not found.
-     * @param   $selector   (optional) Retrieve the specific value assigned to a given user.
-     * @param   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
+     * @param string        $package    Package to which the setting relates to.
+     * @param string        $section    Specific section within the package.
+     * @param string        $code       Unique code of the setting within the given package and section.
+     * @param mixed         $default    (optional) Default value to return if setting is not found.
+     * @param array         $selector   (optional) Retrieve the specific value assigned to a given user.
+     * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
@@ -255,15 +255,16 @@ class Setting extends Model {
     /**
      * Update the value of a given setting.
      *
-     * @param   $package    Package to which the setting relates to.
-     * @param   $section    Specific section within the package.
-     * @param   $code       Unique code of the setting within the given package and section.
-     * @param   $value      The new value that has to be assigned to the setting.
-     * @param   $selector   (optional) Target the specific value assigned to a given user.
+     * @param string        $package    Package to which the setting relates to.
+     * @param string        $section    Specific section within the package.
+     * @param string        $code       Unique code of the setting within the given package and section.
+     * @param mixed         $value      The new value that has to be assigned to the setting.
+     * @param array         $selector   (optional) Target the specific value assigned to a given user.
+     * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
      *
      * @return  void
      */
-    public static function set_value(string $package, string $section, string $code, $value, array $selector=[], $lang=null) {
+    public static function set_value(string $package, string $section, string $code, $value, array $selector=[], string $lang=null) {
         $providers = \eQual::inject(['orm']);
         $om = $providers['orm'];
 
