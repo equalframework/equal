@@ -49,7 +49,7 @@ class Scheduler extends Service {
      * Non-recurring tasks are deleted once they've been run.
      * #memo - The Scheduler service always operates as root user.
      *
-     * @param   int[]   $tasks_ids    Optional array of identifiers of specific tasks to run.
+     * @param   int[]   $tasks_ids    (optional) Array of identifiers of specific tasks to run.
      *
      */
     public function run($tasks_ids=[]) {
@@ -165,7 +165,7 @@ class Scheduler extends Service {
      * @param   string    $name         Name of the task to schedule, to ease task identification.
      * @param   integer   $moment       Timestamp of the moment of the first execution.
      * @param   string    $controller   Controller to invoke, with package notation.
-     * @param   string    $params       JSON string holding the payload to relay to the controller.
+     * @param   array     $params       The params associative array to relay to the controller.
      * @param   boolean   $recurring    Flag to mark the task as recurring.
      */
     public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {
