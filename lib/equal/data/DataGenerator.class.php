@@ -12,9 +12,9 @@ use equal\orm\UsageFactory;
 class DataGenerator {
 
     /**
-     * @param string    $field              Field name.
-     * @param string    $field_descriptor   Field descriptor.
-     * @param string    $lang               Lang code of the language in which the value must be generated (for multilang fields).
+     * @param string        $field              Field name.
+     * @param array         $field_descriptor   Field descriptor.
+     * @param string|null   $lang               Lang code of the language in which the value must be generated (for multilang fields).
      * @return array|bool|float|int|mixed|string|null
      */
     public static function generateFromField(string $field, array $field_descriptor, string $lang = null) {
@@ -882,5 +882,4 @@ class DataGenerator {
             self::addressCountry($lang)
         );
     }
-
 }
