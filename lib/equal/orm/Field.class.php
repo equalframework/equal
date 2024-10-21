@@ -11,6 +11,23 @@ use equal\orm\usages\Usage;
 
 class Field {
 
+    public const MAP_TYPE_USAGE = [
+        'boolean'       => 'number/boolean',
+        'integer'       => 'number/integer:9',
+        'float'         => 'number/real:10.2',
+        'string'        => 'text/plain:255',
+        'text'          => 'text/plain:32000',
+        'date'          => 'date/plain',
+        'datetime'      => 'date/time',
+        'time'          => 'time/plain',
+        'binary'        => 'binary/plain:16000000',
+        'file'          => 'binary/plain:16000000',
+        'many2one'      => 'number/integer:9',
+        'one2many'      => 'array',
+        'many2many'     => 'array',
+        'array'         => 'array'
+    ];
+
     /**
      * Descriptor of the field.
      * In addition to properties from `Model::getColumns()`, `Field::descriptor` always as a `result_type` property.
@@ -63,25 +80,9 @@ class Field {
      */
     protected function getUsageString(): string {
         $result = $this->descriptor['usage'] ?? '';
-        static $map = [
-            'boolean'       => 'number/boolean',
-            'integer'       => 'number/integer:9',
-            'float'         => 'number/real:10.2',
-            'string'        => 'text/plain:255',
-            'text'          => 'text/plain:32000',
-            'date'          => 'date/plain',
-            'datetime'      => 'date/time',
-            'time'          => 'time/plain',
-            'binary'        => 'binary/plain:16000000',
-            'file'          => 'binary/plain:16000000',
-            'many2one'      => 'number/integer:9',
-            'one2many'      => 'array',
-            'many2many'     => 'array',
-            'array'         => 'array'
-        ];
         if(!strlen($result)) {
             $type = $this->descriptor['result_type'];
-            $result = $map[$type] ?? $type;
+            $result = self::MAP_TYPE_USAGE[$type] ?? $type;
         }
         return $result;
     }
