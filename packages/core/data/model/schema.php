@@ -89,12 +89,24 @@ if(!count($data)) {
 
     if(method_exists($model, 'getDefaults')) {
         $defaults = $model->getDefaults();
-        foreach($defaults as $field => $default) {
-            if(is_callable($defaults[$field])) {
-                $default = call_user_func($defaults[$field], $orm);
+        foreach($defaults as $field => $default_value) {
+            if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
+                // either a php function (or a function from the global scope) or a closure object
+                if(is_object($default_value)) {
+                    // default is a closure
+                    $default_value = $default_value();
+                }
+            }
+            elseif(is_string($default_value) && strpos($default_value, '::')) {
+                list($class_name, $method_name) = explode('::', $default_value);
+                if(method_exists($class_name, $method_name)) {
+                    /** @var \equal\orm\ObjectManager */
+                    $orm = $container->get('orm');
+                    $default_value = $orm->callonce($class_name, $method_name);
+                }
             }
             $f = $model->getField($field);
-            $data['fields'][$field]['default'] = $adapter->adaptOut($default, $f->getUsage());
+            $data['fields'][$field]['default'] = $adapter->adaptOut($default_value, $f->getUsage());
         }
     }
 
