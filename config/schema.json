@@ -332,6 +332,10 @@
             "1GB"
         ]
     },
+    "NOTIFICATIONS_ENABLED": {
+        "type": "boolean",
+        "default": true
+    },
     "ORG_NAME" : {
         "type": "string",
         "description": "Name of the organisation to which belongs the instance.",
