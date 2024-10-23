@@ -27,7 +27,8 @@ list( $params, $providers ) = eQual::announce([
         "APP_NAME",
         "APP_LOGO_URL",
         "BACKEND_URL",
-        "REST_API_URL"
+        "REST_API_URL",
+        "NOTIFICATIONS_ENABLED"
     ],
     'providers'     => ['context', 'auth']
 ] );
@@ -55,6 +56,8 @@ $user_id = $auth->userId();
 if($user_id) {
     // disclose version only to authenticated users
     $envinfo["version"] = constant('EQ_VERSION');
+
+    $envinfo["notifications"] = constant('NOTIFICATIONS_ENABLED');
 
     // 1) read global settings
     $settings = SettingValue::search(['user_id', '=', 0])->read(['name', 'value'])->get();
