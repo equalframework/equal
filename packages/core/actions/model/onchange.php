@@ -125,7 +125,7 @@ if(method_exists($params['entity'], 'onchange')) {
             $args[] = $values;
         }
         elseif($param_name == 'lang') {
-            $args[] = $lang;
+            $args[] = $params['lang'];
         }
         elseif($param_name == 'self') {
             // #todo - should we add object id to the params ?
