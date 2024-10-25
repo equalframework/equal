@@ -150,6 +150,28 @@ class ObjectManager extends Service {
         'binary'        => 'binary(64000000)'   // 64MB binary value
     ];
 
+    public const EVENTS_CLASS_ONCREATE = 1;
+    public const EVENTS_CLASS_ONBEFOREUPDATE = 2;
+    public const EVENTS_CLASS_ONAFTERUPDATE = 4;
+    public const EVENTS_CLASS_ONBEFOREDELETE = 8;
+    public const EVENTS_CLASS_ONAFTERDELETE = 16;
+    public const EVENTS_CLASS_ONUPDATE = 6;
+    public const EVENTS_CLASS_ONDELETE = 24;
+    public const EVENTS_FIELD_ONUPDATE = 32;
+    public const EVENTS_FIELD_ONREVERT = 64;
+
+    public const EVENTS_ALL = 255;
+
+    private $enabled_events;
+
+    public function enableEvents($events_mask = self::EVENTS_ALL) {
+        $this->enabled_events |= $events_mask;
+    }
+
+    public function disableEvents($events_mask = self::EVENTS_ALL) {
+        $this->enabled_events &= ~$events_mask;
+    }
+
     /**
      * @param DBConnector $db  Instance of the Service allowing connection to DBMS (connection might not be established yet).
      */
@@ -160,6 +182,7 @@ class ObjectManager extends Service {
         $this->models = [];
         $this->object_methods = [];
         $this->last_error = '';
+        $this->enabled_events = self::EVENTS_ALL;
     }
 
     public function __clone() {
@@ -463,13 +486,13 @@ class ObjectManager extends Service {
             $ids = (array) $ids;
         }
         // ensure ids are positive integer values
-        foreach($ids as $i => $oid) {
-            $id = intval($oid);
-            if(!is_numeric($oid) || $id <= 0) {
+        foreach($ids as $i => $id) {
+            $sanitized_id = intval($id);
+            if(!is_numeric($id) || $sanitized_id <= 0) {
                 unset($ids[$i]);
                 continue;
             }
-            $ids[$i] = $id;
+            $ids[$i] = $sanitized_id;
         }
         // remove duplicate ids, if any
         $ids = array_unique($ids);
@@ -1601,8 +1624,9 @@ class ObjectManager extends Service {
             }
 
             // 6) call 'oncreate' hook
-            $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
-
+            if(($this->enabled_events & self::EVENTS_CLASS_ONCREATE) === self::EVENTS_CLASS_ONCREATE) {
+                $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
+            }
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
@@ -1627,9 +1651,9 @@ class ObjectManager extends Service {
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
-     * @param   bool      $create       Flag to mark the call as originating from the create() method (disables the canupdate and events hooks call).
+     * @param   bool      $create       System flag to mark the call as originating from the create() method (disables the canupdate and events hooks call).
      *
-     * @return  int|array Returns an array of updated ids, or an error identifier in case an error occurred.
+     * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
      */
     public function update($class, $ids=null, $fields=null, $lang=null, $create=false) {
         // init result
@@ -1680,8 +1704,7 @@ class ObjectManager extends Service {
             $fields['modified'] = time();
 
             // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
-
-            if(!$create) {
+            if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
                 if(method_exists($class, 'onbeforeupdate')) {
                     $this->callonce($class, 'onbeforeupdate', $ids, $fields, $lang);
                 }
@@ -1743,14 +1766,14 @@ class ObjectManager extends Service {
 
             if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
-                if(count($onupdate_fields)) {
+                if(count($onupdate_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONUPDATE) === self::EVENTS_FIELD_ONUPDATE) {
                     // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
                     foreach($onupdate_fields as $field) {
                         // run onupdate callback (ignore undefined methods)
                         $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang);
                     }
                 }
-                if(count($onrevert_fields)) {
+                if(count($onrevert_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONREVERT) === self::EVENTS_FIELD_ONREVERT) {
                     foreach($onrevert_fields as $field) {
                         // run onrevert callback (ignore undefined methods)
                         $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang);
@@ -1849,10 +1872,9 @@ class ObjectManager extends Service {
                 }
             }
 
-            if(!$create) {
+            if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERUPDATE) === self::EVENTS_CLASS_ONAFTERUPDATE) {
                 $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
             }
-
 
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
             // #todo - move this to a dedicated controller for CRON
@@ -1887,7 +1909,7 @@ class ObjectManager extends Service {
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
         $res = [];
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
         try {
             // get DB handler (init DB connection if necessary)
@@ -1971,9 +1993,8 @@ class ObjectManager extends Service {
                 }
                 // check if all objects are fully loaded
                 else {
-                    // build the missing fields array by increment
-                    // we need the 'broadest' fields array to be loaded to minimize # of SQL queries
-                    $fields_missing = array();
+                    // build the 'broadest' missing fields array (to load fields in bulk)
+                    $fields_missing = [];
                     foreach($requested_fields as $key => $field) {
                         foreach($ids as $oid) {
                             // prevent using cache for one2many fields : cache can become inconsistent in case of cross updates
@@ -2124,11 +2145,13 @@ class ObjectManager extends Service {
 
             // 3) call 'ondelete' hook : notify objects that they're about to be deleted
 
-            if(method_exists($class, 'onbeforedelete')) {
-                $this->callonce($class, 'onbeforedelete', $ids);
-            }
-            else {
-                $this->callonce($class, 'ondelete', $ids);
+            if(($this->enabled_events & self::EVENTS_CLASS_ONBEFOREDELETE) === self::EVENTS_CLASS_ONBEFOREDELETE) {
+                if(method_exists($class, 'onbeforedelete')) {
+                    $this->callonce($class, 'onbeforedelete', $ids);
+                }
+                else {
+                    $this->callonce($class, 'ondelete', $ids);
+                }
             }
 
             // 4) cascade deletions / relations updates
@@ -2216,8 +2239,9 @@ class ObjectManager extends Service {
             }
 
             // 4) call 'onafterdelete' hook
-
-            $this->callonce($class, 'onafterdelete', $ids);
+            if(($this->enabled_events & self::EVENTS_CLASS_ONAFTERDELETE) === self::EVENTS_CLASS_ONAFTERDELETE) {
+                $this->callonce($class, 'onafterdelete', $ids);
+            }
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
