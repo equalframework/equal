@@ -5,7 +5,6 @@
     Original author(s): Lucas LAURENT
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 use core\Translation;
 
 [$params, $providers] = eQual::announce([
@@ -14,13 +13,13 @@ use core\Translation;
     'params'        => [
         'package' => [
             'description'   => 'Package that must be initialized (e.g. "core").',
-            'help'          => 'All packages are exported if left empty.',
+            'help'          => 'If left empty, all packages are exported.',
             'type'          => 'string',
             'usage'         => 'orm/package'
         ],
         'entity' => [
-            'description'   => 'Full name (including namespace) of the class to import (e.g. "core\\User").',
-            'help'          => 'All entities are exported if left empty.',
+            'description'   => 'Full name (including namespace) of the specific class to export (e.g. "core\\User").',
+            'help'          => 'If left empty, all entities are exported.',
             'type'          => 'string',
             'usage'         => 'orm/entity'
         ]
@@ -34,14 +33,15 @@ use core\Translation;
         'visibility'    => 'protected'
     ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'providers'     => ['context', 'orm', 'adapt']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context                      $context
+ * @var \equal\orm\ObjectManager                $orm
+ * @var \equal\data\adapt\DataAdapterProvider   $dap
  */
-['context' => $context, 'orm' => $orm] = $providers;
+['context' => $context, 'orm' => $orm, 'adapt' => $dap] = $providers;
 
 /**
  * Methods
@@ -84,12 +84,14 @@ $getPackageEntities = function(string $package): array {
 /**
  * Returns entity fields except one2many and not stored computed fields because not needed for export
  *
- * @param array $model_schema
+ * @param string $entity
  * @return string[]
  */
-$getEntityFieldsToExport = function(array $model_schema): array {
+$getEntityFieldsToExport = function(string $entity) use($orm): array {
+    $model = $orm->getModel($entity);
+    $schema = $model->getSchema();
     $fields = [];
-    foreach($model_schema as $field => $field_descriptor) {
+    foreach($schema as $field => $field_descriptor) {
         $isOne2ManyField = in_array('one2many', [$field_descriptor['type'], $field_descriptor['result_type'] ?? '']);
         $isNotStoredComputedField = $field_descriptor['type'] === 'computed' && $field_descriptor['store'] ?? false;
 
@@ -104,18 +106,21 @@ $getEntityFieldsToExport = function(array $model_schema): array {
 /**
  * Returns the translated data of the given entity for the given language
  *
- * @param class-string $entity
- * @param string $lang_code
+ * @param string $entity
+ * @param string $lang
  * @return array
  */
-$getTranslationData = function(string $entity, string $lang_code): array {
+$getTranslationData = function(string $entity, string $lang) use($orm, $dap): array {
+    $adapter = $dap->get('json');
+    $model = $orm->getModel($entity);
+
     $translation_data = Translation::search(
-        [
-            ['object_class', '=', $entity],
-            ['language', '=', $lang_code]
-        ],
-        ['sort' => ['object_id' => 'asc']]
-    )
+            [
+                ['object_class', '=', $entity],
+                ['language', '=', $lang]
+            ],
+            ['sort' => ['object_id' => 'asc']]
+        )
         ->read(['object_id', 'object_field', 'value'])
         ->get(true);
 
@@ -132,8 +137,9 @@ $getTranslationData = function(string $entity, string $lang_code): array {
             $data[] = ['id' => $translation_item['object_id']];
             $item_index = count($data) - 1;
         }
-
-        $data[$item_index][$translation_item['object_field']] = $translation_item['value'];
+        // convert to JSON according to field
+        $f = $model->getField($translation_item['object_field']);
+        $data[$item_index][$translation_item['object_field']] = $adapter->adaptOut($translation_item['value'], $f->getUsage(), $lang);
     }
 
     return $data;
@@ -148,9 +154,12 @@ if(empty($packages)) {
     throw new Exception('no_packages_initialized', EQ_ERROR_NOT_ALLOWED);
 }
 
-$timestamp = date('Y_m_d_His');
+$timestamp = date('Ymd_His');
+
 $export_folder_path = EQ_BASEDIR.'/export/'.$timestamp;
-mkdir($export_folder_path, 0777, true);
+if(!mkdir($export_folder_path, 0754, true)) {
+    throw new Exception(serialize(['folder_creation_error' => "unable to create output folder $path"]), EQ_ERROR_UNKNOWN);
+}
 
 $translation_language_codes = $getTranslationLanguageCodes(constant('DEFAULT_LANG'));
 
@@ -163,22 +172,28 @@ foreach($packages as $package) {
     foreach($entities as $entity) {
         if(
             (isset($params['entity']) && $params['entity'] !== $entity)
-            || $entity === 'core\Translation'
+            || $entity === 'core\Translation' || $entity === 'core\Log'
         ) {
             continue;
         }
 
-        $model = $orm->getModel($entity);
-        if(!$model) {
-            trigger_error("ORM::$entity does not exist", EQ_REPORT_WARNING);
+        try {
+            $model = $orm->getModel($entity);
+            if(!$model) {
+                throw new Exception(serialize(['unknown_entity' => "$entity does not exist"]), EQ_REPORT_WARNING);
+            }
+            // #todo - load by batch of MAX objects and append to related JSON file
+            $fields = $getEntityFieldsToExport($entity);
+            $data = $entity::search([['state', 'in', ['instance', 'archive']], ['deleted', 'in', [0, 1]]])
+                ->read($fields)
+                ->adapt('json')
+                ->get(true);
+        }
+        catch(Exception $e) {
+            // unable to retrieve entity
+            // SQL error / table does not exist
             continue;
         }
-
-        $fields = $getEntityFieldsToExport($model->getSchema());
-
-        $data = $entity::search([])
-            ->read($fields)
-            ->get(true);
 
         if(empty($data)) {
             continue;
@@ -192,13 +207,13 @@ foreach($packages as $package) {
             ]
         ];
 
-        foreach($translation_language_codes as $lang_code) {
-            $translation_data = $getTranslationData($entity, $lang_code);
+        foreach($translation_language_codes as $lang) {
+            $translation_data = $getTranslationData($entity, $lang);
 
             if(!empty($translation_data)) {
                 $init_data[] = [
                     'name'  => $entity,
-                    'lang'  => $lang_code,
+                    'lang'  => $lang,
                     'data'  => $translation_data
                 ];
             }
@@ -207,7 +222,7 @@ foreach($packages as $package) {
         $name = str_replace('\\', '_', $entity);
         file_put_contents(
             "$export_folder_path/export_{$timestamp}_$name.json",
-            json_encode($init_data, JSON_PRETTY_PRINT)
+            json_encode($init_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         );
     }
 }
