@@ -17,7 +17,8 @@ class AuthenticationManager extends Service {
     private $user_id;
     private $method;
 
-    private $tokens;        // cache map of decoded tokens
+    // map for caching decoded tokens
+    private $tokens;
 
     /**
      * This method cannot be called directly (should be invoked through Singleton::getInstance)
@@ -41,7 +42,7 @@ class AuthenticationManager extends Service {
      */
     public function token($user_id=0, $validity=0) {
         $payload = [
-            'id'    => ($user_id > 0)?$user_id:$this->user_id,
+            'id'    => ($user_id > 0) ? $user_id : $this->user_id,
             'exp'   => time() + $validity
         ];
         return $this->createToken($payload);
