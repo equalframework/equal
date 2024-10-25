@@ -563,6 +563,9 @@ class AccessController extends Service {
      * @param int[]         $objects_ids      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
+        if($user_id == EQ_ROOT_USER_ID) {
+            return true;
+        }
         // force cast ids to array (passing a single id is accepted)
         $objects_ids = (array) $objects_ids;
         // retrieve most permissive right that use has on targeted entities/objects.
@@ -594,9 +597,7 @@ class AccessController extends Service {
         // retrieve current user identifier
         $user_id = $auth->userId();
 
-        $has_right = $this->hasRight($user_id, $operation, $object_class, $object_ids);
-
-        return $has_right;
+        return $this->hasRight($user_id, $operation, $object_class, $object_ids);
     }
 
     /**
