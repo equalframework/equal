@@ -82,7 +82,9 @@ foreach($paths as $item) {
     ['path' => $path, 'rights' => $mask] = $item;
 
     if(!file_exists($path) && ($mask & EQ_R_WRITE)) {
-        mkdir($path, 0754, true);
+        if(!mkdir($path, 0754, true)) {
+            throw new Exception(serialize(['folder_creation_error' => "unable to create $path"]), EQ_ERROR_UNKNOWN);
+        }
     }
 
     if(!file_exists($path)) {
