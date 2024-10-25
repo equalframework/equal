@@ -374,7 +374,7 @@ class Model implements \ArrayAccess, \Iterator {
                 }
             }
         }
-        return (isset($this->fields[$field]))?$this->fields[$field]:null;
+        return $this->fields[$field] ?? null;
     }
 
     /**
