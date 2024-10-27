@@ -1,4 +1,10 @@
 {
+    "ACCESS_CONTROL_LEVEL": {
+        "type": "string",
+        "description": "Defines the level at which permissions are enforced for access control. Possible values are 'class', and 'instance'.",
+        "help": "This setting has no effect if DEFAULT_RIGHTS is set to EQ_R_ALL. 'class' is the default value (most permissive). 'instance' is the most precise (and slowest).",
+        "default": "class"
+    },
     "APP_NAME": {
         "type": "string",
         "description": "Specific brand name of the application, if any.",
@@ -164,12 +170,14 @@
     "DEFAULT_RIGHTS": {
         "type": "integer",
         "description": "Rights to grant to any user when no ACL is defined.",
+        "help": "This value is a mask that is applied when Access Controller checks the permissions. 0 means no default rights (depends on current user and related ACL); EQ_R_ALL is a mask holding all permissions.",
         "instant": true,
         "default": 0,
         "examples": [
             0,
             "EQ_R_READ | EQ_R_WRITE",
-            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE"
+            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE",
+            "EQ_R_ALL"
         ]
     },
     "DEBUG_LEVEL": {

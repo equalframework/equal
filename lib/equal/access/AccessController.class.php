@@ -37,21 +37,21 @@ class AccessController extends Service {
     protected function __construct(Container $container) {
         $this->is_request_compliant = false;
         $this->complying_policy_id = 0;
-        $this->permissionsTable = array();
-        $this->groupsTable = array();
-        $this->usersTable = array();
-        $this->default_rights = (defined('DEFAULT_RIGHTS'))?constant('DEFAULT_RIGHTS'):0;
+        $this->permissionsTable = [];
+        $this->groupsTable = [];
+        $this->usersTable = [];
+        $this->default_rights = (defined('DEFAULT_RIGHTS')) ? constant('DEFAULT_RIGHTS') : 0;
     }
 
     public static function constants() {
-        return ['QN_ROOT_GROUP_ID', 'QN_DEFAULT_GROUP_ID', 'QN_ROOT_USER_ID', 'QN_GUEST_USER_ID'];
+        return ['ACCESS_CONTROL_LEVEL', 'EQ_ROOT_GROUP_ID', 'EQ_DEFAULT_GROUP_ID', 'EQ_ROOT_USER_ID', 'EQ_GUEST_USER_ID'];
     }
 
     public function getUserGroups($user_id) {
         $groups_ids = [];
         if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
-            $this->groupsTable[$user_id] = [(string) QN_DEFAULT_GROUP_ID];
+            $this->groupsTable[$user_id] = [(string) EQ_DEFAULT_GROUP_ID];
             /** @var \equal\orm\ObjectManager */
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
@@ -175,10 +175,10 @@ class AccessController extends Service {
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
         // users are always granted the default permissions and root user always has full rights
-        $user_rights = ($user_id == QN_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
+        $user_rights = ($user_id == EQ_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
 
         // request for rights based on object_class and specific object_ids
-        if(count($object_ids)) {
+        if(constant('ACCESS_CONTROL_LEVEL') == 'instance' && count($object_ids)) {
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnClass($user_id, $object_class);
             }
@@ -688,7 +688,7 @@ class AccessController extends Service {
                     $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
                 }
                 else {
-                    trigger_error("ORM::calling {$called_class}::{$called_method}", QN_REPORT_DEBUG);
+                    trigger_error("ORM::calling {$called_class}::{$called_method}", EQ_REPORT_DEBUG);
                     $c = $called_class::ids($object_ids);
                     $res = $called_class::$called_method($c, $user_id);
                     if(count($res)) {
