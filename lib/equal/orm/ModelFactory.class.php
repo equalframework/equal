@@ -14,7 +14,7 @@ class ModelFactory {
     /**
      * Returns one or multiple generated object(s) using the given class' model schema
      *
-     * @param class-string $class
+     * @param string $class
      * @param array $options Factory options like qty, values, sequences, unique and relations
      *       - 'qty': int|array (optional) The quantity of items (default 1).
      *            Example: (int): 2
