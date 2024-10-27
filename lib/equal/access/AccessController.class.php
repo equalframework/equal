@@ -177,6 +177,10 @@ class AccessController extends Service {
         // users are always granted the default permissions and root user always has full rights
         $user_rights = ($user_id == EQ_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
 
+        if($user_rights == EQ_R_ALL) {
+            return $user_rights;
+        }
+
         // request for rights based on object_class and specific object_ids
         if(constant('ACCESS_CONTROL_LEVEL') == 'instance' && count($object_ids)) {
             if($user_rights < $operation) {
@@ -184,10 +188,6 @@ class AccessController extends Service {
             }
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnObjects($user_id, $object_class, $object_ids);
-            }
-            // grant user RW rights on its own object
-            if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $object_ids[0] == $user_id) {
-                $user_rights |= EQ_R_READ | EQ_R_WRITE;
             }
         }
         // request for rights based on object_class only
@@ -215,6 +215,11 @@ class AccessController extends Service {
                 }
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
+        }
+
+        // grant user RW rights on its own object
+        if(count($object_ids) == 1 && $object_ids[0] == $user_id && ObjectManager::getObjectRootClass($object_class) == 'core\User') {
+            $user_rights |= EQ_R_READ | EQ_R_WRITE;
         }
 
         return $user_rights;
