@@ -54,15 +54,23 @@ class Field {
     /**
      * @param array $descriptor Associative array mapping field properties and their values.
      */
-    public function __construct(array $descriptor, string $name='') {
+    public function __construct(array $descriptor, string $field_name='', string $class_name='', string $package_name='') {
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
         }
         $this->descriptor = $descriptor;
-        $this->name = $name;
+        $this->name = $field_name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
             $this->descriptor['result_type'] = $this->type;
+        }
+        if(strlen($package_name) > 0 && in_array($this->descriptor['result_type'], ['one2many', 'many2one', 'many2many'])) {
+            if(isset($this->descriptor['foreign_object']) && strpos($this->descriptor['foreign_object'], '\\') !== false) {
+                $foreignEntity = new Entity($this->descriptor['foreign_object']);
+                if($foreignEntity->getPackageName() != $package_name) {
+                    $this->descriptor['foreign_object'] = $package_name.'\\'.$this->descriptor['foreign_object'];
+                }
+            }
         }
     }
 

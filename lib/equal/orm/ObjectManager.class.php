@@ -267,29 +267,48 @@ class ObjectManager extends Service {
         if(count($fields) || !isset($this->models[$class])) {
             // if class is unknown, load the file containing the class declaration of the requested object
             if(!class_exists($class)) {
-                // first, read the file to see if the class extends from another (which could not be loaded yet)
-                $filename = QN_BASEDIR.'/packages/'.self::getObjectPackage($class).'/classes/'.self::getObjectClassFile($class);
-                if(!is_file($filename)) {
-                    throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+
+                $entity = new Entity($class);
+                $filename = $entity->getFullFilePath();
+
+                if(!file_exists($filename)) {
+                    $parentEntity = $entity->getParent();
+                    if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
+                        $class = $entity->getName();
+                        $namespace = $entity->getNamespace();
+                        $parent = '\\'.$parentEntity->getFullName();
+                        eval("namespace $namespace {
+                            class $class extends $parent {}
+                        }");
+                    }
+                    else {
+                        throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                    }
                 }
-                $parts = explode('\\', $class);
-                $class_name = array_pop($parts);
-                $file_content = file_get_contents($filename);
-                preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
-                if(!isset($matches[1])) {
-                    throw new Exception("malformed class file for model '$class': class name do not match file name", QN_ERROR_INVALID_PARAM);
+                else {
+                    // #todo - this should be tested in package-consistency controller
+                    $parts = explode('\\', $class);
+                    $class_name = array_pop($parts);
+                    $file_content = file_get_contents($filename);
+                    preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
+                    if(!isset($matches[1])) {
+                        throw new Exception("malformed class file for model '$class': class name do not match file name", EQ_ERROR_INVALID_CONFIG);
+                    }
+
+                    preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
+                    if(!isset($matches[1])) {
+                        throw new Exception("malformed class file for model '$class': parent class name not found in file", EQ_ERROR_INVALID_CONFIG);
+                    }
+
+                    if(!(include_once $filename)) {
+                        throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                    }
                 }
-                // #todo - this should be tested in package-consistency controller
-                preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
-                if(!isset($matches[1])) {
-                    throw new Exception("malformed class file for model '$class': parent class name not found in file", QN_ERROR_INVALID_PARAM);
-                }
-                if(!(include_once $filename)) {
-                    throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
-                }
+
                 if(!class_exists($class)) {
                     throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
                 }
+
             }
             if(!isset($this->models[$class])) {
                 $this->models[$class] = new $class();
