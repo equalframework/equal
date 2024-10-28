@@ -266,7 +266,7 @@ class ObjectManager extends Service {
     private function getStaticInstance($class, $fields=[]) {
         if(count($fields) || !isset($this->models[$class])) {
             // if class is unknown, load the file containing the class declaration of the requested object
-            if(!class_exists($class)) {
+            if(!class_exists($class, false)) {
 
                 $entity = new Entity($class);
                 $filename = $entity->getFullFilePath();
@@ -305,7 +305,7 @@ class ObjectManager extends Service {
                     }
                 }
 
-                if(!class_exists($class)) {
+                if(!class_exists($class, false)) {
                     throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
                 }
 
