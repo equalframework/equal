@@ -125,7 +125,7 @@ class Model implements \ArrayAccess, \Iterator {
         // make sure that a field 'name' is always defined
         if(!isset($map_fields['name'])) {
             // if no field 'name' is defined, fall back to 'id' field
-            $this->map_fields['name'] = ['type' => 'alias', 'alias' => 'id'];
+            $map_fields['name'] = ['type' => 'alias', 'alias' => 'id'];
         }
 
         // get default values, set fields for default language, and mark fields as modified
