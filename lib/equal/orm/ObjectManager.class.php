@@ -274,11 +274,11 @@ class ObjectManager extends Service {
                 if(!file_exists($filename)) {
                     $parentEntity = $entity->getParent();
                     if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
-                        $class = $entity->getName();
+                        $class_name = $entity->getName();
                         $namespace = $entity->getNamespace();
                         $parent = '\\'.$parentEntity->getFullName();
                         eval("namespace $namespace {
-                            class $class extends $parent {}
+                            class $class_name extends $parent {}
                         }");
                     }
                     else {
