@@ -14,7 +14,7 @@ class HttpRequest extends HttpMessage {
     public function __construct($headline='', $headers=[], $body='') {
         parent::__construct($headline, $headers, $body);
         // parse headline
-        $re = '/((GET|POST|PUT|DELETE|PATCH|OPTIONS) )?( )?([^ ]*)(( )HTTP.*)?/i';
+        $re = '/((CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE))?( )?([^ ]*)(( )HTTP.*)?/i';
         preg_match($re, $headline, $matches);
 
         if(isset($matches[2]) && strlen($matches[2])) {
