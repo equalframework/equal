@@ -53,7 +53,6 @@ list($context, $orm, $dap) = [ $providers['context'], $providers['orm'], $provid
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
 
-
 // retrieve target entity
 $model = $orm->getModel($params['entity']);
 if(!$model) {
