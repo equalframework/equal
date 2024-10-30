@@ -54,7 +54,7 @@ list($params, $providers) = eQual::announce([
             'description'   => 'The maximum number of results.',
             'type'          => 'integer',
             'min'           => 1,
-            'max'           => 500,
+            'max'           => 2500,
             'default'       => 25
         ]
     ],
@@ -106,9 +106,7 @@ if(ctype_lower(substr($file, 0, 1))) {
         }
         $value = null;
         if(isset($controller_schema[$field]['default'])) {
-            // #memo - returned from a eQual::run call is an array containing values matching the content-type of the controller
-            // $f = new Field($controller_schema[$field]);
-            // $value = $adapter->adaptOut($controller_schema[$field]['default'], $f->getUsage());
+            // #memo - return value from a eQual::run call is an array containing values matching the content-type of the controller
             $value = $controller_schema[$field]['default'];
         }
         $object[$field] = $value;
