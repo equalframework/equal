@@ -26,7 +26,11 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context', 'orm']
 ]);
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+/**
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ */
+['context' => $context, 'orm' => $orm] = $providers;
 
 $removeNodes = function (&$layout, $nodes_ids) {
     $groups = $layout['groups'] ?? [];
