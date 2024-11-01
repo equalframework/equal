@@ -683,7 +683,7 @@ class Collection implements \Iterator, \Countable {
                 $args[] = $this->orm;
             }
             elseif(in_array($param_name, ['ids', 'oids'])) {
-                $args[] = $this->ids();;
+                $args[] = $this->ids();
             }
             elseif($param_name == 'values') {
                 $args[] = $values;
@@ -724,7 +724,7 @@ class Collection implements \Iterator, \Countable {
             // retrieve current user id
             $user_id = $this->am->userId();
 
-            // force argument into an array (single field name is accepted, empty array is accepted: load all fields)
+            // force argument into an array (single field name is accepted; if empty array is given: load all fields)
             $fields = (array) $fields;
 
             $schema = $this->model->getSchema();
@@ -776,7 +776,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 3) read values
-            $res = $this->orm->read($this->class, $ids, $requested_fields, ($lang)?$lang:$this->lang);
+            $res = $this->orm->read($this->class, $ids, $requested_fields, ($lang) ? $lang : $this->lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);

@@ -8,7 +8,7 @@
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns the schema of given class (model) in JSON",
     'params'        => [
         'entity' =>  [
@@ -46,20 +46,20 @@ if(ctype_lower(substr($file, 0, 1))) {
     $path = implode('/', $parts);
     $operation = str_replace('\\', '_', $params['entity']);
 
-    if(file_exists(QN_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
+    if(file_exists(EQ_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
         $result = eQual::run('do', $operation, ['announce' => true]);
         $data = [
-            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
+            'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
         ];
     }
-    else if(file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
+    elseif(file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
         $result = eQual::run('get', $operation, ['announce' => true]);
         $data = [
-            'fields' => isset($result['announcement']['params'])?$result['announcement']['params']:[]
+            'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
         ];
     }
     else {
-        throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+        throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
     }
 }
 
@@ -89,12 +89,24 @@ if(!count($data)) {
 
     if(method_exists($model, 'getDefaults')) {
         $defaults = $model->getDefaults();
-        foreach($defaults as $field => $default) {
-            if(is_callable($defaults[$field])) {
-                $default = call_user_func($defaults[$field], $orm);
+        foreach($defaults as $field => $default_value) {
+            if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
+                // either a php function (or a function from the global scope) or a closure object
+                if(is_object($default_value)) {
+                    // default is a closure
+                    $default_value = $default_value();
+                }
+            }
+            elseif(is_string($default_value) && strpos($default_value, '::')) {
+                list($class_name, $method_name) = explode('::', $default_value);
+                if(method_exists($class_name, $method_name)) {
+                    /** @var \equal\orm\ObjectManager */
+                    $orm = $container->get('orm');
+                    $default_value = $orm->callonce($class_name, $method_name);
+                }
             }
             $f = $model->getField($field);
-            $data['fields'][$field]['default'] = $adapter->adaptOut($default, $f->getUsage());
+            $data['fields'][$field]['default'] = $adapter->adaptOut($default_value, $f->getUsage());
         }
     }
 

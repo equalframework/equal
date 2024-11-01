@@ -37,6 +37,9 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'providers'     => [ 'context', 'orm', 'adapt' ]
 ]);
 
@@ -49,7 +52,6 @@ list($context, $orm, $dap) = [ $providers['context'], $providers['orm'], $provid
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
-
 
 // retrieve target entity
 $model = $orm->getModel($params['entity']);

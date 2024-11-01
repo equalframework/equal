@@ -9,8 +9,8 @@ use equal\http\HttpResponse;
 
 
 list($params, $providers) = eQual::announce([
-    'description'   => "Downloads composer and runs it for installing dependencies from composer.json.",
-    'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
+    'description'   => "Downloads `composer.phar` and runs it for installing dependencies found in `composer.json`.",
+    'help'          => "This controller relies on the PHP binary (`/usr/bin/php`). In order to make them work, sure the PHP binary is present in the PATH. If no `composer.json` is found, an error is returned.",
     'params'        => [],
     'access'        => [
         'visibility'    => 'private'
@@ -18,7 +18,7 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context'],
 ]);
 
-list($context) = [$providers['context']];
+['context' => $context] = $providers;
 
 // stop if composer.json is missing
 if(!file_exists(EQ_BASEDIR.'/composer.json')) {

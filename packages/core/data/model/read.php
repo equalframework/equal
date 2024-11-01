@@ -46,6 +46,9 @@ list($params, $providers) = announce([
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'providers'     => [ 'context', 'orm' ]
 ]);
 

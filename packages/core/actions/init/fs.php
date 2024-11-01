@@ -5,9 +5,13 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 $params = eQual::announce([
-    'description'   => 'Checks current installation directories integrity.',
+    'description'   => 'Checks current installation directories integrity, create mandatory folders, and attempts to assign permissions.',
     'params'        => [],
-    'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME']
+    'constants'     => ['FILE_STORAGE_MODE', 'HTTP_PROCESS_USERNAME'],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ]
 ]);
 
 // array holding files and directories to be tested
@@ -78,7 +82,9 @@ foreach($paths as $item) {
     ['path' => $path, 'rights' => $mask] = $item;
 
     if(!file_exists($path) && ($mask & EQ_R_WRITE)) {
-        mkdir($path, 0754, true);
+        if(!mkdir($path, 0754, true)) {
+            throw new Exception(serialize(['folder_creation_error' => "unable to create $path"]), EQ_ERROR_UNKNOWN);
+        }
     }
 
     if(!file_exists($path)) {

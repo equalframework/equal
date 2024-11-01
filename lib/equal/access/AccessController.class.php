@@ -37,21 +37,21 @@ class AccessController extends Service {
     protected function __construct(Container $container) {
         $this->is_request_compliant = false;
         $this->complying_policy_id = 0;
-        $this->permissionsTable = array();
-        $this->groupsTable = array();
-        $this->usersTable = array();
-        $this->default_rights = (defined('DEFAULT_RIGHTS'))?constant('DEFAULT_RIGHTS'):0;
+        $this->permissionsTable = [];
+        $this->groupsTable = [];
+        $this->usersTable = [];
+        $this->default_rights = (defined('DEFAULT_RIGHTS')) ? constant('DEFAULT_RIGHTS') : 0;
     }
 
     public static function constants() {
-        return ['QN_ROOT_GROUP_ID', 'QN_DEFAULT_GROUP_ID', 'QN_ROOT_USER_ID', 'QN_GUEST_USER_ID'];
+        return ['ACCESS_CONTROL_LEVEL', 'EQ_ROOT_GROUP_ID', 'EQ_DEFAULT_GROUP_ID', 'EQ_ROOT_USER_ID', 'EQ_GUEST_USER_ID'];
     }
 
     public function getUserGroups($user_id) {
         $groups_ids = [];
         if(!isset($this->groupsTable[$user_id])) {
             // all users are members of default group (including unidentified users)
-            $this->groupsTable[$user_id] = [(string) QN_DEFAULT_GROUP_ID];
+            $this->groupsTable[$user_id] = [(string) EQ_DEFAULT_GROUP_ID];
             /** @var \equal\orm\ObjectManager */
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
@@ -175,19 +175,19 @@ class AccessController extends Service {
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
         // users are always granted the default permissions and root user always has full rights
-        $user_rights = ($user_id == QN_ROOT_USER_ID)?EQ_R_ALL:$this->default_rights;
+        $user_rights = ($user_id == EQ_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
+
+        if($user_rights == EQ_R_ALL) {
+            return $user_rights;
+        }
 
         // request for rights based on object_class and specific object_ids
-        if(count($object_ids)) {
+        if(constant('ACCESS_CONTROL_LEVEL') == 'instance' && count($object_ids)) {
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnClass($user_id, $object_class);
             }
             if($user_rights < $operation) {
                 $user_rights |= $this->getUserRightsOnObjects($user_id, $object_class, $object_ids);
-            }
-            // grant user RW rights on its own object
-            if(ObjectManager::getObjectRootClass($object_class) == 'core\User' && count($object_ids) == 1 && $object_ids[0] == $user_id) {
-                $user_rights |= EQ_R_READ | EQ_R_WRITE;
             }
         }
         // request for rights based on object_class only
@@ -215,6 +215,11 @@ class AccessController extends Service {
                 }
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
+        }
+
+        // grant user RW rights on its own object
+        if(count($object_ids) == 1 && $object_ids[0] == $user_id && ObjectManager::getObjectRootClass($object_class) == 'core\User') {
+            $user_rights |= EQ_R_READ | EQ_R_WRITE;
         }
 
         return $user_rights;
@@ -268,22 +273,21 @@ class AccessController extends Service {
             $result |= $this->getUserRightsOnWildcard($user_id, $wildcard);
         }
 
-        // if no ACL found, lookup for ACLs set on parent class
-        if($result == 0) {
-            $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
-            if(count($parent_classes)) {
-                $classes = [];
-                $table_name = $orm->getObjectTableName($object_class);
-                foreach($parent_classes as $class) {
-                    if($orm->getObjectTableName($class) == $table_name) {
-                        $classes[] = $class;
-                    }
+        // 3) lookup for ACLs set on parent class
+
+        $parent_classes = ObjectManager::getObjectParentsClasses($object_class);
+        if(count($parent_classes)) {
+            $classes = [];
+            $table_name = $orm->getObjectTableName($object_class);
+            foreach($parent_classes as $class) {
+                if($orm->getObjectTableName($class) == $table_name) {
+                    $classes[] = $class;
                 }
-                foreach($classes as $class) {
-                    $result |= $this->getUserRightsOnClass($user_id, $class);
-                    if($result >= $operation) {
-                        break;
-                    }
+            }
+            foreach($classes as $class) {
+                $result |= $this->getUserRightsOnClass($user_id, $class);
+                if($result >= $operation) {
+                    break;
                 }
             }
         }
@@ -564,6 +568,9 @@ class AccessController extends Service {
      * @param int[]         $objects_ids      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
     public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
+        if($user_id == EQ_ROOT_USER_ID) {
+            return true;
+        }
         // force cast ids to array (passing a single id is accepted)
         $objects_ids = (array) $objects_ids;
         // retrieve most permissive right that use has on targeted entities/objects.
@@ -595,9 +602,7 @@ class AccessController extends Service {
         // retrieve current user identifier
         $user_id = $auth->userId();
 
-        $has_right = $this->hasRight($user_id, $operation, $object_class, $object_ids);
-
-        return $has_right;
+        return $this->hasRight($user_id, $operation, $object_class, $object_ids);
     }
 
     /**
@@ -688,7 +693,7 @@ class AccessController extends Service {
                     $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
                 }
                 else {
-                    trigger_error("ORM::calling {$called_class}::{$called_method}", QN_REPORT_DEBUG);
+                    trigger_error("ORM::calling {$called_class}::{$called_method}", EQ_REPORT_DEBUG);
                     $c = $called_class::ids($object_ids);
                     $res = $called_class::$called_method($c, $user_id);
                     if(count($res)) {

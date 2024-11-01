@@ -9,7 +9,7 @@ namespace core;
 use equal\orm\Model;
 
 /**
- * @property alias      $name
+ * @property string     $name
  * @property string     $class_name     Full name of the entity to which the permission rule applies.
  * @property string     $domain         JSON value of the constraints domain (ex. ['creator', '=', '1'])
  * @property integer    $object_id      Identifier of the specific object on which the permission applies.

@@ -11,7 +11,7 @@ use equal\db\DBConnector;
 
 list($params, $providers) = eQual::announce([
     'description' => 'Import data from a database to eQual database for a given package.',
-    'help'        => 'Needs a configuration file `import-config.json` in the `init` folder of the given package.',
+    'help'        => 'This controller requires a schema and expects it as a `import-config.json` file in the `init` folder of the given package.',
     'constants'   => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'params'      => [
         'db_dbms' => [

@@ -11,6 +11,23 @@ use equal\orm\usages\Usage;
 
 class Field {
 
+    public const MAP_TYPE_USAGE = [
+        'boolean'       => 'number/boolean',
+        'integer'       => 'number/integer:9',
+        'float'         => 'number/real:10.2',
+        'string'        => 'text/plain:255',
+        'text'          => 'text/plain:32000',
+        'date'          => 'date/plain',
+        'datetime'      => 'date/time',
+        'time'          => 'time/plain',
+        'binary'        => 'binary/plain:16000000',
+        'file'          => 'binary/plain:16000000',
+        'many2one'      => 'number/integer:9',
+        'one2many'      => 'array',
+        'many2many'     => 'array',
+        'array'         => 'array'
+    ];
+
     /**
      * Descriptor of the field.
      * In addition to properties from `Model::getColumns()`, `Field::descriptor` always as a `result_type` property.
@@ -37,15 +54,23 @@ class Field {
     /**
      * @param array $descriptor Associative array mapping field properties and their values.
      */
-    public function __construct(array $descriptor, string $name='') {
+    public function __construct(array $descriptor, string $field_name='', string $class_name='', string $package_name='') {
         if(isset($descriptor['type'])) {
             $this->type = $descriptor['type'];
         }
         $this->descriptor = $descriptor;
-        $this->name = $name;
+        $this->name = $field_name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
             $this->descriptor['result_type'] = $this->type;
+        }
+        if(strlen($package_name) > 0 && in_array($this->descriptor['result_type'], ['one2many', 'many2one', 'many2many'])) {
+            if(isset($this->descriptor['foreign_object']) && strpos($this->descriptor['foreign_object'], '\\') !== false) {
+                $foreignEntity = new Entity($this->descriptor['foreign_object']);
+                if($foreignEntity->getPackageName() != $package_name) {
+                    $this->descriptor['foreign_object'] = $package_name.'\\'.$this->descriptor['foreign_object'];
+                }
+            }
         }
     }
 
@@ -63,25 +88,9 @@ class Field {
      */
     protected function getUsageString(): string {
         $result = $this->descriptor['usage'] ?? '';
-        static $map = [
-            'boolean'       => 'number/boolean',
-            'integer'       => 'number/integer:9',
-            'float'         => 'number/real:10.2',
-            'string'        => 'text/plain:255',
-            'text'          => 'text/plain:32000',
-            'date'          => 'date/plain',
-            'datetime'      => 'date/time',
-            'time'          => 'time/plain',
-            'binary'        => 'binary/plain:16000000',
-            'file'          => 'binary/plain:16000000',
-            'many2one'      => 'number/integer:9',
-            'one2many'      => 'array',
-            'many2many'     => 'array',
-            'array'         => 'array'
-        ];
         if(!strlen($result)) {
             $type = $this->descriptor['result_type'];
-            $result = $map[$type] ?? $type;
+            $result = self::MAP_TYPE_USAGE[$type] ?? $type;
         }
         return $result;
     }

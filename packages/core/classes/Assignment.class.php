@@ -1,7 +1,7 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
@@ -11,7 +11,7 @@ use equal\orm\Model;
 class Assignment extends Model {
 
     public static function getDescription() {
-        return 'Assignments consist of one or more roles assigned to users on specific objects.';
+        return 'Assignments consist of one or more roles assigned to users on specific objects, accordingly to roles defined in related classes.';
     }
 
     public static function getColumns() {

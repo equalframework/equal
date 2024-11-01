@@ -4,7 +4,7 @@
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns the MD formatted help relating to a given entity (class model), given a view ID (<type.name>).",
     'params'        => [
         'entity' =>  [
@@ -32,53 +32,59 @@ list($params, $providers) = announce([
     'providers'     => ['context', 'orm']
 ]);
 
+/**
+ * @var \equal\php\Context               $context
+ * @var \equal\orm\ObjectManager         $orm
+ */
+['context' => $context, 'orm' => $orm] = $providers;
 
-list($context, $orm) = [$providers['context'], $providers['orm']];
+// fallback to empty string
+$result = '';
 
-$entity = $params['entity'];
+try {
+    // #todo - handle "controller" entities
+    $entity = $params['entity'];
 
-$model = $orm->getModel($entity);
+    $model = $orm->getModel($entity);
 
-if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
-}
+    if(!$model) {
+        throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+    }
 
-// retrieve existing view meant for entity or it
-while(true) {
-    $parts = explode('\\', $entity);
-    $package = array_shift($parts);
-    $class_path = implode('/', $parts);
-    $parent = get_parent_class($entity);
+    // retrieve existing view meant for entity or it
+    while(true) {
+        $parts = explode('\\', $entity);
+        $package = array_shift($parts);
+        $class_path = implode('/', $parts);
+        $parent = get_parent_class($entity);
 
-    $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_path}.{$params['view_id']}.md";
-    if(!file_exists($file)) {
-        $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.md";
+        $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_path}.{$params['view_id']}.md";
+        if(!file_exists($file)) {
+            $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.md";
+        }
+
+        if(file_exists($file)) {
+            break;
+        }
+
+        if(!$parent || $parent == 'equal\orm\Model') {
+            break;
+        }
+        $entity = $parent;
     }
 
     if(file_exists($file)) {
-        break;
+        if( ($result = @file_get_contents($file)) === null) {
+            throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
+        }
     }
 
-    if(!$parent || $parent == 'equal\orm\Model') {
-        break;
-    }
-    $entity = $parent;
 }
-
-// fallback to empty string
-$view = '';
-
-if(file_exists($file)) {
-    if( ($view = @file_get_contents($file)) === null) {
-        throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
-    }
-}
-else {
-    // ignore: unless an unexpected I/O error, this script always returns a value
+catch(Exception $e) {
+    // #memo - unless an unexpected I/O error, this script should always returns a value
     // throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
 }
 
-
 $context->httpResponse()
-        ->body(json_encode(['result' => $view]))
+        ->body(['result' => $result])
         ->send();

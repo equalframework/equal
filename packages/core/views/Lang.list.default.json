@@ -4,12 +4,12 @@
     "layout": {
         "items": [
             {
-                "type": "field",            
+                "type": "field",
                 "value": "name",
                 "width": "20%"
             },
             {
-                "type": "field",            
+                "type": "field",
                 "value": "code",
                 "width": "20%"
             }

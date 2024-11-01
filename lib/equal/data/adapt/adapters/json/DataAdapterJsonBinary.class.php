@@ -67,7 +67,7 @@ class DataAdapterJsonBinary implements DataAdapter {
             }
             else {
                 if(isset($value['error']) && $value['error'] == 2 || isset($value['size']) && $value['size'] > constant('UPLOAD_MAX_FILE_SIZE')) {
-                    throw new \Exception("file_exceeds_maximum_size", QN_ERROR_NOT_ALLOWED);
+                    throw new \Exception("file_exceeds_maximum_size", QN_ERROR_INVALID_PARAM);
                 }
                 $result = file_get_contents($value['tmp_name']);
             }

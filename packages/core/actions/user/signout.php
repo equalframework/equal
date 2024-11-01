@@ -5,12 +5,11 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-// announce script and fetch parameters values
 list($params, $providers) = eQual::announce([
     'description'	=>	"Sign a user out.",
     'params' 		=>	[
     ],
-    'constants'     => ['ROOT_APP_URL', 'AUTH_TOKEN_HTTPS'],
+    'constants'     => ['BACKEND_URL', 'AUTH_TOKEN_HTTPS'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',

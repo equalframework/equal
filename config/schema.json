@@ -1,4 +1,10 @@
 {
+    "ACCESS_CONTROL_LEVEL": {
+        "type": "string",
+        "description": "Defines the level at which permissions are enforced for access control. Possible values are 'class', and 'instance'.",
+        "help": "This setting has no effect if DEFAULT_RIGHTS is set to EQ_R_ALL. 'class' is the default value (most permissive). 'instance' is the most precise (and slowest).",
+        "default": "class"
+    },
     "APP_NAME": {
         "type": "string",
         "description": "Specific brand name of the application, if any.",
@@ -42,6 +48,7 @@
     "BACKEND_URL": {
         "type": "string",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
+        "instant": true,
         "default": "http://equal.local",
         "examples": [
             "http://equal.local",
@@ -163,12 +170,14 @@
     "DEFAULT_RIGHTS": {
         "type": "integer",
         "description": "Rights to grant to any user when no ACL is defined.",
+        "help": "This value is a mask that is applied when Access Controller checks the permissions. 0 means no default rights (depends on current user and related ACL); EQ_R_ALL is a mask holding all permissions.",
         "instant": true,
         "default": 0,
         "examples": [
             0,
             "EQ_R_READ | EQ_R_WRITE",
-            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE"
+            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE",
+            "EQ_R_ALL"
         ]
     },
     "DEBUG_LEVEL": {
@@ -190,6 +199,11 @@
         "examples": [
             "EQ_MODE_PHP | EQ_MODE_ORM | EQ_MODE_SQL | EQ_MODE_APP | EQ_MODE_API | EQ_MODE_AAA | EQ_MODE_NET"
         ]
+    },
+    "DRAFT_ENABLED": {
+        "type": "boolean",
+        "description": "Reuse draft objects (created but not saved, having status left to 'draft').",
+        "default": true
     },
     "DRAFT_VALIDITY": {
         "type": "integer",
@@ -326,6 +340,10 @@
             "1GB"
         ]
     },
+    "NOTIFICATIONS_ENABLED": {
+        "type": "boolean",
+        "default": true
+    },
     "ORG_NAME" : {
         "type": "string",
         "description": "Name of the organisation to which belongs the instance.",
@@ -357,6 +375,13 @@
         "deprecated": "Please use BACKEND_URL instead.",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
+    },
+    "TASK_EXECUTION_TIMEOUT": {
+        "type": "integer",
+        "usage": "time/duration",
+        "description": "Maximum duration, in seconds, allowed for a Task to be running. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": 3600
     },
     "USER_ACCOUNT_DISPLAYNAME": {
         "type": "string",

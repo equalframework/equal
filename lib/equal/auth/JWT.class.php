@@ -8,14 +8,14 @@ namespace equal\auth;
 
 class JWT {
 	/**
-	 * Decodes a JWT string into a PHP object.
+	 * Decodes a JWT string into a PHP array mapping 'header', 'payload' and 'signature' with their values.
 	 *
-	 * @param 	string      $jwt    The JSON Web Token
+	 * @param 	string      $jwt    The JSON Web Token to decode.
 	 *
-	 * @return 	array      			A map holding JWT header, payload, and signature
+	 * @return 	array      	A map holding JWT header, payload, and signature
 	 * @throws 	Exception
 	 *
-	 * @uses urlsafeB64Decode
+	 * @uses self::urlsafeB64Decode
 	 */
 	public static function decode($jwt) {
 		$header  	= [];
@@ -30,19 +30,23 @@ class JWT {
 
 		list($headb64, $bodyb64, $sigb64) = $parts;
 
-		if ( !($header = json_decode(JWT::urlsafeB64Decode($headb64), true)) ) {
+		if ( !($header = json_decode(self::urlsafeB64Decode($headb64), true)) ) {
 			throw new \Exception('jwt_header_unreadable');
 		}
 		if ( !isset($header['alg']) ) {
 			throw new \Exception('jwt_header_missing_algorithm');
 		}
-		if ( !($payload = json_decode(JWT::urlsafeB64Decode($bodyb64), true)) ) {
+		if ( !($payload = json_decode(self::urlsafeB64Decode($bodyb64), true)) ) {
 			throw new \Exception('jwt_payload_unreadable');
 		}
-		if ( !($signature = JWT::urlsafeB64Decode($sigb64)) ) {
+		if ( !($signature = self::urlsafeB64Decode($sigb64)) ) {
 			throw new \Exception('jwt_signature_unreadable');
 		}
-		return ['header' => $header, 'payload' => $payload, 'signature' => $signature];
+		return [
+                'header'    => $header,
+                'payload'   => $payload,
+                'signature' => $signature
+            ];
 	}
 
 	/**
@@ -54,12 +58,14 @@ class JWT {
 	 *                              algorithms are 'HS256', 'HS384' and 'HS512'
 	 *
 	 * @return string      A signed JSON web token (JWT are URL-safe base64 encoded).
-	 * @uses jsonEncode
 	 * @uses urlsafeB64Encode
 	 */
 	public static function encode($payload, $key, $algo = 'HS256') {
-		$header = array('typ' => 'JWT', 'alg' => $algo);
-		$segments = array();
+		$header = [
+                'typ' => 'JWT',
+                'alg' => $algo
+            ];
+		$segments = [];
 		$segments[] = self::urlsafeB64Encode(json_encode($header));
 		$segments[] = self::urlsafeB64Encode(json_encode($payload));
 		$signing_input = implode('.', $segments);
@@ -100,12 +106,11 @@ class JWT {
 	/**
 	 * Sign a string with a given key and algorithm.
 	 *
-	 * @param string $msg    The message to sign
-	 * @param string $key    The secret key
-	 * @param string $method The signing algorithm. Supported
-	 *                       algorithms are 'HS256', 'HS384' and 'HS512'
+	 * @param string $msg    The message to sign.
+	 * @param string $key    The secret key.
+	 * @param string $method The signing algorithm. Supported algorithms are 'HS256', 'HS384' and 'HS512'.
 	 *
-	 * @return string          An encrypted message
+	 * @return string    An encrypted message
 	 * @throws Exception Unsupported algorithm was specified
 	 */
 	private static function sign($msg, $key, $method = 'HS256') {
@@ -138,17 +143,17 @@ class JWT {
         $publicExponent = self::urlsafeB64Decode($e);
 
         $components = [
-            'modulus' => pack('Ca*a*', 2, self::encodeLength(strlen($modulus)), $modulus),
-            'publicExponent' => pack('Ca*a*', 2, self::encodeLength(strlen($publicExponent)), $publicExponent)
-		];
+                'modulus'        => pack('Ca*a*', 2, self::encodeLength(strlen($modulus)), $modulus),
+                'publicExponent' => pack('Ca*a*', 2, self::encodeLength(strlen($publicExponent)), $publicExponent)
+            ];
 
         $RSAPublicKey = pack(
-            'Ca*a*a*',
-            48,
-            self::encodeLength(strlen($components['modulus']) + strlen($components['publicExponent'])),
-            $components['modulus'],
-            $components['publicExponent']
-        );
+                'Ca*a*a*',
+                48,
+                self::encodeLength(strlen($components['modulus']) + strlen($components['publicExponent'])),
+                $components['modulus'],
+                $components['publicExponent']
+            );
 
 
         // sequence for rsaEncryption: oid(1.2.840.113549.1.1.1), null

@@ -26,7 +26,7 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 </h1>
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/equalframework/equal/master/packages/core/init/assets/img/equal_summary.png" alt="eQual - Create great Apps, your way!" />
+    <img src="https://raw.githubusercontent.com/equalframework/equal/master/packages/core/init/assets/img/equal_presentation.gif" alt="eQual - Create great Apps, your way!" />
 </p>
 
 

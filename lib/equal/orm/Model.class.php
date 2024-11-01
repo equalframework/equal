@@ -12,31 +12,31 @@ use equal\services\Container;
  * Root Model for all Object definitions.
  * This class holds the description of an object along with the values of the currently loaded/assigned fields.
  *
- * List of static methods for building new Collection objects (accessed through magic methods):
- * @method static \equal\orm\Collection id($id)
- * @method static \equal\orm\Collection static ids(array $ids=[])
- * @method static \equal\orm\Collection static search(array $domain=[], array $params=[], $lang=null)
- * @method static \equal\orm\Collection static create(array $values=null, $lang=null)
+ * List of static methods for building new Collection objects (accessed through magic methods via `__callStatic()`):
+ * @method static \equal\orm\Collection id(int $id) Create a new Collection with a single object matching a given identifier.
+ * @method static \equal\orm\Collection ids(int[] $ids=[]) Create a new Collection by using a list of objects identifiers.
+ * @method static \equal\orm\Collection search(array $domain=[], array $params=[], string $lang=null) Create a new Collection by filtering existing objects with a given domain.
+ * @method static \equal\orm\Collection create(mixed[] $values=null, $lang=null) Create a new Collection by creating a new object assigned with the given values.
  *
  * List of static methods with variable parameters:
- * (These methods are handled through __callStatic method to prevent PHP strict errors & aot warnings.)
+ * (These are magic methods to allow dynamic signature and prevent PHP strict errors & aot warnings.)
  *
  * 1) `can...()` methods - consistency checkers:
  * These methods return an associative array mapping fields with their error messages. An empty array means that use can perform the action.
- * @method array    canread(mixed ...$params)       Check wether an object can be read by current user.
- * @method array    cancreate(mixed ...$params)     Check wether an object can be created.
- * @method array    canupdate(mixed ...$params)     Check wether an object can be updated.
- * @method array    candelete(mixed ...$params)     Check wether an object can be deleted.
- * @method array    canclone(mixed ...$params)      Check wether an object can be cloned.
+ * @method static array canread(mixed ...$params)   Check wether an object can be read by current user.
+ * @method static array cancreate(mixed ...$params) Check wether an object can be created.
+ * @method static array canupdate(mixed ...$params) Check wether an object can be updated.
+ * @method static array candelete(mixed ...$params) Check wether an object can be deleted.
+ * @method static array canclone(mixed ...$params)  Check wether an object can be cloned.
  *
  * 2) `on...()` methods - event handlers:
- * @method array    onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method void     oncreate(mixed ...$params)      Hook invoked AFTER object creation for performing object-specific additional operations.
- * @method void     onupdate(mixed ...$params)      Hook invoked BEFORE object update for performing object-specific additional operations.
- * @method void     ondelete(mixed ...$params)      Hook invoked BEFORE object deletion for performing object-specific additional operations.
- * @method void     onclone(mixed ...$params)       Hook invoked AFTER object cloning for performing object-specific additional operations.
+ * @method static array onchange(mixed ...$params)  Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
+ * @method static void oncreate(mixed ...$params)   Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method static void onupdate(mixed ...$params)   Hook invoked BEFORE object update for performing object-specific additional operations.
+ * @method static void ondelete(mixed ...$params)   Hook invoked BEFORE object deletion for performing object-specific additional operations.
+ * @method static void onclone(mixed ...$params)    Hook invoked AFTER object cloning for performing object-specific additional operations.
  *
- * Possible params:
+ * Possible params (handled by dependency injection):
  * - Collection                         $self       Collection holding a series of objects of current class.
  * - array                              $ids        List of objects identifiers in current collection.
  * - array                              $event      Associative array holding changed fields as keys, and their related new values.
@@ -80,20 +80,14 @@ class Model implements \ArrayAccess, \Iterator {
     public final function __construct($values=[]) {
         $this->values = [];
         $this->fields = [];
-        // build the schema based on current class and ancestors
-        $this->schema = self::getSpecialColumns();
-        // piles up the getColumns methods from oldest ancestor to called class
+        $this->schema = [];
+
         $called_class = get_called_class();
-        $parent_class = get_parent_class($called_class);
-        $parents_classes = [$called_class];
-        while($parent_class != __CLASS__) {
-            array_unshift($parents_classes, $parent_class);
-            $parent_class = get_parent_class($parent_class);
-        }
-        // build schema
-        foreach($parents_classes as $class) {
-            $this->schema = array_merge($this->schema, (array) call_user_func_array([$class, 'getColumns'], []));
-        }
+
+        // build the schema based on current class and ancestors
+        $this->buildSchema();
+
+
         // inject dependencies (constants)
         if(method_exists($called_class, 'constants')) {
             $constants = $called_class::constants();
@@ -103,23 +97,44 @@ class Model implements \ArrayAccess, \Iterator {
                     \config\export($name, $value);
                 }
                 if(!defined($name)) {
-                    throw new \Exception("Requested constant {$name} is missing from configuration", QN_ERROR_INVALID_CONFIG);
+                    throw new \Exception("Requested constant {$name} is missing from configuration", EQ_ERROR_INVALID_CONFIG);
                 }
             }
         }
-        // make sure that a field 'name' is always defined
-        if( !isset($this->schema['name']) ) {
-            // if no field 'name' is defined, fall back to 'id' field
-            $this->schema['name'] = ['type' => 'alias', 'alias' => 'id'];
-        }
-        $fields = array_keys($this->schema);
-        // get default values, set fields for default language, and mark fields as modified
-        foreach($fields as $field) {
-            // init related field instance
-            $this->fields[$field] = new Field($this->schema[$field], $field);
-        }
+
         // set fields to default values
         $this->setDefaults($values);
+
+    }
+
+    private function buildSchema() {
+        $class_name = get_called_class();
+        $entity = new Entity($class_name);
+        $package_name = $entity->getPackageName();
+        $parent_class = get_parent_class($class_name);
+        $parents_classes = [$class_name];
+        while($parent_class != __CLASS__) {
+            array_unshift($parents_classes, $parent_class);
+            $parent_class = get_parent_class($parent_class);
+        }
+        // build schema by piling up the getColumns methods from oldest ancestor to called class
+        $map_fields = self::getSpecialColumns();
+        foreach($parents_classes as $class) {
+            $map_fields = array_merge($map_fields, (array) call_user_func_array([$class, 'getColumns'], []));
+        }
+        // make sure that a field 'name' is always defined
+        if(!isset($map_fields['name'])) {
+            // if no field 'name' is defined, fall back to 'id' field
+            $map_fields['name'] = ['type' => 'alias', 'alias' => 'id'];
+        }
+
+        // get default values, set fields for default language, and mark fields as modified
+        foreach($map_fields as $field => $descriptor) {
+            // init related field instance
+            $f = new Field($descriptor, $field, $class_name, $package_name);
+            $this->fields[$field] = $f;
+            $this->schema[$field] = $f->getDescriptor();
+        }
     }
 
     private function setDefaults($values=[]) {
@@ -193,15 +208,15 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     public function offsetUnset($field): void {
-        if(isset($this->fields[$field])) {
-            unset($this->fields[$field]);
-        }
         if(isset($this->values[$field])) {
             unset($this->values[$field]);
         }
     }
 
-    public function offsetGet($field) {
+    /**
+     * @return mixed
+     */
+    public function offsetGet($field)/*: mixed*/ {
         return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
@@ -214,7 +229,7 @@ class Model implements \ArrayAccess, \Iterator {
         reset($this->values);
     }
 
-    public function current() {
+    public function current()/*: mixed*/ {
         return current($this->values);
     }
 
@@ -312,7 +327,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Gets the URL associated with the class (for UI to browse main form of a single object).
+     * Gets the URL associated with the class (expected to related to UI route displaying a form for a single object).
      *
      * @return string
      */
@@ -343,10 +358,8 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * Returns fields as Field objects.
-     * #memo - $fields member might be incomplete (fields instances are created when requested for the first time)
      *
      * @return Field[]    Associative array mapping fields names with their related Field instances.
-     * @deprecated
      */
     public final function getFields() {
         return $this->fields;
@@ -356,7 +369,7 @@ class Model implements \ArrayAccess, \Iterator {
      * Returns a Field object that corresponds to the descriptor of the given field (from schema).
      * If a field is an alias, it is the final descriptor of the alias chain that is returned.
      *
-     * @return Field        Associative array mapping fields names with their related Field instances.
+     * @return Field        Field object holding the descriptor of the given field.
      */
     public final function getField($field): ?Field {
         if(isset($this->schema[$field])) {
@@ -365,13 +378,8 @@ class Model implements \ArrayAccess, \Iterator {
                 $field = $this->schema[$field]['alias'];
                 $type = $this->schema[$field]['type'];
             }
-            if(!isset($this->fields[$field])) {
-                if(isset($this->schema[$field])) {
-                    $this->fields[$field] = new Field($this->schema[$field], $field);
-                }
-            }
         }
-        return (isset($this->fields[$field]))?$this->fields[$field]:null;
+        return $this->fields[$field] ?? null;
     }
 
     /**

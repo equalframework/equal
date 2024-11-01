@@ -48,12 +48,12 @@ list($params, $providers) = announce([
         'range_from' => [
             'description'   => 'Start of date range.',
             'type'          => 'date',
-            'default'       => time() - (30 * 86400)
+            'default'       => function () { return time() - (30 * 86400); }
         ],
         'range_to' => [
             'description'   => 'End of date range.',
             'type'          => 'date',
-            'default'       => time() + (30 * 86400)
+            'default'       => function () { return time() + (30 * 86400); }
         ],
         'range_interval' => [
             'description'   => 'Time interval for grouping abscissa values.',
@@ -84,15 +84,16 @@ list($params, $providers) = announce([
         'cache-vary'    => ['uri'],
         'expires'       => 30 * (60*60*24)
     ],
-    'providers'     => [ 'context' ]
+    'providers'     => [ 'context', 'orm' ]
 ]);
 
-list($context) = [ $providers['context'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 
-
-if(!class_exists($params['entity'])) {
-    throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+// retrieve target entity
+$entity = $orm->getModel($params['entity']);
+if(!$entity) {
+    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
 }
 
 /*
@@ -155,7 +156,7 @@ if($params['group_by'] == 'range') {
            ->addCondition(new DomainCondition($params['field'], '<=', $params['range_to']));
 }
 
-// initilize results_map as an empty associative array of intervals map
+// init results_map as an empty associative array of intervals map
 $results_map = [];
 
 if($params['group_by'] == 'range') {
@@ -201,16 +202,21 @@ foreach($datasets as $index => $dataset) {
     $result_map = $results_map;
     // search objects matching given domain and date range
     $objects = $params['entity']::search($dom->toArray())->read($fields)->get();
-
+    $schema = $entity->getSchema();
     if($objects && count($objects)) {
         // group objects by date interval
         foreach($objects as $oid => $object) {
-            if($params['group_by'] == 'range') {
-                $group_index = _get_date_index($object[$params['field']], $params['range_interval']);
+            if(in_array($schema[$params['field']]['type'], ['date', 'datetime'])) {
+                if($params['group_by'] == 'range') {
+                    $group_index = _get_date_index($object[$params['field']], $params['range_interval']);
+                }
+                else {
+                    // #todo - check value of param 1
+                    $group_index = date('Y-m-d', $object[$params['field']]);
+                }
             }
             else {
-                // #todo - check value of param 1
-                $group_index = date('Y-m-d', $object[$params['field']]);
+                $group_index = $object[$params['field']];
             }
             $result_map[$group_index][] = $object;
         }

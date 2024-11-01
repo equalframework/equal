@@ -38,12 +38,11 @@ list($params, $providers) = eQual::announce([
  * @var equal\orm\ObjectManager             $om
  * @var equal\auth\AuthenticationManager    $auth
  */
-list($context, $om, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
-
+['context' => $context, 'orm' => $om, 'auth' => $auth] = $providers;
 
 // we might have received either a login (email) or a username
 if(strpos($params['login'], '@') > 0) {
-    // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
+    // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
     list($username, $domain) = explode('@', strtolower(trim($params['login'])));
     $username .= '+';
     $login = substr($username, 0, strpos($username, '+')).'@'.$domain;

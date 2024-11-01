@@ -64,6 +64,11 @@ list($params, $providers) = eQual::announce([
     ],
     'constants'     => ['DEFAULT_LANG', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
     'providers'     => ['context', 'orm'],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+
+    ],
 ]);
 
 /**

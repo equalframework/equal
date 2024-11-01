@@ -12,9 +12,9 @@ use equal\orm\UsageFactory;
 class DataGenerator {
 
     /**
-     * @param string    $field              Field name.
-     * @param string    $field_descriptor   Field descriptor.
-     * @param string    $lang               Lang code of the language in which the value must be generated (for multilang fields).
+     * @param string        $field              Field name.
+     * @param array         $field_descriptor   Field descriptor.
+     * @param string|null   $lang               Lang code of the language in which the value must be generated (for multilang fields).
      * @return array|bool|float|int|mixed|string|null
      */
     public static function generateFromField(string $field, array $field_descriptor, string $lang = null) {
@@ -41,10 +41,14 @@ class DataGenerator {
                 return self::legalName($lang);
             case 'address_street':
                 return self::addressStreet($lang);
+            case 'address_dispatch':
+                return self::addressDispatch($lang);
             case 'address_zip':
                 return self::addressZip();
             case 'address_city':
                 return self::addressCity($lang);
+            case 'address_state':
+                return self::addressState();
             case 'address_country':
                 return self::addressCountry($lang);
             case 'address':
@@ -179,15 +183,21 @@ class DataGenerator {
 
     public static function phoneNumberE164(): string {
         $country_codes = [
-            '+1', '+7', '+27', '+31', '+32', '+33', '+34', '+352', '+39', '+44', '+46',
-            '+47', '+48', '+49', '+55', '+61', '+64', '+81', '+86', '+90', '+91', '+972'
+            '+1', '+7', '+27', '+31', '+32', '+33', '+34', '+352', '+39', '+44',
+            '+46', '+47', '+48', '+49', '+55', '+61', '+64', '+81', '+86', '+91', '+972'
         ];
 
         $country_code = $country_codes[array_rand($country_codes)];
+        $country_code_length = strlen($country_code);
 
-        $number_length = 15 - strlen($country_code);
-        $number = '';
-        for ($i = 0; $i < $number_length; $i++) {
+        $max_number_length = 15 - $country_code_length;
+
+        $number_length = mt_rand(8, $max_number_length); // Generate between 8 and max possible length
+
+        $first_digit = mt_rand(2, 9);
+        $number = $first_digit;
+
+        for ($i = 1; $i < $number_length; $i++) {
             $number .= mt_rand(0, 9);
         }
 
@@ -634,6 +644,14 @@ class DataGenerator {
         return $map_lang_streets[$lang][array_rand($map_lang_streets[$lang])] . ' ' . $number;
     }
 
+    public static function addressDispatch($lang = null): ?string {
+        $apartmentNumber = rand(-50, 50);
+
+        $apartment_name = $lang === 'fr' ? 'Bte' : 'Apartment';
+
+        return $apartmentNumber > 0 ? "$apartment_name $apartmentNumber" : null;
+    }
+
     public static function addressZip(): string {
         return mt_rand(1000, 9999);
     }
@@ -720,6 +738,39 @@ class DataGenerator {
         }
 
         return $map_lang_cities[$lang][array_rand($map_lang_cities[$lang])];
+    }
+
+    public static function addressState(): string {
+        $map_lang_states = [
+            // Belgium
+            'Antwerp', 'East Flanders', 'West Flanders', 'Flemish Brabant', 'Brussels-Capital Region', 'Hainaut',
+            'Liège', 'Luxembourg', 'Namur', 'Walloon Brabant', 'Brussels-Capital',
+
+            //France
+            'Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes', 'Nouvelle-Aquitaine', 'Occitanie',
+            'Hauts-de-France', 'Normandy', 'Brittany', 'Grand Est', 'Bourgogne-Franche-Comté', 'Pays de la Loire',
+            'Centre-Val de Loire', 'Alsace', 'Corsica', 'Mayotte',
+
+            // Netherlands
+            'Groningen', 'Friesland', 'Drenthe', 'Overijssel', 'Flevoland', 'Gelderland', 'Utrecht',
+            'North Holland', 'South Holland', 'Zeeland', 'North Brabant', 'Limburg',
+
+            // England
+            'Northumberland', 'County Durham', 'Tyne and Wear', 'Cheshire', 'Greater Manchester', 'Lancashire',
+            'Merseyside', 'East Riding of Yorkshire', 'North Yorkshire', 'South Yorkshire', 'West Yorkshire',
+            'Derbyshire', 'Leicestershire', 'Lincolnshire', 'Northamptonshire', 'Nottinghamshire', 'Herefordshire',
+            'Shropshire', 'Staffordshire', 'Warwickshire', 'Worcestershire', 'Bedfordshire', 'Cambridgeshire',
+            'Essex', 'Hertfordshire', 'Norfolk', 'Suffolk', 'Greater London', 'Berkshire', 'Buckinghamshire',
+            'East Sussex', 'Hampshire', 'Kent', 'Oxfordshire', 'Surrey', 'West Sussex', 'Cornwall', 'Devon',
+            'Dorset', 'Gloucestershire', 'Somerset', 'Wiltshire',
+
+            // Germany
+            'Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hesse', 'Lower Saxony',
+            'North Rhine-Westphalia', 'Rhineland-Palatinate', 'Saarland', 'Saxony', 'Saxony-Anhalt',
+            'Schleswig-Holstein', 'Thuringia', 'Mecklenburg-Vorpommern'
+        ];
+
+        return $map_lang_states[array_rand($map_lang_states)];
     }
 
     public static function addressCountry($lang = null): string {
@@ -831,5 +882,4 @@ class DataGenerator {
             self::addressCountry($lang)
         );
     }
-
 }

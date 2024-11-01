@@ -28,10 +28,10 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ]
     ],
-    'providers'     => ['context', 'orm', 'adapt']
+    'providers'     => ['context', 'orm']
 ]);
 
-list($context, $orm, $adapter) = [$providers['context'], $providers['orm'], $providers['adapt']];
+list($context, $orm) = [$providers['context'], $providers['orm']];
 
 $parts = explode("\\",$params['entity']);
 

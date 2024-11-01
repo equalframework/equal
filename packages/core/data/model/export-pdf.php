@@ -57,10 +57,12 @@ list($params, $providers) = announce([
  * @var \equal\php\Context                  $context
  * @var \equal\orm\ObjectManager            $orm
  * @var \equal\auth\AuthenticationManager   $auth
- * @var \equal\data\DataAdapter             $adapt
+ * @var \equal\data\DataAdapterProvider     $dap
  */
-list($context, $orm, $auth, $adapter) = [$providers['context'], $providers['orm'], $providers['auth'], $providers['adapt']];
+list($context, $orm, $auth, $dap) = [$providers['context'], $providers['orm'], $providers['auth'], $providers['adapt']];
 
+/** @var \equal\data\adapt\DataAdapter */
+$adapter = $dap->get('json');
 
 $is_controller_entity = false;
 
@@ -147,7 +149,7 @@ if($is_controller_entity) {
             if(!isset($schema[$field]['type'])) {
                 continue;
             }
-            $values[$index][$field] = $adapter->adapt($value, $schema[$field]['type']);
+            $values[$index][$field] = $adapter->adaptIn($value, \equal\orm\Field::MAP_TYPE_USAGE[$schema[$field]['type']]);
         }
     }
 }

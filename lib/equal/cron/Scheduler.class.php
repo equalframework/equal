@@ -20,7 +20,7 @@ class Scheduler extends Service {
     }
 
     public static function constants() {
-        return ['MEM_FREE_LIMIT'];
+        return ['MEM_FREE_LIMIT', 'TASK_EXECUTION_TIMEOUT'];
     }
 
     private static function computeAvailableMemory() {
@@ -49,7 +49,7 @@ class Scheduler extends Service {
      * Non-recurring tasks are deleted once they've been run.
      * #memo - The Scheduler service always operates as root user.
      *
-     * @param   int[]   $tasks_ids    Optional array of identifiers of specific tasks to run.
+     * @param   int[]   $tasks_ids    (optional) Array of identifiers of specific tasks to run.
      *
      */
     public function run($tasks_ids=[]) {
@@ -66,6 +66,16 @@ class Scheduler extends Service {
                     ['status', '=', 'idle'],
                     ['moment', '<=', $now]
                 ], ['moment' => 'asc'], 0, 10);
+        }
+
+        // handle erroneous `running` tasks, if any (marked as running while not, due to unexpected end of parent process)
+        $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running']]);
+        $res = $orm->read('core\Task', $running_tasks_ids, ['last_run', 'pid']);
+        foreach($res as $task_id => $task) {
+            if($now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
+                // #todo - check if related PID is running and matches
+                $orm->update('core\Task', $task_id, ['status' => 'idle']);
+            }
         }
 
         if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
@@ -165,7 +175,7 @@ class Scheduler extends Service {
      * @param   string    $name         Name of the task to schedule, to ease task identification.
      * @param   integer   $moment       Timestamp of the moment of the first execution.
      * @param   string    $controller   Controller to invoke, with package notation.
-     * @param   string    $params       JSON string holding the payload to relay to the controller.
+     * @param   array     $params       The params associative array to relay to the controller.
      * @param   boolean   $recurring    Flag to mark the task as recurring.
      */
     public function schedule($name, $moment, $controller, $params, $recurring=false, $repeat_axis='day', $repeat_step='1') {

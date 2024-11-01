@@ -850,8 +850,7 @@ namespace config {
             }
 
             if( !isset($announcement['access']['visibility'])
-                || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private'])
-                ) {
+                    || !in_array($announcement['access']['visibility'], ['public', 'protected', 'private']) ) {
                 $announcement['access']['visibility'] = 'protected';
             }
 
@@ -980,14 +979,15 @@ namespace config {
                         if(isset($config['default'])) {
                             $f = new Field($config, $param);
                             $default_value = $config['default'];
-                            if(is_callable($default_value)) {
+                            // #memo - array can be used as callable descriptor but are not considered here
+                            if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                                 // either a php function (or a function from the global scope) or a closure object
                                 if(is_object($default_value)) {
                                     // default is a closure
                                     $default_value = $default_value();
                                 }
                             }
-                            elseif(is_string($default_value)) {
+                            elseif(is_string($default_value) && strpos($default_value, '::')) {
                                 list($class_name, $method_name) = explode('::', $default_value);
                                 if(method_exists($class_name, $method_name)) {
                                     /** @var \equal\orm\ObjectManager */
@@ -1004,8 +1004,8 @@ namespace config {
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
                 if(isset($body['announce']) || $method == 'OPTIONS') {
                     $response->status(200)
-                        // allow browser to cache the response for 1 year
-                        ->header('Cache-Control', 'max-age=31536000')
+                        // disable browser cache to refresh computed default values
+                        ->header('Cache-Control', 'no-store, max-age=0')
                         // default content type and disposition
                         ->header('Content-Type', 'application/json')
                         ->header('Content-Disposition', 'inline')

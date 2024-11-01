@@ -65,7 +65,7 @@ class DataAdapterJsonDate implements DataAdapter {
         if(is_null($value)) {
             return null;
         }
-        return date('Y-m-d', $value).'T00:00:00+00:00';
+        return date('Y-m-d', intval($value)).'T00:00:00+00:00';
     }
 
 }
