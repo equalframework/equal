@@ -131,50 +131,64 @@ class User extends Model {
     public static function getWorkflow() {
         return [
             'created' => [
-                'description' => "The user account has been created but is not validated yet.",
+                'description' => 'The user account has been created but is not validated yet.',
+                'icon' => 'person_add',
                 'transitions' => [
                     'validation' => [
-                        'watch'       => ['validated'],
-                        'domain'      => ['validated', '=', true],
                         'description' => 'Update the user status based on the `validated` field.',
-                        'help'        => "The `validated` field is set by a dedicated controller that handles email confirmation requests.",
-                        'status'	  => 'validated',
-                        'onafter'     => 'onafterValidate'
-                    ]
-                ]
+                        'help' => 'The `validated` field is set by a dedicated controller that handles email confirmation requests.',
+                        'watch' => [
+                            'validated',
+                        ],
+                        'onafter' => 'onafterValidate',
+                        'domain' => [
+                            'validated',
+                            '=',
+                            true,
+                        ],
+                        'status' => 'validated',
+                    ],
+                ],
             ],
             'validated' => [
                 'description' => 'The email address of the account has been confirmed.',
+                'icon' => 'done',
                 'transitions' => [
                     'suspension' => [
                         'description' => 'Set the user status as suspended.',
-                        'status'	  => 'suspended'
+                        'status' => 'suspended',
                     ],
                     'confirmation' => [
-                        'domain'      => ['validated', '=', true],
                         'description' => 'Update the user status based on the `confirmed` field.',
-                        'help'        => "The `confirmed` field is set by a dedicated controller that handles the account confirmation process (auto or manual).",
-                        'status'	  => 'confirmed'
-                    ]
-                ]
+                        'help' => 'The `confirmed` field is set by a dedicated controller that handles the account confirmation process (auto or manual).',
+                        'domain' => [
+                            'validated',
+                            '=',
+                            true,
+                        ],
+                        'status' => 'confirmed',
+                    ],
+                ],
             ],
             'confirmed' => [
                 'description' => 'The account has been validated by the USER_ACCOUNT_VALIDATION policy, and the email address has been confirmed.',
+                'icon' => 'check_circle',
                 'transitions' => [
                     'suspension' => [
                         'description' => 'Set the user account as disabled (prevents signin).',
-                        'status'	  => 'suspended'
-                    ]
-                ]
+                        'status' => 'suspended',
+                    ],
+                ],
             ],
             'suspended' => [
+                'icon' => 'hourglass_empty',
                 'transitions' => [
                     'confirmation' => [
                         'description' => 'Re-enable the user account.',
-                        'status'	  => 'confirmed'
-                    ]
-                ]
-            ]
+                        'status' => 'confirmed',
+                    ],
+                ],
+            ],
         ];
     }
 
