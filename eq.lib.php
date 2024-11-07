@@ -1035,7 +1035,24 @@ namespace config {
             foreach($announcement['params'] as $param => $config) {
                 // #memo - at some point condition had a clause "|| empty($body[$param])", remember not to alter received data!
                 if(in_array($param, $missing_params) && isset($config['default'])) {
-                    $body[$param] = $config['default'];
+                    $default_value = $config['default'];
+                    // #memo - array can be used as callable descriptor but are not considered here
+                    if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
+                        // either a php function (or a function from the global scope) or a closure object
+                        if(is_object($default_value)) {
+                            // default is a closure
+                            $default_value = $default_value();
+                        }
+                    }
+                    elseif(is_string($default_value) && strpos($default_value, '::')) {
+                        list($class_name, $method_name) = explode('::', $default_value);
+                        if(method_exists($class_name, $method_name)) {
+                            /** @var \equal\orm\ObjectManager */
+                            $orm = $container->get('orm');
+                            $default_value = $orm->callonce($class_name, $method_name);
+                        }
+                    }
+                    $body[$param] = $default_value;
                 }
                 if(!array_key_exists($param, $body)) {
                     // ignore optional params without default value (this allows PATCH of objects on specific fields only)
