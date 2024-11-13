@@ -6,6 +6,7 @@
 */
 namespace equal\orm;
 
+use core\setting\Setting;
 use equal\services\Container;
 
 /**
@@ -141,6 +142,7 @@ class Model implements \ArrayAccess, \Iterator {
         $container = Container::getInstance();
         $orm = $container->get('orm');
         $defaults = $this->getDefaults();
+        $setting_defaults = $this->getSettingDefaults();
         // reset fields values
         $this->values = [];
         $fields = array_keys($this->schema);
@@ -165,6 +167,22 @@ class Model implements \ArrayAccess, \Iterator {
                 elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
                     // default is a method of the class (or parents')
                     $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                }
+                elseif($defaults[$field] == 'defaultSetting') {
+                    $class_name = get_called_class();
+                    $entity = new Entity($class_name);
+                    $package_name = $entity->getPackageName();
+
+                    $class_name = explode('\\', $class_name);
+                    array_shift($class_name);
+                    $class_name = implode('.', $class_name);
+
+                    $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
+                    $class_snake_case = strtolower(preg_replace($pattern, '_', $class_name));
+
+                    $default = $setting_defaults[$field] ?? null;
+
+                    $this->values[$field] = Setting::get_value($package_name, 'default', "$class_snake_case.$field", $default);
                 }
                 else {
                     // default is a scalar value
@@ -511,6 +529,16 @@ class Model implements \ArrayAccess, \Iterator {
             }
         }
         return $defaults;
+    }
+
+    public function getSettingDefaults() {
+        $setting_defaults = [];
+        foreach($this->schema as $field => $definition) {
+            if(isset($definition['setting_default'])) {
+                $setting_defaults[$field] = $definition['setting_default'];
+            }
+        }
+        return $setting_defaults;
     }
 
     /**
