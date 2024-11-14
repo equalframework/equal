@@ -180,9 +180,9 @@ class Model implements \ArrayAccess, \Iterator {
 
                     // use dots instead of backslashes
                     $class_name = implode('.', $class_name);
-                    $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
 
                     // use snake case instead of camel case
+                    $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
                     $setting_code_prefix = strtolower(preg_replace($pattern, '_', $class_name));
 
                     $this->values[$field] = Setting::get_value(
