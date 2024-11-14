@@ -55,6 +55,7 @@ class Reporter extends Service {
         $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
+        // #todo #bug - $backtrace may contain non json_encodable objects (which leads to an error at file_put_contents)
         $backtrace = $exception->getTrace();
         if(count($backtrace)) {
             $trace = array_shift($backtrace);
