@@ -31,6 +31,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'boolean',
             'default'       => false
         ],
+        'force_cascade' => [
+            'description'   => 'Force initialization for dependencies as well.',
+            'type'          => 'boolean',
+            'default'       => false
+        ],
         'import' => [
             'description'   => 'Request importing initial data.',
             'type'          => 'boolean',
@@ -173,6 +178,7 @@ else {
                             'package'           => $dependency,
                             'cascade'           => $params['cascade'],
                             'import'            => $params['import'] && $params['import_cascade'],
+                            'force'             => $params['force'] && $params['force_cascade'],
                             'root'              => false
                         ],
                         true);
