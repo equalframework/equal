@@ -168,21 +168,29 @@ class Model implements \ArrayAccess, \Iterator {
                     // default is a method of the class (or parents')
                     $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
                 }
-                elseif($defaults[$field] == 'defaultSetting') {
+                elseif($defaults[$field] == 'defaultFromSetting') {
                     $class_name = get_called_class();
                     $entity = new Entity($class_name);
-                    $package_name = $entity->getPackageName();
 
+                    // create setting code prefix, example: "\core\alert\MessageModel" --> alert.message_model
+
+                    // remove package name from class
                     $class_name = explode('\\', $class_name);
                     array_shift($class_name);
+
+                    // use dots instead of backslashes
                     $class_name = implode('.', $class_name);
-
                     $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
-                    $class_snake_case = strtolower(preg_replace($pattern, '_', $class_name));
 
-                    $default = $setting_defaults[$field] ?? null;
+                    // use snake case instead of camel case
+                    $setting_code_prefix = strtolower(preg_replace($pattern, '_', $class_name));
 
-                    $this->values[$field] = Setting::get_value($package_name, 'default', "$class_snake_case.$field", $default);
+                    $this->values[$field] = Setting::get_value(
+                        $entity->getPackageName(),
+                        'default',
+                        "$setting_code_prefix.$field",
+                        $setting_defaults[$field] ?? null
+                    );
                 }
                 else {
                     // default is a scalar value
