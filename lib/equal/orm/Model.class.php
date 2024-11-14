@@ -6,6 +6,7 @@
 */
 namespace equal\orm;
 
+use core\setting\Setting;
 use equal\services\Container;
 
 /**
@@ -141,6 +142,7 @@ class Model implements \ArrayAccess, \Iterator {
         $container = Container::getInstance();
         $orm = $container->get('orm');
         $defaults = $this->getDefaults();
+        $setting_defaults = $this->getSettingDefaults();
         // reset fields values
         $this->values = [];
         $fields = array_keys($this->schema);
@@ -165,6 +167,30 @@ class Model implements \ArrayAccess, \Iterator {
                 elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
                     // default is a method of the class (or parents')
                     $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                }
+                elseif($defaults[$field] == 'defaultFromSetting') {
+                    $class_name = get_called_class();
+                    $entity = new Entity($class_name);
+
+                    // create setting code prefix, example: "\core\alert\MessageModel" --> alert.message_model
+
+                    // remove package name from class
+                    $class_name = explode('\\', $class_name);
+                    array_shift($class_name);
+
+                    // use dots instead of backslashes
+                    $class_name = implode('.', $class_name);
+
+                    // use snake case instead of camel case
+                    $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
+                    $setting_code_prefix = strtolower(preg_replace($pattern, '_', $class_name));
+
+                    $this->values[$field] = Setting::get_value(
+                        $entity->getPackageName(),
+                        'default',
+                        "$setting_code_prefix.$field",
+                        $setting_defaults[$field] ?? null
+                    );
                 }
                 else {
                     // default is a scalar value
@@ -511,6 +537,16 @@ class Model implements \ArrayAccess, \Iterator {
             }
         }
         return $defaults;
+    }
+
+    public function getSettingDefaults() {
+        $setting_defaults = [];
+        foreach($this->schema as $field => $definition) {
+            if(isset($definition['setting_default'])) {
+                $setting_defaults[$field] = $definition['setting_default'];
+            }
+        }
+        return $setting_defaults;
     }
 
     /**
