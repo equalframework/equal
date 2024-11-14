@@ -170,27 +170,25 @@ class Model implements \ArrayAccess, \Iterator {
                 }
                 elseif($defaults[$field] == 'defaultFromSetting') {
                     $class_name = get_called_class();
-                    $entity = new Entity($class_name);
 
-                    // create setting code prefix, example: "\core\alert\MessageModel" --> alert.message_model
+                    // create the setting code prefix
+                    // @example "core\alert\MessageModel" --> alert.message_model
 
-                    // remove package name from class
-                    $class_name = explode('\\', $class_name);
-                    array_shift($class_name);
+                    // split parts into an array
+                    $parts = explode('\\', $class_name);
+                    $package = array_shift($parts);
 
                     // use dots instead of backslashes
-                    $class_name = implode('.', $class_name);
-
-                    // use snake case instead of camel case
-                    $pattern = '/(?<=\\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
-                    $setting_code_prefix = strtolower(preg_replace($pattern, '_', $class_name));
+                    $class_name = implode('.', $parts);
+                    // convert PascalCase to snake_case
+                    $setting_code_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
 
                     $this->values[$field] = Setting::get_value(
-                        $entity->getPackageName(),
-                        'default',
-                        "$setting_code_prefix.$field",
-                        $setting_defaults[$field] ?? null
-                    );
+                            $package,
+                            'default',
+                            "$setting_code_prefix.$field",
+                            $setting_defaults[$field] ?? null
+                        );
                 }
                 else {
                     // default is a scalar value
