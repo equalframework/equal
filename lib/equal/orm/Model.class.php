@@ -168,7 +168,7 @@ class Model implements \ArrayAccess, \Iterator {
                     // default is a method of the class (or parents')
                     $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
                 }
-                elseif($defaults[$field] == 'defaultFromSetting') {
+                elseif($defaults[$field] === 'defaultFromSetting') {
                     $class_name = get_called_class();
 
                     // create the setting code prefix
@@ -183,12 +183,16 @@ class Model implements \ArrayAccess, \Iterator {
                     // convert PascalCase to snake_case
                     $setting_code_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
 
-                    $this->values[$field] = Setting::get_value(
+                    $default = Setting::get_value(
                             $package,
                             'default',
                             "$setting_code_prefix.$field",
                             $setting_defaults[$field] ?? null
                         );
+
+                    if(!is_null($default)) {
+                        $this->values[$field] = $default;
+                    }
                 }
                 else {
                     // default is a scalar value
