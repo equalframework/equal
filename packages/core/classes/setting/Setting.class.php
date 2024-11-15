@@ -247,13 +247,15 @@ class Setting extends Model {
                     if(!is_null($value)) {
                         $result = $value;
 
-                        $map_extra_types = [
-                            'many2one' => 'integer'
+                        $map_types = [
+                            'boolean'   => 'boolean',
+                            'integer'   => 'integer',
+                            'float'     => 'double',
+                            'string'    => 'string',
+                            'many2one'  => 'integer'
                         ];
 
-                        $type = $map_extra_types[$setting['type']] ?? $setting['type'];
-
-                        settype($result, $type);
+                        settype($result, $map_types[$setting['type']]);
                     }
                     elseif($setting['type'] == 'many2one') {
                         $result = null;
