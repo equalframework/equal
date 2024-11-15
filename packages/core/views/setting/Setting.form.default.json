@@ -66,6 +66,11 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "object_class",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "is_multilang",
                                                 "width": "50%"
                                             },
