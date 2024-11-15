@@ -50,9 +50,9 @@
             "selection":{
                 "boolean": "booléen",
                 "integer": "entier",
-                "float": "nombre flottant",
-                "string": "chaîne de caractère",
-                "many2one": "relation many2one"
+                "float": "réel (flottant)",
+                "string": "chaîne de caractères",
+                "many2one": "relation"
             }
         }
     },
