@@ -96,11 +96,18 @@ class Setting extends Model {
                     'boolean',
                     'integer',
                     'float',
-                    'string'
+                    'string',
+                    'many2one'
                 ],
                 'description'       => 'The format of data stored by the param.',
                 'default'           => 'string',
                 'visible'           => ['is_sequence', '=', false]
+            ],
+
+            'object_class' => [
+                'type'              => 'string',
+                'description'       => "Full name of the entity the Setting refers to.",
+                'visible'           => ['type', '=', 'many2one']
             ],
 
             'is_multilang' => [
@@ -228,7 +235,7 @@ class Setting extends Model {
                 }
 
                 $setting_values = $om->read(SettingValue::getType(), $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
-                if($setting_values > 0) {
+                if($setting_values > 0 && count($setting_values)) {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
                     foreach($setting_values as $setting_value) {
@@ -239,7 +246,17 @@ class Setting extends Model {
                     }
                     if(!is_null($value)) {
                         $result = $value;
-                        settype($result, $setting['type']);
+
+                        $map_extra_types = [
+                            'many2one' => 'integer'
+                        ];
+
+                        $type = $map_extra_types[$setting['type']] ?? $setting['type'];
+
+                        settype($result, $type);
+                    }
+                    elseif($setting['type'] == 'many2one') {
+                        $result = null;
                     }
                 }
             }
@@ -322,7 +339,7 @@ class Setting extends Model {
         $result = null;
 
         $providers = \eQual::inject(['orm']);
-        /** @var \equal\orm\ObjectManager */
+        /** @var \equal\orm\ObjectManager $orm */
         $orm = $providers['orm'];
 
         $settings_ids = $orm->search(self::getType(), [

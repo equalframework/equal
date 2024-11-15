@@ -44,7 +44,8 @@
                 "boolean": "booléen",
                 "integer": "entier",
                 "float": "nombre flottant",
-                "string": "chaîne de caractères"
+                "string": "chaîne de caractères",
+                "many2one": "many2one relationship"
             },
             "description": "Setting type.",
             "help": ""
