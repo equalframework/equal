@@ -181,16 +181,14 @@ class Setting extends Model {
 
     /**
      * Retrieve the value of a given setting.
-     *
-     * @param string        $package    Package to which the setting relates to.
-     * @param string        $section    Specific section within the package.
-     * @param string        $code       Unique code of the setting within the given package and section.
-     * @param mixed         $default    (optional) Default value to return if setting is not found.
-     * @param array         $selector   (optional) Map used as filter to target a specific value (ex. `[user_id => 2]`).
-     * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
+     * This is a shorthand alias for `get_value()`
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
+    public static function get(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+        return self::get_value($package, $section, $code, $default, $selector, $lang);
+    }
+
     public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
         $result = $default;
 
