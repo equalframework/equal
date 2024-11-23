@@ -28,7 +28,8 @@ list( $params, $providers ) = eQual::announce([
         "APP_LOGO_URL",
         "BACKEND_URL",
         "REST_API_URL",
-        "NOTIFICATIONS_ENABLED"
+        "NOTIFICATIONS_ENABLED",
+        "USER_ACCOUNT_REGISTRATION"
     ],
     'providers'     => ['context', 'auth']
 ] );
@@ -36,17 +37,18 @@ list( $params, $providers ) = eQual::announce([
 list($context, $auth) = [$providers['context'], $providers['auth']];
 
 $envinfo = [
-    "env_mode"      => constant('ENV_MODE'),
-    "production"    => (constant('ENV_MODE') == 'production'),
-    "parent_domain" => parse_url(constant('BACKEND_URL'), PHP_URL_HOST),
-    "backend_url"   => constant('BACKEND_URL'),
-    "rest_api_url"  => constant('REST_API_URL'),
-    "lang"          => constant('APP_DEFAULT_LANG'),
-    "locale"        => constant('L10N_LOCALE'),
-    "company_name"  => constant('ORG_NAME'),
-    "company_url"   => constant('ORG_URL'),
-    "app_name"      => constant('APP_NAME'),
-    "app_logo_url"  => constant('APP_LOGO_URL')
+    "env_mode"              => constant('ENV_MODE'),
+    "production"            => (constant('ENV_MODE') == 'production'),
+    "parent_domain"         => parse_url(constant('BACKEND_URL'), PHP_URL_HOST),
+    "backend_url"           => constant('BACKEND_URL'),
+    "rest_api_url"          => constant('REST_API_URL'),
+    "lang"                  => constant('APP_DEFAULT_LANG'),
+    "locale"                => constant('L10N_LOCALE'),
+    "company_name"          => constant('ORG_NAME'),
+    "company_url"           => constant('ORG_URL'),
+    "app_name"              => constant('APP_NAME'),
+    "app_logo_url"          => constant('APP_LOGO_URL'),
+    "account_registration"  => constant('USER_ACCOUNT_REGISTRATION')
 ];
 
 // retrieve current User
