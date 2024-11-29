@@ -644,8 +644,9 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        $order = (isset($schema[$field]['order']) && isset($schema[$schema[$field]['order']]))?$schema[$field]['order']:'id';
-                        $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
+                        // #todo - we shoud check that order field exists in targeted entity
+                        $order = (isset($schema[$field]['order'])) ? $schema[$field]['order'] : 'id';
+                        $sort = (isset($schema[$field]['sort'])) ? $schema[$field]['sort'] : 'asc';
                         $domain = [
                             [
                                 [$schema[$field]['foreign_field'], 'in', $ids],
