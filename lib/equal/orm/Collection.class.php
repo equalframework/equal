@@ -835,14 +835,14 @@ class Collection implements \Iterator, \Countable {
                 }
                 $children_fields = [];
                 foreach($subfields as $key => $val) {
-                    $children_fields[] = (!is_numeric($key))?$key:$val;
+                    $children_fields[] = (!is_numeric($key)) ? $key : $val;
                 }
                 // read all targeted children objects at once
-                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, ($lang)?$lang:$this->lang);
+                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, ($lang) ? $lang : $this->lang);
                 // assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
                     /** @var Collection */
-                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang)?$lang:$this->lang);
+                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang) ? $lang : $this->lang);
                     if($target['result_type'] == 'many2one') {
                         // #memo - result might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
