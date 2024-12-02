@@ -973,7 +973,11 @@ class Collection implements \Iterator, \Countable {
     public function transition($transition) {
         // retrieve targeted identifiers
         $res = $this->orm->transition($this->class, $this->ids(), $transition);
-        if(count($res)) {
+        if($res < 0) {
+            trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
+            throw new \Exception('transition_failed', $res);
+        }
+        elseif(count($res)) {
             throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
         }
         return $this;
