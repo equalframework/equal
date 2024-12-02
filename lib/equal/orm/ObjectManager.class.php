@@ -644,7 +644,7 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        // #todo - we shoud check that order field exists in targeted entity
+                        // #todo - we should check that order field exists in targeted entity
                         $order = (isset($schema[$field]['order'])) ? $schema[$field]['order'] : 'id';
                         $sort = (isset($schema[$field]['sort'])) ? $schema[$field]['sort'] : 'asc';
                         $domain = [
@@ -662,9 +662,12 @@ class ObjectManager extends Service {
                             $domain = $domain_tmp->toArray();
                         }
                         // #todo - add support for sorting on m2o fields (for now user needs to use usort)
+                        // #todo - this is invalid, check should point to the target schema (foreign_object)
+                        /*
                         if($schema[$order]['type'] == 'many2one' || (isset($schema[$order]['result_type']) && $schema[$order]['result_type'] == 'many2one') ) {
                             $order = 'id';
                         }
+                        */
                         // obtain the ids by searching inside the foreign object's table
                         $result = $om->db->getRecords(
                                 $om->getObjectTableName($schema[$field]['foreign_object']),
