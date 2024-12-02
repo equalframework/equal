@@ -1218,7 +1218,7 @@ class ObjectManager extends Service {
             }
         }
         catch(\Exception $e) {
-            trigger_error("ORM::callonce {$class}::{$method} error:".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::callonce {$called_class}::{$called_method} error:".$e->getMessage(), QN_REPORT_ERROR);
             $result = $e->getCode();
         }
 
