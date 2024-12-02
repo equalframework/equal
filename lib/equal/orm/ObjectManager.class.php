@@ -1133,7 +1133,7 @@ class ObjectManager extends Service {
 
         $result = [];
 
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
         $called_class = $class;
         $called_method = $method;
 
@@ -1218,6 +1218,7 @@ class ObjectManager extends Service {
             }
         }
         catch(\Exception $e) {
+            trigger_error("ORM::callonce {$class}::{$method} error:".$e->getMessage(), QN_REPORT_ERROR);
             $result = $e->getCode();
         }
 
