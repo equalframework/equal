@@ -41,11 +41,20 @@ if($time >= time() || $time <= 0) {
     throw new Exception('unexpected_error', EQ_ERROR_UNKNOWN);
 }
 
+$requests_threshold = 100;
+$requests_count = 0;
+
 $collection = Log::search(['created', '<=', $time], ['limit' => 1000]);
 
 while(count($collection->ids())) {
     $collection->delete(true);
     $collection = Log::search(['created', '<=', $time], ['limit' => 1000]);
+    ++$requests_count;
+
+    if($requests_count >= $requests_threshold) {
+        $requests_count = 0;
+        sleep(5);
+    }
 }
 
 $context->httpResponse()
