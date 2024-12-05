@@ -137,7 +137,7 @@ or clone with Git :
 git clone https://github.com/equalframework/equal.git
 ```
 
-For more info, see : [http://doc.equal.run/getting-started/installation](http://doc.equal.run/getting-started/installation/)
+For more info, see : [https://doc.equal.run/getting-started/install/installation/](https://doc.equal.run/getting-started/install/installation/)
 
 ## Contributing
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create.
