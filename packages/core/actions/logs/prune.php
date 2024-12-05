@@ -41,7 +41,12 @@ if($time >= time() || $time <= 0) {
     throw new Exception('unexpected_error', EQ_ERROR_UNKNOWN);
 }
 
-Log::search(['created', '<=', $time])->delete(true);
+$collection = Log::search(['created', '<=', $time], ['limit' => 1000]);
+
+while(count($collection->ids())) {
+    $collection->delete(true);
+    $collection = Log::search(['created', '<=', $time], ['limit' => 1000]);
+}
 
 $context->httpResponse()
         ->status(204)
