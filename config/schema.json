@@ -316,6 +316,12 @@
         "description": "Flag for requesting to store meta data whenever an event occurs (creation, update, deletion or custom event).",
         "help": "Keep in mind that enabling logging increases I/O operations and impacts performances."
     },
+    "LOGS_EXPIRY_DELAY": {
+        "type": "integer",
+        "default": 12,
+        "description": "Duration, in months, for retaining logs in the database.",
+        "help": "This value is use in the logs_prune controller for auto-vacuuming logs."
+    },
     "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
         "usage": "amount/data",
