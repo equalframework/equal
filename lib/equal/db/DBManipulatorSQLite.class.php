@@ -52,7 +52,7 @@ final class DBManipulatorSQLite extends DBManipulator {
      * Open the DBMS connection.
      * This method is meant to assign a value to `$this->dbms_handler`.
      *
-     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
+     * @param   boolean   $auto_select	'True' means create DB file if it does not exist (otherwise the connection fails).
      * @return  integer   		        The status of the connect function call.
      * @access  public
      */
@@ -65,7 +65,7 @@ final class DBManipulatorSQLite extends DBManipulator {
         // by convention the DB file is the given DB_NAME with `.db` suffix
         $db_file = QN_BASEDIR.'/bin/'.$this->db_name.'.db';
 
-        if(!file_exists($db_file)) {
+        if(!$auto_select && !file_exists($db_file)) {
             return false;
         }
 
@@ -213,7 +213,7 @@ final class DBManipulatorSQLite extends DBManipulator {
     }
 
     public function getQueryAddIndex($table_name, $column) {
-        return "CREATE INDEX idx_{$column} ON `{$table_name}` (`{$column}`);";
+        return "CREATE INDEX IF NOT EXISTS idx_{$column} ON `{$table_name}` (`{$column}`);";
     }
 
     public function getQueryAddUniqueConstraint($table_name, $columns) {
