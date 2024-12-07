@@ -52,7 +52,7 @@ class DataAdapterSqlBoolean implements DataAdapter {
         if(is_null($value)) {
             return null;
         }
-        return ($value)?'1':'0';
+        return ($value) ? '1': '0';
     }
 
 }

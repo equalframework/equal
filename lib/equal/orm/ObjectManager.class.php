@@ -644,8 +644,9 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        $order = (isset($schema[$field]['order']) && isset($schema[$schema[$field]['order']]))?$schema[$field]['order']:'id';
-                        $sort = (isset($schema[$field]['sort']))?$schema[$field]['sort']:'asc';
+                        // #todo - we should check that order field exists in targeted entity
+                        $order = (isset($schema[$field]['order'])) ? $schema[$field]['order'] : 'id';
+                        $sort = (isset($schema[$field]['sort'])) ? $schema[$field]['sort'] : 'asc';
                         $domain = [
                             [
                                 [$schema[$field]['foreign_field'], 'in', $ids],
@@ -661,9 +662,12 @@ class ObjectManager extends Service {
                             $domain = $domain_tmp->toArray();
                         }
                         // #todo - add support for sorting on m2o fields (for now user needs to use usort)
+                        // #todo - this is invalid, check should point to the target schema (foreign_object)
+                        /*
                         if($schema[$order]['type'] == 'many2one' || (isset($schema[$order]['result_type']) && $schema[$order]['result_type'] == 'many2one') ) {
                             $order = 'id';
                         }
+                        */
                         // obtain the ids by searching inside the foreign object's table
                         $result = $om->db->getRecords(
                                 $om->getObjectTableName($schema[$field]['foreign_object']),
@@ -844,6 +848,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
             throw new Exception('unable to load object fields', $e->getCode());
         }
     }
@@ -1104,6 +1109,7 @@ class ObjectManager extends Service {
         }
         catch (Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
             throw new Exception('unable to store object fields', $e->getCode());
         }
     }
@@ -1129,7 +1135,7 @@ class ObjectManager extends Service {
 
         $result = [];
 
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
         $called_class = $class;
         $called_method = $method;
 
@@ -1212,13 +1218,15 @@ class ObjectManager extends Service {
             if($res !== null) {
                 $result = $res;
             }
+            // unstack global object_methods state
+            $this->object_methods = $object_methods_state;
         }
         catch(\Exception $e) {
-            $result = $e->getCode();
+            // #memo - there is no depth limit so, exceptions must be relayed to caller
+            // unstack global object_methods state
+            $this->object_methods = $object_methods_state;
+            throw $e;
         }
-
-        // unstack global object_methods state
-        $this->object_methods = $object_methods_state;
 
         return $result;
     }
@@ -2504,7 +2512,7 @@ class ObjectManager extends Service {
      * @param   array       $ids              Array of ids of the objects to delete.
      * @param   string      $transition       Name of the requested workflow transition (signal).
      *
-     * @return  array           Returns an associative array containing invalid fields with their associated error_message_id.
+     * @return  mixed       Returns an associative array containing invalid fields with their associated error_message_id.
      *                          An empty array means all fields are valid. In case of error, the method returns a negative integer.
      */
     public function transition($class, $ids, $transition) {
@@ -2514,28 +2522,36 @@ class ObjectManager extends Service {
         if(count($res)) {
             return $res;
         }
+        $res = [];
         $table_name = $this->getObjectTableName($class);
         $model = $this->getStaticInstance($class);
         $workflow = $model->getWorkflow();
         $lang = constant('DEFAULT_LANG');
         // read status field for retrieved objects
         $objects = $this->read($class, $ids, ['status']);
-        foreach($objects as $id => $object) {
-            // reaching this part means all objects have a status and a workflow in which given transition is defined and valid for requested mutation
-            $t_descr = $workflow[$object['status']]['transitions'][$transition];
-            // if a 'onbefore' method is defined for applied transition, call it
-            if(isset($t_descr['onbefore'])) {
-                $this->callonce($class, $t_descr['onbefore'], $id);
-            }
-            // status field is always writeable (we don't call `update()` to bypass checks)
-            $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
-            $this->store($class, (array) $id, ['status'], $lang);
-            // if a 'onafter' method is defined for applied transition, call it
-            if(isset($t_descr['onafter'])) {
-                $this->callonce($class, $t_descr['onafter'], $id);
+        try {
+            foreach($objects as $id => $object) {
+                // reaching this part means all objects have a status and a workflow in which given transition is defined and valid for requested mutation
+                $t_descr = $workflow[$object['status']]['transitions'][$transition];
+                // if a 'onbefore' method is defined for applied transition, call it
+                if(isset($t_descr['onbefore'])) {
+                    $this->callonce($class, $t_descr['onbefore'], $id);
+                }
+                // status field is always writeable (we don't call `update()` to bypass checks)
+                $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
+                $this->store($class, (array) $id, ['status'], $lang);
+                // if a 'onafter' method is defined for applied transition, call it
+                if(isset($t_descr['onafter'])) {
+                    $this->callonce($class, $t_descr['onafter'], $id);
+                }
             }
         }
-        return [];
+        catch(\Exception $e) {
+            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
+            $this->last_error = $e->getMessage();
+            $res = $e->getCode();
+        }
+        return $res;
     }
 
     /**

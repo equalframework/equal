@@ -55,6 +55,7 @@ class Reporter extends Service {
         $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
+        // #todo #bug - $backtrace may contain non json_encodable objects (which leads to an error at file_put_contents)
         $backtrace = $exception->getTrace();
         if(count($backtrace)) {
             $trace = array_shift($backtrace);
@@ -159,12 +160,13 @@ class Reporter extends Service {
             'mtime'         => substr($time_parts[0], 2, 6),
             'level'         => qn_debug_code_name($code),
             'mode'          => qn_debug_mode_name($mode),
-            'class'         => (isset($trace['class']))?$trace['class']:'',
-            'function'      => (isset($trace['function']))?(strlen($trace['function'])?$trace['function'].'()':'[main]'):'',
-            'file'          => (isset($trace['file']))?$trace['file']:'',
-            'line'          => (isset($trace['line']))?$trace['line']:'',
+            'class'         => (isset($trace['class'])) ? $trace['class'] : '',
+            'function'      => (isset($trace['function'])) ? (strlen($trace['function'])?$trace['function'].'()':'[main]') : '',
+            'file'          => (isset($trace['file'])) ? $trace['file'] : '',
+            'line'          => (isset($trace['line'])) ? $trace['line'] : '',
             'message'       => $msg,
-            'stack'         => (isset($trace['stack']))?$trace['stack']:[]
+            // #memo - in case of error, forcing trace stack to empty array
+            'stack'         => (isset($trace['stack'])) ? $trace['stack'] : []
         ];
 
         // append backtrace if required (fatal errors)

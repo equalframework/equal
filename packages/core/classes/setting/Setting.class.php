@@ -96,11 +96,18 @@ class Setting extends Model {
                     'boolean',
                     'integer',
                     'float',
-                    'string'
+                    'string',
+                    'many2one'
                 ],
                 'description'       => 'The format of data stored by the param.',
                 'default'           => 'string',
                 'visible'           => ['is_sequence', '=', false]
+            ],
+
+            'object_class' => [
+                'type'              => 'string',
+                'description'       => "Full name of the entity the Setting refers to.",
+                'visible'           => ['type', '=', 'many2one']
             ],
 
             'is_multilang' => [
@@ -181,16 +188,14 @@ class Setting extends Model {
 
     /**
      * Retrieve the value of a given setting.
-     *
-     * @param string        $package    Package to which the setting relates to.
-     * @param string        $section    Specific section within the package.
-     * @param string        $code       Unique code of the setting within the given package and section.
-     * @param mixed         $default    (optional) Default value to return if setting is not found.
-     * @param array         $selector   (optional) Map used as filter to target a specific value (ex. `[user_id => 2]`).
-     * @param string|null   $lang       (optional) Lang in which to retrieve the value (for multilang settings).
+     * This is a shorthand alias for `get_value()`
      *
      * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
      */
+    public static function get(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+        return self::get_value($package, $section, $code, $default, $selector, $lang);
+    }
+
     public static function get_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
         $result = $default;
 
@@ -230,18 +235,30 @@ class Setting extends Model {
                 }
 
                 $setting_values = $om->read(SettingValue::getType(), $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
-                if($setting_values > 0) {
+                if($setting_values > 0 && count($setting_values)) {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
                     foreach($setting_values as $setting_value) {
                         $value = $setting_value['value'];
-                        if(isset($selector['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
+                        if(isset($selector['user_id']) && isset($setting_value['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
                             break;
                         }
                     }
                     if(!is_null($value)) {
                         $result = $value;
-                        settype($result, $setting['type']);
+
+                        $map_types = [
+                            'boolean'   => 'boolean',
+                            'integer'   => 'integer',
+                            'float'     => 'double',
+                            'string'    => 'string',
+                            'many2one'  => 'integer'
+                        ];
+
+                        settype($result, $map_types[$setting['type']]);
+                    }
+                    elseif($setting['type'] == 'many2one') {
+                        $result = null;
                     }
                 }
             }
@@ -324,7 +341,7 @@ class Setting extends Model {
         $result = null;
 
         $providers = \eQual::inject(['orm']);
-        /** @var \equal\orm\ObjectManager */
+        /** @var \equal\orm\ObjectManager $orm */
         $orm = $providers['orm'];
 
         $settings_ids = $orm->search(self::getType(), [

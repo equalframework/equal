@@ -43,7 +43,7 @@ class DateReference {
 
             if(preg_match('/date\.(this|prev|next)(\((\d*)\))?\.(day|week|month|quarter|semester|year)(\.(first|last|get\((.+)\)))?/', $descriptor, $matches)) {
                 // init at today
-                $date = new DateTime();
+                $date = new \DateTime();
 
                 $origin = $matches[1];
                 $offset = isset($matches[3]) && $matches[3] !== '' ? (int)$matches[3] : 1;

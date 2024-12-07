@@ -7,6 +7,7 @@
     License:  GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 error_reporting(0);
+define('MAX_FILESIZE', 100 * 1000 * 1000);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
@@ -18,7 +19,7 @@ foreach(glob('../log/*.log') as $file) {
 }
 
 
-// no param given : frond-end App provider
+// no param given: frond-end App provider
 if(!count($_GET)) {
     echo '
         <!DOCTYPE html>
@@ -215,7 +216,7 @@ if(!count($_GET)) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 105px;
+                height: 135px;
                 width: 100%;
                 background: white;
                 z-index: 4;
@@ -230,7 +231,7 @@ if(!count($_GET)) {
             }
 
             #start {
-                padding-top:  110px;
+                padding-top:  135px;
             }
 
             .loader-overlay {
@@ -431,6 +432,20 @@ if(!count($_GET)) {
                 overflow: hidden !important;
                 white-space: break-spaces;
             }
+
+            button.btn {
+                height: 18px;
+                border: none !important;
+                border-radius: 0 !important;
+                outline: 0 !important;
+                padding: 2px 10px;
+                font-size: 11px;
+                opacity: 0.5;
+            }
+
+            button.btn.applied {
+                opacity: 1;
+            }
         </style>
         <script>
             function copy(node) {
@@ -528,6 +543,7 @@ if(!count($_GET)) {
                 content = content.replace("$class", info.class);
                 content = content.replace("$icon", info.icon);
                 div.innerHTML = content;
+                div.firstElementChild.classList.add(info.type);
                 div.querySelector("input").addEventListener("click", async function(event) {
                         document.getElementById("loader").style.display = "block";
                         event.target.parentNode.classList.add("selected");
@@ -572,8 +588,8 @@ if(!count($_GET)) {
                 let div = document.createElement("div");
                 let content = template;
                 let info = get_level_info(line.level);
-                let origin = ((line.class.length)?line.class+"::":"")+line.function;
-                let inside = "<b>in</b> <code class=\""+info.class+"\">"+origin+"</code>";
+                let origin = ((line.class.length) ? line.class+"::" : "") + line.function;
+                let inside = "<b>in</b> <code class=\"" + info.class +"\">" + origin + "</code>";
                 content = content.replace("$mode", line.mode);
                 content = content.replace("$time", line.time);
                 content = content.replace("$mtime", line.mtime);
@@ -592,6 +608,7 @@ if(!count($_GET)) {
                                         .replace(/\'/g, "&#039;")
                           );
                 div.innerHTML = content;
+                div.firstElementChild.classList.add(info.type);
 
                 if(line.match) {
                     div.getElementsByClassName("line-title")[0].classList.add("match");
@@ -653,6 +670,51 @@ if(!count($_GET)) {
                 }
                 document.getElementById("loader").style.display = "none";
                 list.style.display = "block";
+            }
+
+            function btnFilterClick(btn) {
+                console.log(btn);
+                var type = btn.innerHTML;
+                console.log(type);
+                var levels = [\'ERROR\', \'WARNING\', \'INFO\', \'DEBUG\'];
+                for(level of levels) {
+                    var filter_btn = document.getElementById("btn-" + level);
+                    if(level != type) {
+                        filter_btn.classList.remove("applied");
+                    }
+                }
+                // hide all thread.{type} and thread_line.{type} that do not match the type
+                var count_thread_selected = 0;
+                var nodes_thread = document.getElementsByClassName("thread");
+                for(node of nodes_thread) {
+                    if(node.classList.contains("selected")) {
+                        ++count_thread_selected;
+                    }
+                    else {
+                        if(!node.classList.contains(type)) {
+                            node.style.display = "none";
+                        }
+                        else {
+                            // #todo -  only if no thread is selected
+                            // node.style.display = "block";
+                        }
+                    }
+                }
+                if(count_thread_selected > 0) {
+                    var nodes_lines = document.getElementsByClassName("thread_line");
+                    for(node of nodes_lines) {
+                        if(!node.classList.contains(type)) {
+                            node.style.display = "none";
+                        }
+                        else {
+                            // #todo - only if parent is selected
+                            // node.style.display = "block";
+                        }
+                    }
+                }
+            }
+
+            function btnResetClick() {
             }
 
             document.addEventListener("DOMContentLoaded", async function() {
@@ -778,6 +840,12 @@ if(!count($_GET)) {
                     </div>
                 </div>
             </form>
+            <div style="width: 100%; padding: 0 15px;">
+                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
+                <button id="btn-DEBUG" class="btn btn-success applied" onclick="btnFilterClick(this)">DEBUG</button>
+                <button id="btn-WARNING" class="btn btn-warning applied" onclick="btnFilterClick(this)">WARNING</button>
+                <button id="btn-ERROR" class="btn btn-danger applied" onclick="btnFilterClick(this)">ERROR</button>
+            </div>
         </div>
         <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
         <div id="start"></div>
@@ -787,7 +855,7 @@ if(!count($_GET)) {
         </html>
         ';
 }
-// params given : back-end data provider
+// params given: back-end data provider
 else {
     $result = [];
 
@@ -824,22 +892,22 @@ else {
         }
 
         $filesize = filesize('../log/'.$log_file);
-        $MAX_FILESIZE = 100 * 1000 * 1000;
+
         // limit processing base on filesize to prevent overload
-        if($filesize > $MAX_FILESIZE) {
+        if($filesize > constant('MAX_FILESIZE')) {
+            echo constant('MAX_FILESIZE');
             // set response as 'no content'
             http_response_code(204);
             die();
         }
 
         // read raw data from log file
-
         if($f = fopen('../log/'.$log_file, 'r')) {
 
             // lines request (return lines matching filters within a given thread_id)
             if(isset($_GET['thread_id'])) {
                 $count_lines = 0;
-                while (($data = fgets($f)) !== false) {
+                while(($data = fgets($f)) !== false) {
                     if(($line = json_decode($data,true)) === null) {
                         continue;
                     }
@@ -885,7 +953,7 @@ else {
                             'thread_id' => $line['thread_id'],
                             'lines'     => 0,
                             'level'     => $map_threads[$line['thread_id']]['level'],
-                            // threads will be sorted on timestamp using a map : we must avoid collisions
+                            // threads will be sorted on timestamp using a map: we must avoid collisions
                             'time'      => $line['time'].'.'.$line['mtime']
                         ];
                     }

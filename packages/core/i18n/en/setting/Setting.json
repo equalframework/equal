@@ -41,10 +41,11 @@
         "type": {
             "label": "Type",
             "selection": {
-                "boolean": "booléen",
-                "integer": "entier",
-                "float": "nombre flottant",
-                "string": "chaîne de caractères"
+                "boolean": "boolean",
+                "integer": "integer",
+                "float": "float",
+                "string": "string",
+                "many2one": "relation"
             },
             "description": "Setting type.",
             "help": ""
