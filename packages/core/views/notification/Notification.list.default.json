@@ -1,0 +1,47 @@
+{
+    "name": "Notifications",
+    "description": "List of existing Notifications sent to users.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "id",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "title",
+                "width": "25%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "20%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "15%",
+                "widget": {
+                    "sortable": true
+                }
+            },
+            {
+                "type": "field",
+                "value": "is_persistent",
+                "width": "10%"
+            },
+            {
+                "type": "field",
+                "value": "remind_frequency",
+                "width": "15%"
+            }
+        ]
+    }
+}
