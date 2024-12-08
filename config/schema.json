@@ -182,7 +182,8 @@
     },
     "DEBUG_LEVEL": {
         "type": "integer",
-        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means no logs). Important: if logging level is set to E_ALL with all mode enabled, then the log file grows quite quickly.",
+        "description": "Types of error to report (defaults to E_ALL = 32767, setting to 0 means only AAA & NET logs).",
+        "help": "Setting a high level of reporting increases I/O operations, impacting performance and causing the log file to grow rapidly.",
         "instant": true,
         "default": "E_ALL | E_ALL",
         "examples": [

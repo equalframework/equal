@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # This script is meant to shorten the syntax for calling eQual controllers through CLI
-# For global access, it can be put in `/usr/local/bin`
-php run.php "$@"
+if php -v > /dev/null 2>&1; then
+    php run.php "$@"
+else
+    echo "PHP cannot be found. Check your installation."
+fi

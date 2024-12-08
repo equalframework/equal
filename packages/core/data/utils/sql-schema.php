@@ -90,7 +90,7 @@ foreach($classes as $class) {
     $result[] = $db->getQueryCreateTable($table);
 
     // retrieve list of fields that must be added to the schema
-    $columns_diff = ($params['full'])?array_keys($schema):array_diff(array_keys($schema), $columns);
+    $columns_diff = ($params['full']) ? array_keys($schema) : array_diff(array_keys($schema), $columns);
 
     foreach($columns_diff as $field) {
         // prevent processing a same column more than once

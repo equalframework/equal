@@ -244,7 +244,8 @@ else {
     }
 
     // 5) Export the compiled apps to related public folders
-    if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
+    // #memo - make sure ZIP library is available
+    if(isset($package_manifest['apps']) && is_array($package_manifest['apps']) && class_exists('ZipArchive')) {
 
         foreach($package_manifest['apps'] as $app) {
 
