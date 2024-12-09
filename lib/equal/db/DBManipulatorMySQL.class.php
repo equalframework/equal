@@ -41,8 +41,8 @@ final class DBManipulatorMySQL extends DBManipulator {
      * Open the DBMS connection.
      * This method is meant to assign a value to `$this->dbms_handler`.
      *
-     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only wity the DBMS server)
-     * @return  integer   		        The status of the connect function call.
+     * @param   boolean     $auto_select	Automatically connect to provided database (otherwise the connection is established only with the DBMS server)
+     * @return  mixed       Return self object. Upon failure, returns false.
      * @access  public
      */
     public function connect($auto_select=true) {

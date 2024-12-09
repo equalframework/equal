@@ -1,0 +1,40 @@
+FROM php:8.3-fpm-alpine as base
+LABEL Description="Alpine with PHP-FPM for eQual" \
+      Maintainer="Cedric Francoys <cedricfrancoys@gmail.com>" \
+      License="Apache License 2.0" \
+      Version="2.0"
+
+RUN apk add --no-cache \
+	bash \
+    libxml2-dev \
+	icu-dev \
+	oniguruma-dev \
+    nginx \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install dom mbstring intl mysqli \
+	&& docker-php-ext-enable mbstring \
+    && rm -rf /var/lib/apt/lists/* /usr/local/lib/php/extensions/no-debug-non-zts-*/.build
+
+RUN echo "PS1='[\u@\h \W]\$ '" >> /root/.bashrc \
+    && ln -sf /bin/bash /bin/sh
+
+RUN apk add --no-cache bash-completion \
+    && mkdir -p /etc/bash_completion.d
+
+RUN echo "source /usr/share/bash-completion/bash_completion" >> /root/.bashrc
+
+RUN curl -L https://github.com/equalframework/equal/archive/refs/tags/v2.0.0-rc1.tar.gz | tar xz -C /var/www/html --strip-components=1
+
+RUN mkdir -p /var/www/html/config \
+    && echo '{\"DB_DBMS\": \"SQLITE\"}' > /var/www/html/config/config.json
+
+RUN cp /var/www/html/autocomplete /etc/bash_completion.d/
+
+COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./default.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /run/nginx && chown -R nginx:nginx /run/nginx
+
+WORKDIR /var/www/html
+VOLUME /var/www/html
+CMD ["php-fpm"]

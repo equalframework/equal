@@ -52,27 +52,31 @@ final class DBManipulatorSQLite extends DBManipulator {
      * Open the DBMS connection.
      * This method is meant to assign a value to `$this->dbms_handler`.
      *
-     * @param   boolean   $auto_select	'True' means create DB file if it does not exist (otherwise the connection fails).
-     * @return  integer   		        The status of the connect function call.
+     * @param   boolean     $auto_select    'True' means create DB file if it does not exist (otherwise the connection fails).
+     * @return  integer     The status of the connect function call.
      * @access  public
      */
     public function connect($auto_select=true) {
-
+        $result = true;
         if( !class_exists( 'SQLite3' ) ) {
             throw new \Exception('missing_dependency', QN_ERROR_INVALID_CONFIG);
         }
 
         // by convention the DB file is the given DB_NAME with `.db` suffix
         $db_file = QN_BASEDIR.'/bin/'.$this->db_name.'.db';
-
-        if(!$auto_select && !file_exists($db_file)) {
+        try {
+            // if file does not exist yet, it is created (empty)
+            $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
+            // make sure PHP process waits when an exclusive transaction is pending
+            $this->dbms_handler->busyTimeout(3000);
+        }
+        catch(\Exception $e) {
+            $result = false;
+            trigger_error("SQL::Error accessing DB file ($db_file)", QN_REPORT_ERROR);
+        }
+        if(!$result) {
             return false;
         }
-
-        $this->dbms_handler = new \SQLite3($db_file, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
-        // make sure PHP process waits when an exclusive transaction is pending
-        $this->dbms_handler->busyTimeout(3000);
-
         return $this;
     }
 

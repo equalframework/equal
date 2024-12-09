@@ -48,8 +48,8 @@ final class DBManipulatorSqlSrv extends DBManipulator {
     /**
      * Open the DBMS connection
      *
-     * @param   boolean   $auto_select	Automatically connect to provided database (otherwise the connection is established only with the DBMS server)
-     * @return  integer   		        The status of the connect function call.
+     * @param   boolean     $auto_select	Automatically connect to provided database (otherwise the connection is established only with the DBMS server)
+     * @return  mixed       Return self object. Upon failure, returns false.
      * @access  public
      */
     public function connect($auto_select=true) {
@@ -83,7 +83,7 @@ final class DBManipulatorSqlSrv extends DBManipulator {
             if($this->dbms_handler = sqlsrv_connect($this->host, $connection_info)) {
                 $result = true;
             }
-            else if( ($errors = sqlsrv_errors()) != null) {
+            elseif( ($errors = sqlsrv_errors()) != null) {
                 trigger_error("SQL::".implode(';', array_map(function($a) {return "{$a['SQLSTATE']}, {$a['code']}, {$a['message']}";}, $errors)), QN_REPORT_ERROR);
             }
 
