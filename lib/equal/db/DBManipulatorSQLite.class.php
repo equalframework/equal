@@ -53,12 +53,12 @@ final class DBManipulatorSQLite extends DBManipulator {
      * This method is meant to assign a value to `$this->dbms_handler`.
      *
      * @param   boolean     $auto_select    'True' means create DB file if it does not exist (otherwise the connection fails).
-     * @return  integer     The status of the connect function call.
+     * @return  mixed       Return self object. Upon failure, returns false.
      * @access  public
      */
     public function connect($auto_select=true) {
         $result = true;
-        if( !class_exists( 'SQLite3' ) ) {
+        if( !class_exists('SQLite3') ) {
             throw new \Exception('missing_dependency', QN_ERROR_INVALID_CONFIG);
         }
 
