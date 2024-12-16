@@ -82,29 +82,21 @@ $getUserFromGivenLogin = function(string $login, array $fields_to_read) use ($cl
 
 $user = $getUserFromGivenLogin($params['login'], ['id', 'passkeys_ids', 'username', 'login']);
 
-$global_propose_passkey_creation = Setting::get_value(
-    'core',
-    'auth',
-    'propose_passkey_creation',
-    false,
-    ['user_id' => 0],
-    constant('DEFAULT_LANG')
-);
+$global_passkey_creation = Setting::get_value('core', 'auth', 'passkey_creation');
 
-$propose_passkey_creation = Setting::get_value(
+$passkey_creation = Setting::get_value(
     'core',
     'auth',
-    'propose_passkey_creation',
-    $global_propose_passkey_creation,
-    ['user_id' => $user['id']],
-    constant('DEFAULT_LANG')
+    'passkey_creation',
+    $global_passkey_creation,
+    ['user_id' => $user['id']]
 );
 
 $context->httpResponse()
         ->body([
             'username'                  => trim($params['login']),
             'has_passkey'               => count($user['passkeys_ids']) > 0,
-            'propose_passkey_creation'  => $propose_passkey_creation
+            'passkey_creation'          => $passkey_creation
         ])
         ->status(200)
         ->send();
