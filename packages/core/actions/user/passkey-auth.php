@@ -68,12 +68,13 @@ $rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('A
 $formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
 foreach($formats as $format) {
-    $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", false);
+    $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
     }
 }
 
+// #memo - creating WbAuthn with an empty formats array makes the process fail silently
 $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $credential_id = base64_decode($params['credential_id']);
