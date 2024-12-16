@@ -48,6 +48,12 @@ class User extends Model {
                 'dependents'        => ['name']
             ],
 
+            'passkey_user_handle' => [
+                'type'              => 'string',
+                'description'       => 'Passkey user id, also known as User Handle.',
+                'required'          => true
+            ],
+
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
@@ -114,6 +120,13 @@ class User extends Model {
                 'foreign_object'    => 'core\setting\SettingValue',
                 'foreign_field'     => 'user_id',
                 'description'       => 'List of settings that relate to the user.'
+            ],
+
+            'passkeys_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\Passkey',
+                'foreign_field'     => 'user_id',
+                'description'       => 'List of passkeys owned by the user.'
             ],
 
             // application logic related status of the object
