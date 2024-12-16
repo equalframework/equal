@@ -43,7 +43,7 @@ use lbuchs\WebAuthn\WebAuthn;
     'access' => [
         'visibility'    => 'protected'
     ],
-    'constants'     => ['BACKEND_URL', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -53,14 +53,14 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
-$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
-$user_verification = Setting::get_value('core', 'auth', 'passkey_user_verification', 'preferred');
+$rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
+$rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
+$user_verification = Setting::get_value('core', 'security', 'passkey_user_verification', 'preferred');
 
 $formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
 foreach($formats as $format) {
-    $is_format_allowed = Setting::get_value('core', 'auth', "passkey_format_$format", false);
+    $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", false);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
     }

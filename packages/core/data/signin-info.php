@@ -82,7 +82,7 @@ $getUserFromGivenLogin = function(string $login, array $fields_to_read) use ($cl
 
 $user = $getUserFromGivenLogin($params['login'], ['id', 'passkeys_ids', 'username', 'login']);
 
-$global_passkey_creation = Setting::get_value('core', 'auth', 'passkey_creation');
+$global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
 
 $passkey_creation = Setting::get_value(
     'core',

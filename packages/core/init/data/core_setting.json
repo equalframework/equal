@@ -274,7 +274,7 @@
                 "title": "Propose passkey creation",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Propose passkey creation after login using password.",
                 "help": "Only proposes if the user hasn't any passkey yet.",
                 "type": "boolean"
@@ -285,7 +285,7 @@
                 "title": "Passkey relying party id",
                 "package": "core",
                 "form_control": "input",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "The domain or unique identifier for the relying party.",
                 "help": "Enter the domain or identifier used by the relying party. This is typically a domain name (e.g. example.com).",
                 "type": "string"
@@ -296,7 +296,7 @@
                 "title": "Passkey relying party name",
                 "package": "core",
                 "form_control": "input",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "The name of the relying party.",
                 "help": "Enter the full name of the relying party. This is usually the name of the website or application (e.g., Example Inc.).",
                 "type": "string"
@@ -307,7 +307,7 @@
                 "title": "Passkey format android-key",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for Android Key passkey format.",
                 "help": "Toggle this option if you want to allow passkeys to be verified using Android Key attestation.",
                 "type": "boolean"
@@ -318,7 +318,7 @@
                 "title": "Passkey format android-safetynet",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for Android SafetyNet passkey format.",
                 "help": "Toggle this option to allow passkeys verified using Android SafetyNet attestation.",
                 "type": "boolean"
@@ -329,7 +329,7 @@
                 "title": "Passkey format apple",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for Apple's passkey format.",
                 "help": "Toggle this option if you want to allow passkeys verified through Apple attestation.",
                 "type": "boolean"
@@ -340,7 +340,7 @@
                 "title": "Passkey format fido-u2f",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for FIDO U2F passkey format.",
                 "help": "Toggle this option to allow passkeys verified using the FIDO U2F standard.",
                 "type": "boolean"
@@ -351,7 +351,7 @@
                 "title": "Passkey format none",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for passkeys without attestation format.",
                 "help": "Toggle this option to allow passkeys that do not require formal attestation.",
                 "type": "boolean"
@@ -362,7 +362,7 @@
                 "title": "Passkey format packed",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for packed passkey format.",
                 "help": "Toggle this option to allow passkeys using the packed format for attestation.",
                 "type": "boolean"
@@ -373,7 +373,7 @@
                 "title": "Passkey format tpm",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable support for TPM (Trusted Platform Module) passkey format.",
                 "help": "Toggle this option to allow passkeys verified through TPM attestation.",
                 "type": "boolean"
@@ -384,7 +384,7 @@
                 "title": "Passkey user verification",
                 "package": "core",
                 "form_control": "select",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Select the level of user verification required during passkey authentication.",
                 "help": "Options: 'required' forces user verification (e.g., via biometrics or PIN), 'preferred' uses it if available, and 'discouraged' skips user verification.",
                 "type": "string"
@@ -395,7 +395,7 @@
                 "title": "Passkey cross platform",
                 "package": "core",
                 "form_control": "select",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Choose the usage mode for passkeys across platforms.",
                 "help": "Options: 'all' for all types of passkeys, 'only cross-platform' for passkeys stored on external connected devices, or 'only platform' for passkeys limited to the device itself.",
                 "type": "string"
@@ -406,7 +406,7 @@
                 "title": "Passkey authenticator USB",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable the use of USB-based authenticators for passkey authentication.",
                 "help": "Toggle this option to allow or restrict the use of USB devices for passkey authentication.",
                 "type": "boolean"
@@ -417,7 +417,7 @@
                 "title": "Passkey authenticator NFC",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable the use of NFC-based authenticators for passkey authentication.",
                 "help": "Toggle this option to allow or restrict the use of NFC-enabled devices for passkey authentication.",
                 "type": "boolean"
@@ -428,7 +428,7 @@
                 "title": "Passkey authenticator BLE",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable the use of Bluetooth Low Energy (BLE) authenticators for passkey authentication.",
                 "help": "Toggle this option to allow or restrict the use of BLE devices for passkey authentication.",
                 "type": "boolean"
@@ -439,7 +439,7 @@
                 "title": "Passkey authenticator hybrid",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable the use of hybrid authenticators that utilize multiple communication methods.",
                 "help": "Toggle this option to allow or restrict the use of hybrid authenticators for passkey authentication.",
                 "type": "boolean"
@@ -450,7 +450,7 @@
                 "title": "Passkey authenticator internal",
                 "package": "core",
                 "form_control": "toggle",
-                "section_id": 5,
+                "section_id": 3,
                 "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
                 "help": "Toggle this option to allow or restrict the use of internal authentication methods on devices.",
                 "type": "boolean"
