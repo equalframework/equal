@@ -11,7 +11,7 @@ use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
 
-[$params, $providers] = announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Authenticate a user using a passkey.',
     'params'        => [
         'auth_token' => [
@@ -52,7 +52,7 @@ use lbuchs\WebAuthn\WebAuthn;
     'access' => [
         'visibility'    => 'public'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'BACKEND_URL'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -62,8 +62,8 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', 'equal.local');
-$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', 'eQual App');
+$rp_id = Setting::get_value('core', 'auth', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
+$rp_name = Setting::get_value('core', 'auth', 'passkey_rp_name', constant('APP_NAME'));
 
 $formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
