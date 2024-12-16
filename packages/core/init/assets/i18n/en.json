@@ -83,7 +83,7 @@
     "AUTH_SIGNIN_USERNAME": "Username or email address",
     "AUTH_SIGNIN_PASSWORD": "Password",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connect",
-    "AUTH_SIGNIN_ACTION_PASSKEY_LOGIN": "Use passkey to confirm",
+    "AUTH_SIGNIN_ACTION_PASSKEY_LOGIN": "Use a passkey to confirm",
     "AUTH_SIGNIN_ACTION_CREATE_PASSKEY": "Create a passkey",
     "AUTH_SIGNIN_ACTION_RECOVER_USERNAME": "Recover username",
     "AUTH_SIGNIN_ACTION_RECOVER": "Recover password",
