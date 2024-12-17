@@ -736,7 +736,7 @@
                 "id": 10,
                 "name": "core.security.account_creation",
                 "setting_id": 10,
-                "value": null
+                "value": "0"
             },
             {
                 "id": 11,
