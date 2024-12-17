@@ -108,7 +108,7 @@ if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
 }
 
-if($passkey['user_id']['id'] !== $params['user_handle']) {
+if($passkey['user_id']['id'] !== intval($params['user_handle'])) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
