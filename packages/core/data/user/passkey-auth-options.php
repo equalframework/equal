@@ -128,12 +128,13 @@ $auth_options = $webAuthn->getGetArgs(
     $user_verification
 );
 
-$auth_token = JWT::encode(
+$auth_options->auth_token = JWT::encode(
     ['challenge' => $webAuthn->getChallenge()->getHex()],
     constant('AUTH_SECRET_KEY')
 );
 
-$auth_options->auth_token = $auth_token;
+// #memo getGetArgs do not handle the user handle
+$auth_options->user_handle = $user['passkey_user_handle'];
 
 $context->httpResponse()
         ->status(200)
