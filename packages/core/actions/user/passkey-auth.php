@@ -81,7 +81,6 @@ $credential_id = base64_decode($params['credential_id']);
 $client_data_json = base64_decode($params['client_data_json']);
 $authenticator_data = base64_decode($params['authenticator_data']);
 $signature = base64_decode($params['signature']);
-$user_handle = base64_decode($params['user_handle']);
 
 $passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id))->getHex()])
     ->read([
@@ -109,7 +108,7 @@ if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
 }
 
-if($passkey['user_id']['passkey_user_handle'] !== $user_handle) {
+if($passkey['user_id']['passkey_user_handle'] !== $params['user_handle']) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
