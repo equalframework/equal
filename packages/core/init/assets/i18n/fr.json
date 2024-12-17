@@ -83,7 +83,7 @@
     "AUTH_SIGNIN_USERNAME": "Nom d'utilisateur ou Adresse email",
     "AUTH_SIGNIN_PASSWORD": "Mot de passe",
     "AUTH_SIGNIN_ACTION_LOGIN": "Connexion",
-    "AUTH_SIGNIN_ACTION_PASSKEY_LOGIN": "Utilisez une clé d'accès pour confirmer",
+    "AUTH_SIGNIN_ACTION_PASSKEY_LOGIN": "Utiliser une clé d'accès pour confirmer",
     "AUTH_SIGNIN_ACTION_CREATE_PASSKEY": "Créer une clé d'accès",
     "AUTH_SIGNIN_ACTION_RECOVER_USERNAME": "Identifiant oublié ?",
     "AUTH_SIGNIN_ACTION_RECOVER": "Mot de passe oublié ?",
