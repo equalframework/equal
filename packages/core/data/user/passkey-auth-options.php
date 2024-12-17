@@ -12,12 +12,12 @@ use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
 
-[$params, $providers] = announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the options needed for passkey authentication.',
     'params'        => [
-        'login' => [
+        'user_handle' => [
             'type'          => 'string',
-            'description'   => 'Username.'
+            'description'   => 'Anonymous user handle.'
         ]
     ],
     'response'      => [
@@ -37,37 +37,13 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context] = $providers;
 
-/**
- * Methods
- */
+$user = User::search(['id', '=', intval($params['user_handle'])])
+    ->read(['id', 'login', 'username'])
+    ->first(true);
 
-$getUserFromLoginParam = function(array $params): array {
-    $domain = [];
-    if(strpos($params['login'], '@') > 0) {
-        // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
-        list($username, $email_domain) = explode('@', strtolower(trim($params['login'])));
-        $username .= '+';
-
-        $domain[] = ['login', '=', substr($username, 0, strpos($username, '+')).'@'.$email_domain];
-    }
-    else {
-        $domain[] = ['username', '=', $params['login']];
-    }
-
-    $user = User::search($domain)
-        ->read(['id', 'login', 'username', 'passkey_user_handle'])
-        ->first(true);
-
-    if(!$user) {
-        throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
-    }
-
-    return $user;
-};
-
-/**
- * Action
- */
+if(!$user) {
+    throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
+}
 
 $rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
 $rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
@@ -132,9 +108,6 @@ $auth_options->authToken = JWT::encode(
     ['challenge' => $webAuthn->getChallenge()->getHex()],
     constant('AUTH_SECRET_KEY')
 );
-
-// #memo getGetArgs do not consider the user handle
-$auth_options->userHandle = $user['passkey_user_handle'];
 
 $context->httpResponse()
         ->status(200)

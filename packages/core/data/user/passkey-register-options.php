@@ -10,12 +10,12 @@ use core\User;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\WebAuthn;
 
-[$params, $providers] = announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns the options needed for passkey registration.',
     'params'        => [
-        'login' => [
+        'user_handle' => [
             'type'          => 'string',
-            'description'   => 'User login or username.',
+            'description'   => 'Anonymous user handle.',
             'required'      => true
         ]
     ],
@@ -37,39 +37,13 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-/**
- * Methods
- */
-
-$getUserFromLoginParam = function(array $params): array {
-    $domain = [];
-    if(strpos($params['login'], '@') > 0) {
-        // cleanup provided email (as login): we strip heading and trailing spaces and remove recipient tag, if any
-        list($username, $email_domain) = explode('@', strtolower(trim($params['login'])));
-        $username .= '+';
-
-        $domain[] = ['login', '=', substr($username, 0, strpos($username, '+')).'@'.$email_domain];
-    }
-    else {
-        $domain[] = ['username', '=', $params['login']];
-    }
-
-    $user = User::search($domain)
-        ->read(['id', 'login', 'username', 'passkey_user_handle'])
+$user = $user = User::search(['id', '=', intval($params['user_handle'])])
+        ->read(['id', 'login', 'username'])
         ->first(true);
 
-    if(!$user) {
-        throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
-    }
-
-    return $user;
-};
-
-/**
- * Action
- */
-
-$user = $getUserFromLoginParam($params);
+if(!$user) {
+    throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
+}
 
 $rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
 $rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
@@ -100,14 +74,8 @@ $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $webAuthn->addRootCertificates(EQ_BASEDIR.'/mds-cert');
 
-$user_handle = $user['passkey_user_handle'] ?? null;
-if(is_null($user_handle)) {
-    $user_handle = bin2hex(random_bytes(16));
-    User::id($user['id'])->update(['passkey_user_handle' => $user_handle]);
-}
-
 $register_options = $webAuthn->getCreateArgs(
-    $user_handle,
+    $user['id'],
     $user['login'],
     $rp_name,
     20,

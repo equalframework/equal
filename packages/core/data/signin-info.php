@@ -51,36 +51,23 @@ $cleanUpEmail = function(string $email): string {
 };
 
 /**
- * Returns user from given login that can be a username or a login (email address)
- *
- * @param string $login
- * @param string[] $fields_to_read
- * @return array<string, mixed>
- * @throws Exception
- */
-$getUserFromGivenLogin = function(string $login, array $fields_to_read) use ($cleanUpEmail): array {
-    $user_domain = ['username', '=', $login];
-
-    if(filter_var($login, FILTER_VALIDATE_EMAIL)) {
-        $user_domain = ['login', '=', $cleanUpEmail($login)];
-    }
-
-    $user = User::search($user_domain)
-        ->read($fields_to_read)
-        ->first(true);
-
-    if(is_null($user)) {
-        throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
-    }
-
-    return $user;
-};
-
-/**
  * Action
  */
 
-$user = $getUserFromGivenLogin($params['login'], ['id', 'passkeys_ids', 'username', 'login']);
+// "memo - $params['login'] is either username or login (email address)
+$user_domain = ['username', '=', $params['login']];
+
+if(filter_var($params['login'], FILTER_VALIDATE_EMAIL)) {
+    $user_domain = ['login', '=', $cleanUpEmail($params['login'])];
+}
+
+$user = User::search($user_domain)
+    ->read(['id', 'passkeys_ids', 'username', 'login'])
+    ->first(true);
+
+if(is_null($user)) {
+    throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
+}
 
 $global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
 
@@ -94,9 +81,10 @@ $passkey_creation = Setting::get_value(
 
 $context->httpResponse()
         ->body([
+            'user_handle'               => $user['id'],
             'username'                  => trim($params['login']),
             'has_passkey'               => count($user['passkeys_ids']) > 0,
-            'passkey_creation'          => $passkey_creation
+            'passkey_creation'          => (bool) intval($passkey_creation)
         ])
         ->status(200)
         ->send();

@@ -11,7 +11,7 @@ use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
 
-[$params, $providers] = announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Register a new passkey for a user.',
     'params'        => [
         'register_token' => [

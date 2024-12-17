@@ -41,7 +41,8 @@ use lbuchs\WebAuthn\WebAuthn;
         ],
         'user_handle' => [
             'type'          => 'string',
-            'description'   => 'An optional identifier for the user. (Should be needed only if require resident key)'
+            'description'   => 'Anonymous user identifier.',
+            'help'          => 'In WebAuthn, the user_handle allows the authenticator to link a specific passkey to the correct user during authentication, without exposing sensitive or human-readable information (e.g. login or username).'
         ]
     ],
     'response'      => [
@@ -88,8 +89,7 @@ $passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id
             'id',
             'login',
             'username',
-            'validated',
-            'passkey_user_handle'
+            'validated'
         ],
         'credential_public_key',
         'signature_counter'
@@ -108,7 +108,7 @@ if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
 }
 
-if($passkey['user_id']['passkey_user_handle'] !== $params['user_handle']) {
+if($passkey['user_id']['id'] !== $params['user_handle']) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 

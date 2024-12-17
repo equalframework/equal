@@ -48,12 +48,6 @@ class User extends Model {
                 'dependents'        => ['name']
             ],
 
-            'passkey_user_handle' => [
-                'type'              => 'string',
-                'description'       => 'Passkey user id, also known as User Handle.',
-                'required'          => true
-            ],
-
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
