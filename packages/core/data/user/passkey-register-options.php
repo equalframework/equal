@@ -121,12 +121,10 @@ $data = [
     'challenge' => $webAuthn->getChallenge()->getHex()
 ];
 
-$registration_token = JWT::encode(
+$register_options->register_token = JWT::encode(
     $data,
     constant('AUTH_SECRET_KEY')
 );
-
-$register_options->register_token = $registration_token;
 
 $context->httpResponse()
         ->status(200)
