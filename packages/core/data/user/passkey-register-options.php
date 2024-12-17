@@ -103,7 +103,6 @@ $webAuthn->addRootCertificates(EQ_BASEDIR.'/mds-cert');
 $user_handle = $user['passkey_user_handle'] ?? null;
 if(is_null($user_handle)) {
     $user_handle = bin2hex(random_bytes(16));
-
     User::id($user['id'])->update(['passkey_user_handle' => $user_handle]);
 }
 
