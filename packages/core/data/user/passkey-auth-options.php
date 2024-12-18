@@ -75,8 +75,6 @@ $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 $credential_ids = [];
 
 if(!empty($params['login'])) {
-    $user = $getUserFromLoginParam($params);
-
     $passkeys = Passkey::search(['user_id', '=', $user['id']])
         ->read(['credential_id'])
         ->get(true);
