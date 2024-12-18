@@ -25,7 +25,7 @@ use lbuchs\WebAuthn\WebAuthn;
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'public'
     ],
     'constants'     => ['AUTH_SECRET_KEY', 'APP_NAME', 'BACKEND_URL'],
