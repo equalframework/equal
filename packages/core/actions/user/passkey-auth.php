@@ -112,6 +112,11 @@ if($passkey['user_id']['id'] !== intval($params['user_handle'])) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
+// Check that the token has been emitted by this server
+if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
+    throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
+}
+
 $auth_token = JWT::decode($params['auth_token']);
 
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
