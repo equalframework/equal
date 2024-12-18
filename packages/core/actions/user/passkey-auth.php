@@ -53,7 +53,7 @@ use lbuchs\WebAuthn\WebAuthn;
     'access'        => [
         'visibility'    => 'public'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
 ]);
 
