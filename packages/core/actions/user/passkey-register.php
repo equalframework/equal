@@ -74,7 +74,7 @@ $attestation_object = base64_decode($params['attestation_object']);
 
 // Check that the token has been emitted by this server
 if(!$auth->verifyToken($params['register_token'], constant('AUTH_SECRET_KEY'))) {
-    throw new Exception("invalid_token");
+    throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
 }
 
 $register_token = JWT::decode($params['register_token']);
