@@ -66,9 +66,9 @@ use lbuchs\WebAuthn\WebAuthn;
 $rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
 $rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
 
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$passkey_formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
-foreach($formats as $format) {
+foreach($passkey_formats as $format) {
     $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
@@ -92,7 +92,8 @@ $passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id
             'validated'
         ],
         'credential_public_key',
-        'signature_counter'
+        'signature_counter',
+        'fmt'
     ])
     ->first();
 
@@ -137,22 +138,28 @@ if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
 
 $auth_token = JWT::decode($params['auth_token']);
 
+// #memo - processGet checks for decreasing counter (the counter should always increase)
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
 // #memo - the signature counter detects key cloning
 $sign_count = $webAuthn->getSignatureCounter();
 
-// check for decreasing counter (the counter should always increase)
-if($passkey['signature_counter'] > $sign_count) {
-    // #todo - implement strict mode that blocks here because the passkey is suspected to have been physically cloned
-}
-elseif($sign_count) {
+if($sign_count && $sign_count != $passkey['signature_counter']) {
     Passkey::id($passkey['id'])
         ->update(['signature_counter' => $sign_count]);
 }
 
 // generate access token
-$access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$access_token = $auth->token(
+        // user identifier
+        $passkey['user_id']['id'],
+        // validity of the token
+        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        // authentication method to register to AMR
+        [
+            'auth_type' => 'passkey'
+        ]
+    );
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [

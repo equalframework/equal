@@ -73,7 +73,16 @@ if(!$user || !$user['validated']) {
 }
 
 // generate a JWT access token
-$access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$access_token = $auth->token(
+        // user identifier
+        $user_id,
+        // validity of the token
+        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        // authentication method to register to AMR
+        [
+            'auth_type' => 'pwd'
+        ]
+    );
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [
