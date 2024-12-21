@@ -50,10 +50,10 @@ use lbuchs\WebAuthn\WebAuthn;
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'public'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -110,6 +110,11 @@ if(!$passkey['user_id']['validated']) {
 
 if($passkey['user_id']['id'] !== intval($params['user_handle'])) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
+}
+
+// Check that the token has been emitted by this server
+if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
+    throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
 }
 
 $auth_token = JWT::decode($params['auth_token']);

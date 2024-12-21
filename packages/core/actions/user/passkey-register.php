@@ -40,10 +40,10 @@ use lbuchs\WebAuthn\WebAuthn;
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'protected'
     ],
-    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS', 'APP_NAME', 'BACKEND_URL', 'AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -71,6 +71,11 @@ $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $client_data_json = base64_decode($params['client_data_json']);
 $attestation_object = base64_decode($params['attestation_object']);
+
+// Check that the token has been emitted by this server
+if(!$auth->verifyToken($params['register_token'], constant('AUTH_SECRET_KEY'))) {
+    throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
+}
 
 $register_token = JWT::decode($params['register_token']);
 

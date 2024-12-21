@@ -25,7 +25,7 @@ use lbuchs\WebAuthn\WebAuthn;
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'access' => [
+    'access'        => [
         'visibility'    => 'public'
     ],
     'constants'     => ['AUTH_SECRET_KEY', 'APP_NAME', 'BACKEND_URL'],
@@ -75,8 +75,6 @@ $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 $credential_ids = [];
 
 if(!empty($params['login'])) {
-    $user = $getUserFromLoginParam($params);
-
     $passkeys = Passkey::search(['user_id', '=', $user['id']])
         ->read(['credential_id'])
         ->get(true);

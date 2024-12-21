@@ -26,12 +26,6 @@
                 "code": "units",
                 "name": "Units",
                 "description": "Measures and system units"
-            },
-            {
-                "id": 5,
-                "code": "auth",
-                "name": "Authentication",
-                "description": "User authentication settings"
             }
         ]
     },
@@ -58,11 +52,6 @@
                 "id": 4,
                 "name": "Unités",
                 "description": "Unités de mesures et systèmes d'unités"
-            },
-            {
-                "id": 5,
-                "name": "Authentification",
-                "description": "Paramètres d'authentification"
             }
         ]
     },
