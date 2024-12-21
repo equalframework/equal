@@ -28,18 +28,18 @@ class JWT {
 			throw new \Exception('jwt_malformed_token');
 		}
 
-		list($headb64, $bodyb64, $sigb64) = $parts;
+		[$head_b64, $body_b64, $sig_b64] = $parts;
 
-		if ( !($header = json_decode(self::urlsafeB64Decode($headb64), true)) ) {
+		if ( !($header = json_decode(self::urlsafeB64Decode($head_b64), true)) ) {
 			throw new \Exception('jwt_header_unreadable');
 		}
 		if ( !isset($header['alg']) ) {
 			throw new \Exception('jwt_header_missing_algorithm');
 		}
-		if ( !($payload = json_decode(self::urlsafeB64Decode($bodyb64), true)) ) {
+		if ( !($payload = json_decode(self::urlsafeB64Decode($body_b64), true)) ) {
 			throw new \Exception('jwt_payload_unreadable');
 		}
-		if ( !($signature = self::urlsafeB64Decode($sigb64)) ) {
+		if ( !($signature = self::urlsafeB64Decode($sig_b64)) ) {
 			throw new \Exception('jwt_signature_unreadable');
 		}
 		return [
@@ -83,7 +83,7 @@ class JWT {
 				$res = 1;
 			}
 		}
-		else if( in_array($alg, ['RS256', 'RS384', 'RS512']) ){
+		elseif( in_array($alg, ['RS256', 'RS384', 'RS512']) ){
 			$alg_map = [
 				'RS256' => OPENSSL_ALGO_SHA256,
 				'RS384' => OPENSSL_ALGO_SHA384,
@@ -97,7 +97,7 @@ class JWT {
 			);
 		}
 		else {
-			throw new \Exception("JWT_non_supported_alg");
+			throw new \Exception("algorithm_not_supported");
 		}
 
 		return $res;
@@ -155,10 +155,8 @@ class JWT {
                 $components['publicExponent']
             );
 
-
         // sequence for rsaEncryption: oid(1.2.840.113549.1.1.1), null
-
-		// hex version of MA0GCSqGSIb3DQEBAQUA
+		// #memo - hex version of MA0GCSqGSIb3DQEBAQUA
         $rsaOID = pack('H*', '300d06092a864886f70d0101010500');
         $RSAPublicKey = chr(0) . $RSAPublicKey;
         $RSAPublicKey = chr(3) . self::encodeLength(strlen($RSAPublicKey)) . $RSAPublicKey;
