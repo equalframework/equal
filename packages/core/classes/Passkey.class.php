@@ -45,6 +45,13 @@ class Passkey extends Model {
                 'help'              => 'It stays at 0 if the authenticator does not handle "signCount", else it\'s incremented by the authenticator at each successful authentication.',
                 'default'           => 0,
                 'min'               => 0
+            ],
+
+            'fmt' => [
+                'type'              => 'string',
+                'description'       => 'Specifies the attestation format used by the authenticator (tpm, packed, none).',
+                'help'              => 'The fmt field indicates the method the authenticator uses to prove its legitimacy, helping determine its trust level (e.g., android-key, tpm, packed, ...).',
+                'required'          => true
             ]
 
         ];

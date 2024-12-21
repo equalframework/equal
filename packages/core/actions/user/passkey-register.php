@@ -9,6 +9,7 @@ use core\Passkey;
 use core\setting\Setting;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
+use lbuchs\WebAuthn\CBOR\CborDecoder;
 use lbuchs\WebAuthn\WebAuthn;
 
 [$params, $providers] = eQual::announce([
@@ -57,9 +58,9 @@ $rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(const
 $rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
 $user_verification = Setting::get_value('core', 'security', 'passkey_user_verification', 'preferred');
 
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$passkey_formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
-foreach($formats as $format) {
+foreach($passkey_formats as $format) {
     $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
@@ -86,10 +87,14 @@ $data = $webAuthn->processCreate(
     $user_verification === 'required'
 );
 
+// retrieve $attestation (we need fmt)
+$attestation = CborDecoder::decode($attestation_object);
+
 Passkey::create([
     'user_id'               => $register_token['payload']['user_id'],
     'credential_id'         => bin2hex($data->credentialId),
     'credential_public_key' => $data->credentialPublicKey,
+    'fmt'                   => $attestation['fmt']
 ]);
 
 $context->httpResponse()
