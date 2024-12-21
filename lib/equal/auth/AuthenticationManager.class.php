@@ -40,10 +40,11 @@ class AuthenticationManager extends Service {
      * @param   $validity   validity duration in seconds
      * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token($user_id=0, $validity=0) {
+    public function token(int $user_id=0, int $validity=0, array $auth_method=[]) {
         $payload = [
             'id'    => ($user_id > 0) ? $user_id : $this->user_id,
-            'exp'   => time() + $validity
+            'exp'   => time() + $validity,
+            'amr'   => [$auth_method]
         ];
         return $this->createToken($payload);
     }
