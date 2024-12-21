@@ -156,8 +156,10 @@ $access_token = $auth->token(
         // validity of the token
         constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         // authentication method to register to AMR
+        // #todo - set auth_level based on $passkey['fmt']
         [
-            'auth_type' => 'passkey'
+            'auth_type'     => 'passkey',
+            'auth_level'    => 2
         ]
     );
 

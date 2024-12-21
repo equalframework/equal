@@ -80,7 +80,8 @@ $access_token = $auth->token(
         constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         // authentication method to register to AMR
         [
-            'auth_type' => 'pwd'
+            'auth_type'  => 'pwd',
+            'auth_level' => 1
         ]
     );
 
