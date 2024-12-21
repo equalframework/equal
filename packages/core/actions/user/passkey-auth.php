@@ -139,10 +139,16 @@ $auth_token = JWT::decode($params['auth_token']);
 
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
+// #memo - the signature counter detects key cloning
 $sign_count = $webAuthn->getSignatureCounter();
-if(!is_null($sign_count)) {
+
+// check for decreasing counter (the counter should always increase)
+if($passkey['signature_counter'] > $sign_count) {
+    // #todo - implement strict mode that blocks here because the passkey is suspected to have been physically cloned
+}
+elseif($sign_count) {
     Passkey::id($passkey['id'])
-        ->update(['signature_counter' => $sign_count + 1]);
+        ->update(['signature_counter' => $sign_count]);
 }
 
 // generate access token
