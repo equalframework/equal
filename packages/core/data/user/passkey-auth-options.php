@@ -37,7 +37,32 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context] = $providers;
 
-$user = User::search(['id', '=', intval($params['user_handle'])])
+$user_id = intval($params['user_handle']);
+
+/*
+// #memo - we use user_handle as a temporary, anonymous key for mapping with a current 'webAuthn' session
+// retrieve user_id from user_handle
+$setting_values = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $params['user_handle']]])
+            ->read(['id', 'user_id'])
+            ->get();
+
+// there should be 0 or 1 result
+$count_values = count($setting_values);
+
+if($count_values != 1) {
+    throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
+}
+
+$settingValue = reset($setting_values);
+
+if(!$settingValue['user_id'] || $settingValue['user_id'] <= 0) {
+    throw new Exception('invalid_user_id', EQ_ERROR_UNKNOWN);
+}
+
+$user_id = $settingValue['user_id'];
+*/
+
+$user = User::search(['id', '=', $user_id])
     ->read(['id', 'login', 'username'])
     ->first(true);
 
@@ -60,9 +85,9 @@ elseif($cross_platform_attachment === 'platform') {
     $cross_platform_attachment = false;
 }
 
-$formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
+$passkey_formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
-foreach($formats as $format) {
+foreach($passkey_formats as $format) {
     $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;

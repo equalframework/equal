@@ -75,7 +75,7 @@ foreach($formats as $format) {
     }
 }
 
-// #memo - creating WbAuthn with an empty formats array makes the process fail silently
+// #memo - creating WebAuthn with empty 'formats' array makes the process fail silently
 $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $credential_id = base64_decode($params['credential_id']);
@@ -108,11 +108,29 @@ if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
 }
 
+/*
+// retrieve user_id from user_handle
+$settingValue = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $params['user_handle']]])
+            ->read(['id', 'user_id'])
+            ->first();
+
+if(!$settingValue) {
+    throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
+}
+
+if($passkey['user_id']['id'] !== $settingValue['user_id']) {
+    throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
+}
+
+// remove temporary user_handle
+SettingValue::id($settingValue['id'])->delete(true);
+*/
+
 if($passkey['user_id']['id'] !== intval($params['user_handle'])) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
-// Check that the token has been emitted by this server
+// ensure that the token has been emitted by this server
 if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
     throw new Exception("invalid_token", EQ_ERROR_INVALID_PARAM);
 }
@@ -124,9 +142,10 @@ $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passk
 $sign_count = $webAuthn->getSignatureCounter();
 if(!is_null($sign_count)) {
     Passkey::id($passkey['id'])
-        ->update(['signature_counter' => $webAuthn->getSignatureCounter()]);
+        ->update(['signature_counter' => $sign_count + 1]);
 }
 
+// generate access token
 $access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
 $context->httpResponse()

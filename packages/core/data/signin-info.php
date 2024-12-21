@@ -6,6 +6,7 @@
 */
 
 use core\setting\Setting;
+use core\setting\SettingValue;
 use core\User;
 
 [$params, $providers] = eQual::announce([
@@ -69,19 +70,34 @@ if(is_null($user)) {
     throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
+$global_passkey_creation = Setting::get('core', 'security', 'passkey_creation');
+$passkey_creation = Setting::get('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
 
-$passkey_creation = Setting::get_value(
-    'core',
-    'auth',
-    'passkey_creation',
-    $global_passkey_creation,
-    ['user_id' => $user['id']]
-);
+$user_handle = $user['id'];
 
+/*
+// generate temporary anonymous user_handle
+$user_handle = bin2hex(random_bytes(16));
+$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])->first();
+
+// make sure the handle is not already assigned
+while(true) {
+    $values = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $user_handle]])->get();
+    if(!count($values)) {
+        break;
+    }
+    $user_handle = bin2hex(random_bytes(16));
+}
+
+SettingValue::create([
+    'setting_id'    => $setting['id'],
+    'user_id'       => $user['id'],
+    'value'         => $user_handle
+]);
+*/
 $context->httpResponse()
         ->body([
-            'user_handle'               => $user['id'],
+            'user_handle'               => $user_handle,
             'username'                  => trim($params['login']),
             'has_passkey'               => count($user['passkeys_ids']) > 0,
             'passkey_creation'          => (bool) intval($passkey_creation)
