@@ -443,6 +443,17 @@
                 "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
                 "help": "Toggle this option to allow or restrict the use of internal authentication methods on devices.",
                 "type": "boolean"
+            },
+            {
+                "id": 36,
+                "code": "passkey_user-handle",
+                "title": "Mapping for user-specific anonymous user_handle",
+                "package": "core",
+                "form_control": "input",
+                "section_id": 3,
+                "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
+                "help": "Holds a temporary user_handle as a nonce for each user, used for mapping a current WebAuthn session with an existing user.",
+                "type": "string"
             }
         ]
     },
