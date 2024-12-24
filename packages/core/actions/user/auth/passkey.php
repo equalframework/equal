@@ -148,19 +148,34 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
         ->update(['signature_counter' => $sign_count]);
 }
 
-// generate access token
-$access_token = $auth->token(
-        // user identifier
-        $passkey['user_id']['id'],
-        // validity of the token
-        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        // authentication method to register to AMR
-        // #todo - set auth_level based on $passkey['fmt']
-        [
-            'auth_type'     => 'passkey',
-            'auth_level'    => 2
-        ]
-    );
+// passkey auth could be an escalation: check if a token is already present
+$jwt = $auth->retrieveAccessToken();
+
+// #todo - set auth_level based on $passkey['fmt']
+$auth_method = [
+        'auth_type'     => 'passkey',
+        'auth_level'    => 2
+    ];
+
+if($jwt) {
+    if(!isset($jwt['amr'])) {
+        $jwt['amr'] = [];
+    }
+    // append to existing auth methods
+    $jwt['amr'][] = $auth_method;
+    $access_token = $auth->createAccessToken($jwt);
+}
+else {
+    // generate access token
+    $access_token = $auth->token(
+            // user identifier
+            $passkey['user_id']['id'],
+            // validity of the token
+            constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+            // authentication method to register to AMR
+            $auth_method
+        );
+}
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [
