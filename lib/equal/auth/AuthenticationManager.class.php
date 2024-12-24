@@ -13,9 +13,7 @@ use equal\auth\JWT;
 
 class AuthenticationManager extends Service {
 
-
     private $user_id;
-    private $method;
 
     // map for caching decoded tokens
     private $tokens;
@@ -34,7 +32,7 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Provide a JWT token based on current user id and `AUTH_SECRET_KEY`
+     * Provide a JWT token based on given user (or current user if known) and `AUTH_SECRET_KEY`
      *
      * @param   $user_id    identifier of the user for who a token is requested
      * @param   $validity   validity duration in seconds
@@ -46,7 +44,7 @@ class AuthenticationManager extends Service {
             'exp'   => time() + $validity,
             'amr'   => [$auth_method]
         ];
-        return $this->createToken($payload);
+        return $this->createAccessToken($payload);
     }
 
     /**
@@ -55,13 +53,13 @@ class AuthenticationManager extends Service {
      * @param  $payload array representation of the object to be encoded
      *
      * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
-     * @deprecated use createToken instead
+     * @deprecated use createAccessToken instead
      */
     public function encode(array $payload) {
         return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
     }
 
-    public function createToken(array $payload) {
+    public function createAccessToken(array $payload) {
         return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
     }
 
@@ -93,8 +91,54 @@ class AuthenticationManager extends Service {
         return JWT::verify("$headb64.$bodyb64", $token['signature'], $key, $token['header']['alg']);
     }
 
-    public function getPemFromRsa($n, $e) {
-        return JWT::rsaToPem($n, $e);
+    /**
+     * Attempts to decode the JWT token from the received HTTP request, or uses the provided token if specified.
+     * @param string $jwt   The JSON Web Token (JWT) string to decode. If not provided, the function will attempt to extract the token from the HTTP request.
+     *
+     */
+    public function retrieveAccessToken($jwt = null) {
+
+        $result = null;
+
+        // check the request headers for a JWT
+        $context = $this->container->get('context');
+
+        /** @var \equal\http\HttpRequest  */
+        $request = $context->httpRequest();
+
+        $jwt = $request->cookie('access_token');
+
+        // no token found : fallback to Authorization header
+        if(!$jwt) {
+            $auth_header = $request->header('Authorization');
+
+            if($auth_header) {
+                if(strpos($auth_header, 'Bearer ') !== false) {
+                    // retrieve JWT token
+                    [$jwt] = sscanf($auth_header, 'Bearer %s');
+                }
+            }
+        }
+
+        if($jwt) {
+            try {
+                if( !$this->verifyToken($jwt, constant('AUTH_SECRET_KEY')) ){
+                    throw new \Exception('jwt_invalid_signature');
+                }
+
+                $decoded = $this->decodeToken($jwt);
+
+                if( !isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0 ) {
+                    throw new \Exception('jwt_invalid_payload');
+                }
+                $result = $decoded['payload'];
+            }
+            catch(\Exception $e) {
+                trigger_error("API::Unable to decode token: ".$e->getMessage(), EQ_REPORT_ERROR);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -113,65 +157,46 @@ class AuthenticationManager extends Service {
             return $this->user_id;
         }
 
-        // init JWT
-        $jwt = $token;
+        // retrieve JWT payload
+        $jwt = $this->retrieveAccessToken($token);
 
-        // check the request headers for a JWT
-        $context = $this->container->get('context');
-        $request = $context->httpRequest();
+        // decode and verify token, if found
+        if($jwt) {
+            if($jwt['exp'] < time()) {
+                // generate a 401 Unauthorized HTTP response
+                throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
+            }
+            $this->user_id = $jwt['id'];
+        }
+        // no jwt found: attempt using other Basic http auth, if allowed
+        else {
+            // #todo - add a config setting to enable Basic http auth
 
-        // no token received as param : look in HTTP request headers
-        if(!$jwt) {
+            // check the request headers for a JWT
+            $context = $this->container->get('context');
+
+            /** @var \equal\http\HttpRequest  */
+            $request = $context->httpRequest();
+
             $auth_header = $request->header('Authorization');
-            if(!is_null($auth_header)) {
-                if(strpos($auth_header, 'Bearer ') !== false) {
-                    // retrieve JWT token
-                    list($jwt) = sscanf($auth_header, 'Bearer %s');
-                }
-                elseif(strpos($auth_header, 'Basic ') !== false) {
-                    list($token) = sscanf($auth_header, 'Basic %s');
-                    list($username, $password) = explode(':', base64_decode($token));
+
+            if($auth_header) {
+                if(strpos($auth_header, 'Basic ') !== false) {
+                    [$token] = sscanf($auth_header, 'Basic %s');
+                    [$username, $password] = explode(':', base64_decode($token));
                     // leave $jwt unset and authenticate (sets $user_id)
                     $this->authenticate($username, $password);
                 }
             }
+
         }
 
-        // no token found : fallback to cookie
-        if(!$jwt) {
-            $jwt = $request->cookie('access_token');
-        }
-
-        // decode and verify token, if found
-        if($jwt) {
-            $payload = null;
-            try {
-                if( !$this->verifyToken($jwt, constant('AUTH_SECRET_KEY')) ){
-                    throw new \Exception('jwt_invalid_signature');
-                }
-
-                $decoded = $this->decodeToken($jwt);
-
-                if(!isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
-                    throw new \Exception('jwt_invalid_payload');
-                }
-                $payload = $decoded['payload'];
-            }
-            catch(\Exception $e) {
-                trigger_error("API::Unable to decode token: ".$e->getMessage(), EQ_REPORT_ERROR);
-            }
-            if($payload) {
-                if($payload['exp'] < time()) {
-                    // generate a 401 Unauthorized HTTP response
-                    throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
-                }
-                $this->user_id = $payload['id'];
-            }
-        }
         return $this->user_id;
     }
 
     /**
+     * Attempts to authenticate a user based on given login and password, and set internal `user_id` accordingly.
+     *
      * @throws Exception    Raises an exception in case the credentials are not related to a user.
      */
     public function authenticate($login, $password) {
