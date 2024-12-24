@@ -4,7 +4,6 @@
     Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-
 use core\Passkey;
 use core\setting\Setting;
 use equal\auth\JWT;
@@ -13,7 +12,6 @@ use lbuchs\WebAuthn\WebAuthn;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Authenticate a user using a passkey.',
-    'deprecated'	=>	"Use user_auth_passkey instead.",
     'params'        => [
         'auth_token' => [
             'type'          => 'string',
