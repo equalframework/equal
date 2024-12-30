@@ -38,12 +38,16 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$user_handle_setting = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $params['user_handle']]])
+$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+    ->read(['id'])
+    ->first();
+
+$user_handle_setting = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
     ->read(['user_id'])
     ->first(true);
 
 if(!$user_handle_setting) {
-    throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
+    throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
 }
 
 $user = User::search(['id', '=', $user_handle_setting['user_id']])
