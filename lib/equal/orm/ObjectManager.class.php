@@ -72,7 +72,7 @@ class ObjectManager extends Service {
     public static $complex_types = array('one2many', 'many2many', 'computed');
 
     /**
-     * - dev-2.0 - 'dependencies' has been deprecated in favor to 'dependents'
+     * #dev-2.0 - 'dependencies' has been deprecated in favor to 'dependents'
      */
     public static $valid_attributes = [
         'alias'         => array('description', 'help', 'type', 'visible', 'default', 'usage', 'alias', 'required', 'deprecated'),
