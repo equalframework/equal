@@ -42,15 +42,15 @@ $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
     ->read(['id'])
     ->first();
 
-$user_handle_setting = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
+$setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
     ->read(['user_id'])
     ->first(true);
 
-if(!$user_handle_setting) {
+if(!$setting_value) {
     throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
 }
 
-$user = User::search(['id', '=', $user_handle_setting['user_id']])
+$user = User::search(['id', '=', $setting_value['user_id']])
     ->read(['id', 'login', 'username'])
     ->first(true);
 

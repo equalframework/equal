@@ -114,20 +114,20 @@ $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
     ->read(['id'])
     ->first();
 
-$user_handle_setting = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
+$setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
     ->read(['id', 'user_id'])
     ->first(true);
 
-if(!$user_handle_setting) {
+if(!$setting_value) {
     throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
 }
 
-if($passkey['user_id']['id'] !== $user_handle_setting['user_id']) {
+if($passkey['user_id']['id'] !== $setting_value['user_id']) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
 // remove temporary user_handle
-SettingValue::id($user_handle_setting['id'])->delete(true);
+SettingValue::id($setting_value['id'])->delete(true);
 
 // ensure that the token has been emitted by this server
 if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
