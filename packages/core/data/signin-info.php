@@ -73,28 +73,39 @@ if(is_null($user)) {
 $global_passkey_creation = Setting::get('core', 'security', 'passkey_creation');
 $passkey_creation = Setting::get('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
 
-$user_handle = $user['id'];
+$user_handle = Setting::get('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
 
-/*
-// generate temporary anonymous user_handle
-$user_handle = bin2hex(random_bytes(16));
-$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])->first();
+if(is_null($user_handle)) {
+    $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+        ->read(['id'])
+        ->first();
 
-// make sure the handle is not already assigned
-while(true) {
-    $values = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $user_handle]])->get();
-    if(!count($values)) {
-        break;
-    }
+    // generate temporary anonymous user_handle
     $user_handle = bin2hex(random_bytes(16));
+
+    // make sure the handle is not already assigned
+    while(true) {
+        $values = SettingValue::search([
+            ['setting_id', '=', $setting['id']],
+            ['value', '=', $user_handle]]
+        )
+            ->get();
+
+        if(!count($values)) {
+            break;
+        }
+        $user_handle = bin2hex(random_bytes(16));
+    }
+
+    SettingValue::create([
+        'setting_id'    => $setting['id'],
+        'user_id'       => $user['id'],
+        'value'         => $user_handle
+    ])
+        ->read(['value'])
+        ->first();
 }
 
-SettingValue::create([
-    'setting_id'    => $setting['id'],
-    'user_id'       => $user['id'],
-    'value'         => $user_handle
-]);
-*/
 $context->httpResponse()
         ->body([
             'user_handle'               => $user_handle,

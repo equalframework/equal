@@ -451,7 +451,7 @@
                 "package": "core",
                 "form_control": "input",
                 "section_id": 3,
-                "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
+                "description": "User handle for passkey authentication.",
                 "help": "Holds a temporary user_handle as a nonce for each user, used for mapping a current WebAuthn session with an existing user.",
                 "type": "string"
             }
