@@ -80,7 +80,7 @@ foreach($passkey_formats as $format) {
 $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
 $credential_id = base64_decode($params['credential_id']);
-$client_data_json = base64_decode($params['client_data_json']);
+$client_data = base64_decode($params['client_data_json']);
 $authenticator_data = base64_decode($params['authenticator_data']);
 $signature = base64_decode($params['signature']);
 
@@ -140,7 +140,7 @@ if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
 $auth_token = JWT::decode($params['auth_token']);
 
 // #memo - processGet checks for decreasing counter (the counter should always increase)
-$webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
+$webAuthn->processGet($client_data, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
 // #memo - the signature counter detects key cloning
 $sign_count = $webAuthn->getSignatureCounter();

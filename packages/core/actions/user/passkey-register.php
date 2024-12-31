@@ -70,7 +70,7 @@ foreach($passkey_formats as $format) {
 // #memo - creating WbAuthn with an empty formats array makes the process fail silently
 $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 
-$client_data_json = base64_decode($params['client_data_json']);
+$client_data = base64_decode($params['client_data_json']);
 $attestation_object = base64_decode($params['attestation_object']);
 
 // Check that the token has been emitted by this server
@@ -81,7 +81,7 @@ if(!$auth->verifyToken($params['register_token'], constant('AUTH_SECRET_KEY'))) 
 $register_token = JWT::decode($params['register_token']);
 
 $data = $webAuthn->processCreate(
-    $client_data_json,
+    $client_data,
     $attestation_object,
     ByteBuffer::fromHex($register_token['payload']['challenge']),
     $user_verification === 'required'
