@@ -308,15 +308,15 @@ class Setting extends Model {
 
         $domain = [ ['setting_id', '=', $setting_id] ];
 
-        foreach($selector as $field => $value) {
-            $domain[] = [$field, '=', $value];
+        foreach($selector as $field => $val) {
+            $domain[] = [$field, '=', $val];
         }
 
         $settings_values_ids = $om->search(SettingValue::getType(), $domain);
         if(!count($settings_values_ids)) {
             $values = ['setting_id' => $setting_id, 'value' => $value];
-            foreach($selector as $field => $value) {
-                $values[$field] = $value;
+            foreach($selector as $field => $val) {
+                $values[$field] = $val;
             }
             // value does not exist yet: create a new value
             $om->create(SettingValue::getType(), $values, $lang);
