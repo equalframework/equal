@@ -75,10 +75,14 @@ $passkey_creation = Setting::get('core', 'security', 'passkey_creation', $global
 
 $user_handle = Setting::get('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
 
-if(is_null($user_handle)) {
+if(!$user_handle) {
     $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
         ->read(['id'])
         ->first();
+
+    if(!$setting) {
+        throw new Exception('missing_setting', EQ_ERROR_INVALID_CONFIG);
+    }
 
     // generate temporary anonymous user_handle
     $user_handle = bin2hex(random_bytes(16));
@@ -86,9 +90,9 @@ if(is_null($user_handle)) {
     // make sure the handle is not already assigned
     while(true) {
         $values = SettingValue::search([
-            ['setting_id', '=', $setting['id']],
-            ['value', '=', $user_handle]]
-        )
+                ['setting_id', '=', $setting['id']],
+                ['value', '=', $user_handle]]
+            )
             ->get();
 
         if(!count($values)) {
@@ -97,13 +101,7 @@ if(is_null($user_handle)) {
         $user_handle = bin2hex(random_bytes(16));
     }
 
-    SettingValue::create([
-        'setting_id'    => $setting['id'],
-        'user_id'       => $user['id'],
-        'value'         => $user_handle
-    ])
-        ->read(['value'])
-        ->first();
+    Setting::set_value('core', 'security', 'passkey_user-handle', $user_handle, ['user_id' => $user['id']]);
 }
 
 $context->httpResponse()

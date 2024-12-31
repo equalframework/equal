@@ -114,6 +114,10 @@ $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
     ->read(['id'])
     ->first();
 
+if(!$setting) {
+    throw new Exception('missing_setting', EQ_ERROR_INVALID_CONFIG);
+}
+
 $setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
     ->read(['id', 'user_id'])
     ->first(true);
@@ -123,10 +127,10 @@ if(!$setting_value) {
 }
 
 if($passkey['user_id']['id'] !== $setting_value['user_id']) {
-    throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
+    throw new Exception('user_handle_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
-// remove temporary user_handle
+// remove temporary user handle
 SettingValue::id($setting_value['id'])->delete(true);
 
 // ensure that the token has been emitted by this server
@@ -136,7 +140,7 @@ if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {
 
 $auth_token = JWT::decode($params['auth_token']);
 
-// #memo - processGet checks for decreasing counter (the counter should always increase)
+// #memo - `processGet` checks for decreasing counter (the counter should always increase)
 $webAuthn->processGet($client_data_json, $authenticator_data, $signature, $passkey['credential_public_key'], ByteBuffer::fromHex($auth_token['payload']['challenge']), $passkey['signature_counter'], true);
 
 // #memo - the signature counter detects key cloning
@@ -157,6 +161,7 @@ $auth_method = [
     ];
 
 if($jwt) {
+    // update existing access token
     if(!isset($jwt['amr'])) {
         $jwt['amr'] = [];
     }
@@ -165,7 +170,7 @@ if($jwt) {
     $access_token = $auth->createAccessToken($jwt);
 }
 else {
-    // generate access token
+    // generate new access token
     $access_token = $auth->token(
             // user identifier
             $passkey['user_id']['id'],
