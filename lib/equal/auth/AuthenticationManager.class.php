@@ -8,8 +8,6 @@ namespace equal\auth;
 
 use equal\organic\Service;
 use equal\services\Container;
-use equal\auth\JWT;
-
 
 class AuthenticationManager extends Service {
 
@@ -32,7 +30,12 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Provide a JWT token based on given user (or current user if known) and `AUTH_SECRET_KEY`
+     * Provide a JWT token based on given user (or current user if known) and `AUTH_SECRET_KEY`.
+     *
+     * The JWT access token is built on a payload holding:
+     *   - id  : the user identifier
+     *   - exp : the datetime (timestamp) at which the token expires
+     *   - amr : Authentication Methods Reference
      *
      * @param   $user_id    identifier of the user for who a token is requested
      * @param   $validity   validity duration in seconds
@@ -93,8 +96,10 @@ class AuthenticationManager extends Service {
 
     /**
      * Attempts to decode the JWT token from the received HTTP request, or uses the provided token if specified.
+     *
      * @param string $jwt   The JSON Web Token (JWT) string to decode. If not provided, the function will attempt to extract the token from the HTTP request.
      *
+     * @return array|null   Decoded access token payload as an associative array mapping 'id', 'exp' & 'amr' (@see `token()` method).
      */
     public function retrieveAccessToken($jwt = null) {
 
