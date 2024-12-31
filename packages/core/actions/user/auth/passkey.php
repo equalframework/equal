@@ -4,8 +4,10 @@
     Some Rights Reserved, Cedric Francoys, 2010-2024
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
 use core\Passkey;
 use core\setting\Setting;
+use core\setting\SettingValue;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
@@ -108,27 +110,24 @@ if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
 }
 
-/*
-// retrieve user_id from user_handle
-$settingValue = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $params['user_handle']]])
-            ->read(['id', 'user_id'])
-            ->first();
+$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+    ->read(['id'])
+    ->first();
 
-if(!$settingValue) {
+$setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
+    ->read(['id', 'user_id'])
+    ->first(true);
+
+if(!$setting_value) {
     throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
 }
 
-if($passkey['user_id']['id'] !== $settingValue['user_id']) {
+if($passkey['user_id']['id'] !== $setting_value['user_id']) {
     throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
 }
 
 // remove temporary user_handle
-SettingValue::id($settingValue['id'])->delete(true);
-*/
-
-if($passkey['user_id']['id'] !== intval($params['user_handle'])) {
-    throw new Exception('user_handle_does_not_match', EQ_ERROR_INVALID_PARAM);
-}
+SettingValue::id($setting_value['id'])->delete(true);
 
 // ensure that the token has been emitted by this server
 if(!$auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'))) {

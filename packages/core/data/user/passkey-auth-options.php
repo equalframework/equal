@@ -7,6 +7,7 @@
 
 use core\Passkey;
 use core\setting\Setting;
+use core\setting\SettingValue;
 use core\User;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;
@@ -37,32 +38,19 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context] = $providers;
 
-$user_id = intval($params['user_handle']);
+$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+    ->read(['id'])
+    ->first();
 
-/*
-// #memo - we use user_handle as a temporary, anonymous key for mapping with a current 'webAuthn' session
-// retrieve user_id from user_handle
-$setting_values = SettingValue::search([['name', '=', 'core.security.passkey_user-handle'], ['value', '=', $params['user_handle']]])
-            ->read(['id', 'user_id'])
-            ->get();
+$setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
+    ->read(['user_id'])
+    ->first(true);
 
-// there should be 0 or 1 result
-$count_values = count($setting_values);
-
-if($count_values != 1) {
+if(!$setting_value) {
     throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
 }
 
-$settingValue = reset($setting_values);
-
-if(!$settingValue['user_id'] || $settingValue['user_id'] <= 0) {
-    throw new Exception('invalid_user_id', EQ_ERROR_UNKNOWN);
-}
-
-$user_id = $settingValue['user_id'];
-*/
-
-$user = User::search(['id', '=', $user_id])
+$user = User::search(['id', '=', $setting_value['user_id']])
     ->read(['id', 'login', 'username'])
     ->first(true);
 

@@ -6,6 +6,7 @@
 */
 
 use core\setting\Setting;
+use core\setting\SettingValue;
 use core\User;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\WebAuthn;
@@ -37,9 +38,21 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$user = $user = User::search(['id', '=', intval($params['user_handle'])])
-        ->read(['id', 'login', 'username'])
-        ->first(true);
+$setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+    ->read(['id'])
+    ->first();
+
+$setting_value = SettingValue::search([['setting_id', '=', $setting['id']], ['value', '=', $params['user_handle']]])
+    ->read(['user_id'])
+    ->first(true);
+
+if(!$setting_value) {
+    throw new Exception('invalid_user_handle', EQ_ERROR_INVALID_PARAM);
+}
+
+$user = User::search(['id', '=', $setting_value['user_id']])
+    ->read(['id', 'login', 'username'])
+    ->first(true);
 
 if(!$user) {
     throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
