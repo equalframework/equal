@@ -53,7 +53,7 @@ if(!$user['validated']) {
 $user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $user['groups_ids']));
 
 // renew JWT access token
-$access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$access_token  = $auth->renewedToken(constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
 // send back basic info of the User object
 $context->httpResponse()
