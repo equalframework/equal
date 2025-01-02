@@ -911,6 +911,24 @@ namespace config {
                         }
                     }
                 }
+                if(isset($announcement['access']['auth_level'])) {
+                    $jwt = $auth->retrieveAccessToken();
+                    if(!isset($jwt['amr'])) {
+                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
+                    }
+
+                    $allowed = false;
+                    foreach($jwt['amr'] as $amr) {
+                        if($amr['auth_level'] >= $announcement['access']['auth_level']) {
+                            $allowed = true;
+                            break;
+                        }
+                    }
+
+                    if(!$allowed) {
+                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
+                    }
+                }
             }
 
             /** @var \equal\data\adapt\DataAdapterProvider */
