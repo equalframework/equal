@@ -45,7 +45,7 @@ class Dispatcher extends Service {
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
-        if($message_models_ids > 0 && count($message_models_ids)){
+        if($message_models_ids > 0 && count($message_models_ids)) {
             $message_model_id = reset($message_models_ids);
             // prevent creating duplicates
             $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]]);
