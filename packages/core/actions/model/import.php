@@ -6,6 +6,7 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\setting\Setting;
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 use equal\php\Context;
