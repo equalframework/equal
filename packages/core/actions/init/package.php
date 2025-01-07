@@ -7,7 +7,6 @@
 */
 use equal\db\DBConnector;
 use equal\fs\FSManipulator as FS;
-use equal\orm\Field;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -38,8 +37,8 @@ list($params, $providers) = eQual::announce([
         ],
         'import' => [
             'description'   => 'Request importing initial data.',
-            'type'          => 'boolean',
-            'default'       => true
+            'help'          => 'No default is set in announcement since default value depends on `force` param.',
+            'type'          => 'boolean'
         ],
         'import_cascade' => [
             'description'   => 'Import initial data for dependencies as well.',
@@ -72,8 +71,7 @@ list($params, $providers) = eQual::announce([
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']
-
-    ],
+    ]
 ]);
 
 /**
@@ -113,21 +111,24 @@ $importDataFromFolderJsonFiles = function($data_folder) {
  * Action
  */
 
-$skip_package = false;
+// forcing a package initialization sets default value for `import` to false
+if(!isset($params['import'])) {
+    $params['import'] = !$params['force'];
+}
+
+$is_package_initialized = false;
 
 if(file_exists("log/packages.json")) {
     $json = file_get_contents("log/packages.json");
     $packages = json_decode($json, true);
-    if(isset($packages[$params['package']]) && !$params['force']) {
-        $skip_package = true;
-    }
+    $is_package_initialized = isset($packages[$params['package']]);
 }
 
-if($skip_package) {
+if($is_package_initialized && !$params['force']) {
     if($params['root']) {
         throw new Exception('package_already_initialized', EQ_ERROR_CONFLICT_OBJECT);
     }
-    // silently ignore package when dependency of another
+    // silently ignore package when being a dependency of another
 }
 else {
     // make sure DB is available
