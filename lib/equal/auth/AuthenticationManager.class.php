@@ -51,6 +51,29 @@ class AuthenticationManager extends Service {
     }
 
     /**
+     * Provide a renewed JWT token adding given validity time.
+     *
+     * @param int $validity duration in seconds
+     * @return  string
+     * @throws \Exception
+     */
+    public function renewedToken(int $validity=0) {
+        $jwt = $this->retrieveAccessToken();
+
+        if(is_null($jwt)) {
+            throw new \Exception('unable_to_retrieve_access_token');
+        }
+
+        $payload = [
+            'id'    => $jwt['id'],
+            'exp'   => time() + $validity,
+            'amr'   => $jwt['amr']
+        ];
+
+        return $this->createAccessToken($payload);
+    }
+
+    /**
      * Encode an array to a JWT token
      *
      * @param  $payload array representation of the object to be encoded
