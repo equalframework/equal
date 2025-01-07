@@ -55,6 +55,11 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
     * for each class, check that all fields are each field is present at least in one view
 
     * check for potential versions conflicts across packages in manifest `requires` (composer dependencies)
+
+
+    * check consistency of import files (JSON)
+        if($entity === 'core\setting\SettingValue') => setting_id should not be present and name should be set.
+
 */
 
 // result of the tests : array containing errors (if no errors are found, array is empty)
