@@ -30,6 +30,7 @@ class Setting extends Model {
                 'description'       => "Full path setting code to serve as reference (unique).",
                 'function'          => 'calcName',
                 'store'             => true,
+                'instant'           => true,
                 'readonly'          => true
             ],
 
@@ -51,7 +52,7 @@ class Setting extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Section name the setting belongs to.",
-                'function'          => 'calcSection',
+                'relation'          => ['section_id' => 'code'],
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -159,15 +160,6 @@ class Setting extends Model {
             ]
 
         ];
-    }
-
-    public static function calcSection($self) {
-        $result = [];
-        $self->read(['section_id' => 'code']);
-        foreach($self as $id => $setting) {
-            $result[$id] = $setting['section_id']['code'];
-        }
-        return $result;
     }
 
     public static function calcName($self) {

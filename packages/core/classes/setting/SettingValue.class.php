@@ -25,7 +25,7 @@ class SettingValue extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Code to serve as reference (might not be unique).",
-                'function'          => 'calcName',
+                'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -34,6 +34,7 @@ class SettingValue extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the value relates to.',
+                'dependents'        => ['name'],
                 'ondelete'          => 'cascade',
                 'required'          => true
             ],
@@ -54,15 +55,6 @@ class SettingValue extends Model {
             ]
 
         ];
-    }
-
-    public static function calcName($self) {
-        $result = [];
-        $self->read(['setting_id' => ['name']]);
-        foreach($self as $id => $value) {
-            $result[$id] = $value['setting_id']['name'];
-        }
-        return $result;
     }
 
     public function getUnique() {
