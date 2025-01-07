@@ -107,6 +107,7 @@ $lang = $extractLang($params);
 
 $object_ids = [];
 foreach($data as $entity_data) {
+    // adapt values according to type set in schema
     foreach($entity_data as $field => $value) {
         if(!isset($schema[$field])) {
             $reporter->warning("ORM::unknown field $field for entity $entity in given data.");
@@ -116,13 +117,7 @@ foreach($data as $entity_data) {
         $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
 
-    if($entity === 'core\setting\Setting') {
-        // references to a Setting should not rely on its `id`
-        if(isset($entity_data['id'])) {
-            unset($entity_data['id']);
-        }
-    }
-    elseif($entity === 'core\setting\SettingValue') {
+    if($entity === 'core\setting\SettingValue') {
         // `id` is discarded to prevent mixing up references across settings from several packages
         if(isset($entity_data['id'])) {
             unset($entity_data['id']);

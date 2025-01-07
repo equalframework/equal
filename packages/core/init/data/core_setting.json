@@ -679,213 +679,143 @@
         "lang": "en",
         "data": [
             {
-                "id": 1,
                 "name": "core.locale.numbers.thousands_separator",
-                "setting_id": 1,
                 "value": "."
             },
             {
-                "id": 2,
                 "name": "core.locale.currency.symbol_position",
-                "setting_id": 2,
                 "value": "after"
             },
             {
-                "id": 3,
                 "name": "core.locale.currency.decimal_precision",
-                "setting_id": 3,
                 "value": "2"
             },
             {
-                "id": 4,
                 "name": "core.locale.numbers.decimal_separator",
-                "setting_id": 4,
                 "value": "."
             },
             {
-                "id": 5,
                 "name": "core.locale.numbers.decimal_precision",
-                "setting_id": 5,
                 "value": "2"
             },
             {
-                "id": 6,
                 "name": "core.locale.date_format",
-                "setting_id": 6,
                 "value": "d\/m\/Y"
             },
             {
-                "id": 7,
                 "name": "core.locale.time_format",
-                "setting_id": 7,
                 "value": "H:i"
             },
             {
-                "id": 8,
                 "name": "core.main.company.id",
-                "setting_id": 8,
                 "value": "1"
             },
             {
-                "id": 9,
                 "name": "core.main.formats.paper",
-                "setting_id": 9,
                 "value": "A4"
             },
             {
-                "id": 10,
                 "name": "core.security.account_creation",
-                "setting_id": 10,
                 "value": "0"
             },
             {
-                "id": 11,
                 "name": "core.security.import",
-                "setting_id": 11,
                 "value": "1"
             },
             {
-                "id": 12,
                 "name": "core.security.export",
-                "setting_id": 12,
                 "value": "1"
             },
             {
-                "id": 13,
                 "name": "core.units.currency",
-                "setting_id": 13,
                 "value": "€"
             },
             {
-                "id": 14,
                 "name": "core.units.length",
-                "setting_id": 14,
                 "value": "m"
             },
             {
-                "id": 15,
                 "name": "core.units.weight",
-                "setting_id": 15,
                 "value": "kg"
             },
             {
-                "id": 16,
                 "name": "core.units.volume",
-                "setting_id": 16,
                 "value": "m3"
             },
             {
-                "id": 17,
                 "name": "core.units.surface",
-                "setting_id": 17,
                 "value": "m2"
             },
             {
-                "id": 18,
                 "name": "core.locale.time_zone",
-                "setting_id": 18,
                 "value": "Europe/Brussels"
             },
             {
-                "id": 19,
-                "name": "core.auth.passkey_creation",
-                "setting_id": 19,
+                "name": "core.security.passkey_creation",
                 "value": "0"
             },
             {
-                "id": 20,
-                "name": "core.auth.passkey_rp_id",
-                "setting_id": 20,
+                "name": "core.security.passkey_rp_id",
                 "value": "equal.local"
             },
             {
-                "id": 21,
-                "name": "core.auth.passkey_rp_name",
-                "setting_id": 21,
+                "name": "core.security.passkey_rp_name",
                 "value": "eQual App"
             },
             {
-                "id": 22,
-                "name": "core.auth.passkey_format_android-key",
-                "setting_id": 22,
+                "name": "core.security.passkey_format_android-key",
                 "value": "1"
             },
             {
-                "id": 23,
-                "name": "core.auth.passkey_format_android-safetynet",
-                "setting_id": 23,
+                "name": "core.security.passkey_format_android-safetynet",
                 "value": "1"
             },
             {
-                "id": 24,
-                "name": "core.auth.passkey_format_apple",
-                "setting_id": 24,
+                "name": "core.security.passkey_format_apple",
                 "value": "1"
             },
             {
-                "id": 25,
-                "name": "core.auth.passkey_format_fido-u2f",
-                "setting_id": 25,
+                "name": "core.security.passkey_format_fido-u2f",
                 "value": "1"
             },
             {
-                "id": 26,
-                "name": "core.auth.passkey_format_none",
-                "setting_id": 26,
+                "name": "core.security.passkey_format_none",
                 "value": "1"
             },
             {
-                "id": 27,
-                "name": "core.auth.passkey_format_packed",
-                "setting_id": 27,
+                "name": "core.security.passkey_format_packed",
                 "value": "1"
             },
             {
-                "id": 28,
-                "name": "core.auth.passkey_format_tpm",
-                "setting_id": 28,
+                "name": "core.security.passkey_format_tpm",
                 "value": "1"
             },
             {
-                "id": 29,
-                "name": "core.auth.passkey_user_verification",
-                "setting_id": 29,
+                "name": "core.security.passkey_user_verification",
                 "value": "preferred"
             },
             {
-                "id": 30,
-                "name": "core.auth.passkey_cross_platform",
-                "setting_id": 30,
+                "name": "core.security.passkey_cross_platform",
                 "value": "all"
             },
             {
-                "id": 31,
-                "name": "core.auth.passkey_authenticator_usb",
-                "setting_id": 31,
+                "name": "core.security.passkey_authenticator_usb",
                 "value": "1"
             },
             {
-                "id": 32,
-                "name": "core.auth.passkey_authenticator_nfc",
-                "setting_id": 32,
+                "name": "core.security.passkey_authenticator_nfc",
                 "value": "1"
             },
             {
-                "id": 33,
-                "name": "core.auth.passkey_authenticator_ble",
-                "setting_id": 33,
+                "name": "core.security.passkey_authenticator_ble",
                 "value": "1"
             },
             {
-                "id": 34,
-                "name": "core.auth.passkey_authenticator_hybrid",
-                "setting_id": 34,
+                "name": "core.security.passkey_authenticator_hybrid",
                 "value": "1"
             },
             {
-                "id": 35,
-                "name": "core.auth.passkey_authenticator_internal",
-                "setting_id": 35,
+                "name": "core.security.passkey_authenticator_internal",
                 "value": "1"
             }
         ]

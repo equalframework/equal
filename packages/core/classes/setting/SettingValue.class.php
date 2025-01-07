@@ -15,7 +15,7 @@ class SettingValue extends Model {
     }
 
     public static function getDescription() {
-        return "Configurations parameters are either specific to a user or global (user_id = 0).";
+        return "Configuration parameters are either specific to a user or global (user_id = 0).";
     }
 
     public static function getColumns() {
