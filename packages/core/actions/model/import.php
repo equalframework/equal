@@ -67,7 +67,7 @@ $extractEntityAndSchema = function(array $params) use ($orm): array {
 
     $model = $orm->getModel($entity);
     if(!$model) {
-        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+        throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
     }
 
     return [$entity, $model->getSchema()];
@@ -113,6 +113,27 @@ foreach($data as $entity_data) {
         }
         $f = new Field($schema[$field]);
         $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
+    }
+
+    if($entity === 'core\setting\Setting') {
+        // references to a Setting should not rely on its `id`
+        if(isset($entity_data['id'])) {
+            unset($entity_data['id']);
+        }
+    }
+    elseif($entity === 'core\setting\SettingValue') {
+        // `id` is discarded to prevent mixing up references across settings from several packages
+        if(isset($entity_data['id'])) {
+            unset($entity_data['id']);
+        }
+        if(!isset($entity_data['name'])) {
+            throw new Exception('missing_setting_name', EQ_ERROR_INVALID_CONFIG);
+        }
+        $settings_ids = Setting::search(['name', '=', $entity_data['name']])->ids();
+        if(!count($settings_ids)) {
+            throw new Exception('unknown_setting', EQ_ERROR_INVALID_CONFIG);
+        }
+        $entity_data['setting_id'] = reset($settings_ids);
     }
 
     if(isset($entity_data['id'])) {
