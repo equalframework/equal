@@ -260,6 +260,15 @@ class Setting extends Model {
         return $result;
     }
 
+    /**
+     * Update the value of a given setting.
+     * This is a shorthand alias for `set_value()`
+     *
+     * @return  void
+     */
+    public static function set(string $package, string $section, string $code, $value, array $selector=[], string $lang=null) {
+        self::set_value($package, $section, $code, $value, $selector, $lang);
+    }
 
     /**
      * Update the value of a given setting.
