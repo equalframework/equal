@@ -1723,16 +1723,17 @@ class ObjectManager extends Service {
                     ARRAY_FILTER_USE_KEY
                 );
 
-
-            // 3) make sure objects in the collection can be updated
-            // #memo - moved to Collection
-
             // #memo - update operation sets state to 'instance', unless when explicitly set in $fields to a distinct value
             if(!isset($fields['state']) || $fields['state'] == 'draft') {
                 $fields['state'] = 'instance';
             }
 
             $fields['modified'] = time();
+
+
+            // 3) make sure objects in the collection can be updated
+            // #memo - moved to Collection
+
 
             // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
             if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
