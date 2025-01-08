@@ -1533,7 +1533,7 @@ class ObjectManager extends Service {
      */
     public function create($class, $fields=null, $lang=null, $use_draft=true) {
         $res = 0;
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
         try {
             // get DB handler (init DB connection if necessary)
@@ -1630,7 +1630,7 @@ class ObjectManager extends Service {
 
             // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
-            // request an object update (mark call as 'from_create')
+            // request an object update (flag call with '$create')
             $res_w = $this->update($class, $oid, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) {
@@ -1682,10 +1682,10 @@ class ObjectManager extends Service {
      *
      * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
      */
-    public function update($class, $ids=null, $fields=null, $lang=null, $create=false) {
+    public function update($class, $ids, $fields, $lang=null, $create=false) {
         // init result
         $res = [];
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
         try {
             // get DB handler (init DB connection if necessary)
@@ -1701,7 +1701,7 @@ class ObjectManager extends Service {
             $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
-                trigger_error("ORM::ignoring call with empty ids ", QN_REPORT_INFO);
+                trigger_error("ORM::ignoring call with empty ids", QN_REPORT_INFO);
                 return $res;
             }
             // ids that are left are the ones of the objects that will be written
@@ -1727,7 +1727,11 @@ class ObjectManager extends Service {
             // 3) make sure objects in the collection can be updated
             // #memo - moved to Collection
 
-            // #memo - writing an object does not change its state, unless when explicitly set in $fields
+            // #memo - update operation sets state to 'instance', unless when explicitly set in $fields to a distinct value
+            if(!isset($fields['state']) || $fields['state'] == 'draft') {
+                $fields['state'] = 'instance';
+            }
+
             $fields['modified'] = time();
 
             // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values

@@ -636,7 +636,7 @@ class Collection implements \Iterator, \Countable {
         }
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
+        $check_required = (isset($values['state']) && $values['state'] == 'draft') ? false : true;
 
         // 3) validate : check required fields accordingly
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
@@ -652,7 +652,7 @@ class Collection implements \Iterator, \Countable {
         }
 
         // 4) create the new object
-        $id = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
+        $id = $this->orm->create($this->class, $values, ($lang) ? $lang : $this->lang);
         if($id <= 0) {
             throw new \Exception('creation_failed', EQ_ERROR_UNKNOWN);
         }
@@ -878,10 +878,14 @@ class Collection implements \Iterator, \Countable {
 
             // by convention, update operation sets modifier as current user
             $values['modifier'] = $user_id;
+
             // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
+            // #memo - moved to ObjectManager::update()
+            /*
             if(!isset($values['state']) || $values['state'] == 'draft') {
                 $values['state'] = 'instance';
             }
+            */
 
             // 2) check that current user has enough privilege to perform the operation
             if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
