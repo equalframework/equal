@@ -160,10 +160,16 @@ class DataTransformer extends Model {
                 $value = trim($value);
                 break;
             case 'phone':
-                $value = str_replace(' ', '', $value);
-                $value = str_replace('.', '', $value);
-                if(strpos($value, '+') !== 0) {
-                    $value = '+'.$data_transformer['phone_prefix'].$value;
+                if(!empty($value)) {
+                    $value = str_replace(' ', '', $value);
+                    $value = str_replace('.', '', $value);
+                    if(strpos($value, '+') !== 0) {
+                        if(strpos($value, '0') === 0) {
+                            $value = substr($value, 1);
+                        }
+
+                        $value = '+'.$data_transformer['phone_prefix'].$value;
+                    }
                 }
                 break;
         }
