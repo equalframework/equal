@@ -60,6 +60,21 @@
                                                 "type": "field",
                                                 "value": "field_contains_value",
                                                 "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "replace_search_value",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "replace_replace_value",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "phone_prefix",
+                                                "width": "25%"
                                             }
                                         ]
                                     }

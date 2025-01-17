@@ -34,7 +34,10 @@ class DataTransformer extends Model {
                     'divide'                    => 'Divide',
                     'field-contains'            => 'Field contains',
                     'field-does-not-contain'    => 'Field does not contain',
-                    'map-value'                 => 'Map value'
+                    'map-value'                 => 'Map value',
+                    'replace'                   => 'Replace',
+                    'trim'                      => 'Trim',
+                    'phone'                     => 'Phone'
                 ],
                 'description'       => 'The type of transform operation to be applied on a column data to import.',
                 'default'           => 'value'
@@ -73,6 +76,24 @@ class DataTransformer extends Model {
                 'type'              => 'string',
                 'description'       => 'Value that must be found or not.',
                 'visible'           => ['transformer_type', 'in', ['field-contains', 'field-does-not-contain']]
+            ],
+
+            'replace_search_value' => [
+                'type'              => 'string',
+                'description'       => 'Value that need to be replaced.',
+                'visible'           => ['transformer_type', '=', 'replace']
+            ],
+
+            'replace_replace_value' => [
+                'type'              => 'string',
+                'description'       => 'Value that must replace the search value.',
+                'visible'           => ['transformer_type', '=', 'replace']
+            ],
+
+            'phone_prefix' => [
+                'type'              => 'string',
+                'description'       => 'The prefix for phone number (e.g., 32).',
+                'visible'           => ['transformer_type', '=', 'phone']
             ],
 
             'map_values_ids' => [
@@ -131,7 +152,19 @@ class DataTransformer extends Model {
                     $value = $map_value['new_value'];
                     break;
                 }
-
+                break;
+            case 'replace':
+                $value = str_replace($data_transformer['replace_search_value'], $data_transformer['replace_replace_value'], $value);
+                break;
+            case 'trim':
+                $value = trim($value);
+                break;
+            case 'phone':
+                $value = str_replace(' ', '', $value);
+                $value = str_replace('.', '', $value);
+                if(strpos($value, '+') !== 0) {
+                    $value = '+'.$data_transformer['phone_prefix'].$value;
+                }
                 break;
         }
 
