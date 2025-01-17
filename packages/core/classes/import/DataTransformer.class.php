@@ -160,8 +160,8 @@ class DataTransformer extends Model {
                 $value = trim($value);
                 break;
             case 'phone':
+                $value = str_replace(' ', '', $value);
                 if(!empty($value)) {
-                    $value = str_replace(' ', '', $value);
                     $value = str_replace('.', '', $value);
                     if(strpos($value, '+') !== 0) {
                         if(strpos($value, '0') === 0) {
