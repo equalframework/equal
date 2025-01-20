@@ -94,14 +94,6 @@ class DataTransformer extends Model {
                 'type'              => 'string',
                 'description'       => 'The prefix for phone number (e.g., 32).',
                 'visible'           => ['transformer_type', '=', 'phone']
-            ],
-
-            'map_values_ids' => [
-                'type'              => 'one2many',
-                'foreign_object'    => 'core\import\DataTransformerMapValue',
-                'foreign_field'     => 'data_transformer_id',
-                'description'       => 'List a map values to replace a value by another.',
-                'visible'           => ['transformer_type', '=', 'map-value']
             ]
 
         ];
@@ -142,16 +134,6 @@ class DataTransformer extends Model {
                 break;
             case 'field-does-not-contain':
                 $value = strpos($value, $data_transformer['field_contains_value']) === false;
-                break;
-            case 'map-value':
-                foreach($data_transformer['map_values_ids'] as $map_value) {
-                    if($map_value['old_value'] != $value) {
-                        continue;
-                    }
-
-                    $value = $map_value['new_value'];
-                    break;
-                }
                 break;
             case 'replace':
                 $value = str_replace($data_transformer['replace_search_value'], $data_transformer['replace_replace_value'], $value);

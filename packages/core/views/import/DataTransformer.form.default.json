@@ -83,31 +83,6 @@
                         ]
                     }
                 ]
-            },
-            {
-                "visible": ["transformer_type", "=", "map-value"],
-                "sections": [
-                    {
-                        "id": "section.map-values",
-                        "label": "Map values",
-                        "rows": [
-                            {
-                                "columns": [
-                                    {
-                                        "width": "100%",
-                                        "items": [
-                                            {
-                                                "type": "field",
-                                                "value": "map_values_ids",
-                                                "width": "100%"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
             }
         ]
     }
