@@ -34,7 +34,6 @@ class DataTransformer extends Model {
                     'divide'                    => 'Divide',
                     'field-contains'            => 'Field contains',
                     'field-does-not-contain'    => 'Field does not contain',
-                    'map-value'                 => 'Map value',
                     'replace'                   => 'Replace',
                     'trim'                      => 'Trim',
                     'phone'                     => 'Phone'
