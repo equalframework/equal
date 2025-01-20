@@ -136,6 +136,9 @@ $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
                 'cast_to',
                 'transform_by',
                 'field_contains_value',
+                'replace_search_value',
+                'replace_replace_value',
+                'phone_prefix',
                 'map_values_ids' => ['old_value', 'new_value']
             ]
         ]
