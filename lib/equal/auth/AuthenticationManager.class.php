@@ -128,22 +128,24 @@ class AuthenticationManager extends Service {
 
         $result = null;
 
-        // check the request headers for a JWT
-        $context = $this->container->get('context');
-
-        /** @var \equal\http\HttpRequest  */
-        $request = $context->httpRequest();
-
-        $jwt = $request->cookie('access_token');
-
-        // no token found : fallback to Authorization header
         if(!$jwt) {
-            $auth_header = $request->header('Authorization');
+            // check the request headers for a JWT
+            $context = $this->container->get('context');
 
-            if($auth_header) {
-                if(strpos($auth_header, 'Bearer ') !== false) {
-                    // retrieve JWT token
-                    [$jwt] = sscanf($auth_header, 'Bearer %s');
+            /** @var \equal\http\HttpRequest  */
+            $request = $context->httpRequest();
+
+            $jwt = $request->cookie('access_token');
+
+            // no token found : fallback to Authorization header
+            if(!$jwt) {
+                $auth_header = $request->header('Authorization');
+
+                if($auth_header) {
+                    if(strpos($auth_header, 'Bearer ') !== false) {
+                        // retrieve JWT token
+                        [$jwt] = sscanf($auth_header, 'Bearer %s');
+                    }
                 }
             }
         }
