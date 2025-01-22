@@ -105,7 +105,7 @@ class DataAdapterJsonArray implements DataAdapter {
                 // handle separator (next value or next attribute)
                 if($c == ',') {
                     if(strlen($current)) {
-                        $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
+                        $res = ($current === 'null') ? null : json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                         if(strlen($current_key)) {
                             $result[trim($current_key)] = $res;
                         }
@@ -113,6 +113,11 @@ class DataAdapterJsonArray implements DataAdapter {
                             $result[] = $res;
                         }
                     }
+                    // Skip white spaces after comma
+                    do {
+                        $i++;
+                        $c = substr($value, $i, 1);
+                    } while ($c === ' ');
                     $current_key = '';
                     $current = '';
                     continue;
