@@ -114,10 +114,13 @@ class DataAdapterJsonArray implements DataAdapter {
                         }
                     }
                     // Skip white spaces after comma
-                    do {
+                    while(true) {
+                        $c = substr($value, $i+1, 1);
+                        if($c != ' ') {
+                            break;
+                        }
                         $i++;
-                        $c = substr($value, $i, 1);
-                    } while ($c === ' ');
+                    }
                     $current_key = '';
                     $current = '';
                     continue;
