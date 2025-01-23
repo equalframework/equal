@@ -708,7 +708,7 @@ function createGroupRow($doc, $group, &$view_items, &$translations) {
     if(isset($group['_data'])) {
         $children_count = count($group['_data']);
 
-        if(count($group['_operation'])) {
+        if(count($group['_operation'] ?? [])) {
             $op_result = 0;
             $op_type = $group['_operation'][0];
             // target should be 'object.{field_name}'
