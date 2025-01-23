@@ -34,7 +34,9 @@ class DataTransformer extends Model {
                     'divide'                    => 'Divide',
                     'field-contains'            => 'Field contains',
                     'field-does-not-contain'    => 'Field does not contain',
-                    'map-value'                 => 'Map value'
+                    'replace'                   => 'Replace',
+                    'trim'                      => 'Trim',
+                    'phone'                     => 'Phone'
                 ],
                 'description'       => 'The type of transform operation to be applied on a column data to import.',
                 'default'           => 'value'
@@ -75,12 +77,22 @@ class DataTransformer extends Model {
                 'visible'           => ['transformer_type', 'in', ['field-contains', 'field-does-not-contain']]
             ],
 
-            'map_values_ids' => [
-                'type'              => 'one2many',
-                'foreign_object'    => 'core\import\DataTransformerMapValue',
-                'foreign_field'     => 'data_transformer_id',
-                'description'       => 'List a map values to replace a value by another.',
-                'visible'           => ['transformer_type', '=', 'map-value']
+            'replace_search_value' => [
+                'type'              => 'string',
+                'description'       => 'Value that need to be replaced.',
+                'visible'           => ['transformer_type', '=', 'replace']
+            ],
+
+            'replace_replace_value' => [
+                'type'              => 'string',
+                'description'       => 'Value that must replace the search value.',
+                'visible'           => ['transformer_type', '=', 'replace']
+            ],
+
+            'phone_prefix' => [
+                'type'              => 'string',
+                'description'       => 'The prefix for phone number (e.g., 32).',
+                'visible'           => ['transformer_type', '=', 'phone']
             ]
 
         ];
@@ -122,16 +134,24 @@ class DataTransformer extends Model {
             case 'field-does-not-contain':
                 $value = strpos($value, $data_transformer['field_contains_value']) === false;
                 break;
-            case 'map-value':
-                foreach($data_transformer['map_values_ids'] as $map_value) {
-                    if($map_value['old_value'] != $value) {
-                        continue;
+            case 'replace':
+                $value = str_replace($data_transformer['replace_search_value'], $data_transformer['replace_replace_value'], $value);
+                break;
+            case 'trim':
+                $value = trim($value);
+                break;
+            case 'phone':
+                $value = str_replace(' ', '', $value);
+                if(!empty($value)) {
+                    $value = str_replace('.', '', $value);
+                    if(strpos($value, '+') !== 0) {
+                        if(strpos($value, '0') === 0) {
+                            $value = substr($value, 1);
+                        }
+
+                        $value = '+'.$data_transformer['phone_prefix'].$value;
                     }
-
-                    $value = $map_value['new_value'];
-                    break;
                 }
-
                 break;
         }
 
