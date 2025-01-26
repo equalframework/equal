@@ -77,7 +77,7 @@ if(file_exists("public/$app")) {
     }
 
     // remove existing folder, if present
-    if(FS::removeDir("public/$app")) {
+    if(!FS::removeDir("public/$app")) {
         throw new Exception('fs_removing_file_failure', EQ_ERROR_UNKNOWN);
     }
 }
