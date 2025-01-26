@@ -56,7 +56,7 @@ $app_path = "packages/{$params['package']}/apps/$app";
 
 if(!file_exists($app_path) || !file_exists($app_path.'/web.app')) {
     // ignore apps not relating to an actual folder inside {package}/apps
-    continue;
+    throw new Exception('missing_target_directory', EQ_ERROR_UNKNOWN);
 }
 
 $app_manifest = [];
@@ -64,7 +64,7 @@ $app_manifest = [];
 if(file_exists("$app_path/manifest.json")) {
     $app_manifest = json_decode(file_get_contents("$app_path/manifest.json"), true);
     if(!$package_manifest) {
-        throw new Exception("Invalid manifest for app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
+        throw new Exception('invalid_manifest', EQ_ERROR_UNKNOWN);
     }
 }
 
