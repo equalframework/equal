@@ -63,7 +63,7 @@ $app_manifest = [];
 
 if(file_exists("$app_path/manifest.json")) {
     $app_manifest = json_decode(file_get_contents("$app_path/manifest.json"), true);
-    if(!$package_manifest) {
+    if(!$app_manifest) {
         throw new Exception('invalid_manifest', EQ_ERROR_UNKNOWN);
     }
 }
