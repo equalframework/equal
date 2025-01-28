@@ -200,13 +200,11 @@ else {
 */
 
 // retrieve translation data (for fields names), if any
-$json = eQual::run('get', 'config_i18n', [
+$i18n = eQual::run('get', 'config_i18n', [
     'entity'        => $params['entity'],
     'lang'          => $params['lang']
 ]);
 
-// decode json into an array
-$i18n = json_decode($json, true);
 $translations = [];
 if(!isset($i18n['errors']) && isset($i18n['model'])) {
     foreach($i18n['model'] as $field => $descr) {
