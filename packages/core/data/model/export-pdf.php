@@ -200,7 +200,7 @@ else {
 */
 
 // retrieve translation data (for fields names), if any
-$json = run('get', 'config_i18n', [
+$json = eQual::run('get', 'config_i18n', [
     'entity'        => $params['entity'],
     'lang'          => $params['lang']
 ]);
@@ -348,14 +348,14 @@ if($is_controller_entity) {
                     $align = 'right';
                 }
             }
-            else if($type == 'date') {
+            elseif($type == 'date') {
                 $align = 'center';
             }
-            else if($type == 'time') {
+            elseif($type == 'time') {
                 $align = 'center';
                 $value = date($settings['time_format'], strtotime('today') + $value);
             }
-            else if($type == 'datetime') {
+            elseif($type == 'datetime') {
                 $align = 'center';
             }
             else {
@@ -395,7 +395,7 @@ if($is_controller_entity) {
 }
 else {
     // with group_by support
-    // create initial stack of goups / objects
+    // create initial stack of groups / objects
     $stack = [$values];
     if(count($group_by) && !$is_controller_entity) {
         $groups = groupObjects($schema, $values, $group_by);
@@ -416,7 +416,7 @@ else {
 
             // #todo - if operations are defined, add a line for each group
         }
-        else if(isset($elem['_is_group'])) {
+        elseif(isset($elem['_is_group'])) {
             $row = createGroupRow($doc, $elem, $view_fields, $translations);
             $table->appendChild($row);
         }
@@ -539,7 +539,7 @@ function groupObjects($schema, $objects, $group_by) {
                 $label = date($settings['date_format'], $key);
                 $key = date('Y-m-d', $key);
             }
-            else if(isset($model_def['usage'])) {
+            elseif(isset($model_def['usage'])) {
                 if($model_def['usage'] == 'date/month') {
                     // convert ISO8601 month (1-12) to js month  (0-11)
                     $key = intval($key);
@@ -630,17 +630,17 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
                 $class = 'right';
             }
         }
-        else if($type == 'date') {
+        elseif($type == 'date') {
             $class = 'center';
-            $value = ($value)?date($settings['date_format'], $value):'';
+            $value = ($value) ? date($settings['date_format'], $value) : '';
         }
-        else if($type == 'time') {
+        elseif($type == 'time') {
             $class = 'center';
             $value = date($settings['time_format'], strtotime('today') + $value);
         }
-        else if($type == 'datetime') {
+        elseif($type == 'datetime') {
             $class = 'center';
-            $value = ($value)?date($settings['date_format'].' '.$settings['time_format'], $value):'';
+            $value = ($value) ? date($settings['date_format'].' '.$settings['time_format'], $value) : '';
         }
         else {
             if($type == 'string') {
@@ -701,7 +701,7 @@ function createGroupRow($doc, $group, &$view_items, &$translations) {
         $parent_tr = getElementByAttributeValue($doc, 'tr', 'data-id', $parent_group_id);
         $prev_td = $parent_tr->firstChild;
         if($prev_td) {
-            $prefix = $prev_td->getAttribute('title').' › ';
+            $prefix = $prev_td->getAttribute('title') . ' › ';
         }
     }
 
