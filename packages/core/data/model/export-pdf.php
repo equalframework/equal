@@ -677,7 +677,7 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
         }
 
         if($type == 'string' && strpos($usage, 'text/') === 0) {
-            $class += ' allow-wrap';
+            $class .= ' allow-wrap';
         }
 
         $cell->setAttribute('class', $class);
