@@ -105,7 +105,7 @@ if(!isset($view_schema['layout']['items'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
-$group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
+$group_by = (isset($view_schema['group_by'])) ? $view_schema['group_by'] : [];
 
 $view_fields = [];
 foreach($view_schema['layout']['items'] as $item) {
@@ -396,11 +396,13 @@ else {
     // create initial stack of groups / objects
     $stack = [$values];
     if(count($group_by) && !$is_controller_entity) {
-        $groups = groupObjects($schema, $values, $group_by);
+        $groups = groupObjects($schema, $values, $group_by, $settings);
         $stack = [$groups];
     }
     while(true) {
-        if(count($stack) == 0) break;
+        if(count($stack) == 0) {
+            break;
+        }
 
         $elem = array_pop($stack);
         $first = reset($elem);
@@ -424,7 +426,9 @@ else {
             sort($keys);
             $keys = array_reverse( $keys );
             foreach($keys as $key) {
-                if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) continue;
+                if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) {
+                    continue;
+                }
                 // add object or array
                 if(isset($elem[$key]['_data'])) {
                     $stack[] = $elem[$key]['_data'];
@@ -490,8 +494,7 @@ $context->httpResponse()
  * @param array $objects    List of (partial) array representation of an object collection.
  * @param array $group_by   Descriptor of the fields grouping
  */
-function groupObjects($schema, $objects, $group_by) {
-    global $settings;
+function groupObjects($schema, $objects, $group_by, $settings) {
     $groups = [];
 
     // group objects
@@ -533,7 +536,6 @@ function groupObjects($schema, $objects, $group_by) {
             }
 
             if(in_array($model_def['type'], ['date', 'datetime'])) {
-                // #todo - convert according to settings (date format)
                 $label = date($settings['date_format'], $key);
                 $key = date('Y-m-d', $key);
             }
