@@ -1724,10 +1724,8 @@ class ObjectManager extends Service {
                 );
 
             // #memo - update operation sets state to 'instance', unless when explicitly set in $fields to a distinct value
-            if(!$create) {
-                if(!isset($fields['state']) || $fields['state'] == 'draft') {
-                    $fields['state'] = 'instance';
-                }
+            if(!$create && !isset($fields['state'])) {
+                $fields['state'] = 'instance';
             }
 
             $fields['modified'] = time();
