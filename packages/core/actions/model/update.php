@@ -133,7 +133,7 @@ if(count($fields)) {
             }
         }
         // handle instances edition
-        elseif(isset($fields['modified']) ) {
+        elseif(isset($fields['modified'])) {
             $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
             // a changed occurred in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
@@ -142,8 +142,13 @@ if(count($fields)) {
         }
     }
 
+    // an object can never be set back to 'draft'
+    if(isset($fields['state']) && $fields['state'] == 'draft') {
+        $fields['state'] = 'instance';
+    }
+
     $result = $params['entity']::ids($params['ids'])
-        // update with received values (with validation - submit `state` if received)
+        // update with received values (with validation)
         ->update($fields, $params['lang'])
         ->read(['id', 'state', 'name', 'modified'])
         ->adapt('json')
