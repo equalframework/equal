@@ -671,7 +671,6 @@
                 "description": "Activer ou désactiver l'utilisation d'authentificateurs internes intégrés aux appareils, tels que les scanners d'empreintes digitales.",
                 "help": "Activez cette option pour autoriser ou restreindre l'utilisation de méthodes d'authentification internes sur les appareils."
             }
-
         ]
     },
     {
