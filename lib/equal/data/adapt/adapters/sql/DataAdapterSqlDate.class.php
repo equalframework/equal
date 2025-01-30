@@ -36,10 +36,13 @@ class DataAdapterSqlDate implements DataAdapter {
         $result = null;
         if(!is_null($value)) {
             // return date as a timestamp
-            list($year, $month, $day) = sscanf($value, "%d-%d-%d");
-            $result = mktime(0, 0, 0, $month, $day, $year);
+            $parts = sscanf($value, "%d-%d-%d");
+            if($parts) {
+                [$year, $month, $day] = $parts;
+                $result = mktime(0, 0, 0, $month, $day, $year);
+            }
         }
-        return $result;
+        return $result ?? null;
     }
 
     /**
