@@ -1678,7 +1678,7 @@ class ObjectManager extends Service {
      * @param   mixed     $ids          Identifier(s) of the object(s) to update (accepted types: array, integer, numeric string).
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
-     * @param   bool      $create       System flag to mark the call as originating from the create() method (disables the canupdate and events hooks call).
+     * @param   bool      $create       System flag to force processing the update in a creation context (disables the canupdate and events hooks calls).
      *
      * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
      */
