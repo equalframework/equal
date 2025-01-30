@@ -718,8 +718,11 @@ class ObjectManager extends Service {
                         }
                     }
                 },
-                'computed'    =>    function($om, $ids, $fields, $lang='en') use ($schema, $class, $table_name) {
+                'computed'    =>    function($om, $ids, $fields, $computed_lang=null) use ($schema, $class, $table_name, $lang) {
                     // #memo - here, $lang can be different from the one passed to the load() function
+                    if($computed_lang) {
+                        $lang = $computed_lang;
+                    }
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
