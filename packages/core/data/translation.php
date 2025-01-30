@@ -1,6 +1,6 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, Cedric Francoys, 2010-2021
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -18,16 +18,16 @@ list($params, $providers) = eQual::announce([
             'default' 		=> constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $entity = $params['entity'];
 $parents = [];
@@ -75,10 +75,6 @@ foreach($parents as $entity) {
     else {
         $lang = array_replace_recursive($lang, $schema);
     }
-}
-
-if(empty($lang)) {
-    throw new Exception("empty_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 $context->httpResponse()
