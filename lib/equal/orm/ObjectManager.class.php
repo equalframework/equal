@@ -718,7 +718,8 @@ class ObjectManager extends Service {
                         }
                     }
                 },
-                'computed'    =>    function($om, $ids, $fields, $lang) use ($schema, $class, $table_name) {
+                'computed'    =>    function($om, $ids, $fields, $lang='en') use ($schema, $class, $table_name) {
+                    // #memo - here, $lang can be different from the one passed to the load() function
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
@@ -783,9 +784,9 @@ class ObjectManager extends Service {
             }
 
             // build an associative array ordering given fields by their type
-            $fields_lists = array();
+            $fields_lists = [];
             // remember computed fields having store attribute set (we need this as $type will hold the $schema['result_type'] value)
-            $stored_fields = array();
+            $stored_fields = [];
 
             // 1) retrieve fields types
             foreach($fields as $key => $field) {
