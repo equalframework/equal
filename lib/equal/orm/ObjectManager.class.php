@@ -718,7 +718,7 @@ class ObjectManager extends Service {
                         }
                     }
                 },
-                'computed'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                'computed'    =>    function($om, $ids, $fields, $lang) use ($schema, $class, $table_name) {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
@@ -824,22 +824,26 @@ class ObjectManager extends Service {
 
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
+                $computed_lang = constant('DEFAULT_LANG');
+                if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                    $computed_lang = $lang;
+                }
                 // for each computed field, build an array holding ids of incomplete objects
                 $missing_ids = [];
                 // if store attribute is set and no result was found, we need to compute the value
                 foreach($ids as $id) {
                     // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
-                    if(!isset($this->cache[$table_name][$id][$lang][$field])
-                        || is_null($this->cache[$table_name][$id][$lang][$field])) {
+                    if(!isset($this->cache[$table_name][$id][$computed_lang][$field])
+                        || is_null($this->cache[$table_name][$id][$computed_lang][$field])) {
                         $missing_ids[] = $id;
                     }
                 }
                 if(count($missing_ids)) {
                     // compute field for incomplete objects
-                    $load_fields['computed']($this, $missing_ids, array($field));
+                    $load_fields['computed']($this, $missing_ids, array($field), $computed_lang);
                     try {
                         // store newly computed fields to database ('store' attribute set to true)
-                        $this->store($class, $missing_ids, array($field), $lang);
+                        $this->store($class, $missing_ids, array($field), $computed_lang);
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
@@ -943,7 +947,7 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     $fields_values = array();
                     foreach($fields as $field) {
-                        $value = (isset($om->cache[$table_name][$oid][$lang][$field]))?$om->cache[$table_name][$oid][$lang][$field]:null;
+                        $value = (isset($om->cache[$table_name][$oid][$lang][$field])) ? $om->cache[$table_name][$oid][$lang][$field] : null;
                         // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $schema[$field]['type'] != 'computed') {
                             /** @var \equal\data\adapt\DataAdapter */
