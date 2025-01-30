@@ -260,7 +260,8 @@ else {
                     ]);
             }
             catch(Exception $e) {
-                trigger_error("PHP::unexpected error while installing app {$app}: ". $e->getMessage(), EQ_REPORT_DEBUG);
+                // do not interrupt package init, but report error
+                trigger_error("PHP::unexpected error while installing app {$app}: ". $e->getMessage(), EQ_REPORT_WARNING);
             }
         }
     }
