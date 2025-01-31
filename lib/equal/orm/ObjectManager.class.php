@@ -829,15 +829,9 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                $missing_ids = [];
-                // if store attribute is set and no result was found, we need to compute the value
-                foreach($ids as $id) {
-                    // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
-                    if(!isset($this->cache[$table_name][$id][$lang][$field])
-                        || is_null($this->cache[$table_name][$id][$lang][$field])) {
-                        $missing_ids[] = $id;
-                    }
-                }
+                // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
+                $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$lang][$field])
+                                                        || is_null($this->cache[$table_name][$id][$lang][$field]));
                 $computed_lang = constant('DEFAULT_LANG');
                 if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
                     $computed_lang = $lang;
@@ -846,8 +840,9 @@ class ObjectManager extends Service {
                     // compute field for incomplete objects
                     $load_fields['computed']($this, $missing_ids, array($field), $computed_lang);
                     try {
-                        // store newly computed fields to database ('store' attribute set to true)
-                        $this->store($class, $missing_ids, array($field), $computed_lang);
+                        // store newly computed fields to database (fields with 'store' attribute set to true)
+                        $computed_ids = array_filter($ids, fn($id) => isset($this->cache[$table_name][$id][$computed_lang][$field]));
+                        $this->store($class, $computed_ids, array($field), $computed_lang);
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
