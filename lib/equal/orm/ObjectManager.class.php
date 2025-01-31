@@ -828,19 +828,19 @@ class ObjectManager extends Service {
 
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
-                $computed_lang = constant('DEFAULT_LANG');
-                if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
-                    $computed_lang = $lang;
-                }
                 // for each computed field, build an array holding ids of incomplete objects
                 $missing_ids = [];
                 // if store attribute is set and no result was found, we need to compute the value
                 foreach($ids as $id) {
                     // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
-                    if(!isset($this->cache[$table_name][$id][$computed_lang][$field])
-                        || is_null($this->cache[$table_name][$id][$computed_lang][$field])) {
+                    if(!isset($this->cache[$table_name][$id][$lang][$field])
+                        || is_null($this->cache[$table_name][$id][$lang][$field])) {
                         $missing_ids[] = $id;
                     }
+                }
+                $computed_lang = constant('DEFAULT_LANG');
+                if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                    $computed_lang = $lang;
                 }
                 if(count($missing_ids)) {
                     // compute field for incomplete objects
