@@ -615,6 +615,9 @@ class ObjectManager extends Service {
                     }
                 },
                 'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    // #memo - this handler is for non-multilang fields
+                    $lang = constant('DEFAULT_LANG');
+
                     // make sure to load the 'id' field (we need it to map fetched values to their object)
                     $fields[] = 'id';
                     // get all records at once
@@ -806,7 +809,7 @@ class ObjectManager extends Service {
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
                     // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                    if($lang != constant('DEFAULT_LANG') && ($schema[$field]['multilang'] ?? false)) {
                         $fields_lists['multilang'][] = $field;
                     }
                     // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
@@ -829,20 +832,22 @@ class ObjectManager extends Service {
             // 3) check if some computed fields were not set in database
             foreach($stored_fields as $field) {
                 // for each computed field, build an array holding ids of incomplete objects
-                // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
-                $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$lang][$field])
-                                                        || is_null($this->cache[$table_name][$id][$lang][$field]));
-                $computed_lang = constant('DEFAULT_LANG');
-                if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
-                    $computed_lang = $lang;
+                $target_lang = constant('DEFAULT_LANG');
+                if( ($schema[$field]['multilang'] ?? false) ) {
+                    $target_lang = $lang;
                 }
+
+                // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
+                $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$target_lang][$field])
+                                                        || is_null($this->cache[$table_name][$id][$target_lang][$field]));
+
                 if(count($missing_ids)) {
                     // compute field for incomplete objects
-                    $load_fields['computed']($this, $missing_ids, array($field), $computed_lang);
+                    $load_fields['computed']($this, $missing_ids, array($field), $target_lang);
                     try {
                         // store newly computed fields to database (fields with 'store' attribute set to true)
-                        $computed_ids = array_filter($ids, fn($id) => isset($this->cache[$table_name][$id][$computed_lang][$field]));
-                        $this->store($class, $computed_ids, array($field), $computed_lang);
+                        $computed_ids = array_filter($ids, fn($id) => isset($this->cache[$table_name][$id][$target_lang][$field]));
+                        $this->store($class, $computed_ids, array($field), $target_lang);
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
@@ -1078,7 +1083,7 @@ class ObjectManager extends Service {
             });
 
             // build an associative array ordering given fields by their type
-            $fields_lists = array();
+            $fields_lists = [];
 
             // 1) retrieve fields types
             foreach($fields as $field) {
@@ -2033,10 +2038,15 @@ class ObjectManager extends Service {
                     // build the 'broadest' missing fields array (to load fields in bulk)
                     $fields_missing = [];
                     foreach($requested_fields as $key => $field) {
+                        $target_lang = constant('DEFAULT_LANG');
+                        if( ($schema[$field]['multilang'] ?? false) ) {
+                            $target_lang = $lang;
+                        }
+
                         foreach($ids as $oid) {
                             // prevent using cache for one2many fields : cache can become inconsistent in case of cross updates
                             // #todo - use the cache for m2m relations (using the rel table)
-                            if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$lang][$field])) {
+                            if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$target_lang][$field])) {
                                 $fields_missing[] = $field;
                                 break;
                             }
@@ -2062,13 +2072,13 @@ class ObjectManager extends Service {
                             $target_field = $schema[$target_field]['alias'];
                         }
 
-                        $target_lang = $lang;
-                        if($schema[$target_field]['type'] == 'computed' && !($schema[$target_field]['multilang'] ?? false)) {
-                            $target_lang = constant('DEFAULT_LANG');
+                        $target_lang = constant('DEFAULT_LANG');
+                        if( ($schema[$target_field]['multilang'] ?? false) ) {
+                            $target_lang = $lang;
                         }
 
                         // use final notation
-                        $res[$oid][$field] = isset($this->cache[$table_name][$oid][$target_lang][$target_field]) ? $this->cache[$table_name][$oid][$target_lang][$target_field] : null;
+                        $res[$oid][$field] = $this->cache[$table_name][$oid][$target_lang][$target_field] ?? null;
                     }
                 }
             }
@@ -2106,11 +2116,16 @@ class ObjectManager extends Service {
                         // ignore non-relational fields
                         continue;
                     }
+                    $target_lang = constant('DEFAULT_LANG');
+                    if( ($schema[$field]['multilang'] ?? false) ) {
+                        $target_lang = $lang;
+                    }
+
                     // recursively read sub objects for each object
                     // #todo - this could be improved by loading all targeted objects for current collection at once
                     foreach($ids as $oid) {
                         // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
-                        $sub_ids = $this->cache[$table_name][$oid][$lang][$field];
+                        $sub_ids = $this->cache[$table_name][$oid][$target_lang][$field];
                         if(isset($sub_ids)) {
                             $sub_values = $this->read($descriptor['foreign_object'], (array) $sub_ids, (array) $sub_path, $lang);
                             if($sub_values <= 0 || !count($sub_values)) {
