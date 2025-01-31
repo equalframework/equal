@@ -1946,7 +1946,7 @@ class ObjectManager extends Service {
     public function read($class, $ids=null, $fields=null, $lang=null) {
         // init result
         $res = [];
-        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
+        $lang = $lang ?? constant('DEFAULT_LANG');
 
         try {
             // get DB handler (init DB connection if necessary)
@@ -2061,8 +2061,14 @@ class ObjectManager extends Service {
                         while($schema[$target_field]['type'] == 'alias') {
                             $target_field = $schema[$target_field]['alias'];
                         }
+
+                        $target_lang = $lang;
+                        if($schema[$target_field]['type'] == 'computed' && !($schema[$target_field]['multilang'] ?? false)) {
+                            $target_lang = constant('DEFAULT_LANG');
+                        }
+
                         // use final notation
-                        $res[$oid][$field] = isset($this->cache[$table_name][$oid][$lang][$target_field]) ? $this->cache[$table_name][$oid][$lang][$target_field] : null;
+                        $res[$oid][$field] = isset($this->cache[$table_name][$oid][$target_lang][$target_field]) ? $this->cache[$table_name][$oid][$target_lang][$target_field] : null;
                     }
                 }
             }
