@@ -723,6 +723,8 @@ class ObjectManager extends Service {
                 },
                 'computed'    =>    function($om, $ids, $fields, $computed_lang=null) use ($schema, $class, $table_name, $lang) {
                     // #memo - here, $lang can be different from the one passed to the load() function
+                    // non-multilang non-stored
+                    $lang = constant('DEFAULT_LANG');
                     if($computed_lang) {
                         $lang = $computed_lang;
                     }
