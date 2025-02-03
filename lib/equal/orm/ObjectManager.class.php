@@ -2076,10 +2076,6 @@ class ObjectManager extends Service {
                         if( ($schema[$target_field]['multilang'] ?? false) ) {
                             $target_lang = $lang;
                         }
-                        // #memo - non-stored & non-multilang computed fields are computed in the requested language
-                        elseif($schema[$target_field]['type'] == 'computed') {
-                            $target_lang = $lang;
-                        }
 
                         // use final notation
                         $res[$oid][$field] = $this->cache[$table_name][$oid][$target_lang][$target_field] ?? null;
