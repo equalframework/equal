@@ -579,7 +579,7 @@ class ObjectManager extends Service {
                 'alias'        =>    function($om, $ids, $fields) {
                     // nothing to do : this type is handled in read methods
                 },
-                // 'multilang' is a particular case of simple field
+                // 'multilang' is a particular case of simple field (or stored computed field)
                 'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     $result = $om->db->getRecords(
                         array('core_translation'),
@@ -643,6 +643,8 @@ class ObjectManager extends Service {
                     }
                 },
                 'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    // #memo - this handler is for non-multilang fields
+                    $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
@@ -691,6 +693,8 @@ class ObjectManager extends Service {
                     }
                 },
                 'many2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    // #memo - this handler is for non-multilang fields
+                    $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
@@ -886,7 +890,7 @@ class ObjectManager extends Service {
             $db = $this->getDbHandler();
             // array holding functions to store each type of fields
             $store_fields = array(
-            // 'multilang' is a particular case of simple field)
+            // 'multilang' is a particular case of simple field
             'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                 $om->db->deleteRecords(
                     'core_translation',
