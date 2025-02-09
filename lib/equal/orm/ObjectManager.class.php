@@ -1048,34 +1048,38 @@ class ObjectManager extends Service {
                             }
                         }
                         $values = [];
-                        foreach($rel_ids as $index => $id) {
-                            $id = intval($id);
-                            // ignore ids to remove
-                            if($id > 0) {
-                                $values[] = array($oid, $id);
+                        if(count($rel_ids)) {
+                            foreach($rel_ids as $index => $id) {
+                                $id = intval($id);
+                                // ignore ids to remove
+                                if($id > 0) {
+                                    $values[] = [$oid, $id];
+                                }
+                                $rel_ids[$index] = abs($id);
                             }
-                            $rel_ids[$index] = abs($id);
+                            // delete all targeted relations
+                            $om->db->deleteRecords(
+                                $schema[$field]['rel_table'],
+                                (array) $oid,
+                                [
+                                    [
+                                        [$schema[$field]['rel_foreign_key'], 'in', $rel_ids]
+                                    ]
+                                ],
+                                $schema[$field]['rel_local_key']
+                            );
                         }
-                        // delete all targeted relations
-                        $om->db->deleteRecords(
-                            $schema[$field]['rel_table'],
-                            array($oid),
-                            array(
-                                array(
-                                    array($schema[$field]['rel_foreign_key'], 'in', $rel_ids)
-                                )
-                            ),
-                            $schema[$field]['rel_local_key']
-                        );
                         // re-create only relations with positive id as value
-                        $om->db->addRecords(
-                            $schema[$field]['rel_table'],
-                            array(
-                                $schema[$field]['rel_local_key'],
-                                $schema[$field]['rel_foreign_key']
-                            ),
-                            $values
-                        );
+                        if(count($values)) {
+                            $om->db->addRecords(
+                                $schema[$field]['rel_table'],
+                                [
+                                    $schema[$field]['rel_local_key'],
+                                    $schema[$field]['rel_foreign_key']
+                                ],
+                                $values
+                            );
+                        }
                         // invalidate cache (field partially loaded)
                         unset($om->cache[$table_name][$oid][$lang][$field]);
                     }
