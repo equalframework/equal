@@ -581,16 +581,21 @@ class ObjectManager extends Service {
                 },
                 // 'multilang' is a particular case of simple field (or stored computed field)
                 'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    $parts = explode('_', $table_name);
+                    $parts[] = ucfirst(array_pop($parts));
+                    $final_class = implode('\\', $parts);
+
                     $result = $om->db->getRecords(
-                        array('core_translation'),
-                        array('object_id', 'object_field', 'value'),
+                        (array) 'core_translation',
+                        ['object_id', 'object_field', 'value'],
                         $ids,
-                        array(array(
-                                array('language','=',$lang),
-                                array('object_class','=',$class),
-                                array('object_field','in',$fields)
-                                )
-                        ),
+                        [
+                            [
+                                ['language', '=', $lang],
+                                ['object_class', '=', $final_class],
+                                ['object_field', 'in', $fields]
+                            ]
+                        ],
                         'object_id');
                     // fill in the internal buffer with returned rows (translation is stored in the 'value' column)
                     while($row = $om->db->fetchArray($result)) {
@@ -892,16 +897,20 @@ class ObjectManager extends Service {
             $store_fields = array(
             // 'multilang' is a particular case of simple field
             'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                $parts = explode('_', $table_name);
+                $parts[] = ucfirst(array_pop($parts));
+                $final_class = implode('\\', $parts);
+
                 $om->db->deleteRecords(
                     'core_translation',
                     $ids,
-                    array(
-                        array(
-                            array('language', '=', $lang),
-                            array('object_class', '=', $class),
-                            array('object_field', 'in', $fields)
-                        )
-                    ),
+                    [
+                        [
+                            ['language', '=', $lang],
+                            ['object_class', '=', $final_class],
+                            ['object_field', 'in', $fields]
+                        ]
+                    ],
                     'object_id'
                 );
                 /** @var \equal\data\adapt\DataAdapterProvider */
