@@ -123,5 +123,4 @@ $result = file_get_contents($file);
 
 $context->httpResponse()
         ->status(201)
-        ->body($result)
         ->send();
