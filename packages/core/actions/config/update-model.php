@@ -122,7 +122,6 @@ catch(Exception $e) {
 }
 
 $context->httpResponse()
-        ->body($result)
         ->send();
 
 /**
