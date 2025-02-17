@@ -144,7 +144,19 @@ class Field {
             $constraints['invalid_value'] = [
                     'message'   => "Value is not amongst selection choices.",
                     'function'  =>  function($value) use($selection) {
-                        return (isset($selection[$value]) || in_array($value, $selection));
+                        $found = false;
+                        // handle both map and list
+                        foreach($selection as $key => $val) {
+                            $clue = $val;
+                            if(!is_numeric($key)) {
+                                $clue = $key;
+                            }
+                            if($clue == $value) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                        return $found;
                     }
                 ];
         }
