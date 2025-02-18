@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core\setting;
@@ -406,11 +407,12 @@ class Setting extends Model {
     }
 
     /**
-     * Example:
+     * Examples:
      *  parse_format("start{test}%2d{year}/%02d{org}/%04d{sequence}end", ['test' => 'ok', 'year'=> 2022, 'org' => 998, 'sequence' => 14]);
+     *  parse_format("{test1}{test2}%s{test3}", ['test1' => 'ok', 'test2'=> 'blah', 'test3' => 'yes']);
      */
     public static function parse_format($format, $map) {
-        preg_match_all('/((%[0-9]{1,2}[ds])?({.*}))/mU', $format, $matches, PREG_OFFSET_CAPTURE, 0);
+        preg_match_all('/((%[0-9]{0,2}[ds])?({.*}))/mU', $format, $matches, PREG_OFFSET_CAPTURE, 0);
 
         $result_format = '';
         $last_offset = 0;
