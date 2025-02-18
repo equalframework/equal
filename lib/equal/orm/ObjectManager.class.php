@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -1390,8 +1391,12 @@ class ObjectManager extends Service {
 
         if($check_required) {
             foreach($schema as $field => $def) {
+                if($def['type'] == 'computed') {
+                    // computation might be done afterward (computed fields should not be marked as required)
+                    continue;
+                }
                 // required fields must be provided and cannot be left/set to null
-                if( isset($def['required']) && $def['required'] && (!isset($values[$field]) || is_null($values[$field])) ) {
+                if( ($def['required'] ?? false) && !($values[$field] ?? null) ) {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
                     // issue a warning about missing mandatory field
@@ -1407,7 +1412,7 @@ class ObjectManager extends Service {
 
         // get constraints defined in the model (schema)
         $constraints = $model->getConstraints();
-        // append constraints implied by type and usage
+        // pass-1: append constraints implied by type and usage
         foreach($values as $field => $value) {
             /** @var Field */
             $f = $model->getField($field);
@@ -1428,7 +1433,7 @@ class ObjectManager extends Service {
                 }
             }
         }
-        // check constraints
+        // pass-2: check constraints
         foreach($values as $field => $value) {
             if(!isset($constraints[$field]) || empty($constraints[$field])) {
                 // ignore fields with no constraints
