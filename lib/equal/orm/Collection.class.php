@@ -1098,7 +1098,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforeupdate(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforeupdate()`.
+     */
     public static function onupdate(...$params) {
+    }
+
+    /**
+     * Hook invoked after object update for performing object-specific additional operations.
+     * Previous values of the object are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterupdate(...$params) {
     }
 
     /**
@@ -1116,7 +1132,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforedelete(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforedelete()`.
+     */
     public static function ondelete(...$params) {
+    }
+
+    /**
+     * Hook invoked after object deletion for performing object-specific additional operations.
+     * The deleted objects are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterdelete(...$params) {
     }
 
     /**

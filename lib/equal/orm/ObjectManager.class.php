@@ -1939,7 +1939,9 @@ class ObjectManager extends Service {
             }
 
             if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERUPDATE) === self::EVENTS_CLASS_ONAFTERUPDATE) {
-                $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
+                if(method_exists($class, 'onafterupdate')) {
+                    $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
+                }
             }
 
             // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
@@ -2322,7 +2324,9 @@ class ObjectManager extends Service {
 
             // 4) call 'onafterdelete' hook
             if(($this->enabled_events & self::EVENTS_CLASS_ONAFTERDELETE) === self::EVENTS_CLASS_ONAFTERDELETE) {
-                $this->callonce($class, 'onafterdelete', $ids);
+                if(method_exists($class, 'onafterdelete')) {
+                    $this->callonce($class, 'onafterdelete', $ids);
+                }
             }
         }
         catch(Exception $e) {
