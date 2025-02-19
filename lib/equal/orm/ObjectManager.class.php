@@ -924,7 +924,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         $values_array[] = [
                             $lang,
-                            $class,
+                            $final_class,
                             $field,
                             $oid,
                             $adapter->adaptOut($om->cache[$table_name][$oid][$lang][$field], 'binary'),
