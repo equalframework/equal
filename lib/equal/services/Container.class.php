@@ -43,6 +43,11 @@ class Container extends Service {
         return $this;
     }
 
+    /**
+     * Resolves a registered name with its target class.
+     *
+     * @return string   The FQCN of the target class.
+     */
     private function resolve($name) {
         if(in_array($name, array_keys($this->register))) {
             $name = $this->register[$name];
