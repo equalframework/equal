@@ -10,44 +10,44 @@ namespace equal\orm;
 class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */
-    private $orm;
+    protected $orm;
 
     /** @var \equal\access\AccessController */
-    private $ac;
+    protected $ac;
 
     /** @var \equal\auth\AuthenticationManager */
-    private $am;
+    protected $am;
 
     /** @var \equal\data\adapt\DataAdapterProvider */
-    private $dap;
+    protected $dap;
 
     /** @var \equal\data\adapt\DataAdapter */
-    private $adapter;
+    protected $adapter;
 
     /** @var string */
-    private $lang;
+    protected $lang;
 
     /** @var \equal\log\Logger */
-    private $logger;
+    protected $logger;
 
     /**
      * Name of the class targeted by the Collection.
      * @var string
      */
-    private $class;
+    protected $class;
 
 
     /**
      * Instance of targeted class (used for retrieving fields and schema; inherits from Model class.
      * @var \equal\orm\Model
      */
-    private $model;
+    protected $model;
 
     /* map associating objects with their values with identifiers as keys */
-    private $objects;
+    protected $objects;
 
     /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit) */
-    private $limit;
+    protected $limit;
 
     /**
      *
@@ -58,8 +58,8 @@ class Collection implements \Iterator, \Countable {
     /**
      * Collection constructor.
      * This is called through the Collections service, which retrieves the dependencies through its container.
-     * Collections service is a factory that creates Collection instances when requested
-     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
+     * Collections service is a factory that creates Collection instances when requested.
+     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`)
      *
      * @var string                                  $class
      * @var \equal\orm\ObjectManager                $objectManager

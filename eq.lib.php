@@ -4,7 +4,7 @@
 *    https://github.com/equalframework/equal
 *
 *    Some Rights Reserved, The eQual Framework, 2010-2024
-*    Original Author: Cedric Francoys
+*    Original Author(s): Cedric Francoys
 *    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -428,24 +428,24 @@ namespace config {
      * Adds a parameter to the configuration array
      */
     function define($name, $value) {
-        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            $GLOBALS['QN_CONFIG_ARRAY'] = [];
+        if(!isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            $GLOBALS['EQ_CONFIG_ARRAY'] = [];
         }
-        $GLOBALS['QN_CONFIG_ARRAY'][$name] = $value;
+        $GLOBALS['EQ_CONFIG_ARRAY'][$name] = $value;
     }
 
     /**
      * Checks if a parameter has already been defined
      */
     function defined($name) {
-        return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+        return \defined($name) || isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
     }
 
     /**
      * Retrieve a configuration parameter as a constant.
      */
     function constant($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name])) ? $GLOBALS['EQ_CONFIG_ARRAY'][$name] : $default;
     }
 
     /**
@@ -474,7 +474,7 @@ namespace config {
      * @deprecated
      */
     function config($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]))?$GLOBALS['EQ_CONFIG_ARRAY'][$name]:$default;
     }
 
 
@@ -520,8 +520,8 @@ namespace config {
      * @deprecated
      */
     function export_config() {
-        if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
+        if(isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            foreach($GLOBALS['EQ_CONFIG_ARRAY'] as $name => $value) {
                 if(!\defined($name)) {
                     // handle encrypted values
                     if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
@@ -529,7 +529,7 @@ namespace config {
                     }
                     \define($name, $value);
                 }
-                unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+                unset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
             }
         }
         $GLOBALS['QN_CONFIG_EXPORTED'] = true;
@@ -543,7 +543,7 @@ namespace config {
         /**
          * Initialize eQual.
          *
-         * Adds the library folder to the include path (library folder should contain the Zend framework if required).
+         * Adds the library folder to the include path.
          * This is the bootstrap method for setting everything in place.
          *
          * @static
@@ -556,12 +556,12 @@ namespace config {
                 include_once(EQ_BASEDIR.'/vendor/autoload.php');
             }
 
-            // register own class loader
+            // register eQual specific class loader
             spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
-                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', QN_REPORT_FATAL);
+                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', EQ_REPORT_FATAL);
             }
             // instantiate service container
             $container = Container::getInstance();
@@ -571,11 +571,11 @@ namespace config {
             $container->register([
                 'report'    => 'equal\error\Reporter',
                 'auth'      => 'equal\auth\AuthenticationManager',
-                'access'    => 'equal\access\AccessController',
+                'access'    => constant('SERVICE_ACCESS_ACCESSCONTROLLER', 'equal\access\AccessController'),
                 'context'   => 'equal\php\Context',
                 'validate'  => 'equal\data\DataValidator',
                 'adapt'     => 'equal\data\adapt\DataAdapterProvider',
-                'orm'       => 'equal\orm\ObjectManager',
+                'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
                 'route'     => 'equal\route\Router',
                 'log'       => 'equal\log\Logger',
                 'cron'      => 'equal\cron\Scheduler',
@@ -585,11 +585,9 @@ namespace config {
 
             try {
                 // make mandatory dependencies available
-                $container->get(['report', 'context']);
+                $container->get(['report', 'context', 'equal\orm\Collections']);
                 // register ORM classes auto-loader
                 $om = $container->get('orm');
-                // init collections provider
-                $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
