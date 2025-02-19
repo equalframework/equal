@@ -1396,7 +1396,7 @@ class ObjectManager extends Service {
                     continue;
                 }
                 // required fields must be provided and cannot be left/set to null
-                if( ($def['required'] ?? false) && !($values[$field] ?? null) ) {
+                if( ($def['required'] ?? false) && is_null($values[$field] ?? null) ) {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
                     // issue a warning about missing mandatory field
