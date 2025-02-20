@@ -75,28 +75,43 @@ class Permission extends Model {
         ];
     }
 
+
+    private static function computeRightsTxt($rights) {
+        $result = [];
+
+        if($rights & EQ_R_CREATE) {
+            $result[] = 'create';
+        }
+        if($rights & EQ_R_READ) {
+            $result[] = 'read';
+        }
+        if($rights & EQ_R_WRITE) {
+            $result[] = 'write';
+        }
+        if($rights & EQ_R_DELETE) {
+            $result[] = 'delete';
+        }
+        if($rights & EQ_R_MANAGE) {
+            $result[] = 'manage';
+        }
+
+        return implode(', ', $result);
+    }
+
     public static function calcRightsTxt($self) {
         $result = [];
         $self->read(['rights']);
         foreach($self as $id => $permission) {
-            $txt = [];
-            $rights = $permission['rights'];
-            if($rights & EQ_R_CREATE) {
-                $txt[] = 'create';
-            }
-            if($rights & EQ_R_READ) {
-                $txt[] = 'read';
-            }
-            if($rights & EQ_R_WRITE) {
-                $txt[] = 'write';
-            }
-            if($rights & EQ_R_DELETE) {
-                $txt[] = 'delete';
-            }
-            if($rights & EQ_R_MANAGE) {
-                $txt[] = 'manage';
-            }
-            $result[$id] = implode(', ', $txt);
+            $result[$id] = self::computeRightsTxt($permission['rights']);
+        }
+        return $result;
+    }
+
+
+    public function onchange($event) {
+        $result = [];
+        if(isset($event['rights'])) {
+            $result['rights_txt'] = self::computeRightsTxt($event['rights']);
         }
         return $result;
     }
