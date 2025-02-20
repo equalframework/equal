@@ -57,6 +57,12 @@ list($params, $providers) = eQual::announce([
             'min'           => 1,
             'max'           => 2500,
             'default'       => 25
+        ],
+        'nolimit' => [
+            'description'   => 'Explicit request for ignoring limit and return all matching objects.',
+            'help'          => 'When activated start and limit parameters are ignored.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DEFAULT_LANG'],
@@ -210,9 +216,14 @@ $total = count($collection->ids());
 
 // retrieve list as an array
 // #memo - JSON objects handled by ES2015+ might have their keys order altered, so returning result as a map is not safe
-$result = $collection
+
+if(!$params['nolimit']) {
+    $collection
         ->shift($params['start'])
-        ->limit($params['limit'])
+        ->limit($params['limit']);
+}
+
+$result = $collection
         ->read($fields, $params['lang'])
         ->adapt('json')
         ->get(true);
