@@ -148,11 +148,8 @@ class Field {
                         $found = false;
                         // handle both map and list
                         foreach($selection as $key => $val) {
-                            $clue = $val;
-                            if(!is_numeric($key)) {
-                                $clue = $key;
-                            }
-                            if($clue == $value) {
+                            // #memo - key can be both an index or an explicit choice value mapped with another value possibly of the same type
+                            if($value == $key || $value == $val) {
                                 $found = true;
                                 break;
                             }
