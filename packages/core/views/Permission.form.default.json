@@ -38,10 +38,14 @@
                                                 "value": "",
                                                 "width": "50%"
                                             },
-
                                             {
                                                 "type": "field",
                                                 "value": "rights",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "rights_txt",
                                                 "width": "25%"
                                             }
                                         ]

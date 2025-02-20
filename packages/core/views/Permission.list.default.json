@@ -6,6 +6,7 @@
     "layout": {
         "items": [
             {
+                "id": "item.class_name",
                 "type": "field",
                 "value": "class_name",
                 "width": "15%",
@@ -14,12 +15,14 @@
                 }
             },
             {
+                "id": "item.group_id",
                 "type": "field",
                 "value": "group_id",
                 "label": "Group",
                 "width": "20%"
             },
             {
+                "id": "item.user_id",
                 "type": "field",
                 "value": "user_id",
                 "label": "User",
