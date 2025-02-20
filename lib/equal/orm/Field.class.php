@@ -136,9 +136,6 @@ class Field {
      */
     public function getConstraints(): array {
         $constraints = $this->getUsage()->getConstraints();
-
-        // #memo - strict type constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
-
         // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
@@ -149,7 +146,7 @@ class Field {
                         // handle both map and list
                         foreach($selection as $key => $val) {
                             // #memo - key can be both an index or an explicit choice value mapped with another value possibly of the same type
-                            if($value == $key || $value == $val) {
+                            if($value === $key || $value === $val) {
                                 $found = true;
                                 break;
                             }
