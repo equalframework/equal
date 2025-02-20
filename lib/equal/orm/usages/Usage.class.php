@@ -204,12 +204,12 @@ class Usage {
                 $this->subtype .= '.'.$tree;
             }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5.3'), or {shortcut} (ex. 'medium'))
-            $this->length_str = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:'';
-            $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
-            $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
-            $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
-            $this->min = (isset($matches[12]) && strlen($matches[12]))? +$matches[12] : 0;
-            $this->max = (isset($matches[14]) && strlen($matches[14]))? +$matches[14] : 0;
+            $this->length_str = (isset($matches[8]) && strlen($matches[8])) ? $matches[8] : '';
+            $this->length = (isset($matches[8]) && strlen($matches[8])) ? intval($matches[8]) : 0;
+            $this->precision = (isset($matches[9]) && strlen($matches[9])) ? intval($matches[9]) : 0;
+            $this->scale = (isset($matches[10]) && strlen($matches[10])) ? intval($matches[10]) : 0;
+            $this->min = (isset($matches[12]) && strlen($matches[12])) ? +$matches[12] : 0;
+            $this->max = (isset($matches[14]) && strlen($matches[14])) ? +$matches[14] : 0;
         }
 
     }
