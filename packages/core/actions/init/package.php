@@ -194,7 +194,7 @@ else {
 
     // 1) Init DB with SQL schema
 
-    /*  start-tables_init */
+    /*  start tables init */
     // retrieve schema for given package
     $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
@@ -205,7 +205,7 @@ else {
     foreach($queries as $query) {
         $db->sendQuery($query);
     }
-    /*  end-tables_init */
+    /*  end tables init */
 
     // 2) Populate tables with predefined data
     $data_folder = "packages/{$params['package']}/init/data";
