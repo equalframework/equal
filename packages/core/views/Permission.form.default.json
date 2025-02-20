@@ -51,6 +51,7 @@
                                         "align": "left",
                                         "items": [
                                             {
+                                                "id": "group_id",
                                                 "type": "field",
                                                 "value": "group_id",
                                                 "width": "100%",
@@ -59,6 +60,7 @@
                                                 }
                                             },
                                             {
+                                                "id": "user_id",
                                                 "type": "field",
                                                 "value": "user_id",
                                                 "width": "100%",
