@@ -6,7 +6,7 @@
     "layout": {
         "items": [
             {
-                "type": "field",            
+                "type": "field",
                 "value": "class_name",
                 "width": "15%",
                 "widget": {
@@ -14,23 +14,19 @@
                 }
             },
             {
-                "type": "field",            
-                "value": "domain",
-                "width": "15%"
-            },    
-            {
-                "type": "field",            
+                "type": "field",
                 "value": "group_id",
-                "width": "20%"
-            },    
-
-            {
-                "type": "field",            
-                "value": "user_id",
+                "label": "Group",
                 "width": "20%"
             },
             {
-                "type": "field",            
+                "type": "field",
+                "value": "user_id",
+                "label": "User",
+                "width": "20%"
+            },
+            {
+                "type": "field",
                 "value": "rights_txt",
                 "label": "Rights",
                 "width": "30%"
