@@ -54,4 +54,19 @@ $tests = [
                     return !(empty($issues));
                 }
         ],
+    '0104' => [
+            'description'       =>  "",
+            'act'               =>  function () {
+                    $field = new Field([
+                            'type'          => 'integer',
+                            'selection'     => [ 1 => 'a', 2 => 'b', 3 => 'c']
+                        ],
+                        'test4');
+                    return $field;
+                },
+            'assert'            =>  function($field) use($providers) {
+                    $issues = $providers['validate']->checkConstraints($field, 3);
+                    return (isset($issues['invalid_value']) && $issues['invalid_value'] == 'Value is not amongst selection choices.');
+                }
+        ],
 ];
