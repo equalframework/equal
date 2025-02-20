@@ -55,7 +55,7 @@ $tests = [
                 }
         ],
     '0104' => [
-            'description'       =>  "",
+            'description'       =>  "Testing valid value for selection map on integer.",
             'act'               =>  function () {
                     $field = new Field([
                             'type'          => 'integer',
@@ -66,7 +66,22 @@ $tests = [
                 },
             'assert'            =>  function($field) use($providers) {
                     $issues = $providers['validate']->checkConstraints($field, 3);
-                    return (isset($issues['invalid_value']) && $issues['invalid_value'] == 'Value is not amongst selection choices.');
+                    return empty($issues);
+                }
+        ],
+    '0105' => [
+            'description'       =>  "Testing valid value on selection map on string.",
+            'act'               =>  function () {
+                    $field = new Field([
+                            'type'          => 'string',
+                            'selection'     => ['a' => 'Hay', 'b' => 'Bee', 'c' => 'See']
+                        ],
+                        'test2');
+                    return $field;
+                },
+            'assert'            =>  function($field) use($providers) {
+                    $issues = $providers['validate']->checkConstraints($field, 'b');
+                    return empty($issues);
                 }
         ],
 ];
