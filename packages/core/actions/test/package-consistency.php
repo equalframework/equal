@@ -148,7 +148,7 @@ foreach($classes as $class) {
         }
         foreach($descriptor as $attribute => $value) {
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
-                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
+                $result[] = "WARN  - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
                 $is_error = true;
             }
             if(in_array($attribute, array('store', 'multilang', 'readonly')) && $value !== true && $value !== false) {
