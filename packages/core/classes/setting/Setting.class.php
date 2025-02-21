@@ -178,6 +178,58 @@ class Setting extends Model {
         ];
     }
 
+    /**
+     * Make sure the setting exists, and create it if necessary.
+     *
+     * @return  never
+     */
+    public static function assert(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+        $value = self::get($package, $section, $code, null, $selector, $lang);
+
+        if($value !== null) {
+            return;
+        }
+
+        // Inject ORM
+        $providers = \eQual::inject(['orm']);
+        /** @var \equal\orm\ObjectManager */
+        $om = $providers['orm'];
+
+        // attempt to retrieve the setting
+        $settings_ids = $om->search(self::getType(), [
+                ['package', '=', $package],
+                ['section', '=', $section],
+                ['code', '=', $code]
+            ]);
+
+        if($settings_ids <= 0) {
+            return;
+        }
+
+        // create new setting
+        if(count($settings_ids) == 0) {
+            $setting_id = $om->create(self::getType(), [
+                    'package'       => $package,
+                    'section'       => $section,
+                    'code'          => $code,
+                    'type'          => gettype($default),
+                    'is_multilang'  => ($lang != constant('DEFAULT_LANG')),
+                ]);
+
+            if ($setting_id) {
+                // create new setting value
+                $om->create(SettingValue::getType(), [
+                        'setting_id' => $setting_id,
+                        'user_id'    => $selector['user_id'] ?? null,
+                        'value'      => $default
+                    ]);
+
+                // Mise en cache
+                $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.($lang ?? constant('DEFAULT_LANG'));
+                $GLOBALS['_equal_core_setting_cache'][$index] = $default;
+            }
+        }
+    }
 
     /**
      * Retrieve the value of a given setting.

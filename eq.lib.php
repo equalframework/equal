@@ -1173,7 +1173,7 @@ namespace config {
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
          * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array mapping params with their values).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked and their output is buffered).
+         * @param boolean   $root           Flag to run the operation using the first (root) context (following contexts are stacked and their output is buffered).
          *
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
