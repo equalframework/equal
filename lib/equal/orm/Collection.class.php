@@ -322,17 +322,17 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names by discarding:
-     *   special fields;
-     *   fields marked as readonly;
-     *   and fields unknown to the current class.
+     * Checks a given map of fields-values entries or an array of fields names, and filters out (discard):
+     *   - special fields;
+     *   - fields marked as readonly;
+     *   - fields unknown to the given class.
      *
      * @param   array   $fields         Associative array mapping field names with their values.
-     * @param   string  $operation      If set to true, readonly fields are discarded.
+     * @param   string  $operation      Targeted CRUD operation. If set to 'create', system fields are discarded.
      *
      * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields, string $operation) {
+    private function sanitizeFields(array $fields, string $operation) {
         $result = [];
         if(count($fields)) {
             $schema = $this->model->getSchema();
@@ -346,7 +346,7 @@ class Collection implements \Iterator, \Countable {
             elseif($operation == 'update') {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                        return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
+                        return (isset($schema[$field]['readonly'])) ? ($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed') : false;
                     });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // discard special fields (except `state`)
@@ -624,7 +624,7 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
         // drop invalid fields
-        $values = $this->filter((array) $values, 'create');
+        $values = $this->sanitizeFields((array) $values, 'create');
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
                 return is_numeric($key)?$value:$key;
@@ -871,7 +871,7 @@ class Collection implements \Iterator, \Countable {
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
-            $values = $this->filter($values, 'update');
+            $values = $this->sanitizeFields($values, 'update');
             // retrieve targeted identifiers
             $ids = $this->ids();
             // retrieve targeted fields names
