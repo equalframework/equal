@@ -202,7 +202,7 @@ class Setting extends Model {
                 ['code', '=', $code]
             ]);
 
-        if($settings_ids <= 0) {
+        if(!is_array($settings_ids)) {
             return;
         }
 
