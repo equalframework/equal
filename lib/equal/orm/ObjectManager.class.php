@@ -1530,7 +1530,7 @@ class ObjectManager extends Service {
                         }
                     }
                     // there is a violation : stop and fetch info about it
-                    if(count($conflict_ids)) {
+                    if(is_array($conflict_ids) && count($conflict_ids)) {
                         trigger_error("ORM::field {$field} violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
                         $error_code = QN_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
@@ -1546,7 +1546,7 @@ class ObjectManager extends Service {
 
         }
 
-        return (count($res))?[$error_code => $res]:[];
+        return (count($res)) ? [$error_code => $res] : [];
     }
 
 
@@ -1614,7 +1614,7 @@ class ObjectManager extends Service {
                             ],
                             ['id' => 'asc']
                         );
-                    if($ids > 0 && count($ids) && $ids[0] > 0) {
+                    if(is_array($ids) && count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
                         $oid = $ids[0];
                         // store the id to reuse
@@ -2151,9 +2151,9 @@ class ObjectManager extends Service {
                     // #todo - this could be improved by loading all targeted objects for current collection at once
                     foreach($ids as $oid) {
                         // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
-                        $sub_ids = $this->cache[$table_name][$oid][$target_lang][$field] ?? [];
+                        $sub_ids = (array) $this->cache[$table_name][$oid][$target_lang][$field] ?? [];
                         if(count($sub_ids)) {
-                            $sub_values = $this->read($descriptor['foreign_object'], (array) $sub_ids, (array) $sub_path, $lang);
+                            $sub_values = $this->read($descriptor['foreign_object'], $sub_ids, (array) $sub_path, $lang);
                             if($sub_values <= 0 || !count($sub_values)) {
                                 continue;
                             }
@@ -2493,7 +2493,7 @@ class ObjectManager extends Service {
         }
         $workflow = $model->getWorkflow();
         $objects = $this->read($class, (array) $id, ['status']);
-        if($objects > 0 && count($objects)) {
+        if(is_array($objects) && count($objects)) {
             $object = reset($objects);
             if(isset($object['status']) && isset($workflow[$object['status']]) && isset($workflow[$object['status']]['transitions'])) {
                 foreach($workflow[$object['status']]['transitions'] as $t_name => $t_descr) {

@@ -126,7 +126,7 @@ foreach($data as $entity_data) {
             throw new Exception('missing_setting_name', EQ_ERROR_INVALID_CONFIG);
         }
         $settings_ids = Setting::search(['name', '=', $entity_data['name']])->ids();
-        if(!count($settings_ids)) {
+        if(empty($settings_ids)) {
             throw new Exception('unknown_setting', EQ_ERROR_INVALID_CONFIG);
         }
         $entity_data['setting_id'] = reset($settings_ids);
