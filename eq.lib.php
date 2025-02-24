@@ -569,18 +569,18 @@ namespace config {
             // register names for common services and assign default classes
             // (these can be overridden in the `config.json` of invoked package)
             $container->register([
-                'report'    => 'equal\error\Reporter',
-                'auth'      => 'equal\auth\AuthenticationManager',
                 'access'    => constant('SERVICE_ACCESS_ACCESSCONTROLLER', 'equal\access\AccessController'),
-                'context'   => 'equal\php\Context',
-                'validate'  => 'equal\data\DataValidator',
                 'adapt'     => 'equal\data\adapt\DataAdapterProvider',
-                'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
-                'route'     => 'equal\route\Router',
-                'log'       => 'equal\log\Logger',
-                'cron'      => 'equal\cron\Scheduler',
+                'auth'      => constant('SERVICE_AUTH_AUTHENTICATIONMANAGER', 'equal\auth\AuthenticationManager'),
+                'db'        => 'equal\db\DBConnector',
                 'dispatch'  => 'equal\dispatch\Dispatcher',
-                'db'        => 'equal\db\DBConnector'
+                'context'   => 'equal\php\Context',
+                'cron'      => 'equal\cron\Scheduler',
+                'log'       => 'equal\log\Logger',
+                'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
+                'report'    => 'equal\error\Reporter',
+                'route'     => 'equal\route\Router',
+                'validate'  => 'equal\data\DataValidator'
             ]);
 
             try {

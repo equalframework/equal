@@ -383,6 +383,13 @@
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
     },
+    "SERVICE_AUTH_AUTHENTICATIONMANAGER": {
+        "type": "string",
+        "description": "Class to use as AuthenticationManager service (under `lib` folder).",
+        "help": "This allows to customize behavior related to identity & access management. The target class must be inherited from equal\\auth\\AccessController.",
+        "default": "equal\\auth\\AuthenticationManager",
+        "instant": true
+    },
     "SERVICE_ACCESS_ACCESSCONTROLLER": {
         "type": "string",
         "description": "Class to use as AccessController service (under `lib` folder).",
