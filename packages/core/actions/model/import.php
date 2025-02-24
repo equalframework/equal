@@ -134,7 +134,7 @@ foreach($data as $entity_data) {
 
     if(isset($entity_data['id'])) {
         $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
-        if($ids < 0 || !count($ids)) {
+        if(!is_array($ids) || empty($ids)) {
             $orm->create($entity, ['id' => $entity_data['id']], $lang, false);
         }
 
