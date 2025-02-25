@@ -159,7 +159,7 @@ class Tester {
                 }
             }
 
-            $this->results[$id]['status'] = $success?'ok':'ko';
+            $this->results[$id]['status'] = $success ? 'ok' : 'ko';
 
             $result_txt = $result;
             if(gettype($result) == 'object') {
@@ -175,7 +175,7 @@ class Tester {
             }
 
             if(isset($test['arrange'])) {
-                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'('.get_class($precondition).' object)':$precondition;
+                $this->results[$id]['arrange'] = (gettype($precondition) == 'object') ? '('.get_class($precondition).' object)' : $precondition;
             }
         }
 

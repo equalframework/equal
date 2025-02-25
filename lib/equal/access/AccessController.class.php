@@ -224,7 +224,7 @@ class AccessController extends Service {
 
         // grant user RW rights on its own object
         if(count($object_ids) == 1 && $object_ids[0] == $user_id && ObjectManager::getObjectRootClass($object_class) == 'core\User') {
-            $user_rights |= EQ_R_READ | EQ_R_WRITE;
+            $user_rights |= EQ_R_READ | EQ_R_UPDATE;
         }
 
         return $user_rights;
@@ -568,7 +568,7 @@ class AccessController extends Service {
     /**
      *  Check if a given user is granted right to perform a specific operation.
      *
-     * @param integer       $operation        Bit mask of the operations that are checked (can be built using constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
+     * @param integer       $operation        Bit mask of the operations that are checked (can be built using constants : EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
      * @param int[]         $objects_ids      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
      */
@@ -585,8 +585,8 @@ class AccessController extends Service {
             $user_roles = $this->getUserRoles($user_id, $object_class, $objects_ids);
             $user_rights |= $this->getRightsFromRoles($user_roles, $object_class);
         }
-        // if all bits of operation are granted, then user has requested rights
-        return (($user_rights & $operation) == $operation);
+        // If all bits are set, then the user is granted the requested rights.
+        return (($user_rights & $operation) === $operation);
     }
 
     /**
@@ -595,7 +595,7 @@ class AccessController extends Service {
      *  This method is called by the Collection service, when performing CRUD.
      *  #todo #confirm - deprecate $object_fields (instead rely on individual can...() checks)
      *
-     * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
+     * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_UPDATE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
      * @param string[]      $object_fields    (optional) List of fields name on which the operation must be granted.
      * @param int[]         $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.

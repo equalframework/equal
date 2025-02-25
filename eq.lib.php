@@ -137,7 +137,7 @@ namespace {
     define('EQ_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_CREATE',       EQ_R_CREATE);
     define('QN_R_READ',         EQ_R_READ);
-    define('QN_R_WRITE',        EQ_R_WRITE);
+    define('QN_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_DELETE',       EQ_R_DELETE);
     define('QN_R_MANAGE',       EQ_R_MANAGE);
     define('QN_R_ALL',          EQ_R_ALL);
@@ -391,7 +391,6 @@ namespace config {
     function config($name, $default=null) {
         return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]))?$GLOBALS['EQ_CONFIG_ARRAY'][$name]:$default;
     }
-
 
     /**
      * Exports a property as constant to the global scope.
