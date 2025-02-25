@@ -243,6 +243,12 @@ class User extends Model {
         return $result;
     }
 
+    public static function oncreate($self, $values) {
+        if(isset($values['password'])) {
+            $self->update(['password' => self::computePasswordHash($values['password'])]);
+        }
+    }
+
     /**
      * Filter method for password updates.
      * Make sure password is encrypted when stored to DB.
@@ -257,7 +263,7 @@ class User extends Model {
         $values = $om->read(self::getType(), $ids, ['password']);
         foreach($values as $id => $user) {
             if(substr($user['password'], 0, 4) != '$2y$') {
-                $om->update(self::getType(), $id, ['password' => password_hash($user['password'], PASSWORD_BCRYPT)]);
+                $om->update(self::getType(), $id, ['password' => self::computePasswordHash($user['password'])]);
             }
         }
     }
@@ -348,4 +354,21 @@ class User extends Model {
         return $statuses[mt_rand(0, count($statuses) - 1)];
     }
 
+    /**
+     * Filter method for password updates.
+     * Make sure password is encrypted when stored to DB.
+     * If not encrypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
+     *
+     * @param   $om     Object  Instance of the ObjectManager Service
+     * @param   $ids    array   List of User objects identifiers
+     * @param   $lang   string  Language for multilang fields
+     */
+    private static function computePasswordHash($password) {
+        $result = $password;
+        if(substr($password, 0, 4) != '$2y$') {
+            $result = password_hash($password, PASSWORD_BCRYPT);
+        }
+        return $result;
+    }
 }
