@@ -412,9 +412,9 @@ namespace config {
                 }
             }
             else {
-                // #memo - this code might be reach before registering autoloader (i.e. for instant settings)
+                // #memo - this code might be reached before registering autoloader (i.e. for instant settings)
                 if (!class_exists('equal\data\DataConverter')) {
-                    eQual::load_class('equal\data\DataConverter');
+                    eQual::loadClass('equal\data\DataConverter');
                 }
                 $value = DataConverter::convert($value, $constants_schema[$property]['usage'] ?? '');
             }
@@ -476,7 +476,7 @@ namespace config {
             }
 
             // register eQual specific class loader
-            spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
+            spl_autoload_register(__NAMESPACE__.'\eQual::loadClass');
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
@@ -1309,9 +1309,9 @@ namespace config {
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
          *
-         * @example load_class('equal\db\DBConnection');
+         * @example loadClass('equal\db\DBConnection');
          */
-        public static function load_class($class_name) {
+        public static function loadClass($class_name) {
             $result = false;
             if(class_exists($class_name, false) || isset($GLOBALS['eQual_loading_classes'][$class_name])) {
                 // class is already loaded or being loaded

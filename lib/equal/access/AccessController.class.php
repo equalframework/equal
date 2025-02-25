@@ -44,6 +44,10 @@ class AccessController extends Service {
         $this->default_rights = (defined('DEFAULT_RIGHTS')) ? constant('DEFAULT_RIGHTS') : 0;
     }
 
+    protected function getDefaultRights() {
+        return $this->default_rights;
+    }
+
     public static function constants() {
         return ['ACCESS_CONTROL_LEVEL', 'EQ_ROOT_GROUP_ID', 'EQ_DEFAULT_GROUP_ID', 'EQ_ROOT_USER_ID', 'EQ_GUEST_USER_ID'];
     }
@@ -562,7 +566,7 @@ class AccessController extends Service {
     }
 
     /**
-     *  Check if a given user (retrieved using Auth service) is explicitly granted the requested rights to perform a given operation.
+     *  Check if a given user is granted right to perform a specific operation.
      *
      * @param integer       $operation        Bit mask of the operations that are checked (can be built using constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_WRITE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.

@@ -10,7 +10,7 @@ namespace equal\data;
 /**
  *
  * This class is intended to be used as a helper for back-end generated documents,
- * and holds a single static method for formatting a value, according to a given usage.
+ * and holds a single static method `format()` for formatting a value, according to a given usage.
  *
  */
 
