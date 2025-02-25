@@ -8,6 +8,7 @@
 namespace equal\data\adapt\adapters\json;
 
 use equal\data\adapt\DataAdapter;
+use equal\data\DataConverter;
 
 class DataAdapterJsonTime implements DataAdapter {
 
@@ -33,28 +34,7 @@ class DataAdapterJsonTime implements DataAdapter {
      * @return mixed
      */
 	public function adaptIn($value, $usage, $locale='en') {
-        $result = null;
-        if(!is_null($value)) {
-            if(is_numeric($value)) {
-                // value is a timestamp, keep it
-                $result = intval($value);
-            }
-            else {
-                $count = substr_count($value, ':');
-                list($hour, $minute, $second) = [0,0,0];
-                if($count == 2) {
-                    list($hour, $minute, $second) = sscanf($value, "%d:%d:%d");
-                }
-                else if($count == 1) {
-                    list($hour, $minute) = sscanf($value, "%d:%d");
-                }
-                else if($count == 0) {
-                    $hour = $value;
-                }
-                $result = ($hour * 3600) + ($minute * 60) + $second;
-            }
-        }
-        return $result;
+        return DataConverter::convert($value, 'time');
     }
 
     /**
