@@ -31,6 +31,16 @@ class AuthenticationManager extends Service {
     }
 
     /**
+     * Provide the current user identifier (as is).
+     * There is no guarantee that the ID returned matches the user from which originates the current.
+     *
+     * @see UserId() for a safer way to get the current user identifier.
+     */
+    public function getUserId() {
+        return $this->user_id;
+    }
+
+    /**
      * Provide a JWT token based on given user (or current user if known) and `AUTH_SECRET_KEY`.
      *
      * The JWT access token is built on a payload holding:
@@ -173,8 +183,10 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * @param   string      $token  Token for identifying the user. If not provided, this method tries to fetch it from the current request header or from the cookies.
-     * @throws  Exception   If a token is found and valid but expired, an Exception is raised with ['auth_expired_token', QN_ERROR_INVALID_USER]
+     * Retrieves the identifier of the current user.
+     * This method is distinct from getUserId() as it attempts to retrieve the user based on a token,
+     * and always returns the root ID when called via CLI.
+     *
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
     public function userId($token=null) {
