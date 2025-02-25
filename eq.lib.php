@@ -412,6 +412,10 @@ namespace config {
                 }
             }
             else {
+                // #memo - this code might be reach before registering autoloader (i.e. for instant settings)
+                if (!class_exists('equal\data\DataConverter')) {
+                    eQual::load_class('equal\data\DataConverter');
+                }
                 $value = DataConverter::convert($value, $constants_schema[$property]['usage'] ?? '');
             }
         }
