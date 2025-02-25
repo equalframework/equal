@@ -140,7 +140,7 @@ $tests = [
             'description'       => "Check root user rights.",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->hasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
+                    return $access->userHasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -148,7 +148,7 @@ $tests = [
             'description'       => "Re-Check root user rights (to ensure using the rights cache).",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->hasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
+                    return $access->userHasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -161,7 +161,7 @@ $tests = [
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return $access->hasRight($user_id, EQ_R_WRITE, 'core\User', $user_id);
+                    return $access->userHasRight($user_id, EQ_R_WRITE, 'core\User', $user_id);
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_4@example.com'])->delete(true);
@@ -186,7 +186,7 @@ $tests = [
             'assert'            => function($group_id) use($providers) {
                     $access = $providers['access'];
                     $user = User::search(['login', '=', 'user_test_5@example.com'])->read(['id'])->first();
-                    return $access->hasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
+                    return $access->userHasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test2'])->delete(true);
@@ -214,7 +214,7 @@ $tests = [
             'assert'            => function($data) use($providers) {
                     list($user_id, $group_id) = $data;
                     $access = $providers['access'];
-                    return !$access->hasRight($user_id, EQ_R_MANAGE, 'core\Task');
+                    return !$access->userHasRight($user_id, EQ_R_MANAGE, 'core\Task');
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test3'])->delete(true);
@@ -232,7 +232,7 @@ $tests = [
                 },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return !boolval(count($access->canPerform($user_id, 'validate', 'core\User', $user_id)));
+                    return !boolval(count($access->userCanPerform($user_id, 'validate', 'core\User', $user_id)));
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_7@example.com'])->delete(true);
