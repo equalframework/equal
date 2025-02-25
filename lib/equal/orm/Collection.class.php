@@ -479,7 +479,7 @@ class Collection implements \Iterator, \Countable {
         }
         else {
             // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight($user_id, EQ_R_READ, $this->class)) {
+            if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
                 // find the objects for which the user is explicitly granted for READ
                 $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
                 if($permissions_ids > 0 && count($permissions_ids)) {
@@ -999,9 +999,8 @@ class Collection implements \Iterator, \Countable {
      */
     public function do($action) {
         // check if action can be performed
-        $user_id = $this->am->userId();
         $ids = $this->ids();
-        $res = $this->ac->canPerform($user_id, $action, $this->class, $ids);
+        $res = $this->ac->canPerform($action, $this->class, $ids);
         if(count($res)) {
             throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
         }

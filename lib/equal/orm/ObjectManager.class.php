@@ -2541,10 +2541,8 @@ class ObjectManager extends Service {
                         }
                         if(isset($t_descr['policies'])) {
                             $access = $this->container->get('access');
-                            $auth = $this->container->get('auth');
-                            $user_id = $auth->userId();
                             foreach($t_descr['policies'] as $policy) {
-                                $res = $access->isCompliant($user_id, $policy, $class, $ids);
+                                $res = $access->isCompliant($policy, $class, $ids);
                                 if(count($res)) {
                                     break 2;
                                 }
