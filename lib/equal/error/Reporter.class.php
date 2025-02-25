@@ -100,20 +100,20 @@ class Reporter extends Service {
             case E_CORE_ERROR:
             case E_COMPILE_ERROR:
             case E_PARSE:
-                $code = QN_REPORT_FATAL;
+                $code = EQ_REPORT_FATAL;
                 break;
             case E_RECOVERABLE_ERROR:
-                $code = QN_REPORT_ERROR;
+                $code = EQ_REPORT_ERROR;
                 break;
             case E_WARNING:
             case E_CORE_WARNING:
             case E_COMPILE_WARNING:
-                $code = QN_REPORT_WARNING;
+                $code = EQ_REPORT_WARNING;
                 break;
             case E_NOTICE:
             case E_STRICT:
             case E_DEPRECATED:
-                $code = QN_REPORT_INFO;
+                $code = EQ_REPORT_INFO;
                 break;
         }
         // retrieve instance and log error
