@@ -543,6 +543,13 @@ class AccessController extends Service {
     }
 
     /**
+     * Same as `hasGroup()`, but with explicit user_id.
+     */
+    public function userHasGroup($user_id, $group) {
+        return $this->hasGroup($group, $user_id);
+    }
+
+    /**
      * Check if a user is member of a given group. I no user is provided, defaults to current user.
      *
      * @param integer|string    $group    The group name or identifier.
@@ -566,13 +573,26 @@ class AccessController extends Service {
     }
 
     /**
-     *  Check if a given user is granted right to perform a specific operation.
+     * Same as `hasRight()`, but with explicit user_id.
+     */
+    public function userHasRight($user_id, $operation, $object_class='*', $objects_ids=[]): bool {
+        return $this->hasRight($operation, $object_class, $objects_ids, $user_id);
+    }
+    /**
+     *  Check if user is granted right to perform a specific operation.
      *
      * @param integer       $operation        Bit mask of the operations that are checked (can be built using constants : EQ_R_CREATE, EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
      * @param int[]         $objects_ids      (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param integer       $user_id          (optional) The identifier of the user for which the test is requested. If not provided falls back to current user.
      */
-    public function hasRight($user_id, $operation, $object_class='*', $objects_ids=[]) {
+    public function hasRight($operation, $object_class='*', $objects_ids=[], $user_id=null) {
+        if(is_null($user_id)) {
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+
         if($user_id == EQ_ROOT_USER_ID) {
             return true;
         }
@@ -590,24 +610,31 @@ class AccessController extends Service {
     }
 
     /**
-     *  Check if current user (retrieved using Auth service) has rights to perform a given operation.
+     * Same as `isAllowed()`, but with explicit user_id.
+     */
+    public function userIsAllowed($user_id, $operation, $object_class='*', $object_fields=[], $object_ids=[]) {
+        return $this->isAllowed($operation, $object_class, $object_fields, $object_ids, $user_id);
+    }
+
+    /**
+     *  Check if user has rights to perform a given operation.
      *
      *  This method is called by the Collection service, when performing CRUD.
      *  #todo #confirm - deprecate $object_fields (instead rely on individual can...() checks)
      *
      * @param integer       $operation        Identifier of the operation(s) that is/are checked (bit mask made of constants : EQ_R_CREATE, EQ_R_READ, EQ_R_DELETE, EQ_R_UPDATE, EQ_R_MANAGE).
      * @param string        $object_class     Class selector indicating on which classes the check must be performed.
-     * @param string[]      $object_fields    (optional) List of fields name on which the operation must be granted.
+     * @param string[]      $object_fields    (optional) List of fields name on which the operation must be granted (not implemented here).
      * @param int[]         $object_ids       (optional) List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param integer       $user_id          (optional) The identifier of the user for which the test is requested.
      */
-    public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[]) {
-
-        /** @var \equal\auth\AuthenticationManager */
-        $auth = $this->container->get('auth');
-        // retrieve current user identifier
-        $user_id = $auth->userId();
-
-        return $this->hasRight($user_id, $operation, $object_class, $object_ids);
+    public function isAllowed($operation, $object_class='*', $object_fields=[], $object_ids=[], $user_id = null) {
+        if(!$user_id) {
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+        return $this->hasRight($operation, $object_class, $object_ids, $user_id);
     }
 
     /**
@@ -628,20 +655,33 @@ class AccessController extends Service {
     }
 
     /**
+     * Same as `hasRole()`, but with explicit user_id.
+     */
+    public function userHasRole($user_id, $role, $object_class, $objects_ids=[]): bool {
+        return $this->hasRole($role, $object_class, $objects_ids, $user_id);
+    }
+
+    /**
      * Check if a given user is granted a role on a collection of objects.
      *
-     * @param integer       $user_id          The identifier of the user for which the test is requested.
      * @param string        $role             The role for which assignment is being tested.
      * @param string        $object_class     Class on which the check must be performed.
      * @param int[]         $object_ids       List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param integer       $user_id          (optional) The identifier of the user for which the test is requested. If not provided falls back to current user.
      */
-    public function hasRole($user_id, $role, $object_class, $objects_ids=[]): bool {
+    public function hasRole($role, $object_class, $objects_ids=[], $user_id=null): bool {
         $result = true;
 
         if(!count($object_class::getRoles())) {
             $result = false;
         }
         else {
+            if(is_null($user_id)) {
+                /** @var \equal\auth\AuthenticationManager */
+                $auth = $this->container->get('auth');
+                $user_id = $auth->userId();
+            }
+
             /** @var \equal\orm\ObjectManager */
             $orm = $this->container->get('orm');
 
@@ -669,11 +709,30 @@ class AccessController extends Service {
     }
 
     /**
+     * Same as `isCompliant()`, but with explicit user_id.
+     */
+    public function userIsCompliant($user_id, $policy, $object_class, $object_ids) {
+        return $this->isCompliant($policy, $object_class, $object_ids, $user_id);
+    }
+
+    /**
      * Check if a Collection is compliant with a given policy for a specific User.
      * This relates to the optional `getPolicies()` method that can be defined on Model classes.
+     *
+     * @param string        $policy           The policy for which compliance is being tested.
+     * @param string        $object_class     Class on which the check must be performed.
+     * @param int[]         $object_ids       List of objects identifiers (relating to $object_class) against which the check must be performed.
+     * @param integer       $user_id          (optional) The identifier of the user for which the test is requested. If not provided falls back to current user.
      */
-    public function isCompliant($user_id, $policy, $object_class, $object_ids) {
+    public function isCompliant($policy, $object_class, $object_ids, $user_id=null) {
         $result = [];
+
+        if(is_null($user_id)) {
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+
         $policies = $object_class::getPolicies();
 
         if(!isset($policies[$policy]) || !isset($policies[$policy]['function'])) {
@@ -712,16 +771,30 @@ class AccessController extends Service {
     }
 
     /**
+     * Same as `canPerform()`, but with explicit user_id.
+     */
+    public function userCanPerform($user_id, $action, $object_class, $object_ids) {
+        return $this->canPerform($action, $object_class, $object_ids, $user_id);
+    }
+
+    /**
      * Check if a given action can be performed on a Collection, according to the policies defined at the entity level for that action, if any.
      * This relates to the optional `getActions()` method that can be defined on Model classes.
      *
      */
-    public function canPerform($user_id, $action, $object_class, $object_ids) {
+    public function canPerform($action, $object_class, $object_ids, $user_id=null) {
         $result = [];
+
+        if(is_null($user_id)) {
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+
         $actions = $object_class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $res = $this->isCompliant($user_id, $policy, $object_class, $object_ids);
+                $res = $this->isCompliant($policy, $object_class, $object_ids, $user_id);
                 if(count($res)) {
                     $result[$policy] = $res;
                 }
