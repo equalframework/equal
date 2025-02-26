@@ -58,7 +58,7 @@ if(is_dir($tests_path)) {
 }
 
 if($params['logs']) {
-    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/equal.log');
+    $result['logs'] = file_get_contents(EQ_LOG_STORAGE_DIR.'/equal.log');
 }
 
 $providers['context']->httpResponse()
