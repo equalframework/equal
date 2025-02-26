@@ -50,12 +50,14 @@ class Permission extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Group',
                 'description'       => "Targeted group, if permission applies to a group.",
+                'ondelete'          => 'cascade',
                 'default'           => EQ_DEFAULT_GROUP_ID
             ],
 
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
+                'ondelete'          => 'cascade',
                 'description'       => "Targeted user, if permission applies to a single user."
             ],
 
