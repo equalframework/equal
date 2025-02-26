@@ -493,7 +493,7 @@ namespace config {
                 'db'        => constant('SERVICE_DB_DBCONNECTOR', 'equal\db\DBConnector'),
                 'dispatch'  => 'equal\dispatch\Dispatcher',
                 'context'   => 'equal\php\Context',
-                'cron'      => 'equal\cron\Scheduler',
+                'cron'      => constant('SERVICE_CRON_SCHEDULER', 'equal\cron\Scheduler'),
                 'log'       => 'equal\log\Logger',
                 'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
                 'report'    => 'equal\error\Reporter',

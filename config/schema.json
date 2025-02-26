@@ -175,8 +175,8 @@
         "default": 0,
         "examples": [
             0,
-            "EQ_R_READ | EQ_R_WRITE",
-            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE",
+            "EQ_R_READ | EQ_R_UPDATE",
+            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_UPDATE | EQ_R_MANAGE",
             "EQ_R_ALL"
         ]
     },
@@ -395,6 +395,13 @@
         "description": "Class to use as AccessController service (under `lib` folder).",
         "help": "This allows to customize behavior related to identity & access management. The target class must be inherited from equal\\access\\AccessController.",
         "default": "equal\\access\\AccessController",
+        "instant": true
+    },
+    "SERVICE_CRON_SCHEDULER" : {
+        "type": "string",
+        "description": "Class to use as Scheduler service (under `lib` folder).",
+        "help": "This allows to customize behavior related to task scheduling. The target class must be inherited from equal\\cron\\Scheduler.",
+        "default": "equal\\cron\\Scheduler",
         "instant": true
     },
     "SERVICE_ORM_OBJECTMANAGER": {
