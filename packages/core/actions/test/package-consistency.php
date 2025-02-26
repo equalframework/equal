@@ -25,6 +25,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
+        ],
+        'strict'	=>  [
+            'description'   => 'Flag to enable strict mode.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -110,10 +115,16 @@ foreach($classes as $class) {
         throw new Exception("FATAL - unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
     }
 
+    // get the complete schema of the object (including special fields)
+    // #memo - we want the fields as they are defined in the class, not as they are returned by getSchema()
+    $schema = $model->getSpecialColumns();
+    $stack_classes = [$model->getType()];
+
     // verify that the class actually inherits from Model
     // retrieve root class (before Model)
     $root_parent = get_parent_class($model);
     while($root_parent && $root_parent != 'equal\orm\Model') {
+        $stack_classes[] = $root_parent;
         $root_parent = get_parent_class($root_parent);
     }
 
@@ -121,8 +132,9 @@ foreach($classes as $class) {
         throw new Exception("FATAL - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.", QN_ERROR_UNKNOWN_OBJECT);
     }
 
-    // get the complete schema of the object (including special fields)
-    $schema = $model->getSchema();
+    foreach(array_reverse($stack_classes) as $item) {
+        $schema = array_merge($schema, $item::getColumns());
+    }
 
     // 1) check fields descriptors consistency
 
