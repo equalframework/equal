@@ -116,7 +116,8 @@ namespace {
      *
      * Note: ensure http service has read/write permissions on this directory
      */
-    define('QN_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('EQ_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('QN_LOG_STORAGE_DIR', EQ_LOG_STORAGE_DIR);
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('html_errors', false);                              // prevent HTML in logs
