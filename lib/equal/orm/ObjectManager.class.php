@@ -1148,13 +1148,17 @@ class ObjectManager extends Service {
     /**
      * Invoke a callback from an object Class.
      * By default, objects callback signature is `methodName($orm: object, $ids: array, $lang: string)`. Arguments can be adapted in the $signature parameter.
-     * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle (sub-calls from callbacks invoked in a create, read, write, delete).
+     * This method can lead to recursion: class member `object_methods` is used to prevent inner loop within a same cycle (sub-calls from callbacks invoked in a create, read, update, delete).
+     *
+     * These parameters are automatically injected if present in called method signature: `ids`, `values`, `lang`, `self`
+     *  + service providers : `orm`, `report`, `auth`, `access`, `context`, `validate`, `adapt`, `route`, `log`, `cron`, `dispatch`, `db`
      *
      * @param   string    $class
      * @param   string    $method
      * @param   int[]     $ids
      * @param   array     $values
      * @param   array     $signature        (deprecated) List of parameters to relay to target method (required if differing from default).
+     *
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids=[], $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
@@ -2631,7 +2635,7 @@ class ObjectManager extends Service {
      */
     public function search($class, $domain=null, $sort=['id' => 'asc'], $start='0', $limit='0', $lang=null) {
         $result = [];
-        $lang = ($lang)?$lang:constant('DEFAULT_LANG');
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
         try {
             // get DB handler (init DB connection if necessary)
