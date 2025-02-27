@@ -190,12 +190,12 @@ class AuthenticationManager extends Service {
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
     public function userId($token=null) {
-        // grant all rights when using CLI
-        if(php_sapi_name() === 'cli') {
+        // unless already resolved, grant all rights when using CLI
+        if($this->user_id <= 0 && php_sapi_name() === 'cli') {
             $this->user_id = EQ_ROOT_USER_ID;
         }
 
-        // return user_id member, if already resolved
+        // if already resolved, return user_id
         if($this->user_id > 0) {
             return $this->user_id;
         }
