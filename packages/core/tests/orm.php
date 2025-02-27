@@ -328,7 +328,7 @@ $tests = [
     '2610' => array(
                     'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return QN_ROOT_USER_ID.",
                     'return'            =>  array('integer'),
-                    'expected'          =>  QN_ROOT_USER_ID,
+                    'expected'          =>  EQ_ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
                                                 try {
                                                     $providers['auth']->authenticate('root@equal.local', 'secure_password');
@@ -366,9 +366,13 @@ $tests = [
                                                     count(array_diff(['id' => 1, 'login' => 'root@equal.local'], (array) $result['1'])) == 0
                                                  && count(array_diff(['id' => 2, 'login' => 'user@equal.local'], (array) $result['2'])) == 0
                                                 );
-                                            }
-                    ),
+                                            },
 
+                    'rollback'          =>  function () use($providers) {
+                        // switch back to root user
+                        $providers['auth']->su();
+                    },
+        ),
     '2631' => array(
                     'description'       =>  "Add a user to a given group.",
                     'return'            =>  array('integer', 'array'),
