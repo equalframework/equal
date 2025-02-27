@@ -433,10 +433,10 @@ class Collection implements \Iterator, \Countable {
         // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
         // (and therefore, in  most situation, start() and limit() are chained to the Collection for that purpose)
         $defaults = [
-            'sort'  => ['id' => 'asc'],
-            'limit' => 0,
-            'start' => 0
-        ];
+                'sort'  => ['id' => 'asc'],
+                'limit' => 0,
+                'start' => 0
+            ];
 
         // retrieve current user id
         $user_id = $this->am->userId();
@@ -637,11 +637,11 @@ class Collection implements \Iterator, \Countable {
         }
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $check_required = (isset($values['state']) && $values['state'] == 'draft') ? false : true;
+        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
         // 3) validate : check required fields accordingly
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
-        $this->validate($values, [], true, $check_required);
+        $this->validate($values, [], true, !$is_draft);
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;
@@ -893,10 +893,17 @@ class Collection implements \Iterator, \Countable {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
             }
 
+            $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+
             // 3) validate : check unique keys and required fields
-            // if object is not yet an instance, check required fields (otherwise, partial update is allowed)
-            $check_required = (isset($values['state']) && $values['state'] == 'draft') ? true : false;
-            $this->validate($values, $ids, true, $check_required);
+            // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
+            $this->validate($values, $ids, true, $is_draft);
+
+            // #memo - moved back from ObjectManager::update() (see above)
+            // by convention, `update()` forces a 'draft' to an 'instance'
+            if($is_draft) {
+                $fields['state'] = 'instance';
+            }
 
             // check if fields (other than special columns) can be updated
             $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
