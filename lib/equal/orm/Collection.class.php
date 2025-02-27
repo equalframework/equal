@@ -902,7 +902,7 @@ class Collection implements \Iterator, \Countable {
             // #memo - moved back from ObjectManager::update() (see above)
             // by convention, `update()` forces a 'draft' to an 'instance'
             if($is_draft) {
-                $fields['state'] = 'instance';
+                $values['state'] = 'instance';
             }
 
             // check if fields (other than special columns) can be updated
