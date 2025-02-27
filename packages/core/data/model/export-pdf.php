@@ -1,14 +1,15 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use Dompdf\Dompdf;
 use Dompdf\Options as DompdfOptions;
 use core\setting\Setting;
 
-list($params, $providers) = announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Returns a view populated with a collection of objects and outputs it as a PDF document.",
     'params'        => [
         'entity' =>  [
@@ -40,6 +41,12 @@ list($params, $providers) = announce([
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
             'default'       => constant('DEFAULT_LANG')
+        ],
+        'nolimit' => [
+            'description'   => 'Explicit request for ignoring limit and return all matching objects.',
+            'help'          => 'When activated start and limit parameters are ignored.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DEFAULT_LANG'],
@@ -156,14 +163,24 @@ if($is_controller_entity) {
 // entity is a Model
 else {
     if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
-        $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-        $start = (isset($params['params']['start']))?$params['params']['start']:0;
-        $order = (isset($params['params']['order']))?$params['params']['order']:'id';
-        $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+        $limit = (isset($params['params']['limit'])) ? $params['params']['limit'] : 25;
+        $start = (isset($params['params']['start'])) ? $params['params']['start'] : 0;
+        $order = (isset($params['params']['order'])) ? $params['params']['order'] : 'id';
+        $sort  = (isset($params['params']['sort']))  ? $params['params']['sort'] : 'asc';
         if(is_array($order)) {
             $order = $order[0];
         }
-        $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+        $collection = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]]);
+
+        if(!$params['nolimit']) {
+            $collection
+                ->shift($start)
+                ->limit($limit);
+        }
+
+        $values = $collection
+            ->read($fields_to_read)
+            ->get();
     }
     else {
         $body = [
@@ -174,7 +191,8 @@ else {
                 'start'     => 0,
                 'order'     => 'id',
                 'sort'      => 'asc',
-                'lang'      => $params['lang']
+                'lang'      => $params['lang'],
+                'nolimit'   => $params['nolimit']
             ];
 
         foreach($params['params'] as $param => $value) {

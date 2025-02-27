@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\test\Tester;
@@ -57,7 +58,7 @@ if(is_dir($tests_path)) {
 }
 
 if($params['logs']) {
-    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log');
+    $result['logs'] = file_get_contents(EQ_LOG_STORAGE_DIR.'/equal.log');
 }
 
 $providers['context']->httpResponse()

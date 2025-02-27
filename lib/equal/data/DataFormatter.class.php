@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\data;
@@ -9,7 +10,7 @@ namespace equal\data;
 /**
  *
  * This class is intended to be used as a helper for back-end generated documents,
- * and holds a single static method for formatting a value, according to a given usage.
+ * and holds a single static method `format()` for formatting a value, according to a given usage.
  *
  */
 

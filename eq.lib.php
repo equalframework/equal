@@ -4,7 +4,7 @@
 *    https://github.com/equalframework/equal
 *
 *    Some Rights Reserved, The eQual Framework, 2010-2024
-*    Original Author: Cedric Francoys
+*    Original Author(s): Cedric Francoys
 *    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -116,7 +116,8 @@ namespace {
      *
      * Note: ensure http service has read/write permissions on this directory
      */
-    define('QN_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('EQ_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('QN_LOG_STORAGE_DIR', EQ_LOG_STORAGE_DIR);
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('html_errors', false);                              // prevent HTML in logs
@@ -137,7 +138,7 @@ namespace {
     define('EQ_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_CREATE',       EQ_R_CREATE);
     define('QN_R_READ',         EQ_R_READ);
-    define('QN_R_WRITE',        EQ_R_WRITE);
+    define('QN_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_DELETE',       EQ_R_DELETE);
     define('QN_R_MANAGE',       EQ_R_MANAGE);
     define('QN_R_ALL',          EQ_R_ALL);
@@ -307,6 +308,7 @@ namespace config {
     use equal\services\Container;
     use equal\error\Reporter;
     use equal\orm\Field;
+    use equal\data\DataConverter;
 
     /*
      * This section adds some config-utility functions to the 'config' namespace.
@@ -338,114 +340,28 @@ namespace config {
         return $output;
     }
 
-    function strtoint($value, $usage = '') {
-        if(is_string($value)) {
-            if($value == 'null') {
-                $value = null;
-            }
-            elseif(empty($value)) {
-                $value = 0;
-            }
-            elseif(in_array($value, ['TRUE', 'true'])) {
-                $value = 1;
-            }
-            elseif(in_array($value, ['FALSE', 'false'])) {
-                $value = 0;
-            }
-        }
-        // arg represents a numeric value (numeric type or string)
-        if(is_numeric($value)) {
-            $value = intval($value);
-        }
-        elseif(is_scalar($value)) {
-            // fallback suffixes coefficients (defaults)
-            $suffixes = [
-                'B'  => 1,
-                'KB' => 1024,
-                'MB' => 1048576,
-                'GB' => 1073741824,
-                's'  => 1,
-                'm'  => 60,
-                'h'  => 3600,
-                'd'  => 3600*24,
-                'w'  => 3600*24*7,
-                'M'  => 3600*24*30,
-                'Y'  => 3600*24*365
-            ];
-            // #todo - replicate this in DataAdapterJsonInteger
-            switch($usage) {
-                case 'amount/data':
-                    $suffixes = [
-                        'b'   => 1,
-                        'B'   => 1,
-                        'k'   => 1000,
-                        'K'   => 1000,
-                        'kb'  => 1000,
-                        'KB'  => 1000,
-                        'kib' => 1024,
-                        'KiB' => 1024,
-                        'm'   => 1000000,
-                        'M'   => 1000000,
-                        'mb'  => 1000000,
-                        'MB'  => 1000000,
-                        'mib' => 1048576,
-                        'MiB' => 1048576,
-                        'g'   => 1000000000,
-                        'gb'  => 1000000000,
-                        'gib' => 1073741824,
-                        'GiB' => 1073741824
-                    ];
-                    break;
-                case 'time/duration':
-                    $suffixes = [
-                        'ms' => 0.001,
-                        's'  => 1,
-                        'm'  => 60,
-                        'h'  => 3600,
-                        'd'  => 3600*24,
-                        'D'  => 3600*24,
-                        'w'  => 3600*24*7,
-                        'M'  => 3600*24*30,
-                        'y'  => 3600*24*365,
-                        'Y'  => 3600*24*365
-                    ];
-                    break;
-            }
-            $val = (string) $value;
-            $intval = intval($val);
-            foreach($suffixes as $suffix => $factor) {
-                if(strval($intval).$suffix == $val) {
-                    $value = $intval * $factor;
-                    break;
-                }
-            }
-        }
-        return $value;
-    }
-
-
     /**
      * Adds a parameter to the configuration array
      */
     function define($name, $value) {
-        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            $GLOBALS['QN_CONFIG_ARRAY'] = [];
+        if(!isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            $GLOBALS['EQ_CONFIG_ARRAY'] = [];
         }
-        $GLOBALS['QN_CONFIG_ARRAY'][$name] = $value;
+        $GLOBALS['EQ_CONFIG_ARRAY'][$name] = $value;
     }
 
     /**
      * Checks if a parameter has already been defined
      */
     function defined($name) {
-        return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+        return \defined($name) || isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
     }
 
     /**
      * Retrieve a configuration parameter as a constant.
      */
     function constant($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name])) ? $GLOBALS['EQ_CONFIG_ARRAY'][$name] : $default;
     }
 
     /**
@@ -474,9 +390,8 @@ namespace config {
      * @deprecated
      */
     function config($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]))?$GLOBALS['EQ_CONFIG_ARRAY'][$name]:$default;
     }
-
 
     /**
      * Exports a property as constant to the global scope.
@@ -497,7 +412,11 @@ namespace config {
                 }
             }
             else {
-                $value = strtoint($value, $constants_schema[$property]['usage'] ?? '');
+                // #memo - this code might be reached before registering autoloader (i.e. for instant settings)
+                if (!class_exists('equal\data\DataConverter')) {
+                    eQual::loadClass('equal\data\DataConverter');
+                }
+                $value = DataConverter::convert($value, $constants_schema[$property]['usage'] ?? '');
             }
         }
         // handle encrypted values
@@ -520,8 +439,8 @@ namespace config {
      * @deprecated
      */
     function export_config() {
-        if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
+        if(isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            foreach($GLOBALS['EQ_CONFIG_ARRAY'] as $name => $value) {
                 if(!\defined($name)) {
                     // handle encrypted values
                     if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
@@ -529,7 +448,7 @@ namespace config {
                     }
                     \define($name, $value);
                 }
-                unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+                unset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
             }
         }
         $GLOBALS['QN_CONFIG_EXPORTED'] = true;
@@ -543,7 +462,7 @@ namespace config {
         /**
          * Initialize eQual.
          *
-         * Adds the library folder to the include path (library folder should contain the Zend framework if required).
+         * Adds the library folder to the include path.
          * This is the bootstrap method for setting everything in place.
          *
          * @static
@@ -556,12 +475,12 @@ namespace config {
                 include_once(EQ_BASEDIR.'/vendor/autoload.php');
             }
 
-            // register own class loader
-            spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
+            // register eQual specific class loader
+            spl_autoload_register(__NAMESPACE__.'\eQual::loadClass');
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
-                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', QN_REPORT_FATAL);
+                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', EQ_REPORT_FATAL);
             }
             // instantiate service container
             $container = Container::getInstance();
@@ -569,27 +488,25 @@ namespace config {
             // register names for common services and assign default classes
             // (these can be overridden in the `config.json` of invoked package)
             $container->register([
-                'report'    => 'equal\error\Reporter',
-                'auth'      => 'equal\auth\AuthenticationManager',
-                'access'    => 'equal\access\AccessController',
-                'context'   => 'equal\php\Context',
-                'validate'  => 'equal\data\DataValidator',
-                'adapt'     => 'equal\data\adapt\DataAdapterProvider',
-                'orm'       => 'equal\orm\ObjectManager',
-                'route'     => 'equal\route\Router',
-                'log'       => 'equal\log\Logger',
-                'cron'      => 'equal\cron\Scheduler',
+                'access'    => constant('SERVICE_ACCESS_ACCESSCONTROLLER', 'equal\access\AccessController'),
+                'adapt'     => constant('SERVICE_DATA_DATAADAPTERPROVIDER', 'equal\data\adapt\DataAdapterProvider'),
+                'auth'      => constant('SERVICE_AUTH_AUTHENTICATIONMANAGER', 'equal\auth\AuthenticationManager'),
+                'db'        => constant('SERVICE_DB_DBCONNECTOR', 'equal\db\DBConnector'),
                 'dispatch'  => 'equal\dispatch\Dispatcher',
-                'db'        => 'equal\db\DBConnector'
+                'context'   => 'equal\php\Context',
+                'cron'      => constant('SERVICE_CRON_SCHEDULER', 'equal\cron\Scheduler'),
+                'log'       => 'equal\log\Logger',
+                'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
+                'report'    => 'equal\error\Reporter',
+                'route'     => 'equal\route\Router',
+                'validate'  => 'equal\data\DataValidator'
             ]);
 
             try {
                 // make mandatory dependencies available
-                $container->get(['report', 'context']);
+                $container->get(['report', 'context', 'equal\orm\Collections']);
                 // register ORM classes auto-loader
                 $om = $container->get('orm');
-                // init collections provider
-                $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
@@ -1175,7 +1092,7 @@ namespace config {
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
          * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array mapping params with their values).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked and their output is buffered).
+         * @param boolean   $root           Flag to run the operation using the first (root) context (following contexts are stacked and their output is buffered).
          *
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
@@ -1392,9 +1309,9 @@ namespace config {
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
          *
-         * @example load_class('equal\db\DBConnection');
+         * @example loadClass('equal\db\DBConnection');
          */
-        public static function load_class($class_name) {
+        public static function loadClass($class_name) {
             $result = false;
             if(class_exists($class_name, false) || isset($GLOBALS['eQual_loading_classes'][$class_name])) {
                 // class is already loaded or being loaded

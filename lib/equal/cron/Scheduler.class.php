@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\cron;
@@ -23,7 +24,7 @@ class Scheduler extends Service {
         return ['MEM_FREE_LIMIT', 'TASK_EXECUTION_TIMEOUT'];
     }
 
-    private static function computeAvailableMemory() {
+    protected static function computeAvailableMemory() {
         $memory = 0;
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             if($output = shell_exec('wmic OS get FreePhysicalMemory /Value')) {
@@ -157,7 +158,7 @@ class Scheduler extends Service {
                         if(is_array($data)) {
                             $data = json_encode($data, JSON_PRETTY_PRINT);
                         }
-                        $log = ($data)?$data:$msg;
+                        $log = ($data) ? $data : $msg;
                     }
                     // create a new TaskLog holding result
                     $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => "<pre>{$log}</pre>"]);

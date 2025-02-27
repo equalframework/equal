@@ -6,7 +6,6 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
-use equal\fs\FSManipulator as FS;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -195,7 +194,7 @@ else {
 
     // 1) Init DB with SQL schema
 
-    /*  start-tables_init */
+    /*  start tables init */
     // retrieve schema for given package
     $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
@@ -206,7 +205,7 @@ else {
     foreach($queries as $query) {
         $db->sendQuery($query);
     }
-    /*  end-tables_init */
+    /*  end tables init */
 
     // 2) Populate tables with predefined data
     $data_folder = "packages/{$params['package']}/init/data";
@@ -233,18 +232,25 @@ else {
         exec("chown www-data:www-data -R bin/{$params['package']}");
     }
 
-    // 4) If a `routes` folder exists, copy its content to /config/routing/
+    // 3 bis) If a `routes` folder exists, copy its content to /config/routing/
     $route_folder = "packages/{$params['package']}/init/routes";
     if(file_exists($route_folder) && is_dir($route_folder)) {
         exec("cp -r $route_folder/* config/routing");
     }
 
+    // 3 ter) If a `assets` folder exists, copy its content to /public/assets/
     $assets_folder = "packages/{$params['package']}/init/assets";
     if(file_exists($assets_folder) && is_dir($assets_folder)) {
         exec("cp -r $assets_folder/* public/assets/");
     }
 
-    // 5) Export the compiled apps to related public folders
+    // 3 quat) If a `lib` folder exists, copy its content to /lib/
+    $lib_folder = "packages/{$params['package']}/init/lib";
+    if(file_exists($lib_folder) && is_dir($lib_folder)) {
+        exec("cp -r $lib_folder/* lib/");
+    }
+
+    // 4) Export the compiled apps to related public folders
     // #memo - make sure ZIP library is available
     if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
 
@@ -266,7 +272,7 @@ else {
         }
     }
 
-    // 6) Inject composer dependencies if any
+    // 5) Inject composer dependencies if any
     if(isset($package_manifest['requires']) && is_array($package_manifest['requires'])) {
         $map_composer = [
             'require'     => [],
@@ -297,7 +303,7 @@ else {
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    // 7) Inject config values, if present
+    // 6) Inject config values, if present
     if(isset($package_manifest['config']) && is_array($package_manifest['config'])) {
         $config = [];
 

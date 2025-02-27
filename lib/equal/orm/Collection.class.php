@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -9,44 +10,44 @@ namespace equal\orm;
 class Collection implements \Iterator, \Countable {
 
     /** @var \equal\orm\ObjectManager */
-    private $orm;
+    protected $orm;
 
     /** @var \equal\access\AccessController */
-    private $ac;
+    protected $ac;
 
     /** @var \equal\auth\AuthenticationManager */
-    private $am;
+    protected $am;
 
     /** @var \equal\data\adapt\DataAdapterProvider */
-    private $dap;
+    protected $dap;
 
     /** @var \equal\data\adapt\DataAdapter */
-    private $adapter;
+    protected $adapter;
 
     /** @var string */
-    private $lang;
+    protected $lang;
 
     /** @var \equal\log\Logger */
-    private $logger;
+    protected $logger;
 
     /**
      * Name of the class targeted by the Collection.
      * @var string
      */
-    private $class;
+    protected $class;
 
 
     /**
      * Instance of targeted class (used for retrieving fields and schema; inherits from Model class.
      * @var \equal\orm\Model
      */
-    private $model;
+    protected $model;
 
     /* map associating objects with their values with identifiers as keys */
-    private $objects;
+    protected $objects;
 
     /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit) */
-    private $limit;
+    protected $limit;
 
     /**
      *
@@ -57,8 +58,8 @@ class Collection implements \Iterator, \Countable {
     /**
      * Collection constructor.
      * This is called through the Collections service, which retrieves the dependencies through its container.
-     * Collections service is a factory that creates Collection instances when requested
-     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
+     * Collections service is a factory that creates Collection instances when requested.
+     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`)
      *
      * @var string                                  $class
      * @var \equal\orm\ObjectManager                $objectManager
@@ -321,17 +322,17 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names by discarding:
-     *   special fields;
-     *   fields marked as readonly;
-     *   and fields unknown to the current class.
+     * Checks a given map of fields-values entries or an array of fields names, and filters out (discard):
+     *   - special fields;
+     *   - fields marked as readonly;
+     *   - fields unknown to the given class.
      *
      * @param   array   $fields         Associative array mapping field names with their values.
-     * @param   string  $operation      If set to true, readonly fields are discarded.
+     * @param   string  $operation      Targeted CRUD operation. If set to 'create', system fields are discarded.
      *
      * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields, string $operation) {
+    private function sanitizeFields(array $fields, string $operation) {
         $result = [];
         if(count($fields)) {
             $schema = $this->model->getSchema();
@@ -345,7 +346,7 @@ class Collection implements \Iterator, \Countable {
             elseif($operation == 'update') {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                        return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
+                        return (isset($schema[$field]['readonly'])) ? ($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed') : false;
                     });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // discard special fields (except `state`)
@@ -432,10 +433,10 @@ class Collection implements \Iterator, \Countable {
         // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
         // (and therefore, in  most situation, start() and limit() are chained to the Collection for that purpose)
         $defaults = [
-            'sort'  => ['id' => 'asc'],
-            'limit' => 0,
-            'start' => 0
-        ];
+                'sort'  => ['id' => 'asc'],
+                'limit' => 0,
+                'start' => 0
+            ];
 
         // retrieve current user id
         $user_id = $this->am->userId();
@@ -478,7 +479,7 @@ class Collection implements \Iterator, \Countable {
         }
         else {
             // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight($user_id, EQ_R_READ, $this->class)) {
+            if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
                 // find the objects for which the user is explicitly granted for READ
                 $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
                 if($permissions_ids > 0 && count($permissions_ids)) {
@@ -623,7 +624,7 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
         // drop invalid fields
-        $values = $this->filter((array) $values, 'create');
+        $values = $this->sanitizeFields((array) $values, 'create');
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
                 return is_numeric($key)?$value:$key;
@@ -636,11 +637,11 @@ class Collection implements \Iterator, \Countable {
         }
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $check_required = (isset($values['state']) && $values['state'] == 'draft') ? false : true;
+        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
         // 3) validate : check required fields accordingly
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
-        $this->validate($values, [], true, $check_required);
+        $this->validate($values, [], true, !$is_draft);
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;
@@ -870,7 +871,7 @@ class Collection implements \Iterator, \Countable {
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
             // silently drop invalid fields
-            $values = $this->filter($values, 'update');
+            $values = $this->sanitizeFields($values, 'update');
             // retrieve targeted identifiers
             $ids = $this->ids();
             // retrieve targeted fields names
@@ -892,10 +893,17 @@ class Collection implements \Iterator, \Countable {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
             }
 
+            $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+
             // 3) validate : check unique keys and required fields
-            // if object is not yet an instance, check required fields (otherwise, partial update is allowed)
-            $check_required = (isset($values['state']) && $values['state'] == 'draft') ? true : false;
-            $this->validate($values, $ids, true, $check_required);
+            // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
+            $this->validate($values, $ids, true, $is_draft);
+
+            // #memo - moved back from ObjectManager::update() (see above)
+            // by convention, `update()` forces a 'draft' to an 'instance'
+            if($is_draft) {
+                $values['state'] = 'instance';
+            }
 
             // check if fields (other than special columns) can be updated
             $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
@@ -998,9 +1006,8 @@ class Collection implements \Iterator, \Countable {
      */
     public function do($action) {
         // check if action can be performed
-        $user_id = $this->am->userId();
         $ids = $this->ids();
-        $res = $this->ac->canPerform($user_id, $action, $this->class, $ids);
+        $res = $this->ac->canPerform($action, $this->class, $ids);
         if(count($res)) {
             throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
         }
@@ -1097,7 +1104,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforeupdate(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforeupdate()`.
+     */
     public static function onupdate(...$params) {
+    }
+
+    /**
+     * Hook invoked after object update for performing object-specific additional operations.
+     * Previous values of the object are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterupdate(...$params) {
     }
 
     /**
@@ -1115,7 +1138,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforedelete(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforedelete()`.
+     */
     public static function ondelete(...$params) {
+    }
+
+    /**
+     * Hook invoked after object deletion for performing object-specific additional operations.
+     * The deleted objects are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterdelete(...$params) {
     }
 
     /**

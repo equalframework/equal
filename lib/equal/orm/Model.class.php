@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -31,11 +32,15 @@ use equal\services\Container;
  * @method static array canclone(mixed ...$params)  Check wether an object can be cloned.
  *
  * 2) `on...()` methods - event handlers:
- * @method static array onchange(mixed ...$params)  Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method static void oncreate(mixed ...$params)   Hook invoked AFTER object creation for performing object-specific additional operations.
- * @method static void onupdate(mixed ...$params)   Hook invoked BEFORE object update for performing object-specific additional operations.
- * @method static void ondelete(mixed ...$params)   Hook invoked BEFORE object deletion for performing object-specific additional operations.
- * @method static void onclone(mixed ...$params)    Hook invoked AFTER object cloning for performing object-specific additional operations.
+ * @method static array onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
+ * @method static void oncreate(mixed ...$params)       Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method static void onbeforeupdate(mixed ...$params) Hook invoked BEFORE object update for performing object-specific additional operations.
+ * @method static void onupdate(mixed ...$params)       Alias of onbeforeupdate.
+ * @method static void onafterupdate(mixed ...$params)  Hook invoked AFTER object update for performing object-specific additional operations.
+ * @method static void onbeforedelete(mixed ...$params) Hook invoked BEFORE object deletion for performing object-specific additional operations.
+ * @method static void ondelete(mixed ...$params)       Alias of onbeforedelete.
+ * @method static void onafterdelete(mixed ...$params)  Hook invoked AFTER object deletion for performing object-specific additional operations.
+ * @method static void onclone(mixed ...$params)        Hook invoked AFTER object cloning for performing object-specific additional operations.
  *
  * Possible params (handled by dependency injection):
  * - Collection                         $self       Collection holding a series of objects of current class.

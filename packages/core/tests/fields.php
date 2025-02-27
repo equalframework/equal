@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Field;
@@ -51,6 +52,36 @@ $tests = [
             'assert'            =>  function($field) use($providers) {
                     $issues = $providers['validate']->checkConstraints($field, 10.5);
                     return !(empty($issues));
+                }
+        ],
+    '0104' => [
+            'description'       =>  "Testing valid value for selection map on integer.",
+            'act'               =>  function () {
+                    $field = new Field([
+                            'type'          => 'integer',
+                            'selection'     => [ 1 => 'a', 2 => 'b', 3 => 'c']
+                        ],
+                        'test4');
+                    return $field;
+                },
+            'assert'            =>  function($field) use($providers) {
+                    $issues = $providers['validate']->checkConstraints($field, 3);
+                    return empty($issues);
+                }
+        ],
+    '0105' => [
+            'description'       =>  "Testing valid value on selection map on string.",
+            'act'               =>  function () {
+                    $field = new Field([
+                            'type'          => 'string',
+                            'selection'     => ['a' => 'Hay', 'b' => 'Bee', 'c' => 'See']
+                        ],
+                        'test2');
+                    return $field;
+                },
+            'assert'            =>  function($field) use($providers) {
+                    $issues = $providers['validate']->checkConstraints($field, 'b');
+                    return empty($issues);
                 }
         ],
 ];

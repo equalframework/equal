@@ -38,19 +38,25 @@
                                                 "value": "",
                                                 "width": "50%"
                                             },
-
                                             {
                                                 "type": "field",
                                                 "value": "rights",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "rights_txt",
                                                 "width": "25%"
                                             }
                                         ]
                                     },
                                     {
+                                        "id": "column.right",
                                         "width": "33%",
                                         "align": "left",
                                         "items": [
                                             {
+                                                "id": "item.group_id",
                                                 "type": "field",
                                                 "value": "group_id",
                                                 "width": "100%",
@@ -59,6 +65,7 @@
                                                 }
                                             },
                                             {
+                                                "id": "item.user_id",
                                                 "type": "field",
                                                 "value": "user_id",
                                                 "width": "100%",

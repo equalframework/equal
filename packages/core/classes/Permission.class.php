@@ -1,8 +1,9 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
-    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
+    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
 
@@ -49,12 +50,14 @@ class Permission extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\Group',
                 'description'       => "Targeted group, if permission applies to a group.",
+                'ondelete'          => 'cascade',
                 'default'           => EQ_DEFAULT_GROUP_ID
             ],
 
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
+                'ondelete'          => 'cascade',
                 'description'       => "Targeted user, if permission applies to a single user."
             ],
 
@@ -74,28 +77,43 @@ class Permission extends Model {
         ];
     }
 
+
+    private static function computeRightsTxt($rights) {
+        $result = [];
+
+        if($rights & EQ_R_CREATE) {
+            $result[] = 'create';
+        }
+        if($rights & EQ_R_READ) {
+            $result[] = 'read';
+        }
+        if($rights & EQ_R_WRITE) {
+            $result[] = 'write';
+        }
+        if($rights & EQ_R_DELETE) {
+            $result[] = 'delete';
+        }
+        if($rights & EQ_R_MANAGE) {
+            $result[] = 'manage';
+        }
+
+        return implode(', ', $result);
+    }
+
     public static function calcRightsTxt($self) {
         $result = [];
         $self->read(['rights']);
         foreach($self as $id => $permission) {
-            $txt = [];
-            $rights = $permission['rights'];
-            if($rights & EQ_R_CREATE) {
-                $txt[] = 'create';
-            }
-            if($rights & EQ_R_READ) {
-                $txt[] = 'read';
-            }
-            if($rights & EQ_R_WRITE) {
-                $txt[] = 'write';
-            }
-            if($rights & EQ_R_DELETE) {
-                $txt[] = 'delete';
-            }
-            if($rights & EQ_R_MANAGE) {
-                $txt[] = 'manage';
-            }
-            $result[$id] = implode(', ', $txt);
+            $result[$id] = self::computeRightsTxt($permission['rights']);
+        }
+        return $result;
+    }
+
+
+    public function onchange($event) {
+        $result = [];
+        if(isset($event['rights'])) {
+            $result['rights_txt'] = self::computeRightsTxt($event['rights']);
         }
         return $result;
     }

@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -135,16 +136,22 @@ class Field {
      */
     public function getConstraints(): array {
         $constraints = $this->getUsage()->getConstraints();
-
-        // #memo - strict type constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
-
         // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
             $constraints['invalid_value'] = [
                     'message'   => "Value is not amongst selection choices.",
                     'function'  =>  function($value) use($selection) {
-                        return (isset($selection[$value]) || in_array($value, $selection));
+                        $found = false;
+                        // handle both map and list
+                        foreach($selection as $key => $val) {
+                            // #memo - key can be both an index or an explicit choice value mapped with another value possibly of the same type
+                            if($value === $key || $value === $val) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                        return $found;
                     }
                 ];
         }

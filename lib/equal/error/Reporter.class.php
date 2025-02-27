@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\error;
@@ -99,20 +100,20 @@ class Reporter extends Service {
             case E_CORE_ERROR:
             case E_COMPILE_ERROR:
             case E_PARSE:
-                $code = QN_REPORT_FATAL;
+                $code = EQ_REPORT_FATAL;
                 break;
             case E_RECOVERABLE_ERROR:
-                $code = QN_REPORT_ERROR;
+                $code = EQ_REPORT_ERROR;
                 break;
             case E_WARNING:
             case E_CORE_WARNING:
             case E_COMPILE_WARNING:
-                $code = QN_REPORT_WARNING;
+                $code = EQ_REPORT_WARNING;
                 break;
             case E_NOTICE:
             case E_STRICT:
             case E_DEPRECATED:
-                $code = QN_REPORT_INFO;
+                $code = EQ_REPORT_INFO;
                 break;
         }
         // retrieve instance and log error
