@@ -184,6 +184,8 @@ class Setting extends Model {
      * @return  never
      */
     public static function assert(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+        $lang = $lang ?? constant('DEFAULT_LANG');
+
         $value = self::get($package, $section, $code, null, $selector, $lang);
 
         if($value !== null) {
@@ -224,7 +226,7 @@ class Setting extends Model {
                         'value'      => $default
                     ]);
 
-                // Mise en cache
+                // store in cache
                 $index = $package.'.'.$section.'.'.$code.'.'.implode('.', array_values($selector)).'.'.($lang ?? constant('DEFAULT_LANG'));
                 $GLOBALS['_equal_core_setting_cache'][$index] = $default;
             }
@@ -274,10 +276,7 @@ class Setting extends Model {
                 // #memo - there should be exactly one setting matching the criterias
                 $setting = array_pop($settings);
 
-                $values_lang = constant('DEFAULT_LANG');
-                if($setting['is_multilang']) {
-                    $values_lang = $lang;
-                }
+                $values_lang = ($setting['is_multilang']) ? $lang : constant('DEFAULT_LANG');
 
                 $setting_values = $om->read(SettingValue::getType(), $setting['setting_values_ids'], ['user_id', 'value'], $values_lang);
                 if($setting_values > 0 && count($setting_values)) {
@@ -391,7 +390,7 @@ class Setting extends Model {
     /**
      * $selector is expected to hold any additional field that can be used to differentiate a SettingValue record (fields can be added in inherited classes)
      */
-    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, array $selector=[], string $lang='en') {
+    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, array $selector=[]) {
         $result = null;
 
         $providers = \eQual::inject(['orm']);
