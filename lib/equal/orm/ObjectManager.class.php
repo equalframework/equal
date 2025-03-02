@@ -2268,7 +2268,7 @@ class ObjectManager extends Service {
                             // foreign field is many2one
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
-                            if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
+                            if( ($rel_schema[$def['foreign_field']]['ondelete'] ?? false) ) {
                                 $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
                                 // for unknown method, check special keywords 'cascade' and 'null'
                                 if($call_res < 0) {
