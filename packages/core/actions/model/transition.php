@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
-    'description'   => "Returns a map with the descriptors of the installed apps (depending on initialized packages).",
+    'description'   => "Attempts to apply a transition on an object or a collection of a given class.",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
