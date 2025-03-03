@@ -105,5 +105,4 @@ $result = file_get_contents($fullpath);
 
 $context->httpResponse()
         ->status(201)
-        ->body($result."\n")
         ->send();
