@@ -9,7 +9,7 @@ use core\followup\Task;
 use core\followup\TaskModel;
 
 [$params, $providers] = eQual::announce([
-    'description'	=> "Generate task models' tasks when an entity change status.",
+    'description'	=> "Generate task models' tasks when an entity status changes.",
     'params' 		=> [
 
         'entity' => [
