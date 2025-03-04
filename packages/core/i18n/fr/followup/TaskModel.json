@@ -1,0 +1,50 @@
+{
+    "name": "Modèle de Tâche",
+    "plural": "Modèles de Tâche",
+    "description": "Une tâche est générée à partir d'un modèle de tâche lorsqu'une entité est créée ou change de statut.",
+    "model": {
+        "description": {
+            "label": "Description",
+            "description": "Description du modèle de tâche.",
+            "help": ""
+        },
+        "entity": {
+            "label": "Namspace entité",
+            "description": "Namspace de l'entité concernée.",
+            "help": ""
+        },
+        "tasks_group_name": {
+            "label": "Groupe de tâches",
+            "description": "Nom du groupe de tâches.",
+            "help": ""
+        },
+        "trigger_event_id": {
+            "label": "Evénement déclencheur",
+            "description": "L'événement déclencheur associé au modèle de tâche.",
+            "help": ""
+        },
+        "deadline_event_id": {
+            "label": "Evénement date limite",
+            "description": "L'événement de date limite associé au modèle de tâche.",
+            "help": ""
+        },
+        "tasks_ids": {
+            "label": "Tâches",
+            "description": "Tâches qui ont été générées par ce modèle.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Modèle de Tâches",
+            "description": "",
+            "layout": {}
+        },
+        "list.default": {
+            "name": "Modèles de Tâches",
+            "description": "",
+            "layout": {}
+        }
+    },
+    "error": {}
+}
