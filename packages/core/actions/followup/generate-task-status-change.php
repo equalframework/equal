@@ -65,7 +65,6 @@ $task_models = TaskModel::search(['entity', '=', $params['entity']])
         ],
         'deadline_event_id' => [
             'event_type',
-            'entity_status',
             'entity_date_field',
             'offset'
         ]

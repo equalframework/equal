@@ -46,7 +46,7 @@ class TaskModel extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\followup\TaskEvent',
                 'description'       => "The trigger event associated with the task model.",
-                'domain'            => ['event_type', '=', 'status_change']
+                'required'          => true
             ],
 
             'deadline_event_id' => [
