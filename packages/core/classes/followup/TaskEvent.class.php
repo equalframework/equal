@@ -77,14 +77,14 @@ class TaskEvent extends Model {
     public static function onupdateEventType($self) {
         $self->read(['event_type', 'entity_status', 'entity_date_field']);
         foreach($self as $id => $task_event) {
-            if($task_event['status_change']) {
+            if($task_event['event_type'] === 'status_change') {
                 if(isset($task_event['entity_date_field'])) {
                     self::id($id)->update(['entity_date_field' => null]);
                 }
             }
-            elseif($task_event['entity_date_field']) {
-                if(isset($task_event['status_change'])) {
-                    self::id($id)->update(['status_change' => null]);
+            elseif($task_event['event_type'] === 'date_field') {
+                if(isset($task_event['entity_status'])) {
+                    self::id($id)->update(['entity_status' => null]);
                 }
             }
         }
