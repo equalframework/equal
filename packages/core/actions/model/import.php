@@ -123,10 +123,12 @@ foreach($data as $entity_data) {
             unset($entity_data['id']);
         }
         if(!isset($entity_data['name'])) {
+            $reporter->warning("ORM::missing setting name {$entity_data['name']} for core\\setting\\SettingValue");
             throw new Exception('missing_setting_name', EQ_ERROR_INVALID_CONFIG);
         }
         $settings_ids = Setting::search(['name', '=', $entity_data['name']])->ids();
         if(empty($settings_ids)) {
+            $reporter->warning("ORM::unknown setting {$entity_data['name']} for core\\setting\\SettingValue");
             throw new Exception('unknown_setting', EQ_ERROR_INVALID_CONFIG);
         }
         $entity_data['setting_id'] = reset($settings_ids);

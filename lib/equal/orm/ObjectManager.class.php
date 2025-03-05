@@ -1457,7 +1457,7 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value for field `{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                    trigger_error("ORM::given value for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
                     $error_code = QN_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
@@ -2268,7 +2268,7 @@ class ObjectManager extends Service {
                             // foreign field is many2one
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
-                            if(isset($rel_schema[$def['foreign_field']]) && isset($rel_schema[$def['foreign_field']]['ondelete'])) {
+                            if( ($rel_schema[$def['foreign_field']]['ondelete'] ?? false) ) {
                                 $call_res = $this->callonce($class, $rel_schema[$def['foreign_field']]['ondelete'], $rel_ids);
                                 // for unknown method, check special keywords 'cascade' and 'null'
                                 if($call_res < 0) {
@@ -2303,6 +2303,27 @@ class ObjectManager extends Service {
             // soft deletion
             if (!$permanent) {
                 $db->setRecords($table_name, $ids, ['deleted' => 1]);
+
+                // #todo - set modified as well
+                /*
+                // but we don't want to trigger any callback
+                $this->update($class, $ids, [
+                        'modified'  => time(),
+                        'deleted'   => 1
+                    ]);
+
+                $lang = constant('DEFAULT_LANG');
+                $fields = [
+                        'modified'  => time(),
+                        'deleted'   => 1
+                    ];
+                foreach($fields as $field => $value) {
+                    foreach($ids as $id) {
+                        $this->cache[$table_name][$id][$lang][$field] = $value;
+                    }
+                }
+                $this->store($class, $ids, array_keys($fields), $lang);
+                */
             }
             // hard deletion
             else {

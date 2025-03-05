@@ -5,15 +5,13 @@ namespace equal\text;
 class TextTransformer {
 
     /**
-    * Transforms given string to a standard ASCII string containing lowercase words separated by single spaces
-    * (no accent, punctuation signs, quotes, plus nor dash)
-    * @param    string  $value  UTF-8 string to convert to ASCII.
-    * @return   string          Returns an ASCII-chars only string with no punctuation, that should be accepted by any system.
-    */
-    public static function normalize($value) {
+     * Converts a string to its ASCII equivalent.
+     * This method is independent from config and does not rely on iconv or intl extension.
+     */
+    public static function toAscii($value) {
         // #memo - remember to maintain current file charset to UTF-8 !
-        $ascii = array(
-            // lower case chars
+        static $map_ascii = [
+            // upper case chars
             'Á'=>'A', 'À'=>'A', 'Â'=>'A', 'Ä'=>'A', 'Ã'=>'A', 'Ā'=>'A', 'Ă'=>'A', 'Å'=>'A',
             'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 'Ẽ'=>'E', 'Ē'=>'E',
             'Í'=>'I', 'Ì'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ĩ'=>'I', 'Ī'=>'I',
@@ -21,7 +19,7 @@ class TextTransformer {
             'Ú'=>'U', 'Ù'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ũ'=>'U', 'Ū'=>'U', 'Ű' => 'U',
             'Ý'=>'Y', 'Ỳ'=>'Y', 'Ŷ'=>'Y', 'Ÿ'=>'Y', 'Ỹ'=>'Y', 'Ȳ'=>'Y',
             'Æ'=>'A', 'Þ'=>'B', 'Ç'=>'C', 'Ð'=>'Dj','Ñ'=>'N', 'Ń'=>'N', 'Ø'=>'O', 'ß'=>'Ss', 'Š'=>'S', 'Ș'=>'S', 'Ț'=>'T', 'Ž'=>'Z',
-            // upper case chars
+            // lower case chars
             'à'=>'a', 'á'=>'a', 'â'=>'a', 'ä'=>'a', 'ã'=>'a', 'ā'=>'a', 'ă'=>'a', 'å'=>'a',
             'é'=>'e', 'è'=>'e', 'ê'=>'e', 'ë'=>'e', 'ẽ'=>'e', 'ē'=>'e',
             'í'=>'i', 'ì'=>'i', 'î'=>'i', 'ï'=>'i', 'ĩ'=>'i', 'ī'=>'i',
@@ -29,8 +27,18 @@ class TextTransformer {
             'ú'=>'u', 'ù'=>'u', 'û'=>'u', 'ü'=>'u', 'ũ'=>'u', 'ū'=>'u', 'ű'=>'u',
             'ý'=>'y', 'ỳ'=>'y', 'ŷ'=>'y', 'ÿ'=>'y', 'ỹ'=>'y', 'ȳ'=>'y',
             'æ'=>'a', 'þ'=>'b', 'ç'=>'c', 'ƒ'=>'f', 'ñ'=>'n', 'ń'=>'n', 'ð'=>'o', 'ø'=>'o', 'š'=>'s', 'ș'=>'s', 'ț'=>'t', 'ž'=>'z'
-        );
-        $value = str_replace(array_keys($ascii), array_values($ascii), $value);
+        ];
+        return str_replace(array_keys($map_ascii), array_values($map_ascii), $value);
+    }
+
+    /**
+     * Transforms given string to a standard ASCII string containing lowercase words separated by single spaces
+     * (no accent, punctuation signs, double quotes, plus nor underscore)
+     * @param    string  $value  UTF-8 string to convert to ASCII.
+     * @return   string          Returns an ASCII-chars only string with no punctuation, that should be accepted by any system.
+     */
+    public static function normalize($value) {
+        $value = self::toAscii($value);
         // remove all non-[quote-space-alphanum-dash] chars
         $value = preg_replace('/[^-\'\sa-z0-9]/i', '', $value);
         // trim the end of the string
