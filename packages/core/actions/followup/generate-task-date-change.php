@@ -121,7 +121,8 @@ if(!empty($task_models)) {
                 'deadline_date' => $deadline_date,
                 'task_model_id' => $task_model['id'],
                 'entity'        => $params['entity'],
-                'entity_id'     => $obj['id']
+                'entity_id'     => $obj['id'],
+                'notes'         => $notes
             ]);
         }
     }
