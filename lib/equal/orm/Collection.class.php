@@ -705,7 +705,7 @@ class Collection implements \Iterator, \Countable {
         }
         catch(\Exception $e) {
             trigger_error("ORM::unexpected error when calling {$method_name} on {$this->class}: ".$e->getMessage(), EQ_REPORT_ERROR);
-            throw new \Exception('method_call_failed', EQ_ERROR_UNKNOWN);
+            throw $e;
         }
 
         return $result;
