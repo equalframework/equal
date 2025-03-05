@@ -99,6 +99,22 @@ if(!empty($task_models)) {
                 }
             }
 
+            $task = Task::search([
+                ['task_model_id', '=', $task_model['id']],
+                ['entity', '=', $params['entity']],
+                ['entity_id', '=', $obj['id']],
+            ])
+                ->read(['notes'])
+                ->first();
+
+            $notes = null;
+            if(!is_null($task)) {
+                // Keep notes of existing task, but remove it to be replaced
+                $notes = $task['notes'];
+
+                Task::id($task['id'])->delete();
+            }
+
             Task::create([
                 'name'          => $task_model['name'],
                 'visible_date'  => $visible_date,
