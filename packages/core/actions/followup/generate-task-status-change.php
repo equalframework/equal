@@ -14,15 +14,14 @@ use core\followup\TaskModel;
 
         'entity' => [
             'type'              => 'string',
-            'description'       => "Full name (including namespace) of the specific class to export.",
-            'help'              => "If left empty, all entities are exported.",
+            'description'       => "Full name (including namespace) of the specific class to handle.",
             'usage'             => 'orm/entity',
             'required'          => true
         ],
 
         'entity_id' => [
             'type'              => 'integer',
-            'description'       => "Id of the concerned entity.",
+            'description'       => "Id of the concerned object.",
             'required'          => true
         ]
 
@@ -47,14 +46,6 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
 }
 
-$entity = $params['entity']::id($params['entity_id'])
-    ->read(['status'])
-    ->first();
-
-if(is_null($entity)) {
-    throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
-}
-
 $task_models = TaskModel::search(['entity', '=', $params['entity']])
     ->read([
         'name',
@@ -69,31 +60,54 @@ $task_models = TaskModel::search(['entity', '=', $params['entity']])
             'offset'
         ]
     ])
-    ->get();
+    ->get(true);
 
-foreach($task_models as $task_model) {
-    if(
-        $task_model['trigger_event_id']['event_type'] === 'status_change'
-        && $task_model['trigger_event_id']['entity_status'] === $entity['status']
-    ) {
+$task_models = array_filter(
+    $task_models,
+    function($task_model) {
+        return $task_model['trigger_event_id']['event_type'] === 'status_change';
+    }
+);
+
+if(!empty($task_models)) {
+    $map_date_fields = [];
+    foreach($task_models as $task_model) {
+        if(isset($task_model['deadline_event_id']['entity_date_field'])) {
+            $map_date_fields[$task_model['deadline_event_id']['entity_date_field']] = true;
+        }
+    }
+
+    $date_fields = array_keys($map_date_fields);
+
+    $obj = $params['entity']::id($params['entity_id'])
+        ->read(array_merge($date_fields, ['status']))
+        ->first();
+
+    if(is_null($obj)) {
+        throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
+    }
+
+    foreach($task_models as $task_model) {
+        if($task_model['trigger_event_id']['entity_status'] !== $obj['status']) {
+            continue;
+        }
+
         $visible_date = time() + (86400 * $task_model['trigger_event_id']['offset']);
 
         $deadline_date = null;
-        if($task_model['deadline_event_id']['event_type'] === 'date_field') {
-            $ent = $params['entity']::id($entity['id'])
-                ->read([$task_model['deadline_event_id']['entity_date_field']])
-                ->first(true);
-
-            $deadline_date = $ent[$task_model['deadline_event_id']['entity_date_field']] + (86400 * $task_model['deadline_event_id']['offset']);
-        }
-        else {
-            $deadline_date = time() + (86400 * $task_model['deadline_event_id']['offset']);
+        if(isset($task_model['deadline_event_id'])) {
+            if(isset($obj[$task_model['deadline_event_id']['entity_date_field']])) {
+                $deadline_date = $obj[$task_model['deadline_event_id']['entity_date_field']] + (86400 * $task_model['deadline_event_id']['offset']);
+            }
+            else {
+                // TODO: report problem date not set
+            }
         }
 
         $task = Task::search([
             ['task_model_id', '=', $task_model['id']],
             ['entity', '=', $params['entity']],
-            ['entity_id', '=', $entity['id']],
+            ['entity_id', '=', $params['entity_id']],
         ])
             ->read(['notes'])
             ->first();
@@ -112,7 +126,7 @@ foreach($task_models as $task_model) {
             'deadline_date' => $deadline_date,
             'task_model_id' => $task_model['id'],
             'entity'        => $params['entity'],
-            'entity_id'     => $entity['id'],
+            'entity_id'     => $params['entity_id'],
             'notes'         => $notes
         ]);
     }
