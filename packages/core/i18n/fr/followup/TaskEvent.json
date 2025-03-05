@@ -1,0 +1,59 @@
+{
+    "name": "Evénement de Tâche",
+    "plural": "Evénement de Tâches",
+    "description": "Un événement de tâche associé à un changement de statut d’entité ou à une valeur de champ de date d’entité.",
+    "model": {
+        "entity": {
+            "label": "Namspace entité",
+            "description": "Namspace de l'entité concernée.",
+            "help": ""
+        },
+        "event_type": {
+            "label": "Type d'événement",
+            "description": "Type d'événement.",
+            "selection": {
+                "status_change": "Changement de status",
+                "date_field": "Champ de date"
+            },
+            "help": ""
+        },
+        "entity_status": {
+            "label": "Status",
+            "description": "Statut de l’entité à laquelle l’événement de tâche est associé.",
+            "help": ""
+        },
+        "entity_date_field": {
+            "label": "Champ date",
+            "description": "Champ de date de l'entité à laquelle l'événement de tâche est associé.",
+            "help": ""
+        },
+        "offset": {
+            "label": "Décalage",
+            "description": "Le décalage en jours à partir du changement de statut de l'entité ou de la valeur du champ.",
+            "help": ""
+        },
+        "trigger_event_task_models_ids": {
+            "label": "Utilisations comme déclencheur",
+            "description": "Liste des modèles de tâches qui utilisent l'événement comme déclencheur.",
+            "help": ""
+        },
+        "deadline_event_task_models_ids": {
+            "label": "Utilisations comme date limite",
+            "description": "Liste des modèles de tâches qui utilisent l'événement comme date limite.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Evénement",
+            "description": "",
+            "layout": {}
+        },
+        "list.default": {
+            "name": "Evénements",
+            "description": "",
+            "layout": {}
+        }
+    },
+    "error": {}
+}

@@ -1,0 +1,54 @@
+{
+    "name": "Tasks",
+    "description": "List of follow up tasks related to entities.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "entity",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "entity_id",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "is_done",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "done_by",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "done_date",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "visible_date",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "deadline_date",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "label": "Model",
+                "value": "task_model_id",
+                "width": "20%"
+            }
+        ]
+    }
+}

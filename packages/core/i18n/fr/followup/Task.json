@@ -1,0 +1,69 @@
+{
+    "name": "Tâche",
+    "plural": "Tâches",
+    "description": "Une tâche qui doit être réalisée pour une entité spécifique.",
+    "model": {
+        "is_done": {
+            "label": "Réalisé",
+            "description": "Est-ce que la tâche est réalisée?",
+            "help": ""
+        },
+        "done_by": {
+            "label": "Réalisé par",
+            "description": "Par qui la tâche a été réalisée.",
+            "help": ""
+        },
+        "done_date": {
+            "label": "Date réalisation",
+            "description": "Quandd la tâche a été réalisée.",
+            "help": ""
+        },
+        "visible_date": {
+            "label": "Date visible",
+            "description": "A quelle date la tâche doit être visible.",
+            "help": ""
+        },
+        "deadline_date": {
+            "label": "Date limite",
+            "description": "A quelle date la tâche doit être réalisée au plus tard.",
+            "help": ""
+        },
+        "task_model_id": {
+            "label": "Modèle de Tâche",
+            "description": "Le modèle de tâche qui a provoqué la création de cette tâche.",
+            "help": ""
+        },
+        "notes": {
+            "label": "Notes",
+            "description": "Les notes sur la tâche.",
+            "help": ""
+        },
+        "entity": {
+            "label": "Namspace entité",
+            "description": "Le namespace de l'entité concernée.",
+            "help": ""
+        },
+        "entity_id": {
+            "label": "Entité",
+            "description": "L'entité concernée.",
+            "help": ""
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Tâche",
+            "description": "",
+            "layout": {
+                "section.notes": {
+                    "label": "Notes"
+                }
+            }
+        },
+        "list.default": {
+            "name": "Tâches",
+            "description": "",
+            "layout": {}
+        }
+    },
+    "error": {}
+}
