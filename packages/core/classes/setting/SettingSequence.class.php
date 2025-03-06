@@ -26,7 +26,7 @@ class SettingSequence extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Code to serve as reference (might not be unique).",
-                'function'          => 'calcName',
+                'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
                 'readonly'          => true
             ],
@@ -47,15 +47,6 @@ class SettingSequence extends Model {
             ]
 
         ];
-    }
-
-    public static function calcName($self) {
-        $result = [];
-        $self->read(['setting_id' => ['name']]);
-        foreach($self as $id => $sequence) {
-            $result[$id] = $sequence['setting_id']['name'];
-        }
-        return $result;
     }
 
     public function getUnique() {
