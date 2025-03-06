@@ -218,7 +218,7 @@ class Setting extends Model {
                     'is_multilang'  => ($lang != constant('DEFAULT_LANG')),
                 ]);
 
-            if ($setting_id) {
+            if($setting_id) {
                 // create new setting value
                 $om->create(SettingValue::getType(), [
                         'setting_id' => $setting_id,
