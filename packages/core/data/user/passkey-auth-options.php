@@ -63,11 +63,11 @@ if(!$user) {
     throw new Exception('user_not_found', EQ_ERROR_UNKNOWN_OBJECT);
 }
 
-$rp_id = Setting::get('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
-$rp_name = Setting::get('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
-$user_verification = Setting::get('core', 'security', 'passkey_user_verification', 'preferred');
+$rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
+$rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
+$user_verification = Setting::get_value('core', 'security', 'passkey_user_verification', 'preferred');
 
-$cross_platform_attachment = Setting::get('core', 'security', 'passkey_cross_platform', true);
+$cross_platform_attachment = Setting::get_value('core', 'security', 'passkey_cross_platform', true);
 if($cross_platform_attachment === 'all') {
     $cross_platform_attachment = null;
 }
@@ -112,11 +112,11 @@ if(!empty($params['login'])) {
 $auth_options = $webAuthn->getGetArgs(
     $credential_ids,
     20,
-    Setting::get('core', 'security', 'passkey_authenticator_usb', true),
-    Setting::get('core', 'security', 'passkey_authenticator_nfc', true),
-    Setting::get('core', 'security', 'passkey_authenticator_ble', true),
-    Setting::get('core', 'security', 'passkey_authenticator_hybrid', true),
-    Setting::get('core', 'security', 'passkey_authenticator_internal', true),
+    Setting::get_value('core', 'security', 'passkey_authenticator_usb', true),
+    Setting::get_value('core', 'security', 'passkey_authenticator_nfc', true),
+    Setting::get_value('core', 'security', 'passkey_authenticator_ble', true),
+    Setting::get_value('core', 'security', 'passkey_authenticator_hybrid', true),
+    Setting::get_value('core', 'security', 'passkey_authenticator_internal', true),
     $user_verification
 );
 

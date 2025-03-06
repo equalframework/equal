@@ -71,10 +71,10 @@ if(is_null($user)) {
     throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$global_passkey_creation = Setting::get('core', 'security', 'passkey_creation');
-$passkey_creation = Setting::get('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
+$global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
+$passkey_creation = Setting::get_value('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
 
-$user_handle = Setting::get('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
+$user_handle = Setting::get_value('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
 
 if(!$user_handle) {
     // generate temporary anonymous user_handle
