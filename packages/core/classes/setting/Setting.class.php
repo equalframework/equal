@@ -283,9 +283,16 @@ class Setting extends Model {
                     $value = null;
                     // #memo - by default settings values are sorted on user_id (which can be null), so first value is the default one
                     foreach($setting_values as $setting_value) {
-                        $value = $setting_value['value'];
-                        if(isset($selector['user_id']) && isset($setting_value['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
-                            break;
+                        // global value
+                        if(!$setting_value['user_id']) {
+                            $value = $setting_value['value'];
+                        }
+                        // user-specific value
+                        else {
+                            if(isset($selector['user_id']) && $setting_value['user_id'] == $selector['user_id']) {
+                                $value = $setting_value['value'];
+                                break;
+                            }
                         }
                     }
                     if(!is_null($value)) {
