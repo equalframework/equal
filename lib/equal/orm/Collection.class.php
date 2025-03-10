@@ -494,7 +494,7 @@ class Collection implements \Iterator, \Countable {
         // 3) perform search
 
         // search according to resulting domain and specific params, if given
-        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang);
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang ?? $this->lang);
 
         // $ids is an error code
         if($ids < 0) {
@@ -777,7 +777,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 3) read values
-            $res = $this->orm->read($this->class, $ids, $requested_fields, ($lang) ? $lang : $this->lang);
+            $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
@@ -839,11 +839,11 @@ class Collection implements \Iterator, \Countable {
                     $children_fields[] = (!is_numeric($key)) ? $key : $val;
                 }
                 // read all targeted children objects at once
-                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, ($lang) ? $lang : $this->lang);
+                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang ?? $this->lang);
                 // assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
                     /** @var Collection */
-                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang) ? $lang : $this->lang);
+                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang ?? $this->lang);
                     if($target['result_type'] == 'many2one') {
                         // #memo - result might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
