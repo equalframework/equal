@@ -210,7 +210,7 @@ foreach($order_parts as $index => $order) {
     $sort[$order] = $order_sort;
 }
 
-$collection = $params['entity']::search($domain, [ 'sort' => $sort ]);
+$collection = $params['entity']::search($domain, [ 'sort' => $sort ], $params['lang']);
 
 $total = count($collection->ids());
 
