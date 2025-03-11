@@ -1002,9 +1002,10 @@ class Collection implements \Iterator, \Countable {
      * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
      *
      * @param   string      $action       Name of the requested action.
+     * @param   array       $values       Associative array mapping arbitrary keys with their values, that can be used to relay arguments.
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
-    public function do($action) {
+    public function do($action, $values=[]) {
         // check if action can be performed
         $ids = $this->ids();
         $res = $this->ac->canPerform($action, $this->class, $ids);
@@ -1016,19 +1017,19 @@ class Collection implements \Iterator, \Countable {
 
         if(isset($actions[$action]) && isset($actions[$action]['function'])) {
             if(count($ids)) {
-                $this->call($actions[$action]['function']);
+                $this->call($actions[$action]['function'], $values);
             }
         }
 
         return $this;
     }
 
-    /**
-     * Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
-     * These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
-     * Collection::call() method which, in turn, invokes the class the Collection relates to.
-     * If the method is not defined in the child class, a new Collection is instantiated and the call is applied to it (hence their definition here).
-     */
+    /*
+      Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
+      These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
+      Collection::call() method which, in turn, invokes the class the Collection relates to.
+      If the method is not defined in the child class, a new Collection is instantiated and the call is applied to it (hence their definition here).
+    */
 
     /**
      * Check wether an object can be read by current user.
