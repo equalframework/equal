@@ -2277,11 +2277,13 @@ class ObjectManager extends Service {
                                             $this->delete($def['foreign_object'], $rel_ids, $permanent);
                                             break;
                                         case 'null':
-                                        default:
                                             $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => null]);
                                             break;
                                     }
                                 }
+                            }
+                            else {
+                                // #memo - if nothing is specified, do nothing, to prevent conflict with `unique` and `required` attributes
                             }
                         }
                         break;
@@ -2619,13 +2621,14 @@ class ObjectManager extends Service {
                 if(isset($t_descr['onbefore'])) {
                     $this->callonce($class, $t_descr['onbefore'], $id);
                 }
-                // status field is always writeable (we don't call `update()` to bypass checks)
+                // status field is always writeable and non-multilang
                 $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
-                $this->store($class, (array) $id, ['status'], $lang);
                 // if a 'onafter' method is defined for applied transition, call it
                 if(isset($t_descr['onafter'])) {
                     $this->callonce($class, $t_descr['onafter'], $id);
                 }
+                // commit status change (do not call `update()` to prevent any check)
+                $this->store($class, (array) $id, ['status'], $lang);
             }
         }
         catch(\Exception $e) {
@@ -2713,7 +2716,7 @@ class ObjectManager extends Service {
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
                         if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) {
-                            throw new Exception("malformed domain", QN_ERROR_INVALID_PARAM);
+                            throw new Exception("malformed_domain", QN_ERROR_INVALID_PARAM);
                         }
                         if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) {
                             throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
