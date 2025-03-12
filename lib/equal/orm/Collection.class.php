@@ -199,7 +199,7 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = reset($this->objects);
-        return ($to_array)?$this->_getRawObject($object, $to_array):$object;
+        return ($to_array) ? $this->_getRawObject($object, $to_array) : $object;
     }
 
     /**
@@ -316,6 +316,7 @@ class Collection implements \Iterator, \Countable {
             // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
             foreach($ids as $id) {
                 $this->objects[$id] = clone $this->model;
+                $this->objects[$id]['id'] = $id;
             }
         }
         return $this;
@@ -627,7 +628,7 @@ class Collection implements \Iterator, \Countable {
         $values = $this->sanitizeFields((array) $values, 'create');
         // retrieve targeted fields names
         $fields = array_map(function($value, $key) {
-                return is_numeric($key)?$value:$key;
+                return is_numeric($key) ? $value : $key;
             },
             $values, array_keys($values));
 
