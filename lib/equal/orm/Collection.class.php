@@ -1018,10 +1018,7 @@ class Collection implements \Iterator, \Countable {
             $res = $this->ac->canPerform($action, $this->class, $ids);
 
             if(count($res)) {
-                foreach($res as $policy_id => $errors) {
-                    // send error using the same format as the announce method
-                    throw new \Exception(serialize([$policy_id => serialize($errors)]), EQ_ERROR_NOT_ALLOWED);
-                }
+                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
             }
 
             // retrieve and perform action
