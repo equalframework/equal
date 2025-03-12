@@ -1015,15 +1015,12 @@ class Collection implements \Iterator, \Countable {
         $ids = $this->ids();
         if(count($ids)) {
             // check if action can be performed
-            $errors = $this->ac->canPerform($action, $this->class, $ids);
+            $res = $this->ac->canPerform($action, $this->class, $ids);
 
-            if(count($errors)) {
-                foreach($errors as $error_id => $description) {
-                    if(is_array($description)) {
-                        $description = serialize($description);
-                    }
+            if(count($res)) {
+                foreach($res as $policy_id => $errors) {
                     // send error using the same format as the announce method
-                    throw new \Exception(serialize([$error_id => (string) $description]), EQ_ERROR_NOT_ALLOWED);
+                    throw new \Exception(serialize([$policy_id => serialize($errors)]), EQ_ERROR_NOT_ALLOWED);
                 }
             }
 

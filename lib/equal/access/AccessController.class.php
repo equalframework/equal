@@ -761,7 +761,7 @@ class AccessController extends Service {
                     $c = $called_class::ids($object_ids);
                     $res = $called_class::$called_method($c, $user_id);
                     // relay result to provide details about the broken policy
-                    $result = $res;
+                    $result = array_values($res);
                     /*
                     if(count($res)) {
                         $result['broken_policy'] = "Collection does not comply with Policy `{$policy}`";
