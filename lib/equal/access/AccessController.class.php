@@ -798,7 +798,7 @@ class AccessController extends Service {
         $actions = $object_class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $inconsistencies = $this->isCompliant($policy, $object_class, $object_ids, $user_id);
+                $inconsistencies = (array) $this->isCompliant($policy, $object_class, $object_ids, $user_id);
                 if(count($inconsistencies)) {
                     $result[$policy] = $inconsistencies;
                 }
