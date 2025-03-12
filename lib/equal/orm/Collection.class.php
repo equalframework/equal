@@ -994,7 +994,7 @@ class Collection implements \Iterator, \Countable {
                 throw new \Exception('transition_failed', $res);
             }
             elseif(count($res)) {
-                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
             }
         }
         return $this;
@@ -1018,7 +1018,7 @@ class Collection implements \Iterator, \Countable {
             $res = $this->ac->canPerform($action, $this->class, $ids);
 
             if(count($res)) {
-                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
             }
 
             // retrieve and perform action
