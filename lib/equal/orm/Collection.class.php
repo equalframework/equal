@@ -1015,10 +1015,18 @@ class Collection implements \Iterator, \Countable {
         $ids = $this->ids();
         if(count($ids)) {
             // check if action can be performed
-            $res = $this->ac->canPerform($action, $this->class, $ids);
-            if(count($res)) {
-                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+            $errors = $this->ac->canPerform($action, $this->class, $ids);
+
+            if(count($errors)) {
+                foreach($errors as $error_id => $description) {
+                    if(is_array($description)) {
+                        $description = serialize($description);
+                    }
+                    // send error using the same format as the announce method
+                    throw new \Exception(serialize([$error_id => (string) $description]), EQ_ERROR_NOT_ALLOWED);
+                }
             }
+
             // retrieve and perform action
             $actions = $this->class::getActions();
             if(isset($actions[$action]) && isset($actions[$action]['function'])) {
