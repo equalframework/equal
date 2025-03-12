@@ -49,13 +49,13 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 // sanitize ids
 if(empty($params['ids'])) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
-        throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
+        throw new Exception("missing_id", EQ_ERROR_INVALID_PARAM);
     }
     $params['ids'][] = $params['id'];
 }
