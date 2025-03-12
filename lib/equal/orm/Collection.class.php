@@ -984,13 +984,17 @@ class Collection implements \Iterator, \Countable {
      */
     public function transition($transition) {
         // retrieve targeted identifiers
-        $res = $this->orm->transition($this->class, $this->ids(), $transition);
-        if($res < 0) {
-            trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
-            throw new \Exception('transition_failed', $res);
-        }
-        elseif(count($res)) {
-            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+        $ids = $this->ids();
+        if(count($ids)) {
+            // attempt to perform transition
+            $res = $this->orm->transition($this->class, $ids, $transition);
+            if($res < 0) {
+                trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
+                throw new \Exception('transition_failed', $res);
+            }
+            elseif(count($res)) {
+                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+            }
         }
         return $this;
     }
@@ -1006,21 +1010,22 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function do($action, $values=[]) {
-        // check if action can be performed
+        // retrieve targeted identifiers
         $ids = $this->ids();
-        $res = $this->ac->canPerform($action, $this->class, $ids);
-        if(count($res)) {
-            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
-        }
-
-        $actions = $this->class::getActions();
-
-        if(isset($actions[$action]) && isset($actions[$action]['function'])) {
-            if(count($ids)) {
-                $this->call($actions[$action]['function'], $values);
+        if(count($ids)) {
+            // check if action can be performed
+            $res = $this->ac->canPerform($action, $this->class, $ids);
+            if(count($res)) {
+                throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+            }
+            // retrieve and perform action
+            $actions = $this->class::getActions();
+            if(isset($actions[$action]) && isset($actions[$action]['function'])) {
+                if(count($ids)) {
+                    $this->call($actions[$action]['function'], $values);
+                }
             }
         }
-
         return $this;
     }
 
