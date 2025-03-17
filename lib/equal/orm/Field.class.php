@@ -142,7 +142,7 @@ class Field {
             $constraints['invalid_value'] = [
                     'message'   => "Value is not amongst selection choices.",
                     'function'  =>  function($value) use($selection) {
-                        $found = false;
+                        $found = is_null($value);
                         // handle both map and list
                         foreach($selection as $key => $val) {
                             // #memo - key can be both an index or an explicit choice value mapped with another value possibly of the same type

@@ -871,8 +871,11 @@ class Collection implements \Iterator, \Countable {
         if(count($this->objects)) {
             // 1) sanitize and retrieve necessary values
             $user_id = $this->am->userId();
+
+            $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+
             // silently drop invalid fields
-            $values = $this->sanitizeFields($values, 'update');
+            $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
             // retrieve targeted identifiers
             $ids = $this->ids();
             // retrieve targeted fields names
@@ -890,11 +893,9 @@ class Collection implements \Iterator, \Countable {
             */
 
             // 2) check that current user has enough privilege to perform the operation
-            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
+            if(!$this->ac->isAllowed(EQ_R_UPDATE, $this->class, $fields, $ids)) {
                 throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
             }
-
-            $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
             // 3) validate : check unique keys and required fields
             // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)

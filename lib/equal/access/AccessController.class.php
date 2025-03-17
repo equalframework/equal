@@ -760,13 +760,10 @@ class AccessController extends Service {
                     trigger_error("ORM::calling {$called_class}::{$called_method}", EQ_REPORT_DEBUG);
                     $c = $called_class::ids($object_ids);
                     $res = $called_class::$called_method($c, $user_id);
-                    // relay result to provide details about the broken policy
-                    $result = current($res);
-                    /*
                     if(count($res)) {
-                        $result['broken_policy'] = "Collection does not comply with Policy `{$policy}`";
+                        // relay result to provide details about the broken policy
+                        $result = current($res);
                     }
-                    */
                 }
             }
         }
@@ -798,7 +795,7 @@ class AccessController extends Service {
         $actions = $object_class::getActions();
         if(isset($actions[$action]) && isset($actions[$action]['policies'])) {
             foreach($actions[$action]['policies'] as $policy) {
-                $inconsistencies = $this->isCompliant($policy, $object_class, $object_ids, $user_id);
+                $inconsistencies = (array) $this->isCompliant($policy, $object_class, $object_ids, $user_id);
                 if(count($inconsistencies)) {
                     $result[$policy] = $inconsistencies;
                 }
