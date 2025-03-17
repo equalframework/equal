@@ -138,7 +138,7 @@
         "type": "string",
         "description": "Password for authenticating on DB host.",
         "instant": true,
-        "environment": "EQ_DB_PASSWORD",
+        "environment": "EQ_DB_PASS",
         "default": "test"
     },
     "DB_NAME": {
