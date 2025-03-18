@@ -867,7 +867,7 @@ namespace config {
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
             if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
-                // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
+                // (for public and protected controllers this might be considered as security issue as it may reveal a part of the configuration)
                 // if 'help' is amongst the params and request was made through CLI
                 if(php_sapi_name() == 'cli' && isset($body['help'])) {
                     $help = 'Help about ';
@@ -909,7 +909,7 @@ namespace config {
                 }
                 // add announcement to response body
                 if(isset($announcement['params'])) {
-                    // default values must be adapted to JSON
+                    // default values must be retrieved and adapted to JSON
                     foreach((array) $announcement['params'] as $param => $config) {
                         if(isset($config['default'])) {
                             $f = new Field($config, $param);
@@ -918,8 +918,18 @@ namespace config {
                             if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                                 // either a php function (or a function from the global scope) or a closure object
                                 if(is_object($default_value)) {
-                                    // default is a closure
-                                    $default_value = $default_value();
+                                    // $default_value is a closure: inject args from received params
+                                    /** @var \ReflectionFunction */
+                                    $function = new \ReflectionFunction($default_value);
+                                    /** @var \ReflectionParameter[] */
+                                    $f_params = $function->getParameters();
+                                    $f_args = [];
+                                    foreach($f_params as $f_param) {
+                                        if(isset($body[$f_param])) {
+                                            $f_args[] = $body[$f_param];
+                                        }
+                                    }
+                                    $default_value = $default_value(...$f_args);
                                 }
                             }
                             elseif(is_string($default_value) && strpos($default_value, '::')) {
