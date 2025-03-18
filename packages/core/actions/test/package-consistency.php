@@ -221,7 +221,7 @@ foreach($classes as $class) {
     foreach($view_files as $view_file) {
         $json = file_get_contents($view_file);
         $data = @json_decode($json, true);
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
             $result[] = "ERROR - GUI - Syntax error in file: $view_file";
             $is_error = true;
             continue;
@@ -585,6 +585,7 @@ function view_test($data, $structure) {
 }
 
 function view_get_items($data, $structure) {
+
     $result = [];
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
