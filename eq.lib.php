@@ -922,9 +922,10 @@ namespace config {
                                     /** @var \ReflectionFunction */
                                     $function = new \ReflectionFunction($default_value);
                                     /** @var \ReflectionParameter[] */
-                                    $f_params = $function->getParameters();
+                                    $functionParams = $function->getParameters();
                                     $f_args = [];
-                                    foreach($f_params as $f_param) {
+                                    foreach($functionParams as $functionParam) {
+                                        $f_param = $functionParam->getName();
                                         if(isset($body[$f_param])) {
                                             $f_args[] = $body[$f_param];
                                         }
