@@ -1,6 +1,6 @@
 {
     "SB_DIALOG_ACCEPT": "Valider",
-    "SB_DIALOG_SEND": "Ok",
+    "SB_DIALOG_SEND": "Exécuter",
     "SB_DIALOG_CANCEL": "Annuler",
 
     "SB_PURPOSE_CREATE": "Création",
@@ -50,7 +50,7 @@
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
     "SB_ACTIONS_MESSAGE_ERASE_CONCURRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
 
-    "SB_EXPORTS_AS_PDF": "Imprimer en PDF",
+    "SB_EXPORTS_AS_PDF": "Exporter en PDF",
     "SB_EXPORTS_AS_XLS": "Exporter en XLS",
 
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
