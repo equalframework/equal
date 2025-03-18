@@ -751,9 +751,9 @@ class ObjectManager extends Service {
                         }
                         if(count($missing_ids)) {
                             if(isset($schema[$field]['function'])) {
-                                trigger_error("ORM::computing 'function' for '$field' of class '$class'", QN_REPORT_INFO);
+                                trigger_error("ORM::computing 'function' {$schema[$field]['function']} for '$field' of class '$class'", EQ_REPORT_INFO);
                                 $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
-                                trigger_error("ORM::computing 'function' for '$field' of class '$class', result: ".serialize($res), QN_REPORT_INFO);
+                                trigger_error("ORM::computed 'function' {$schema[$field]['function']} for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
                                 if($res > 0) {
                                     foreach($missing_ids as $oid) {
                                         if(isset($res[$oid])) {
@@ -1202,17 +1202,17 @@ class ObjectManager extends Service {
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
         /** @var \ReflectionMethod */
-        $method = new \ReflectionMethod($called_class, $called_method);
+        $reflectionMethod = new \ReflectionMethod($called_class, $called_method);
         /** @var \ReflectionParameter */
-        $params = $method->getParameters();
+        $methodParams = $reflectionMethod->getParameters();
 
         $args = [];
-        foreach($params as $param) {
-            $param_name = $param->getName();
-            if(in_array($param_name, ['om', 'orm'])) {
+        foreach($methodParams as $methodParam) {
+            $param = $methodParam->getName();
+            if(in_array($param, ['om', 'orm'])) {
                 $args[] = $this;
             }
-            elseif(in_array($param_name, [
+            elseif(in_array($param, [
                     'report',
                     'auth',
                     'access',
@@ -1224,25 +1224,25 @@ class ObjectManager extends Service {
                     'cron',
                     'dispatch',
                     'db'])) {
-                $args[] = $this->container->get($param_name);
+                $args[] = $this->container->get($param);
             }
 
-            elseif(in_array($param_name, ['ids', 'oids'])) {
+            elseif(in_array($param, ['ids', 'oids'])) {
                 $args[] = $unprocessed_ids;
             }
-            elseif($param_name == 'values') {
+            elseif($param == 'values') {
                 $args[] = $values;
             }
             // #todo - deprecate : use $auth instead
-            elseif($param_name == 'user_id') {
+            elseif($param == 'user_id') {
                 $auth = $this->container->get('auth');
                 $user_id = $auth->userId();
                 $args[] = $user_id;
             }
-            elseif($param_name == 'lang') {
+            elseif($param == 'lang') {
                 $args[] = $lang;
             }
-            elseif($param_name == 'self') {
+            elseif($param == 'self') {
                 $args[] = $called_class::ids($unprocessed_ids)->lang($lang);
             }
         }
@@ -1269,6 +1269,8 @@ class ObjectManager extends Service {
      * Invoke a callback from an object Class.
      * Default objects callback signature is `methodName($orm: object, $ids: array, $lang: string)`
      * There is no recursion protection and a same callback can be invoked several times without any restrictions.
+     *
+     * #todo - deprecate in favour to callonce()
      *
      * @param string    $class
      * @param string    $method
@@ -1301,26 +1303,26 @@ class ObjectManager extends Service {
             return $result;
         }
         /** @var \ReflectionMethod */
-        $method = new \ReflectionMethod($called_class, $called_method);
+        $reflectionMethod = new \ReflectionMethod($called_class, $called_method);
         /** @var \ReflectionParameter */
-        $params = $method->getParameters();
+        $methodParams = $reflectionMethod->getParameters();
 
         $args = [];
-        foreach($params as $param) {
-            $param_name = $param->getName();
-            if(in_array($param_name, ['om', 'orm'])) {
+        foreach($methodParams as $methodParam) {
+            $param = $methodParam->getName();
+            if(in_array($param, ['om', 'orm'])) {
                 $args[] = $this;
             }
-            elseif(in_array($param_name, ['ids', 'oids'])) {
+            elseif(in_array($param, ['ids', 'oids'])) {
                 $args[] = $ids;
             }
-            elseif($param_name == 'values') {
+            elseif($param == 'values') {
                 $args[] = $values;
             }
-            elseif($param_name == 'lang') {
+            elseif($param == 'lang') {
                 $args[] = $lang;
             }
-            elseif($param_name == 'self') {
+            elseif($param == 'self') {
                 $args[] = $called_class::ids($ids)->lang($lang);
             }
         }
