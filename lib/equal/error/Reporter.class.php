@@ -55,7 +55,7 @@ class Reporter extends Service {
     public static function handleThrowable($exception) {
         function filterOutObjects($input) {
             if(is_array($input)) {
-                return array_map('filterObjects', $input);
+                return array_map('filterOutObjects', $input);
             }
             elseif (is_object($input)) {
                 return '[Object: ' . get_class($input) . ']';
