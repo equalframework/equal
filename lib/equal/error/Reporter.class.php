@@ -53,19 +53,25 @@ class Reporter extends Service {
     }
 
     public static function handleThrowable($exception) {
-        $msg = $exception->getMessage();
-        if(is_object($msg)) {
-            $msg = get_class($msg);
+        function filterOutObjects($input) {
+            if(is_array($input)) {
+                return array_map('filterObjects', $input);
+            }
+            elseif (is_object($input)) {
+                return '[Object: ' . get_class($input) . ']';
+            }
+            return $input;
         }
+        $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
-        // #todo #bug - $backtrace may contain non json_encodable objects (which leads to an error at file_put_contents)
         $backtrace = $exception->getTrace();
         if(count($backtrace)) {
             $trace = array_shift($backtrace);
             $trace['file'] = $exception->getFile();
             $trace['line'] = $exception->getLine();
-            $trace['stack'] = $backtrace;
+            // #memo - $backtrace may contain non json-encodable objects (which would lead to an error when calling json_encode)
+            $trace['stack'] = filterOutObjects($backtrace);
             $instance->log(QN_REPORT_ERROR, $msg, $trace);
         }
     }
