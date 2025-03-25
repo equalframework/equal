@@ -182,8 +182,8 @@ class Reporter extends Service {
 
         $is_new = !file_exists($filepath);
 
-        // append message to log file (bypass if debug is disabled)
-        file_put_contents($filepath, json_encode($error_json).PHP_EOL, FILE_APPEND | LOCK_EX);
+        // append message to log file
+        file_put_contents($filepath, json_encode($error_json, JSON_PARTIAL_OUTPUT_ON_ERROR).PHP_EOL, FILE_APPEND | LOCK_EX);
 
         // #memo - when created using CLI, file is assigned with current UID (which might prevent the HTTP service to access it)
         if($is_new) {
