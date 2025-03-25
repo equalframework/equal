@@ -54,14 +54,17 @@ class Reporter extends Service {
 
     public static function handleThrowable($exception) {
         function filterOutObjects($input) {
-            if(is_array($input)) {
-                return array_map('filterOutObjects', $input);
+            if (is_array($input)) {
+                return array_map(function ($item) {
+                    return filterOutObjects($item);
+                }, $input);
             }
-            elseif (is_object($input)) {
+            if (is_object($input)) {
                 return '[Object: ' . get_class($input) . ']';
             }
             return $input;
         }
+
         $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
