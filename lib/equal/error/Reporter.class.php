@@ -54,6 +54,9 @@ class Reporter extends Service {
 
     public static function handleThrowable($exception) {
         $msg = $exception->getMessage();
+        if(is_object($msg)) {
+            $msg = get_class($msg);
+        }
         // retrieve instance and log error
         $instance = self::getInstance();
         // #todo #bug - $backtrace may contain non json_encodable objects (which leads to an error at file_put_contents)
@@ -136,7 +139,7 @@ class Reporter extends Service {
             $source = $mode;
             $parts = explode('::', $msg, 2);
             if($parts && count($parts) > 1) {
-                $source = (strlen($parts[0]))?('EQ_MODE_'.$parts[0]):$source;
+                $source = (strlen($parts[0])) ? ('EQ_MODE_'.$parts[0]) : $source;
                 $msg = $parts[1];
             }
             if(!is_numeric($source) && @constant($source)) {
