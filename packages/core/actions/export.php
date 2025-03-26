@@ -149,7 +149,8 @@ foreach($packages as $package) {
     }
 
     $entities = eQual::run('get', 'core_config_classes', ['package' => $package]);
-    foreach($entities as $entity) {
+    foreach($entities as $entity_name) {
+        $entity = $package . '\\' . $entity_name;
         if(
             (isset($params['entity']) && $params['entity'] !== $entity)
             || $entity === 'core\Translation' || $entity === 'core\Log'
