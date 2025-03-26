@@ -62,26 +62,6 @@ $getTranslationLanguageCodes = function(string $default_lang_code): array {
 };
 
 /**
- * Returns all entities of given package
- *
- * @param string $package
- * @return array
- */
-$getPackageEntities = function(string $package): array {
-    $directory = new RecursiveDirectoryIterator(EQ_BASEDIR."/packages/$package/classes");
-    $iterator = new RecursiveIteratorIterator($directory);
-
-    $regex = new RegexIterator($iterator, '/^.+\.class\.php$/i', RecursiveRegexIterator::GET_MATCH);
-
-    $entities = [];
-    foreach ($regex as $file) {
-        $entities[] = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
-    }
-
-    return $entities;
-};
-
-/**
  * Returns entity fields except one2many and not stored computed fields because not needed for export
  *
  * @param string $entity
@@ -168,7 +148,7 @@ foreach($packages as $package) {
         continue;
     }
 
-    $entities = $getPackageEntities($package);
+    $entities = eQual::run('get', 'core_config_classes', ['package' => $package]);
     foreach($entities as $entity) {
         if(
             (isset($params['entity']) && $params['entity'] !== $entity)
