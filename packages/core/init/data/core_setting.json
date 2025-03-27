@@ -675,7 +675,7 @@
     },
     {
         "name": "core\\setting\\SettingValue",
-        "lang": "en",
+        "description": "#memo - we do not use lang here to force fallback to DEFAULT_LANG, since these values are not multilang",
         "data": [
             {
                 "name": "core.locale.numbers.thousands_separator",
