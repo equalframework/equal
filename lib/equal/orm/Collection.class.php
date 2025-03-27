@@ -726,8 +726,11 @@ class Collection implements \Iterator, \Countable {
             // retrieve current user id
             $user_id = $this->am->userId();
 
-            // force argument into an array (single field name is accepted; if empty array is given: load all fields)
-            $fields = (array) $fields;
+            if(!is_array($fields)) {
+                trigger_error("ORM::received non-array `\$fields` when reading `{$this->class}`: casting to array", EQ_REPORT_WARNING);
+                // force argument into an array (single field name is accepted; if empty array is given: load all fields)
+                $fields = (array) $fields;
+            }
 
             $schema = $this->model->getSchema();
 
@@ -810,7 +813,7 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
-            // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
+            // 5) recursively load sub-fields, if any
             foreach($fields as $field => $subfields ) {
                 // discard direct fields
                 if(is_numeric($field)) {
@@ -836,13 +839,33 @@ class Collection implements \Iterator, \Countable {
                     }
                 }
                 $children_fields = [];
+                // #todo
+                $subdomain = [];
+                $subparams = [];
                 foreach($subfields as $key => $val) {
+                    if($key === '@domain') {
+                        $subdomain = (array) $val;
+                        continue;
+                    }
+                    if(in_array($key, ['@sort', '@limit', '@start'])) {
+                        $subparams[substr($key, 1)] = $val;
+                        continue;
+                    }
                     $children_fields[] = (!is_numeric($key)) ? $key : $val;
                 }
                 // read all targeted children objects at once
+                // #todo - comment this for 2 steps retrieval
                 $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang ?? $this->lang);
                 // assign retrieved values to the objects they relate to
+                // #todo
+                // if(!count($children_fields)) { continue; }
                 foreach($this->objects as $id => $object) {
+                    // #todo - 2 steps retrieval : 1) search using ids and _domain, if present
+                    /*
+                    $searchDomain = new Domain($subdomain);
+                    $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
+                    $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
+                    */
                     /** @var Collection */
                     $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang ?? $this->lang);
                     if($target['result_type'] == 'many2one') {
