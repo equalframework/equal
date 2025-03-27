@@ -8,6 +8,7 @@
 list($params, $providers) = eQual::announce([
     'description'   => "Attempts to perform an action on an object or a collection of a given class.",
     'params'        => [
+        'deprecated' =>  "use core_model_do instead",
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
             'type'          => 'string',
