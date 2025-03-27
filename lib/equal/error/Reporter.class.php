@@ -53,18 +53,18 @@ class Reporter extends Service {
     }
 
     public static function handleThrowable($exception) {
+        // specific function for removing objects, which might be non json-encodable, from backtrace
         function filterOutObjects($input) {
-            if (is_array($input)) {
+            if(is_array($input)) {
                 return array_map(function ($item) {
                     return filterOutObjects($item);
                 }, $input);
             }
-            if (is_object($input)) {
+            if(is_object($input)) {
                 return '[Object: ' . get_class($input) . ']';
             }
             return $input;
         }
-
         $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
