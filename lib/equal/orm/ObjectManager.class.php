@@ -691,10 +691,10 @@ class ObjectManager extends Service {
                         $items = [];
                         while ($row = $om->db->fetchArray($result)) {
                             $id = $row[$schema[$field]['foreign_field']];
-                            $items[$id][] = $row['id'];
+                            $items[$id][] = (int) $row['id'];
                         }
                         foreach($ids as $id) {
-                            $om->cache[$table_name][$id][$lang][$field] = (isset($items[$id]))?$items[$id]:[];
+                            $om->cache[$table_name][$id][$lang][$field] = (isset($items[$id])) ? $items[$id] : [];
                         }
                     }
                 },
@@ -721,13 +721,13 @@ class ObjectManager extends Service {
                             ],
                             't0.id'
                         );
-                        $lists = array();
+                        $lists = [];
                         while ($row = $om->db->fetchArray($result)) {
                             $oid = $row[$schema[$field]['rel_local_key']];
-                            $lists[$oid][] = $row[$schema[$field]['rel_foreign_key']];
+                            $lists[$oid][] = (int) $row[$schema[$field]['rel_foreign_key']];
                         }
                         foreach($ids as $oid) {
-                            $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid]))?$lists[$oid]:[];
+                            $om->cache[$table_name][$oid][$lang][$field] = (isset($lists[$oid])) ? $lists[$oid] : [];
                         }
                     }
                 },
