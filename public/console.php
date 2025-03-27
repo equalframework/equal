@@ -2,8 +2,8 @@
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, The eQual Framework, 2010-2024
-    Author: The eQual Framework Contributors
-    Original Author: Cedric Francoys
+    Author: The eQual Framework Community
+    Original Author(s): Cedric Francoys
     License:  GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 error_reporting(0);
@@ -588,20 +588,20 @@ if(!count($_GET)) {
                 let div = document.createElement("div");
                 let content = template;
                 let info = get_level_info(line.level);
-                let origin = ((line.class.length) ? line.class+"::" : "") + line.function;
-                let inside = "<b>in</b> <code class=\"" + info.class +"\">" + origin + "</code>";
-                content = content.replace("$mode", line.mode);
-                content = content.replace("$time", line.time);
-                content = content.replace("$mtime", line.mtime);
-                content = content.replace("$file", line.file);
-                content = content.replace("$line", line.line);
+                let origin = ( (line?.class?.length) ? line.class + "::" : "" ) + line.function;
+                let inside = "<b>in</b> <code class=\"" + (info?.class ?? "") + "\">" + origin + "</code>";
+                content = content.replace("$mode", line?.mode ?? "");
+                content = content.replace("$time", line?.time ?? "");
+                content = content.replace("$mtime", line?.mtime ?? "");
+                content = content.replace("$file", line?.file ?? "");
+                content = content.replace("$line", line?.line ?? "");
                 content = content.replace("$in", inside);
-                content = content.replaceAll("$type", info.type);
-                content = content.replaceAll("$class", info.class);
-                content = content.replaceAll("$icon", info.icon);
+                content = content.replaceAll("$type", info?.type ?? "");
+                content = content.replaceAll("$class", info?.class ?? "");
+                content = content.replaceAll("$icon", info?.icon ?? "");
                 content = content.replaceAll(
                             "$msg",
-                            line.message.replace(/&/g, "&amp;")
+                             (line?.message ?? "").replace(/&/g, "&amp;")
                                         .replace(/</g, "&lt;")
                                         .replace(/>/g, "&gt;")
                                         .replace(/"/g, "&quot;")
