@@ -171,7 +171,7 @@ class Model implements \ArrayAccess, \Iterator {
                 }
                 elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
                     // default is a method of the class (or parents')
-                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field], [], $values);
                 }
                 elseif($defaults[$field] === 'defaultFromSetting') {
                     $class_name = get_called_class();
@@ -610,5 +610,22 @@ class Model implements \ArrayAccess, \Iterator {
         }
         return null;
     }
+
+    /*
+    #todo
+    Complete "Collection" logic, by allowing same methods on single objects.
+    When called, these create a Collection with a single object and call the target method and return the result
+
+        clone()     ->  new object (Model)
+        update()    ->  original (modified) object ($this)
+        delete()    ->  (void)
+
+    example:
+
+        public function delete() {
+            ($this->getType())::id($this->fields['id'])->delete();
+        }
+
+    */
 
 }
