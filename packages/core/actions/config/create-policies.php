@@ -7,7 +7,7 @@
 */
 
 list($params, $providers) = eQual::announce([
-    'description'   => "Add an empty actions to the given class by creating a `getActions()` method (if not defined yet).",
+    'description'   => "Add an empty policies to the given class by creating a `getPolicies()` method (if not defined yet).",
     'params'        => [
         'entity' =>  [
             'description'   => 'Full name (including namespace) of the class to look into (e.g. \'core\\User\').',
