@@ -647,7 +647,20 @@ class AccessController extends Service {
             $def_roles = $object_class::getRoles();
             foreach($roles as $role) {
                 if(isset($def_roles[$role])) {
-                    $rights |= $def_roles[$role]['rights'] ?? 0;
+                    $right = 0;
+                    if(is_array($def_roles[$role]['rights'])) {
+                        $right = array_reduce(
+                                $def_roles[$role]['rights'],
+                                function ($c, $a) {
+                                    return ($c | (defined($a) ? constant($a) : 0));
+                                },
+                                0
+                            );
+                    }
+                    elseif(is_int($def_roles[$role]['rights'])) {
+                        $right = $def_roles[$role]['rights'];
+                    }
+                    $rights |= $right;
                 }
             }
         }
