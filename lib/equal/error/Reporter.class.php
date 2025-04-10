@@ -52,19 +52,20 @@ class Reporter extends Service {
         exit(1);
     }
 
-    public static function handleThrowable($exception) {
-        // specific function for removing objects, which might be non json-encodable, from backtrace
-        function filterOutObjects($input) {
-            if(is_array($input)) {
-                return array_map(function ($item) {
-                    return filterOutObjects($item);
-                }, $input);
-            }
-            if(is_object($input)) {
-                return '[Object: ' . get_class($input) . ']';
-            }
-            return $input;
+    // specific function for removing objects, which might be non json-encodable, from backtrace
+    private static function filterOutObjects($input) {
+        if(is_array($input)) {
+            return array_map(function ($item) {
+                return self::filterOutObjects($item);
+            }, $input);
         }
+        if(is_object($input)) {
+            return '[Object: ' . get_class($input) . ']';
+        }
+        return $input;
+    }
+
+    public static function handleThrowable($exception) {
         $msg = $exception->getMessage();
         // retrieve instance and log error
         $instance = self::getInstance();
@@ -74,7 +75,7 @@ class Reporter extends Service {
             $trace['file'] = $exception->getFile();
             $trace['line'] = $exception->getLine();
             // #memo - $backtrace may contain non json-encodable objects (which would lead to an error when calling json_encode)
-            $trace['stack'] = filterOutObjects($backtrace);
+            $trace['stack'] = self::filterOutObjects($backtrace);
             $instance->log(QN_REPORT_ERROR, $msg, $trace);
         }
     }
