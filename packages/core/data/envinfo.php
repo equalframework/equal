@@ -5,6 +5,8 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use core\setting\Setting;
 use core\setting\SettingValue;
 
 list( $params, $providers ) = eQual::announce([
@@ -17,7 +19,10 @@ list( $params, $providers ) = eQual::announce([
     'response'    => [
         'content-type'  => 'application/json',
         'charset'       => 'UTF-8',
-        'accept-origin' => '*'
+        'accept-origin' => '*',
+        'cacheable'     => false,
+        'cache-vary'    => ['user'],
+        'expires'       => (60*60*24)
     ],
     'constants'   => [
         "ENV_MODE",
@@ -63,17 +68,37 @@ if($user_id) {
     $envinfo["notifications"] = constant('NOTIFICATIONS_ENABLED');
 
     // 1) read global settings
-    $settings = SettingValue::search(['user_id', '=', 0])->read(['name', 'value'])->get();
+    $settingValues = SettingValue::search([[['user_id', '=', 0]], [['user_id', 'is', null]]])->read(['name', 'value', 'setting_id'])->get();
+    $settings_ids = array_map(function ($a) {return $a['setting_id'];}, $settingValues);
+    $map_settings = Setting::ids($settings_ids)->read(['type'])->get();
 
-    foreach($settings as $sid => $setting) {
-        $envinfo[$setting['name']] = $setting['value'];
+    foreach($settingValues as $sid => $settingValue) {
+        $value = $settingValue['value'];
+        settype($value, [
+                'boolean'   => 'boolean',
+                'integer'   => 'integer',
+                'float'     => 'double',
+                'string'    => 'string',
+                'many2one'  => 'integer'
+            ][$map_settings[$settingValue['setting_id']]['type']]);
+        $envinfo[$settingValue['name']] = $value;
     }
 
     // 2) overload with current User specific settings, if any
-    $settings = SettingValue::search(['user_id', '=', $user_id])->read(['name', 'value'])->get();
+    $settingValues = SettingValue::search(['user_id', '=', $user_id])->read(['name', 'value', 'setting_id'])->get();
+    $settings_ids = array_map(function ($a) {return $a['setting_id'];}, $settingValues);
+    $map_settings = Setting::ids($settings_ids)->read(['type'])->get();
 
-    foreach($settings as $sid => $setting) {
-        $envinfo[$setting['name']] = $setting['value'];
+    foreach($settingValues as $sid => $setting) {
+        $value = $settingValue['value'];
+        settype($value, [
+                'boolean'   => 'boolean',
+                'integer'   => 'integer',
+                'float'     => 'double',
+                'string'    => 'string',
+                'many2one'  => 'integer'
+            ][$map_settings[$settingValue['setting_id']]['type']]);
+        $envinfo[$settingValue['name']] = $value;
     }
 }
 
