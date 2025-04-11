@@ -121,10 +121,14 @@ $data = $views[$view_type];
 $data["name"] = $model->getName();
 $data["description"] = $model->getDescription();
 
-foreach ($schema as $field => $descriptor) {
-    if(in_array($field, $special_columns) || in_array($descriptor['type'], ['many2many', 'one2many'])) {
-        continue;
-    }
+$fields = array_filter($schema, function ($descriptor, $field) use ($special_columns) {
+            return !in_array($field, $special_columns) && !in_array($descriptor['type'], ['many2many', 'one2many']);
+        },
+        ARRAY_FILTER_USE_BOTH
+    );
+
+foreach ($fields as $field => $descriptor) {
+
     $item = [
         "type" => "field",
         "value" => $field,
@@ -133,6 +137,7 @@ foreach ($schema as $field => $descriptor) {
 
     switch($view_type) {
         case 'list':
+            $item['width'] = strval(floor(100/count($fields))) . '%';
             $data["layout"]["items"][] = $item;
             break;
         case 'form':
@@ -144,7 +149,6 @@ foreach ($schema as $field => $descriptor) {
 if(!file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
     throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
 }
-
 
 $context->httpResponse()
         ->status(201)
