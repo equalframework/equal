@@ -1,0 +1,148 @@
+[
+    {
+        "name": "core\\setting\\SettingValue",
+        "description": "#memo - we do not use lang here to force fallback to DEFAULT_LANG, since these values are not multilang",
+        "data": [
+            {
+                "name": "core.locale.numbers.thousands_separator",
+                "value": ","
+            },
+            {
+                "name": "core.locale.currency.symbol_position",
+                "value": "after"
+            },
+            {
+                "name": "core.locale.currency.decimal_precision",
+                "value": "2"
+            },
+            {
+                "name": "core.locale.numbers.decimal_separator",
+                "value": "."
+            },
+            {
+                "name": "core.locale.numbers.decimal_precision",
+                "value": "2"
+            },
+            {
+                "name": "core.locale.date_format",
+                "value": "d\/m\/Y"
+            },
+            {
+                "name": "core.locale.time_format",
+                "value": "H:i"
+            },
+            {
+                "name": "core.main.company.id",
+                "value": "1"
+            },
+            {
+                "name": "core.main.formats.paper",
+                "value": "A4"
+            },
+            {
+                "name": "core.security.account_creation",
+                "value": "0"
+            },
+            {
+                "name": "core.security.import",
+                "value": "1"
+            },
+            {
+                "name": "core.security.export",
+                "value": "1"
+            },
+            {
+                "name": "core.units.currency",
+                "value": "€"
+            },
+            {
+                "name": "core.units.length",
+                "value": "m"
+            },
+            {
+                "name": "core.units.weight",
+                "value": "kg"
+            },
+            {
+                "name": "core.units.volume",
+                "value": "m3"
+            },
+            {
+                "name": "core.units.surface",
+                "value": "m2"
+            },
+            {
+                "name": "core.locale.time_zone",
+                "value": "Europe/Brussels"
+            },
+            {
+                "name": "core.security.passkey_creation",
+                "value": "0"
+            },
+            {
+                "name": "core.security.passkey_rp_id",
+                "value": "equal.local"
+            },
+            {
+                "name": "core.security.passkey_rp_name",
+                "value": "eQual App"
+            },
+            {
+                "name": "core.security.passkey_format_android-key",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_android-safetynet",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_apple",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_fido-u2f",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_none",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_packed",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_format_tpm",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_user_verification",
+                "value": "preferred"
+            },
+            {
+                "name": "core.security.passkey_cross_platform",
+                "value": "all"
+            },
+            {
+                "name": "core.security.passkey_authenticator_usb",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_authenticator_nfc",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_authenticator_ble",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_authenticator_hybrid",
+                "value": "1"
+            },
+            {
+                "name": "core.security.passkey_authenticator_internal",
+                "value": "1"
+            }
+        ]
+    }
+]

@@ -1,0 +1,43 @@
+[
+    {
+        "name": "core\\Group",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "name": "admins",
+                "display_name": "Administrators",
+                "description": "Users with admin privileges.",
+                "users_ids": [
+                    "1"
+                ]
+            },
+            {
+                "id": 2,
+                "name": "users",
+                "display_name": "All Users",
+                "description": "Default group for users.",
+                "users_ids": [
+                    "1",
+                    "2"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "core\\Group",
+        "lang": "fr",
+        "data": [
+            {
+                "id": 1,
+                "display_name": "Administrateurs",
+                "description": "Utilisateurs avec privilèges d'administration."
+            },
+            {
+                "id": 2,
+                "display_name": "Tous les utilisateurs",
+                "description": "Groupe par défaut pour les utilisateurs."
+            }
+        ]
+    }
+]
