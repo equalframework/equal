@@ -117,7 +117,7 @@ $tests = [
         'arrange' => function () {
             Setting::assert_value('core', 'locale', 'currency.symbol_position', 'before');
             Setting::assert_value('core', 'locale', 'currency.decimal_precision', 2);
-            Setting::assert_value('core', 'units', 'currency', '€');
+            Setting::assert_value('core', 'locale', 'currency', '€');
         },
         'act' => function () {
             return Setting::format_number_currency(42);
