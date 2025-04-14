@@ -169,8 +169,7 @@ class Setting extends Model {
             'value' => [
                 'type'              => 'string',
                 'description'       => 'Value to use as default for subsequent value.',
-                'help'              => 'This is a virtual field meant to be used for creating a default value or sequence associated with a newly created setting.',
-                'onupdate'          => 'onupdateValue'
+                'help'              => '`value` is a virtual field meant to be used for creating a default value or sequence associated with a newly created setting.'
             ]
 
         ];
@@ -195,6 +194,24 @@ class Setting extends Model {
         ];
     }
 
+    /**
+     * After creation, if `value` is set, make sure either a value or sequence is set (depending on is_sequence).
+     * `value` field acts as a virtual field and used only to simplify initialization through init/data.
+     *
+     * The value is not expected to change over time — dynamic assignments should be handled via SettingValue or SettingSequence.
+     * And this field should not be updated manually outside of the initialization process.
+     */
+    public static function oncreate($self, $values) {
+        $self->read(['is_sequence', 'package', 'section', 'code', 'value']);
+        foreach($self as $id => $setting) {
+            if($setting['is_sequence']) {
+                self::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+            }
+            else {
+                self::assert_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+            }
+        }
+    }
 
     /**
      * $index is built this way
@@ -370,11 +387,11 @@ class Setting extends Model {
         $section_id = current($sections_ids);
 
         $setting_id = $orm->create(self::getType(), [
-            'package'       => $package,
-            'section'       => $section,
-            'section_id'    => $section_id,
-            'code'          => $code
-        ]);
+                'package'       => $package,
+                'section'       => $section,
+                'section_id'    => $section_id,
+                'code'          => $code
+            ]);
 
         $index = $package . '.' . $section . '.' . $code;
         $GLOBALS['_equal_core_setting_cache'][$index] = $setting_id;
@@ -412,27 +429,43 @@ class Setting extends Model {
 
         $setting_value_id = $orm->create(SettingValue::getType(), $values);
 
-        return $setting_id;
+        return $setting_value_id;
     }
 
 
-    /**
-     * This field is virtual and used only to simplify initialization through init/data.
-     *
-     * The value is not expected to change over time — dynamic values should be handled via SettingValue or SettingSequence.
-     * This field should not be updated manually outside of the initialization process.
+/**
+     * Create a SettingSequence if none match the selector for the given setting_id, and leave its value to null.
+     * @return int Returns the id of the existing or newly created SettingSequence.
      */
-    public static function onupdateValue($self) {
-        $self->read(['is_sequence', 'package', 'section', 'code', 'value']);
-        foreach($self as $id => $setting) {
-            if($setting['is_sequence']) {
-                self::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
-            }
-            else {
-                self::assert_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+    private static function create_sequence($setting_id, array $selector=[]): int {
+        /** @var \equal\orm\ObjectManager $orm */
+        ['orm' => $orm] = \eQual::inject(['orm']);
+
+        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+
+        if($setting_sequence_id) {
+            return $setting_sequence_id;
+        }
+
+        $values = ['setting_id' => $setting_id];
+
+        foreach($selector as $field => $val) {
+            $values[$field] = $val;
+        }
+
+        // complete with missing keys (assigned to null), if any
+        $selector_keys = self::getSelectorKeys();
+        foreach($selector_keys as $field) {
+            if(!array_key_exists($field, $selector)) {
+                $values[$field] = null;
             }
         }
+
+        $setting_sequence_id = $orm->create(SettingSequence::getType(), $values);
+
+        return $setting_sequence_id;
     }
+
 
     /**
      * Sets the value of a given SettingSequence: create it if necessary, and sets it to the given value.
@@ -461,13 +494,11 @@ class Setting extends Model {
         ['orm' => $orm] = \eQual::inject(['orm']);
 
         // update all targeted values for given lang
-        $orm->update(SettingValue::getType(), (array) $setting_sequence_id, ['value' => $value]);
+        $orm->update(SettingSequence::getType(), (array) $setting_sequence_id, ['value' => $value]);
     }
 
     /**
-     * Make sure the setting exists, and create it if necessary.
-     *
-     * Force value to $default, même si elle existe déjà.
+     * Make sure the setting exists, create it if necessary, and force value to $default, even if it already exists.
      *
      * @return  void
      */
@@ -500,6 +531,7 @@ class Setting extends Model {
 
         if(!self::setting_exists($package, $section, $code)) {
             $setting_id = self::create_setting($package, $section, $code);
+            self::id($setting_id)->update(['is_sequence' => true]);
         }
         else {
             $setting_id = self::get_setting_id($package, $section, $code);
@@ -574,6 +606,38 @@ class Setting extends Model {
     }
 
     /**
+     * Retrieve the value of a given setting.
+     *
+     * @return  mixed       Returns the value of the target setting or null if the setting parameter is not found. The type of the returned var depends on the setting's `type` field.
+     */
+    public static function get_sequence(string $package, string $section, string $code, $default=null, array $selector=[]) {
+        $result = $default;
+
+        /** @var \equal\orm\ObjectManager $orm */
+        ['orm' => $orm] = \eQual::inject(['orm']);
+
+        $setting_id = self::get_setting_id($package, $section, $code);
+
+        if(!$setting_id) {
+            return $default;
+        }
+
+        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+
+        if(!$setting_sequence_id) {
+            return $default;
+        }
+
+        $setting_sequences = $orm->read(SettingSequence::getType(), (array) $setting_sequence_id, ['value']);
+
+        if($setting_sequences > 0 && count($setting_sequences)) {
+            $result = $setting_sequences[$setting_sequence_id]['value'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Sets the value of a given setting value: create it if necessary, and sets it to the given value.
      * If the targeted SettingValue does not exist, the call is ignored.
      *
@@ -617,7 +681,7 @@ class Setting extends Model {
     /**
      * $selector is expected to hold any additional field that can be used to differentiate a SettingValue record (fields can be added in inherited classes)
      */
-    public static function fetch_and_add(string $package, string $section, string $code, $increment=null, array $selector=[]) {
+    public static function fetch_and_add(string $package, string $section, string $code, $increment=1, array $selector=[]) {
 
         $setting_id = self::get_setting_id($package, $section, $code);
 
@@ -641,7 +705,7 @@ class Setting extends Model {
         }
 
         // no cache here
-        return $res[$setting_sequence_id];
+        return intval($res[$setting_sequence_id]);
     }
 
 

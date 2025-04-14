@@ -28,7 +28,8 @@ class SettingSequence extends Model {
                 'description'       => "Code to serve as reference (might not be unique).",
                 'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
-                'readonly'          => true
+                'readonly'          => true,
+                'instant'           => true
             ],
 
             'setting_id' => [
@@ -36,7 +37,15 @@ class SettingSequence extends Model {
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the sequence relates to.',
                 'ondelete'          => 'cascade',
-                'required'          => true
+                'required'          => true,
+                'dependents'        => ['name']
+            ],
+
+            'user_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\User',
+                'description'       => 'User the setting is specific to (optional).',
+                'ondelete'          => 'cascade'
             ],
 
             'value' => [
