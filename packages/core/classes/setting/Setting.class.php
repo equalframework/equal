@@ -169,7 +169,8 @@ class Setting extends Model {
             'value' => [
                 'type'              => 'string',
                 'description'       => 'Value to use as default for subsequent value.',
-                'help'              => '`value` is a virtual field meant to be used for creating a default value or sequence associated with a newly created setting.'
+                'help'              => '`value` is a virtual field meant to be used for creating a default value or sequence associated with a newly created setting.',
+                'onupdate'          => 'onupdateValue'
             ]
 
         ];
@@ -201,9 +202,12 @@ class Setting extends Model {
      * The value is not expected to change over time — dynamic assignments should be handled via SettingValue or SettingSequence.
      * And this field should not be updated manually outside of the initialization process.
      */
-    public static function oncreate($self, $values) {
+    public static function onupdateValue($self) {
         $self->read(['is_sequence', 'package', 'section', 'code', 'value']);
         foreach($self as $id => $setting) {
+            if(!isset($setting['is_sequence'], $setting['package'], $setting['section'], $setting['code'], $setting['value'])) {
+                continue;
+            }
             if($setting['is_sequence']) {
                 self::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
             }
