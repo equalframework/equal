@@ -120,7 +120,7 @@ foreach($data as $entity_data) {
     if($entity === 'core\setting\SettingValue') {
         // `id` is discarded to prevent mixing up references across settings from several packages
         /*
-        // #memo - we cannot do that since identical entities would be recreated at each import
+        // #memo - we cannot do that since identical entities would be recreated at each import and refs would be lost for translations
         if(isset($entity_data['id'])) {
             unset($entity_data['id']);
         }
