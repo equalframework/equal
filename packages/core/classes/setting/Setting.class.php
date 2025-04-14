@@ -217,10 +217,10 @@ class Setting extends Model {
                 continue;
             }
             if($setting['is_sequence']) {
-                self::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+                static::assert_sequence($setting['package'], $setting['section'], $setting['code'], $setting['value']);
             }
             else {
-                self::assert_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
+                static::assert_value($setting['package'], $setting['section'], $setting['code'], $setting['value']);
             }
         }
     }
@@ -232,7 +232,7 @@ class Setting extends Model {
     private static function build_cache_index(string $package, string $section, string $code, array $selector = [], ?string $lang = null): string {
         $parts = [$package, $section, $code];
 
-        foreach(self::getSelectorKeys() as $key) {
+        foreach(static::getSelectorKeys() as $key) {
             $parts[] = $selector[$key] ?? '';
         }
 
@@ -242,12 +242,12 @@ class Setting extends Model {
     }
 
     private static function get_cache(string $package, string $section, string $code, array $selector = [], ?string $lang = null) {
-        $index = self::build_cache_index($package, $section, $code, $selector, $lang);
+        $index = static::build_cache_index($package, $section, $code, $selector, $lang);
         return $GLOBALS['_equal_core_setting_cache'][$index] ?? null;
     }
 
     private static function set_cache(string $package, string $section, string $code, $value, array $selector = [], ?string $lang = null): void {
-        $index = self::build_cache_index($package, $section, $code, $selector, $lang);
+        $index = static::build_cache_index($package, $section, $code, $selector, $lang);
 
         if(!isset($GLOBALS['_equal_core_setting_cache'])) {
             $GLOBALS['_equal_core_setting_cache'] = [];
@@ -271,7 +271,7 @@ class Setting extends Model {
             ['orm' => $orm] = \eQual::inject(['orm']);
 
             // attempt to retrieve the setting
-            $settings_ids = $orm->search(self::getType(), [
+            $settings_ids = $orm->search(static::getType(), [
                     ['package', '=', $package],
                     ['section', '=', $section],
                     ['code', '=', $code]
@@ -297,7 +297,7 @@ class Setting extends Model {
      * Returns a boolean telling of the setting targeted by package, section & code exists or not.
      */
     private static function setting_exists($package, $section, $code) {
-        return self::get_setting_id($package, $section, $code) !== null;
+        return static::get_setting_id($package, $section, $code) !== null;
     }
 
     /**
@@ -316,7 +316,7 @@ class Setting extends Model {
         }
 
         // complete domain with missing keys, if any
-        $selector_keys = self::getSelectorKeys();
+        $selector_keys = static::getSelectorKeys();
         foreach ($selector_keys as $field) {
             if(!array_key_exists($field, $selector)) {
                 $domain[] = [$field, 'is', null];
@@ -350,7 +350,7 @@ class Setting extends Model {
         }
 
         // complete domain with missing keys, if any
-        $selector_keys = self::getSelectorKeys();
+        $selector_keys = static::getSelectorKeys();
         foreach ($selector_keys as $field) {
             if(!array_key_exists($field, $selector)) {
                 $domain[] = [$field, 'is', null];
@@ -379,7 +379,7 @@ class Setting extends Model {
      */
     private static function create_setting($package, $section, $code): int {
 
-        $setting_id = self::get_setting_id($package, $section, $code);
+        $setting_id = static::get_setting_id($package, $section, $code);
 
         if($setting_id) {
             return $setting_id;
@@ -398,7 +398,7 @@ class Setting extends Model {
 
         $section_id = current($sections_ids);
 
-        $setting_id = $orm->create(self::getType(), [
+        $setting_id = $orm->create(static::getType(), [
                 'package'       => $package,
                 'section'       => $section,
                 'section_id'    => $section_id,
@@ -419,7 +419,7 @@ class Setting extends Model {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
-        $setting_value_id = self::get_setting_value_id($setting_id, $selector);
+        $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if($setting_value_id) {
             return $setting_value_id;
@@ -432,7 +432,7 @@ class Setting extends Model {
         }
 
         // complete with missing keys (assigned to null), if any
-        $selector_keys = self::getSelectorKeys();
+        $selector_keys = static::getSelectorKeys();
         foreach($selector_keys as $field) {
             if(!array_key_exists($field, $selector)) {
                 $values[$field] = null;
@@ -453,7 +453,7 @@ class Setting extends Model {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
-        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+        $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if($setting_sequence_id) {
             return $setting_sequence_id;
@@ -466,7 +466,7 @@ class Setting extends Model {
         }
 
         // complete with missing keys (assigned to null), if any
-        $selector_keys = self::getSelectorKeys();
+        $selector_keys = static::getSelectorKeys();
         foreach($selector_keys as $field) {
             if(!array_key_exists($field, $selector)) {
                 $values[$field] = null;
@@ -486,17 +486,17 @@ class Setting extends Model {
      * @return  void
      */
     public static function set_sequence(string $package, string $section, string $code, int $value, array $selector=[]) {
-        if(!self::setting_exists($package, $section, $code)) {
+        if(!static::setting_exists($package, $section, $code)) {
             return;
         }
 
-        $setting_id = self::get_setting_id($package, $section, $code);
+        $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
             return;
         }
 
-        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+        $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
             return;
@@ -516,20 +516,20 @@ class Setting extends Model {
      */
     public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
 
-        if(!self::setting_exists($package, $section, $code)) {
-            $setting_id = self::create_setting($package, $section, $code);
+        if(!static::setting_exists($package, $section, $code)) {
+            $setting_id = static::create_setting($package, $section, $code);
         }
         else {
-            $setting_id = self::get_setting_id($package, $section, $code);
+            $setting_id = static::get_setting_id($package, $section, $code);
         }
 
-        $setting_value_id = self::get_setting_value_id($setting_id, $selector);
+        $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if(!$setting_value_id) {
-            $setting_value_id = self::create_value($setting_id, $selector);
+            $setting_value_id = static::create_value($setting_id, $selector);
         }
 
-        self::set_value($package, $section, $code, $default, $selector, $lang);
+        static::set_value($package, $section, $code, $default, $selector, $lang);
     }
 
     /**
@@ -541,21 +541,21 @@ class Setting extends Model {
      */
     public static function assert_sequence(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
 
-        if(!self::setting_exists($package, $section, $code)) {
-            $setting_id = self::create_setting($package, $section, $code);
-            self::id($setting_id)->update(['is_sequence' => true]);
+        if(!static::setting_exists($package, $section, $code)) {
+            $setting_id = static::create_setting($package, $section, $code);
+            static::id($setting_id)->update(['is_sequence' => true]);
         }
         else {
-            $setting_id = self::get_setting_id($package, $section, $code);
+            $setting_id = static::get_setting_id($package, $section, $code);
         }
 
-        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+        $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
-            $setting_sequence_id = self::create_sequence($setting_id, $selector);
+            $setting_sequence_id = static::create_sequence($setting_id, $selector);
         }
 
-        self::set_sequence($package, $section, $code, $default, $selector, $lang);
+        static::set_sequence($package, $section, $code, $default, $selector, $lang);
     }
 
     /**
@@ -567,26 +567,26 @@ class Setting extends Model {
 
         $lang = $lang ?? constant('DEFAULT_LANG');
 
-        $cached_value = self::get_cache($package, $section, $code, $selector, $lang);
+        $cached_value = static::get_cache($package, $section, $code, $selector, $lang);
 
         if(!$cached_value) {
 
             /** @var \equal\orm\ObjectManager $orm */
             ['orm' => $orm] = \eQual::inject(['orm']);
 
-            $setting_id = self::get_setting_id($package, $section, $code);
+            $setting_id = static::get_setting_id($package, $section, $code);
 
             if(!$setting_id) {
                 return $default;
             }
 
-            $setting_value_id = self::get_setting_value_id($setting_id, $selector);
+            $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
             if(!$setting_value_id) {
                 return $default;
             }
 
-            $settings = $orm->read(self::getType(), (array) $setting_id, ['type', 'is_multilang']);
+            $settings = $orm->read(static::getType(), (array) $setting_id, ['type', 'is_multilang']);
             $setting = array_pop($settings);
 
             $values_lang = ($setting['is_multilang']) ? $lang : constant('DEFAULT_LANG');
@@ -610,11 +610,11 @@ class Setting extends Model {
 
                     settype($result, $map_types[$setting['type']] ?? 'string');
 
-                    self::set_cache($package, $section, $code, $result, $selector, $lang);
+                    static::set_cache($package, $section, $code, $result, $selector, $lang);
                 }
             }
         }
-        return self::get_cache($package, $section, $code, $selector, $lang) ?? $default;
+        return static::get_cache($package, $section, $code, $selector, $lang) ?? $default;
     }
 
     /**
@@ -628,13 +628,13 @@ class Setting extends Model {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
-        $setting_id = self::get_setting_id($package, $section, $code);
+        $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
             return $default;
         }
 
-        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+        $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
             return $default;
@@ -663,17 +663,17 @@ class Setting extends Model {
      * @return  void
      */
     public static function set_value(string $package, string $section, string $code, $value, array $selector=[], string $lang=null) {
-        if(!self::setting_exists($package, $section, $code)) {
+        if(!static::setting_exists($package, $section, $code)) {
             return;
         }
 
-        $setting_id = self::get_setting_id($package, $section, $code);
+        $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
             return;
         }
 
-        $setting_value_id = self::get_setting_value_id($setting_id, $selector);
+        $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if(!$setting_value_id) {
             return;
@@ -687,7 +687,7 @@ class Setting extends Model {
         // update all targeted values for given lang
         $orm->update(static::getSettingValueClass(), (array) $setting_value_id, ['value' => $value], $lang);
 
-        self::set_cache($package, $section, $code, $value, $selector, $lang);
+        static::set_cache($package, $section, $code, $value, $selector, $lang);
     }
 
     /**
@@ -695,13 +695,13 @@ class Setting extends Model {
      */
     public static function fetch_and_add(string $package, string $section, string $code, $increment=1, array $selector=[]) {
 
-        $setting_id = self::get_setting_id($package, $section, $code);
+        $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
             return null;
         }
 
-        $setting_sequence_id = self::get_setting_sequence_id($setting_id, $selector);
+        $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
             return;
@@ -723,22 +723,22 @@ class Setting extends Model {
 
 
     public static function format_number($number, $decimal_precision=null) {
-        $thousands_separator = self::get_value('core', 'locale', 'numbers.thousands_separator', '.');
-        $decimal_separator = self::get_value('core', 'locale', 'numbers.decimal_separator', ',');
+        $thousands_separator = static::get_value('core', 'locale', 'numbers.thousands_separator', '.');
+        $decimal_separator = static::get_value('core', 'locale', 'numbers.decimal_separator', ',');
 
         if(is_null($decimal_precision)) {
-            $decimal_precision = self::get_value('core', 'locale', 'numbers.decimal_precision', 2);
+            $decimal_precision = static::get_value('core', 'locale', 'numbers.decimal_precision', 2);
         }
         return number_format($number, $decimal_precision, $decimal_separator, $thousands_separator);
     }
 
     public static function format_number_currency($amount) {
         $result = '';
-        $decimal_precision = self::get_value('core', 'locale', 'currency.decimal_precision', 2);
-        $symbol_position = self::get_value('core', 'locale', 'currency.symbol_position', 'before');
-        $currency = self::get_value('core', 'locale', 'currency', '$');
+        $decimal_precision = static::get_value('core', 'locale', 'currency.decimal_precision', 2);
+        $symbol_position = static::get_value('core', 'locale', 'currency.symbol_position', 'before');
+        $currency = static::get_value('core', 'locale', 'currency', '$');
 
-        $result = self::format_number($amount, $decimal_precision);
+        $result = static::format_number($amount, $decimal_precision);
         if($symbol_position == 'after') {
             $result = $result.' '.$currency;
         }
