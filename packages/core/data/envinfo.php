@@ -80,7 +80,7 @@ if($user_id) {
                 'float'     => 'double',
                 'string'    => 'string',
                 'many2one'  => 'integer'
-            ][$map_settings[$settingValue['setting_id']]['type']]);
+            ][$map_settings[$settingValue['setting_id']]['type']] ?? 'string');
         $envinfo[$settingValue['name']] = $value;
     }
 

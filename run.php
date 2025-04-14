@@ -234,7 +234,7 @@ catch(Throwable $e) {
                     'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
                 ])
             ->send();
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?EQ_REPORT_WARNING:EQ_REPORT_ERROR);
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
     // store NET info to access log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([

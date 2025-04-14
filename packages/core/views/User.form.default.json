@@ -43,6 +43,12 @@
                                                 "value": "password",
                                                 "width": "50%",
                                                 "help": "Enter a new value to update."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "status",
+                                                "width": "0%",
+                                                "visible": false
                                             }
                                         ]
                                     },
