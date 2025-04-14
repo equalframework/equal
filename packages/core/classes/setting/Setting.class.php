@@ -176,6 +176,14 @@ class Setting extends Model {
         ];
     }
 
+    protected static function getSettingValueClass(): string {
+        return SettingValue::class;
+    }
+
+    protected static function getSettingSequenceClass(): string {
+        return SettingSequence::class;
+    }
+
     protected static function getSelectorKeys() {
         return ['user_id'];
     }
@@ -316,7 +324,7 @@ class Setting extends Model {
         }
 
         // search for candidates values
-        $setting_values_ids = $orm->search(SettingValue::getType(), $domain);
+        $setting_values_ids = $orm->search(static::getSettingValueClass(), $domain);
 
         if(!is_array($setting_values_ids) || !count($setting_values_ids)) {
             return null;
@@ -350,7 +358,7 @@ class Setting extends Model {
         }
 
         // search for candidates values
-        $setting_sequences_ids = $orm->search(SettingSequence::getType(), $domain);
+        $setting_sequences_ids = $orm->search(static::getSettingSequenceClass(), $domain);
 
         if(!is_array($setting_sequences_ids) || !count($setting_sequences_ids)) {
             return null;
@@ -431,13 +439,13 @@ class Setting extends Model {
             }
         }
 
-        $setting_value_id = $orm->create(SettingValue::getType(), $values);
+        $setting_value_id = $orm->create(static::getSettingValueClass(), $values);
 
         return $setting_value_id;
     }
 
 
-/**
+    /**
      * Create a SettingSequence if none match the selector for the given setting_id, and leave its value to null.
      * @return int Returns the id of the existing or newly created SettingSequence.
      */
@@ -465,7 +473,7 @@ class Setting extends Model {
             }
         }
 
-        $setting_sequence_id = $orm->create(SettingSequence::getType(), $values);
+        $setting_sequence_id = $orm->create(static::getSettingSequenceClass(), $values);
 
         return $setting_sequence_id;
     }
@@ -498,7 +506,7 @@ class Setting extends Model {
         ['orm' => $orm] = \eQual::inject(['orm']);
 
         // update all targeted values for given lang
-        $orm->update(SettingSequence::getType(), (array) $setting_sequence_id, ['value' => $value]);
+        $orm->update(static::getSettingSequenceClass(), (array) $setting_sequence_id, ['value' => $value]);
     }
 
     /**
@@ -583,7 +591,7 @@ class Setting extends Model {
 
             $values_lang = ($setting['is_multilang']) ? $lang : constant('DEFAULT_LANG');
 
-            $setting_values = $orm->read(SettingValue::getType(), (array) $setting_value_id, ['value'], $values_lang);
+            $setting_values = $orm->read(static::getSettingValueClass(), (array) $setting_value_id, ['value'], $values_lang);
 
             if($setting_values > 0 && count($setting_values)) {
 
@@ -632,7 +640,7 @@ class Setting extends Model {
             return $default;
         }
 
-        $setting_sequences = $orm->read(SettingSequence::getType(), (array) $setting_sequence_id, ['value']);
+        $setting_sequences = $orm->read(static::getSettingSequenceClass(), (array) $setting_sequence_id, ['value']);
 
         if($setting_sequences > 0 && count($setting_sequences)) {
             $result = $setting_sequences[$setting_sequence_id]['value'];
@@ -677,7 +685,7 @@ class Setting extends Model {
         $lang = $lang ?? constant('DEFAULT_LANG');
 
         // update all targeted values for given lang
-        $orm->update(SettingValue::getType(), (array) $setting_value_id, ['value' => $value], $lang);
+        $orm->update(static::getSettingValueClass(), (array) $setting_value_id, ['value' => $value], $lang);
 
         self::set_cache($package, $section, $code, $value, $selector, $lang);
     }
@@ -702,7 +710,7 @@ class Setting extends Model {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
-        $res = $orm->fetchAndAdd(SettingSequence::getType(), $setting_sequence_id, 'value', $increment);
+        $res = $orm->fetchAndAdd(static::getSettingSequenceClass(), $setting_sequence_id, 'value', $increment);
 
         if($res <= 0 || !count($res)) {
             return null;
@@ -715,20 +723,20 @@ class Setting extends Model {
 
 
     public static function format_number($number, $decimal_precision=null) {
-        $thousands_separator = Setting::get_value('core', 'locale', 'numbers.thousands_separator', '.');
-        $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator', ',');
+        $thousands_separator = self::get_value('core', 'locale', 'numbers.thousands_separator', '.');
+        $decimal_separator = self::get_value('core', 'locale', 'numbers.decimal_separator', ',');
 
         if(is_null($decimal_precision)) {
-            $decimal_precision = Setting::get_value('core', 'locale', 'numbers.decimal_precision', 2);
+            $decimal_precision = self::get_value('core', 'locale', 'numbers.decimal_precision', 2);
         }
         return number_format($number, $decimal_precision, $decimal_separator, $thousands_separator);
     }
 
     public static function format_number_currency($amount) {
         $result = '';
-        $decimal_precision = Setting::get_value('core', 'locale', 'currency.decimal_precision', 2);
-        $symbol_position = Setting::get_value('core', 'locale', 'currency.symbol_position', 'before');
-        $currency = Setting::get_value('core', 'units', 'currency', '$');
+        $decimal_precision = self::get_value('core', 'locale', 'currency.decimal_precision', 2);
+        $symbol_position = self::get_value('core', 'locale', 'currency.symbol_position', 'before');
+        $currency = self::get_value('core', 'locale', 'currency', '$');
 
         $result = self::format_number($amount, $decimal_precision);
         if($symbol_position == 'after') {
