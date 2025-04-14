@@ -2480,6 +2480,7 @@ class ObjectManager extends Service {
             $object = $this->getStaticInstance($class);
             // retrieve schema
             $schema = $object->getSchema();
+            $lang = constant('DEFAULT_LANG');
             // make sure that the targeted field exists and has a numeric type
             if(!isset($schema[$field])) {
                 throw new Exception('unknown_field', EQ_ERROR_INVALID_PARAM);
@@ -2493,6 +2494,7 @@ class ObjectManager extends Service {
             while($row = $db->fetchArray($res)) {
                 // maintain ids order provided by the SQL sort
                 $result[$row['id']] = $row[$field];
+                $this->cache[$table_name][$row['id']][$lang][$field] = $row[$field] + $increment;
             }
         }
         catch(Exception $e) {
