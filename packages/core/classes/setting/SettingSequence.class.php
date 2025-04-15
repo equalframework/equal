@@ -60,7 +60,7 @@ class SettingSequence extends Model {
 
     public function getUnique() {
         return [
-            ['setting_id']
+            ['setting_id', 'user_id']
         ];
     }
 }
