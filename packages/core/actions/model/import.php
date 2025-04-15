@@ -117,6 +117,7 @@ foreach($data as $entity_data) {
         $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
 
+    // #deprecated #todo - SettingValue objects shouldn't be created through import but using `/init/scripts` with `Setting::assert_value()`
     if($entity === 'core\setting\SettingValue') {
         // `id` is discarded to prevent mixing up references across settings from several packages
         /*
