@@ -215,6 +215,7 @@ foreach($m2m_tables as $table => $columns) {
         ]);
         $processed_columns[$table][$column] = true;
     }
+    // #todo - there is a particular case here: if an entity (with more fields) is associated with this m2m table (defined either before or after)
     $result[] = $db->getQueryAddUniqueConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)
     $result[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);
