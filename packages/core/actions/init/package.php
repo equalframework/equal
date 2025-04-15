@@ -213,7 +213,13 @@ else {
         $importDataFromFolderJsonFiles($data_folder);
     }
 
-    // 2 bis) Execute init scripts, if any
+    // 2 bis) Populate tables with demo data, if requested
+    $demo_folder = "packages/{$params['package']}/init/demo";
+    if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
+        $importDataFromFolderJsonFiles($demo_folder);
+    }
+
+    // 2 ter) Execute init scripts, if any
     $scripts_folder = "packages/{$params['package']}/init/scripts";
     if($params['import'] && file_exists($scripts_folder) && is_dir($scripts_folder)) {
         foreach(scandir($scripts_folder) as $file) {
@@ -222,12 +228,6 @@ else {
                 include_once $path;
             }
         }
-    }
-
-    // 2 ter) Populate tables with demo data, if requested
-    $demo_folder = "packages/{$params['package']}/init/demo";
-    if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
-        $importDataFromFolderJsonFiles($demo_folder);
     }
 
     // 2 quat) Populate tables with test data (intended for tests), if requested
