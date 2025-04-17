@@ -28,23 +28,23 @@ class SettingValue extends Model {
                 'description'       => "Code to serve as reference (might not be unique).",
                 'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
-                'readonly'          => true
+                'readonly'          => true,
+                'instant'           => true
             ],
 
             'setting_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the value relates to.',
-                'dependents'        => ['name'],
                 'ondelete'          => 'cascade',
-                'required'          => true
+                'required'          => true,
+                'dependents'        => ['name']
             ],
 
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
                 'description'       => 'User the setting is specific to (optional).',
-                'default'           => 0,
                 'ondelete'          => 'cascade'
             ],
 

@@ -1,0 +1,157 @@
+[
+    {
+        "name": "core\\setting\\SettingSection",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "code": "locale",
+                "name": "Locale",
+                "description": "Regional settings"
+            },
+            {
+                "id": 2,
+                "code": "main",
+                "name": "Main",
+                "description": "Deprecated - use `organization`"
+            },
+            {
+                "id": 3,
+                "code": "security",
+                "name": "Security",
+                "description": "Security settings"
+            },
+            {
+                "id": 4,
+                "code": "units",
+                "name": "Units",
+                "description": "Deprecated - use `locale`"
+            },
+            {
+                "id": 5,
+                "code": "accounting",
+                "name": "Accounting",
+                "description": "Accounting (not only financial)"
+            },
+            {
+                "id": 11,
+                "code": "analytics",
+                "name": "Analytics",
+                "description": "Reporting & Analytics"
+            },
+            {
+                "id": 12,
+                "code": "features",
+                "name": "Features",
+                "description": "Customization & UI"
+            },
+            {
+                "id": 13,
+                "code": "storage",
+                "name": "Storage",
+                "description": "Storage & Data"
+            },
+            {
+                "id": 14,
+                "code": "integration",
+                "name": "Integration",
+                "description": "Integrations & Connectors"
+            },
+            {
+                "id": 15,
+                "code": "system",
+                "name": "System",
+                "description": "Technical & Maintenance"
+            },
+            {
+                "id": 16,
+                "code": "workflow",
+                "name": "Workflow",
+                "description": "Business Logic & Processes"
+            },
+            {
+                "id": 17,
+                "code": "schedule",
+                "name": "Schedule",
+                "description": "Scheduling & Time Config"
+            },
+            {
+                "id": 18,
+                "code": "organization",
+                "name": "Organization",
+                "description": "Structure & Organization"
+            }
+        ]
+    },
+    {
+        "name": "core\\setting\\SettingSection",
+        "lang": "fr",
+        "data": [
+            {
+                "id": 1,
+                "name": "Locale",
+                "description": "Paramètres régionaux"
+            },
+            {
+                "id": 2,
+                "name": "Général",
+                "description": "Paramètres généraux et de formats"
+            },
+            {
+                "id": 3,
+                "name": "Sécurité",
+                "description": "Paramètres de sécurité"
+            },
+            {
+                "id": 4,
+                "name": "Unités",
+                "description": "Unités de mesures et systèmes d'unités"
+            },
+            {
+                "id": 5,
+                "name": "Comptabilité",
+                "description": "Comptabilité et suivi des flux"
+            },
+            {
+                "id": 11,
+                "name": "Analyse",
+                "description": "Statistiques, rapports et indicateurs"
+            },
+            {
+                "id": 12,
+                "name": "Fonctionnalités",
+                "description": "Personnalisation, UI et libellés"
+            },
+            {
+                "id": 13,
+                "name": "Stockage",
+                "description": "Stockage, fichiers et quotas"
+            },
+            {
+                "id": 14,
+                "name": "Intégration",
+                "description": "Connecteurs, API et interconnexions"
+            },
+            {
+                "id": 15,
+                "name": "Système",
+                "description": "Paramètres techniques et maintenance"
+            },
+            {
+                "id": 16,
+                "name": "Workflow",
+                "description": "Statuts, transitions et automatisations"
+            },
+            {
+                "id": 17,
+                "name": "Planification",
+                "description": "Horaires, calendriers et tâches planifiées"
+            },
+            {
+                "id": 18,
+                "name": "Organisation",
+                "description": "Structure, départements et périodes internes"
+            }
+        ]
+    }
+]

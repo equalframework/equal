@@ -219,7 +219,18 @@ else {
         $importDataFromFolderJsonFiles($demo_folder);
     }
 
-    // 2 ter) Populate tables with test data (intended for tests), if requested
+    // 2 ter) Execute init scripts, if any
+    $scripts_folder = "packages/{$params['package']}/init/scripts";
+    if($params['import'] && file_exists($scripts_folder) && is_dir($scripts_folder)) {
+        foreach(scandir($scripts_folder) as $file) {
+            $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+            if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                include_once $path;
+            }
+        }
+    }
+
+    // 2 quat) Populate tables with test data (intended for tests), if requested
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         $importDataFromFolderJsonFiles($test_folder);
