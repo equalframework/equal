@@ -814,7 +814,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 5) recursively load sub-fields, if any
-            foreach($fields as $field => $subfields ) {
+            foreach($fields as $field => $subfields) {
                 // discard direct fields
                 if(is_numeric($field)) {
                     continue;
@@ -851,19 +851,19 @@ class Collection implements \Iterator, \Countable {
                     continue;
                 }
 
-                // assign retrieved values to the objects they relate to
+                // recursively load and assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
-
                     $searchDomain = new Domain($subdomain);
                     $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
                     /** @var Collection */
                     $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
 
                     if($target['result_type'] == 'many2one') {
-                        // #memo - result might be either null or a Model object (which might contain sub-collections)
+                        // many2one might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
+                        // one2many & many2many are Collection objects
                         $this->objects[$id][$field] = $children;
                     }
                 }
