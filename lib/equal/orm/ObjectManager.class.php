@@ -1459,7 +1459,7 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
                     $error_code = QN_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
