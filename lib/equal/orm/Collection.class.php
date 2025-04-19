@@ -840,7 +840,7 @@ class Collection implements \Iterator, \Countable {
                         unset($subfields[$key]);
                         continue;
                     }
-                    if(in_array($key, ['@sort', '@limit', '@start'])) {
+                    if(in_array($key, ['@sort', '@limit', '@start'], true)) {
                         $subparams[substr($key, 1)] = $val;
                         unset($subfields[$key]);
                         continue;
