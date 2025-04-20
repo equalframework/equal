@@ -172,8 +172,8 @@ try {
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
         );
 
-    if(!isset($route['operation']['type'])) {
-        throw new Exception("No request type found (do, get, show).", EQ_ERROR_MISSING_PARAM);
+    if($route['operation']['name'] === 'core') {
+        throw new Exception("No controller provided for request type {$route['operation']['type']}.", EQ_ERROR_MISSING_PARAM);
     }
 
     // output result to STDOUT
