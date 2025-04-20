@@ -453,7 +453,7 @@ class Setting extends Model {
      * Create a SettingSequence if none match the selector for the given setting_id, and leave its value to null.
      * @return int Returns the id of the existing or newly created SettingSequence.
      */
-    private static function create_sequence($setting_id, array $selector=[], $default): int {
+    private static function create_sequence($setting_id, array $selector=[], $default=1): int {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
@@ -543,7 +543,7 @@ class Setting extends Model {
      *
      * @return  void
      */
-    public static function assert_sequence(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+    public static function assert_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
 
         if(!static::setting_exists($package, $section, $code)) {
             $setting_id = static::create_setting($package, $section, $code);
