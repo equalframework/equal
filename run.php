@@ -173,7 +173,7 @@ try {
         );
 
     if($route['operation']['name'] === 'core') {
-        throw new Exception("No controller provided for request type {$route['operation']['type']}.", EQ_ERROR_MISSING_PARAM);
+        throw new Exception("No controller provided for request type `{$route['operation']['type']}`.", EQ_ERROR_MISSING_PARAM);
     }
 
     // output result to STDOUT
