@@ -104,4 +104,4 @@ $res = file_get_contents(QN_BASEDIR."/packages/{$package}/i18n/{$lang}/{$dir}/{$
 $context->httpResponse()
         ->body($pretty)
         ->status(200)
-        ->send(); 
+        ->send();
