@@ -23,9 +23,9 @@
             },
             {
                 "id": 4,
-                "code": "units",
-                "name": "Units",
-                "description": "Deprecated - use `locale`"
+                "code": "default",
+                "name": "Default",
+                "description": "Default values"
             },
             {
                 "id": 5,
