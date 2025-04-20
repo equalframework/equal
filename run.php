@@ -172,7 +172,7 @@ try {
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
         );
 
-    if($route['operation']['name'] === 'core') {
+    if($route['operation']['name'] === 'core' && $route['operation']['name'] !== 'show') {
         throw new Exception("No controller provided for request type `{$route['operation']['type']}`.", EQ_ERROR_MISSING_PARAM);
     }
 
