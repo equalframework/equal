@@ -99,25 +99,27 @@ $tests = [
         'description' => 'format_number uses correct separators and precision',
         'help' => 'Should apply configured number formatting rules.',
         'arrange' => function () {
-            Setting::assert_value('core', 'locale', 'numbers.decimal_separator', ',');
-            Setting::assert_value('core', 'locale', 'numbers.thousands_separator', '.');
+            Setting::assert_value('core', 'locale', 'numbers.decimal_separator', '.');
+            Setting::assert_value('core', 'locale', 'numbers.thousands_separator', ',');
             Setting::assert_value('core', 'locale', 'numbers.decimal_precision', 2);
         },
         'act' => function () {
-            return Setting::format_number(1234.567);
+            return Setting::format_number(1234.5612);
         },
         'assert' => function ($formatted) {
             $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator');
             $thousands_separator = Setting::get_value('core', 'locale', 'numbers.thousands_separator');
-            return $formatted === '1' . $thousands_separator . '234' . $decimal_separator . '57';
+            $decimal_precision = Setting::get_value('core', 'locale', 'numbers.decimal_precision');
+
+            $expected = '1' . $thousands_separator . '234' . $decimal_separator . substr('5612', 0, $decimal_precision);
+            return $formatted === $expected;
         }
     ],
-
     '1015' => [
         'description' => 'format_number_currency respects symbol position',
         'help' => 'Applies currency symbol correctly before/after value.',
         'arrange' => function () {
-            Setting::assert_value('core', 'locale', 'currency.symbol_position', 'before');
+            Setting::assert_value('core', 'locale', 'currency.symbol_position', 'after');
             Setting::assert_value('core', 'locale', 'currency.decimal_precision', 2);
             Setting::assert_value('core', 'locale', 'currency', '€');
         },
@@ -125,7 +127,10 @@ $tests = [
             return Setting::format_number_currency(42);
         },
         'assert' => function ($res) {
-            return strpos($res, '€ ') === 0;
+            $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator');
+            $currency_symbol = Setting::get_value('core', 'locale', 'currency');
+            $expected = '42' . $decimal_separator . '00' . ' ' . $currency_symbol;
+            return $res === $expected;
         }
     ]
 
