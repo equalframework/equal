@@ -107,7 +107,9 @@ $tests = [
             return Setting::format_number(1234.567);
         },
         'assert' => function ($formatted) {
-            return $formatted === '1.234,57';
+            $decimal_separator = Setting::get_value('core', 'locale', 'numbers.decimal_separator');
+            $thousands_separator = Setting::get_value('core', 'locale', 'numbers.thousands_separator');
+            return $formatted === '1' . $thousands_separator . '234' . $decimal_separator . '57';
         }
     ],
 
