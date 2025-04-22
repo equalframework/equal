@@ -1459,7 +1459,7 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
+                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
                     $error_code = QN_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
@@ -1856,38 +1856,41 @@ class ObjectManager extends Service {
 
             // 8) handle the resetting of dependent computed fields
 
-            // #memo - upon creation computed fields should remain to null: we want to avoid unnecessary computations at object creation
-            if(!$create) {
-                $dependents = [
-                    'primary' => [],
-                    'related' => []
-                ];
+            // #memo - upon creation computed fields are left to null, unless explicitly assigned (in $fields) or marked as `instant`
 
-                foreach($fields as $field => $value) {
-                    // remember fields whose modification triggers resetting computed fields
-                    // #todo - deprecate 'dependencies' : use dependents
-                    if(isset($schema[$field]['dependencies'])) {
-                        foreach((array) $schema[$field]['dependencies'] as $dependent) {
+            $dependents = [
+                'primary' => [],
+                'related' => []
+            ];
+
+            foreach($fields as $field => $value) {
+                // remember fields whose modification triggers resetting computed fields
+                // #todo - deprecate 'dependencies' : use dependents
+                if(isset($schema[$field]['dependencies'])) {
+                    foreach((array) $schema[$field]['dependencies'] as $dependent) {
+                        if(!isset($fields[$dependent])) {
                             $dependents['primary'][$dependent] = true;
-                        }
-                    }
-
-                    if(isset($schema[$field]['dependents'])) {
-                        foreach((array) $schema[$field]['dependents'] as $key => $val) {
-                            // handle array notation
-                            if(!is_numeric($key)) {
-                                if(!isset($dependents['related'][$key])) {
-                                    $dependents['related'][$key] = [];
-                                }
-                                $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
-                            }
-                            else {
-                                $dependents['primary'][$val] = true;
-                            }
                         }
                     }
                 }
 
+                if(isset($schema[$field]['dependents'])) {
+                    foreach((array) $schema[$field]['dependents'] as $key => $val) {
+                        // handle array notation
+                        if(!is_numeric($key)) {
+                            if(!isset($dependents['related'][$key])) {
+                                $dependents['related'][$key] = [];
+                            }
+                            $dependents['related'][$key] = array_merge($dependents['related'][$key], (array) $val);
+                        }
+                        elseif(!isset($fields[$val])) {
+                            $dependents['primary'][$val] = true;
+                        }
+                    }
+                }
+            }
+
+            if(!$create) {
                 // read all target fields at once
                 $this->load($class, $ids, array_keys($dependents['related']), $lang);
 
@@ -1905,27 +1908,27 @@ class ObjectManager extends Service {
                         $this->update($schema[$field]['foreign_object'], $target_ids, $values, $lang);
                     }
                 }
+            }
 
-                // handle fields that must be re-computed instantly
-                $values = [];
-                foreach(array_keys($dependents['primary']) as $field) {
-                    if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
-                        if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
-                            $instant_fields[$field] = true;
-                        }
-                        $values[$field] = null;
+            // handle fields that must be re-computed instantly
+            $values = [];
+            foreach(array_keys($dependents['primary']) as $field) {
+                if(isset($schema[$field]) && $schema[$field]['type'] == 'computed') {
+                    if(isset($schema[$field]['instant']) && $schema[$field]['instant']) {
+                        $instant_fields[$field] = true;
                     }
+                    $values[$field] = null;
                 }
+            }
 
-                if(count($values)) {
-                    // allow cascade update (circular dependencies are checked in `core_test_package`)
-                    $this->update($class, $ids, $values, $lang);
-                }
+            if(!$create && count($values)) {
+                // allow cascade update (circular dependencies are checked in `core_test_package`)
+                $this->update($class, $ids, $values, $lang);
+            }
 
-                if(count($instant_fields)) {
-                    // re-compute local 'instant' computed field
-                    $this->load($class, $ids, array_keys($instant_fields), $lang);
-                }
+            if(count($instant_fields)) {
+                // re-compute local 'instant' computed field
+                $this->load($class, $ids, array_keys($instant_fields), $lang);
             }
 
 

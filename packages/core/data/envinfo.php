@@ -74,13 +74,14 @@ if($user_id) {
 
     foreach($settingValues as $sid => $settingValue) {
         $value = $settingValue['value'];
+        $type = $map_settings[$settingValue['setting_id']]['type'] ?? null;
         settype($value, [
                 'boolean'   => 'boolean',
                 'integer'   => 'integer',
                 'float'     => 'double',
                 'string'    => 'string',
                 'many2one'  => 'integer'
-            ][$map_settings[$settingValue['setting_id']]['type']] ?? 'string');
+            ][$type] ?? 'string');
         $envinfo[$settingValue['name']] = $value;
     }
 
@@ -91,13 +92,14 @@ if($user_id) {
 
     foreach($settingValues as $sid => $setting) {
         $value = $settingValue['value'];
+        $type = $map_settings[$settingValue['setting_id']]['type'] ?? null;
         settype($value, [
                 'boolean'   => 'boolean',
                 'integer'   => 'integer',
                 'float'     => 'double',
                 'string'    => 'string',
                 'many2one'  => 'integer'
-            ][$map_settings[$settingValue['setting_id']]['type']] ?? 'string');
+            ][$type] ?? 'string');
         $envinfo[$settingValue['name']] = $value;
     }
 }

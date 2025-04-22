@@ -1,6 +1,12 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'This is the core_config_delete-package controller created with core_config_create-controller.',
     'response'      => [
         'content-type'  => 'text/plain',
@@ -32,7 +38,7 @@ list($params, $providers) = eQual::announce([
  */
 $context = $providers['context'];
 
-if(strcmp($params['package'],"core")===0) {
+if(strcmp($params['package'],"core") === 0) {
     throw new Exception('core_is_undeletable', QN_ERROR_INVALID_PARAM);
 }
 
@@ -48,23 +54,6 @@ if(!delTree($dir)) {
     throw new Exception('io_error', QN_ERROR_INVALID_PARAM);
 }
 
-/*
-if($params['true_delete']) {
-    if(!delTree($dir)) {
-        throw new Exception('io_error', QN_ERROR_INVALID_PARAM);
-    }
-} else {
-    if(!is_dir(QN_BASEDIR."/_trash/packages/".$params['package'])) {
-        if(!mkdir(QN_BASEDIR."/_trash/packages/".$params['package'],0777,true)){
-            throw new Exception('io_error(mkdir)', QN_ERROR_INVALID_PARAM);
-        }
-    }
-    if(!rename($dir,QN_BASEDIR."/_trash/packages/".$params['package']."/".time())) {
-        throw new Exception('io_error', QN_ERROR_INVALID_PARAM);
-    }
-}
-*/
-
 $context->httpResponse()
         ->status(201)
         ->send();
@@ -73,10 +62,10 @@ $context->httpResponse()
 function delTree($dir) {
 
     $files = array_diff(scandir($dir), array('.','..'));
-    
+
     foreach ($files as $file) {
         (is_dir("$dir/$file")) ? delTree("$dir/$file") : unlink("$dir/$file");
     }
-    
+
     return rmdir($dir);
 }

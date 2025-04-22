@@ -377,7 +377,7 @@ class Setting extends Model {
      *
      * @return integer  Returns the identifier of the new Section object as an integer.
      */
-    private static function create_setting($package, $section, $code): int {
+    private static function create_setting($package, $section, $code, $type = 'string'): int {
 
         $setting_id = static::get_setting_id($package, $section, $code);
 
@@ -402,7 +402,8 @@ class Setting extends Model {
                 'package'       => $package,
                 'section'       => $section,
                 'section_id'    => $section_id,
-                'code'          => $code
+                'code'          => $code,
+                'type'          => $type
             ]);
 
         $index = $package . '.' . $section . '.' . $code;
@@ -415,7 +416,7 @@ class Setting extends Model {
      * Create a SettingValue if none match the selector for the given setting_id, and leave its value to null.
      * @return int Returns the id of the existing or newly created SettingValue.
      */
-    private static function create_value($setting_id, array $selector=[]): int {
+    private static function create_value($setting_id, array $selector=[], $default=null): int {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
@@ -425,7 +426,10 @@ class Setting extends Model {
             return $setting_value_id;
         }
 
-        $values = ['setting_id' => $setting_id];
+        $values = [
+                'setting_id' => $setting_id,
+                'value'      => $default
+            ];
 
         foreach($selector as $field => $val) {
             $values[$field] = $val;
@@ -449,7 +453,7 @@ class Setting extends Model {
      * Create a SettingSequence if none match the selector for the given setting_id, and leave its value to null.
      * @return int Returns the id of the existing or newly created SettingSequence.
      */
-    private static function create_sequence($setting_id, array $selector=[]): int {
+    private static function create_sequence($setting_id, array $selector=[], $default=1): int {
         /** @var \equal\orm\ObjectManager $orm */
         ['orm' => $orm] = \eQual::inject(['orm']);
 
@@ -459,7 +463,10 @@ class Setting extends Model {
             return $setting_sequence_id;
         }
 
-        $values = ['setting_id' => $setting_id];
+        $values = [
+                'setting_id'    => $setting_id,
+                'value'         => $default
+            ];
 
         foreach($selector as $field => $val) {
             $values[$field] = $val;
@@ -510,8 +517,8 @@ class Setting extends Model {
     }
 
     /**
-     * Make sure the setting exists, create it if necessary, and force value to $default, even if it already exists.
-     *
+     * Make sure the setting exists, create it if necessary.
+     * If a new value is created, its value is set to $default.
      * @return  void
      */
     public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
@@ -526,20 +533,17 @@ class Setting extends Model {
         $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if(!$setting_value_id) {
-            $setting_value_id = static::create_value($setting_id, $selector);
+            $setting_value_id = static::create_value($setting_id, $selector, $default);
         }
-
-        static::set_value($package, $section, $code, $default, $selector, $lang);
     }
 
     /**
      * Make sure the setting exists, and create it if necessary.
-     *
-     * Force sequence to $default, même si elle existe déjà.
+     * If a new sequence is created, its value is set to $default.
      *
      * @return  void
      */
-    public static function assert_sequence(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
+    public static function assert_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
 
         if(!static::setting_exists($package, $section, $code)) {
             $setting_id = static::create_setting($package, $section, $code);
@@ -552,10 +556,8 @@ class Setting extends Model {
         $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
-            $setting_sequence_id = static::create_sequence($setting_id, $selector);
+            static::create_sequence($setting_id, $selector, $default);
         }
-
-        static::set_sequence($package, $section, $code, $default, $selector, $lang);
     }
 
     /**

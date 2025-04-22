@@ -814,7 +814,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 5) recursively load sub-fields, if any
-            foreach($fields as $field => $subfields ) {
+            foreach($fields as $field => $subfields) {
                 // discard direct fields
                 if(is_numeric($field)) {
                     continue;
@@ -832,47 +832,38 @@ class Collection implements \Iterator, \Countable {
                     continue;
                 }
 
-                $children_ids = [];
-                foreach($this->objects as $object) {
-                    foreach((array) $object[$field] as $oid) {
-                        $children_ids[] = $oid;
-                    }
-                }
-                $children_fields = [];
-                // #todo
                 $subdomain = [];
                 $subparams = [];
                 foreach($subfields as $key => $val) {
                     if($key === '@domain') {
                         $subdomain = (array) $val;
+                        unset($subfields[$key]);
                         continue;
                     }
-                    if(in_array($key, ['@sort', '@limit', '@start'])) {
+                    if(in_array($key, ['@sort', '@limit', '@start'], true)) {
                         $subparams[substr($key, 1)] = $val;
+                        unset($subfields[$key]);
                         continue;
                     }
-                    $children_fields[] = (!is_numeric($key)) ? $key : $val;
                 }
-                // read all targeted children objects at once
-                // #todo - comment this for 2 steps retrieval
-                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, $lang ?? $this->lang);
-                // assign retrieved values to the objects they relate to
-                // #todo
-                // if(!count($children_fields)) { continue; }
+
+                if(!count($subfields)) {
+                    continue;
+                }
+
+                // recursively load and assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
-                    // #todo - 2 steps retrieval : 1) search using ids and _domain, if present
-                    /*
                     $searchDomain = new Domain($subdomain);
                     $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
-                    $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
-                    */
                     /** @var Collection */
-                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, $lang ?? $this->lang);
+                    $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
+
                     if($target['result_type'] == 'many2one') {
-                        // #memo - result might be either null or a Model object (which might contain sub-collections)
+                        // many2one might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
+                        // one2many & many2many are Collection objects
                         $this->objects[$id][$field] = $children;
                     }
                 }

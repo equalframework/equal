@@ -27,7 +27,7 @@ class UsageDate extends Usage {
     public function getConstraints(): array {
         $constraints = [
                 'invalid_type' => [
-                    'message'   => 'Value is incompatible with type datetime.',
+                    'message'   => 'Value is incompatible with type date.',
                     'function'  =>  function($value) {
                         return (gettype($value) == 'integer');
                     }

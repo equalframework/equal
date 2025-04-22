@@ -98,7 +98,7 @@ class DataAdapterTxtReal implements DataAdapter {
             case 'money':
                 $currency_symbol_position = Locale::get_format('core', 'currency.symbol_position', 'before', $locale);
                 $currency_symbol_separator = Locale::get_format('core', 'currency.symbol_separator', '', $locale);
-                $currency_symbol = Setting::get_value('core', 'units', 'currency', '$');
+                $currency_symbol = Setting::get_value('core', 'locale', 'currency', '$');
                 if($currency_symbol_position == 'before') {
                     $number = $currency_symbol.$currency_symbol_separator.$number;
                 }

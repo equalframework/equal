@@ -102,7 +102,7 @@ try {
         ]) ) {
         $router = Router::getInstance();
         // add routes providers according to current request
-        $router->add(QN_BASEDIR.'/config/routing/*.json');
+        $router->add(EQ_BASEDIR.'/config/routing/*.json');
         // translate preflight requests (OPTIONS) to be handled as GET, with announcement
         // (so API does not have to explicitly define OPTIONS routes)
         if($method == 'OPTIONS') {
@@ -117,7 +117,7 @@ try {
         }
         // if route cannot be resolved, raise a "UNKNOWN_OBJECT" exception (HTTP 404)
         if(!($route = $router->resolve($path, $method))) {
-            throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
+            throw new Exception("Unknown route '$method':'$path'", EQ_ERROR_UNKNOWN_OBJECT);
         }
         // fetch resolved parameters
         $params = $route['params'];
@@ -172,6 +172,10 @@ try {
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
         );
 
+    if($route['operation']['name'] === 'core' && $route['operation']['type'] !== 'show') {
+        throw new Exception("No controller provided for request type `{$route['operation']['type']}`.", EQ_ERROR_MISSING_PARAM);
+    }
+
     // output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
 
@@ -186,7 +190,7 @@ try {
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
     if( !($e instanceof Exception) ) {
-        $error_code = QN_ERROR_UNKNOWN;
+        $error_code = EQ_ERROR_UNKNOWN;
     }
     else {
         $error_code = $e->getCode();
