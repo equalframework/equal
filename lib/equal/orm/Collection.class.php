@@ -1043,6 +1043,9 @@ class Collection implements \Iterator, \Countable {
                     $this->call($actions[$action]['function'], $values);
                 }
             }
+            else {
+                trigger_error("ORM::unknown or missing function for action `$action` requested on `{$this->class}`", EQ_REPORT_WARNING);
+            }
         }
         return $this;
     }
