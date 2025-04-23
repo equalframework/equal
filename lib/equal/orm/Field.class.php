@@ -156,6 +156,16 @@ class Field {
                 ];
         }
 
+        // prevent null assignment for required fields
+        if(isset($this->descriptor['required']) && $this->descriptor['required']) {
+            $constraints['invalid_value'] = [
+                    'message'   => "Field is required and cannot be set to null.",
+                    'function'  =>  function($value) {
+                        return !is_null($value);
+                    }
+                ];
+        }
+
         // add constraint based on 'pattern', if present
         if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
             $pattern = $this->descriptor['pattern'];
