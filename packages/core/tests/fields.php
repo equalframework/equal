@@ -22,7 +22,7 @@ $tests = [
                 },
             'assert'            =>  function($field) use($providers) {
                     $issues = $providers['validate']->checkConstraints($field, 'd');
-                    return (isset($issues['invalid_value']) && $issues['invalid_value'] == 'Value is not amongst selection choices.');
+                    return (isset($issues['invalid_choice']) && $issues['invalid_choice'] == 'Value is not amongst selection choices.');
                 }
         ],
     '0102' => [
