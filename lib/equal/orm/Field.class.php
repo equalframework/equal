@@ -139,9 +139,10 @@ class Field {
         // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
-            $constraints['invalid_value'] = [
+            $constraints['invalid_choice'] = [
                     'message'   => "Value is not amongst selection choices.",
                     'function'  =>  function($value) use($selection) {
+                        // allow reset to null (`selection` implies no restriction)
                         $found = is_null($value);
                         // handle both map and list
                         foreach($selection as $key => $val) {
@@ -158,7 +159,7 @@ class Field {
 
         // prevent null assignment for required fields
         if(isset($this->descriptor['required']) && $this->descriptor['required']) {
-            $constraints['invalid_value'] = [
+            $constraints['non_nullable'] = [
                     'message'   => "Field is required and cannot be set to null.",
                     'function'  =>  function($value) {
                         return !is_null($value);
@@ -169,7 +170,7 @@ class Field {
         // add constraint based on 'pattern', if present
         if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
             $pattern = $this->descriptor['pattern'];
-            $constraints['invalid_value'] = [
+            $constraints['pattern_mismatch'] = [
                     'message'   => "Value does not match provided pattern.",
                     'function'  =>  function($value) use($pattern) {
                         return preg_match($pattern, $value);
