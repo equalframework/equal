@@ -1445,7 +1445,7 @@ class ObjectManager extends Service {
                 // ignore fields with no constraints
                 continue;
             }
-            if($value === null) {
+            if($value === null && !($schema[$field]['required'] ?? false)) {
                 // all fields can be reset to null (unless marked as `required`)
                 continue;
             }
