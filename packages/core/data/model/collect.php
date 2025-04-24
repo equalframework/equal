@@ -102,7 +102,18 @@ if(ctype_lower(substr($file, 0, 1))) {
     }
     $operation = str_replace('\\', '_', $params['entity']);
     // retrieve announcement of target controller
-    $data = eQual::run('get', $operation, ['announce' => true]);
+    try {
+        // #memo in case of announce as root (required for relaying params), an Exception with code 0 is raised and JSON is directly sent to stdout
+        ob_start();
+        eQual::run('get', $operation, array_merge($params, ['announce' => true]), true);
+    }
+    catch(Exception $e) {
+        // ignore
+    }
+    finally {
+        $json = ob_get_clean();
+        $data = json_decode($json, true);
+    }
     $controller_schema = $data['announcement']['params'] ?? [];
     $requested_fields = array_map(function($a) { return explode('.', $a)[0]; }, (array) $params['fields'] );
     // generate a virtual (empty) object
@@ -112,9 +123,17 @@ if(ctype_lower(substr($file, 0, 1))) {
             continue;
         }
         $value = null;
-        if(isset($controller_schema[$field]['default'])) {
+        $descriptor = $controller_schema[$field];
+        if(isset($descriptor['default'], $descriptor['type'])) {
             // #memo - return value from a eQual::run call is an array containing values matching the content-type of the controller
-            $value = $controller_schema[$field]['default'];
+            if($descriptor['type'] === 'many2one') {
+                $default = $descriptor['foreign_object']::id($descriptor['default'])->read(['id', 'name'])->get(true);
+                $value = current($default);
+            }
+            else {
+                $f = new Field($descriptor, $field);
+                $value = $adapter->adaptOut($descriptor['default'], $f->getUsage());
+            }
         }
         $object[$field] = $value;
     }
