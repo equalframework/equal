@@ -1608,7 +1608,7 @@ class ObjectManager extends Service {
             // 2) garbage collect: check for expired draft object
 
             // by default, request a new object ID
-            $oid = 0;
+            $id = 0;
 
             if(!isset($creation_array['id'])) {
                 if(constant('DRAFT_ENABLED') && $use_draft) {
@@ -1622,12 +1622,12 @@ class ObjectManager extends Service {
                         );
                     if(is_array($ids) && count($ids) && $ids[0] > 0) {
                         // use the oldest expired draft
-                        $oid = $ids[0];
+                        $id = $ids[0];
                         // store the id to reuse
-                        $creation_array['id'] = $oid;
+                        $creation_array['id'] = $id;
                         // and delete the associated record (might contain obsolete data)
-                        $db->deleteRecords($table_name, array($oid));
-                        trigger_error("ORM::found draft object in table $table_name with id $oid.", QN_REPORT_DEBUG);
+                        $db->deleteRecords($table_name, [$id]);
+                        trigger_error("ORM::found draft object in table $table_name with id $id.", QN_REPORT_DEBUG);
                     }
                     else {
                         trigger_error("ORM::no reusable draft object found.", QN_REPORT_DEBUG);
@@ -1640,7 +1640,7 @@ class ObjectManager extends Service {
                 if($db->fetchArray($records)) {
                     throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
                 }
-                $oid = (int) $creation_array['id'];
+                $id = (int) $creation_array['id'];
             }
 
             // 3) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
@@ -1655,23 +1655,23 @@ class ObjectManager extends Service {
             }
             $db->addRecords($table_name, array_keys($sql_values), [ array_values($sql_values) ]);
 
-            if($oid <= 0) {
+            if($id <= 0) {
                 // id field is auto-increment: retrieve last value
-                $oid = $db->getLastId();
-                if($oid <= 0) {
+                $id = $db->getLastId();
+                if($id <= 0) {
                     throw new Exception('invalid_object_id', QN_ERROR_UNKNOWN);
                 }
-                $this->cache[$table_name][$oid][$lang] = $creation_array;
+                $this->cache[$table_name][$id][$lang] = $creation_array;
             }
             // in any case, we return the object id
-            $res = $oid;
+            $res = $id;
 
             // 4) update new object with given fields values, if any
 
             // build creation array with actual object values (#memo - fields are mapped with PHP values, not SQL)
             $creation_array = array_merge( $creation_array, $object->getValues(), $fields );
             // request an object update (flag call with '$create')
-            $res_w = $this->update($class, $oid, $creation_array, $lang, true);
+            $res_w = $this->update($class, $id, $creation_array, $lang, true);
             // if write method generated an error, return error code instead of object id
             if($res_w < 0) {
                 $res = $res_w;
@@ -1687,12 +1687,12 @@ class ObjectManager extends Service {
             }
             // re-compute local 'instant' computed field, if any
             if(count($map_instant_fields)) {
-                $this->load($class, (array) $oid, array_keys($map_instant_fields), $lang);
+                $this->load($class, (array) $id, array_keys($map_instant_fields), $lang);
             }
 
             // 6) call 'oncreate' hook
             if(($this->enabled_events & self::EVENTS_CLASS_ONCREATE) === self::EVENTS_CLASS_ONCREATE) {
-                $this->callonce($class, 'oncreate', (array) $oid, $creation_array, $lang);
+                $this->callonce($class, 'oncreate', (array) $id, $creation_array, $lang);
             }
         }
         catch(Exception $e) {
