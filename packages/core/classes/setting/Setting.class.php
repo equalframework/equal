@@ -519,6 +519,7 @@ class Setting extends Model {
     /**
      * Make sure the setting exists, create it if necessary.
      * If a new value is created, its value is set to $default.
+     * This method is idempotent.
      * @return  void
      */
     public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
@@ -540,7 +541,7 @@ class Setting extends Model {
     /**
      * Make sure the setting exists, and create it if necessary.
      * If a new sequence is created, its value is set to $default.
-     *
+     * This method is idempotent.
      * @return  void
      */
     public static function assert_sequence(string $package, string $section, string $code, $default=1, array $selector=[], string $lang=null) {
