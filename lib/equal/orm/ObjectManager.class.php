@@ -10,7 +10,7 @@ namespace equal\orm;
 use equal\organic\Service;
 use equal\db\DBConnector;
 use equal\data\DataValidator;
-
+use equal\fs\FSManipulator;
 use \Exception as Exception;
 
 
@@ -648,6 +648,27 @@ class ObjectManager extends Service {
                         }
                     }
                 },
+                'binary'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                    // #memo - this handler is for binary fields when FILE_STORAGE_MODE is set to 'FS'
+                    $lang = constant('DEFAULT_LANG');
+                    foreach($fields as $field) {
+                        foreach($ids as $oid) {
+                            // build a unique name  `package/class/field/oid.lang`
+                            $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                            $file = sprintf("%011d.%s", $oid, $lang);
+                            $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
+                            if(!is_dir($storage_location)) {
+                                // create missing directories
+                                FSManipulator::assertPath($storage_location);
+                            }
+                            if(!is_dir($storage_location)) {
+                                throw new \Exception("fs_dir_missing", QN_ERROR_INVALID_CONFIG);
+                            }
+                            // update the internal buffer with fetched value
+                            $om->cache[$table_name][$oid][$lang][$field] = file_get_contents($storage_location.'/'.$file);
+                        }
+                    }
+                },
                 'one2many'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     // #memo - this handler is for non-multilang fields
                     $lang = constant('DEFAULT_LANG');
@@ -820,13 +841,18 @@ class ObjectManager extends Service {
                 }
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
-                    // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != constant('DEFAULT_LANG') && ($schema[$field]['multilang'] ?? false)) {
-                        $fields_lists['multilang'][] = $field;
+                    if(constant('FILE_STORAGE_MODE') == 'FS') {
+                        $fields_lists['binary'][] = $field;
                     }
-                    // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
                     else {
-                        $fields_lists['simple'][] = $field;
+                        // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
+                        if($lang != constant('DEFAULT_LANG') && ($schema[$field]['multilang'] ?? false)) {
+                            $fields_lists['multilang'][] = $field;
+                        }
+                        // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
+                        else {
+                            $fields_lists['simple'][] = $field;
+                        }
                     }
                 }
                 else {
@@ -965,7 +991,7 @@ class ObjectManager extends Service {
                 // #memo - this handler is for non-multilang fields
                 $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
-                    $fields_values = array();
+                    $fields_values = [];
                     foreach($fields as $field) {
                         $value = (isset($om->cache[$table_name][$oid][$lang][$field])) ? $om->cache[$table_name][$oid][$lang][$field] : null;
                         // adapt values except for null of computed fields (marked as to be re-computed)
@@ -979,6 +1005,28 @@ class ObjectManager extends Service {
                         $fields_values[$field] = $value;
                     }
                     $om->db->setRecords($om->getObjectTableName($class), array($oid), $fields_values);
+                }
+            },
+            'binary'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+                // #memo - this handler is for binary fields when FILE_STORAGE_MODE is set to 'FS'
+                $lang = constant('DEFAULT_LANG');
+                foreach($ids as $oid) {
+                    foreach($fields as $field) {
+                        $value = $om->cache[$table_name][$oid][$lang][$field];
+                        // build a unique name  `package/class/field/oid.lang`
+                        $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                        $file = sprintf("%011d.%s", $oid, $lang);
+                        $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
+                        if(!is_dir($storage_location)) {
+                            // create missing directories
+                            FSManipulator::assertPath($storage_location);
+                        }
+                        if(!is_dir($storage_location)) {
+                            throw new \Exception("fs_dir_missing", QN_ERROR_INVALID_CONFIG);
+                        }
+                        // store (existing files are overwritten)
+                        file_put_contents($storage_location.'/'.$file, $value);
+                    }
                 }
             },
             'one2many'     =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
@@ -1118,13 +1166,18 @@ class ObjectManager extends Service {
                 }
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
-                    // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
-                    if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
-                        $fields_lists['multilang'][] = $field;
+                    if(constant('FILE_STORAGE_MODE') == 'FS') {
+                        $fields_lists['binary'][] = $field;
                     }
-                    // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
                     else {
-                        $fields_lists['simple'][] = $field;
+                        // note: only simple fields can have the multilang attribute set (this includes computed fields having a simple type as result)
+                        if($lang != constant('DEFAULT_LANG') && isset($schema[$field]['multilang']) && $schema[$field]['multilang']) {
+                            $fields_lists['multilang'][] = $field;
+                        }
+                        // note: if $lang differs from DEFAULT_LANG and field is not set as multilang, no change will be stored for that field
+                        else {
+                            $fields_lists['simple'][] = $field;
+                        }
                     }
                 }
                 else {
@@ -1137,7 +1190,7 @@ class ObjectManager extends Service {
             }
 
         }
-        catch (Exception $e) {
+        catch(Exception $e) {
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             throw new Exception('unable to store object fields', $e->getCode());
@@ -2250,16 +2303,18 @@ class ObjectManager extends Service {
             // 4) cascade deletions / relations updates
 
             foreach($schema as $field => $def) {
-                if(in_array($def['type'], ['file', 'one2many', 'many2many'])) {
-                    switch($def['type']) {
-                    case 'file':
+                if(!in_array($def['type'], ['binary', 'one2many', 'many2many'])) {
+                    continue;
+                }
+                switch($def['type']) {
+                    case 'binary':
                         if(constant('FILE_STORAGE_MODE') == 'FS') {
                             // build a unique name  (package/class/field/oid.lang)
-                            $path = sprintf("%s/%s", str_replace('\\', '/', $class), $field);
-                            $storage_location = realpath(QN_BASEDIR.'/bin').'/'.$path;
+                            $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                            $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
                             foreach($ids as $oid) {
                                 // remove binary for all langs
-                                foreach (glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
+                                foreach(glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
                                     unlink($filename);
                                 }
                             }
@@ -2301,8 +2356,8 @@ class ObjectManager extends Service {
                             $schema[$field]['rel_local_key']
                         );
                         break;
-                    }
                 }
+
             }
 
             // 5) remove object
