@@ -186,12 +186,12 @@ class Model implements \ArrayAccess, \Iterator {
                     // use dots instead of backslashes
                     $class_name = implode('.', $parts);
                     // convert PascalCase to snake_case
-                    $setting_code_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
+                    $class_name_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
 
                     $default = Setting::get_value(
                             $package,
                             'default',
-                            "$setting_code_prefix.$field",
+                            "$class_name_prefix.$field",
                             $setting_defaults[$field] ?? null
                         );
 
