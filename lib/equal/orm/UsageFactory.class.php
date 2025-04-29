@@ -46,15 +46,17 @@ class UsageFactory {
         }
 
         /*
-            group 1 = type
-            group 3 = array size
-            group 4 = subtype
-            group 6 = subtype tree
-            group 8 = length
-            group 9 = precision
-            group 10 = scale
-            group 12 = min
-            group 14 = max
+            Syntax: type[size]/subtype.t.r.e.e:precision.scale{min,max}
+
+            group 1 = type          : "type"
+            group 3 = size (array)  : "size"
+            group 4 = subtype       : "subtype"
+            group 6 = subtype tree  : "t.r.e.e"
+            group 8 = length        : "precision.scale" or "length"
+            group 9 = precision     : "precision"
+            group 10 = scale        : "scale"
+            group 12 = min          : "min"
+            group 14 = max          : "max"
         */
 
         $type = $matches[1];
