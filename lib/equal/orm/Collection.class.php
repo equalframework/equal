@@ -919,6 +919,8 @@ class Collection implements \Iterator, \Countable {
             // by convention, `update()` forces a 'draft' to an 'instance'
             if($is_draft) {
                 $values['state'] = 'instance';
+                // #todo - here we must check that all required fields (scalar types) have been provided, either at create() or during update()
+                // this should probably rather be done in ORM + making a distinction between partial validation & full validation
             }
 
             // check if fields (other than special columns) can be updated
