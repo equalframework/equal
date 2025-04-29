@@ -653,14 +653,15 @@ class ObjectManager extends Service {
                     $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         foreach($ids as $oid) {
+                            $value = null;
                             // retrieve unique name  `package/class/field/oid.lang`
                             $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
                             $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid)) . '.' . $lang;
-                            if(!file_exists($filename)) {
-                                throw new \Exception('cannot_retrieve_file', EQ_ERROR_INVALID_CONFIG);
+                            if(file_exists($filename)) {
+                                $value = file_get_contents($filename);
                             }
                             // update the internal buffer with fetched value
-                            $om->cache[$table_name][$oid][$lang][$field] = file_get_contents($filename);
+                            $om->cache[$table_name][$oid][$lang][$field] = $value;
                         }
                     }
                 },
