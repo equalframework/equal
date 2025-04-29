@@ -653,19 +653,14 @@ class ObjectManager extends Service {
                     $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         foreach($ids as $oid) {
-                            // build a unique name  `package/class/field/oid.lang`
-                            $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
-                            $file = sprintf("%011d.%s", $oid, $lang);
-                            $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
-                            if(!is_dir($storage_location)) {
-                                // create missing directories
-                                FSManipulator::assertPath($storage_location);
-                            }
-                            if(!is_dir($storage_location)) {
-                                throw new \Exception("fs_dir_missing", QN_ERROR_INVALID_CONFIG);
+                            // retrieve unique name  `package/class/field/oid.lang`
+                            $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                            $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid)) . '.' . $lang;
+                            if(!file_exists($filename)) {
+                                throw new \Exception('cannot_retrieve_file', EQ_ERROR_INVALID_CONFIG);
                             }
                             // update the internal buffer with fetched value
-                            $om->cache[$table_name][$oid][$lang][$field] = file_get_contents($storage_location.'/'.$file);
+                            $om->cache[$table_name][$oid][$lang][$field] = file_get_contents($filename);
                         }
                     }
                 },
@@ -1013,19 +1008,17 @@ class ObjectManager extends Service {
                 foreach($ids as $oid) {
                     foreach($fields as $field) {
                         $value = $om->cache[$table_name][$oid][$lang][$field];
-                        // build a unique name  `package/class/field/oid.lang`
-                        $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
-                        $file = sprintf("%011d.%s", $oid, $lang);
-                        $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
-                        if(!is_dir($storage_location)) {
-                            // create missing directories
-                            FSManipulator::assertPath($storage_location);
+                        // retrieve unique name  `package/class/field/oid.lang`
+                        $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                        $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid)) . '.' . $lang;
+                        try {
+                            FSManipulator::assertPath($filename);
                         }
-                        if(!is_dir($storage_location)) {
-                            throw new \Exception("fs_dir_missing", QN_ERROR_INVALID_CONFIG);
+                        catch(\Exception $e) {
+                            throw new \Exception($e->getMessage(), EQ_ERROR_INVALID_CONFIG);
                         }
                         // store (existing files are overwritten)
-                        file_put_contents($storage_location.'/'.$file, $value);
+                        file_put_contents($filename, $value);
                     }
                 }
             },
@@ -2309,13 +2302,15 @@ class ObjectManager extends Service {
                 switch($def['type']) {
                     case 'binary':
                         if(constant('FILE_STORAGE_MODE') == 'FS') {
-                            // build a unique name  (package/class/field/oid.lang)
-                            $path = sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
-                            $storage_location = realpath(EQ_BASEDIR.'/bin').'/'.$path;
+                            // retrieve unique name  `package/class/field/oid.lang`
+                            $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
                             foreach($ids as $oid) {
+                                $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid));
                                 // remove binary for all langs
-                                foreach(glob(sprintf("$storage_location/%011d.*", $oid)) as $filename) {
-                                    unlink($filename);
+                                foreach(glob("$filename.*") as $filename) {
+                                    if(!unlink($filename)) {
+                                        throw new \Exception("cannot_remove_file");
+                                    }
                                 }
                             }
                         }
