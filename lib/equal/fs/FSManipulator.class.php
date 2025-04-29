@@ -747,21 +747,35 @@ class FSManipulator {
         return true;
     }
 
-
+    /**
+     * Ensures that the parent directories of a given file path exist.
+     *
+     * This method validates the given path for security and structural correctness.
+     * It assumes that the last part of the path is a file, not a directory.
+     *
+     * If the parent directories do not exist, they will be created recursively.
+     * If any part of the parent path exists as a non-directory file, an exception is thrown.
+     *
+     * @param string $path The full file path (including the filename) to validate and prepare.
+     *
+     * @throws Exception If the path is invalid, if a non-directory exists in the parent path,
+     *                   or if the directories cannot be created.
+     */
     public static function assertPath(string $path): void {
-
-        if(!self::isValidPath($path)) {
+        if (!self::isValidPath($path)) {
             throw new \Exception("invalid_path");
         }
 
-        if(file_exists($path)) {
-            if(!is_dir($path)) {
+        $directory = dirname($path);
+
+        if(file_exists($directory)) {
+            if(!is_dir($directory)) {
                 throw new \Exception("path_exists_not_dir");
             }
             return;
         }
 
-        if(!mkdir($path, 0777, true)) {
+        if(!mkdir($directory, 0777, true)) {
             throw new \Exception("cannot_create_dir");
         }
     }

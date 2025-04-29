@@ -658,7 +658,10 @@ class ObjectManager extends Service {
                             $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
                             $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid)) . '.' . $lang;
                             if(file_exists($filename)) {
-                                $value = file_get_contents($filename);
+                                $value = @file_get_contents($filename);
+                                if($value === false) {
+                                    throw new \Exception('cannot_read_file', EQ_ERROR_INVALID_CONFIG);
+                                }
                             }
                             // update the internal buffer with fetched value
                             $om->cache[$table_name][$oid][$lang][$field] = $value;
