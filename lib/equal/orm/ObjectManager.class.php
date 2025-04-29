@@ -841,7 +841,7 @@ class ObjectManager extends Service {
                 }
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
-                    if(constant('FILE_STORAGE_MODE') == 'FS') {
+                    if($type === 'binary' && constant('FILE_STORAGE_MODE') == 'FS') {
                         $fields_lists['binary'][] = $field;
                     }
                     else {
@@ -1166,7 +1166,7 @@ class ObjectManager extends Service {
                 }
                 // make a distinction between simple and complex fields (all simple fields are treated the same way)
                 if(in_array($type, self::$simple_types)) {
-                    if(constant('FILE_STORAGE_MODE') == 'FS') {
+                    if($type === 'binary' && constant('FILE_STORAGE_MODE') == 'FS') {
                         $fields_lists['binary'][] = $field;
                     }
                     else {
