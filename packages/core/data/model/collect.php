@@ -6,9 +6,8 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Domain;
-use equal\orm\Field;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
@@ -74,18 +73,14 @@ list($params, $providers) = eQual::announce([
     'access' => [
         'visibility'        => 'protected'
     ],
-    'providers'     => [ 'context', 'orm', 'adapt' ]
+    'providers'     => [ 'context', 'orm' ]
 ]);
 
 /**
  * @var \equal\php\Context               $context
  * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
  */
-list($context, $orm, $dap) = [ $providers['context'], $providers['orm'], $providers['adapt'] ];
-
-/** @var \equal\data\adapt\DataAdapter */
-$adapter = $dap->get('json');
+['context' => $context, 'orm' => $orm] = $providers;
 
 /*
     Handle controller entities
@@ -97,8 +92,8 @@ $file = array_pop($parts);
 if(ctype_lower(substr($file, 0, 1))) {
     $package = array_shift($parts);
     $path = implode('/', $parts);
-    if(!file_exists(QN_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
-        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    if(!file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
+        throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
     }
     $operation = str_replace('\\', '_', $params['entity']);
     // retrieve announcement of target controller
@@ -131,8 +126,8 @@ if(ctype_lower(substr($file, 0, 1))) {
                 $value = current($default);
             }
             else {
-                $f = new Field($descriptor, $field);
-                $value = $adapter->adaptOut($descriptor['default'], $f->getUsage());
+                // we assume targeted controller use 'application/json' content-type
+                $value = $descriptor['default'];
             }
         }
         $object[$field] = $value;
@@ -142,7 +137,7 @@ if(ctype_lower(substr($file, 0, 1))) {
             ->header('X-Total-Count', 1)
             ->body([$object])
             ->send();
-    exit();
+    exit(0);
 }
 
 /*
@@ -151,7 +146,7 @@ if(ctype_lower(substr($file, 0, 1))) {
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 // get the complete schema of the object (including special fields)
