@@ -190,9 +190,11 @@ class Setting extends Model {
 
     public static function calcName($self) {
         $result = [];
-        $self->read(['package', 'section', 'code']);
+        $self->read(['state', 'package', 'section', 'code']);
         foreach($self as $id => $setting) {
-            $result[$id] = $setting['package'].'.'.$setting['section'].'.'.$setting['code'];
+            if($setting['state'] != 'draft') {
+                $result[$id] = $setting['package'] . '.' . $setting['section'] . '.' . $setting['code'];
+            }
         }
         return $result;
     }
