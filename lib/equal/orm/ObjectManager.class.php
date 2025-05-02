@@ -1023,7 +1023,9 @@ class ObjectManager extends Service {
                         }
                         // store: existing files are overwritten or removes (if value is null)
                         if(is_null($value)) {
-                            unlink($filename);
+                            if(file_exists($filename)) {
+                                unlink($filename);
+                            }
                         }
                         else {
                             file_put_contents($filename, $value);
