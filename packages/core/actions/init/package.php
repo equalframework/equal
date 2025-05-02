@@ -36,7 +36,7 @@ list($params, $providers) = eQual::announce([
         ],
         'import' => [
             'description'   => 'Request importing initial data.',
-            'help'          => 'No default is set in announcement since default value depends on `force` param.',
+            'help'          => 'No default is set in announcement since default value depends on previous initialization and `force` param.',
             'type'          => 'boolean'
         ],
         'import_cascade' => [
@@ -110,17 +110,19 @@ $importDataFromFolderJsonFiles = function($data_folder) {
  * Action
  */
 
-// forcing a package initialization sets default value for `import` to false
-if(!isset($params['import'])) {
-    $params['import'] = !$params['force'];
-}
-
+// Check whether the package has already been initialized before
 $is_package_initialized = false;
-
 if(file_exists("log/packages.json")) {
     $json = file_get_contents("log/packages.json");
     $packages = json_decode($json, true);
     $is_package_initialized = isset($packages[$params['package']]);
+}
+
+// If the `import` parameter is not explicitly set, determine its default value based on context:
+// - If the package has never been initialized, default to importing data (`import = true`).
+// - If the package was already initialized and `force` is true, default to not importing data (`import = false`) to avoid unnecessarily reimporting initial data.
+if (!isset($params['import'])) {
+    $params['import'] = !$is_package_initialized || !$params['force'];
 }
 
 if($is_package_initialized && !$params['force']) {
