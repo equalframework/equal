@@ -162,6 +162,7 @@ foreach($classes as $class) {
                 // default is a scalar value
                 $default = $descriptor['default'];
             }
+            $default = $adapter->adaptOut($default, $f->getUsage());
             $result[] = $db->getQuerySetRecords($table, [$field => $default]);
         }
     }
