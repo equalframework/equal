@@ -209,31 +209,50 @@ else {
 
     // 2) Populate tables with predefined data
     $data_folder = "packages/{$params['package']}/init/data";
-    if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
+    if($params['import'] && is_dir($data_folder)) {
         $importDataFromFolderJsonFiles($data_folder);
+        // Execute init scripts, if any
+        $scripts_folder = "$data_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
+                }
+            }
+        }
     }
 
     // 2 bis) Populate tables with demo data, if requested
     $demo_folder = "packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
         $importDataFromFolderJsonFiles($demo_folder);
-    }
-
-    // 2 ter) Execute init scripts, if any
-    $scripts_folder = "packages/{$params['package']}/init/scripts";
-    if($params['import'] && file_exists($scripts_folder) && is_dir($scripts_folder)) {
-        foreach(scandir($scripts_folder) as $file) {
-            $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
-            if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
-                include_once $path;
+        // Execute init scripts, if any
+        $scripts_folder = "$demo_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
+                }
             }
         }
     }
 
-    // 2 quat) Populate tables with test data (intended for tests), if requested
+    // 2 ter) Populate tables with test data (intended for tests), if requested
     $test_folder = "packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         $importDataFromFolderJsonFiles($test_folder);
+        // Execute init scripts, if any
+        $scripts_folder = "$test_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
+                }
+            }
+        }
     }
 
     // 3) If a `bin` folder exists, copy its content to /bin/<package>/
@@ -318,8 +337,8 @@ else {
     if(isset($package_manifest['config']) && is_array($package_manifest['config'])) {
         $config = [];
 
-        if(file_exists(EQ_BASEDIR.'/config/config.json')) {
-            $json = file_get_contents(EQ_BASEDIR.'/config/config.json');
+        if(file_exists(EQ_BASEDIR . '/config/config.json')) {
+            $json = file_get_contents(EQ_BASEDIR . '/config/config.json');
             $data = json_decode($json, true);
             if($data) {
                 $config = $data;
@@ -330,7 +349,7 @@ else {
             $config[$constant] = $value;
         }
 
-        file_put_contents(EQ_BASEDIR.'/config/config.json', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        file_put_contents(EQ_BASEDIR . '/config/config.json', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
 
