@@ -1021,8 +1021,13 @@ class ObjectManager extends Service {
                         catch(\Exception $e) {
                             throw new \Exception($e->getMessage(), EQ_ERROR_INVALID_CONFIG);
                         }
-                        // store (existing files are overwritten)
-                        file_put_contents($filename, $value);
+                        // store: existing files are overwritten or removes (if value is null)
+                        if(is_null($value)) {
+                            unlink($filename);
+                        }
+                        else {
+                            file_put_contents($filename, $value);
+                        }
                     }
                 }
             },
