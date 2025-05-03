@@ -32,7 +32,7 @@ class UsageUri extends Usage {
                     'invalid_url' => [
                         'message'   => 'String is not a valid relative URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^\/([^\/])+(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^\/([^\/])+(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
                         }
                     ]
                 ];
@@ -56,7 +56,7 @@ class UsageUri extends Usage {
                     'invalid_url' => [
                         'message'   => 'String is not a valid URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|[0-9:.]+)(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^((([a-zA-Z][a-zA-Z0-9+.-]*):)?\/\/)?(([a-zA-Z0-9.-]+)(:[a-zA-Z0-9.-]+)?@)?([a-zA-Z0-9.-]+|[0-9:.]+)(:[0-9]{1,5})?(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
                         }
                     ]
                 ];
@@ -65,7 +65,7 @@ class UsageUri extends Usage {
                     'invalid_url' => [
                         'message'   => 'String is not a valid tel URL.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^tel:((\+[1-9]{2,3})|00)?[0-9]+$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^tel:((\+[1-9]{2,3})|00)?[0-9]+$/', $value));
                         }
                     ]
                 ];
@@ -74,7 +74,7 @@ class UsageUri extends Usage {
                     'invalid_url' => [
                         'message'   => 'String is not a valid mailto URL.',
                         'function'  =>  function($value) {
-                            (bool) (preg_match('/^mailto:([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^mailto:([_a-z0-9-]+)(\.[_a-z0-9+-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,13})$/', $value));
                         }
                     ]
                 ];
@@ -83,7 +83,7 @@ class UsageUri extends Usage {
                     'invalid_iban' => [
                         'message'   => 'Bank account must be a valid IBAN number.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^[A-Z]{2}[0-9]{2}(?:[0-9]{4}){3,4}(?!(?:[0-9]){3})(?:[0-9]{1,2})?$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^[A-Z]{2}[0-9]{2}(?:[0-9]{4}){3,4}(?!(?:[0-9]){3})(?:[0-9]{1,2})?$/', $value));
                         }
                     ]
                 ];
@@ -92,7 +92,7 @@ class UsageUri extends Usage {
                     'invalid_ean' => [
                         'message'   => 'String is not a valid EAN-13.',
                         'function'  =>  function($value) {
-                            return (bool) (preg_match('/^[0-9]{13}$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^[0-9]{13}$/', $value));
                         }
                     ]
                 ];
