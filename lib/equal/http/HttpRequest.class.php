@@ -77,6 +77,7 @@ class HttpRequest extends HttpMessage {
 
         if(strlen($uri) > 0) {
             $method = $this->getMethod();
+            $headers = (array) $this->getHeaders(true);
 
             $http_options = [];
             $additional_headers = [
@@ -90,7 +91,7 @@ class HttpRequest extends HttpMessage {
                 'Accept-Charset'    => 'UTF-8'
             ];
             // retrieve content type
-            $content_type = $this->getHeaders()->getContentType();
+            $content_type = $headers['Content-Type'] ?? '';
 
             if(strlen($content_type) <= 0 && in_array($method,['GET', 'POST'])) {
                 // fallback to form encoded data
@@ -134,7 +135,7 @@ class HttpRequest extends HttpMessage {
             // set content-length (might be 0)
             $additional_headers['Content-Length'] = $body_length;
             // merge manually defined headers with additional headers (later overwrites the former)
-            $headers = array_merge((array) $this->getHeaders(true), $additional_headers);
+            $headers = array_merge($headers, $additional_headers);
             // if host is present in the header, it will void any redirection attempt - remove it if present
             // https://www.php.net/manual/en/context.http.php#125832
             if(isset($headers['Host'])) {
