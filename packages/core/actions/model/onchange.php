@@ -5,7 +5,6 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\Field;
 use equal\orm\Collections;
 
 list($params, $providers) = eQual::announce([
@@ -92,8 +91,11 @@ if(method_exists($params['entity'], 'onchange')) {
     foreach($changes as $field => $value) {
         try {
             $f = $model->getField($field);
-            // adapt received values based on their type (as defined in schema)
-            $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
+            // #memo - for binary fields meta data are relayed instead of binary data
+            if($f->getDescriptor()['result_type'] !== 'binary') {
+                // adapt received values based on their type (as defined in schema)
+                $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
+            }
         }
         catch(Exception $e) {
             $msg = $e->getMessage();
