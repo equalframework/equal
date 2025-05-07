@@ -1283,7 +1283,6 @@ class ObjectManager extends Service {
                     'db'])) {
                 $args[] = $this->container->get($param);
             }
-
             elseif(in_array($param, ['ids', 'oids'])) {
                 $args[] = $unprocessed_ids;
             }

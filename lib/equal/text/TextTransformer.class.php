@@ -7,9 +7,10 @@ class TextTransformer {
     /**
      * Converts a string to its ASCII equivalent.
      * This method is independent from config and does not rely on iconv or intl extension.
+     *
+     * #memo - remember to maintain current file charset to UTF-8 encoding (without BOM)
      */
     public static function toAscii($value) {
-        // #memo - remember to maintain current file charset to UTF-8 encoding (without BOM)
         static $map_ascii = [
             // upper case chars
             'Á'=>'A', 'À'=>'A', 'Â'=>'A', 'Ä'=>'A', 'Ã'=>'A', 'Ā'=>'A', 'Ă'=>'A', 'Å'=>'A',
