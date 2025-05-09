@@ -783,12 +783,12 @@ class Setting extends Model {
                     $last_offset = $offset;
                 }
 
-                $val_format = $formats_map[$i];
+                $val_format = $formats_map[$i] ?? '';
                 if(strlen($val_format) <= 0) {
                     $result_format .= '%s';
                 }
                 $result_format .= substr($format, $last_offset, ($offset-$last_offset));
-                $last_offset = $offset+$len;
+                $last_offset = $offset + $len;
                 $parts[] = str_replace(['{', '}'], '', $match[0]);
             }
         }
@@ -798,8 +798,12 @@ class Setting extends Model {
         $values = [];
 
         foreach($parts as $i => $part) {
+            if(!isset($map[$part])) {
+                $values[] = null;
+                continue;
+            }
             $value = $map[$part];
-            $val_format = $formats_map[$i];
+            $val_format = $formats_map[$i] ?? '';
             if(strlen($val_format)) {
                 $type = substr($val_format, -1);
                 if($type == 'd') {
