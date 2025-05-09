@@ -1515,8 +1515,8 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", QN_REPORT_INFO);
-                    $error_code = QN_ERROR_INVALID_PARAM;
+                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", EQ_REPORT_WARNING);
+                    $error_code = EQ_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
                     }
@@ -1641,7 +1641,8 @@ class ObjectManager extends Service {
             $table_name = $this->getObjectTableName($class);
             $special_fields = Model::getSpecialColumns();
 
-            // 1) define default values
+            // 1) set initial creation map with mandatory values
+
             $creation_array = [];
             foreach($special_fields as $field => $descr) {
                 if(isset($object[$field])) {
@@ -1649,7 +1650,20 @@ class ObjectManager extends Service {
                 }
             }
 
-            // set creation array according to received fields: `id` and `creator` can be set to force resulting object
+            // append mandatory unique fields (set as INDEX in DBMS)
+            $uniques = $object->getUnique();
+            foreach($uniques as $unique) {
+                foreach($unique as $field) {
+                    if(!isset($fields[$field])) {
+                        // #memo - we don't prevent missing values here, but
+                        //  in case of redundant records with null value ID for key-fields, the subsequent call might lead to a SQL error
+                        continue;
+                    }
+                    $creation_array[$field] = $fields[$field];
+                }
+            }
+
+            // adapt creation map according to `id` & `creator` fields: these can be set to force resulting object
             if(!empty($fields)) {
                 // use given id field as identifier, if any and valid
                 if(isset($fields['id']) && is_numeric($fields['id'])) {
@@ -1700,6 +1714,7 @@ class ObjectManager extends Service {
             }
 
             // 3) create a new record with the found value, (if no id is given, the autoincrement will assign a value)
+
             $sql_values = [];
             /** @var \equal\data\adapt\DataAdapterProvider */
             $dap = $this->container->get('adapt');
