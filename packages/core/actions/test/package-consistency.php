@@ -7,6 +7,8 @@
 */
 use equal\db\DBConnector;
 
+use function PHPUnit\Framework\isEmpty;
+
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
 
@@ -559,15 +561,17 @@ if($is_error) {
  */
 
 
-
 function view_test($data, $structure) {
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
         $data = [$data];
     }
     foreach($data as $index => $elem) {
+        if(empty($elem)) {
+            continue;
+        }
         foreach($structure as $item => $def) {
-            $key = is_numeric($item)?$def:$item;
+            $key = is_numeric($item) ? $def : $item;
             if(is_numeric($item)) {
                 if(!isset($elem[$key])) {
                     return "missing property '$key' for item $index";
@@ -585,7 +589,6 @@ function view_test($data, $structure) {
 }
 
 function view_get_items($data, $structure) {
-
     $result = [];
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
