@@ -52,12 +52,14 @@ class AuthenticationManager extends Service {
      * @param   $validity   validity duration in seconds
      * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token(int $user_id=0, int $validity=0, array $auth_method=[]) {
+    public function token(int $user_id = 0, int $validity = 0, array $auth_method = []) {
         $payload = [
-            'id'    => ($user_id > 0) ? $user_id : $this->user_id,
-            'exp'   => time() + $validity,
-            'amr'   => [$auth_method]
+            'id'    => $user_id ?: $this->user_id,
+            'amr'   => $auth_method
         ];
+        if($validity) {
+            $payload['exp'] = time() + $validity;
+        }
         return $this->createAccessToken($payload);
     }
 
@@ -68,7 +70,7 @@ class AuthenticationManager extends Service {
      * @return  string
      * @throws \Exception
      */
-    public function renewedToken(int $validity=0) {
+    public function renewedToken(int $validity = 0) {
         $jwt = $this->retrieveAccessToken();
 
         if(is_null($jwt)) {
@@ -163,13 +165,13 @@ class AuthenticationManager extends Service {
 
         if($jwt) {
             try {
-                if( !$this->verifyToken($jwt, constant('AUTH_SECRET_KEY')) ){
+                if(!$this->verifyToken($jwt, constant('AUTH_SECRET_KEY'))){
                     throw new \Exception('jwt_invalid_signature');
                 }
 
                 $decoded = $this->decodeToken($jwt);
 
-                if( !isset($decoded['payload']['exp']) || !isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0 ) {
+                if(!isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
                     throw new \Exception('jwt_invalid_payload');
                 }
                 $result = $decoded['payload'];
@@ -205,7 +207,7 @@ class AuthenticationManager extends Service {
 
         // decode and verify token, if found
         if($jwt) {
-            if($jwt['exp'] < time()) {
+            if(isset($jwt['exp']) && $jwt['exp'] < time()) {
                 // generate a 401 Unauthorized HTTP response
                 throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
             }

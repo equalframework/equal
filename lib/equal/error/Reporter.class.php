@@ -124,6 +124,10 @@ class Reporter extends Service {
                 $code = EQ_REPORT_WARNING;
                 break;
             case E_NOTICE:
+                if(stripos($errmsg, 'undefined') !== false) {
+                    $code = EQ_REPORT_WARNING;
+                    break;
+                }
             case E_STRICT:
             case E_DEPRECATED:
                 $code = EQ_REPORT_INFO;

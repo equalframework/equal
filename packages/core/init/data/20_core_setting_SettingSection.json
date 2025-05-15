@@ -104,8 +104,8 @@
             },
             {
                 "id": 4,
-                "name": "Unités",
-                "description": "Unités de mesures et systèmes d'unités"
+                "name": "Défaut",
+                "description": "Valeurs d'assignation par défaut."
             },
             {
                 "id": 5,

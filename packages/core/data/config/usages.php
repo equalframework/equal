@@ -21,6 +21,20 @@ list($params, $providers) = announce([
  */
 list($context) = [$providers['context']];
 
+
+/*
+#todo - improve colors
+    color/hex	#RRGGBB	#FF00FF	6 chiffres hex
+    color/hex8	#RRGGBBAA	#FF00FF80	8 chiffres hex
+    color/css	mot-clé CSS	salmon	Nom CSS standard
+    color/rgb	rgb(R,G,B)	rgb(255,0,255)	format CSS
+    color/rgba	rgba(R,G,B,A)	rgba(255,0,255,0.5)	format CSS
+    color/hsl	hsl(H,S%,L%)	hsl(300,100%,50%)	format CSS
+    color/hsla	hsla(H,S%,L%,A)	hsla(300,100%,50%,0.8)	format CSS
+    color/cmyk	cmyk(C%,M%,Y%,K%)	cmyk(0%,100%,0%,0%)	si supporté
+    color/argb	#AARRGGBB	#80FF00FF	notation argb (Android, .NET)
+
+*/
 $schema = '{
     "string" : {
         "application" : {
