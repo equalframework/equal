@@ -104,9 +104,9 @@ class Usage {
      * By default it returns the subtype with full tree.
      * Call $tree_index set to 0 to retrieve the first level of the subtype.
      * @example For usage "text/plain.short"
-     *      getSubtype()   returns 'plain'
+     *      getSubtype(0)  returns 'plain'
      *      getSubtype(1)  returns 'short'
-     *      getSubtype(-1) returns 'plain.short'
+     *      getSubtype()   returns 'plain.short' (same as getSubtype(-1))
      */
     final public function getSubtype($tree_index=-1): ?string {
         $result = $this->subtype;
