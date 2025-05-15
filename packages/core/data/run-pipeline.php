@@ -67,8 +67,21 @@ foreach ($pipeline_nodes as $node) {
             foreach ($node['params_ids'] as $param) {
                 $parameters[$param['param']] = json_decode($param['value']);
             }
-            $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
-            $count++;
+            try {
+                $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
+                $count++;
+            } catch (Exception $e) {
+                // Retourner les résultats partiels et l'erreur
+                $context->httpResponse()
+                        ->status(500)
+                        ->body([
+                            'error' => 'Pipeline execution failed at node: ' . $node['name'],
+                            'message' => $e->getMessage(),
+                            'partial_results' => $result_map
+                        ])
+                        ->send();
+                return;
+            }
         }
     }
 }
@@ -90,8 +103,20 @@ while ($count != count($result_map)) {
                 foreach ($node['params_ids'] as $param) {
                     $parameters[$param['param']] = json_decode($param['value']);
                 }
-                $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
-                $count++;
+                try {
+                    $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
+                    $count++;
+                } catch (Exception $e) {
+                    $context->httpResponse()
+                            ->status(200)
+                            ->body([
+             -                   'error' => 'Pipeline execution failed at node: ' . $node['name'],
+                                'message' => $e->getMessage(),
+                                'partial_results' => $result_map
+                            ])
+                            ->send();
+                    return;
+                }
             }
         }
     }
@@ -106,3 +131,4 @@ foreach ($name_map as $key => $value) {
 $context->httpResponse()
     ->body($res)
     ->send();
+?>
