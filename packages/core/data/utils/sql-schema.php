@@ -119,6 +119,10 @@ foreach($classes as $class) {
                 continue;
             }
         }
+        elseif($descriptor['type'] == 'alias') {
+            // skip non-stored alias fields
+            continue;
+        }
 
         $adapter = $dap->get($f->getContentType());
         if(!$adapter) {

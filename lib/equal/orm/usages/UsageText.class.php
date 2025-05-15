@@ -18,36 +18,27 @@ class UsageText extends Usage {
      *  text/plain.small (65KB)
      *  text/plain.medium (16MB)
      *  text/plain.long (4GB)
+     *
+     * All 'text' usages (text/plain, text/html, text/json, text/xml, text/wiki) are handled the same way
+     *
      */
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
         if($this->length == 0) {
-            $this->length = 255;
             // #memo - $this->subtype holds the full tree
-            switch($this->getSubtype(0)) {
-                case 'plain':
-                    switch($this->getSubtype(1))  {
-                        case 'short':
-                            $this->length = 255;
-                            break;
-                        case 'medium':
-                            $this->length = 16 * 1000 * 1000;
-                            break;
-                        case 'long':
-                            $this->length = 4 * 1000 * 1000 * 1000;
-                            break;
-                        case 'small':
-                        default:
-                            $this->length = 65 * 1000;
-                            break;
-                    }
+            switch($this->getSubtype(1))  {
+                case 'short':
+                    $this->length = 255;
                     break;
-                case 'html':
-                case 'json':
-                case 'xml':
-                case 'wiki':
-                    $this->length = max($this->length, 65 * 1000);
+                case 'medium':
+                    $this->length = 16 * 1000 * 1000;
                     break;
+                case 'long':
+                    $this->length = 4 * 1000 * 1000 * 1000;
+                    break;
+                case 'small':
+                default:
+                    $this->length = 65 * 1000;
             }
         }
     }
