@@ -1394,6 +1394,7 @@ namespace {
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
         public static function run($type, $controller, $body=[], $root=false) {
+            // #todo - adapt values if controller has a request schema
             $result = config\eQual::run($type, $controller, $body, $root);
             // #todo - adapt values if controller has a response schema
             $data = json_decode($result, true);
