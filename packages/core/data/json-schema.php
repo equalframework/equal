@@ -33,7 +33,7 @@
 $context = $providers['context'];
 
 $parseJsonSchemaId = function(string $id) {
-    $pattern = '/^urn:([a-z0-9_-]+):json-schema:([a-z0-9_-]+):([a-z0-9._-]+)$/i';
+    $pattern = '/^urn:[a-z0-9_-]+:json-schema:([a-z0-9_-]+):([a-z0-9._-]+)$/i';
 
     if(preg_match($pattern, $id, $matches)) {
         return [
