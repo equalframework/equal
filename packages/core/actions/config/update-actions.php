@@ -1,6 +1,7 @@
 <?php
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
 use equal\orm\Entity;
+
 list($params, $providers) = eQual::announce([
     'description'   => "Update the getActions() return function of an entity",
     'help'          => "This controller relies on the PHP binary. Ensure the PHP binary is present in the PATH.",
@@ -36,13 +37,13 @@ $entity = new Entity($params['entity']);
 // force class autoload
 $entityInstance = $orm->getModel($params['entity']);
 if(!$entityInstance) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $method_name = 'getActions' ;
 $class = new ReflectionClass($entityInstance::getType());
 if(!($class->getMethod($method_name)->class == $entityInstance::getType())) {
-    equal::run('do','core_config_create-roles',['entity' => $entity->getFullName()], true);
+    equal::run('do','core_config_create-actions',['entity' => $entity->getFullName()], true);
 }
 
 $entity->updateMethod($method_name,$params['payload']);
