@@ -165,10 +165,16 @@ class Tester {
             if(gettype($result) == 'object') {
                 $result_txt = get_class($result).' object';
                 if(is_a($result, Model::getType())) {
-                    $result_txt .= ':'.json_encode($result->toArray());
+                    $result_txt .= ':' . json_encode($result->toArray());
                 }
             }
-            $this->results[$id]['result'] = $result_txt;
+            elseif(gettype($result) == 'array') {
+                $result_txt = json_encode($result);
+            }
+            else {
+                $result_txt = (string) $result;
+            }
+            $this->results[$id]['result'] = (strlen($result_txt) > 255) ? substr($result_txt, 0, 255) . '[...]' : $result_txt;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];
