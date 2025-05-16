@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns a list of timezones identifiers, filtered by keywords if given.',
     'params'        => [
         'q' =>  [

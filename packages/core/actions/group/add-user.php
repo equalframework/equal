@@ -9,7 +9,7 @@ use core\Group;
 use core\User;
 
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Add a user to a given group (identified by name or id).',
     'response'      => [
         'content-type'  => 'application/json',

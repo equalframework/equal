@@ -14,7 +14,7 @@ use equal\orm\DateReference;
 
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Returns a view populated with a collection of objects, and outputs it as an XLS spreadsheet.",
     'params'        => [
         'entity' =>  [

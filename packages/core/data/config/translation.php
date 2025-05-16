@@ -6,7 +6,7 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 // #deprecated - use `core_translation` instead
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Retrieves the translation values related to the specified entity without checking for parent traductions.",
     'params'        => [
         'entity' =>  [

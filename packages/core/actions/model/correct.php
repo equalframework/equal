@@ -8,7 +8,7 @@
 use equal\orm\Domain;
 use equal\orm\Field;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Updates a list of entities matching a given domain (filter). This is the symmetrical operation of `model_collect`.',
     'params'        => [
         'entity' =>  [

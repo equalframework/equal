@@ -8,7 +8,7 @@
 use core\setting\Setting;
 use core\setting\SettingValue;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Retrieve configuration settings according to package and section filters (support wildcards support) and current user.',
     'params'        => [
         'package' =>  [

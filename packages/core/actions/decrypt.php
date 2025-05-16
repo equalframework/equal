@@ -7,7 +7,7 @@
 */
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Decrypts given cipher using private cipher key.",
     'params' 		=>	[
         'value' =>  [

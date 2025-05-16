@@ -9,7 +9,7 @@ use equal\orm\Domain;
 use equal\orm\DomainCondition;
 use equal\orm\Operation;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [

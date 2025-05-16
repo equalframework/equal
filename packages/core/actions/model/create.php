@@ -26,7 +26,7 @@ $group = Group::create(['name' => 'test group'])->first(true);
 
 use equal\orm\Field;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Create a new object using given fields values.",
     'params'        => [
         'entity' =>  [

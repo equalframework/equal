@@ -19,7 +19,7 @@ $tests = [
             'return'            =>  ['boolean'],
             'expected'          =>  true,
             'test'              =>  function () {
-                                        list($params, $providers) = announce([
+                                        list($params, $providers) = eQual::announce([
                                             'providers' => ['cron']
                                         ]);
                                         return is_callable([$providers['cron'], 'run'], true);
@@ -31,7 +31,7 @@ $tests = [
             'return'            =>  ['boolean'],
             'expected'          =>  true,
             'test'              =>  function () {
-                                        list($params, $providers) = announce([
+                                        list($params, $providers) = eQual::announce([
                                             'providers' => ['cron']
                                         ]);
                                         /**

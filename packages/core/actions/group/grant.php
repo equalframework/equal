@@ -7,7 +7,7 @@
 */
 use core\Group;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Grant additional privilege to given group.',
     'response'      => [
         'content-type'  => 'application/json',

@@ -8,7 +8,7 @@
 
 use equal\orm\ObjectManager;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns schema of available operators and for each type',
     'response'      => [
         'content-type'      => 'application/json',

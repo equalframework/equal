@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible usages and their descriptors.',
     'response'      => [
         'content-type'      => 'application/json',
