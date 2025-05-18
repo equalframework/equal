@@ -186,32 +186,26 @@ foreach($params['fields'] as $key => $field) {
 // make sure 'name' is always requested
 $fields[] = 'name';
 
-$domain = $params['domain'];
+$domain = new Domain($params['domain']);
 
 // if `deleted` field is requested, we need to force searching amongst deleted objects as well
 if(in_array('deleted', $params['fields'])) {
-    $domain = Domain::conditionAdd($domain, ['deleted', 'in', [0, 1]]);
+    $domain->addCondition(['deleted', 'in', [0, 1]]);
 }
 
 // if domain contains a condition that targets `id` field, force searching regardless the state (this is the case for form views)
 $has_id_clause = false;
-foreach($domain as $clause) {
-    if(is_array($clause)) {
-        foreach($clause as $condition) {
-            if(is_array($condition)) {
-                $has_id_clause = ($condition[0] == 'id');
-            }
-            else {
-                $has_id_clause = ($condition == 'id');
-            }
+foreach($domain->getClauses() as $clause) {
+    foreach($clause->getConditions() as $condition) {
+        if($condition->getOperand() === 'id' && in_array($condition->getOperator(), ['=', 'in'], true)) {
+            $has_id_clause = true;
+            break 2;
         }
     }
-    else {
-        $has_id_clause = ($clause == 'id');
-    }
 }
+
 if($has_id_clause) {
-    $domain = Domain::conditionAdd($domain, ['state', '<>', 'unknown']);
+    $domain->addCondition(['state', '<>', 'unknown']);
 }
 
 // convert sorting comma notation to a map ([order_field => sort_direction, ...])
@@ -224,7 +218,7 @@ foreach($order_parts as $index => $order) {
     $sort[$order] = $order_sort;
 }
 
-$collection = $params['entity']::search($domain, [ 'sort' => $sort ], $params['lang']);
+$collection = $params['entity']::search($domain->toArray(), [ 'sort' => $sort ], $params['lang']);
 
 $total = count($collection->ids());
 
