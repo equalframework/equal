@@ -436,6 +436,7 @@ class Domain {
 
 
 class DomainClause {
+    /** @var DomainCondition[] */
     public $conditions;
 
     public function __construct($conditions = []) {

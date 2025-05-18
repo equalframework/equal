@@ -6,6 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Domain;
+use equal\orm\DomainCondition;
 
 [$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
@@ -183,14 +184,14 @@ foreach($params['fields'] as $key => $field) {
     }
 }
 
-// make sure 'name' is always requested
+// ensure 'name' is always requested
 $fields[] = 'name';
 
 $domain = new Domain($params['domain']);
 
 // if `deleted` field is requested, we need to force searching amongst deleted objects as well
 if(in_array('deleted', $params['fields'])) {
-    $domain->addCondition(['deleted', 'in', [0, 1]]);
+    $domain->addCondition(new DomainCondition('deleted', 'in', [0, 1]));
 }
 
 // if domain contains a condition that targets `id` field, force searching regardless the state (this is the case for form views)
@@ -205,7 +206,7 @@ foreach($domain->getClauses() as $clause) {
 }
 
 if($has_id_clause) {
-    $domain->addCondition(['state', '<>', 'unknown']);
+    $domain->addCondition(new DomainCondition('state', '<>', 'unknown'));
 }
 
 // convert sorting comma notation to a map ([order_field => sort_direction, ...])

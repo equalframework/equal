@@ -74,30 +74,24 @@ foreach($params['fields'] as $field => $value) {
     $fields[$field] = $adapter->adaptIn($value, $f->getUsage());
 }
 
-$domain = $params['domain'];
+$domain = new Domain($params['domain']);
 
 // if domain contains a condition that targets `id` field, force searching regardless the state (this is the case for form views)
 $has_id_clause = false;
-foreach($domain as $clause) {
-    if(is_array($clause)) {
-        foreach($clause as $condition) {
-            if(is_array($condition)) {
-                $has_id_clause = ($condition[0] == 'id');
-            }
-            else {
-                $has_id_clause = ($condition == 'id');
-            }
+foreach($domain->getClauses() as $clause) {
+    foreach($clause->getConditions() as $condition) {
+        if($condition->getOperand() === 'id' && in_array($condition->getOperator(), ['=', 'in'], true)) {
+            $has_id_clause = true;
+            break 2;
         }
     }
-    else {
-        $has_id_clause = ($clause == 'id');
-    }
-}
-if($has_id_clause) {
-    $domain = Domain::conditionAdd($domain, ['state', '<>', 'unknown']);
 }
 
-$collection = $params['entity']::search($domain);
+if($has_id_clause) {
+    $domain->addCondition(new DomainCondition('state', '<>', 'unknown'));
+}
+
+$collection = $params['entity']::search($domain->toArray());
 
 // update list
 $collection->update($fields, $params['lang']);
