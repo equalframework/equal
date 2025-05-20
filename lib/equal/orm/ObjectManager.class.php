@@ -355,20 +355,21 @@ class ObjectManager extends Service {
 
     /**
      * Retrieve the root parent class of a class.
-     * If there are several level of inheritance, the method loops up until the first class that inherits from the Model interface (`equal\orm\Model`).
+     * If there are several level of inheritance, the method loops up until the first class that defines its own DB table
+     * or inherits from the Model interface (`equal\orm\Model`).
      *
      * @param   string  $class   The full name of the entity with its namespace.
      */
     public static function getObjectRootClass($class) {
         $entity = $class;
         while(true) {
-            if(method_exists($class, 'getTable')) {
-                $reflectionClass = new \ReflectionClass($class);
-                if($reflectionClass->getMethod('getTable')->class == $class) {
+            if(method_exists($entity, 'getTable')) {
+                $reflectionClass = new \ReflectionClass($entity);
+                if($reflectionClass->getMethod('getTable')->class == $entity) {
                     break;
                 }
             }
-            $parent = (class_exists($entity))?get_parent_class($entity):false;
+            $parent = (class_exists($entity)) ? get_parent_class($entity) : false;
             if(!$parent || $parent == 'equal\orm\Model') {
                 break;
             }
