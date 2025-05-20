@@ -1093,6 +1093,15 @@ namespace config {
             return $result;
         }
 
+        public static function constant($name) {
+            if(defined($name)) {
+                return constant($name);
+            }
+            if(\defined($name)) {
+                return \constant($name);
+            }
+            return null;
+        }
 
         /**
          * Execute a given operation.
@@ -1393,16 +1402,29 @@ namespace {
          * @return  mixed        Result of the call, according to the controller response.
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
-        public static function run($type, $controller, $body=[], $root=false) {
-            // #todo - adapt values if controller has a request schema
+        public static function run($type, $controller, $body=[], $root=false, $raw=false) {
+
             $result = config\eQual::run($type, $controller, $body, $root);
-            // #todo - adapt values if controller has a response schema
-            $data = json_decode($result, true);
-            // if result is not JSON, return raw data
+
+            if($raw) {
+                return $result;
+            }
+
+            $announce = config\eQual::run($type, $controller, ['announce' => true], false);
+            $announcement = json_decode($announce, true);
+
+            if(!isset($announcement['announcement']['response']['content-type']) || $announcement['announcement']['response']['content-type'] !== 'application/json') {
+                return $result;
+            }
+
+            $data = @json_decode($result, true);
+
+            // invalid JSON: return raw response
             if(is_null($data)) {
                 return $result;
             }
-            if($data && isset($data['errors'])) {
+
+            if(isset($data['errors'])) {
                 // raise an exception with first returned error code
                 foreach($data['errors'] as $name => $message) {
                     if(is_array($message)) {
@@ -1411,7 +1433,14 @@ namespace {
                     throw new \Exception($message, qn_error_code($name));
                 }
             }
+
+            // #todo - adapt values if controller has a response schema
+
             return $data;
+        }
+
+        public static function constant($name) {
+            return config\eQual::constant($name);
         }
 
         public static function announce(array $announcement) {
