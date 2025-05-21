@@ -847,12 +847,11 @@ class Collection implements \Iterator, \Countable {
                     }
                 }
 
-                $searchDomain = new Domain($subdomain);
-                $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
-
                 if(!count($subfields)) {
                     if($target['result_type'] != 'many2one') {
                         foreach($this->objects as $id => $object) {
+                            $searchDomain = new Domain($subdomain);
+                            $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
                             $this->objects[$id][$field] = $this->orm->search($target['foreign_object'], $searchDomain->toArray());
                         }
                     }
@@ -861,6 +860,9 @@ class Collection implements \Iterator, \Countable {
 
                 // recursively load and assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
+                    $searchDomain = new Domain($subdomain);
+                    $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
+
                     /** @var Collection */
                     $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
 
