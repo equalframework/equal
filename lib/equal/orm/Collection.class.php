@@ -769,8 +769,8 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted identifiers (remove null entries)
             $ids = $this->ids();
 
-			// 2) check that current user has enough privilege to perform READ operation
-			if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
+            // 2) check that current user has enough privilege to perform READ operation
+            if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
                 throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), EQ_ERROR_NOT_ALLOWED);
             }
 
@@ -847,14 +847,20 @@ class Collection implements \Iterator, \Countable {
                     }
                 }
 
+                $searchDomain = new Domain($subdomain);
+                $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
+
                 if(!count($subfields)) {
+                    if($target['result_type'] != 'many2one') {
+                        foreach($this->objects as $id => $object) {
+                            $this->objects[$id][$field] = $this->orm->search($target['foreign_object'], $searchDomain->toArray());
+                        }
+                    }
                     continue;
                 }
 
                 // recursively load and assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
-                    $searchDomain = new Domain($subdomain);
-                    $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ]));
                     /** @var Collection */
                     $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
 
