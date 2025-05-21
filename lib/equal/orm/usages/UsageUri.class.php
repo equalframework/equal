@@ -14,7 +14,28 @@ class UsageUri extends Usage {
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
         if($this->length == 0) {
-            $this->length = 1024;
+            switch($this->getSubtype()) {
+                case 'url':
+                case 'url.relative':
+                    $this->length = 1024;
+                    break;
+                case 'url.tel':
+                    $this->length = 20;
+                    break;
+                case 'url.mailto':
+                    // max according to RFC (64+@+255)
+                    $this->length = 320;
+                    break;
+                case 'urn.iban':
+                    $this->length = 34;
+                    break;
+                case 'urn.ean':
+                    // EAN (EAN-13)
+                    $this->length = 13;
+                    break;
+                default:
+                    $this->length = 1024;
+            }
         }
     }
 
