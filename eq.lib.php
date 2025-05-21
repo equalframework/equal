@@ -24,7 +24,11 @@ namespace {
     global $last_context;
     global $constants_schema;
 
-    define('__EQ_LIB', true) or die('fatal error: __EQ_LIB already defined or cannot be defined');
+    if(defined('__EQ_LIB')) {
+        echo "fatal error: __EQ_LIB already defined\n";
+        exit(1);
+    }
+    define('__EQ_LIB', true);
 
     /**
      *    All constants required by the core are prefixed with EQ_
@@ -260,12 +264,14 @@ namespace {
      */
     $constants_schema = [];
     if(!file_exists(EQ_BASEDIR.'/config/schema.json')) {
-        die('Missing mandatory config schema.');
+        echo "fatal error: Missing mandatory config schema.\n";
+        exit(1);
     }
     else {
         $data = file_get_contents(EQ_BASEDIR.'/config/schema.json');
         if(!($constants_schema = json_decode($data, true))) {
-            die('Invalid config schema.');
+            echo "fatal error: Invalid config schema.\n";
+            exit(1);
         }
 
         // pass-1 - process properties defined in config file
@@ -277,7 +283,8 @@ namespace {
                 }
             }
             else {
-                die('Invalid config file.');
+                echo "fatal error: Invalid config file.\n";
+                exit(1);
             }
         }
         // pass-2 - process instant properties not present in config
