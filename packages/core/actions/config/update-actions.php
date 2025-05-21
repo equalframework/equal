@@ -1,5 +1,5 @@
 <?php
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder};
+
 use equal\orm\Entity;
 
 list($params, $providers) = eQual::announce([
@@ -35,18 +35,19 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
 $entity = new Entity($params['entity']);
 
 // force class autoload
-$entityInstance = $orm->getModel($params['entity']);
-if(!$entityInstance) {
+$model = $orm->getModel($params['entity']);
+if(!$model) {
     throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 $method_name = 'getActions' ;
-$class = new ReflectionClass($entityInstance::getType());
-if(!($class->getMethod($method_name)->class == $entityInstance::getType())) {
+$class = new ReflectionClass($model::getType());
+
+if(!$class->hasMethod($method_name) || $class->getMethod($method_name)->class !== $model::getType()) {
     equal::run('do','core_config_create-actions',['entity' => $entity->getFullName()], true);
 }
 
-$entity->updateMethod($method_name,$params['payload']);
+$entity->updateMethod($method_name, $params['payload']);
 
 $context->httpResponse()
         ->status(204)
