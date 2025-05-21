@@ -158,6 +158,10 @@ if(method_exists($params['entity'], 'onchange')) {
         }
         else {
             $f = $model->getField($field);
+            if(!$f) {
+                trigger_error('APP::invalid field '.$field, EQ_REPORT_WARNING);
+                continue;
+            }
             // adapt received values based on their type (as defined in schema)
             $result[$field] = $adapter->adaptOut($value, $f->getUsage());
         }
