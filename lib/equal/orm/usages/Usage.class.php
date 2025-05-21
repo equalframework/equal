@@ -102,7 +102,8 @@ class Usage {
     /**
      * Retrieve the subtype (all tree or a specific component).
      * By default it returns the subtype with full tree.
-     * Call $tree_index set to 0 to retrieve the first level of the subtype.
+     * A call with $tree_index set to 0 retrieves the first level of the subtype.
+     *
      * @example For usage "text/plain.short"
      *      getSubtype(0)  returns 'plain'
      *      getSubtype(1)  returns 'short'
