@@ -7,7 +7,7 @@
 */
 use equal\test\Tester;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
@@ -32,7 +32,12 @@ list($params, $providers) = eQual::announce([
             'default'       => false
         ]
     ],
-    'providers'     => ['context']
+    'providers'     => ['context'],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ]
 ]);
 
 
