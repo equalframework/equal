@@ -112,8 +112,8 @@ $importDataFromFolderJsonFiles = function($data_folder) {
 
 // Check whether the package has already been initialized before
 $is_package_initialized = false;
-if(file_exists("log/packages.json")) {
-    $json = file_get_contents("log/packages.json");
+if(file_exists(EQ_BASEDIR."/log/packages.json")) {
+    $json = file_get_contents(EQ_BASEDIR."/log/packages.json");
     $packages = json_decode($json, true);
     $is_package_initialized = isset($packages[$params['package']]);
 }
@@ -162,8 +162,8 @@ else {
 
     // retrieve manifest of target package, if any
     $package_manifest = [];
-    if(file_exists("packages/{$params['package']}/manifest.json")) {
-        $package_manifest = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
+    if(file_exists(EQ_BASEDIR."/packages/{$params['package']}/manifest.json")) {
+        $package_manifest = json_decode(file_get_contents(EQ_BASEDIR."/packages/{$params['package']}/manifest.json"), true);
         if(!$package_manifest) {
             throw new Exception("Invalid manifest for package {$params['package']}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
         }
@@ -210,7 +210,7 @@ else {
     /*  end tables init */
 
     // 2) Populate tables with predefined data
-    $data_folder = "packages/{$params['package']}/init/data";
+    $data_folder = EQ_BASEDIR."/packages/{$params['package']}/init/data";
     if($params['import'] && is_dir($data_folder)) {
         $importDataFromFolderJsonFiles($data_folder);
         // Execute init scripts, if any
@@ -226,7 +226,7 @@ else {
     }
 
     // 2 bis) Populate tables with demo data, if requested
-    $demo_folder = "packages/{$params['package']}/init/demo";
+    $demo_folder = EQ_BASEDIR."/packages/{$params['package']}/init/demo";
     if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
         $importDataFromFolderJsonFiles($demo_folder);
         // Execute init scripts, if any
@@ -242,7 +242,7 @@ else {
     }
 
     // 2 ter) Populate tables with test data (intended for tests), if requested
-    $test_folder = "packages/{$params['package']}/init/test";
+    $test_folder = EQ_BASEDIR."/packages/{$params['package']}/init/test";
     if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
         $importDataFromFolderJsonFiles($test_folder);
         // Execute init scripts, if any
@@ -258,28 +258,32 @@ else {
     }
 
     // 3) If a `bin` folder exists, copy its content to /bin/<package>/
-    $bin_folder = "packages/{$params['package']}/init/bin";
+    $bin_folder = EQ_BASEDIR."/packages/{$params['package']}/init/bin";
     if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
-        exec("cp -r $bin_folder bin/{$params['package']}");
-        exec("chown www-data:www-data -R bin/{$params['package']}");
+        $target_folder = EQ_BASEDIR . "/bin/{$params['package']}";
+        exec("cp -r $bin_folder $target_folder");
+        exec("chown www-data:www-data -R $target_folder");
     }
 
     // 3 bis) If a `routes` folder exists, copy its content to /config/routing/
-    $route_folder = "packages/{$params['package']}/init/routes";
+    $route_folder = EQ_BASEDIR."/packages/{$params['package']}/init/routes";
     if(file_exists($route_folder) && is_dir($route_folder)) {
-        exec("cp -r $route_folder/* config/routing");
+        $target_folder = EQ_BASEDIR . "/config/routing";
+        exec("cp -r $route_folder/* $target_folder");
     }
 
     // 3 ter) If a `assets` folder exists, copy its content to /public/assets/
-    $assets_folder = "packages/{$params['package']}/init/assets";
+    $assets_folder = EQ_BASEDIR."/packages/{$params['package']}/init/assets";
     if(file_exists($assets_folder) && is_dir($assets_folder)) {
-        exec("cp -r $assets_folder/* public/assets/");
+        $target_folder = EQ_BASEDIR . "/public/assets/";
+        exec("cp -r $assets_folder/* $target_folder");
     }
 
     // 3 quat) If a `lib` folder exists, copy its content to /lib/
-    $lib_folder = "packages/{$params['package']}/init/lib";
+    $lib_folder = EQ_BASEDIR."/packages/{$params['package']}/init/lib";
     if(file_exists($lib_folder) && is_dir($lib_folder)) {
-        exec("cp -r $lib_folder/* lib/");
+        $target_folder = EQ_BASEDIR . "/lib/";
+        exec("cp -r $lib_folder/* $target_folder");
     }
 
     // 4) Export the compiled apps to related public folders
@@ -363,13 +367,13 @@ else {
      */
     $packages = [];
 
-    if(file_exists("log/packages.json")) {
-        $json = file_get_contents("log/packages.json");
+    if(file_exists(EQ_BASEDIR."/log/packages.json")) {
+        $json = file_get_contents(EQ_BASEDIR."/log/packages.json");
         $packages = json_decode($json, true);
     }
 
     $packages[$params['package']] = date('c');
-    file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
+    file_put_contents(EQ_BASEDIR."/log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
     // if script is running at top-level, it must run composer to install vendor dependencies
     if($params['root'] && $params['composer']) {
