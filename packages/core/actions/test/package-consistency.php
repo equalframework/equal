@@ -371,7 +371,7 @@ foreach($classes as $class) {
     }
 
     // todo : 7) check apps / data / actions  files consistency (.php)
-    // - presence of " = announce( "
+    // - presence of " = eQual::announce( "
 
 }
 
