@@ -7,7 +7,7 @@
 */
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Grant additional privilege to given user.',
     'response'      => [
         'content-type'  => 'application/json',
