@@ -7,7 +7,7 @@
 */
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Revoke privilege from a given user.',
     'response'      => [
         'content-type'  => 'application/json',

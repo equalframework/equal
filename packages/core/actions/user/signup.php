@@ -5,7 +5,7 @@ use core\Mail;
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Attempt to register a new user.",
     'params' 		=>	[
         'email' => [

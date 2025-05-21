@@ -7,7 +7,7 @@
 */
 use core\User;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Updates a user account based on given details.',
     'response'      => [
         'content-type'  => 'application/json',

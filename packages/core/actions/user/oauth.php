@@ -8,7 +8,7 @@
 use equal\http\HttpRequest;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Attempt to auth a user from an external social network.",
     'params' 		=>	[
         'network_name'  =>  [
@@ -22,6 +22,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -143,7 +144,7 @@ $om->write('core\User', $user_id, [
 ]);
 
 // generate access_token
-$access_token = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+$access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
 $context->httpResponse()
         // store token in cookie
