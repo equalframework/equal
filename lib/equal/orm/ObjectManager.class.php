@@ -170,7 +170,9 @@ class ObjectManager extends Service {
     }
 
     public function disableEvents($events_mask = self::EVENTS_ALL) {
+        $previous = $this->enabled_events;
         $this->enabled_events &= ~$events_mask;
+        return $previous;
     }
 
     /**
