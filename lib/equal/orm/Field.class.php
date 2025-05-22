@@ -168,8 +168,8 @@ class Field {
         }
 
         // add constraint based on 'pattern', if present
-        if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
-            $pattern = $this->descriptor['pattern'];
+        if(isset($this->descriptor['pattern'])) {
+            $pattern = (string) $this->descriptor['pattern'];
             $constraints['pattern_mismatch'] = [
                     'message'   => "Value does not match provided pattern.",
                     'function'  =>  function($value) use($pattern) {
