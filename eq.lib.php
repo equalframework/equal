@@ -763,7 +763,7 @@ namespace config {
                                 ->status(200)
                                 // send HTTP response
                                 ->send();
-                            exit();
+                            throw new \Exception('', 0);
                         }
                     }
                 }
