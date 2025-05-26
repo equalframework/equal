@@ -1630,7 +1630,7 @@ class ObjectManager extends Service {
      *
      * @return integer      The result is an identifier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
-    public function create($class, $fields=null, $lang=null, $use_draft=true) {
+    public function create($class, $fields=[], $lang=null, $use_draft=true) {
         $res = 0;
         $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
 
