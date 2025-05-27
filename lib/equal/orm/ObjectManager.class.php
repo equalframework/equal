@@ -2234,7 +2234,7 @@ class ObjectManager extends Service {
                     // #todo - this could be improved by loading all targeted objects for current collection at once
                     foreach($ids as $oid) {
                         // #memo - for unreachable values, m2o are always set to null, and m2m or o2m to an empty array
-                        $sub_ids = (array) $this->cache[$table_name][$oid][$target_lang][$field] ?? [];
+                        $sub_ids = (array) ($this->cache[$table_name][$oid][$target_lang][$field] ?? []);
                         if(count($sub_ids)) {
                             $sub_values = $this->read($descriptor['foreign_object'], $sub_ids, (array) $sub_path, $lang);
                             if($sub_values <= 0 || !count($sub_values)) {
