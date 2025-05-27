@@ -31,8 +31,40 @@ class DataFormatter {
                 return self::format_bic($value);
             case 'scor':
                 return self::format_scor($value);
+            case 'VCS':
+                return self::format_vcs($value);
+            case 'RF':
+                return self::format_rf($value);
+            case 'RN':
+                return self::format_rn($value);
         }
         return $value;
+    }
+
+
+/**
+     * VCS is the belgian Structured Communication Reference used in bank payments.
+     *
+     */
+    private static function format_vcs($ref) {
+        return '+++' . substr($ref, 0, 3) . '/' . substr($ref, 3, 4) . '/' . substr($ref, 7, 5) . '+++';
+    }
+
+    /**
+     * RF is the ISO 11649 (SCOR) structured reference used in bank payments.
+     *
+     */
+    private static function format_rf($ref) {
+        $body = substr($ref, 2);
+        return 'RF' . substr($ref, 0, 2) . ' ' . trim(chunk_split($body, 4, ' '));
+    }
+
+    /**
+     * RN is the french Routing Number used in bank payments.
+     *
+     */
+    private static function format_rn($ref) {
+        return 'RN' . substr($ref, 0, 2) . ' ' . substr($ref, 2);
     }
 
     /**
