@@ -58,7 +58,9 @@ class UsageText extends Usage {
             'broken_usage' => [
                 'message'   => 'String does not comply with usage format.',
                 'function'  =>  function($value) {
-                    $len = intval($this->getLength());
+                    if(empty($value)) {
+                        return true;
+                    }
                     switch($this->getSubtype(0)) {
                         case 'plain':
                             break;
