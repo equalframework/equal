@@ -676,24 +676,26 @@ class ObjectManager extends Service {
                     $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
-                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // #todo - we should check that order field exists in targeted entity
                         $order = (isset($schema[$field]['order'])) ? $schema[$field]['order'] : 'id';
                         $sort = (isset($schema[$field]['sort'])) ? $schema[$field]['sort'] : 'asc';
-                        $domain = [
-                            [
-                                [$schema[$field]['foreign_field'], 'in', $ids],
+
+                        $domain = new Domain([
                                 ['state', '=', 'instance'],
-                                ['deleted', '=', '0'],
-                            ]
-                        ];
+                                ['deleted', '=', '0']
+                            ]);
+
+                        if(isset($schema[$field]['foreign_field'])) {
+                            $domain->addCondition(new DomainCondition($schema[$field]['foreign_field'], 'in', $ids));
+                        }
+
                         // #todo : handle alias fields (require subsequent schema)
                         // merge domain with additional domain clauses, if any
                         if(isset($schema[$field]['domain'])) {
-                            $domain_tmp = new Domain($domain);
-                            $domain_tmp->merge(new Domain($schema[$field]['domain']));
-                            $domain = $domain_tmp->toArray();
+                            $domain->merge(new Domain($schema[$field]['domain']));
                         }
                         // #todo - add support for sorting on m2o fields (for now user needs to use usort)
                         // #todo - this is invalid, check should point to the target schema (foreign_object)
@@ -707,7 +709,7 @@ class ObjectManager extends Service {
                                 $om->getObjectTableName($schema[$field]['foreign_object']),
                                 ['id', $schema[$field]['foreign_field'], $order],
                                 null,
-                                $domain,
+                                $domain->toArray(),
                                 'id',
                                 [$order => $sort]
                             );
