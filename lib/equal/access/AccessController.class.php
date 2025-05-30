@@ -739,6 +739,7 @@ class AccessController extends Service {
      */
     public function isCompliant($policy, $object_class, $object_ids, $user_id=null) {
         $result = [];
+        trigger_error("ORM::checking compliancy for {$policy} on '$object_class'", EQ_REPORT_DEBUG);
 
         if(is_null($user_id)) {
             /** @var \equal\auth\AuthenticationManager */
@@ -766,17 +767,36 @@ class AccessController extends Service {
                     $called_class = $parts[0];
                     $called_method = $parts[1];
                 }
-                if(!method_exists($called_class, $called_method)) {
-                    $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
-                }
-                else {
-                    trigger_error("ORM::calling {$called_class}::{$called_method}", EQ_REPORT_DEBUG);
-                    $c = $called_class::ids($object_ids);
-                    $res = $called_class::$called_method($c, $user_id);
+                try {
+                    $reflectionMethod = new \ReflectionMethod($called_class, $called_method);
+                    $methodParams = $reflectionMethod->getParameters();
+                    $args = [];
+                    foreach($methodParams as $methodParam) {
+                        $param = $methodParam->getName();
+                        if($param === 'user_id') {
+                            $args[] = $user_id;
+                        }
+                        elseif($param === 'self') {
+                            $args[] = $called_class::ids($object_ids);
+                        }
+                    }
+
+                    if($reflectionMethod->isPrivate() || $reflectionMethod->isProtected()) {
+                        $reflectionMethod->setAccessible(true);
+                        $res = $reflectionMethod->invokeArgs(null, $args);
+                    }
+                    else {
+                        $res = $called_class::$called_method(...$args);
+                    }
+
                     if(count($res)) {
                         // relay result to provide details about the broken policy
                         $result = current($res);
                     }
+                }
+                catch(\Exception $e) {
+                    trigger_error("ORM::ignoring non-resolved method '$called_method' for class '$called_class'", EQ_REPORT_INFO);
+                    $result['unknown_policy_method'] = "Method {$called_method} provided for Policy {$policy} is not defined in class {$called_class}.";
                 }
             }
         }
