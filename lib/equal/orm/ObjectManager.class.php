@@ -1248,11 +1248,6 @@ class ObjectManager extends Service {
             $called_method = $parts[1];
         }
 
-        if(!method_exists($called_class, $called_method)) {
-            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
-            return QN_ERROR_UNKNOWN;
-        }
-
         // init call stack
         if(!isset($this->object_methods[$called_class][$called_method])) {
             $this->object_methods[$called_class][$called_method] = [];
@@ -1263,10 +1258,14 @@ class ObjectManager extends Service {
         $unprocessed_ids = array_diff((array) $ids, $processed_ids);
         $this->object_methods[$called_class][$called_method] = array_merge($processed_ids, $unprocessed_ids);
 
-        /** @var \ReflectionMethod */
-        $reflectionMethod = new \ReflectionMethod($called_class, $called_method);
-        /** @var \ReflectionParameter */
-        $methodParams = $reflectionMethod->getParameters();
+        try {
+            $reflectionMethod = new \ReflectionMethod($called_class, $called_method);
+            $methodParams = $reflectionMethod->getParameters();
+        }
+        catch(\Exception $e) {
+            trigger_error("ORM::ignoring non-resolved method '$method' for class '$class'", EQ_REPORT_INFO);
+            return EQ_ERROR_UNKNOWN;
+        }
 
         $args = [];
         foreach($methodParams as $methodParam) {
@@ -1309,7 +1308,13 @@ class ObjectManager extends Service {
         }
 
         try {
-            $res = $called_class::$called_method(...$args);
+            if($reflectionMethod->isPrivate() || $reflectionMethod->isProtected()) {
+                $reflectionMethod->setAccessible(true);
+                $res = $reflectionMethod->invokeArgs(null, $args);
+            }
+            else {
+                $res = $called_class::$called_method(...$args);
+            }
             if($res !== null) {
                 $result = $res;
             }
