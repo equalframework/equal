@@ -364,6 +364,10 @@ if(!count($_GET)) {
                 text-overflow: ellipsis;
             }
 
+            div.thread div.thread_line div.line-title code {
+                color: #4f4f4f;
+            }
+
             div.thread div.thread_line div.line-title.match, div.thread div.thread_line div.line-title.match code {
                 background-color: yellow !important;
             }
