@@ -845,8 +845,8 @@ if(!count($_GET)) {
                 </div>
             </form>
             <div style="width: 100%; padding: 0 15px;">
-                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
                 <button id="btn-DEBUG" class="btn btn-success applied" onclick="btnFilterClick(this)">DEBUG</button>
+                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
                 <button id="btn-WARNING" class="btn btn-warning applied" onclick="btnFilterClick(this)">WARNING</button>
                 <button id="btn-ERROR" class="btn btn-danger applied" onclick="btnFilterClick(this)">ERROR</button>
             </div>
