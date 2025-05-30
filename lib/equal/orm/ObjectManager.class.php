@@ -1589,8 +1589,8 @@ class ObjectManager extends Service {
                     }
                     // search for objects already set with unique values
                     if(count($domain)) {
-                        // overload default 'state' condition (set in search method): no restriction on state
-                        $domain[] = ['state', 'like', '%%'];
+                        // force default 'state' condition (otherwise set in search method)
+                        $domain[] = ['state', '<>', 'draft'];
                         // overload default 'deleted' condition (set in search method): we must be able to restore deleted objects
                         $domain[] = ['deleted', 'in', ['0', '1']];
                         // object does not conflict with itself
