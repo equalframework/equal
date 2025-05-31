@@ -1597,8 +1597,9 @@ class ObjectManager extends Service {
                         $domain[] = ['id', '<>', $id];
                         $conflict_ids = $this->search($class, $domain);
                         if($conflict_ids < 0) {
+                            trigger_error("ORM::validate() - call to search() returned an error code: {$conflict_ids}", QN_REPORT_WARNING);
                             // interrupt the process in case of system error (SQL)
-                            return $conflict_ids;
+                            return [];
                         }
                     }
                     // there is a violation : stop and fetch info about it
