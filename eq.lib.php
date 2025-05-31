@@ -1172,9 +1172,9 @@ namespace config {
                     include($script);
                 }
                 catch(\Throwable $e) {
-                    // prevent relaying exceptions with code 0 (handled as explicit process halt with no error)
+                    // exceptions with code 0 are used as explicit process halt with no error
                     if($e->getCode() != 0) {
-                        throw $e;                ;
+                        throw $e;
                     }
                 }
                 return ob_get_clean();
