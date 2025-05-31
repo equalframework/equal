@@ -1168,6 +1168,11 @@ namespace config {
 
             $getOperationOutput = function($script) use($context) {
                 ob_start();
+                include($script);
+                return ob_get_clean();
+
+                // #todo - is this necessary ? the same is performed in run.php
+                // if a controller does not want to be interrupted when an exception arises, it can use a try/catch block
                 try {
                     include($script);
                 }
@@ -1188,12 +1193,12 @@ namespace config {
                         $response = $context->httpResponse();
                         // build response with error details
                         $response
-                        // set status and body according to raised exception
-                        ->status(qn_error_http($error_code))
-                        ->header('Content-Type', 'application/json')
-                        ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
-                        // send HTTP response
-                        ->send();
+                            // set status and body according to raised exception
+                            ->status(qn_error_http($error_code))
+                            ->header('Content-Type', 'application/json')
+                            ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
+                            // send HTTP response
+                            ->send();
                     }
                 }
                 return ob_get_clean();
@@ -1431,6 +1436,8 @@ namespace {
                 return $result;
             }
 
+            // #memo - this shouldn't be necessary: if an Exception is raised in a controller this code is skipped anyway
+            /*
             if(isset($data['errors'])) {
                 // raise an exception with first returned error code
                 foreach($data['errors'] as $name => $message) {
@@ -1440,6 +1447,7 @@ namespace {
                     throw new \Exception($message, qn_error_code($name));
                 }
             }
+            */
 
             // #todo - adapt values if controller has a response schema
 
