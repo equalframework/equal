@@ -676,6 +676,8 @@ class Collection implements \Iterator, \Countable {
         }
 
         $method = new \ReflectionMethod($this->class, $method_name);
+        // make accessible, whatever the visibility
+        $method->setAccessible(true);
         $params = $method->getParameters();
 
         $args = [];
@@ -699,7 +701,10 @@ class Collection implements \Iterator, \Countable {
         }
 
         try {
-            $res = $this->class::$method_name(...$args);
+            if(!$method->isStatic()) {
+                throw new \Exception('non_static_method', EQ_ERROR_INVALID_PARAM);
+            }
+            $res = $method->invokeArgs(null, $args);
             if($res !== null) {
                 $result = $res;
             }
