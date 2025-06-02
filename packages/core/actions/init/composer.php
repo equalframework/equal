@@ -63,7 +63,7 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
 }
 
 // run composer to install dependencies (quiet mode, no interactions, ignore PHP version)
-if(exec('php composer.phar install --ignore-platform-reqs -q -n') === false) {
+if(exec('php composer.phar update --ignore-platform-reqs -q -n') === false) {
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 
