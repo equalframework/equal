@@ -606,19 +606,11 @@ class Model implements \ArrayAccess, \Iterator {
             $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             // check that the method actually exists
-            try {
-                $reflectionMethod = new \ReflectionMethod($collection, $name);
-                if($reflectionMethod->isPrivate() || $reflectionMethod->isProtected()) {
-                    $reflectionMethod->setAccessible(true);
-                    return $reflectionMethod->invokeArgs(null, $arguments);
-                }
-                else {
-                    return call_user_func_array([$collection, $name], $arguments);
-                }
+            if(is_callable([$collection, $name])) {
+                return call_user_func_array([$collection, $name], $arguments);
             }
-            catch(\Exception $e) {
-                trigger_error("ORM::ignoring non-resolved method '$name' for class " . static::getType(), EQ_REPORT_INFO);
-                return EQ_ERROR_UNKNOWN;
+            else {
+                throw new \Exception("call to non-existing (or non-accessible) method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
             }
         }
         return null;
