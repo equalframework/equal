@@ -27,7 +27,7 @@ jobs:
       # create an empty database
       - run: php run.php --do=init_db
       # initialize database with demo data
-      - run: php run.php --do=init_package --package=core --import=true
+      - run: php run.php --do=init_package --package=core --import=true --ignore_platform=true
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure

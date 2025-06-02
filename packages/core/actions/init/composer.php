@@ -12,7 +12,13 @@ use equal\http\HttpResponse;
 list($params, $providers) = eQual::announce([
     'description'   => "Downloads `composer.phar` and runs it for installing dependencies found in `composer.json`.",
     'help'          => "This controller relies on the PHP binary (`/usr/bin/php`). In order to make them work, sure the PHP binary is present in the PATH. If no `composer.json` is found, an error is returned.",
-    'params'        => [],
+    'params'        => [
+        'ignore_platform' => [
+            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'type'        => 'boolean',
+            'default'     => false
+        ]
+    ],
     'access'        => [
         'visibility'    => 'private'
     ],
@@ -63,8 +69,12 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
 }
 
 // run composer to install dependencies (quiet mode, no interactions, ignore PHP version)
-// if(exec('php composer.phar update --ignore-platform-reqs -q -n') === false) {
-if(exec('php composer.phar update --ignore-platform-reqs -q -n') === false) {
+$cmd = 'php composer.phar update -q -n';
+if($params['ignore_platform']) {
+    $cmd .= ' --ignore-platform-reqs';
+}
+
+if(exec($cmd) === false) {
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 

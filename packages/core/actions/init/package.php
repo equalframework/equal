@@ -59,6 +59,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'boolean',
             'default'       => true
         ],
+        'ignore_platform' => [
+            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'type'        => 'boolean',
+            'default'     => false
+        ],
         'root' => [
             'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
             'type'          => 'boolean',
@@ -393,7 +398,7 @@ else {
         }
 
         if($composer_needed) {
-            eQual::run('do', 'init_composer');
+            eQual::run('do', 'init_composer', ['ignore_platform' => $params['ignore_platform']]);
         }
     }
 }
