@@ -186,6 +186,7 @@ else {
                             'cascade'           => $params['cascade'],
                             'import'            => $params['import'] && $params['import_cascade'],
                             'force'             => $params['force'] && $params['force_cascade'],
+                            'ignore_platform'   => $params['ignore_platform'],
                             'root'              => false
                         ],
                         true);
