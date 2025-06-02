@@ -248,6 +248,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * @return mixed
+     * #[\ReturnTypeWillChange]
      */
     public function offsetGet($field)/*: mixed*/ {
         return isset($this->values[$field]) ? $this->values[$field] : null;
@@ -262,6 +263,10 @@ class Model implements \ArrayAccess, \Iterator {
         reset($this->values);
     }
 
+    /**
+     * @return mixed
+     * #[\ReturnTypeWillChange]
+     */
     public function current()/*: mixed*/ {
         return current($this->values);
     }
@@ -601,11 +606,19 @@ class Model implements \ArrayAccess, \Iterator {
             $factory = Collections::getInstance();
             $collection = $factory->create(get_called_class());
             // check that the method actually exists
-            if(is_callable([$collection, $name])) {
-                return call_user_func_array([$collection, $name], $arguments);
+            try {
+                $reflectionMethod = new \ReflectionMethod($collection, $name);
+                if($reflectionMethod->isPrivate() || $reflectionMethod->isProtected()) {
+                    $reflectionMethod->setAccessible(true);
+                    return $reflectionMethod->invokeArgs(null, $arguments);
+                }
+                else {
+                    return call_user_func_array([$collection, $name], $arguments);
+                }
             }
-            else {
-                throw new \Exception("call to non-existing method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
+            catch(\Exception $e) {
+                trigger_error("ORM::ignoring non-resolved method '$name' for class " . static::getType(), EQ_REPORT_INFO);
+                return EQ_ERROR_UNKNOWN;
             }
         }
         return null;
