@@ -383,7 +383,16 @@ else {
             $map_composer_current = json_decode($json, true);
         }
 
-        if($map_composer_current != $map_composer_original) {
+        $composer_needed = false;
+
+        if(!file_exists(EQ_BASEDIR.'/vendor/autoload.php')) {
+            $composer_needed = true;
+        }
+        elseif($map_composer_current != $map_composer_original) {
+            $composer_needed = true;
+        }
+
+        if($composer_needed) {
             eQual::run('do', 'init_composer');
         }
     }
