@@ -527,7 +527,13 @@ class Setting extends Model {
     public static function assert_value(string $package, string $section, string $code, $default=null, array $selector=[], string $lang=null) {
 
         if(!static::setting_exists($package, $section, $code)) {
-            $setting_id = static::create_setting($package, $section, $code);
+            $type = str_replace('double', 'float', gettype($default));
+            $setting_id = static::create_setting(
+                $package,
+                $section,
+                $code,
+                in_array($type, ['boolean', 'integer', 'float', 'string'], true) ? $type : 'string'
+            );
         }
         else {
             $setting_id = static::get_setting_id($package, $section, $code);
