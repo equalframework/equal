@@ -234,11 +234,12 @@ catch(Throwable $e) {
             ->header('Access-Control-Allow-Credentials', 'true')
             // append an 'error' section to response body
             ->extendBody([
-                    // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
-                    'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
-                ])
+                // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
+                'errors' => [ qn_error_name($error_code) => ($data) ? $data : mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
+            ])
             ->send();
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
+
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . qn_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
     // store NET info to access log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
@@ -247,7 +248,7 @@ catch(Throwable $e) {
                 'ip'        => $request->getHeaders()->getIpAddress()
             ])
         );
-    // an exception with code 0 is an explicit request to halt process with no error
+    // #memo - an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
        // return an error code (for compliance under CLI environment)
         exit(1);
