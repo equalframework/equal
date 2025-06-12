@@ -767,57 +767,50 @@ class ObjectManager extends Service {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
-                        // spot the fields that have not been computed yet (or unset) during this cycle
-                        $missing_ids = [];
-                        foreach($ids as $oid) {
-                            if(!isset($om->cache[$table_name][$oid][$lang][$field])) {
-                                $missing_ids[] = $oid;
+
+                        if(isset($schema[$field]['function'])) {
+                            trigger_error("ORM::computing 'function' {$schema[$field]['function']} for '$field' of class '$class'", EQ_REPORT_INFO);
+                            $res = $this->callonce($class, $schema[$field]['function'], $ids, [], $lang);
+                            trigger_error("ORM::computed 'function' {$schema[$field]['function']} for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
+                            if($res > 0) {
+                                foreach($ids as $oid) {
+                                    if(isset($res[$oid])) {
+                                        $value = $res[$oid];
+                                    }
+                                    else {
+                                        $value = null;
+                                    }
+                                    $om->cache[$table_name][$oid][$lang][$field] = $value;
+                                }
                             }
                         }
-                        if(count($missing_ids)) {
-                            if(isset($schema[$field]['function'])) {
-                                trigger_error("ORM::computing 'function' {$schema[$field]['function']} for '$field' of class '$class'", EQ_REPORT_INFO);
-                                $res = $this->callonce($class, $schema[$field]['function'], $missing_ids, [], $lang);
-                                trigger_error("ORM::computed 'function' {$schema[$field]['function']} for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
-                                if($res > 0) {
-                                    foreach($missing_ids as $oid) {
-                                        if(isset($res[$oid])) {
-                                            $value = $res[$oid];
+                        elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
+                            try {
+                                trigger_error("ORM::computing 'relation' for '$field' of class '$class'", QN_REPORT_INFO);
+                                $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
+                                trigger_error("ORM::computing 'relation' for '$field' of class '$class', result: ".serialize($res), QN_REPORT_INFO);
+                                foreach($res as $elem) {
+                                    $id = $elem['id'];
+                                    $relation = $schema[$field]['relation'];
+                                    while(is_array($relation)) {
+                                        $target = array_key_first($relation);
+                                        if(is_numeric($target)) {
+                                            $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]] ?? null;
+                                            break;
                                         }
                                         else {
-                                            $value = null;
+                                            $elem = $elem[$target] ?? null;
+                                            $relation = isset($relation[$target]) ? (array) $relation[$target] : null;
                                         }
-                                        $om->cache[$table_name][$oid][$lang][$field] = $value;
                                     }
                                 }
                             }
-                            elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
-                                try {
-                                    trigger_error("ORM::computing 'relation' for '$field' of class '$class'", QN_REPORT_INFO);
-                                    $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
-                                    trigger_error("ORM::computing 'relation' for '$field' of class '$class', result: ".serialize($res), QN_REPORT_INFO);
-                                    foreach($res as $elem) {
-                                        $id = $elem['id'];
-                                        $relation = $schema[$field]['relation'];
-                                        while(is_array($relation)) {
-                                            $target = array_key_first($relation);
-                                            if(is_numeric($target)) {
-                                                $om->cache[$table_name][$id][$lang][$field] = $elem[$relation[$target]] ?? null;
-                                                break;
-                                            }
-                                            else {
-                                                $elem = $elem[$target] ?? null;
-                                                $relation = isset($relation[$target]) ? (array) $relation[$target] : null;
-                                            }
-                                        }
-                                    }
-                                }
-                                catch(Exception $e) {
-                                    trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), QN_REPORT_ERROR);
-                                }
+                            catch(Exception $e) {
+                                trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), QN_REPORT_ERROR);
+                            }
 
-                            }
                         }
+
                     }
                 }
             ];
@@ -880,8 +873,7 @@ class ObjectManager extends Service {
                 }
 
                 // #memo - is_null() is favoured over empty() since an empty value could be the result of a calculation
-                $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$target_lang][$field])
-                                                        || is_null($this->cache[$table_name][$id][$target_lang][$field]));
+                $missing_ids = array_filter($ids, fn($id) => !isset($this->cache[$table_name][$id][$target_lang][$field]) || is_null($this->cache[$table_name][$id][$target_lang][$field]));
 
                 if(count($missing_ids)) {
                     // compute field for incomplete objects
