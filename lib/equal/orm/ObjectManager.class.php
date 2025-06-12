@@ -2161,6 +2161,10 @@ class ObjectManager extends Service {
                         }
 
                         foreach($ids as $oid) {
+                            if($schema[$field]['type'] === 'computed' && (!isset($schema[$field]['store']) || !$schema[$field]['store'])) {
+                                $fields_missing[] = $field;
+                                continue;
+                            }
                             // prevent using cache for one2many fields : cache can become inconsistent in case of cross updates
                             // #todo - use the cache for m2m relations (using the rel table)
                             if(in_array($schema[$field]['type'], ['one2many', 'many2many']) || !isset($this->cache[$table_name][$oid][$target_lang][$field])) {
