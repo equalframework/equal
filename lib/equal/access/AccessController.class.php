@@ -773,7 +773,24 @@ class AccessController extends Service {
                     $args = [];
                     foreach($methodParams as $methodParam) {
                         $param = $methodParam->getName();
-                        if($param === 'user_id') {
+                        if(in_array($param, [
+                                'orm',
+                                'report',
+                                'auth',
+                                'access',
+                                'context',
+                                'validate',
+                                'adapt',
+                                'route',
+                                'log',
+                                'cron',
+                                'dispatch',
+                                'db'
+                            ])) {
+                            $args[] = $this->container->get($param);
+                        }
+                        // #todo #deprecated - use $auth instead
+                        elseif($param === 'user_id') {
                             $args[] = $user_id;
                         }
                         elseif($param === 'self') {
