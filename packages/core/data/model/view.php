@@ -186,7 +186,7 @@ $updateNode = function (&$layout, $id, $node) {
 
 $entity = $params['entity'];
 
-list($view_type, $view_name) = explode('.', $params['view_id']);
+[$view_type, $view_name] = explode('.', $params['view_id']);
 
 if(!in_array($view_type, ['form', 'list', 'chart', 'search', 'report', 'cards', 'dashboard'])) {
     throw new Exception('invalid_view_type', EQ_ERROR_INVALID_PARAM);
@@ -218,7 +218,7 @@ while(true) {
         }
         $entity = $parent;
     }
-    catch(Exception $e) {
+    catch(Throwable $e) {
         // support for controller entities
         break;
     }
