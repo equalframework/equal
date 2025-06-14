@@ -62,7 +62,6 @@ class Logger extends Service {
         }
 
         $values = [
-            'date'          => time(),
             'action'        => $action,
             'object_class'  => $object_class,
             'object_id'     => $object_id,

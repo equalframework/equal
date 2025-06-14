@@ -44,7 +44,7 @@ class Log extends Model {
             'history' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
-                'usage'             => 'text/plain',
+                'usage'             => 'text/html',
                 'description'       => "Textual history of changes made to the object at the time of the Log.",
                 'function'          => 'calcHistory'
             ]
@@ -60,7 +60,7 @@ class Log extends Model {
      */
     public function getUnique() {
         return [
-            ['date', 'user_id', 'object_class', 'object_id'],
+            ['created', 'user_id', 'object_class', 'object_id'],
         ];
     }
 
@@ -71,7 +71,7 @@ class Log extends Model {
     protected static function calcHistory($self) {
         $result = [];
 
-        $self->read(['user_id', 'object_class', 'object_id', 'date']);
+        $self->read(['user_id', 'object_class', 'object_id', 'created']);
 
         foreach($self as $id => $log) {
             $change = Change::search(['log_id', '=', $id])->read(['description', 'diff'])->first();
@@ -89,7 +89,7 @@ class Log extends Model {
             $changes_ids = Change::search([
                         ['object_class', '=', $log['object_class']],
                         ['object_id', '=', $log['object_id']],
-                        ['created', '<', $log['date']],
+                        ['created', '<', $log['created']],
                         ['log_id', '<>', $id]
                     ],
                     ['limit' => 25, 'sort' => ['created' => 'desc']]
@@ -113,16 +113,8 @@ class Log extends Model {
                 }
             }
 
-            $date = date('l jS \of F Y', strtotime($log['date']));
-            $time = date('H:i:s', strtotime($log['date']));
-            $user = null;
-            if(!in_array($log['creator'], [0, 1], true)) {
-                $user = User::id($log['user_id'])->read(['name'])->first();
-            }
-
-            $text = "date: $date\n";
-            $text .= "time: $time\n";
-            $text .= "user: " . ($user['name'] ?? 'System') . "\n\n";
+            $html = "<table>";
+            $html .= "<thead><tr><th>Field</th><th>Prev</th><th></th><th>New</th></tr></thead><tbody>";
 
             foreach($map_new_values as $field => $new) {
                 $old = $map_old_values[$field] ?? '(unknown)';
@@ -132,10 +124,12 @@ class Log extends Model {
                 if(is_array($new)) {
                     $new = json_encode($new, JSON_UNESCAPED_UNICODE);
                 }
-                $text .= "$field : \"$old\" → \"$new\"\n";
+                $html .= "<tr><td>$field</td><td><em>$old</em></td><td>→</td><td>$new</td></tr>";
             }
 
-            $result[$id] = $text;
+            $html .= "</tbody></table>";
+
+            $result[$id] = $html;
         }
 
         return $result;
