@@ -62,11 +62,11 @@ class Logger extends Service {
         }
 
         $values = [
+            'date'          => time(),
             'action'        => $action,
             'object_class'  => $object_class,
             'object_id'     => $object_id,
-            'user_id'       => $user_id,
-            // 'value'         => $json
+            'user_id'       => $user_id
         ];
 
         // logs are system objects (no permissions must be applied)
@@ -88,6 +88,8 @@ class Logger extends Service {
         // logs are system objects (no permissions must be applied)
         $this->orm->create('core\Change', [
                 'log_id'       => $log_id,
+                'object_class'  => $object_class,
+                'object_id'     => $object_id,
                 'description'  => $description,
                 'diff'         => $json
             ], null, false);

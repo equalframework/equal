@@ -28,6 +28,16 @@ class Change extends Model {
                 'required'          => true
             ],
 
+            'object_class' => [
+                'type'              => 'string',
+                'description'       => "Class of entity this entry is related to."
+            ],
+
+            'object_id' => [
+                'type'              => 'integer',
+                'description'       => "Identifier of the targeted object (of given class)."
+            ],
+
             'description' => [
                 'type'              => 'string',
                 'usage'             => 'text/plain.small',
@@ -44,7 +54,7 @@ class Change extends Model {
 
     public function getUnique() {
         return [
-            [ 'log_id' ]
+            [ 'log_id', 'object_class', 'object_id' ]
         ];
     }
 

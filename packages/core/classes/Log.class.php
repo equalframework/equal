@@ -13,6 +13,11 @@ class Log extends Model {
 
     public static function getColumns() {
         return [
+            'date' => [
+                'type'              => 'datetime',
+                'description'       => 'Date and time of the log entry creation.'
+            ],
+
             'action' => [
                 'type'              => 'string',
                 'required'          => true,
@@ -46,11 +51,15 @@ class Log extends Model {
         ];
     }
 
+    /**
+     * Returns the unique fields of the model (for indexing).
+     * #memo - unity is checked through Collection
+     *
+     * @return string
+     */
     public function getUnique() {
         return [
-            ['user_id'],
-            ['object_class'],
-            ['object_id']
+            ['date', 'user_id', 'object_class', 'object_id'],
         ];
     }
 

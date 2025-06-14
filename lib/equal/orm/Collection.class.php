@@ -640,13 +640,13 @@ class Collection implements \Iterator, \Countable {
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
         $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
-        // 3) validate : check required fields accordingly
-        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
-        $this->validate($values, [], true, !$is_draft);
-
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
+
+        // 3) validate : check required fields accordingly
+        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
+        $this->validate($values, [], true, !$is_draft);
 
         $cancreate = $this->call('cancreate', $values);
         if(!empty($cancreate)) {
