@@ -490,25 +490,29 @@ class Setting extends Model {
 
     /**
      * Sets the value of a given SettingSequence: create it if necessary, and sets it to the given value.
-     * If the targeted SettingSequence does not exist, the call is ignored.
+     * If the targeted Setting does not exist, the call fails.
+     * If an error occur and the value cannot be set, false is returned. Upon success the newly assigned value is returned.
      *
      * @return  void
      */
     public static function set_sequence(string $package, string $section, string $code, int $value, array $selector=[]) {
         if(!static::setting_exists($package, $section, $code)) {
-            return;
+            return false;
         }
 
         $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
-            return;
+            return false;
         }
 
         $setting_sequence_id = static::get_setting_sequence_id($setting_id, $selector);
 
         if(!$setting_sequence_id) {
-            return;
+            $setting_sequence_id = static::create_sequence($setting_id, $selector);
+            if($setting_sequence_id <= 0) {
+                return false;
+            }
         }
 
         /** @var \equal\orm\ObjectManager $orm */
@@ -516,6 +520,8 @@ class Setting extends Model {
 
         // update all targeted values for given lang
         $orm->update(static::getSettingSequenceClass(), (array) $setting_sequence_id, ['value' => $value]);
+
+        return $value;
     }
 
     /**
@@ -662,7 +668,8 @@ class Setting extends Model {
 
     /**
      * Sets the value of a given setting value: create it if necessary, and sets it to the given value.
-     * If the targeted SettingValue does not exist, the call is ignored.
+     * If the targeted Setting does not exist, the call fails.
+     * If an error occur and the value cannot be set, false is returned. Upon success the newly assigned value is returned.
      *
      * @param string        $package    Package to which the setting relates to.
      * @param string        $section    Specific section within the package.
@@ -675,19 +682,22 @@ class Setting extends Model {
      */
     public static function set_value(string $package, string $section, string $code, $value, array $selector=[], string $lang=null) {
         if(!static::setting_exists($package, $section, $code)) {
-            return;
+            return false;
         }
 
         $setting_id = static::get_setting_id($package, $section, $code);
 
         if(!$setting_id) {
-            return;
+            return false;
         }
 
         $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if(!$setting_value_id) {
             $setting_value_id = static::create_value($setting_id, $selector);
+            if($setting_value_id <= 0) {
+                return false;
+            }
         }
 
         /** @var \equal\orm\ObjectManager $orm */
@@ -699,6 +709,8 @@ class Setting extends Model {
         $orm->update(static::getSettingValueClass(), (array) $setting_value_id, ['value' => $value], $lang);
 
         static::set_cache($package, $section, $code, $value, $selector, $lang);
+
+        return $value;
     }
 
     /**
