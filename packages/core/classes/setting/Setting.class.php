@@ -687,7 +687,7 @@ class Setting extends Model {
         $setting_value_id = static::get_setting_value_id($setting_id, $selector);
 
         if(!$setting_value_id) {
-            return;
+            $setting_value_id = static::create_value($setting_id, $selector);
         }
 
         /** @var \equal\orm\ObjectManager $orm */
