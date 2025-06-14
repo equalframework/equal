@@ -114,7 +114,6 @@ class Log extends Model {
             }
 
             $html = "<table>";
-            $html .= "<thead><tr><th>Change</th><th></th><th></th><th></th><th></th></tr></thead><tbody>";
 
             foreach($map_new_values as $field => $new) {
                 $old = $map_old_values[$field] ?? '(unknown)';
@@ -124,7 +123,10 @@ class Log extends Model {
                 if(is_array($new)) {
                     $new = json_encode($new, JSON_UNESCAPED_UNICODE);
                 }
-                $html .= "<tr><td>$field</td><td>&nbsp;</td><td><em>$old</em></td><td>→</td><td>$new</td></tr>";
+                if($old === $new) {
+                    continue;
+                }
+                $html .= "<tr><td><strong>$field</strong></td><td>&nbsp;</td><td><em>$old</em></td><td>→</td><td>$new</td></tr>";
             }
 
             $html .= "</tbody></table>";
