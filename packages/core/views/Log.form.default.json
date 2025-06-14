@@ -10,18 +10,18 @@
                             {
                                 "columns": [
                                     {
-                                        "width": "50%",
+                                        "width": "16%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
                                                 "value": "created",
-                                                "width": "50%"
+                                                "width": "100%"
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "user_id",
-                                                "width": "50%",
+                                                "width": "100%",
                                                 "label": "User",
                                                 "help": "User who performed the operation."
                                             }
@@ -29,12 +29,16 @@
                                     },
                                     {
                                         "width": "50%",
+                                        "items": []
+                                    },
+                                    {
+                                        "width": "16%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
                                                 "value": "object_class",
-                                                "width": "33%",
+                                                "width": "100%",
                                                 "label": "Entity",
                                                 "help": "Entity on which the operation was performed."
                                             },
@@ -48,7 +52,7 @@
                                             {
                                                 "type": "field",
                                                 "value": "action",
-                                                "width": "33%"
+                                                "width": "66%"
                                             }
                                         ]
                                     }
