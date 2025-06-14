@@ -41,11 +41,12 @@ class Log extends Model {
                 'description'       => "Identifier of the targeted object (of given class)."
             ],
 
-            'value' => [
-                'type'              => 'string',
-                'usage'             => 'text/json',
-                'description'       => "Changes (new values) made to the object, if any.",
-                'help'              => "JSON representation of the new values(diff) of the object (if changes were made)."
+            'history' => [
+                'type'              => 'computed',
+                'result_type'       => 'string',
+                'usage'             => 'text/plain',
+                'description'       => "Textual history of changes made to the object at the time of the Log.",
+                'function'          => 'calcHistory'
             ]
 
         ];
@@ -61,6 +62,83 @@ class Log extends Model {
         return [
             ['date', 'user_id', 'object_class', 'object_id'],
         ];
+    }
+
+    /**
+     * This method is used to calculate the history of a given object
+     *
+     */
+    protected static function calcHistory($self) {
+        $result = [];
+
+        $self->read(['user_id', 'object_class', 'object_id', 'date']);
+
+        foreach($self as $id => $log) {
+            $change = Change::search(['log_id', '=', $id])->read(['description', 'diff'])->first();
+            if(!$change) {
+                continue;
+            }
+
+            $map_old_values = [];
+            $map_new_values = json_decode($change['diff'], true);
+            if ($map_new_values === null) {
+                continue; // Ignore invalid JSON
+            }
+            $fields = array_keys($map_new_values);
+
+            $changes_ids = Change::search([
+                        ['object_class', '=', $log['object_class']],
+                        ['object_id', '=', $log['object_id']],
+                        ['created', '<', $log['date']],
+                        ['log_id', '<>', $id]
+                    ],
+                    ['limit' => 25, 'sort' => ['created' => 'desc']]
+                )
+                ->ids();
+
+            foreach($changes_ids as $change_id) {
+                $change = Change::id($change_id)->read(['diff'])->first();
+                $json = json_decode($change['diff'], true);
+                if ($json === null) {
+                    continue; // Ignore invalid JSON
+                }
+                foreach ($fields as $index => $field) {
+                    if (isset($json[$field])) {
+                        $map_old_values[$field] = $json[$field];
+                        unset($fields[$index]);
+                    }
+                }
+                if(empty($fields)) {
+                    break;
+                }
+            }
+
+            $date = date('l jS \of F Y', strtotime($log['date']));
+            $time = date('H:i:s', strtotime($log['date']));
+            $user = null;
+            if(!in_array($log['creator'], [0, 1], true)) {
+                $user = User::id($log['user_id'])->read(['name'])->first();
+            }
+
+            $text = "date: $date\n";
+            $text .= "time: $time\n";
+            $text .= "user: " . ($user['name'] ?? 'System') . "\n\n";
+
+            foreach($map_new_values as $field => $new) {
+                $old = $map_old_values[$field] ?? '(unknown)';
+                if(is_array($old)) {
+                    $old = json_encode($old, JSON_UNESCAPED_UNICODE);
+                }
+                if(is_array($new)) {
+                    $new = json_encode($new, JSON_UNESCAPED_UNICODE);
+                }
+                $text .= "$field : \"$old\" → \"$new\"\n";
+            }
+
+            $result[$id] = $text;
+        }
+
+        return $result;
     }
 
 }
