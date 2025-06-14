@@ -16,8 +16,7 @@ class Log extends Model {
             'action' => [
                 'type'              => 'string',
                 'required'          => true,
-                'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or any custom value).',
-                'generation'        => 'generateAction'
+                'description'       => 'The name of the action performed on targeted object (\'create\', \'update\', \'delete\', or any custom value).'
             ],
 
             'user_id' => [
@@ -41,8 +40,7 @@ class Log extends Model {
                 'type'              => 'string',
                 'usage'             => 'text/json',
                 'description'       => "Changes (new values) made to the object, if any.",
-                'help'              => "JSON representation of the new values(diff) of the object (if changes were made).",
-                'generation'        => 'generateValue'
+                'help'              => "JSON representation of the new values(diff) of the object (if changes were made)."
             ]
 
         ];
@@ -56,13 +54,4 @@ class Log extends Model {
         ];
     }
 
-    public static function generateAction(): string {
-        $base_actions = ['create', 'update', 'delete'];
-
-        return $base_actions[mt_rand(0, count($base_actions) - 1)];
-    }
-
-    public static function generateValue() {
-        return null;
-    }
 }
