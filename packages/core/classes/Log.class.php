@@ -102,8 +102,8 @@ class Log extends Model {
                 if ($json === null) {
                     continue; // Ignore invalid JSON
                 }
-                foreach ($fields as $index => $field) {
-                    if (isset($json[$field])) {
+                foreach($fields as $index => $field) {
+                    if(isset($json[$field])) {
                         $map_old_values[$field] = $json[$field];
                         unset($fields[$index]);
                     }
@@ -116,7 +116,7 @@ class Log extends Model {
             $html = "<table>";
 
             foreach($map_new_values as $field => $new) {
-                $old = $map_old_values[$field] ?? '(unknown)';
+                $old = $map_old_values[$field] ?? '(empty)';
                 if(is_array($old)) {
                     $old = json_encode($old, JSON_UNESCAPED_UNICODE);
                 }
