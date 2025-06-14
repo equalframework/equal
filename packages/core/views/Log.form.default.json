@@ -4,7 +4,7 @@
     "layout": {
         "groups": [
             {
-                "sections": [                    
+                "sections": [
                     {
                         "rows": [
                             {
@@ -15,29 +15,15 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "id",
-                                                "width": "50%",
-                                                "label": "Log ID",
-                                                "readonly": true
-                                            },
-                                            {
-                                                "type": "field",
                                                 "value": "created",
                                                 "width": "50%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "object_class",
+                                                "value": "user_id",
                                                 "width": "50%",
-                                                "label": "Entity",
-                                                "help": "Entity on which the operation was performed."
-                                            },
-                                            {
-                                                "type": "field",
-                                                "value": "object_id",
-                                                "width": "50%",
-                                                "label": "Identifier",
-                                                "help": "ID of the object on which the operation was performed."
+                                                "label": "User",
+                                                "help": "User who performed the operation."
                                             }
                                         ]
                                     },
@@ -47,22 +33,46 @@
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "user_id",
-                                                "width": "100%",
-                                                "label": "User",
-                                                "help": "User who performed the operation."
+                                                "value": "object_class",
+                                                "width": "33%",
+                                                "label": "Entity",
+                                                "help": "Entity on which the operation was performed."
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "object_id",
+                                                "width": "33%",
+                                                "label": "Identifier",
+                                                "help": "ID of the object on which the operation was performed."
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "action",
-                                                "width": "100%"
+                                                "width": "33%"
                                             }
                                         ]
-                                    }                                    
+                                    }
+                                ]
+                            },
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "history",
+                                                "width": "100%",
+                                                "label": "Log ID",
+                                                "readonly": true
+                                            }
+                                        ]
+                                    }
                                 ]
                             }
                         ]
-                    }            
+                    }
                 ]
             }
         ]
