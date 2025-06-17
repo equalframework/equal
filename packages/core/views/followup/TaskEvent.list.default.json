@@ -10,7 +10,7 @@
             },
             {
                 "type": "field",
-                "value": "entity",
+                "value": "object_class",
                 "width": "20%"
             },
             {

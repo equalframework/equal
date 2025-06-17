@@ -8,7 +8,7 @@
             "description": "Description du modèle de tâche.",
             "help": ""
         },
-        "entity": {
+        "object_class": {
             "label": "Namspace entité",
             "description": "Namspace de l'entité concernée.",
             "help": ""

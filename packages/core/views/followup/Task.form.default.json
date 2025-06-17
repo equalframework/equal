@@ -22,12 +22,12 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "entity",
+                                                "value": "object_class",
                                                 "width": "33%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "entity_id",
+                                                "value": "object_id",
                                                 "width": "33%"
                                             },
                                             {

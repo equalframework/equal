@@ -30,7 +30,7 @@ class TaskModel extends Model {
                 'description'       => "Description of the task model."
             ],
 
-            'entity' => [
+            'object_class' => [
                 'type'              => 'string',
                 'description'       => "Namespace of the concerned entity.",
                 'required'          => true

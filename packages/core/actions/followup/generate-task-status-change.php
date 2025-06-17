@@ -46,7 +46,7 @@ if(!class_exists($params['entity'])) {
     throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
 }
 
-$task_models = TaskModel::search(['entity', '=', $params['entity']])
+$task_models = TaskModel::search(['object_class', '=', $params['entity']])
     ->read([
         'name',
         'trigger_event_id' => [
@@ -105,10 +105,10 @@ if(!empty($task_models)) {
         }
 
         $task = Task::search([
-            ['task_model_id', '=', $task_model['id']],
-            ['entity', '=', $params['entity']],
-            ['entity_id', '=', $params['entity_id']],
-        ])
+                ['task_model_id', '=', $task_model['id']],
+                ['object_class', '=', $params['entity']],
+                ['entity_id', '=', $params['entity_id']],
+            ])
             ->read(['notes'])
             ->first();
 
@@ -125,8 +125,8 @@ if(!empty($task_models)) {
             'visible_date'  => $visible_date,
             'deadline_date' => $deadline_date,
             'task_model_id' => $task_model['id'],
-            'entity'        => $params['entity'],
-            'entity_id'     => $params['entity_id'],
+            'object_class'  => $params['entity'],
+            'object_id'     => $params['entity_id'],
             'notes'         => $notes
         ]);
     }

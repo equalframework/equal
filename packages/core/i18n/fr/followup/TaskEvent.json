@@ -3,7 +3,7 @@
     "plural": "Evénement de Tâches",
     "description": "Un événement de tâche associé à un changement de statut d’entité ou à une valeur de champ de date d’entité.",
     "model": {
-        "entity": {
+        "object_class": {
             "label": "Namspace entité",
             "description": "Namspace de l'entité concernée.",
             "help": ""

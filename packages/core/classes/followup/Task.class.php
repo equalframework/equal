@@ -67,13 +67,13 @@ class Task extends Model {
                 'description'       => "Notes about the task."
             ],
 
-            'entity' => [
+            'object_class' => [
                 'type'              => 'string',
                 'description'       => "Namespace of the concerned entity.",
                 'required'          => true
             ],
 
-            'entity_id' => [
+            'object_id' => [
                 'type'              => 'integer',
                 'description'       => "Id of the associated entity.",
                 'required'          => true

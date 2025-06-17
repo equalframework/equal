@@ -24,7 +24,7 @@ class TaskEvent extends Model {
                 'required'          => true
             ],
 
-            'entity' => [
+            'object_class' => [
                 'type'              => 'string',
                 'description'       => "Namespace of the concerned entity.",
                 'required'          => true
