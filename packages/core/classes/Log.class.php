@@ -118,7 +118,7 @@ class Log extends Model {
             $html = "<table>";
 
             foreach($map_new_values as $field => $new) {
-                $old = $map_old_values[$field] ?? '(empty)';
+                $old = $map_old_values[$field] ?? '(null)';
                 if($old === $new) {
                     continue;
                 }
@@ -127,7 +127,7 @@ class Log extends Model {
                     $new = $new ? 'true' : 'false';
                 }
                 elseif(is_null($new)) {
-                    $new = 'null';
+                    $new = '(null)';
                 }
                 elseif($new === '') {
                     $new = '(empty string)';
