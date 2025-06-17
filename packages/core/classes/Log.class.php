@@ -82,7 +82,8 @@ class Log extends Model {
             $map_old_values = [];
             $map_new_values = json_decode($change['diff'], true);
             if ($map_new_values === null) {
-                continue; // Ignore invalid JSON
+                // ignore invalid JSON
+                continue;
             }
             $fields = array_keys($map_new_values);
 
@@ -100,7 +101,8 @@ class Log extends Model {
                 $change = Change::id($change_id)->read(['diff'])->first();
                 $json = json_decode($change['diff'], true);
                 if ($json === null) {
-                    continue; // Ignore invalid JSON
+                    // ignore invalid JSON
+                    continue;
                 }
                 foreach($fields as $index => $field) {
                     if(isset($json[$field])) {
@@ -117,15 +119,20 @@ class Log extends Model {
 
             foreach($map_new_values as $field => $new) {
                 $old = $map_old_values[$field] ?? '(empty)';
-                if(is_array($old)) {
-                    $old = json_encode($old, JSON_UNESCAPED_UNICODE);
-                }
-                if(is_array($new)) {
-                    $new = json_encode($new, JSON_UNESCAPED_UNICODE);
-                }
                 if($old === $new) {
                     continue;
                 }
+
+                if(is_bool($new)) {
+                    $new = $new ? 'true' : 'false';
+                }
+                elseif(is_null($new)) {
+                    $new = 'null';
+                }
+                elseif($new === '') {
+                    $new = '(empty string)';
+                }
+
                 $html .= "<tr><td><strong>$field</strong></td><td>&nbsp;</td><td><em>$old</em></td><td>→</td><td>$new</td></tr>";
             }
 
