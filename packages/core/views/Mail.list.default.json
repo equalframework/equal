@@ -10,7 +10,8 @@
                 "value": "name",
                 "width": "25%",
                 "widget": {
-                    "sortable": true
+                    "sortable": true,
+                    "wrap": true
                 }
             },
             {
