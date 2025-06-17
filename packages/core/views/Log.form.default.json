@@ -1,6 +1,11 @@
 {
     "name": "Log entry",
     "description": "Simple form for displaying a log entry",
+    "header": {
+        "actions": {
+            "ACTION.EDIT": false
+        }
+    },
     "layout": {
         "groups": [
             {
@@ -10,29 +15,29 @@
                             {
                                 "columns": [
                                     {
-                                        "width": "16%",
+                                        "width": "33%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
                                                 "value": "created",
-                                                "width": "100%"
+                                                "width": "66%"
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "user_id",
-                                                "width": "100%",
+                                                "width": "66%",
                                                 "label": "User",
                                                 "help": "User who performed the operation."
                                             }
                                         ]
                                     },
                                     {
-                                        "width": "50%",
+                                        "width": "33%",
                                         "items": []
                                     },
                                     {
-                                        "width": "16%",
+                                        "width": "33%",
                                         "align": "left",
                                         "items": [
                                             {
