@@ -368,6 +368,32 @@ class Domain {
         return self::domainCheck($domain, $schema);
     }
 
+    /**
+     * Static version of sanitize() to work on array-style domains.
+     *
+     * @param array $domain
+     * @param array $schema
+     * @return array
+     */
+    public static function sanitize(array $domain, array $schema = []) {
+        $normalized = self::normalize($domain);
+        $result = [];
+
+        foreach($normalized as $clause) {
+            $validConditions = [];
+            foreach($clause as $condition) {
+                if(self::conditionCheck($condition, $schema)) {
+                    $validConditions[] = $condition;
+                }
+            }
+            if(!empty($validConditions)) {
+                $result[] = $validConditions;
+            }
+        }
+
+        return $result;
+    }
+
     public static function toString($domain) {
         $domain = self::normalize($domain);
         foreach($domain as $i => $clause) {
