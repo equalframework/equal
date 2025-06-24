@@ -1015,6 +1015,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function transition($transition) {
+        trigger_error("ORM::performing transition '{$transition}' on '{$this->class}'", EQ_REPORT_DEBUG);
         // retrieve targeted identifiers
         $ids = $this->ids();
         if(count($ids)) {
@@ -1042,6 +1043,7 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function do($action, $values=[]) {
+        trigger_error("ORM::performing action '{$action}' on '{$this->class}'", EQ_REPORT_DEBUG);
         // retrieve targeted identifiers
         $ids = $this->ids();
         if(count($ids)) {
