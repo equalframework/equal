@@ -343,6 +343,7 @@ class Domain {
 
                 [$field, $operator, $value] = $condition;
 
+/*
                 if(!is_null($value) && isset($schema[$field])) {
                     $f = new Field($schema[$field], $field);
                     $type = $f->getDescriptor()['result_type'];
@@ -361,7 +362,7 @@ class Domain {
                             break;
                     }
                 }
-
+*/
                 if(in_array($operator, ['in', 'not in'])) {
                     if(!is_array($value)) {
                         $value = [$value];
