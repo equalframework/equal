@@ -800,10 +800,10 @@ class AccessController extends Service {
 
                     if($reflectionMethod->isPrivate() || $reflectionMethod->isProtected()) {
                         $reflectionMethod->setAccessible(true);
-                        $res = $reflectionMethod->invokeArgs(null, $args);
+                        $res = (array) $reflectionMethod->invokeArgs(null, $args);
                     }
                     else {
-                        $res = $called_class::$called_method(...$args);
+                        $res = (array) $called_class::$called_method(...$args);
                     }
 
                     if(count($res)) {
