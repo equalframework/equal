@@ -7,7 +7,7 @@
 */
 use equal\orm\Collections;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
     'response'      => [
         'content-type'  => 'application/json',
@@ -19,6 +19,11 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'type'          => 'string',
             'required'      => true
+        ],
+        'view_id' =>  [
+            'description'   => 'The identifier of the view <type.name>.',
+            'type'          => 'string',
+            'default'       => 'form.default'
         ],
         'changes' =>  [
             'description'   => 'Associative array holding the fields whose values have been changed, with their related values.',
@@ -129,6 +134,9 @@ if(method_exists($params['entity'], 'onchange')) {
         }
         elseif($param_name == 'lang') {
             $args[] = $params['lang'];
+        }
+        elseif($param_name == 'view') {
+            $args[] = $params['view_id'];
         }
         elseif($param_name == 'self') {
             // #todo - should we add object id to the params ?
