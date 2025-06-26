@@ -450,11 +450,13 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and validate given domain
 
         if(!empty($domain)) {
-            $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
                 trigger_error("ORM::received invalid domain in Collection for entity {$this->class}:" . Domain::toString($domain), EQ_REPORT_ERROR);
                 $domain = Domain::sanitize($domain, $schema);
+            }
+            else {
+                $domain = Domain::normalize($domain);
             }
         }
 

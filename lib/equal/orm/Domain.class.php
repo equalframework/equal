@@ -319,7 +319,7 @@ class Domain {
     }
 
     public static function normalize($domain) {
-        if(!is_array($domain) || empty($domain) ) {
+        if(!is_array($domain) || empty($domain)) {
             return [];
         }
 
@@ -336,8 +336,42 @@ class Domain {
                 $domain = [$domain];
             }
         }
+
+        // handle edge cases for operators & values
+        foreach($domain as &$clause) {
+            foreach($clause as &$condition) {
+                if(count($condition) !== 3) {
+                    continue;
+                }
+
+                [$field, $operator, $value] = $condition;
+
+                if(in_array($operator, ['in', 'not in'])) {
+                    if(!is_array($value)) {
+                        $value = [$value];
+                    }
+                    if(!count($value)) {
+                        // fallback to avoid invalid condition
+                        $value = ['0'];
+                    }
+                }
+
+                if(is_null($value) || $value === 'null') {
+                    if($operator === '=') {
+                        $operator = 'is';
+                    }
+                    elseif($operator === '<>') {
+                        $operator = 'is not';
+                    }
+                }
+
+                $condition = [$field, $operator, $value];
+            }
+        }
+
         return $domain;
     }
+
 
     /**
      * @param Domain    $domain     Domain to be merged with current domain.
