@@ -116,14 +116,38 @@ class Log extends Model {
             }
 
             $html = "<table>";
+            $max_len = 120;
 
             foreach($map_new_values as $field => $new) {
-                $old = $map_old_values[$field] ?? '(null)';
+                $old = $map_old_values[$field];
+
                 if($old === $new) {
                     continue;
                 }
 
-                if(is_bool($new)) {
+                if(is_array($old)) {
+                    $old = implode(', ', $old);
+                }
+                elseif(is_object($old)) {
+                    $old = json_encode($old, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+                elseif(is_bool($old)) {
+                    $old = $old ? 'true' : 'false';
+                }
+                elseif(is_null($old)) {
+                    $old = '(null)';
+                }
+                elseif($old === '') {
+                    $old = '(empty string)';
+                }
+
+                if(is_array($new)) {
+                    $new = implode(', ', $new);
+                }
+                elseif(is_object($new)) {
+                    $new = json_encode($new, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+                elseif(is_bool($new)) {
                     $new = $new ? 'true' : 'false';
                 }
                 elseif(is_null($new)) {
@@ -132,6 +156,9 @@ class Log extends Model {
                 elseif($new === '') {
                     $new = '(empty string)';
                 }
+
+                $old = mb_strlen($old) > $max_len ? mb_substr($old, 0, $max_len - 1) . '…' : $old;
+                $new = mb_strlen($new) > $max_len ? mb_substr($new, 0, $max_len - 1) . '…' : $new;
 
                 $html .= "<tr><td><strong>$field</strong></td><td>&nbsp;</td><td><em>$old</em></td><td>→</td><td>$new</td></tr>";
             }
