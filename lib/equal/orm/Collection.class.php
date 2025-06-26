@@ -456,7 +456,7 @@ class Collection implements \Iterator, \Countable {
                 $domain = Domain::sanitize($domain, $schema);
             }
             else {
-                $domain = Domain::normalize($domain);
+                $domain = Domain::normalize($domain, $schema);
             }
         }
 

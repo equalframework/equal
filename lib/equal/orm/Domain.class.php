@@ -267,7 +267,7 @@ class Domain {
             trigger_error("ORM::missing condition in domain", QN_REPORT_ERROR);
             return false;
         }
-        // we need to have access to class definition to fully check conditions
+
         if(!empty($schema)) {
             $field = $condition[0];
             $operator = $condition[1];
@@ -277,18 +277,15 @@ class Domain {
                 return false;
             }
             // handle 'alias'
-            $is_alias = false;
+
             while($schema[$field]['type'] == 'alias') {
-                $is_alias = true;
-                $field = $schema[$field]['alias'];
+                $field = $schema[$field]['alias'] ?? '';
             }
             $target_type = $schema[$field]['type'];
             if($target_type == 'computed') {
                 $target_type = $schema[$field]['result_type'];
             }
-            if($is_alias) {
-            // #todo - adapt operator based on target type
-            }
+
             // operator must be amongst valid operators for specified field
             if(!in_array($operator, ObjectManager::$valid_operators[$target_type])) {
                 trigger_error("ORM::invalid operator '{$operator}' in domain", QN_REPORT_ERROR);
@@ -318,7 +315,7 @@ class Domain {
         return true;
     }
 
-    public static function normalize($domain) {
+    public static function normalize($domain, $schema=[]) {
         if(!is_array($domain) || empty($domain)) {
             return [];
         }
@@ -345,6 +342,25 @@ class Domain {
                 }
 
                 [$field, $operator, $value] = $condition;
+
+                if(!is_null($value) && isset($schema[$field])) {
+                    $f = new Field($schema[$field], $field);
+                    $type = $f->getDescriptor()['result_type'];
+                    switch($type) {
+                        case 'boolean':
+                            $value = (bool) $value;
+                            break;
+                        case 'integer':
+                            $value = (int) $value;
+                            break;
+                        case 'float':
+                            $value = (float) $value;
+                            break;
+                        case 'string':
+                            $value = (string) $value;
+                            break;
+                    }
+                }
 
                 if(in_array($operator, ['in', 'not in'])) {
                     if(!is_array($value)) {
@@ -410,7 +426,7 @@ class Domain {
      * @return array
      */
     public static function sanitize(array $domain, array $schema = []) {
-        $normalized = self::normalize($domain);
+        $normalized = self::normalize($domain, $schema);
         $result = [];
 
         foreach($normalized as $clause) {
