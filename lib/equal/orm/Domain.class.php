@@ -259,12 +259,12 @@ class Domain {
     private static function conditionCheck($condition, $schema=[]) {
         // condition must be an array
         if(!is_array($condition)) {
-            trigger_error("ORM::condition is not an array", QN_REPORT_ERROR);
+            trigger_error("ORM::condition is not an array", EQ_REPORT_ERROR);
             return false;
         }
         // condition must be composed of 3 elements (field, operator, operand)
         if(count($condition) != 3) {
-            trigger_error("ORM::missing condition in domain", QN_REPORT_ERROR);
+            trigger_error("ORM::missing condition in domain", EQ_REPORT_ERROR);
             return false;
         }
 
@@ -273,7 +273,7 @@ class Domain {
             $operator = $condition[1];
             // first operand (field) must be a valid field
             if(!in_array($field, array_keys($schema))) {
-                trigger_error("ORM::unknown field '{$field}' in domain", QN_REPORT_ERROR);
+                trigger_error("ORM::unknown field '{$field}' in domain", EQ_REPORT_WARNING);
                 return false;
             }
             // handle 'alias'
@@ -288,7 +288,7 @@ class Domain {
 
             // operator must be amongst valid operators for specified field
             if(!in_array($operator, ObjectManager::$valid_operators[$target_type])) {
-                trigger_error("ORM::invalid operator '{$operator}' in domain", QN_REPORT_ERROR);
+                trigger_error("ORM::invalid operator '{$operator}' in domain", EQ_REPORT_ERROR);
                 return false;
             }
         }
@@ -343,26 +343,6 @@ class Domain {
 
                 [$field, $operator, $value] = $condition;
 
-/*
-                if(!is_null($value) && isset($schema[$field])) {
-                    $f = new Field($schema[$field], $field);
-                    $type = $f->getDescriptor()['result_type'];
-                    switch($type) {
-                        case 'boolean':
-                            $value = (bool) $value;
-                            break;
-                        case 'integer':
-                            $value = (int) $value;
-                            break;
-                        case 'float':
-                            $value = (float) $value;
-                            break;
-                        case 'string':
-                            $value = (string) $value;
-                            break;
-                    }
-                }
-*/
                 if(in_array($operator, ['in', 'not in'])) {
                     if(!is_array($value)) {
                         $value = [$value];
