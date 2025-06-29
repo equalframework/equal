@@ -1711,6 +1711,7 @@ class ObjectManager extends Service {
                 // check if there is an object with same id
                 $records = $db->getRecords($table_name, 'id', (array) $creation_array['id']);
                 if($db->fetchArray($records)) {
+                    trigger_error("ORM::duplicate ID found for object {$class} in table {$table_name} ({$creation_array['id']}).", QN_REPORT_WARNING);
                     throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
                 }
                 $id = (int) $creation_array['id'];
