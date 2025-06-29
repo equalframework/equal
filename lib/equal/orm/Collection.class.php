@@ -940,9 +940,9 @@ class Collection implements \Iterator, \Countable {
             }
 
             // check if fields (other than special columns) can be updated
-            $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
-            if(!empty($canupdate)) {
-                throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
+            $can_update = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
+            if(!empty($can_update)) {
+                throw new \Exception(serialize($can_update), QN_ERROR_NOT_ALLOWED);
             }
 
             // 4) update objects
@@ -1022,13 +1022,13 @@ class Collection implements \Iterator, \Countable {
         $ids = $this->ids();
         if(count($ids)) {
             // attempt to perform transition
-            $res = $this->orm->transition($this->class, $ids, $transition);
-            if($res < 0) {
+            $can_transition = $this->orm->transition($this->class, $ids, $transition);
+            if($can_transition < 0) {
                 trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
-                throw new \Exception('transition_failed', $res);
+                throw new \Exception('transition_failed', $can_transition);
             }
-            elseif(count($res)) {
-                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
+            elseif(count($can_transition)) {
+                throw new \Exception(serialize($can_transition), EQ_ERROR_INVALID_PARAM);
             }
         }
         return $this;
