@@ -136,17 +136,20 @@
     "AUTH_ERROR_SERVER_ERROR": "A server error occurred. Please try later or contact support.",
 
     "APPS_APP_BOOKING": "Bookings",
+    "APPS_APP_PLANNING": "Planning",
     "APPS_APP_POS": "Point of Sale",
     "APPS_APP_ACCOUNTING": "Accounting",
     "APPS_APP_SALES": "Sales",
     "APPS_APP_SETTINGS": "Configuration",
     "APPS_APP_DOCUMENTS": "Documents",
     "APPS_APP_STATS": "Statistics",
+    "APPS_APP_CAMP": "Camps",
 
     "SETTINGS_LIST_SETTING": "Settings",
     "SETTINGS_LIST_CORE": "General",
     "SETTINGS_LIST_SALE": "Sale",
     "SETTINGS_LIST_PERMISSION": "Permissions",
+    "SETTINGS_LIST_PERMISSION_UPDATE": "Édition",
     "SETTINGS_LIST_FINANCE": "Finance",
 
     "DOCS_LIST_DOCUMENT": "Documents",
