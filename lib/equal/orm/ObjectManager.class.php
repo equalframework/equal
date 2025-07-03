@@ -1910,10 +1910,7 @@ class ObjectManager extends Service {
             $this->store($class, $ids, array_keys($fields), $lang);
 
 
-            
-
-
-            // 8) handle the resetting of dependent computed fields
+            // 7) handle the resetting of dependent computed fields
 
             // #memo - upon creation computed fields are left to null, unless explicitly assigned (in $fields) or marked as `instant`
 
@@ -1991,7 +1988,7 @@ class ObjectManager extends Service {
             }
 
 
-            // 7) second pass : handle fields onupdate events, if any
+            // 8) handle fields onupdate & onrevert events, if any
 
             if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
