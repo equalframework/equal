@@ -53,7 +53,7 @@ class UsageUri extends Usage {
                     'invalid_url' => [
                         'message'   => 'String is not a valid relative URL.',
                         'function'  =>  function($value) {
-                            return is_null($value) || (bool) (preg_match('/^\/([^\/])+(\/[a-zA-Z0-9\/%._=,]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
+                            return is_null($value) || (bool) (preg_match('/^\/([^\/])+(\/[a-zA-Z0-9\/%._=,-]*)?(\?[a-zA-Z0-9&=%._-]*)?(#[a-zA-Z0-9,%-\/]*)*(\?[a-zA-Z0-9&=%._-]*)?$/', $value));
                         }
                     ]
                 ];
