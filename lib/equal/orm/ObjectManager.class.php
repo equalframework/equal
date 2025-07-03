@@ -1910,24 +1910,7 @@ class ObjectManager extends Service {
             $this->store($class, $ids, array_keys($fields), $lang);
 
 
-            // 7) second pass : handle fields onupdate events, if any
-
-            if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
-                // #memo - this must be done after modifications otherwise object values might be outdated
-                if(count($onupdate_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONUPDATE) === self::EVENTS_FIELD_ONUPDATE) {
-                    // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
-                    foreach($onupdate_fields as $field) {
-                        // run onupdate callback (ignore undefined methods)
-                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang);
-                    }
-                }
-                if(count($onrevert_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONREVERT) === self::EVENTS_FIELD_ONREVERT) {
-                    foreach($onrevert_fields as $field) {
-                        // run onrevert callback (ignore undefined methods)
-                        $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang);
-                    }
-                }
-            }
+            
 
 
             // 8) handle the resetting of dependent computed fields
@@ -2007,6 +1990,25 @@ class ObjectManager extends Service {
                 $this->load($class, $ids, array_keys($instant_fields), $lang);
             }
 
+
+            // 7) second pass : handle fields onupdate events, if any
+
+            if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
+                // #memo - this must be done after modifications otherwise object values might be outdated
+                if(count($onupdate_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONUPDATE) === self::EVENTS_FIELD_ONUPDATE) {
+                    // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
+                    foreach($onupdate_fields as $field) {
+                        // run onupdate callback (ignore undefined methods)
+                        $this->callonce($class, $schema[$field]['onupdate'], $ids, $fields, $lang);
+                    }
+                }
+                if(count($onrevert_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONREVERT) === self::EVENTS_FIELD_ONREVERT) {
+                    foreach($onrevert_fields as $field) {
+                        // run onrevert callback (ignore undefined methods)
+                        $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang);
+                    }
+                }
+            }
 
             // 9) handle automatic transitions
 
