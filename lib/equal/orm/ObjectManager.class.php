@@ -1480,7 +1480,6 @@ class ObjectManager extends Service {
         foreach($values as $field => $value) {
             /** @var Field */
             $f = $model->getField($field);
-            $excerpt = mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');
             foreach($f->getConstraints() as $error_id => $constraint) {
                 if(!isset($constraint['function'])) {
                     continue;
@@ -1492,7 +1491,7 @@ class ObjectManager extends Service {
                         $constraints[$field] = [];
                     }
                     $constraints[$field][$error_id] = [
-                            'message'   => $constraint['message'] . "[{$excerpt}]",
+                            'message'   => $constraint['message'],
                             'function'  => $closure
                         ];
                 }
@@ -1508,6 +1507,7 @@ class ObjectManager extends Service {
                 // all fields can be reset to null (unless marked as `required`)
                 continue;
             }
+            $excerpt = mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');
             foreach($constraints[$field] as $error_id => $constraint) {
                 if(!isset($constraint['function']) ) {
                     continue;
@@ -1518,12 +1518,12 @@ class ObjectManager extends Service {
                     if(!isset($constraint['message'])) {
                         $constraint['message'] = 'Invalid field.';
                     }
-                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']}", EQ_REPORT_WARNING);
+                    trigger_error("ORM::given value (`$value`) for field `{$class}`::`{$field}` violates constraint : {$constraint['message']} [{$excerpt}]", EQ_REPORT_WARNING);
                     $error_code = EQ_ERROR_INVALID_PARAM;
                     if(!isset($res[$field])) {
                         $res[$field] = [];
                     }
-                    $res[$field][$error_id] = $constraint['message'];
+                    $res[$field][$error_id] = $constraint['message'] . " [{$excerpt}]";
                 }
             }
         }
