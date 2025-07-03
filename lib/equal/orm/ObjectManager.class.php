@@ -1480,6 +1480,7 @@ class ObjectManager extends Service {
         foreach($values as $field => $value) {
             /** @var Field */
             $f = $model->getField($field);
+            $excerpt = mb_strimwidth(json_encode($value, JSON_UNESCAPED_UNICODE), 0, 100, '...');
             foreach($f->getConstraints() as $error_id => $constraint) {
                 if(!isset($constraint['function'])) {
                     continue;
@@ -1491,7 +1492,7 @@ class ObjectManager extends Service {
                         $constraints[$field] = [];
                     }
                     $constraints[$field][$error_id] = [
-                            'message'   => $constraint['message'],
+                            'message'   => $constraint['message'] . "[{$excerpt}]",
                             'function'  => $closure
                         ];
                 }
@@ -2723,6 +2724,8 @@ class ObjectManager extends Service {
             }
         }
         catch(\Exception $e) {
+            // rollback
+            unset($this->cache[$table_name][$id][$lang]['status']);
             trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
