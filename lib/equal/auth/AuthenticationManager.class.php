@@ -41,6 +41,24 @@ class AuthenticationManager extends Service {
     }
 
     /**
+     * Returns the authentication level of the current user based on the given JWT token.
+     * This method checks the 'amr' (Authentication Methods Reference) in JWT to determine the authentication level (1: AAL1, 2: AAL2, 3: AAL3).
+     * If the token is not provided, it attempts to retrieve the current user's token. Default authentication level is 1.
+     */
+    public function getAuthLevel($token = null) {
+        $result = 1;
+        $jwt = $this->retrieveAccessToken($token);
+        if($jwt && isset($jwt['amr']) && is_array($jwt['amr'])) {
+            foreach($jwt['amr'] as $auth_method) {
+                if(isset($auth_method['auth_level']) && $auth_method['auth_level'] > $result) {
+                    $result = $auth_method['auth_level'];
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Provide a JWT token based on given user (or current user if known) and `AUTH_SECRET_KEY`.
      *
      * The JWT access token is built on a payload holding:
