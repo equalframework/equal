@@ -155,7 +155,7 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
 // passkey auth could be an escalation: check if a token is already present
 $jwt = $auth->retrieveAccessToken();
 
-// #todo - set auth_level based on $passkey['fmt']
+// #todo - set auth_level based on $passkey['fmt'] (could be 2 or 3)
 $auth_method = [
         'auth_type'     => 'passkey',
         'auth_level'    => 2

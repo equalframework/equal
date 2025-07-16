@@ -835,6 +835,7 @@ namespace config {
                         }
                     }
                 }
+                // check auth level (1: AAL1, 2: AAL2, 3: AAL3)
                 if(isset($announcement['access']['auth_level'])) {
                     $jwt = $auth->retrieveAccessToken();
                     if(!isset($jwt['amr'])) {

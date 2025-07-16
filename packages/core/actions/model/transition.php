@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Attempts to apply a transition on an object or a collection of a given class.",
     'params'        => [
         'entity' =>  [
@@ -44,7 +44,7 @@ list($params, $providers) = eQual::announce([
  * @var \equal\php\Context                  $context
  * @var \equal\orm\ObjectManager            $orm
  */
-list($context, $orm) = [$providers['context'], $providers['orm']];
+['context' => $context, 'orm' => $orm] = $providers;
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
