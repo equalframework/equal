@@ -728,7 +728,8 @@ class ObjectManager extends Service {
                     $lang = constant('DEFAULT_LANG');
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
-                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
                         // obtain the ids by searching inside relation table
                         $result = $om->db->getRecords(
