@@ -574,6 +574,10 @@ function view_test($data, $structure) {
             $key = is_numeric($item) ? $def : $item;
             if(is_numeric($item)) {
                 if(!isset($elem[$key])) {
+                    if($key === 'width' && (isset($elem['visible']) || isset($elem['widget']['visible']))) {
+                        // width is non-mandatory if the item is not visible
+                        continue;
+                    }
                     return "missing property '$key' for item $index";
                 }
             }
