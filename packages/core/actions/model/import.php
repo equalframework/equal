@@ -148,7 +148,7 @@ foreach($data as $entity_data) {
         unset($entity_data['id']);
     }
     else {
-        $id = $orm->create($entity, [], $lang);
+        $id = $orm->create($entity, [], $lang, false);
     }
 
     $orm->update($entity, $id, $entity_data, $lang);
