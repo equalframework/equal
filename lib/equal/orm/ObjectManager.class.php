@@ -262,12 +262,11 @@ class ObjectManager extends Service {
      * Returns a static instance for the specified object class (does not create a new object)
      *
      * @param   string       $class      The full name of the class with its namespace.
-     * @param   array        $fields     Associative array mapping fields with default values (provided by create() method).
      * @throws  Exception
      * @return  Model        Returns a partial instance of the targeted class.
      */
-    private function getStaticInstance($class, $fields=[]) {
-        if(count($fields) || !isset($this->models[$class])) {
+    private function getStaticInstance($class) {
+        if(!isset($this->models[$class])) {
             // if class is unknown, load the file containing the class declaration of the requested object
             if(!class_exists($class, false)) {
 
@@ -308,17 +307,11 @@ class ObjectManager extends Service {
                     }
                 }
 
-                if(!class_exists($class, false)) {
-                    throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
-                }
-
             }
-            if(!isset($this->models[$class])) {
-                $this->models[$class] = new $class();
+            if(!class_exists($class, false)) {
+                throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
             }
-            if(count($fields)) {
-                return new $class($fields);
-            }
+            $this->models[$class] = new $class();
         }
         return $this->models[$class];
     }
@@ -1640,7 +1633,8 @@ class ObjectManager extends Service {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDbHandler();
             // get static instance (checks that given class exists)
-            $object = $this->getStaticInstance($class, $fields);
+            $this->getStaticInstance($class);
+            $object = new $class($fields);
             // retrieve schema
             $schema = $object->getSchema();
             $table_name = $this->getObjectTableName($class);
