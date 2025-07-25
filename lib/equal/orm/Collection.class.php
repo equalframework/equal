@@ -701,6 +701,18 @@ class Collection implements \Iterator, \Countable {
             elseif($param_name == 'self') {
                 $args[] = $this;
             }
+            elseif($param_name == 'access') {
+                $args[] = $this->ac;
+            }
+            elseif($param_name == 'orm') {
+                $args[] = $this->orm;
+            }
+            elseif($param_name == 'auth') {
+                $args[] = $this->am;
+            }
+            elseif($param_name == 'adapt') {
+                $args[] = $this->dap;
+            }
         }
 
         try {
