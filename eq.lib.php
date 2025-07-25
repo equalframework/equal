@@ -192,9 +192,23 @@ namespace {
     }
 
     /**
-     * Mapper from string constants to internal error codes
+     * #deprecated - use eq_error_code
      */
     function qn_error_code($error_name) {
+        return eq_error_code($error_name);
+    }
+
+    /**
+     * #deprecated - use eq_error_http
+     */
+    function qn_error_http($error_id) {
+        return eq_error_http($error_id);
+    }
+
+    /**
+     * Mapper from string constants to internal error codes
+     */
+    function eq_error_code($error_name) {
         switch($error_name) {
             case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
             case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
@@ -213,7 +227,7 @@ namespace {
     /**
      * Mapper from internal error codes to HTTP codes
      */
-    function qn_error_http($error_id) {
+    function eq_error_http($error_id) {
         switch($error_id) {
             case 0:                         return 200;
             case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
