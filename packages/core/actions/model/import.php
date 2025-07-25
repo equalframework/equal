@@ -113,7 +113,7 @@ foreach($data as $entity_data) {
             $reporter->warning("ORM::unknown field $field for entity $entity in given data.");
             continue;
         }
-        $f = new Field($schema[$field]);
+        $f = new Field($schema[$field], $field);
         $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
     }
 
@@ -158,7 +158,7 @@ foreach($data as $entity_data) {
 
 $computed_fields = [];
 foreach($schema as $field => $def) {
-    if($def['type'] === 'computed') {
+    if($def['type'] === 'computed' && isset($def['store']) && $def['store'] === true) {
         $computed_fields[] = $field;
     }
 }
