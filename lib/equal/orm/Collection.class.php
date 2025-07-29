@@ -854,6 +854,11 @@ class Collection implements \Iterator, \Countable {
 
                 $subdomain = [];
                 $subparams = [];
+
+                if(isset($target['order'])) {
+                    $subparams['sort'] = [$target['order'] => (isset($target['sort'])) ? $target['sort'] : 'asc'];
+                }
+
                 foreach($subfields as $key => $val) {
                     if($key === '@domain') {
                         $subdomain = (array) $val;
