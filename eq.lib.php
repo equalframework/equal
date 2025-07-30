@@ -792,8 +792,12 @@ namespace config {
                 $announcement['access']['visibility'] = 'protected';
             }
 
-            // check access restrictions
-            if($announcement['access']['visibility'] != 'public' && php_sapi_name() != 'cli') {
+            // check access restrictions (no restriction for public controller, root user & preflight)
+            if($announcement['access']['visibility'] != 'public'
+                && php_sapi_name() != 'cli'
+                && !isset($body['announce'])
+                && $method !== 'OPTIONS'
+            ) {
                 // private is only allowed in CLI
                 if($announcement['access']['visibility'] == 'private') {
                     throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
