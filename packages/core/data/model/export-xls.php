@@ -90,7 +90,7 @@ else {
     // retrieve target entity
     $entity = $orm->getModel($params['entity']);
     if(!$entity) {
-        throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+        throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
     }
 
     // get the complete schema of the object (including special fields)
@@ -108,7 +108,7 @@ $view_schema = eQual::run('get', 'model_view', [
 ]);
 
 if(!isset($view_schema['layout']['items'])) {
-    throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('invalid_view', EQ_ERROR_INVALID_CONFIG);
 }
 
 $group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
@@ -220,7 +220,7 @@ try {
         'lang'          => $params['lang']
     ]);
     if(!isset($i18n['model'])) {
-        throw new Exception('invalid_translation', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('invalid_translation', EQ_ERROR_INVALID_CONFIG);
     }
     foreach($i18n['model'] as $field => $descr) {
         $translations[$field] = $descr;
