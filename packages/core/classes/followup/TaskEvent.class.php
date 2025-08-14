@@ -32,9 +32,12 @@ class TaskEvent extends Model {
 
             'event_type' => [
                 'type'              => 'string',
-                'description'       => "Event type.",
+                'description'       => 'Event type.',
                 'help'              => "Status events are meant for trigger of a task model. Date events are meant for trigger or deadline of a task model.",
-                'selection'         => ["status_change", "date_field"],
+                'selection'         => [
+                    'status_change',
+                    'date_field'
+                ],
                 'default'           => 'status_change',
                 'onupdate'          => 'onupdateEventType'
             ],

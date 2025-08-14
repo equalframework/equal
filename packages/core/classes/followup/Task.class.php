@@ -35,17 +35,19 @@ class Task extends Model {
             'done_by' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'description'       => "The user who completed the task."
+                'description'       => 'The user who completed the task.',
+                'visible'           => ['is_done', '=', true]
             ],
 
             'done_date' => [
                 'type'              => 'date',
-                'description'       => "Date on which the task was completed."
+                'description'       => "Date on which the task was completed.",
+                'visible'           => ['is_done', '=', true]
             ],
 
             'visible_date' => [
                 'type'              => 'date',
-                'description'       => "Date on which the task must be visible.",
+                'description'       => "Date from which the task must be visible.",
                 'default'           => function() { return strtotime('Today'); }
             ],
 
@@ -54,11 +56,33 @@ class Task extends Model {
                 'description'       => "Date on which the task as to be completed."
             ],
 
+            'has_task_model' => [
+                'type'              => 'boolean',
+                'description'       => "Whether the task has a task model associated with it.",
+                'default'           => false
+            ],
+
+            'trigger_event_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\followup\TaskEvent',
+                'description'       => "The trigger event associated with the task.",
+                'required'          => true
+            ],
+
+            'deadline_event_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\followup\TaskEvent',
+                'description'       => "The deadline event associated with the task.",
+                'domain'            => ['event_type', '=', 'date_field']
+            ],
+
             'task_model_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\followup\TaskModel',
                 'description'       => "The model used to create the task.",
-                'help'              => "If null the Task was created manually."
+                'help'              => "If null the Task was created manually.",
+                'onupdate'          => 'onupdateTaskModel',
+                'visible'           => ['has_task_model', '=', true]
             ],
 
             'notes' => [
@@ -140,6 +164,23 @@ class Task extends Model {
 
             if(!empty($done_data)) {
                 self::id($id)->update($done_data);
+            }
+        }
+    }
+
+    protected static function onupdateTaskModel($self) {
+        $self->read(['task_model_id' => ['trigger_event_id', 'deadline_event_id']]);
+        foreach($self as $id => $task) {
+            $values = [];
+            if(isset($task['task_model_id'])) {
+                $values['has_task_model'] = true;
+                if(isset($task['task_model_id']['trigger_event_id'])) {
+                    $values['trigger_event_id'] = $task['task_model_id']['trigger_event_id'];
+                }
+                if(isset($task['task_model_id']['deadline_event_id'])) {
+                    $values['deadline_event_id'] = $task['task_model_id']['deadline_event_id'];
+                }
+                self::id($id)->update($values);
             }
         }
     }
