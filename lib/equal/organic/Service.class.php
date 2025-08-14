@@ -26,4 +26,8 @@ class Service extends Singleton {
         return $this->container;
     }
 
+    public function setContainer(&$container) {
+        $this->container = $container;
+    }
+
 }

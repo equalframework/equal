@@ -405,10 +405,10 @@ $tests = [
                     'expected'          =>  true,
                     'test'              =>  function () use($providers) {
 
-                                                $auth1 = $providers['context']->container->get('auth');
+                                                $auth1 = $providers['context']->getContainer()->get('auth');
                                                 $auth2 = $providers['auth'];
 
-                                                $access1 = $providers['context']->container->get('access');
+                                                $access1 = $providers['context']->getContainer()->get('access');
                                                 $access2 = $providers['access'];
 
                                                 return ( $auth1 == $auth2 && $access1 == $access2);

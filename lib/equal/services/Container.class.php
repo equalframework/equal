@@ -121,7 +121,7 @@ class Container extends Service {
                 if(!count($unresolved_dependencies)) {
                     $instance = call_user_func_array($dependency.'::getInstance', $dependencies_instances);
                     // make container available to all services instances
-                    $instance->container = $this;
+                    $instance->setContainer($this);
                 }
             }
         }
