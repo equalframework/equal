@@ -12,7 +12,7 @@ class Service extends Singleton {
     /*  All services are instantiated through the service container
         which instance is, in turn, made available as public member
     */
-    public $container;
+    protected $container;
 
     /**
      * Returns a list of constant names that the service expects to be available.

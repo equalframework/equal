@@ -24,12 +24,9 @@ class Collections extends Service {
     public function create($class) {
         // instantiate a new collection and give it access to available services through the container instance member
         $collectionClass = '\\'.constant('SERVICE_ORM_COLLECTION_CLASS');
-        return new $collectionClass ($class,
-            $this->container->get('orm'),
-            $this->container->get('access'),
-            $this->container->get('auth'),
-            $this->container->get('adapt'),
-            $this->container->get('log')
+        return new $collectionClass (
+            $class,
+            $this->container
         );
     }
 }

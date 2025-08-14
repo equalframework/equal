@@ -9,6 +9,9 @@ namespace equal\orm;
 
 class Collection implements \Iterator, \Countable {
 
+    /** @var \equal\services\Container */
+    private $container;
+
     /** @var \equal\orm\ObjectManager */
     protected $orm;
 
@@ -62,29 +65,28 @@ class Collection implements \Iterator, \Countable {
      * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`)
      *
      * @var string                                  $class
-     * @var \equal\orm\ObjectManager                $objectManager
-     * @var \equal\access\AccessController          $accessController
-     * @var \equal\auth\AuthenticationManager       $authenticationManager
-     * @var \equal\data\adapt\DataAdapterProvider   $dataAdapterProvider
-     * @var \equal\log\Logger                       $logger
+     * @var \equal\service\Container                $container      Service container relayed from Collections service.
      */
-    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapterProvider, $logger) {
+    public function __construct($class, $container) {
         // init objects map
         $this->objects = [];
 
         // assign private members
         $this->class = $class;
-        $this->orm = $objectManager;
-        $this->ac = $accessController;
-        $this->am = $authenticationManager;
-        $this->dap = $dataAdapterProvider;
+
+        $this->container = $container;
+
+        $this->orm = $this->container->get('orm');
+        $this->ac = $this->container->get('access');
+        $this->am = $this->container->get('auth');
+        $this->dap = $this->container->get('adapt');
+        $this->logger = $this->container->get('log');
+
         $this->adapter = null;
-        // $this->adapter = $dataAdapter;
 
         // default according to config
         $this->lang = constant('DEFAULT_LANG');
 
-        $this->logger = $logger;
         // check mandatory services
         if(!$this->orm || !$this->ac) {
             throw new \Exception(__CLASS__, EQ_ERROR_UNKNOWN);
@@ -681,37 +683,47 @@ class Collection implements \Iterator, \Countable {
         $method = new \ReflectionMethod($this->class, $method_name);
         // make accessible, whatever the visibility
         $method->setAccessible(true);
-        $params = $method->getParameters();
+        $methodParams = $method->getParameters();
 
         $args = [];
-        foreach($params as $param) {
-            $param_name = $param->getName();
-            if(in_array($param_name, ['om', 'orm'])) {
+        foreach($methodParams as $methodParam) {
+            $param = $methodParam->getName();
+            if(in_array($param, ['om', 'orm'])) {
                 $args[] = $this->orm;
             }
-            elseif(in_array($param_name, ['ids', 'oids'])) {
+            elseif(in_array($param, ['ids', 'oids'])) {
                 $args[] = $this->ids();
             }
-            elseif($param_name == 'values') {
+            elseif($param == 'values') {
                 $args[] = $values;
             }
-            elseif($param_name == 'lang') {
+            elseif($param == 'lang') {
                 $args[] = $this->lang;
             }
-            elseif($param_name == 'self') {
+            elseif($param == 'self') {
                 $args[] = $this;
             }
-            elseif($param_name == 'access') {
+            elseif($param == 'access') {
                 $args[] = $this->ac;
             }
-            elseif($param_name == 'orm') {
-                $args[] = $this->orm;
-            }
-            elseif($param_name == 'auth') {
+            elseif($param == 'auth') {
                 $args[] = $this->am;
             }
-            elseif($param_name == 'adapt') {
+            elseif($param == 'adapt') {
                 $args[] = $this->dap;
+            }
+            elseif($param == 'log') {
+                $args[] = $this->logger;
+            }
+            elseif(in_array($param, [
+                    'report',
+                    'context',
+                    'validate',
+                    'route',
+                    'cron',
+                    'dispatch',
+                    'db'])) {
+                $args[] = $this->container->get($param);
             }
         }
 
