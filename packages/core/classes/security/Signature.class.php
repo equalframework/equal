@@ -278,6 +278,37 @@ class Signature extends Model {
         return $pub;
     }
 
+    private static function computeSignerInfoFromPem(string $pem) {
+        $parsed = openssl_x509_parse($pem, false);
+
+        if(!$parsed || !isset($parsed['subject'])) {
+            throw new \Exception('invalid_X509_cert', EQ_ERROR_UNKNOWN);
+        }
+
+        $subject = $parsed['subject'] ?? [];
+
+        $firstname_words = preg_split('/\s+/', $subject['givenName']);
+        $lastname_words = preg_split('/\s+/', $subject['surname']);
+
+        $common_name_words = preg_split('/\s+/', preg_replace('/\s*\(.*\)$/u', '', $subject['commonName']));
+
+        $intersectWords = function (array $a, array $b) {
+            $aLower = array_map('mb_strtolower', $a);
+            $bLower = array_map('mb_strtolower', $b);
+            $inter = array_uintersect_assoc($a, $a, function ($w1, $w2) use ($aLower, $bLower) {
+                return (in_array(mb_strtolower($w1), $bLower)) ? 0 : 1;
+            });
+            return $inter;
+        };
+
+        $result = [
+            'firstname'                 => implode(' ', $intersectWords($common_name_words, $firstname_words)),
+            'lastname'                  => implode(' ', $intersectWords($common_name_words, $lastname_words)),
+            'citizen_identification'    => $subject['serialNumber'] ?? '',
+        ];
+
+        return $result;
+    }
 
     private static function computePublicKeyFromCert(string $cert) {
         $pem = self::computePemFromCert($cert);
