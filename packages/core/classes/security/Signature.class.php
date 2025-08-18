@@ -168,7 +168,8 @@ class Signature extends Model {
 
             'sig_cert' => [
                 'type'              => 'binary',
-                'usage'             => 'application/pkix-cert',
+                // #todo - not supported yes by UsageFactory
+                /*'usage'             => 'application/pkix-cert',*/
                 'description'       => 'X.509 certificate of the signer, as DER-encoded binary value.',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']],
                 'dependents'        => ['has_certificate']
