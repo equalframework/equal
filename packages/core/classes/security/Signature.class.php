@@ -130,10 +130,10 @@ class Signature extends Model {
                     This field holds the hexadecimal representation of the value of the hash of the raw data, and might require a conversion to binary.
                     Only SHA-256 is supported for now.',
                 'readonly'          => true,
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
-            'signature_method' => [
+            'sig_method' => [
                 'type'              => 'string',
                 'selection'         => ['ses', 'aes', 'qes'],
                 'required'          => true,
@@ -144,14 +144,14 @@ class Signature extends Model {
                 'type'              => 'boolean',
                 'description'       => 'True if a certificate is attached.',
                 'help'              => 'This flag is set manually when a certificate is attached to the Signature.',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_drawn' => [
                 'type'              => 'binary',
                 'usage'             => 'image/png.signature',
                 'description'       => 'Handwritten signature (PNG), if present.',
-                'visible'           => ['signature_method', '=', 'ses'],
+                'visible'           => ['sig_method', '=', 'ses'],
             ],
 
             'sig_json_cms' => [
@@ -160,14 +160,14 @@ class Signature extends Model {
                 'usage'             => 'text/json.small',
                 'description'       => 'JSON CMS (Cryptographic Message Syntax) representation of the signature.',
                 'function'          => 'calcJsonCms',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_cert' => [
                 'type'              => 'binary',
                 'usage'             => 'application/pkix-cert',
                 'description'       => 'X.509 certificate of the signer, as DER-encoded binary value.',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_hash' => [
@@ -175,14 +175,14 @@ class Signature extends Model {
                 'usage'             => 'text/plain:1000',
                 'description'       => 'Cryptographic signature (signed hash).',
                 'help'              => 'Base64 value of the cryptographic signature (RSA or ECDSA).',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']],
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']],
             ],
 
             'sig_algo_oid' => [
                 'type'              => 'string',
                 'description'       => 'Signature algorithm, e.g., RSA, ECC',
                 'dependents'        => ['sig_algo', 'sig_padding', 'sig_hash_func'],
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_algo' => [
@@ -191,7 +191,7 @@ class Signature extends Model {
                 'function'          => 'calcSigAlgo',
                 'store'             => true,
                 'description'       => 'Signature algorithm, e.g., RSA, ECC',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_hash_func' => [
@@ -200,7 +200,7 @@ class Signature extends Model {
                 'function'          => 'calcSigHashFunc',
                 'store'             => true,
                 'description'       => 'Signature algorithm, e.g., RSA, ECC',
-                'visible'           => ['signature_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
             ],
 
             'sig_padding' => [
@@ -210,7 +210,7 @@ class Signature extends Model {
                 'store'             => true,
                 'description'       => 'Public key padding scheme (RSA only). PKCS1.5, PSS, OAEP, NONE.',
                 'help'              => 'Required for RSA signatures. NONE for algorithms without padding (e.g., ECDSA).',
-                'visible'           => [['signature_method', 'in', ['aes', 'qes']], ['sig_algo', '=', 'RSA']]
+                'visible'           => [['sig_method', 'in', ['aes', 'qes']], ['sig_algo', '=', 'RSA']]
             ],
 
             'sig_timestamp' => [
@@ -224,11 +224,11 @@ class Signature extends Model {
 
     protected static function calcName($self) {
         $result = [];
-        $self->read(['signature_method', 'sig_algo_oid', 'sig_hash_func']);
+        $self->read(['sig_method', 'sig_algo_oid', 'sig_hash_func']);
 
         foreach($self as $id => $signature) {
             $algo = self::OID_MAP[$signature['sig_algo_oid']] ?? null;
-            $result[$id] = $signature['signature_method'] . ' signature';
+            $result[$id] = $signature['sig_method'] . ' signature';
             if($algo) {
                 $result[$id] .= ' (' . $algo['cryptoAlgorithm'] . ', ' . $algo['hashFunction'] . ')';
             }
