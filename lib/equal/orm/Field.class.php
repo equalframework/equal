@@ -86,6 +86,10 @@ class Field {
     /**
      * Provides the usage string equivalent of the type of the Field instance.
      * This method maps `types` (implicit usage format) with explicit usage formats.
+     *
+     * #todo - we should know in advance if usage attribute resolves to an usage known of UsageFactory
+     * (otherwise, we should fallback to result_type)
+     *
      */
     protected function getUsageString(): string {
         $result = $this->descriptor['usage'] ?? '';
