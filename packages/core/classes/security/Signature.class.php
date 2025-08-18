@@ -141,7 +141,10 @@ class Signature extends Model {
             ],
 
             'has_certificate' => [
-                'type'              => 'boolean',
+                'type'              => 'computed',
+                'result_type'       => 'boolean',
+                'function'          => 'calcHasCertificate',
+                'store'             => true,
                 'description'       => 'True if a certificate is attached.',
                 'help'              => 'This flag is set manually when a certificate is attached to the Signature.',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']]
@@ -167,7 +170,8 @@ class Signature extends Model {
                 'type'              => 'binary',
                 'usage'             => 'application/pkix-cert',
                 'description'       => 'X.509 certificate of the signer, as DER-encoded binary value.',
-                'visible'           => ['sig_method', 'in', ['aes', 'qes']]
+                'visible'           => ['sig_method', 'in', ['aes', 'qes']],
+                'dependents'        => ['has_certificate']
             ],
 
             'sig_hash' => [
@@ -231,6 +235,20 @@ class Signature extends Model {
             $result[$id] = $signature['sig_method'] . ' signature';
             if($algo) {
                 $result[$id] .= ' (' . $algo['cryptoAlgorithm'] . ', ' . $algo['hashFunction'] . ')';
+            }
+        }
+        return $result;
+    }
+
+    protected static function calcHasCertificate($self) {
+        $result = [];
+        $self->read(['sig_drawn', 'sig_cert']);
+        foreach($self as $id => $signature) {
+            if(strlen($signature['sig_cert']) > 0) {
+                $result[$id] = true;
+            }
+            elseif(strlen($signature['sig_drawn']) > 0) {
+                $result[$id] = false;
             }
         }
         return $result;
