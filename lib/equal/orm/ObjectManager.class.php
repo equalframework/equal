@@ -594,15 +594,15 @@ class ObjectManager extends Service {
                             ]
                         ],
                         'object_id');
+                    /** @var \equal\data\adapt\DataAdapterProvider */
+                    $dap = $this->container->get('adapt');
+                    /** @var \equal\data\adapt\DataAdapter */
+                    $adapter = $dap->get('sql');
                     // fill in the internal buffer with returned rows (translation is stored in the 'value' column)
                     while($row = $om->db->fetchArray($result)) {
                         $oid = $row['object_id'];
                         $field = $row['object_field'];
                         // do some pre-treatment if necessary (this step is symmetrical to the one in store method)
-                        /** @var \equal\data\adapt\DataAdapterProvider */
-                        $dap = $this->container->get('adapt');
-                        /** @var \equal\data\adapt\DataAdapter */
-                        $adapter = $dap->get('sql');
                         $value = $adapter->adaptIn($row['value'], 'binary');
                         // update the internal buffer with fetched value
                         $om->cache[$table_name][$oid][$lang][$field] = $value;
@@ -619,7 +619,10 @@ class ObjectManager extends Service {
                 'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
                     // #memo - this handler is for non-multilang fields
                     $lang = constant('DEFAULT_LANG');
-
+                    /** @var \equal\data\adapt\DataAdapterProvider */
+                    $dap = $this->container->get('adapt');
+                    /** @var \equal\data\adapt\DataAdapter */
+                    $adapter = $dap->get('sql');
                     // make sure to load the 'id' field (we need it to map fetched values to their object)
                     $fields[] = 'id';
                     // get all records at once
@@ -632,10 +635,6 @@ class ObjectManager extends Service {
                         foreach($row as $field => $value) {
                             // do some pre-treatment if necessary (this step is symmetrical to the one in store method)
                             if(!is_null($value)) {
-                                /** @var \equal\data\adapt\DataAdapterProvider */
-                                $dap = $this->container->get('adapt');
-                                /** @var \equal\data\adapt\DataAdapter */
-                                $adapter = $dap->get('sql');
                                 $f = new Field($schema[$field], $field);
                                 $value = $adapter->adaptIn($value, $f->getUsage());
                             }
@@ -978,6 +977,8 @@ class ObjectManager extends Service {
             'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
                 /** @var \equal\data\adapt\DataAdapterProvider */
                 $dap = $this->container->get('adapt');
+                /** @var \equal\data\adapt\DataAdapter */
+                $adapter = $dap->get('sql');
                 // #memo - this handler is for non-multilang fields
                 $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
@@ -986,8 +987,6 @@ class ObjectManager extends Service {
                         $value = (isset($om->cache[$table_name][$oid][$lang][$field])) ? $om->cache[$table_name][$oid][$lang][$field] : null;
                         // adapt values except for null of computed fields (marked as to be re-computed)
                         if(!is_null($value) || $schema[$field]['type'] != 'computed') {
-                            /** @var \equal\data\adapt\DataAdapter */
-                            $adapter = $dap->get('sql');
                             $f = new Field($schema[$field], $field);
                             // adapt value to SQL
                             $value = $adapter->adaptOut($value, $f->getUsage());
@@ -1718,8 +1717,8 @@ class ObjectManager extends Service {
             $sql_values = [];
             /** @var \equal\data\adapt\DataAdapterProvider */
             $dap = $this->container->get('adapt');
+            $adapter = $dap->get('sql');
             foreach($creation_array as $field => $value) {
-                $adapter = $dap->get('sql');
                 $f = new Field($schema[$field], $field);
                 // adapt value to SQL
                 $sql_values[$field] = $adapter->adaptOut($value, $f->getUsage());
