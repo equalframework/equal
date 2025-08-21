@@ -52,8 +52,7 @@ class User extends Model {
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
-                'onupdate'          => 'onupdatePassword',
-                'required'          => true
+                'onupdate'          => 'onupdatePassword'
             ],
 
             'nickname' => [
