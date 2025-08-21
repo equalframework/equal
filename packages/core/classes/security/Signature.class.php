@@ -220,9 +220,18 @@ class Signature extends Model {
 
             'sig_timestamp' => [
                 'type'              => 'datetime',
-                'description'       => 'Timestamp of the signature',
-                'default'           => function () { return time(); }
-            ]
+                'description'       => 'Timestamp of the signature.',
+                'default'           => function () { return time(); },
+                'readonly'          => true
+            ],
+
+            'is_valid' => [
+                'type'              => 'computed',
+                'result_type'       => 'boolean',
+                'description'       => 'Result of the check of signature digest using Certificate public key.',
+                'function'          => 'calcIsValid',
+                'store'             => false
+            ],
 
         ];
     }
@@ -273,6 +282,20 @@ class Signature extends Model {
                 'certificate'               => self::computePemFromCert($signature['sig_cert']),
                 'signatureFormat'           => 'raw-digest-signature'
             ], JSON_PRETTY_PRINT);
+        }
+        return $result;
+    }
+
+    protected static function calcIsValid($self) {
+        $result = [];
+        $self->read(['data_digest', 'sig_algo_oid', 'sig_hash', 'sig_cert']);
+        foreach($self as $id => $signature) {
+            $result[$id] = self::computeSignatureValidation(
+                    $signature['data_digest'],
+                    $signature['sig_algo_oid'],
+                    $signature['sig_hash'],
+                    $signature['sig_cert']
+                );
         }
         return $result;
     }
