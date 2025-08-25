@@ -150,7 +150,7 @@ try {
     }
     else {
         $route = [
-            'operation' => Router::normalizeOperation('?'.$uri->query())
+            'operation' => Router::normalizeOperation('?' . http_build_query((array) $request->body()))
         ];
         // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root `config.json`)
         if(!isset($route['operation']['name'])) {
