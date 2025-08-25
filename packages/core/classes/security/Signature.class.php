@@ -168,7 +168,7 @@ class Signature extends Model {
 
             'sig_cert' => [
                 'type'              => 'binary',
-                // #todo - not supported yes by UsageFactory
+                // #todo - not supported yet by UsageFactory
                 /*'usage'             => 'application/pkix-cert',*/
                 'description'       => 'X.509 certificate of the signer, as DER-encoded binary value.',
                 'visible'           => ['sig_method', 'in', ['aes', 'qes']],
@@ -271,9 +271,12 @@ class Signature extends Model {
     protected static function calcJsonCms($self) {
         $result = [];
 
-        $self->read(['data_digest', 'sig_algo_oid', 'sig_hash_func', 'sig_hash', 'sig_cert', 'sig_timestamp']);
+        $self->read(['has_certificate', 'data_digest', 'sig_algo_oid', 'sig_hash_func', 'sig_hash', 'sig_cert', 'sig_timestamp']);
 
         foreach($self as $id => $signature) {
+            if(!$signature['has_certificate']) {
+                continue;
+            }
             $result[$id] = json_encode([
                 'hashFunction'              => $signature['sig_hash_func'],
                 'hashValue'                 => base64_encode(hex2bin($signature['data_digest'])),
@@ -288,8 +291,12 @@ class Signature extends Model {
 
     protected static function calcIsValid($self) {
         $result = [];
-        $self->read(['data_digest', 'sig_algo_oid', 'sig_hash', 'sig_cert']);
+        $self->read(['sig_method', 'has_certificate', 'data_digest', 'sig_algo_oid', 'sig_hash', 'sig_cert']);
         foreach($self as $id => $signature) {
+            if($signature['sig_method'] === 'ses') {
+                $result[$id] = true;
+                continue;
+            }
             $result[$id] = self::computeSignatureValidation(
                     $signature['data_digest'],
                     $signature['sig_algo_oid'],
