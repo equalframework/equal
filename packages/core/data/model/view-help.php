@@ -52,6 +52,8 @@ try {
         throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
     }
 
+    $file = null;
+
     // retrieve existing view meant for entity or it
     while(true) {
         $parts = explode('\\', $entity);
@@ -59,13 +61,21 @@ try {
         $class_path = implode('/', $parts);
         $parent = get_parent_class($entity);
 
-        $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_path}.{$params['view_id']}.md";
-        if(!file_exists($file)) {
-            $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.md";
+        $files = [
+            QN_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_path.{$params['view_id']}.md"
+        ];
+        if(strpos($params['lang'], '_') !== false) {
+            // fallback on language only
+            $language = explode('_', $params['lang'])[0];
+            $files[] = QN_BASEDIR."/packages/$package/i18n/$language/$class_path.{$params['view_id']}.md";
         }
+        $files[] = QN_BASEDIR."/packages/$package/views/$class_path.{$params['view_id']}.md";
 
-        if(file_exists($file)) {
-            break;
+        foreach($files as $f) {
+            if(file_exists($f)) {
+                $file = $f;
+                break 2;
+            }
         }
 
         if(!$parent || $parent == 'equal\orm\Model') {
@@ -74,12 +84,11 @@ try {
         $entity = $parent;
     }
 
-    if(file_exists($file)) {
-        if( ($result = @file_get_contents($file)) === null) {
+    if(!is_null($file) && file_exists($file)) {
+        if(($result = @file_get_contents($file)) === null) {
             throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
         }
     }
-
 }
 catch(Exception $e) {
     // #memo - unless an unexpected I/O error, this script should always returns a value

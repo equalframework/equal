@@ -40,11 +40,29 @@ list($context) = [ $providers['context'] ];
 
 $result = [];
 
-$file = QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json";
+$files = [QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json"];
+if(strpos($params['lang'], '_') !== false) {
+    // fallback on language only
+    $language = explode('_', $params['lang'])[0];
+    array_unshift($files, QN_BASEDIR."/packages/{$params['package']}/i18n/{$language}/menu.{$params['menu_id']}.json");
+}
 
-// #memo - to prevent untimely log entries, this script always return a non-404 error
-if(file_exists($file) && ($schema = json_decode(@file_get_contents($file), true)) !== null) {
-    $result = $schema;
+foreach($files as $file) {
+    if(!file_exists($file)) {
+        continue;
+    }
+
+    // #memo - to prevent untimely log entries, this script always return a non-404 error
+    if(($schema = json_decode(@file_get_contents($file), true)) === null) {
+        continue;
+    }
+
+    if(empty($result)) {
+        $result = $schema;
+    }
+    else {
+        $result = array_replace_recursive($result, $schema);
+    }
 }
 
 $context->httpResponse()

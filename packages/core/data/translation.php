@@ -54,30 +54,39 @@ if(!ctype_lower(substr($file, 0, 1))) {
 $parents[] = $params['entity'];
 
 // init resulting lang schema
-$lang = [];
+$result = [];
 
 foreach($parents as $entity) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
 
     $class_dir = implode('/', $parts);
-    $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
-    if(!file_exists($file)) {
-        continue;
+    $files = [QN_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_dir.json"];
+    if(strpos($params['lang'], '_') !== false) {
+        // fallback on language only
+        $language = explode('_', $params['lang'])[0];
+        array_unshift($files, QN_BASEDIR."/packages/$package/i18n/$language/$class_dir.json");
     }
 
-    if(($schema = json_decode(@file_get_contents($file), true)) === null) {
-        throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
-    }
-    if(empty($lang)) {
-        $lang = $schema;
-    }
-    else {
-        $lang = array_replace_recursive($lang, $schema);
+    foreach($files as $file) {
+        if(!file_exists($file)) {
+            continue;
+        }
+
+        if(($schema = json_decode(@file_get_contents($file), true)) === null) {
+            throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+        }
+
+        if(empty($result)) {
+            $result = $schema;
+        }
+        else {
+            $result = array_replace_recursive($result, $schema);
+        }
     }
 }
 
 $context->httpResponse()
-        ->body($lang)
+        ->body($result)
         ->send();
