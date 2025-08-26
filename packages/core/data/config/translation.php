@@ -33,9 +33,6 @@ list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 $entity = $params['entity'];
 
-// init resulting lang schema
-$lang = [];
-
 $parts = explode('\\', $entity);
 $package = array_shift($parts);
 
@@ -63,8 +60,6 @@ if(is_null($file)) {
 if(($schema = json_decode(@file_get_contents($file), true)) === null) {
     throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
 }
-
-
 
 $context->httpResponse()
         ->body($schema)
