@@ -63,7 +63,11 @@ try {
     // retrieve current user
     $auth = Container::getInstance()->get('auth');
     // keep track of the access in the log
-    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'auth', 'user_id' => $auth->userId(), 'ip_address' => $request->getHeaders()->getIpAddress()]));
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::" . json_encode([
+            'type'          => 'auth',
+            'user_id'       => $auth->userId(),
+            'ip_address'    => $request->getHeaders()->getIpAddress()
+        ]));
     // get HTTP method of current request
     $method = $request->getMethod();
     // get HttpUri object (@see equal\http\HttpUri class for URI structure)
