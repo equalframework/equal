@@ -82,7 +82,7 @@ class User extends Model {
 
             'language' => [
                 'type'              => 'string',
-                'usage'             => 'language/iso-639',
+                'usage'             => 'locale',
                 'default'           => 'en',
                 'description'       => "Preferred locale for user interfaces.",
             ],
