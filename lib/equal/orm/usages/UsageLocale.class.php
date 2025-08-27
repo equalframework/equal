@@ -16,6 +16,9 @@ class UsageLocale extends Usage {
 
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
+        if($this->length == 0) {
+            $this->length = 5;
+        }
     }
 
     public function getConstraints(): array {
