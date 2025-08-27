@@ -1052,32 +1052,35 @@ class ObjectManager extends Service {
                                 $ids_to_add[] = $id;
                             }
                         }
-                        $foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
-                        // remove relation
-                        if(count($ids_to_remove)) {
-                            if(isset($schema[$field]['ondetach'])) {
-                                $call_res = $this->callonce($class, $schema[$field]['ondetach'], $ids, $ids_to_remove, $lang);
-                                // for unknown method, check special keywords 'delete' and 'null'
-                                if($call_res < 0) {
-                                    switch($schema[$field]['ondetach']) {
-                                        case 'delete':
-                                            $this->delete($schema[$field]['foreign_object'], $ids_to_remove, true);
-                                            break;
-                                        case 'null':
-                                        default:
-                                            $om->db->setRecords($foreign_table, $ids_to_remove, [ $schema[$field]['foreign_field'] => null ] );
-                                            break;
+                        // ignore invalid descriptors (this could be legitimate in some specific/complex relationship cases)
+                        if(isset($schema[$field]['foreign_object'])) {
+                            $foreign_table = $om->getObjectTableName($schema[$field]['foreign_object']);
+                            // remove relation
+                            if(count($ids_to_remove)) {
+                                if(isset($schema[$field]['ondetach'])) {
+                                    $call_res = $this->callonce($class, $schema[$field]['ondetach'], $ids, $ids_to_remove, $lang);
+                                    // for unknown method, check special keywords 'delete' and 'null'
+                                    if($call_res < 0) {
+                                        switch($schema[$field]['ondetach']) {
+                                            case 'delete':
+                                                $this->delete($schema[$field]['foreign_object'], $ids_to_remove, true);
+                                                break;
+                                            case 'null':
+                                            default:
+                                                $om->db->setRecords($foreign_table, $ids_to_remove, [ $schema[$field]['foreign_field'] => null ] );
+                                                break;
+                                        }
                                     }
                                 }
+                                else {
+                                    // remove relation by setting pointing id to 0
+                                    $om->db->setRecords($foreign_table, $ids_to_remove, [$schema[$field]['foreign_field'] => null]);
+                                }
                             }
-                            else {
-                                // remove relation by setting pointing id to 0
-                                $om->db->setRecords($foreign_table, $ids_to_remove, [$schema[$field]['foreign_field'] => null]);
+                            // add relation by setting the pointing id (overwrite previous value if any)
+                            if(count($ids_to_add)) {
+                                $om->db->setRecords($foreign_table, $ids_to_add, [$schema[$field]['foreign_field'] => $oid]);
                             }
-                        }
-                        // add relation by setting the pointing id (overwrite previous value if any)
-                        if(count($ids_to_add)) {
-                            $om->db->setRecords($foreign_table, $ids_to_add, [$schema[$field]['foreign_field'] => $oid]);
                         }
                         // invalidate cache (field partially loaded)
                         unset($om->cache[$table_name][$oid][$lang][$field]);
