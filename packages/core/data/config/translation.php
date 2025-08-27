@@ -32,32 +32,34 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [ $providers['context'], $providers['orm'] ];
 
 $entity = $params['entity'];
-$parents = [];
-
-// for non-controller entities, retrieve parents hierarchy
-$parts = explode('\\', $params['entity']);
-$file = array_pop($parts);
-
-$params['entity'];
-
-// init resulting lang schema
-$lang = [];
 
 $parts = explode('\\', $entity);
 $package = array_shift($parts);
 
 $class_dir = implode('/', $parts);
-$file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
-if(!file_exists($file)) {
+$files = [QN_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_dir.json"];
+if(strpos($params['lang'], '_') !== false) {
+    // fallback on language only
+    $language = explode('_', $params['lang'])[0];
+    $files[] = QN_BASEDIR."/packages/$package/i18n/$language/$class_dir.json";
+}
+
+$file = null;
+foreach($files as $f) {
+    if(file_exists($f)) {
+        $file = $f;
+        break;
+    }
+}
+
+if(is_null($file)) {
     throw new Exception("unknown_lang_file", QN_ERROR_UNKNOWN_OBJECT);
 }
 
 if(($schema = json_decode(@file_get_contents($file), true)) === null) {
     throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
 }
-
-
 
 $context->httpResponse()
         ->body($schema)

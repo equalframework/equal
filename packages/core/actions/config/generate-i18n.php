@@ -62,8 +62,20 @@ if(!file_exists("packages/$package/i18n")) {
 }
 
 $lang = $params['lang'];
-if(strlen($lang) !== 2) {
-    throw new Exception("invalid_lang", EQ_ERROR_INVALID_PARAM);
+if(strpos($lang, '_') === false) {
+    if(strlen($lang) !== 2) {
+        throw new Exception("invalid_lang", EQ_ERROR_INVALID_PARAM);
+    }
+}
+else {
+    // lang can be a local (e.g., fr_BE)
+    $lang_parts = explode('_', $lang);
+    if(count($lang_parts) !== 2 || strlen($lang_parts[0]) !== 2) {
+        throw new Exception("invalid_lang", EQ_ERROR_INVALID_PARAM);
+    }
+    if(strlen($lang_parts[1]) !== 2) {
+        throw new Exception("invalid_country", EQ_ERROR_INVALID_PARAM);
+    }
 }
 
 $file = EQ_BASEDIR."/packages/$package/i18n/$lang/$entity.json";

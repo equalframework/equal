@@ -17,6 +17,7 @@ use equal\orm\usages\{
         UsageEmail,
         UsageBinary,
         UsageLanguage,
+        UsageLocale,
         UsageNumber,
         UsagePassword,
         UsagePhone,
@@ -107,6 +108,9 @@ class UsageFactory {
                 break;
             case 'language':
                 $usageInstance = new UsageLanguage($str_usage);
+                break;
+            case 'locale':
+                $usageInstance = new UsageLocale($str_usage);
                 break;
             case 'password':
                 $usageInstance = new UsagePassword($str_usage);
