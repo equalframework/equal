@@ -65,8 +65,9 @@ class Task extends Model {
             'trigger_event_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\followup\TaskEvent',
-                'description'       => "The trigger event associated with the task.",
-                'required'          => true
+                'description'       => 'The trigger event associated with the task.',
+                'help'              => 'This field is optional and is used to create a task as a response to an event.',
+                'required'          => false
             ],
 
             'deadline_event_id' => [
