@@ -168,5 +168,11 @@
     "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Renommer",
     "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Annuler",
     "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
-    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?"
+    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de vouloir supprimer le document ?",
+
+    "#memo - next lines are a temp fix for Discope": "to remove",
+
+    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui",
+    "empty_booking": "La réservetion est vide."
+
 }
