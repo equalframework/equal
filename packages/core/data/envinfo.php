@@ -90,7 +90,7 @@ if($user_id) {
     $settings_ids = array_map(function ($a) {return $a['setting_id'];}, $settingValues);
     $map_settings = Setting::ids($settings_ids)->read(['type'])->get();
 
-    foreach($settingValues as $sid => $setting) {
+    foreach($settingValues as $sid => $settingValue) {
         $value = $settingValue['value'];
         $type = $map_settings[$settingValue['setting_id']]['type'] ?? null;
         settype($value, [
