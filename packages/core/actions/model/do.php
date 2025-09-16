@@ -27,6 +27,11 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Name of the action to attempt to perform on the objects.',
             'type'          => 'string',
             'required'      => true
+        ],
+        'params' => [
+            'type'          => 'array',
+            'description'   => 'Additional params to relay to the data controller.',
+            'default'       => []
         ]
     ],
     'response'      => [
@@ -60,7 +65,7 @@ if(empty($params['ids'])) {
     $params['ids'][] = $params['id'];
 }
 
-$entity::ids($params['ids'])->do($params['action']);
+$entity::ids($params['ids'])->do($params['action'], $params['params']);
 
 $context->httpResponse()
     ->status(204)
