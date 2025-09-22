@@ -25,20 +25,25 @@ class UsageText extends Usage {
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
         if($this->length == 0) {
-            // #memo - $this->subtype holds the full tree
-            switch($this->getSubtype(1))  {
-                case 'short':
-                    $this->length = 255;
-                    break;
-                case 'medium':
-                    $this->length = 16 * 1000 * 1000;
-                    break;
-                case 'long':
-                    $this->length = 4 * 1000 * 1000 * 1000;
-                    break;
-                case 'small':
-                default:
-                    $this->length = 65 * 1000;
+            if($this->getType() === 'text') {
+                // #memo - $this->subtype holds the full tree
+                switch($this->getSubtype(1))  {
+                    case 'short':
+                        $this->length = 255;
+                        break;
+                    case 'medium':
+                        $this->length = 16 * 1000 * 1000;
+                        break;
+                    case 'long':
+                        $this->length = 4 * 1000 * 1000 * 1000;
+                        break;
+                    case 'small':
+                    default:
+                        $this->length = 65 * 1000;
+                }
+            }
+            else {
+                $this->length = 255;
             }
         }
     }
