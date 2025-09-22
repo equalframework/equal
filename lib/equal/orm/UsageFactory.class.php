@@ -82,9 +82,9 @@ class UsageFactory {
                 $usageInstance = new UsageArray($str_usage);
                 break;
             case 'binary':
-            // #deprecated - file shouldn't be used, use 'binary' instead (for files, consider using `documents\Document` entity)
+            // #deprecated - `file` shouldn't be used, use 'binary' instead (for files, consider using `documents\Document` entity)
             case 'file':
-            // #memo image is an usage of its own, but is handled as a binary
+            // #memo - image is an usage of its own, but is handled as binary
             case 'image':
                 $usageInstance = new UsageBinary($str_usage);
                 break;
@@ -120,6 +120,9 @@ class UsageFactory {
                 break;
             case 'uri':
                 $usageInstance = new UsageUri($str_usage);
+                break;
+            case 'icon':
+                $usageInstance = new UsageText($str_usage);
                 break;
             default:
                 $usageInstance = new Usage($str_usage);
