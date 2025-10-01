@@ -275,8 +275,12 @@ class AuthenticationManager extends Service {
             throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
         }
 
-        $list = $orm->read('core\User', $ids, ['id', 'login', 'password']);
+        $list = $orm->read('core\User', $ids, ['id', 'login', 'password', 'allow_auth']);
         $user = array_shift($list);
+
+        if(!$user['allow_auth']) {
+            throw new \Exception('authentication_not_allowed', EQ_ERROR_NOT_ALLOWED);
+        }
 
         if(!password_verify($password, $user['password'])) {
             throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
