@@ -91,7 +91,8 @@ $passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id
             'id',
             'login',
             'username',
-            'validated'
+            'validated',
+            'allow_auth'
         ],
         'credential_public_key',
         'signature_counter',
@@ -105,6 +106,10 @@ if(is_null($passkey)) {
 
 if(is_null($passkey['user_id'])) {
     throw new Exception('user_not_found', EQ_ERROR_INVALID_USER);
+}
+
+if(!$passkey['user_id']['allow_auth']) {
+    throw new Exception("authentication_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
 if(!$passkey['user_id']['validated']) {

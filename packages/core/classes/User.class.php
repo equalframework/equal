@@ -25,6 +25,7 @@ class User extends Model {
 
     public static function getColumns() {
         return [
+
             'name' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
@@ -131,7 +132,15 @@ class User extends Model {
                 // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
                 // onupdate is allowed, but it is better practice to rely on transitions and related function properties in the workflow descriptor
                 'generation'        => 'generateStatus'
+            ],
+
+            'allow_auth' => [
+                'type'              => 'boolean',
+                'description'       => "Is this user allowed to authenticate using a password, passkey or email?",
+                'help'              => "If false the user will only be able to access using manually generated access tokens.",
+                'default'           => true
             ]
+
         ];
     }
 

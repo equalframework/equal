@@ -53,11 +53,15 @@ if(!isset($payload['email'])) {
 }
 
 $user = User::search(['login', '=', $payload['email']])
-    ->read(['id', 'validated'])
+    ->read(['id', 'validated', 'allow_auth'])
     ->first(true);
 
 if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
+}
+
+if(!$user['allow_auth']) {
+    throw new Exception("authentication_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
 // generate a JWT access token
