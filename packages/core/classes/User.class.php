@@ -92,7 +92,7 @@ class User extends Model {
                 'type'              => 'boolean',
                 'default'           => false,
                 'description'       => 'Flag telling if the User has validated his email address.',
-                'help'              => "This fields is used at signin to prevent non-validated user to log in."
+                'help'              => "This fields is used at auth & signin to prevent non-validated user to log in."
             ],
 
             'groups_ids' => [
@@ -136,8 +136,8 @@ class User extends Model {
 
             'allow_auth' => [
                 'type'              => 'boolean',
-                'description'       => "Is this user allowed to authenticate using a password, passkey or email?",
-                'help'              => "If false the user will only be able to access using manually generated access tokens.",
+                'description'       => "Mark user as allowed to authenticate using a password, passkey or email.",
+                'help'              => "If set to false, the user will only be able to access using manually generated access tokens. This feature can be used to create Apps that can use the API but cannot authenticate from the UI.",
                 'default'           => true
             ]
 
