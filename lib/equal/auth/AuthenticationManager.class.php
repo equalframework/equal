@@ -132,6 +132,11 @@ class AuthenticationManager extends Service {
         return $decoded;
     }
 
+
+    /**
+     * This method is intended to check a token validity.
+     * Given token can be used for any purpose (not only auth).
+     */
     public function verifyToken($jwt, $key) {
         $parts = explode('.', $jwt, 3);
         if(count($parts) < 3) {
@@ -254,6 +259,22 @@ class AuthenticationManager extends Service {
 
         }
 
+        if($this->user_id > 0) {
+            // additional check on User status
+            $orm = $this->container->get('orm');
+            $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
+            if($list < 0 || !count($list)) {
+                throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
+            }
+
+            $user = current($list);
+
+            if($user['deleted'] || !$user['validated'] || !in_array($user['status'], ['validated', 'confirmed'], true)) {
+                $this->user_id = 0;
+                throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
+            }
+        }
+
         return $this->user_id;
     }
 
@@ -276,7 +297,7 @@ class AuthenticationManager extends Service {
         }
 
         $list = $orm->read('core\User', $ids, ['id', 'login', 'password', 'allow_auth']);
-        $user = array_shift($list);
+        $user = current($list);
 
         if(!$user['allow_auth']) {
             throw new \Exception('authentication_not_allowed', EQ_ERROR_NOT_ALLOWED);
