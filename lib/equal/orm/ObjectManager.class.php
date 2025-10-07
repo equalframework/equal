@@ -2635,7 +2635,7 @@ class ObjectManager extends Service {
         foreach($objects as $id => $object) {
             // ignore faulty objects
             if(!isset($object['status'])) {
-                $res = ['invalid_object' => "Object {$id} is missing a status value."];
+                $res = ['invalid_object' => "Object [ {$class} - {$id}] is missing a status value."];
                 break;
             }
             $match = false;
