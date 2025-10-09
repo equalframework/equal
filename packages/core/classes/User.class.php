@@ -91,7 +91,7 @@ class User extends Model {
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,
-                'description'       => 'Flag telling if the User has validated his email address.',
+                'description'       => 'Flag telling if the User account has been validated.',
                 'help'              => "This fields is used at auth & signin to prevent non-validated user to log in."
             ],
 
