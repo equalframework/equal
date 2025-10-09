@@ -2346,10 +2346,13 @@ class ObjectManager extends Service {
                         }
                         break;
                     case 'one2many':
-                        $rel_res = $this->read($class, $ids, $field);
-                        $rel_ids = [];
-                        array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
                         if(isset($def['foreign_object']) && isset($def['foreign_field'])) {
+                            $rel_ids = [];
+                            $rel_res = $this->read($class, $ids, $field);
+                            if(!is_array($rel_res) || count($rel_res) <= 0) {
+                                break;
+                            }
+                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
                             // foreign field is many2one
                             $rel_schema = $this->getObjectSchema($def['foreign_object']);
                             // call ondelete method when defined (to allow cascade deletion)
