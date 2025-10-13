@@ -63,8 +63,8 @@ class JWT {
      */
     public static function encode($payload, $key, $algo = 'HS256') {
         $header = [
-                'typ' => 'JWT',
-                'alg' => $algo
+                'alg' => $algo,
+                'typ' => 'JWT'
             ];
 
         $parts = [];
@@ -111,29 +111,33 @@ class JWT {
     }
 
     /**
-     * Sign a string with a given key and algorithm.
+     * Sign a string using a given key and algorithm.
      *
      * @param string $msg    The message to sign.
-     * @param string $key    The secret key.
+     * @param string $key    The secret key. For RSA algorithms, this is the PEM formatted private key.
      * @param string $method The signing algorithm. Supported algorithms are 'HS256', 'HS384' and 'HS512'.
      *
      * @return string    An encrypted message
      * @throws Exception Unsupported algorithm was specified
      */
     private static function sign($msg, $key, $method = 'HS256') {
-        $methods = array(
-            'HS256' => 'sha256',
-            'HS384' => 'sha384',
-            'HS512' => 'sha512',
-            'RS256' => OPENSSL_ALGO_SHA256,
-            'RS384' => OPENSSL_ALGO_SHA384,
-            'RS512' => OPENSSL_ALGO_SHA512
-        );
+        $methods = [
+                'HS256' => 'sha256',
+                'HS384' => 'sha384',
+                'HS512' => 'sha512',
+                'RS256' => OPENSSL_ALGO_SHA256,
+                'RS384' => OPENSSL_ALGO_SHA384,
+                'RS512' => OPENSSL_ALGO_SHA512
+            ];
 
         if( in_array($method, ['HS256', 'HS384', 'HS512']) ) {
             return hash_hmac($methods[$method], $msg, $key, true);
         }
         elseif( in_array($method, ['RS256', 'RS384', 'RS512']) ) {
+            $key = openssl_pkey_get_private($key);
+            if(!$key) {
+                throw new \Exception('invalid_private_key');
+            }
             if(!openssl_sign($msg, $signature, $key, $methods[$method])) {
                 throw new \Exception('signature_failed');
             }
@@ -186,7 +190,7 @@ class JWT {
             $rsaOID . $RSAPublicKey
         );
 
-        return "-----BEGIN PUBLIC KEY-----\r\n".chunk_split(base64_encode($RSAPublicKey), 64).'-----END PUBLIC KEY-----';
+        return "-----BEGIN PUBLIC KEY-----\r\n" . chunk_split(base64_encode($RSAPublicKey), 64) . '-----END PUBLIC KEY-----';
     }
 
     /**
@@ -199,8 +203,8 @@ class JWT {
     private static function urlSafeBase64Decode($input) {
         $remainder = strlen($input) % 4;
         if ($remainder) {
-            $padlen = 4 - $remainder;
-            $input .= str_repeat('=', $padlen);
+            $pad_len = 4 - $remainder;
+            $input .= str_repeat('=', $pad_len);
         }
         return base64_decode(strtr($input, '-_', '+/'));
     }
@@ -213,7 +217,7 @@ class JWT {
      * @return string The base64 encode of what you passed in
      */
     private static function urlSafeBase64Encode($input) {
-        return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
+        return rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
     }
 
 }
