@@ -25,6 +25,11 @@ use Opis\JsonSchema\Validator;
             'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema:<package>:<schema-name>`.',
             'help'          => "Target JSON schema is expected to be a https://json-schema.org/draft/2020-12/ descriptor for validation.",
             'required'      => true
+        ],
+        'strict' =>  [
+            'type'          => 'boolean',
+            'description'   => 'Flag for enabling/disabling strict valiation (structure + types + mandatory).',
+            'default'       => true
         ]
     ],
     'access' => [
@@ -39,11 +44,51 @@ use Opis\JsonSchema\Validator;
 ]);
 
 /**
- * @var \equal\php\Context               $context
+ * @var \equal\php\Context  $context
  */
 $context = $providers['context'];
 
 $schema = eQual::run('get', 'json-schema', ['id' => $params['schema_id']], false, true);
+
+if (!$params['strict']) {
+
+    $schema_data = json_decode($schema);
+
+    // recursive function to remove "required" fields and make types nullable
+    $normalize = function (&$node) use (&$normalize) {
+        if(is_object($node)) {
+            foreach($node as $key => &$value) {
+                if($key === 'required') {
+                    $value = [];
+                }
+                elseif($key === 'type') {
+                    if(is_string($value)) {
+                        $value = [$value, 'null'];
+                    }
+                    elseif (is_array($value) && !in_array('null', $value, true)) {
+                        $value[] = 'null';
+                    }
+                }
+                // recurse on sub-elements
+                elseif(is_object($value) || is_array($value)) {
+                    $normalize($value);
+                }
+            }
+        }
+        elseif(is_array($node)) {
+            foreach($node as &$value) {
+                if(is_object($value) || is_array($value)) {
+                    $normalize($value);
+                }
+            }
+        }
+    };
+
+    $normalize($schema_data);
+
+    $schema = json_encode($schema_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+}
+
 
 $validator = new Validator();
 $validator->setMaxErrors(10);
