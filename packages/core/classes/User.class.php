@@ -129,8 +129,12 @@ class User extends Model {
                 'type'              => 'string',
                 // initial status
                 'default'           => 'created',
-                // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
-                // onupdate is allowed, but it is better practice to rely on transitions and related function properties in the workflow descriptor
+                'selection'         => [
+                    'created',
+                    'validated',
+                    'confirmed',
+                    'suspended'
+                ],
                 'generation'        => 'generateStatus'
             ],
 
