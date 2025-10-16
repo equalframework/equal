@@ -88,11 +88,16 @@ if($user_id) {
     // 2) overload with current User specific settings, if any
     $settingValues = SettingValue::search(['user_id', '=', $user_id])->read(['name', 'value', 'setting_id'])->get();
     $settings_ids = array_map(function ($a) {return $a['setting_id'];}, $settingValues);
-    $map_settings = Setting::ids($settings_ids)->read(['type'])->get();
+    $map_settings = Setting::ids($settings_ids)->read(['type', 'package', 'section'])->get();
 
     foreach($settingValues as $sid => $settingValue) {
+        $setting = $map_settings[$settingValue['setting_id']];
+        if($setting['package'] == 'core' && $setting['section'] == 'security') {
+            // do not disclose security settings
+            continue;
+        }
         $value = $settingValue['value'];
-        $type = $map_settings[$settingValue['setting_id']]['type'] ?? null;
+        $type = $setting['type'] ?? null;
         settype($value, [
                 'boolean'   => 'boolean',
                 'integer'   => 'integer',
