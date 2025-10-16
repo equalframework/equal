@@ -699,19 +699,29 @@ class ObjectManager extends Service {
                         // obtain the ids by searching inside the foreign object's table
                         $result = $om->db->getRecords(
                                 $om->getObjectTableName($schema[$field]['foreign_object']),
-                                ['id', $schema[$field]['foreign_field'], $order],
+                                ['id', $schema[$field]['foreign_field'] ?? 'id', $order],
                                 null,
                                 $domain->toArray(),
                                 'id',
                                 [$order => $sort]
                             );
                         $items = [];
-                        while ($row = $om->db->fetchArray($result)) {
-                            $id = $row[$schema[$field]['foreign_field']];
-                            $items[$id][] = (int) $row['id'];
+                        while($row = $om->db->fetchArray($result)) {
+                            if(isset($schema[$field]['foreign_field'])) {
+                                $id = $row[$schema[$field]['foreign_field']];
+                                $items[$id][] = (int) $row['id'];
+                            }
+                            else {
+                                $items[0][] = (int) $row['id'];
+                            }
                         }
                         foreach($ids as $id) {
-                            $om->cache[$table_name][$id][$lang][$field] = (isset($items[$id])) ? $items[$id] : [];
+                            if(isset($schema[$field]['foreign_field'])) {
+                                $om->cache[$table_name][$id][$lang][$field] = $items[$id] ?? [];
+                            }
+                            else {
+                                $om->cache[$table_name][$id][$lang][$field] = $items[0] ?? [];
+                            }
                         }
                     }
                 },
@@ -740,7 +750,7 @@ class ObjectManager extends Service {
                             't0.id'
                         );
                         $lists = [];
-                        while ($row = $om->db->fetchArray($result)) {
+                        while($row = $om->db->fetchArray($result)) {
                             $oid = $row[$schema[$field]['rel_local_key']];
                             $lists[$oid][] = (int) $row[$schema[$field]['rel_foreign_key']];
                         }
@@ -758,7 +768,8 @@ class ObjectManager extends Service {
                     }
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
-                            throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
                         }
 
                         if(isset($schema[$field]['function'])) {
