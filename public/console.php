@@ -8,7 +8,7 @@
 */
 error_reporting(0);
 define('MAX_FILESIZE', 100 * 1000 * 1000);
-define('MAX_DISPLAY_LINES', 1000);
+define('MAX_DISPLAY_LINES', 5000);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
