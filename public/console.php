@@ -8,6 +8,7 @@
 */
 error_reporting(0);
 define('MAX_FILESIZE', 100 * 1000 * 1000);
+define('MAX_DISPLAY_LINES', 1000);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
@@ -937,12 +938,10 @@ else {
                     }
                     $result[] = $line;
                     ++$count_lines;
-                    // all threads start and end with a 'NET' entry
-                    if($line['mode'] == 'NET' && $count_lines > 2) {
+                    if($count_lines >= constant('MAX_DISPLAY_LINES')) {
                         break;
                     }
                 }
-
             }
             // threads request (return threads summary: lines count, max level, first time)
             else {
