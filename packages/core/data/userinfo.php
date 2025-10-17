@@ -61,8 +61,7 @@ $context->httpResponse()
     ->cookie('access_token',  $access_token, [
         'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         'httponly'  => true,
-        'secure'    => constant('AUTH_TOKEN_HTTPS'),
-        'domain'    => parse_url(constant('BACKEND_URL'), PHP_URL_HOST)
+        'secure'    => constant('AUTH_TOKEN_HTTPS')
     ])
     ->body($user)
     ->send();
