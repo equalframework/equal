@@ -65,29 +65,23 @@ class HttpResponse extends HttpMessage {
 
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
-            $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
-            // make sure the hostname does not contain a port number
-            $hostname = substr($hostname.':', 0, strpos($hostname.':', ':'));
             $params = $this->headers()->getCookieParams($cookie);
-            $expires = (isset($params['expires']))?$params['expires']:time()+60*60*24*365;
-            $path = (isset($params['path']))?$params['path']:'/';
-            $domain = (isset($params['domain']))?$params['domain']:$hostname;
-            $secure = (isset($params['secure']))?$params['secure']:false;
-            $httponly = (isset($params['httponly']))?$params['httponly']:false;
+            $expires  = $params['expires'] ?? (time() + 60*60*24*365);
+            $path     = $params['path'] ?? '/';
+            $domain   = $params['domain'] ?? '';
+            $secure   = $params['secure'] ?? false;
+            $httponly = $params['httponly'] ?? false;
+            $samesite = $params['samesite'] ?? 'None';
+            // #memo - empty domain will make the cookie available for original domain only (RFC 6265)
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
-            setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
-            // #todo - handle samesite (as of PHP 7.3)
-            /*
-            $samesite = (isset($params['samesite']) && in_array($params['samesite'], ['None', 'Lax', 'Strict']))?$params['samesite']:'None';
-            setcookie($name, $value, [
+            setcookie($cookie, $value, [
                 'expires'   => $expires,
                 'path'      => $path,
                 'domain'    => $domain,
                 'secure'    => $secure,
                 'httponly'  => $httponly,
-                'samesite'  => 'None',
+                'samesite'  => $samesite,
             ]);
-            */
         }
 
         // retrieve body
