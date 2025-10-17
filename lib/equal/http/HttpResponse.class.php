@@ -66,12 +66,18 @@ class HttpResponse extends HttpMessage {
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
             $params = $this->headers()->getCookieParams($cookie);
+            // Expiration date — defines when the cookie is deleted.
             $expires  = $params['expires'] ?? (time() + 60*60*24*365);
+            // Path scope — '/' means the cookie is sent for all paths.
             $path     = $params['path'] ?? '/';
+            // Domain scope — empty restricts it to the current host only.
             $domain   = $params['domain'] ?? '';
+            // Secure flag — only sent over HTTPS when true.
             $secure   = $params['secure'] ?? false;
+            // HttpOnly — hides cookie from JavaScript (server only).
             $httponly = $params['httponly'] ?? false;
-            $samesite = $params['samesite'] ?? 'None';
+            // SameSite — controls cross-site sending ('Lax', 'Strict', 'None').
+            $samesite = $params['samesite'] ?? 'Lax';
             // #memo - empty domain will make the cookie available for original domain only (RFC 6265)
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
             setcookie($cookie, $value, [
