@@ -161,7 +161,7 @@ foreach($packages as $package) {
         try {
             $model = $orm->getModel($entity);
             if(!$model) {
-                throw new Exception(serialize(['unknown_entity' => "$entity does not exist"]), EQ_REPORT_WARNING);
+                throw new Exception(serialize(['unknown_entity' => "$entity does not exist"]), EQ_ERROR_INVALID_PARAM);
             }
             // #todo - load by batch of MAX objects and append to related JSON file
             $fields = $getEntityFieldsToExport($entity);
