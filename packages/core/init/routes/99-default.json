@@ -2,7 +2,7 @@
     "/auth/pwd": {
         "POST": {
             "description": "Attempt to authenticate user with credentials.",
-            "operation": "?do=user_auth_pwd"
+            "operation": "?do=core_user_auth_pwd"
         }
     },
     "/users": {
