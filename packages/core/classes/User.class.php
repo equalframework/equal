@@ -141,7 +141,8 @@ class User extends Model {
             'allow_auth' => [
                 'type'              => 'boolean',
                 'description'       => "Mark user as allowed to authenticate using a password, passkey or email.",
-                'help'              => "If set to false, the user will only be able to access using manually generated access tokens. This feature can be used to create Apps that can use the API but cannot authenticate from the UI.",
+                'help'              => "Defaults to true. If set to false, the user will only be able to access using manually generated access tokens.
+                    This feature can be used to create Apps that can use the API but cannot authenticate from the UI.",
                 'default'           => true
             ]
 
