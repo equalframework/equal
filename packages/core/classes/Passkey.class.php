@@ -50,8 +50,9 @@ class Passkey extends Model {
 
             'fmt' => [
                 'type'              => 'string',
-                'description'       => 'Specifies the attestation format used by the authenticator (tpm, packed, none).',
-                'help'              => 'The fmt field indicates the method the authenticator uses to prove its legitimacy, helping determine its trust level (e.g., android-key, tpm, packed, ...).',
+                'description'       => 'Specifies the attestation format used by the authenticator.',
+                'help'              => 'The fmt field indicates the method the authenticator uses to prove its legitimacy, helping determine its trust level.
+                    Possible values are: tpm, packed, fido-u2f, android-key, none.',
                 'required'          => true
             ]
 
