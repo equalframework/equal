@@ -68,7 +68,7 @@ if(!$params['no_expiry']) {
     }
 }
 
-$access_token = $auth->token($user['id'], $validity, ['auth_type'  => 'pwd', 'auth_level' => 1]);
+$access_token = $auth->token($user['id'], $validity, ['auth_type'  => 'token', 'auth_level' => 1]);
 
 $context->httpResponse()
         ->status(200)
