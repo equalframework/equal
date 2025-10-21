@@ -190,7 +190,7 @@ class HttpRequest extends HttpMessage {
             }
             else {
                 $error = error_get_last();
-                trigger_error("PHP::Unable to send HTTP request to {$uri}: " . $error['message'], EQ_REPORT_ERROR);
+                trigger_error("PHP::Unable to send HTTP request to `{$uri}` : " . ($error['message'] ?? ''), EQ_REPORT_ERROR);
                 throw new \Exception('failed_sending_http_request', QN_ERROR_UNKNOWN);
             }
         }
