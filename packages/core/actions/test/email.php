@@ -9,8 +9,15 @@ use equal\email\Email;
 use core\Mail;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Send a test email.",
+    'params'        => [
+        'instant' => [
+            'type'              => 'boolean',
+            'description'       => 'Flag for sending instant message. If false, email is queued in the spooler.',
+            'default'           => true
+        ]
+    ],
     'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'response'      => [
         'content-type'      => 'application/json',
@@ -49,8 +56,14 @@ $message->setTo(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))
     ->setContentType("text/html")
     ->setBody($body);
 
-// send instant message
-Mail::send($message);
+if($params['instant']) {
+    // send instant message
+    Mail::send($message);
+}
+else {
+    // put the message in the outgoing queue
+    Mail::queue($message);
+}
 
 $context->httpResponse()
         ->status(204)
