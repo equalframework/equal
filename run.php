@@ -184,7 +184,7 @@ try {
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
 
     // if run from CLI, ensure the prompt appears on a new line
-    if(php_sapi_name() === 'cli' && ob_get_length() > 0) {
+    if(php_sapi_name() === 'cli') {
         echo PHP_EOL;
     }
 
@@ -248,13 +248,14 @@ catch(Throwable $e) {
             ])
             ->send();
 
-        // if run from CLI, ensure the prompt appears on a new line
-        if(php_sapi_name() === 'cli' && ob_get_length() > 0) {
-            echo PHP_EOL;
-        }
-
         trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . qn_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
+
+    // if run from CLI, ensure the prompt appears on a new line
+    if(php_sapi_name() === 'cli') {
+        echo PHP_EOL;
+    }
+
     // store NET info to access log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
                 'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
