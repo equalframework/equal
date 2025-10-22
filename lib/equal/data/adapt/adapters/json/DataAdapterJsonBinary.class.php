@@ -51,6 +51,10 @@ class DataAdapterJsonBinary implements DataAdapter {
                 // extract the base64 part @see RFC2397 (data:[<mediatype>][;base64],<data>)
                 $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1));
             }
+            $value = trim($value);
+            if(empty($value)) {
+                return null;
+            }
             $result = base64_decode($value, true);
             if(!$result) {
                 throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), QN_ERROR_INVALID_PARAM);
