@@ -184,7 +184,7 @@ try {
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
 
     // if run from CLI, ensure the prompt appears on a new line
-    if(php_sapi_name() === 'cli') {
+    if(php_sapi_name() === 'cli' && ob_get_length() > 0) {
         echo PHP_EOL;
     }
 
@@ -249,7 +249,7 @@ catch(Throwable $e) {
             ->send();
 
         // if run from CLI, ensure the prompt appears on a new line
-        if(php_sapi_name() === 'cli') {
+        if(php_sapi_name() === 'cli' && ob_get_length() > 0) {
             echo PHP_EOL;
         }
 
