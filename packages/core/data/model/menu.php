@@ -35,11 +35,19 @@ list($context) = [ $providers['context'] ];
 $result = [];
 
 // retrieve existing view meant for package
-$file = QN_BASEDIR."/packages/{$params['package']}/views/menu.{$params['menu_id']}.json";
+$file = EQ_BASEDIR . "/packages/{$params['package']}/views/menu.{$params['menu_id']}.json";
 
 // #memo - to prevent untimely log entries, this script always return a non-404 error
 if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) !== null) {
     $result = $view;
+}
+elseif(strpos($params['menu_id'], '.') !== false) {
+    $parts = explode('.', $params['menu_id']);
+    array_pop($parts);
+    $menu_id = implode('.', $parts);
+    if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) !== null) {
+        $result = $view;
+    }
 }
 
 $context->httpResponse()
