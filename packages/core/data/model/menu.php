@@ -45,6 +45,7 @@ elseif(strpos($params['menu_id'], '.') !== false) {
     $parts = explode('.', $params['menu_id']);
     array_pop($parts);
     $menu_id = implode('.', $parts);
+    $file = EQ_BASEDIR . "/packages/{$params['package']}/views/menu.{$menu_id}.json";
     if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) !== null) {
         $result = $view;
     }
