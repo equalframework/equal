@@ -638,7 +638,7 @@ class ObjectManager extends Service {
                                 $f = new Field($schema[$field], $field);
                                 $value = $adapter->adaptIn($value, $f->getUsage());
                             }
-                            // #memo - given list of ids might contain fields already read
+                            // #memo - given list of ids might contain fields already loaded - !!do not overwrite cache
                             if(!isset($om->cache[$table_name][$oid][$lang][$field])) {
                                 // update the internal buffer with fetched value
                                 $om->cache[$table_name][$oid][$lang][$field] = $value;

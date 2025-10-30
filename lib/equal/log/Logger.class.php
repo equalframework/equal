@@ -71,7 +71,7 @@ class Logger extends Service {
         // logs are system objects (no permissions must be applied)
         $log_id = $this->orm->create('core\Log', $values, null, false);
 
-        // A many-to-one relationship link to a Change object that contains optional data representing the event's payload.
+        // Create a m2o link to a Change object that contains optional data representing the event's payload.
         // #memo - this is done to prevent core_log table growing big over time, by storing only essential (meta) data
 
         $json = json_encode($fields);
@@ -80,6 +80,7 @@ class Logger extends Service {
             $json = '{"ignored": "JSON conversion failed"}';
         }
         // max size for log entry text is 32KiB
+        // #todo - handle payload capping at field level
         elseif(strlen($json) > 32000) {
             // drop payload
             $json = '{"ignored": "resulting JSON too large"}';
