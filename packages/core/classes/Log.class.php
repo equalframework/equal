@@ -120,8 +120,14 @@ class Log extends Model {
             $max_len = 120;
 
             // #todo - quick workaround to improve dates display
-            $isTimestamp = function($val) {
-                if (is_numeric($val)) {
+            $isTimestamp = function($val, $field) {
+                if(in_array($field, ['created', 'modified'], true)) {
+                    return true;
+                }
+                elseif(strpos($field, 'date') !== false) {
+                    return true;
+                }
+                elseif(is_numeric($val)) {
                     // plausible si entre 2000 et 2100
                     return ($val > 946684800 && $val < 4102444800);
                 }
@@ -150,7 +156,7 @@ class Log extends Model {
                 elseif($old === '') {
                     $old = '(empty string)';
                 }
-                elseif($isTimestamp($old)) {
+                elseif($isTimestamp($old, $field)) {
                     $old = date('c', $old);
                 }
 
@@ -169,7 +175,7 @@ class Log extends Model {
                 elseif($new === '') {
                     $new = '(empty string)';
                 }
-                elseif($isTimestamp($new)) {
+                elseif($isTimestamp($new, $field)) {
                     $new = date('c', $new);
                 }
 
