@@ -46,7 +46,8 @@ class Log extends Model {
                 'result_type'       => 'string',
                 'usage'             => 'text/html',
                 'description'       => "Textual history of changes made to the object at the time of the Log.",
-                'function'          => 'calcHistory'
+                'function'          => 'calcHistory',
+                'store'             => false
             ]
 
         ];
@@ -118,6 +119,15 @@ class Log extends Model {
             $html = "<table>";
             $max_len = 120;
 
+            // #todo - quick workaround to improve dates display
+            $isTimestamp = function($val) {
+                if (is_numeric($val)) {
+                    // plausible si entre 2000 et 2100
+                    return ($val > 946684800 && $val < 4102444800);
+                }
+                return false;
+            };
+
             foreach($map_new_values as $field => $new) {
                 $old = $map_old_values[$field];
 
@@ -140,6 +150,9 @@ class Log extends Model {
                 elseif($old === '') {
                     $old = '(empty string)';
                 }
+                elseif($isTimestamp($old)) {
+                    $old = date('c', $old);
+                }
 
                 if(is_array($new)) {
                     $new = implode(', ', $new);
@@ -155,6 +168,9 @@ class Log extends Model {
                 }
                 elseif($new === '') {
                     $new = '(empty string)';
+                }
+                elseif($isTimestamp($new)) {
+                    $new = date('c', $new);
                 }
 
                 $old = mb_strlen($old) > $max_len ? mb_substr($old, 0, $max_len - 1) . '…' : $old;
