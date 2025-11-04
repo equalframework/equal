@@ -8,7 +8,7 @@
             {
                 "type": "field",
                 "value": "name",
-                "width": "25%",
+                "width": "30%",
                 "widget": {
                     "sortable": true,
                     "wrap": true

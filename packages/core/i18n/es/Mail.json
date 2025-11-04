@@ -3,6 +3,11 @@
     "plural": "Correos",
     "description": "Correos electrónicos enviados.",
     "model": {
+        "modified":{
+            "label":"Mandato",
+            "description": "La fetcha de envio del correo electrónico.",
+            "help":""
+        },
         "status": {
             "label": "Estado",
             "description": "",

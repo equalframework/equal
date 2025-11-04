@@ -33,7 +33,7 @@ class Task extends Model {
                     'running'
                 ],
                 'default'           => 'idle',
-                'description'       => 'current status of the processing (to avoid concurrent executions).'
+                'description'       => 'Current status of the processing (to avoid concurrent executions).'
             ],
 
             'pid' => [

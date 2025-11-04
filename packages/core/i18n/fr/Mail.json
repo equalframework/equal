@@ -3,9 +3,14 @@
     "plural": "Mails",
     "description": "Messages courriels envoyés.",
     "model": {
+        "modified":{
+            "label":"Envoyé",
+            "description": "Date d'envoi du courriel.",
+            "help":""
+        },
         "to":{
             "label":"À",
-            "description": "Destinataire principal du courriel",
+            "description": "Destinataire principal du courriel.",
             "help":"Destinataire repris dans le champ `to`."
         },
         "reply_to":{
