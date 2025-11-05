@@ -441,6 +441,11 @@ class Collection implements \Iterator, \Countable {
                 'start' => 0
             ];
 
+        // check `$params` consistency
+        if(array_filter(array_keys($params), 'is_numeric')) {
+            throw new \Exception('invalid_search_params', EQ_ERROR_INVALID_PARAM);
+        }
+
         // retrieve current user id
         $user_id = $this->am->userId();
 
