@@ -345,6 +345,56 @@ else {
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
+    // 5 bis) External binaries dependencies if any
+    // #memo - when inside a containerized environment, restarting the instance will not persist installed binaries, since they are not part of the Docker image.
+    if(isset($package_manifest['requires_bin']) && is_array($package_manifest['requires_bin'])) {
+
+        $os = strtolower(PHP_OS_FAMILY);
+        foreach($package_manifest['requires_bin'] as $bin => $meta) {
+
+            try {
+                $check_cmd = $meta['check'] ?? "$bin --version";
+                $binary_package_name = $meta['package']['generic'] ?? $bin;
+
+                if($os === 'darwin' && isset($meta['package']['macos'])) {
+                    $binary_package_name = $meta['package']['macos'];
+                }
+                elseif($os === 'windows' && isset($meta['package']['windows'])) {
+                    $binary_package_name = $meta['package']['windows'];
+                }
+
+                if($os === 'linux') {
+                    $install_cmd = "apt-get install -y $binary_package_name";
+                }
+                elseif($os === 'darwin') {
+                    $install_cmd = "brew install $binary_package_name";
+                }
+                elseif($os === 'windows') {
+                    $install_cmd = "choco install $binary_package_name -y";
+                }
+                else {
+                    throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
+                }
+
+                system($install_cmd, $result_code);
+
+                if($result_code !== 0) {
+                    throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
+                }
+
+                exec($check_cmd . ' 2>&1', $output, $result_code);
+
+                if($result_code !== 0) {
+                    throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
+                }
+            }
+            catch(Exception $e) {
+                // do not interrupt package init, but report error
+                trigger_error("PHP::unexpected error while installing external binary {$bin}: ". $e->getMessage(), EQ_REPORT_WARNING);
+            }
+        }
+    }
+
     // 6) Inject config values, if present
     if(isset($package_manifest['config']) && is_array($package_manifest['config'])) {
         $config = [];
