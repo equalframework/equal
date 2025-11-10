@@ -354,38 +354,89 @@ else {
 
             try {
                 $check_cmd = $meta['check'] ?? "$bin --version";
-                $binary_package_name = $meta['package']['generic'] ?? $bin;
 
-                if($os === 'darwin' && isset($meta['package']['macos'])) {
-                    $binary_package_name = $meta['package']['macos'];
-                }
-                elseif($os === 'windows' && isset($meta['package']['windows'])) {
-                    $binary_package_name = $meta['package']['windows'];
-                }
-
-                if($os === 'linux') {
-                    $install_cmd = "apt-get install -y $binary_package_name";
-                }
-                elseif($os === 'darwin') {
-                    $install_cmd = "brew install $binary_package_name";
-                }
-                elseif($os === 'windows') {
-                    $install_cmd = "choco install $binary_package_name -y";
-                }
-                else {
-                    throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
-                }
-
-                system($install_cmd, $result_code);
-
-                if($result_code !== 0) {
-                    throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
-                }
-
+                $output = [];
                 exec($check_cmd . ' 2>&1', $output, $result_code);
 
+                // binary not present yet or returns an error code
                 if($result_code !== 0) {
-                    throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
+
+                    $binary_package_name = $meta['package']['generic'] ?? $bin;
+
+                    $linux_flavour = null;
+                    if($os === 'linux' && file_exists('/etc/os-release')) {
+                        $os_release = file_get_contents('/etc/os-release');
+                        if(preg_match('/^ID=(.+)$/m', $os_release, $m)) {
+                            $linux_flavour = trim(str_replace('"', '', $m[1]));
+                        }
+                    }
+
+                    if($os === 'linux') {
+                        if(isset($meta['package'][$linux_flavour])) {
+                            $binary_package_name = $meta['package'][$linux_flavour];
+                        }
+                        switch($linux_flavour) {
+                            case 'centos':
+                            case 'rhel':
+                            case 'redhat':
+                                $install_cmd = "yum install -y $binary_package_name";
+                                break;
+                            case 'fedora':
+                                $install_cmd = "dnf install -y $binary_package_name";
+                                break;
+                            case 'debian':
+                            case 'ubuntu':
+                            default:
+                                $install_cmd = "apt-get install -y $binary_package_name";
+                        }
+                    }
+                    elseif($os === 'darwin') {
+                        if(isset($meta['package']['macos'])) {
+                            $binary_package_name = $meta['package']['macos'];
+                        }
+                        $install_cmd = "brew install $binary_package_name";
+                    }
+                    elseif($os === 'windows') {
+                        if(isset($meta['package']['windows'])) {
+                            $binary_package_name = $meta['package']['windows'];
+                        }
+                        $install_cmd = "choco install $binary_package_name -y";
+                    }
+                    else {
+                        throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
+                    }
+
+                    system($install_cmd, $result_code);
+
+                    if($result_code !== 0) {
+                        throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
+                    }
+
+                    $output = [];
+                    exec($check_cmd . ' 2>&1', $output, $result_code);
+
+                    if($result_code !== 0) {
+                        throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
+                    }
+
+                    // optional - copy binary to `/opt/bin` for persistency, if present
+                    $opt_bin_dir = '/opt/bin';
+                    if(file_exists($opt_bin_dir) && is_dir($opt_bin_dir)) {
+                        $whereis = [];
+                        exec("command -v $bin 2>/dev/null", $whereis);
+                        if(!empty($whereis[0])) {
+                            $src = trim($whereis[0]);
+                            $dst = "$opt_bin_dir/$bin";
+                            if(file_exists($dst)) {
+                                unlink($dst);
+                            }
+                            $linked = @symlink($src, $dst);
+                            if(!$linked) {
+                                copy($src, $dst);
+                            }
+                            chmod($dst, 0755);
+                        }
+                    }
                 }
             }
             catch(Exception $e) {
