@@ -141,18 +141,19 @@ class Scheduler extends Service {
                             }
                         }
                     }
-                    list($status, $log) = ['', ''];
+                    list($status, $log) = ['success', ''];
                     try {
                         $body = json_decode($task['params'], true);
                         // run the task
                         $data = \eQual::run('do', $task['controller'], $body, true);
-                        $status = 'success';
 	                    $log = (string) json_encode($data, JSON_PRETTY_PRINT);
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
                         trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
-                        $status = 'error';
+                        if($e->getCode() !== 0) {
+                            $status = 'error';
+                        }
                         $msg = $e->getMessage();
                         $data = @unserialize($msg);
                         if(is_array($data)) {
