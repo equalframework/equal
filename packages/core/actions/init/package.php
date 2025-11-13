@@ -342,6 +342,9 @@ else {
             unset($map_composer['require-dev']);
         }
 
+        // ensure that insecure packages can be installed if needed
+        $map_composer['config']['audit']['block-insecure'] = false;
+
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
@@ -351,7 +354,6 @@ else {
 
         $os = strtolower(PHP_OS_FAMILY);
         foreach($package_manifest['requires_bin'] as $bin => $meta) {
-
             try {
                 $check_cmd = $meta['check'] ?? "$bin --version";
 
@@ -386,8 +388,10 @@ else {
                                 break;
                             case 'debian':
                             case 'ubuntu':
-                            default:
                                 $install_cmd = "apt-get update && apt-get install -y $binary_package_name";
+                                break;
+                            default:
+                                $install_cmd = '';
                         }
                     }
                     elseif($os === 'darwin') {
@@ -406,10 +410,12 @@ else {
                         throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
                     }
 
-                    system($install_cmd, $result_code);
+                    if(strlen($install_cmd) > 0) {
+                        system($install_cmd, $result_code);
 
-                    if($result_code !== 0) {
-                        throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
+                        if($result_code !== 0) {
+                            throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
+                        }
                     }
 
                     $output = [];

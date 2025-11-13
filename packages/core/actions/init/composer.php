@@ -68,13 +68,19 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
     unlink(EQ_BASEDIR.'/composer.lock');
 }
 
-// run composer to install dependencies (quiet mode, no interactions, ignore PHP version)
-$cmd = 'php composer.phar update -q -n';
+// run composer to install dependencies (verbose, no interactions)
+$cmd = 'php composer.phar update -vvv -n';
 if($params['ignore_platform']) {
     $cmd .= ' --ignore-platform-reqs';
 }
 
-if(exec($cmd) === false) {
+// prevent direct output
+$cmd .= ' 2>&1';
+
+$output = [];
+
+if(exec($cmd, $output) === false) {
+    trigger_error("PHP::Composer command failed: ".implode("\n", $output), EQ_REPORT_ERROR);
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 
