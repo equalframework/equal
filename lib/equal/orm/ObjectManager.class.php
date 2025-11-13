@@ -1474,7 +1474,7 @@ class ObjectManager extends Service {
                     $error_code = QN_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
                     // issue a warning about missing mandatory field
-                    trigger_error("ORM::mandatory field {$field} is missing for instance of {$class}", QN_REPORT_WARNING);
+                    trigger_error("ORM::mandatory field `{$field}` is missing for instance of `{$class}`", QN_REPORT_WARNING);
                 }
             }
         }
@@ -1600,14 +1600,14 @@ class ObjectManager extends Service {
                         $domain[] = ['id', '<>', $id];
                         $conflict_ids = $this->search($class, $domain);
                         if($conflict_ids < 0) {
-                            trigger_error("ORM::validate() - call to search() returned an error code: {$conflict_ids}", QN_REPORT_WARNING);
+                            trigger_error("ORM::validate() - call to `search()` returned an error code: {$conflict_ids}", QN_REPORT_WARNING);
                             // interrupt the process in case of system error (SQL)
                             return [];
                         }
                     }
                     // there is a violation : stop and fetch info about it
                     if(is_array($conflict_ids) && count($conflict_ids)) {
-                        trigger_error("ORM::field {$field} violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
+                        trigger_error("ORM::field `{$field}` of class `{$class}` violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
                         $error_code = QN_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
                         break 2;
