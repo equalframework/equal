@@ -387,7 +387,7 @@ else {
                             case 'debian':
                             case 'ubuntu':
                             default:
-                                $install_cmd = "apt-get install -y $binary_package_name";
+                                $install_cmd = "apt-get update && apt-get install -y $binary_package_name";
                         }
                     }
                     elseif($os === 'darwin') {
