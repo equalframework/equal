@@ -56,10 +56,10 @@ if(ctype_lower(substr($file, 0, 1))) {
         // #memo in case of announce as root (required for relaying params), an Exception with code 0 is raised and JSON is directly sent to stdout
         ob_start();
         if(file_exists(EQ_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
-            config\eQual::run('do', $operation, array_merge($params, ['announce' => true]), true);
+            eQual::run('do', $operation, array_merge($params, ['announce' => true]), true);
         }
         elseif(file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
-            config\eQual::run('get', $operation, array_merge($params, ['announce' => true]), true);
+            eQual::run('get', $operation, array_merge($params, ['announce' => true]), true);
         }
         else {
             throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
