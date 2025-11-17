@@ -696,9 +696,10 @@ namespace config {
 
                     // #todo export this part of the logic to a cache manager
                 */
-                if( $method == 'GET'
+                if( $method === 'GET'
                     && isset($announcement['response']['cacheable'])
-                    && $announcement['response']['cacheable']) {
+                    && $announcement['response']['cacheable']
+                    && (!isset($body['announce']) || $body['announce']) ) {
                     // compute the cache ID
                     // remove 'cache' param from URI, if present
                     $request_id = trim(preg_replace('/&cache=[^&]*&/', '&', $request->uri().'&'), '&');
@@ -891,7 +892,7 @@ namespace config {
             }
             // if at least one mandatory param is missing, reply with announcement
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
+            if( count($missing_params) || isset($body['announce']) || $method === 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
                 // (for public and protected controllers this might be considered as security issue as it may reveal a part of the configuration)
                 // if 'help' is amongst the params and request was made through CLI
@@ -974,7 +975,7 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
 
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
-                if(isset($body['announce']) || $method == 'OPTIONS') {
+                if(isset($body['announce']) || $method === 'OPTIONS') {
                     $response->status(200)
                         // disable browser cache to refresh computed default values
                         ->header('Cache-Control', 'no-store, max-age=0')
