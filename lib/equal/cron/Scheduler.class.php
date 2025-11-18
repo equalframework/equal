@@ -150,9 +150,9 @@ class Scheduler extends Service {
                     }
                     catch(\Exception $e) {
                         // error occurred during execution
-                        trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), QN_REPORT_ERROR);
                         if($e->getCode() !== 0) {
                             $status = 'error';
+                            trigger_error("PHP::Error while running scheduled job [{$task['id']}]: ".$e->getMessage(), EQ_REPORT_ERROR);
                         }
                         $msg = $e->getMessage();
                         $data = @unserialize($msg);
