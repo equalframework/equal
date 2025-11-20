@@ -20,6 +20,9 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ]
     ],
+    'access' => [
+        'visibility'    => 'public'
+    ],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'UTF-8',
