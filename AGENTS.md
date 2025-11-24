@@ -235,36 +235,301 @@ MyClass::create($fields, 'fr');
 MyClass::ids($id)->update($fields, 'en');
 ```
 
-------
+---
 
 ### Class Translation Files
 
-Location:
+Translation files associated with ORM entities define all user-facing texts: labels, descriptions, help messages, view titles, section headers, workflow actions, route labels, error messages, and more.
+
+They follow a strict JSON structure and must be placed at a precise location within the package.
+
+---
+
+#### 📁 File Location
 
 ```
-packages/{package}/i18n/{lang}/{Class}.json
+packages/{package}/i18n/{lang}/{path?}/{Class}.json
 ```
 
-Includes:
-
-- `name`, `plural`, `description`
-- `model`: field labels, descriptions, selections, help
-- `view`: form/list names, layout section labels
+- `{package}` = module name (e.g., `sale.booking`)
+- `{lang}` = language code (e.g., `fr`, `en`, `nl`)
+- `{path}` = path within the `class` folder of the package (might be absent)
+- `{Class}` = ORM class name in CamelCase
 
 Example:
+```
+packages/inventory/i18n/fr/server/Instance.json
+```
+
+
+---
+
+#### 🧩 Global Structure
+
+A translation file may contain **up to four main sections**:
+
+```json
+{
+  "name": "",
+  "plural": "",
+  "description": "",
+  "model": { ... },
+  "view": { ... },
+  "error": { ... }
+}
+```
+
+Each section is detailed below.
+
+---
+
+#### 1. 🔤 Class Metadata
+
+```json
+{
+  "name": "Reservation",
+  "plural": "Reservations",
+  "description": "Object representing a booking within the system."
+}
+```
+
+- **name**: Singular label for the entity.
+- **plural**: Plural label used in lists and menus.
+- **description**: Functional description of the entity.
+
+⚠️ Only these keys are allowed in the metadata block.
+
+---
+
+#### 2. 🧱 The `model` Block — ORM Fields
+
+The `model` block contains one entry per **field** defined in the ORM class.
+
+##### Generic Structure
 
 ```json
 "model": {
-  "status": {
-    "label": "Statut",
-    "description": "Workflow state of the object.",
-    "selection": { "draft": "Draft" },
-    "help": ""
+  "{field}": {
+    "label": "Field label",
+    "description": "Functional description.",
+    "help": "Help text displayed on hover or below the field.",
+    "selection": {
+      "key": "Label"
+    }
   }
 }
 ```
 
+###### Field key details
+
+| Key           | Required | Purpose                                              |
+| ------------- | -------- | ---------------------------------------------------- |
+| `label`       | ✔️        | User-facing field label                              |
+| `description` | ✔️        | Short functional explanation                         |
+| `help`        | ✔️        | Contextual help or usage hints                       |
+| `selection`   | Optional | For fields with selectable values (`select`, `enum`) |
+
+###### Supported cases
+
+- ✔ Boolean fields
+- ✔ Simple scalar fields (text, int, float, date, datetime…)
+- ✔ Relations (`field_id`, `field_ids`)
+- ✔ Computed fields
+- ✔ Invisible/system fields (should still have translations)
+
+---
+
+#### 3. 🖥️ The `view` Block — UI Screens
+
+The `view` block includes translations for **all UI views** associated with the entity:
+
+- `form.*`
+- `list.*`
+- `chart.*`
+- `dashboard.*`
+- Others defined in the package
+
+Each entry maps directly to a JSON view definition.
+
+---
+
+##### 3.1. Common View Keys
+
+```json
+"view": {
+  "form.default": {
+    "name": "View title",
+    "description": "Displayed under the view title"
+  }
+}
+```
+
+###### Allowed keys
+
+| Property      | Required | Description                     |
+| ------------- | -------- | ------------------------------- |
+| `name`        | ✔️        | Title of the view              |
+| `description` | Optional | Short explanation               |
+| `actions`     | Optional | Buttons/actions inside the view |
+| `routes`      | Optional | Secondary view navigation       |
+| `layout`      | Optional | Labels of form sections. Required if sections with ID are present in the view |
+
+---
+
+##### 3.2. Actions
+
+Actions correspond to actionable buttons within a form view.
+
+```json
+"actions": {
+  "action.confirm": {
+    "label": "Confirm",
+    "description": "Description of what the action does."
+  }
+}
+```
+
+Notes :
+
+- Descriptions may include `\n\n` line breaks.
+- Action names must **match** those defined in the `.json` view file.
+
+---
+
+##### 3.3. Routes (Secondary panels)
+
+```json
+"routes": {
+  "item.booking.payments": {
+    "label": "Payments"
+  }
+}
+```
+
+Routes correspond to internal navigation links displayed in the side panel of some views.
+
+---
+
+##### 3.4. Layout (Form sections)
+
+```json
+"layout": {
+  "section.booking_info": {
+    "label": "General information"
+  }
+}
+```
+
+Each section key must be translated, even if the original section has no descriptive text.
+
+---
+
+##### 3.5. Lists — `list.*` Views
+
+```json
+"list.default": {
+  "name": "Reservations",
+  "exports": {
+    "export.print.contract": { "label": "Print contract" }
+  },
+  "layout": {}
+}
+```
+
+`layout` is often empty, as list column definitions usually come from technical JSON.
+
 ------
+
+##### 3.6. Charts — `chart.*`
+
+```json
+"chart.occupancy": {
+  "name": "Occupancy rate",
+  "description": ""
+}
+```
+
+Charts only require a `name` and optional `description`.
+
+------
+
+#### 4. 🚨 The `error` Block — Business Error Messages
+
+The `error` block defines **all custom error messages**, grouped per field.
+
+##### Generic structure
+
+```json
+"error": {
+  "{field}": {
+    "error_key": "Error message"
+  }
+}
+```
+
+##### Example
+
+```json
+"error": {
+  "status": {
+    "non_editable": "The reservation status does not allow editing.",
+    "undefined_product_id": "The status cannot be changed if no product is defined."
+  }
+}
+```
+
+##### Global Errors
+
+Errors not tied to a specific field go into:
+
+```json
+"errors": {
+  "overbooking_detected": "Overbooking detected."
+}
+```
+
+---
+
+#### 🏁 Summary of All Supported Translation Elements
+
+| Element               | Location            | Description            |
+| --------------------- | ------------------- | ---------------------- |
+| Singular/plural names | root                | `"name"`, `"plural"`   |
+| Entity description    | root                | `"description"`        |
+| Field labels          | `model`             | `label`                |
+| Field descriptions    | `model`             | `description`          |
+| Field help text       | `model`             | `help`                 |
+| Selection values      | `model > selection` | Key → label            |
+| View titles           | `view`              | `"name"`               |
+| View descriptions     | `view`              | `"description"`        |
+| Actions               | `view > actions`    | `label`, `description` |
+| Routes                | `view > routes`     | `label`                |
+| Layout sections       | `view > layout`     | Section labels         |
+| List exports          | `view > exports`    | Exports label          |
+| Chart titles          | `view > chart.*`    | name/description       |
+| Field-level errors    | `error`             | Custom error messages  |
+| Global errors         | `error > errors`    | Cross-field errors     |
+
+---
+
+#### 🧠 Guidelines
+
+##### Required
+
+- ✔ Always translate **label**, **description**, **help** for each field.
+- ✔ Always include *every* field and view defined in the entity and its JSON views.
+- ✔ Preserve the **exact key names** from model/view definitions.
+- ✔ Keep text clear, concise, professional.
+
+##### Formatting rules
+
+- ✔ Use full sentences.
+- ✔ Avoid unexplained abbreviations.
+- ✔ When a text is intentionally empty → use `""`, never omit the key.
+- ✔ Prefer English functional terms (e.g., "Booking", "Customer", "Status").
+
+
+---
 
 ### View Documentation (optional)
 
