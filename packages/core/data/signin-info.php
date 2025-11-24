@@ -56,7 +56,7 @@ $cleanUpEmail = function(string $email): string {
  * Action
  */
 
-// "memo - $params['login'] is either username or login (email address)
+// #memo - $params['login'] is either username or login (email address)
 $user_domain = ['username', '=', $params['login']];
 
 if(filter_var($params['login'], FILTER_VALIDATE_EMAIL)) {
