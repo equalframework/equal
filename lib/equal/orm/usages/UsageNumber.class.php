@@ -55,6 +55,12 @@ class UsageNumber extends Usage {
                     'not_integer' => [
                         'message'   => 'Value is not an integer.',
                         'function'  =>  function($value) {
+                            return preg_match('/^[+-]?[0-9]+$/', (string) $value);
+                        }
+                    ],
+                    'size_exceeded' => [
+                        'message'   => 'Non supported number of digits.',
+                        'function'  =>  function($value) {
                             return preg_match('/^[+-]?[0-9]{0,'.$this->getLength().'}$/', (string) $value);
                         }
                     ],
