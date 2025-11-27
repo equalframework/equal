@@ -419,7 +419,10 @@ else {
                     }
 
                     $output = [];
+
+                    ob_start();
                     exec($check_cmd . ' 2>&1', $output, $result_code);
+                    ob_end_clean();
 
                     if($result_code !== 0) {
                         throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
