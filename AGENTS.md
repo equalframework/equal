@@ -412,6 +412,8 @@ Routes correspond to internal navigation links displayed in the side panel of so
 
 ##### 3.4. Layout (Form sections)
 
+When a form view (`*.form.default.json`) contains sections with explicit `id` values, their labels must also be translated in the corresponding i18n file.
+
 ```json
 "layout": {
   "section.booking_info": {
@@ -421,6 +423,21 @@ Routes correspond to internal navigation links displayed in the side panel of so
 ```
 
 Each section key must be translated, even if the original section has no descriptive text.
+This ensures UI tabs/sections display localized captions alongside field and view titles.
+
+Example:
+```
+"view": {
+  "Task.form.default": {
+    "name": "...",
+    "layout": {
+      "section.details": { "label": "Details" },
+      "section.history": { "label": "History" }
+    }
+  }
+}
+```
+
 
 ---
 
