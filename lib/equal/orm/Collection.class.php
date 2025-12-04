@@ -1104,6 +1104,45 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+
+    /**
+     * Asserts that the collection complies with one or several policies.
+     * Throws an exception if any policy is violated.
+     *
+     * @param string|array $policies
+     * @return Collection
+     * @throws \Exception
+     */
+    public function assert($policies) {
+        trigger_error("ORM::performing assert on '{$this->class}' for policies " . implode(',', (array) $policies), EQ_REPORT_DEBUG);
+
+        $ids = $this->ids();
+
+        // nothing to check
+        if(!count($ids)) {
+            return $this;
+        }
+
+        // normalize to array
+        $policies = (array) $policies;
+
+        // retrieve current user id
+        $user_id = $this->am->userId();
+
+        foreach($policies as $policy) {
+            // call AccessController check
+            $res = $this->ac->isCompliant($policy, $this->class, $ids, $user_id);
+
+            // throw Exception upon violation
+            if(count($res)) {
+                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
+            }
+        }
+
+        return $this;
+    }
+
+
     /*
       Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
       These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
