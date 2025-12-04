@@ -760,7 +760,7 @@ class AccessController extends Service {
             $count = count($parts);
 
             if( $count < 1 || $count > 2 ) {
-                $result['invalid_policy_method'] = "Method provided for Policy {$policy} has an non-supported format.";
+                $result['invalid_policy_method'] = "Method provided for Policy {$policy} has a non-supported format.";
             }
             else {
                 if( $count == 2 ) {
