@@ -31,7 +31,8 @@ list($params, $providers) = eQual::announce([
         'success_status' =>  [
             'description'   => 'HTTP status code to return in case of success.',
             'type'          => 'integer',
-            'default'       => 204
+            'default'       => 204,
+            'visible'       => false
         ],
         'params' => [
             'type'          => 'array',
