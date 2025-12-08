@@ -28,6 +28,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true
         ],
+        'success_status' =>  [
+            'description'   => 'HTTP status code to return in case of success.',
+            'type'          => 'integer',
+            'default'       => 204
+        ],
         'params' => [
             'type'          => 'array',
             'description'   => 'Additional params to relay to the data controller.',
@@ -68,5 +73,5 @@ if(empty($params['ids'])) {
 $entity::ids($params['ids'])->do($params['action'], $params['params']);
 
 $context->httpResponse()
-    ->status(204)
+    ->status($params['success_status'])
     ->send();
