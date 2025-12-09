@@ -40,11 +40,16 @@ list($context) = [ $providers['context'] ];
 
 $result = [];
 
-$files = [QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json"];
-if(strpos($params['lang'], '_') !== false) {
-    // fallback on language only
-    $language = explode('_', $params['lang'])[0];
-    array_unshift($files, QN_BASEDIR."/packages/{$params['package']}/i18n/{$language}/menu.{$params['menu_id']}.json");
+$files = [];
+$parts = explode('.', $params['menu_id']);
+
+while(!empty($parts)) {
+    $files[] = EQ_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu." . implode('.', $parts) . '.json';
+    if(strpos($params['lang'], '_') !== false) {
+        $language = explode('_', $params['lang'])[0];
+        $files[] = EQ_BASEDIR."/packages/{$params['package']}/i18n/{$language}/menu." . implode('.', $parts) . '.json';
+    }
+    array_pop($parts);
 }
 
 foreach($files as $file) {
