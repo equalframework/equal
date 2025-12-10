@@ -89,6 +89,7 @@ namespace {
     define('EQ_MODE_APP',          16);             // application logic logs
     define('EQ_MODE_AAA',          32);             // authentication, authorization & accounting logs
     define('EQ_MODE_NET',          64);             // network logs (tcp/ip, http)
+    define('EQ_MODE_FTP',          128);            // ftp logs
     // equivalence map for constant names migration
     // #deprecated
     define('QN_MODE_PHP',          EQ_MODE_PHP);
@@ -98,6 +99,7 @@ namespace {
     define('QN_MODE_APP',          EQ_MODE_APP);
     define('QN_MODE_AAA',          EQ_MODE_AAA);
     define('QN_MODE_NET',          EQ_MODE_NET);
+    define('QN_MODE_FTP',          EQ_MODE_FTP);
 
     // debugging levels
     define('EQ_REPORT_DEBUG',       E_USER_DEPRECATED);     // 16384
