@@ -28,13 +28,13 @@ class Meta extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Identifier of the meta (arbitrary: \'workflow\', \'uml\', \'pipeline\', ...).',
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'reference' => [
                 'type'              => 'string',
                 'description'       => 'Custom reference (arbitrary: object_class, object_class.object_id, UML name, ...).',
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'value' => [
@@ -50,7 +50,7 @@ class Meta extends Model {
         $result = [];
         $self->read(['code', 'reference']);
         foreach($self as $id => $meta) {
-            $result[$id] = $meta['code'].'.'.$meta['reference'];
+            $result[$id] = $meta['code'] . '.' . $meta['reference'];
         }
         return $result;
     }
