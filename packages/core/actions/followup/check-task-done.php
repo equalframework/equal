@@ -54,7 +54,7 @@ use core\followup\Task;
 ['context' => $context, 'dispatch' => $dispatch] = $providers;
 
 $task = Task::id($params['id'])
-    ->read(['is_done', 'object_class'])
+    ->read(['is_done', 'object_id', 'object_class'])
     ->first();
 
 if(is_null($task)) {
@@ -65,7 +65,7 @@ if($task['is_done']) {
     eQual::run('do', 'core_alert_dismiss', ['id' => $task['id']]);
 }
 else {
-    $dispatch->dispatch($params['message_model'], $task['object_class'], $task['id'], $params['severity'], 'core_followup_check-task-done', [
+    $dispatch->dispatch($params['message_model'], $task['object_class'], $task['object_id'], $params['severity'], 'core_followup_check-task-done', [
         'id'            => $task['id'],
         'message_model' => $params['message_model'],
         'severity'      => $params['severity']

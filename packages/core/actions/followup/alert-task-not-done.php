@@ -84,7 +84,7 @@ if(!empty($tasks)) {
     }
 
     foreach($tasks as $id => $task) {
-        $dispatch->dispatch($message_model['name'], $task['object_class'], $id, $params['severity'], 'core_followup_check-task-done', [
+        $dispatch->dispatch($message_model['name'], $task['object_class'], $task['object_id'], $params['severity'], 'core_followup_check-task-done', [
             'id'            => $id,
             'message_model' => $message_model['name'],
             'severity'      => $params['severity']
