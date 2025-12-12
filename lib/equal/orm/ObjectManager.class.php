@@ -151,15 +151,16 @@ class ObjectManager extends Service {
         'binary'        => 'binary(64000000)'   // 64MB binary value
     ];
 
-    public const EVENTS_CLASS_ONCREATE = 1;
+    public const EVENTS_CLASS_ONCREATE       = 1;
     public const EVENTS_CLASS_ONBEFOREUPDATE = 2;
-    public const EVENTS_CLASS_ONAFTERUPDATE = 4;
+    public const EVENTS_CLASS_ONAFTERUPDATE  = 4;
     public const EVENTS_CLASS_ONBEFOREDELETE = 8;
-    public const EVENTS_CLASS_ONAFTERDELETE = 16;
+    public const EVENTS_CLASS_ONAFTERDELETE  = 16;
     public const EVENTS_CLASS_ONUPDATE = 6;
     public const EVENTS_CLASS_ONDELETE = 24;
-    public const EVENTS_FIELD_ONUPDATE = 32;
-    public const EVENTS_FIELD_ONREVERT = 64;
+    public const EVENTS_FIELD_ONCREATE = 32;
+    public const EVENTS_FIELD_ONUPDATE = 64;
+    public const EVENTS_FIELD_ONREVERT = 128;
 
     public const EVENTS_ALL = 255;
 
@@ -1876,6 +1877,7 @@ class ObjectManager extends Service {
             // 5) update objects
 
             // remember callbacks that are triggered by the update
+            $oncreate_fields = [];
             $onupdate_fields = [];
             $onrevert_fields = [];
             $instant_fields = [];
@@ -1888,6 +1890,9 @@ class ObjectManager extends Service {
                     if($schema[$field]['type'] != 'computed') {
                         if(isset($schema[$field]['onupdate'])) {
                             $onupdate_fields[] = $field;
+                        }
+                        if(isset($schema[$field]['oncreate'])) {
+                            $oncreate_fields[] = $field;
                         }
                     }
                     else {
@@ -2014,6 +2019,16 @@ class ObjectManager extends Service {
                     foreach($onrevert_fields as $field) {
                         // run onrevert callback (ignore undefined methods)
                         $this->callonce($class, $schema[$field]['onrevert'], $ids, $fields, $lang);
+                    }
+                }
+            }
+            else {
+                // #memo - this must be done after modifications otherwise object values might be outdated
+                if(count($oncreate_fields) && ($this->enabled_events & self::EVENTS_FIELD_ONCREATE) === self::EVENTS_FIELD_ONCREATE) {
+                    // #memo - several onupdate callbacks can, in turn, trigger a same other callback, which must then be called as many times as necessary
+                    foreach($oncreate_fields as $field) {
+                        // run oncreate callback (ignore undefined methods)
+                        $this->callonce($class, $schema[$field]['oncreate'], $ids, $fields, $lang);
                     }
                 }
             }
