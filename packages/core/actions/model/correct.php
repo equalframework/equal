@@ -6,6 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Domain;
+use equal\orm\DomainCondition;
 use equal\orm\Field;
 
 list($params, $providers) = eQual::announce([
