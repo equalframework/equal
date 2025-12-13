@@ -1,8 +1,12 @@
 <?php
-
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2025
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 use equal\orm\Entity;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Update the getActions() return function of an entity",
     'help'          => "This controller relies on the PHP binary. Ensure the PHP binary is present in the PATH.",
     'params'        => [

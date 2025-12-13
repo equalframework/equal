@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Add an empty workflow to the given class by creating a `getWorkflow()` method (if not defined yet).",
     'params'        => [
         'entity' =>  [

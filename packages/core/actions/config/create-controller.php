@@ -1,5 +1,9 @@
 <?php
-
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2025
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
+*/
 list($params, $providers) = eQual::announce([
     'description'   => "Attempts to create a new controller using a given name.",
     'response'      => [
