@@ -6,84 +6,111 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'This is the core_config_update-translation controller created with core_config_create-controller.',
-    'params'        => [
-        "package" => [
-            "description"   => "name of the package of the entity",
-            "type"          => "string",
-            "required"      => true
+    'description' => 'Update or create translation file for an entity',
+    'params' => [
+        'package' => [
+            'type' => 'string',
+            'required' => true
         ],
-        "entity" => [
-            "description"   => "name of the entity to edit",
-            "type"          => "string",
-            "required"      => true
+        'entity' => [
+            'type' => 'string',
+            'required' => true
         ],
-        "lang" => [
-            "description"   => "lang of the translation",
-            "type"          => "string",
-            "required"      => true
+        'lang' => [
+            'type' => 'string',
+            'required' => true
         ],
-        "payload" => [
-            "type"          => "string",
-            "usage"         => "text/json",
-            "default"       => "{}"
+        'payload' => [
+            'type' => 'string',
+            'usage' => 'text/json',
+            'default' => '{}'
         ],
-        "create_lang" => [
-            "type"          => "boolean",
-            "default"       => false
+        'create_lang' => [
+            'type' => 'boolean',
+            'default' => false
         ]
     ],
-    'access'        => [
-        'visibility'    => 'protected',
-        'groups'        => ['users']
+    'access' => [
+        'visibility' => 'protected',
+        'groups' => ['users']
     ],
-    'response'      => [
-        'charset'       => 'utf-8',
-        'accept-origin' => '*'
-    ],
-    'providers'     => ['context']
+    'providers' => ['context']
 ]);
-/**
- * @var \equal\php\context  Context
- */
+
+/** @var \equal\php\context $context */
 ['context' => $context] = $providers;
 
-$package = $params["package"];
-$entity = $params["entity"];
-$lang = $params["lang"];
-$payload = $params["payload"];
-$create = $params["create_lang"];
+$package = $params['package'];
+$entity  = $params['entity'];
+$lang    = $params['lang'];
+$payload = $params['payload'];
+$create  = $params['create_lang'];
 
-// Checking if package exists
-if(!file_exists(EQ_BASEDIR."/packages/{$package}")) {
+/* ---------- Validations ---------- */
+
+// Package
+$packageDir = EQ_BASEDIR . "/packages/{$package}";
+if (!is_dir($packageDir)) {
     throw new Exception('missing_package_dir', EQ_ERROR_INVALID_CONFIG);
 }
 
+// Lang format (ex: fr, fr_BE, en_US)
+if (!preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $lang)) {
+    throw new Exception('invalid_lang_format', EQ_ERROR_INVALID_CONFIG);
+}
+
+// Entity safety
+if (!preg_match('/^[A-Za-z0-9_\\\\]+$/', $entity)) {
+    throw new Exception('invalid_entity_name', EQ_ERROR_INVALID_CONFIG);
+}
+
+/* ---------- Path resolution ---------- */
+
 $parts = explode("\\", $entity);
+$filename = array_pop($parts) . '.json';
+$subdir = implode('/', $parts);
 
-$filename = array_pop($parts) . ".json";
+$langBaseDir = "{$packageDir}/i18n/{$lang}";
+$targetDir   = "{$langBaseDir}/{$subdir}";
 
-$dir = implode("/", $parts);
-
-if(!is_dir(EQ_BASEDIR."/packages/{$package}/i18n/{$lang}/{$dir}")) {
-    mkdir(EQ_BASEDIR."/packages/{$package}/i18n/{$lang}/{$dir}", true);
+// Lang folder
+if (!is_dir($langBaseDir)) {
+    if (!$create) {
+        throw new Exception('lang_not_found', EQ_ERROR_INVALID_CONFIG);
+    }
+    if (!mkdir($langBaseDir, 0775, true)) {
+        throw new Exception('cannot_create_lang_directory', EQ_ERROR_INVALID_CONFIG);
+    }
 }
 
-$json = json_decode($payload, true);
-
-if($json === null) {
-    throw new Exception('payload_not_valid', EQ_ERROR_INVALID_CONFIG);
+// Entity folder
+if (!is_dir($targetDir) && !mkdir($targetDir, 0775, true)) {
+    throw new Exception('cannot_create_entity_directory', EQ_ERROR_INVALID_CONFIG);
 }
 
-$output = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+/* ---------- JSON handling ---------- */
 
-if(!$output) {
-    throw new Exception('payload_not_valid', EQ_ERROR_INVALID_CONFIG);
+$data = json_decode($payload, true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    throw new Exception('payload_not_valid_json', EQ_ERROR_INVALID_CONFIG);
 }
 
-file_put_contents(EQ_BASEDIR."/packages/{$package}/i18n/{$lang}/{$dir}/{$filename}", $output);
+$output = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+if ($output === false) {
+    throw new Exception('json_encoding_failed', EQ_ERROR_INVALID_CONFIG);
+}
+
+/* ---------- Write ---------- */
+
+$targetFile = "{$targetDir}/{$filename}";
+if (file_put_contents($targetFile, $output) === false) {
+    throw new Exception('cannot_write_translation_file', EQ_ERROR_INVALID_CONFIG);
+}
+
+/* ---------- Response ---------- */
 
 $context->httpResponse()
-        ->body($output)
-        ->status(200)
-        ->send();
+    ->status(200)
+    ->body($output)
+    ->send();
