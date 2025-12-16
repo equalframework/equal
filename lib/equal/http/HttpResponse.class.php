@@ -35,6 +35,20 @@ class HttpResponse extends HttpMessage {
 
     }
 
+    private static function arrayToXml(\SimpleXMLElement &$object, array $data) {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                if(is_numeric($key)) {
+                    $new_object = $object->addChild('elem');
+                    $new_object->addAttribute('id', $key);
+                }
+                else $new_object = $object->addChild($key);
+                self::arrayToXml($new_object, $value);
+            }
+            else $object->addChild($key, $value);
+        }
+    }
+
     /**
      * Sends a HTTP response to the output stream (stdout).
      * This method is meant to be used in conjunction with PHP context,
@@ -123,21 +137,8 @@ class HttpResponse extends HttpMessage {
             case 'text/xml':
             case 'application/xml':
             case 'text/xml, application/xml':
-                function to_xml(\SimpleXMLElement &$object, array $data) {
-                    foreach ($data as $key => $value) {
-                        if (is_array($value)) {
-                            if(is_numeric($key)) {
-                                $new_object = $object->addChild('elem');
-                                $new_object->addAttribute('id', $key);
-                            }
-                            else $new_object = $object->addChild($key);
-                            to_xml($new_object, $value);
-                        }
-                        else $object->addChild($key, $value);
-                    }
-                }
                 $xml = new \SimpleXMLElement('<root/>');
-                to_xml($xml, $body);
+                self::arrayToXml($xml, $body);
                 $body = $xml->asXML();
                 break;
             default:
@@ -147,17 +148,17 @@ class HttpResponse extends HttpMessage {
         else {
             switch($this->headers()->getContentType()) {
             case 'text/csv':
-                if($this->headers()->getCharset() == 'UTF-8') {
-                     $body = "\xEF\xBB\xBF".$body;
+                if($this->headers()->getCharset() === 'UTF-8') {
+                    $body = "\xEF\xBB\xBF" . $body;
                 }
                 break;
             }
         }
         // set header accordingly to body size
-        header('Content-Length: '.strlen($body));
+        header('Content-Length: ' . strlen($body));
         // output body
         print($body);
-        // we return a pointer to current instance for consistency, but no output should be emitted after this point
+        // return a pointer to current instance for consistency, but no output should be emitted after this point
         return $this;
     }
 
