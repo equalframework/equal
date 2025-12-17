@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
 	wget
 COPY ./mpm_prefork.conf /etc/apache2/mods-available/
 COPY ./000-default.conf /etc/apache2/sites-available/
+
 # install sqlsrv drivers
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
     | gpg --dearmor \
@@ -32,6 +33,7 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] \
 https://packages.microsoft.com/debian/12/prod bookworm main" \
 > /etc/apt/sources.list.d/microsoft-prod.list
+
 RUN apt-get update
 
 RUN ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
@@ -39,6 +41,7 @@ RUN ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
     unixodbc \
     unixodbc-dev
 RUN pecl install sqlsrv pdo_sqlsrv
+
 # install required PHP extensions
 RUN set -ex; \
 		\
@@ -77,6 +80,7 @@ RUN set -ex; \
 				| xargs -rt apt-mark manual; \
 		\
 		rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
+
 # set recommended PHP.ini settings
 RUN { \
 		echo 'opcache.memory_consumption=256'; \
@@ -86,6 +90,12 @@ RUN { \
 		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
+# dedicated directory for dynamically installed binaries
+# (allows to keep binaries installed by eQual across container restarts)
+RUN mkdir -p /opt/bin
+ENV PATH="/opt/bin:${PATH}"
+
+# enable required Apache mods
 RUN a2enmod rewrite expires
 
 VOLUME /var/www/html
