@@ -4,6 +4,7 @@
 # Validation environment:
 # - Host OS        : Ubuntu 24.04.1 LTS
 # - Docker Engine  : 27.5.1
+# - eQual version  : dev-2.0
 # - Build date     : 2025-12-17
 #
 # Notes:
@@ -61,7 +62,7 @@ RUN set -ex; \
 		docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
 		docker-php-ext-configure intl; \
 		docker-php-ext-install -j$(nproc) gd; \
-		docker-php-ext-install opcache dom mbstring zip dom intl; \
+		docker-php-ext-install opcache dom mbstring zip dom intl ftp; \
 		docker-php-ext-install mysqli; \
 		docker-php-ext-enable sqlsrv pdo_sqlsrv mbstring; \
 		\
