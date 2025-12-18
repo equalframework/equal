@@ -1148,11 +1148,11 @@ class Collection implements \Iterator, \Countable {
      * The callback receives the object id and the Model instance.
      * This method does not alter the collection and allows chaining.
      *
-     * @param callable $callback function (int $id, Model $object): void
+     * @param callable $callback function(int $id, Model $object): void
      * @return Collection
      */
     public function each(callable $callback): Collection {
-        foreach ($this->objects as $id => $object) {
+        foreach($this->objects as $id => $object) {
             $callback($id, $object);
         }
         return $this;

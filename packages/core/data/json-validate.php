@@ -22,9 +22,14 @@ use Opis\JsonSchema\Validator;
         'schema_id' =>  [
             'type'          => 'string',
             'pattern'       => '/^urn:[a-z0-9_-]+:json-schema:[a-z0-9_-]+:[a-z0-9._-]+$/i',
-            'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema:<package>:<schema-name>`.',
+            'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema[:<package>]:<schema-name>`.',
             'help'          => "Target JSON schema is expected to be a https://json-schema.org/draft/2020-12/ descriptor for validation.",
             'required'      => true
+        ],
+        'package' => [
+            'description'   => 'Package the schema relates to, if any.',
+            'type'          => 'string',
+            'usage'         => 'orm/package'
         ],
         'strict' =>  [
             'type'          => 'boolean',

@@ -5,11 +5,11 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
+use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, PrettyPrinter};
 use PhpParser\PhpVersion;
 
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
     'help'          => "This controller rely on the PHP binary. In order to make them work, sure the PHP binary is present in the PATH.",
     'response'      => [
@@ -64,47 +64,8 @@ $package = array_shift($parts);
 $filename = array_pop($parts);
 // Get the class path from the remaining part
 $class_path = implode('/', $parts);
-
-/*if(!($decoded = json_decode($params['payload'],true))) {
-    throw new Exception('Malformed Json', QN_ERROR_INVALID_PARAM);
-}*/
-
 // Get a string representation from the code_php variable, with backslashes escaped
 $code_string = str_replace("\\\\", "\\", var_export( $params['payload'], true));
-
-// #test #toremove
-// $code_string = "[
-//     'description'   => \"save a representation of a view to a json file\",
-//     'response'      => [
-//         'content-type'  => 'text/plain',
-//         'charset'       => 'UTF-8',
-//         'accept-origin' => '*',
-//         'schema' => [
-//             'type'   => 'entity',
-//             'qty'    => 'one',
-//             'entity' => 'core\User',
-//             'values' => []
-//         ]
-//     ],
-//     'params' => [
-//         'entity' => [
-//             'description' => 'name of the entity',
-//             'type' => 'string',
-//             'required' => true
-//         ],
-//         'view_id' => [
-//             'description' => 'id of the view',
-//             'type' => 'string',
-//             'required' => true
-//         ],
-//     ],
-//     'access' => [
-//         'visibility'        => 'protected',
-//         'groups'            => ['admins']
-//     ],
-//     'providers'     => ['context']
-//     ]";
-
 // Create a virtual file holding the default structure, and generate a minimal AST
 $ast_temp = $parser->parse("<?php \nlist(\$params, \$providers) = eQual::announce($code_string);");
 
@@ -148,18 +109,6 @@ $file = str_replace("//","/",$file);
 $code = file_get_contents($file);
 // ... and parse it to create an AST
 $stmtOriginal = $parser->parse($code);
-
-
-// #test #toremove fake original file
-// $stmtOriginal = $parser->parse("<?php \nlist(\$params, \$providers) = eQual::announce([]);
-// /**
-//  * @var \\equal\\php\\Context  \$context
-//  */
-// list(\$context) = [\$providers['context']];
-
-// \$parts = explode(\"\\\\\",\$params['entity']);
-// \$parts_v = explode(\".\",\$params['view_id']);
-// ");
 
 // Update the AST by using visitors attached to the traverser
 $stmtModified = $traverser->traverse($stmtOriginal);

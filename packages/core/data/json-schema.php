@@ -11,9 +11,14 @@
     'params'        => [
         'id' => [
             'type'          => 'string',
-            'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema:<package>:<schema-name>`.',
+            'description'   => 'Json-Schema $id following the syntax `urn:<namespace>:json-schema[:<package>]:<schema-name>`.',
             'pattern'       => '/^urn:[a-z0-9_-]+:json-schema:[a-z0-9_-]+:[a-z0-9._-]+$/i',
             'required'      => true
+        ],
+        'package' => [
+            'description'   => 'Package the schema relates to, if any.',
+            'type'          => 'string',
+            'usage'         => 'orm/package'
         ]
     ],
     'response'      => [
