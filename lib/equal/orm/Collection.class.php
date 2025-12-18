@@ -1143,6 +1143,21 @@ class Collection implements \Iterator, \Countable {
     }
 
 
+    /**
+     * Apply a callback to each object of the collection.
+     * The callback receives the object id and the Model instance.
+     * This method does not alter the collection and allows chaining.
+     *
+     * @param callable $callback function (int $id, Model $object): void
+     * @return Collection
+     */
+    public function each(callable $callback): Collection {
+        foreach ($this->objects as $id => $object) {
+            $callback($id, $object);
+        }
+        return $this;
+    }
+
     /*
       Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
       These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
