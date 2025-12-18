@@ -14,6 +14,7 @@ use equal\php\Context;
         'id' => [
             'type'          => 'string',
             'description'   => 'XSD schema identifier (URN), e.g. `urn:iso:std:iso:20022:tech:xsd:pain.001.001.03`.',
+            'help'          => 'Progressive resolution (most specific -> generic). Accepts "pain.001.001.03", ..., "urn:iso:std:iso:20022:tech:xsd:pain.001.001.03".',
             'required'      => true
         ],
         'package' => [
@@ -44,7 +45,7 @@ $package  = $params['package'];
 
 /**
  * Resolve XSD path from URN + package, using progressive override strategy.
- * Progressive resolution (most specific → generic)
+ * Progressive resolution (most specific -> generic).
  *
  * Example:
  *   urn:iso:std:iso:20022:tech:xsd:pain.001.001.03
@@ -56,46 +57,42 @@ $package  = $params['package'];
  *   xsd-pain.001.001.03.xsd
  *   pain.001.001.03.xsd
  */
-$resolveXsd = function (string $schemaId, string $package): ?string {
+$resolveXsd = function(string $schemaId, string $package): ?string {
 
-    if(substr($schemaId, 0, 4) !== 'urn:') {
-        return null;
+    $urn = $schemaId;
+
+    if(substr($schemaId, 0, 4) === 'urn:') {
+        // Remove "urn:"
+        $urn = substr($schemaId, 4);
     }
-
-    // Basic package hardening
-    if(!preg_match('/^[a-zA-Z0-9_\-]+$/', $package)) {
-        return null;
-    }
-
-    // Remove "urn:"
-    $urn = substr($schemaId, 4);
 
     // Split URN segments
     $parts = explode(':', $urn);
-    if (count($parts) < 2) {
+
+    if(count($parts) <= 0) {
+        return null;
+    }
+
+    $base_dir = EQ_BASEDIR . '/packages/' . $package . '/schemas';
+    if(!is_dir($base_dir)) {
         return null;
     }
 
     // Last segment = canonical schema name
-    $schemaName = array_pop($parts);
-
-    $baseDir = EQ_BASEDIR . '/packages/' . $package . '/schemas';
-    if(!is_dir($baseDir)) {
-        return null;
-    }
+    $schema_name = array_pop($parts);
 
     for($i = 0; $i <= count($parts); $i++) {
         $prefixParts = array_slice($parts, $i);
         $filename = '';
 
         if(!empty($prefixParts)) {
-            $filename = implode('-', $prefixParts) . '-' . $schemaName . '.xsd';
+            $filename = implode('-', $prefixParts) . '-' . $schema_name . '.xsd';
         }
         else {
-            $filename = $schemaName . '.xsd';
+            $filename = $schema_name . '.xsd';
         }
 
-        $path = $baseDir . '/' . $filename;
+        $path = $base_dir . '/' . $filename;
 
         if(is_file($path)) {
             return $path;
@@ -106,14 +103,14 @@ $resolveXsd = function (string $schemaId, string $package): ?string {
 };
 
 // Resolve schema
-$schemaPath = $resolveXsd($schemaId, $package);
+$schema_path = $resolveXsd($schemaId, $package);
 
-if(!$schemaPath) {
+if(!$schema_path) {
     throw new Exception('schema_not_found', EQ_ERROR_INVALID_PARAM);
 }
 
-$schemaContent = file_get_contents($schemaPath);
+$result = file_get_contents($schema_path);
 
 $context->httpResponse()
-    ->body($schemaContent, true)
+    ->body($result, true)
     ->send();
