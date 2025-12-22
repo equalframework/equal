@@ -1013,8 +1013,19 @@ namespace config {
                     if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                         // either a php function (or a function from the global scope) or a closure object
                         if(is_object($default_value)) {
-                            // default is a closure
-                            $default_value = $default_value();
+                            // $default_value is a closure: inject args from received params
+                            /** @var \ReflectionFunction */
+                            $function = new \ReflectionFunction($default_value);
+                            /** @var \ReflectionParameter[] */
+                            $functionParams = $function->getParameters();
+                            $f_args = [];
+                            foreach($functionParams as $functionParam) {
+                                $f_param = $functionParam->getName();
+                                if(isset($body[$f_param])) {
+                                    $f_args[] = $body[$f_param];
+                                }
+                            }
+                            $default_value = $default_value(...$f_args);
                         }
                     }
                     elseif(is_string($default_value) && strpos($default_value, '::')) {
