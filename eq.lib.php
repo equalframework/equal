@@ -1029,6 +1029,7 @@ namespace config {
                 }
                 if(!array_key_exists($param, $body)) {
                     // ignore optional params without default value (this allows PATCH of objects on specific fields only)
+                    // #memo - we must preserve the distinction between a parameter explicitly provided as null and a parameter that was not provided at all
                 }
                 else {
                     $f = new Field($config, $param);
