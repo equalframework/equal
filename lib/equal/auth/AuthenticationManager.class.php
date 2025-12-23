@@ -225,56 +225,61 @@ class AuthenticationManager extends Service {
             return $this->user_id;
         }
 
-        // retrieve JWT payload
-        $jwt = $this->retrieveAccessToken($token);
+        try {
+            // retrieve JWT payload
+            $jwt = $this->retrieveAccessToken($token);
 
-        // decode and verify token, if found
-        if($jwt) {
-            if(isset($jwt['exp']) && $jwt['exp'] < time()) {
-                // generate a 401 Unauthorized HTTP response
-                throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
+            // decode and verify token, if found
+            if($jwt) {
+                if(isset($jwt['exp']) && $jwt['exp'] < time()) {
+                    // generate a 401 Unauthorized HTTP response
+                    throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
+                }
+                $this->user_id = $jwt['id'];
             }
-            $this->user_id = $jwt['id'];
-        }
-        // no jwt found: attempt using other Basic http auth, if allowed
-        else {
-            // #todo - add a config setting to enable Basic http auth
+            // no jwt found: attempt using other Basic http auth, if allowed
+            else {
+                // #todo - add a config setting to enable Basic http auth
 
-            // check the request headers for a JWT
-            $context = $this->container->get('context');
+                // check the request headers for a JWT
+                $context = $this->container->get('context');
 
-            /** @var \equal\http\HttpRequest  */
-            $request = $context->httpRequest();
+                /** @var \equal\http\HttpRequest  */
+                $request = $context->httpRequest();
 
-            $auth_header = $request->header('Authorization');
+                $auth_header = $request->header('Authorization');
 
-            if($auth_header) {
-                if(strpos($auth_header, 'Basic ') !== false) {
-                    [$token] = sscanf($auth_header, 'Basic %s');
-                    [$username, $password] = explode(':', base64_decode($token));
-                    // leave $jwt unset and authenticate (sets $user_id)
-                    $this->authenticate($username, $password);
+                if($auth_header) {
+                    if(strpos($auth_header, 'Basic ') !== false) {
+                        [$token] = sscanf($auth_header, 'Basic %s');
+                        [$username, $password] = explode(':', base64_decode($token));
+                        // leave $jwt unset and authenticate (sets $user_id)
+                        $this->authenticate($username, $password);
+                    }
+                }
+
+            }
+
+            if($this->user_id > 0) {
+                // additional check on User status
+                $orm = $this->container->get('orm');
+                $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
+                if($list < 0 || !count($list)) {
+                    throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
+                }
+
+                $user = current($list);
+
+                if($user['deleted'] || !$user['validated'] || !in_array($user['status'], ['validated', 'confirmed'], true)) {
+                    throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
                 }
             }
 
         }
-
-        if($this->user_id > 0) {
-            // additional check on User status
-            $orm = $this->container->get('orm');
-            $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
-            if($list < 0 || !count($list)) {
-                throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
-            }
-
-            $user = current($list);
-
-            if($user['deleted'] || !$user['validated'] || !in_array($user['status'], ['validated', 'confirmed'], true)) {
-                $this->user_id = 0;
-                throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
-            }
+        catch(\Exception $e) {
+            trigger_error("AAA::unable to retrieve user ID: " . $e->getMessage(), EQ_REPORT_WARNING);
+            $this->user_id = 0;
         }
-
         return $this->user_id;
     }
 

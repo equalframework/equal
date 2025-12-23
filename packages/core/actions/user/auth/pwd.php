@@ -52,7 +52,7 @@ else {
     // find a user that matches the given username (there should be only one)
     $user = User::search(['username', '=', $params['login']])->read(['login'])->first();
     if(!$user) {
-        throw new Exception("user_not_found", QN_ERROR_INVALID_USER);
+        throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
     }
     $login = $user['login'];
 }
@@ -64,13 +64,13 @@ $user_id = $auth->userId();
 
 if(!$user_id) {
     // this is a fallback exception, but we should never reach this code, since user has been found by authenticate method
-    throw new Exception("user_not_found", QN_ERROR_INVALID_USER);
+    throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
 $user = User::id($user_id)->read(['validated'])->first(true);
 
 if(!$user || !$user['validated']) {
-    throw new Exception("user_not_validated", QN_ERROR_NOT_ALLOWED);
+    throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
 // generate a JWT access token
