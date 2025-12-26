@@ -192,6 +192,8 @@ if(!in_array($view_type, ['form', 'list', 'chart', 'search', 'report', 'cards', 
     throw new Exception('invalid_view_type', EQ_ERROR_INVALID_PARAM);
 }
 
+$entity = str_replace('_', '\\', $params['entity']);
+
 // pass-1 : retrieve existing view meant for entity (recurse through parents)
 while(true) {
     $parts = explode('\\', $entity);
@@ -212,6 +214,10 @@ while(true) {
 
     // go one level up through parents
     try {
+        if(ctype_lower(substr($filename, 0, 1))) {
+            // support for controller entities
+            break;
+        }
         $parent = get_parent_class($orm->getModel($entity));
         if(!$parent || $parent == 'equal\orm\Model') {
             break;
@@ -219,7 +225,7 @@ while(true) {
         $entity = $parent;
     }
     catch(Throwable $e) {
-        // support for controller entities
+        // unexpected error (unknown class)
         break;
     }
 }
