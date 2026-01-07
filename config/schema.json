@@ -293,6 +293,12 @@
         "instant": true,
         "default": 10
     },
+    "HTTP_REQUEST_VERIFY_SSL": {
+        "type": "boolean",
+        "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": true
+    },
     "HTTP_PROCESS_USERNAME": {
         "type": "string",
         "description": "Username used by the HTTP service (for rights checks).",

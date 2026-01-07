@@ -150,14 +150,17 @@ class HttpRequest extends HttpMessage {
                     // 'request_fulluri'   => true,
                     'header'            => $headers,
                     'ignore_errors'     => true,
-                    'timeout'           => (defined('HTTP_REQUEST_TIMEOUT'))?constant('HTTP_REQUEST_TIMEOUT'):10,
+                    'timeout'           => (defined('HTTP_REQUEST_TIMEOUT')) ? constant('HTTP_REQUEST_TIMEOUT') : 10,
                     'protocol_version'  => $this->getProtocolVersion(),
                     'follow_location'   => 1,
                     'max_redirects'     => 10
                 ]);
             // create the HTTP stream context
             $context = stream_context_create([
-                    'http' => $http_options
+                    'http' => $http_options,
+                    'ssl'  => [
+                        'verify_peer' => (defined('HTTP_REQUEST_VERIFY_SSL')) ? constant('HTTP_REQUEST_VERIFY_SSL') : true
+                    ]
                 ]);
             // send request
             $data = @file_get_contents(
