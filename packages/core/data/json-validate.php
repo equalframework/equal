@@ -110,7 +110,7 @@ if(!$valid) {
 
 $context->httpResponse()
         ->body([
-            'result' => $valid,
+            'result' => (bool) $valid,
             'errors' => $errors
         ])
         ->send();

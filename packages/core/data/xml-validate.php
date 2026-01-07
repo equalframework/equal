@@ -110,7 +110,7 @@ if($strict && !empty($errors)) {
 
 $context->httpResponse()
     ->body([
-        'result' => $valid,
+        'result' => (bool) $valid,
         'errors' => $errors
     ])
     ->send();
