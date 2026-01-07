@@ -2969,9 +2969,7 @@ class ObjectManager extends Service {
                         }
                         // handle particular cases involving arrays
                         if( in_array($operator, ['in', 'not in']) ) {
-                            if(!is_array($value)) {
-                                $value = array($value);
-                            }
+                            $value = is_array($value) ? $value : ($value === null ? [] : [$value]);
                             if(!count($value)) {
                                 $value = ['0'];
                             }
