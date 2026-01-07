@@ -3,41 +3,6 @@ version: 2.1
 # Define the jobs we want to run for this project.
 # We always test 2 previous PHP versions.
 jobs:
-  php_7-4:
-    docker:
-    - image: php:7.4-apache
-    - image: mysql:5.7
-      environment:
-        MYSQL_ROOT_PASSWORD: test
-        MYSQL_DATABASE: equal
-    working_directory: ~/repo
-    steps:
-      # install dependencies
-      - run: apt-get update && apt-get -y install git libzip-dev
-      - run: docker-php-ext-install pdo pdo_mysql mysqli zip
-      - run: docker-php-ext-enable mysqli
-      - checkout:
-          path: ~/repo
-      # assign folders permissions
-      - run: php run.php --do=init_fs
-      # check that mandatory directories are present and have correct access rights set
-      - run: php run.php --do=test_fs-consistency
-      # check ability to connect to the dbms service
-      - run: php run.php --do=test_db-connectivity
-      # create an empty database
-      - run: php run.php --do=init_db
-      # initialize database with demo data
-      - run: php run.php --do=init_package --package=core --import=true --ignore_platform=true
-      # run test units
-      - run: php run.php --do=test_package --package=core
-      # export logs on failure
-      - run:
-          command: |
-            mkdir -p /tmp/dumps
-            cp ~/repo/log/equal.log /tmp/dumps
-          when: on_fail
-      - store_artifacts:
-          path: /tmp/dumps
   php_8-1:
     docker:
     - image: php:8.1-apache
@@ -113,6 +78,5 @@ jobs:
 workflows:
   build_and_test:
     jobs:
-      - php_7-4
       - php_8-1
       - php_8-3
