@@ -63,6 +63,10 @@ class Field {
         $this->name = $field_name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
+            // computed fields MUST declare an explicit result_type
+            if($this->type === 'computed') {
+                trigger_error("ORM::missing result_type for computed field `{$this->name}`", E_USER_WARNING);
+            }
             $this->descriptor['result_type'] = $this->type;
         }
         if(strlen($package_name) > 0 && in_array($this->descriptor['result_type'], ['one2many', 'many2one', 'many2many'])) {
@@ -121,7 +125,7 @@ class Field {
             'array'         => 'array'
         ];
         $type = $this->descriptor['result_type'];
-        return $map[$type];
+        return $map[$type] ?? $type;
     }
 
     public function getUsage(): Usage {
