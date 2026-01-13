@@ -84,7 +84,7 @@ class User extends Model {
             'language' => [
                 'type'              => 'string',
                 'usage'             => 'locale',
-                'default'           => 'en',
+                'default'           => function() { return defined('DEFAULT_LANG') ? constant('DEFAULT_LANG') : 'en'; },
                 'description'       => "Preferred locale for user interfaces.",
             ],
 
