@@ -2788,12 +2788,12 @@ class ObjectManager extends Service {
             $db = $this->getDbHandler();
 
             if(empty($sort)) {
-                throw new Exception("sorting order field cannot be empty", QN_ERROR_MISSING_PARAM);
+                throw new Exception("sorting_order_cannot_be_empty", EQ_ERROR_MISSING_PARAM);
             }
 
             // check and fix domain format
             if($domain && !is_array($domain)) {
-                throw new Exception("if domain is specified, it must be an array", QN_ERROR_INVALID_PARAM);
+                throw new Exception("given_domain_must_be_array", EQ_ERROR_INVALID_PARAM);
             }
             elseif($domain) {
                 // valid format : [[['field', 'operator', 'value']]]
@@ -2838,10 +2838,11 @@ class ObjectManager extends Service {
 
                     for($i = 0, $max_i = count($domain[$j]); $i < $max_i; ++$i) {
                         if(!isset($domain[$j][$i]) || !is_array($domain[$j][$i])) {
-                            throw new Exception("malformed_domain", QN_ERROR_INVALID_PARAM);
+                            throw new Exception("malformed_domain", EQ_ERROR_INVALID_PARAM);
                         }
                         if(!isset($domain[$j][$i][0]) || !isset($domain[$j][$i][1])) {
-                            throw new Exception("invalid domain, a mandatory attribute is missing", QN_ERROR_INVALID_PARAM);
+                            // "invalid domain, a mandatory attribute is missing"
+                            throw new Exception("invalid_domain", EQ_ERROR_INVALID_PARAM);
                         }
                         $field    = $domain[$j][$i][0];
                         $value    = (isset($domain[$j][$i][2])) ? $domain[$j][$i][2] : null;
@@ -2859,29 +2860,34 @@ class ObjectManager extends Service {
 
                         // check field validity
                         if(!in_array($field, array_keys($schema))) {
-                            throw new Exception("invalid domain, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                            // "invalid domain, unknown field '$field' for object '$class'"
+                            throw new Exception('invalid_domain', EQ_ERROR_INVALID_PARAM);
                         }
                         // get final target field
                         while($schema[$field]['type'] == 'alias') {
                             $field = $schema[$field]['alias'];
                             if(!in_array($field, array_keys($schema))) {
-                                throw new Exception("invalid schema, unknown field '$field' for object '$class'", QN_ERROR_INVALID_PARAM);
+                                // "invalid schema, unknown field '$field' for object '$class'"
+                                throw new Exception('invalid_schema', EQ_ERROR_INVALID_PARAM);
                             }
                         }
                         // get final type
                         $type = $schema[$field]['type'];
                         if($type == 'computed') {
                             if(!isset($schema[$field]['result_type'])) {
-                                throw new Exception("invalid schema, missing result_type for field '$field' of object '$class'", QN_ERROR_INVALID_PARAM);
+                                // "invalid schema, missing result_type for field '$field' of object '$class'"
+                                throw new Exception('invalid_schema', EQ_ERROR_INVALID_PARAM);
                             }
                             $type = $schema[$field]['result_type'];
                         }
                         // check the validity of the field name and the operator
                         if(!self::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
-                            throw new Exception("missing at least one mandatory parameter for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            // "missing at least one mandatory parameter for field '$field' of class '$class'"
+                            throw new Exception('missing_mandatory_attribute', EQ_ERROR_INVALID_CONFIG);
                         }
                         if(!in_array($operator, self::$valid_operators[$type])) {
-                            throw new Exception("invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'", QN_ERROR_INVALID_PARAM);
+                            // "invalid domain, unknown operator '$operator' for field '$field' of type '{$schema[$field]['type']}' (result type: $type) in object '$class'"
+                            throw new Exception('invalid_domain_unknown_operator', EQ_ERROR_INVALID_PARAM);
                         }
 
                         // remember special fields involved in the domain (by removing them from the special_fields list)
@@ -3018,7 +3024,7 @@ class ObjectManager extends Service {
             // if invalid order field is given, fallback to 'id'
             foreach($sort as $sort_field => $sort_order) {
                 if(!isset($schema[$sort_field]) || ( $schema[$sort_field]['type'] == 'computed' && (!isset($schema[$sort_field]['store']) || !$schema[$sort_field]['store']) )) {
-                    trigger_error("ORM::invalid order field '$sort_field' for class '$class'", QN_REPORT_WARNING);
+                    trigger_error("ORM::invalid order field '$sort_field' for class '$class'", EQ_REPORT_WARNING);
                     // $order = 'id';
                     $sort_field = 'id';
                     $sort_order = 'asc';
@@ -3070,7 +3076,7 @@ class ObjectManager extends Service {
             $result = array_unique($result);
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $result = $e->getCode();
         }
