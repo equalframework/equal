@@ -42,7 +42,7 @@ class Dispatcher extends Service {
     public function dispatch($message_model, $object_class, $object_id, $severity='notice', $controller=null, $params=[], $links=[], $user_id=null, $group_id=null) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
-        trigger_error("PHP::dispatching message", QN_REPORT_DEBUG);
+        trigger_error("PHP::dispatching message", EQ_REPORT_DEBUG);
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
@@ -71,7 +71,7 @@ class Dispatcher extends Service {
             }
         }
         else {
-            trigger_error("PHP::unknown message model", E_USER_WARNING);
+            trigger_error("PHP::Unknown alert MessageModel {$message_model}", E_USER_WARNING);
         }
     }
 
@@ -115,7 +115,7 @@ class Dispatcher extends Service {
     public function cancel($message_model, $object_class, $object_id) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
-        trigger_error("PHP::cancelling message", QN_REPORT_DEBUG);
+        trigger_error("PHP::cancelling message", EQ_REPORT_DEBUG);
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
