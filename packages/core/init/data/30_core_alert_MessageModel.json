@@ -1,0 +1,26 @@
+[
+    {
+        "name": "core\\alert\\MessageModel",
+        "lang": "en",
+        "data": [
+            {
+                "id": 1,
+                "name": "core.system.failed_email_sending",
+                "label": "Email delivery failure",
+                "description": "An email relating to the element could not be delivered.",
+                "type": "emails"
+            }
+        ]
+    },
+    {
+        "name": "core\\alert\\MessageModel",
+        "lang": "fr",
+        "data": [
+            {
+                "id": 1,
+                "label": "Échec d'envoi d'email",
+                "description": "Un email lié à cet élément n'a pas pu être envoyé."
+            }
+        ]
+    }
+]
