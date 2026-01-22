@@ -23,17 +23,6 @@ class Mail extends Model {
                 'alias'             => 'subject'
             ],
 
-            'status' => [
-                'type'              => 'string',
-                'selection'         => [
-                    'pending',
-                    'failing',
-                    'sent'
-                ],
-                'default'           => 'pending',
-                'description'       => 'Sending status of the mail.'
-            ],
-
             'to' => [
                 'type'              => 'string',
                 'usage'             => 'email',
@@ -98,8 +87,18 @@ class Mail extends Model {
                 'default'           => '',
                 'visible'           => ['status', '<>', 'pending'],
                 'generation'        => 'generateResponse'
-            ]
+            ],
 
+            'status' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'pending',
+                    'failing',
+                    'sent'
+                ],
+                'default'           => 'pending',
+                'description'       => 'Sending status of the mail.'
+            ]
         ];
     }
 
@@ -442,7 +441,7 @@ class Mail extends Model {
             $transport = new \Swift_SmtpTransport(
                 constant('EMAIL_SMTP_HOST'),
                 constant('EMAIL_SMTP_PORT'),
-                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
+                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) ? constant('EMAIL_SMTP_ENCRYPT') : null
             );
 
             $transport
@@ -453,7 +452,9 @@ class Mail extends Model {
                 $transport->setStreamOptions([
                     'ssl' => [
                         'allow_self_signed'     => true,
-                        'verify_peer'           => false
+                        'verify_peer'           => false,
+                        /* #memo don't use in prod to avoid MITM exploits */
+                        /*'verify_peer_name'    => false */
                     ]
                 ]);
             }
