@@ -143,7 +143,13 @@ class Scheduler extends Service {
                     }
                     list($status, $log) = ['success', ''];
                     try {
-                        $body = json_decode($task['params'], true);
+                        $body = [];
+                        if($task['params']) {
+                            $json = json_decode($task['params'], true);
+                            if(is_array($json)) {
+                                $body = $json;
+                            }
+                        }
                         // run the task
                         $data = \eQual::run('do', $task['controller'], $body, true);
 	                    $log = (string) json_encode($data, JSON_PRETTY_PRINT);
