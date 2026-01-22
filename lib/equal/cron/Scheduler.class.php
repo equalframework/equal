@@ -161,8 +161,15 @@ class Scheduler extends Service {
                         }
                         $log = ($data) ? $data : $msg;
                     }
+                    $max_len = 65000;
+                    $log_text = "<pre>{$log}</pre>";
+
+                    if(strlen($log_text) > $max_len) {
+                        $log = substr($log, 0, $max_len - 100);
+                        $log_text = "<pre>{$log}</pre>";
+                    }
                     // create a new TaskLog holding result
-                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => "<pre>{$log}</pre>"]);
+                    $orm->create('core\TaskLog', ['task_id' => $tid, 'status' => $status, 'log' => $log_text]);
                     // mark the task as idle (so it can be executed again)
                     $orm->update('core\Task', $tid, ['status' => 'idle']);
                 }
