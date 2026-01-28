@@ -56,10 +56,9 @@ $body .= '<p style="color:#666">This message was sent by an eQual diagnostic con
 
 // Create email
 $email = new Email();
-$email->to = $to;
-$email->subject = $subject;
-$email->body = $body;
-$email->{'content-type'} = 'text/html';
+$email->setTo($to);
+$email->setSubject($subject);
+$email->setBody($body);
 
 // Send (no DB write)
 $sent = Mail::sendRaw($email);
