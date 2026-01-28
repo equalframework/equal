@@ -14,11 +14,7 @@ use equal\email\Email;
     'constants'     => [
         'EMAIL_SMTP_HOST',
         'EMAIL_SMTP_PORT',
-        'EMAIL_SMTP_ACCOUNT_USERNAME',
-        'EMAIL_SMTP_ACCOUNT_PASSWORD',
-        'EMAIL_SMTP_ACCOUNT_EMAIL',
-        'EMAIL_SMTP_ACCOUNT_DISPLAYNAME'
-        // EMAIL_SMTP_ENCRYPT is optional (handled by Mail::provideMailer if defined)
+        'EMAIL_SMTP_ACCOUNT_EMAIL'
     ],
     'params'        => [
         'to' => [
@@ -97,18 +93,12 @@ if(isset($params['reply_to']) && strlen(trim((string) $params['reply_to'])) > 0)
     $email->reply_to = trim((string) $params['reply_to']);
 }
 
-// Send immediately (skip spool)
-$mailId = Mail::send($email);
-
-// Read persisted status/response (best effort)
-$mail = Mail::id($mailId)->read(['id', 'status', 'response_status', 'response'])->first(true);
+// Send (no DB write)
+$sent = Mail::sendRaw($email);
 
 $providers['context']
     ->httpResponse()
     ->body([
-        'mail_id'         => $mailId,
-        'status'          => $mail['status'] ?? 'sent',
-        'response_status' => $mail['response_status'] ?? 250,
-        'response'        => $mail['response'] ?? ''
+        'status' => ($sent > 0) ? 'sent' : 'failed',
     ])
     ->send();

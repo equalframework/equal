@@ -172,6 +172,38 @@ class Mail extends Model {
         return $mail['id'];
     }
 
+    /**
+     * Send an Email directly through SMTP without creating any ORM/DB object.
+     */
+    public static function sendRaw(Email $email): int {
+        // Build a "message" array compatible with createEnvelope()
+        // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
+        $message = $email->toArray();
+
+        // Ensure content-type (your createEnvelope checks 'content-type')
+        if(!isset($message['content-type'])) {
+            $message['content-type'] = 'text/html';
+        }
+
+        $mailer = self::provideMailer();
+        if(!$mailer) {
+            throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
+        }
+
+        $envelope = self::createEnvelope($message);
+        if(!$envelope) {
+            throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
+        }
+
+        $sent = $mailer->send($envelope);
+
+        if($sent <= 0) {
+            throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
+        }
+
+        return $sent;
+    }
+
     public static function isQueued(int $id): bool {
         $files = scandir(self::MESSAGE_FOLDER) ?: [];
         foreach($files as $file) {
