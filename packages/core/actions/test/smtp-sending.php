@@ -22,6 +22,22 @@ use equal\email\Email;
             'usage'       => 'email',
             'required'    => true,
             'description' => 'Recipient email address.'
+        ],
+        'smtp_host' => [
+            'type'        => 'string',
+            'description' => 'Override SMTP host for this test only.'
+        ],
+        'smtp_port' => [
+            'type'        => 'integer',
+            'description' => 'Override SMTP port for this test only.'
+        ],
+        'smtp_username' => [
+            'type'        => 'string',
+            'description' => 'Override SMTP username for this test only.'
+        ],
+        'smtp_password' => [
+            'type'        => 'string',
+            'description' => 'Override SMTP password for this test only.'
         ]
     ],
     'providers'     => ['context']
@@ -60,8 +76,26 @@ $email->setTo($to);
 $email->setSubject($subject);
 $email->setBody($body);
 
+$options = [];
+
+if(isset($params['smtp_host']) && $params['smtp_host'] !== '') {
+    $options['host'] = $params['smtp_host'];
+}
+
+if(isset($params['smtp_port']) && $params['smtp_port'] > 0) {
+    $options['port'] = $params['smtp_port'];
+}
+
+if(isset($params['smtp_username']) && $params['smtp_username'] !== '') {
+    $options['username'] = $params['smtp_username'];
+}
+
+if(isset($params['smtp_password']) && $params['smtp_password'] !== '') {
+    $options['password'] = $params['smtp_password'];
+}
+
 // Send (no DB write)
-$sent = Mail::sendRaw($email);
+$sent = Mail::sendRaw($email, $options);
 
 $providers['context']
     ->httpResponse()

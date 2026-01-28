@@ -175,18 +175,13 @@ class Mail extends Model {
     /**
      * Send an Email directly through SMTP without creating any ORM/DB object.
      */
-    public static function sendRaw(Email $email): int {
+    public static function sendRaw(Email $email, $options=[]): int {
         try {
             // Build a "message" array compatible with createEnvelope()
             // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
             $message = $email->toArray();
 
-            // Ensure content-type (your createEnvelope checks 'content-type')
-            if(!isset($message['content-type'])) {
-                $message['content-type'] = 'text/html';
-            }
-
-            $mailer = self::provideMailer();
+            $mailer = self::provideMailer($options);
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
@@ -464,8 +459,29 @@ class Mail extends Model {
         return $envelope;
     }
 
-    private static function provideMailer() {
+    private static function provideMailer($options=[]) {
         $mailer = null;
+
+        $smtp_host = constant('EMAIL_SMTP_HOST');
+        $smtp_port = constant('EMAIL_SMTP_PORT');
+        $smtp_username = constant('EMAIL_SMTP_ACCOUNT_USERNAME');
+        $smtp_password = constant('EMAIL_SMTP_ACCOUNT_PASSWORD');
+
+        if(isset($options['host'])) {
+            $smtp_host = $options['host'];
+        }
+
+        if(isset($options['port'])) {
+            $smtp_port = $options['port'];
+        }
+
+        if(isset($options['username'])) {
+            $smtp_username = $options['username'];
+        }
+
+        if(isset($options['password'])) {
+            $smtp_password = $options['password'];
+        }
 
         try {
             // load dependencies
@@ -476,14 +492,14 @@ class Mail extends Model {
 
             // setup SMTP settings
             $transport = new \Swift_SmtpTransport(
-                constant('EMAIL_SMTP_HOST'),
-                constant('EMAIL_SMTP_PORT'),
+                $smtp_host,
+                $smtp_port,
                 (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) ? constant('EMAIL_SMTP_ENCRYPT') : null
             );
 
             $transport
-                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
-                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+                ->setUsername($smtp_username)
+                ->setPassword($smtp_password);
 
             if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
                 $transport->setStreamOptions([
