@@ -22,22 +22,6 @@ use equal\email\Email;
             'usage'       => 'email',
             'required'    => true,
             'description' => 'Recipient email address.'
-        ],
-        'subject' => [
-            'type'        => 'string',
-            'default'     => '',
-            'description' => 'Optional subject override.'
-        ],
-        'message' => [
-            'type'        => 'string',
-            'default'     => '',
-            'description' => 'Optional plain message (will be wrapped in a minimal HTML body).'
-        ],
-        'reply_to' => [
-            'type'        => 'string',
-            'usage'       => 'email',
-            'default'     => '',
-            'description' => 'Optional Reply-To address.'
         ]
     ],
     'providers'     => ['context']
@@ -53,13 +37,9 @@ $from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
 $to = $params['to'];
 
 // Build subject
-$subject = trim((string) $params['subject']);
-if($subject === '') {
-    $subject = sprintf('eQual SMTP test (%s)', date('Y-m-d H:i:s'));
-}
+$subject = sprintf('eQual SMTP test (%s)', date('Y-m-d H:i:s'));
 
 // Build minimal HTML body
-$userMessage = trim((string) $params['message']);
 $body = ''
     . '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4">'
     . '<p><strong>SMTP test email</strong></p>'
@@ -71,10 +51,6 @@ $body = ''
     . '<li><strong>Time:</strong> ' . htmlspecialchars(date('c'), ENT_QUOTES, 'UTF-8') . '</li>'
     . '</ul>';
 
-if($userMessage !== '') {
-    $body .= '<p><strong>Message:</strong><br>' . nl2br(htmlspecialchars($userMessage, ENT_QUOTES, 'UTF-8')) . '</p>';
-}
-
 $body .= '<p style="color:#666">This message was sent by an eQual diagnostic controller.</p>'
     . '</div>';
 
@@ -84,14 +60,6 @@ $email->to = $to;
 $email->subject = $subject;
 $email->body = $body;
 $email->{'content-type'} = 'text/html';
-
-// Optional reply-to
-if(isset($params['reply_to']) && strlen(trim((string) $params['reply_to'])) > 0) {
-    if(filter_var($params['reply_to'], FILTER_VALIDATE_EMAIL) === false) {
-        throw new Exception('invalid_reply_to_email', EQ_ERROR_INVALID_PARAM);
-    }
-    $email->reply_to = trim((string) $params['reply_to']);
-}
 
 // Send (no DB write)
 $sent = Mail::sendRaw($email);
