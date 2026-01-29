@@ -101,5 +101,6 @@ $providers['context']
     ->httpResponse()
     ->body([
         'status' => ($sent > 0) ? 'sent' : 'failed',
+        'time'   => date('C')
     ])
     ->send();
