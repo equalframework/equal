@@ -100,6 +100,12 @@ foreach($classes as $class) {
         }
 
         $processed_columns[$table][$field] = true;
+        $raw_descriptor = $schema[$field];
+
+        if($raw_descriptor['type'] == 'alias') {
+            // skip non-stored alias fields
+            continue;
+        }
 
         $f = $model->getField($field);
         $descriptor = $f->getDescriptor();
@@ -118,10 +124,6 @@ foreach($classes as $class) {
                 // skip non-stored computed fields
                 continue;
             }
-        }
-        elseif($descriptor['type'] == 'alias') {
-            // skip non-stored alias fields
-            continue;
         }
 
         $adapter = $dap->get($f->getContentType());
