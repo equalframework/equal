@@ -186,7 +186,7 @@ class Mail extends Model {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
 
-            $envelope = self::createEnvelope($message);
+            $envelope = self::createEnvelope($message, $options);
             if(!$envelope) {
                 throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
             }
@@ -372,7 +372,7 @@ class Mail extends Model {
         return $email->setId($mail['id'])->toArray();
     }
 
-    private static function createEnvelope($message): \Swift_Message {
+    private static function createEnvelope($message, $options=[]): \Swift_Message {
         $envelope = null;
 
         try {
@@ -382,18 +382,24 @@ class Mail extends Model {
             }
             require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
 
-            $body = (isset($message['body']))?$message['body']:'';
-            $subject = (isset($message['subject']))?$message['subject']:'';
+            $body = (isset($message['body'])) ? $message['body'] : '';
+            $subject = (isset($message['subject'])) ? $message['subject'] : '';
 
             if(!isset($message['to']) || strlen($message['to']) <= 0) {
                 throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
+            }
+
+            $from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
+
+            if(isset($options['from'], $options['username']) && $options['from'] === $options['username']) {
+                $from = $options['from'];
             }
 
             $envelope = new \Swift_Message();
             // set sender and recipients
             $envelope
                 ->setTo($message['to'])
-                ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+                ->setFrom([$from => $from]);
 
             if(isset($message['cc'])) {
                 if( (is_array($message['cc']) && count($message['cc']) > 0)
