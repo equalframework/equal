@@ -14,6 +14,7 @@ use equal\email\Email;
     'constants'     => [
         'EMAIL_SMTP_HOST',
         'EMAIL_SMTP_PORT',
+        'EMAIL_SMTP_ACCOUNT_USERNAME',
         'EMAIL_SMTP_ACCOUNT_EMAIL'
     ],
     'params'        => [
@@ -38,6 +39,11 @@ use equal\email\Email;
         'smtp_password' => [
             'type'        => 'string',
             'description' => 'Override SMTP password for this test only.'
+        ],
+        'smtp_from' => [
+            'type'        => 'string',
+            'usage'       => 'email',
+            'description' => 'Override SMTP FROM address (if set, must match smtp_username).'
         ]
     ],
     'providers'     => ['context']
@@ -49,8 +55,24 @@ if(filter_var($params['to'], FILTER_VALIDATE_EMAIL) === false) {
     throw new Exception('invalid_recipient_email', EQ_ERROR_INVALID_PARAM);
 }
 
-$from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
 $to = $params['to'];
+$from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
+
+$smtp_username = $params['smtp_username'] ?? constant('EMAIL_SMTP_ACCOUNT_USERNAME');
+
+// Optional SMTP FROM validation
+if(isset($params['smtp_from']) && $params['smtp_from'] !== '') {
+
+    if($params['smtp_from'] !== $smtp_username) {
+        throw new Exception('smtp_from_must_match_username', EQ_ERROR_INVALID_PARAM);
+    }
+
+    $from = $params['smtp_from'];
+}
+
+if(filter_var($from, FILTER_VALIDATE_EMAIL) === false) {
+    throw new Exception('invalid_sender_email', EQ_ERROR_INVALID_PARAM);
+}
 
 // Build subject
 $subject = sprintf('eQual SMTP test (%s)', date('Y-m-d H:i:s'));
