@@ -10,7 +10,7 @@ use core\Mail;
 
 // announce script and fetch parameters values
 [$params, $providers] = eQual::announce([
-    'description'	=>	"Send a test email.",
+    'description'	=>	"Send a test email (using current config) to `EMAIL_SMTP_ACCOUNT_EMAIL`.",
     'params'        => [
         'instant' => [
             'type'              => 'boolean',
