@@ -74,31 +74,9 @@ if(filter_var($from, FILTER_VALIDATE_EMAIL) === false) {
     throw new Exception('invalid_sender_email', EQ_ERROR_INVALID_PARAM);
 }
 
-// Build subject
-$subject = sprintf('eQual SMTP test (%s)', date('Y-m-d H:i:s'));
-
-// Build minimal HTML body
-$body = ''
-    . '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4">'
-    . '<p><strong>SMTP test email</strong></p>'
-    . '<ul>'
-    . '<li><strong>From:</strong> ' . htmlspecialchars($from, ENT_QUOTES, 'UTF-8') . '</li>'
-    . '<li><strong>To:</strong> ' . htmlspecialchars($to, ENT_QUOTES, 'UTF-8') . '</li>'
-    . '<li><strong>Host:</strong> ' . htmlspecialchars(constant('EMAIL_SMTP_HOST'), ENT_QUOTES, 'UTF-8') . '</li>'
-    . '<li><strong>Port:</strong> ' . htmlspecialchars((string) constant('EMAIL_SMTP_PORT'), ENT_QUOTES, 'UTF-8') . '</li>'
-    . '<li><strong>Time:</strong> ' . htmlspecialchars(date('c'), ENT_QUOTES, 'UTF-8') . '</li>'
-    . '</ul>';
-
-$body .= '<p style="color:#666">This message was sent by an eQual diagnostic controller.</p>'
-    . '</div>';
-
-// Create email
-$email = new Email();
-$email->setTo($to);
-$email->setSubject($subject);
-$email->setBody($body);
-
-$options = [];
+$options = [
+    'from' => $from
+];
 
 if(isset($params['smtp_host']) && $params['smtp_host'] !== '') {
     $options['host'] = $params['smtp_host'];
@@ -115,6 +93,31 @@ if(isset($params['smtp_username']) && $params['smtp_username'] !== '') {
 if(isset($params['smtp_password']) && $params['smtp_password'] !== '') {
     $options['password'] = $params['smtp_password'];
 }
+
+
+// Build subject
+$subject = sprintf('eQual SMTP test (%s)', date('Y-m-d H:i:s'));
+
+// Build minimal HTML body
+$body = ''
+    . '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4">'
+    . '<p><strong>SMTP test email</strong></p>'
+    . '<ul>'
+    . '<li><strong>From:</strong> ' . htmlspecialchars($from, ENT_QUOTES, 'UTF-8') . '</li>'
+    . '<li><strong>To:</strong> ' . htmlspecialchars($to, ENT_QUOTES, 'UTF-8') . '</li>'
+    . '<li><strong>Host:</strong> ' . htmlspecialchars($options['host'] ?? constant('EMAIL_SMTP_HOST'), ENT_QUOTES, 'UTF-8') . '</li>'
+    . '<li><strong>Port:</strong> ' . htmlspecialchars($options['port'] ?? (string) constant('EMAIL_SMTP_PORT'), ENT_QUOTES, 'UTF-8') . '</li>'
+    . '<li><strong>Time:</strong> ' . htmlspecialchars(date('c'), ENT_QUOTES, 'UTF-8') . '</li>'
+    . '</ul>';
+
+$body .= '<p style="color:#666">This message was sent by an eQual diagnostic controller.</p>'
+    . '</div>';
+
+// Create email
+$email = new Email();
+$email->setTo($to);
+$email->setSubject($subject);
+$email->setBody($body);
 
 // Send (no DB write)
 $sent = Mail::sendRaw($email, $options);
