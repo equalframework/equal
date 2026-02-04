@@ -346,7 +346,7 @@
         "description": "Minimum amount of free memory (in bytes) of the system (instance) below which no new process should start.",
         "help": "This parameter is a threshold that eQual tries not to exceed (the task scheduler stops running tasks while free memory is below limit). However, under certain circumstances, this limit may still be momentarily surpassed. That value is complementary to the memory_limit set in php.ini (that limits the amount of memory that each PHP threads can use).",
         "instant": true,
-        "environment": "EQ_MEM_LIMIT",
+        "environment": "EQ_MEM_FREE_LIMIT",
         "default": "256MB",
         "examples": [
             "512MB",
