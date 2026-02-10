@@ -2180,7 +2180,10 @@ class ObjectManager extends Service {
                         }
 
                         foreach($ids as $oid) {
-                            if($schema[$field]['type'] === 'computed' && (!isset($schema[$field]['store']) || !$schema[$field]['store'])) {
+                            if($schema[$field]['type'] === 'computed'
+                                && empty($schema[$field]['store'])
+                                && !isset($this->cache[$table_name][$oid][$target_lang][$field])
+                            ) {
                                 $fields_missing[] = $field;
                                 continue;
                             }
