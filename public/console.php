@@ -898,16 +898,25 @@ else {
 
         $filesize = filesize('../log/'.$log_file);
 
-        // limit processing base on filesize to prevent overload
-        if($filesize > constant('MAX_FILESIZE')) {
-            echo constant('MAX_FILESIZE');
-            // set response as 'no content'
-            http_response_code(204);
-            die();
+        // limit processing based on filesize to prevent overload
+        $max_filesize = constant('MAX_FILESIZE');
+        $offset = 0;
+
+        if($filesize > $max_filesize) {
+            // start reading from the last MAX_FILESIZE bytes
+            $offset = $filesize - $max_filesize;
         }
 
         // read raw data from log file
         if($f = fopen('../log/'.$log_file, 'r')) {
+
+            // move pointer if needed (tail behavior)
+            if($offset > 0) {
+                fseek($f, $offset);
+
+                // discard first partial line (we are likely in the middle of a line)
+                fgets($f);
+            }
 
             // lines request (return lines matching filters within a given thread_id)
             if(isset($_GET['thread_id'])) {
