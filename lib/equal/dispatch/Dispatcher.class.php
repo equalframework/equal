@@ -86,9 +86,9 @@ class Dispatcher extends Service {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $messages_ids = $orm->search('core\alert\Message', ['id', '=', $id]);
-        if($messages_ids > 0 && count($messages_ids)) {
+        if(is_array($messages_ids) && count($messages_ids)) {
             $messages = $orm->read('core\alert\Message', $messages_ids, ['id', 'controller', 'params']);
-            if($messages > 0 && count($messages)) {
+            if(is_array($messages) && count($messages)) {
                 $message = reset($messages);
                 $orm->delete('core\alert\Message', $message['id'], true);
                 if($message['controller']) {
@@ -119,10 +119,10 @@ class Dispatcher extends Service {
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
-        if($message_models_ids > 0 ){
+        if(is_array($message_models_ids) && count($message_models_ids)){
             $message_model_id = reset($message_models_ids);
             $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]] );
-            if($messages_ids > 0) {
+            if(is_array($messages_ids) && count($messages_ids)) {
                 $orm->delete('core\alert\Message', $messages_ids, true);
             }
         }
