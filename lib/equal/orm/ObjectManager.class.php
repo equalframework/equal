@@ -1471,13 +1471,25 @@ class ObjectManager extends Service {
                     continue;
                 }
                 // required fields must be provided and cannot be left/set to null
-                if( ($def['required'] ?? false) && is_null($values[$field] ?? null) ) {
-                    $error_code = EQ_ERROR_INVALID_PARAM;
-                    $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
-                    $msg_ids = implode(', ', $ids);
-                    $msg_ids = (strlen($msg_ids) > 128) ?  (substr($msg_ids, 0, 125) . '...') : $msg_ids;
-                    // issue a warning about missing mandatory field
-                    trigger_error("ORM::mandatory field `{$field}` is missing for instance of `{$class}` [{$msg_ids}]", EQ_REPORT_WARNING);
+                if( ($def['required'] ?? false) ) {
+                    if(!array_key_exists($field, $values)) {
+                        $error_code = EQ_ERROR_MISSING_PARAM;
+                        $res[$field]['missing_mandatory'] = 'Missing mandatory parameter.';
+
+                        trigger_error(
+                            "ORM::mandatory field `{$field}` is not provided for instance of `{$class}`",
+                            EQ_REPORT_WARNING
+                        );
+                    }
+                    elseif(is_null($values[$field])) {
+                        $error_code = EQ_ERROR_INVALID_PARAM;
+                        $res[$field]['null_mandatory'] = 'Mandatory field cannot be null.';
+
+                        trigger_error(
+                            "ORM::mandatory field `{$field}` is null for instance of `{$class}`",
+                            EQ_REPORT_WARNING
+                        );
+                    }
                 }
             }
         }
