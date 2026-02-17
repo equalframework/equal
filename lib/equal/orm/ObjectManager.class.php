@@ -190,7 +190,7 @@ class ObjectManager extends Service {
     }
 
     public function __clone() {
-        trigger_error("ORM::__clone: instance is being copied.", QN_REPORT_ERROR);
+        trigger_error("ORM::__clone: instance is being copied.", EQ_REPORT_ERROR);
     }
 
     public function __destruct() {
@@ -225,9 +225,9 @@ class ObjectManager extends Service {
                 // fatal error
                 trigger_error("ORM::".'Unable to establish connection to database: check connection parameters '.
                         '(possibles reasons: non-supported DBMS, unknown database name, incorrect username or password, DB offline, ...)',
-                        QN_REPORT_ERROR
+                        EQ_REPORT_ERROR
                     );
-                throw new Exception("connection_failed", QN_ERROR_INVALID_CONFIG);
+                throw new Exception("connection_failed", EQ_ERROR_INVALID_CONFIG);
             }
         }
         return $this->db;
@@ -245,7 +245,7 @@ class ObjectManager extends Service {
     public function getPackages() {
         if(!$this->packages) {
             $this->packages = [];
-            $package_directory = QN_BASEDIR.'/packages';
+            $package_directory = EQ_BASEDIR.'/packages';
             if(is_dir($package_directory) && ($list = scandir($package_directory))) {
                 foreach($list as $node) {
                     if(is_dir($package_directory.'/'.$node)
@@ -285,7 +285,7 @@ class ObjectManager extends Service {
                         }");
                     }
                     else {
-                        throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                        throw new Exception("unknown model: '$class'", EQ_ERROR_UNKNOWN_OBJECT);
                     }
                 }
                 else {
@@ -304,13 +304,13 @@ class ObjectManager extends Service {
                     }
 
                     if(!(include_once $filename)) {
-                        throw new Exception("unknown model: '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                        throw new Exception("unknown model: '$class'", EQ_ERROR_UNKNOWN_OBJECT);
                     }
                 }
 
             }
             if(!class_exists($class, false)) {
-                throw new Exception("unknown model (check file syntax): '$class'", QN_ERROR_UNKNOWN_OBJECT);
+                throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
             }
             $this->models[$class] = new $class();
         }
@@ -330,7 +330,7 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             return $e->getCode();
         }
         return $result;
@@ -470,7 +470,7 @@ class ObjectManager extends Service {
     */
     public static function checkFieldAttributes($check_array, $schema, $field) {
         if (!isset($schema) || !isset($schema[$field]) || !isset($schema[$field]['type'])) {
-            throw new Exception("empty schema or unknown field name '$field'", QN_ERROR_UNKNOWN_OBJECT);
+            throw new Exception("empty schema or unknown field name '$field'", EQ_ERROR_UNKNOWN_OBJECT);
         }
         $required_attributes = $check_array[$schema[$field]['type']];
         $map_attributes = $schema[$field];
@@ -673,7 +673,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
-                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", EQ_ERROR_INVALID_PARAM);
                         }
                         // #todo - we should check that order field exists in targeted entity
                         $order = (isset($schema[$field]['order'])) ? $schema[$field]['order'] : 'id';
@@ -735,7 +735,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
-                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", EQ_ERROR_INVALID_PARAM);
                         }
                         // obtain the ids by searching inside relation table
                         $result = $om->db->getRecords(
@@ -773,7 +773,7 @@ class ObjectManager extends Service {
                     foreach($fields as $field) {
                         if(!ObjectManager::checkFieldAttributes(self::$mandatory_attributes, $schema, $field)) {
                             trigger_error("ORM::missing at least one mandatory attribute for field `$field` of class `$class`", EQ_REPORT_WARNING);
-                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", QN_ERROR_INVALID_PARAM);
+                            // throw new Exception("missing at least one mandatory attribute for field '$field' of class '$class'", EQ_ERROR_INVALID_PARAM);
                         }
 
                         if(isset($schema[$field]['function'])) {
@@ -794,9 +794,9 @@ class ObjectManager extends Service {
                         }
                         elseif(isset($schema[$field]['relation']) && is_array($schema[$field]['relation'])) {
                             try {
-                                trigger_error("ORM::computing 'relation' for '$field' of class '$class'", QN_REPORT_INFO);
+                                trigger_error("ORM::computing 'relation' for '$field' of class '$class'", EQ_REPORT_INFO);
                                 $res = $class::ids($ids)->read($schema[$field]['relation'])->get(true);
-                                trigger_error("ORM::computing 'relation' for '$field' of class '$class', result: ".serialize($res), QN_REPORT_INFO);
+                                trigger_error("ORM::computing 'relation' for '$field' of class '$class', result: ".serialize($res), EQ_REPORT_INFO);
                                 foreach($res as $elem) {
                                     $id = $elem['id'];
                                     $relation = $schema[$field]['relation'];
@@ -814,7 +814,7 @@ class ObjectManager extends Service {
                                 }
                             }
                             catch(Exception $e) {
-                                trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), QN_REPORT_ERROR);
+                                trigger_error('ORM::unable to retrieve targeted relational field: '.$e->getMessage(), EQ_REPORT_ERROR);
                             }
 
                         }
@@ -892,14 +892,14 @@ class ObjectManager extends Service {
                         $this->store($class, $computed_ids, array($field), $target_lang);
                     }
                     catch(Exception $e) {
-                        trigger_error('ORM::unable to store computed field: '.$e->getMessage(), QN_REPORT_ERROR);
+                        trigger_error('ORM::unable to store computed field: '.$e->getMessage(), EQ_REPORT_ERROR);
                     }
                 }
             }
 
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             throw new Exception('unable to load object fields', $e->getCode());
         }
@@ -959,11 +959,11 @@ class ObjectManager extends Service {
                             $oid,
                             $adapter->adaptOut($om->cache[$table_name][$oid][$lang][$field], 'binary'),
                             // creator
-                            QN_ROOT_USER_ID,
+                            EQ_ROOT_USER_ID,
                             // created
                             $adapter->adaptOut(time(), 'datetime'),
                             // modifier
-                            QN_ROOT_USER_ID,
+                            EQ_ROOT_USER_ID,
                             // modified
                             $adapter->adaptOut(time(), 'datetime'),
                             // state
@@ -1049,7 +1049,7 @@ class ObjectManager extends Service {
                                 $value = (array) intval($value);
                             }
                             else {
-                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", EQ_REPORT_ERROR);
                                 continue;
                             }
                         }
@@ -1113,7 +1113,7 @@ class ObjectManager extends Service {
                                 $rel_ids = [intval($rel_ids)];
                             }
                             else {
-                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", QN_REPORT_ERROR);
+                                trigger_error("ORM::wrong value for field '$field' of class '$class', should be an array", EQ_REPORT_ERROR);
                                 continue;
                             }
                         }
@@ -1203,7 +1203,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             throw new Exception('unable to store object fields', $e->getCode());
         }
@@ -1227,7 +1227,7 @@ class ObjectManager extends Service {
      * @return  mixed                       Returns the result of the called method (defaults to empty array), or error code (negative int) if something went wrong.
      */
     public function callonce($class, $method, $ids=[], $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
-        trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("ORM::calling orm\ObjectManager::callonce {$class}::{$method}", EQ_REPORT_DEBUG);
 
         // stack current state of object_methods map (current state is restored at the end of the method)
         $object_methods_state = $this->object_methods;
@@ -1242,8 +1242,8 @@ class ObjectManager extends Service {
         $count = count($parts);
 
         if( $count < 1 || $count > 2 ) {
-            trigger_error("ORM::invalid args ($method, $class)", QN_REPORT_WARNING);
-            return QN_ERROR_INVALID_PARAM;
+            trigger_error("ORM::invalid args ($method, $class)", EQ_REPORT_WARNING);
+            return EQ_ERROR_INVALID_PARAM;
         }
 
         if( $count == 2 ) {
@@ -1348,7 +1348,7 @@ class ObjectManager extends Service {
      * @param array     $signature  (deprecated) List of parameters to relay to target method (required if differing from default).
      */
     public function call($class, $method, $ids, $values=[], $lang=null, $signature=['ids', 'values', 'lang']) {
-        trigger_error("ORM::calling orm\ObjectManager::call {$class}::{$method}", QN_REPORT_DEBUG);
+        trigger_error("ORM::calling orm\ObjectManager::call {$class}::{$method}", EQ_REPORT_DEBUG);
         $result = [];
 
         $lang = ($lang)?$lang:constant('DEFAULT_LANG');
@@ -1368,7 +1368,7 @@ class ObjectManager extends Service {
         }
 
         if(!method_exists($called_class, $called_method)) {
-            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", QN_REPORT_INFO);
+            trigger_error("ORM::ignoring non-existing method '$method' for class '$class'", EQ_REPORT_INFO);
             return $result;
         }
         /** @var \ReflectionMethod */
@@ -1422,7 +1422,7 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             // #memo - another autoload handler might be registered, so no exception must be raised here
-            trigger_error('ORM::'.$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error('ORM::'.$e->getMessage(), EQ_REPORT_ERROR);
         }
         return $model;
     }
@@ -1472,10 +1472,12 @@ class ObjectManager extends Service {
                 }
                 // required fields must be provided and cannot be left/set to null
                 if( ($def['required'] ?? false) && is_null($values[$field] ?? null) ) {
-                    $error_code = QN_ERROR_INVALID_PARAM;
+                    $error_code = EQ_ERROR_INVALID_PARAM;
                     $res[$field]['missing_mandatory'] = 'Missing mandatory value.';
+                    $msg_ids = implode(', ', $ids);
+                    $msg_ids = (strlen($msg_ids) > 128) ?  (substr($msg_ids, 0, 125) . '...') : $msg_ids;
                     // issue a warning about missing mandatory field
-                    trigger_error("ORM::mandatory field `{$field}` is missing for instance of `{$class}`", QN_REPORT_WARNING);
+                    trigger_error("ORM::mandatory field `{$field}` is missing for instance of `{$class}` [{$msg_ids}]", EQ_REPORT_WARNING);
                 }
             }
         }
@@ -1601,15 +1603,15 @@ class ObjectManager extends Service {
                         $domain[] = ['id', '<>', $id];
                         $conflict_ids = $this->search($class, $domain);
                         if($conflict_ids < 0) {
-                            trigger_error("ORM::validate() - call to `search()` returned an error code: {$conflict_ids}", QN_REPORT_WARNING);
+                            trigger_error("ORM::validate() - call to `search()` returned an error code: {$conflict_ids}", EQ_REPORT_WARNING);
                             // interrupt the process in case of system error (SQL)
                             return [];
                         }
                     }
                     // there is a violation : stop and fetch info about it
                     if(is_array($conflict_ids) && count($conflict_ids)) {
-                        trigger_error("ORM::field `{$field}` of class `{$class}` violates unique constraint with objects (".implode(',', $conflict_ids).")", QN_REPORT_WARNING);
-                        $error_code = QN_ERROR_CONFLICT_OBJECT;
+                        trigger_error("ORM::field `{$field}` of class `{$class}` violates unique constraint with objects (".implode(',', $conflict_ids).")", EQ_REPORT_WARNING);
+                        $error_code = EQ_ERROR_CONFLICT_OBJECT;
                         $res[$field] = ['duplicate_index' => 'unique constraint violation'];
                         break 2;
                     }
@@ -1713,10 +1715,10 @@ class ObjectManager extends Service {
                         $creation_array['id'] = $id;
                         // and delete the associated record (might contain obsolete data)
                         $db->deleteRecords($table_name, [$id]);
-                        trigger_error("ORM::found draft object in table $table_name with id $id.", QN_REPORT_DEBUG);
+                        trigger_error("ORM::found draft object in table $table_name with id $id.", EQ_REPORT_DEBUG);
                     }
                     else {
-                        trigger_error("ORM::no reusable draft object found.", QN_REPORT_DEBUG);
+                        trigger_error("ORM::no reusable draft object found.", EQ_REPORT_DEBUG);
                     }
                 }
             }
@@ -1724,8 +1726,8 @@ class ObjectManager extends Service {
                 // check if there is an object with same id
                 $records = $db->getRecords($table_name, 'id', (array) $creation_array['id']);
                 if($db->fetchArray($records)) {
-                    trigger_error("ORM::duplicate ID found for object {$class} in table {$table_name} ({$creation_array['id']}).", QN_REPORT_WARNING);
-                    throw new Exception('duplicate_object_id', QN_ERROR_CONFLICT_OBJECT);
+                    trigger_error("ORM::duplicate ID found for object {$class} in table {$table_name} ({$creation_array['id']}).", EQ_REPORT_WARNING);
+                    throw new Exception('duplicate_object_id', EQ_ERROR_CONFLICT_OBJECT);
                 }
                 $id = (int) $creation_array['id'];
             }
@@ -1747,7 +1749,7 @@ class ObjectManager extends Service {
                 // id field is auto-increment: retrieve last value
                 $id = $db->getLastId();
                 if($id <= 0) {
-                    throw new Exception('invalid_object_id', QN_ERROR_UNKNOWN);
+                    throw new Exception('invalid_object_id', EQ_ERROR_UNKNOWN);
                 }
                 $this->cache[$table_name][$id][$lang] = $creation_array;
             }
@@ -1784,7 +1786,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -1829,7 +1831,7 @@ class ObjectManager extends Service {
             $ids = $this->sanitizeIdentifiers($ids);
             // if no ids were specified, the result is an empty list (array)
             if(empty($ids)) {
-                trigger_error("ORM::ignoring call with empty ids", QN_REPORT_INFO);
+                trigger_error("ORM::ignoring call with empty ids", EQ_REPORT_INFO);
                 return $res;
             }
             // ids that are left are the ones of the objects that will be written
@@ -2066,7 +2068,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2142,7 +2144,7 @@ class ObjectManager extends Service {
                 elseif(!isset($schema[$field])) {
                     // drop invalid fields
                     unset($fields[$key]);
-                    trigger_error("ORM::unknown field '$field' for class : '$class'", QN_REPORT_WARNING);
+                    trigger_error("ORM::unknown field '$field' for class : '$class'", EQ_REPORT_WARNING);
                 }
                 else {
                     // handle aliases
@@ -2158,7 +2160,7 @@ class ObjectManager extends Service {
             // #moved to Collection
             $canread = $this->callonce($class, 'canread', $ids, $requested_fields, $lang);
             if($canread > 0 && !empty($canread)) {
-                throw new \Exception(serialize($canread), QN_ERROR_NOT_ALLOWED);
+                throw new \Exception(serialize($canread), EQ_ERROR_NOT_ALLOWED);
             }
             */
 
@@ -2205,7 +2207,7 @@ class ObjectManager extends Service {
 
                 foreach($ids as $oid) {
                     if(!isset($this->cache[$table_name][$oid]) || empty($this->cache[$table_name][$oid])) {
-                        trigger_error("ORM::unknown or empty object $class [$oid]", QN_REPORT_WARNING);
+                        trigger_error("ORM::unknown or empty object $class [$oid]", EQ_REPORT_WARNING);
                         continue;
                     }
                     // first pass : retrieve fields values
@@ -2341,7 +2343,7 @@ class ObjectManager extends Service {
             // #moved to Collection
             $candelete = $this->call($class, 'candelete', $ids, [], null, ['ids']);
             if(!empty($candelete)) {
-                throw new \Exception(serialize($candelete), QN_ERROR_NOT_ALLOWED);
+                throw new \Exception(serialize($candelete), EQ_ERROR_NOT_ALLOWED);
             }
             */
 
@@ -2478,7 +2480,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2570,7 +2572,7 @@ class ObjectManager extends Service {
 
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_ERROR);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
@@ -2617,7 +2619,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $result = $e->getCode();
         }
@@ -2663,7 +2665,7 @@ class ObjectManager extends Service {
         $schema = $model->getSchema();
         // ignore models that do not have a status field
         if(!isset($schema['status'])) {
-            trigger_error("ORM::invalid transition request on entity '$class' without status field.", QN_REPORT_WARNING);
+            trigger_error("ORM::invalid transition request on entity '$class' without status field.", EQ_REPORT_WARNING);
             return $res;
         }
         $workflow = $model->getWorkflow();
@@ -2758,7 +2760,7 @@ class ObjectManager extends Service {
         catch(\Exception $e) {
             // rollback
             unset($this->cache[$table_name][$id][$lang]['status']);
-            trigger_error("ORM::".$e->getMessage(), QN_REPORT_WARNING);
+            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
