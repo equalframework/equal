@@ -2182,7 +2182,7 @@ class ObjectManager extends Service {
                         foreach($ids as $oid) {
                             if($schema[$field]['type'] === 'computed'
                                 && empty($schema[$field]['store'])
-                                // #memo - non-stored computed fields may have a value that relies on other fields values, that might change within the same cycle, and thus cannot be cached: they must be re-computed at each read
+                                // #memo - non-stored computed fields may have a value that relies on other objects/fields that might change within the same cycle, and thus cannot be cached (must be re-computed at each read)
                                 // && !isset($this->cache[$table_name][$oid][$target_lang][$field])
                             ) {
                                 $fields_missing[] = $field;
