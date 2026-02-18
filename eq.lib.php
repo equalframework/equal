@@ -539,7 +539,7 @@ namespace config {
                     ],
                     JSON_PRETTY_PRINT);
                 // and raise an exception (will be output in PHP error log)
-                throw new \Exception("missing_mandatory_dependency", QN_REPORT_FATAL);
+                throw new \Exception("missing_mandatory_dependency", EQ_REPORT_FATAL, $e);
             }
         }
 
