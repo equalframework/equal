@@ -1821,10 +1821,11 @@ class ObjectManager extends Service {
      * @param   mixed     $fields       Array mapping fields names with the value (PHP) to which they must be set.
      * @param   string    $lang         Language under which fields have to be stored (only relevant for multilang fields).
      * @param   bool      $create       System flag to force processing the update in a creation context (disables the canupdate and events hooks calls).
+     * @param   bool      $touch        If set to false, the `modified` field is not updated with the current timestamp.
      *
      * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
      */
-    public function update($class, $ids, $fields, $lang=null, $create=false) {
+    public function update($class, $ids, $fields, $lang=null, $create=false, $touch=true) {
         // init result
         $res = [];
         $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
@@ -1870,7 +1871,9 @@ class ObjectManager extends Service {
                 $fields['state'] = 'instance';
             }
 
-            $fields['modified'] = time();
+            if($touch) {
+                $fields['modified'] = time();
+            }
 
 
             // 3) make sure objects in the collection can be updated
@@ -2009,7 +2012,7 @@ class ObjectManager extends Service {
 
             if(!$create && count($values)) {
                 // allow cascade update (circular dependencies are checked in `core_test_package`)
-                $this->update($class, $ids, $values, $lang);
+                $this->update($class, $ids, $values, $lang, false, false);
             }
 
             if(count($instant_fields)) {
