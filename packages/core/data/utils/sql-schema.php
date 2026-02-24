@@ -175,7 +175,7 @@ foreach($classes as $class) {
         }
     }
 
-    // handle indexes - only at table creation / first call
+    // handle indexes - only at table creation / first init of the class
     if(count($columns_diff) === count($columns_full)) {
         $map_indexed_columns = [];
         if(method_exists($model, 'getUnique')) {
@@ -204,7 +204,9 @@ foreach($classes as $class) {
         foreach($columns_diff as $field) {
             $descriptor = $schema[$field];
             // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
-            if(isset($descriptor['unique']) && $descriptor['unique']) {
+            // #memo - index size is often limited to 100, so we ensure a usage is defined
+            // #todo - we should make sure that the field definition does not imply an index size overflow
+            if(isset($descriptor['unique']) && $descriptor['unique'] && isset($descriptor['usage'])) {
                 if(isset($map_indexed_columns[$field])) {
                     continue;
                 }
@@ -212,6 +214,7 @@ foreach($classes as $class) {
                 $result[] = $db->getQueryAddIndex($table, $field);
             }
         }
+        */
     }
 }
 
