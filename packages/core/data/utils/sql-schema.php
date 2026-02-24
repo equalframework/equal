@@ -214,7 +214,6 @@ foreach($classes as $class) {
                 $result[] = $db->getQueryAddIndex($table, $field);
             }
         }
-        */
     }
 }
 
