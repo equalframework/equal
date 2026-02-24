@@ -173,24 +173,38 @@ foreach($classes as $class) {
         }
     }
 
+    $map_indexed_columns = [];
     if(method_exists($model, 'getUnique')) {
-        // #memo - Classes are allowed to override the getUnique method from their parent class. Unique checks are performed by ORM.
-        // Therefore we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
-        // However, even if check is made by ORM, each column member of a unique tuple must be indexed (for performance concerns).
         $constraints = (array) $model->getUnique();
-        $map_index_fields = [];
-        foreach($constraints as $uniques) {
-            foreach((array) $uniques as $unique_field) {
-                if(isset($schema[$unique_field])) {
-                    $map_index_fields[$unique_field] = true;
-                }
+
+        foreach($constraints as $unique_fields) {
+
+            $unique_fields = (array) $unique_fields;
+            // only keep fields that actually exist in schema
+            $unique_fields = array_values(array_filter(
+                $unique_fields,
+                fn($field) => isset($schema[$field])
+            ));
+
+            if(empty($unique_fields)) {
+                continue;
             }
+
+            $map_indexed_columns[$unique_fields[0]] = true;
+
+            // create composite index
+            $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
         }
-        foreach($map_index_fields as $unique_field => $flag) {
-            // create an index for fields not yet present in DB
-            if(!in_array($unique_field, $columns)) {
-                $result[] = $db->getQueryAddIndex($table, $unique_field);
+    }
+    // second pass for fields with 'unique' attribute
+    foreach($columns_diff as $field) {
+        // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
+        if(isset($descriptor['unique']) && $descriptor['unique']) {
+            if(isset($map_indexed_columns[$field])) {
+                continue;
             }
+            $map_indexed_columns[$field] = true;
+            $result[] = $db->getQueryAddIndex($table_name, $field);
         }
     }
 }

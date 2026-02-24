@@ -352,6 +352,16 @@ class DBManipulator {
     public function getQueryAddIndex($table_name, $column) {}
 
     /**
+     * Generates a SQL query to add a composite index to a table.
+     *
+     * @param string $table_name    The name of the table.
+     * @param array $columns       Array holding the names of the columns for the composite index.
+     * @return string SQL query to add an index.
+     */
+    public function getQueryAddCompositeIndex($table_name, $columns) {
+    }
+
+    /**
      * Generates a SQL query to add a unique constraint to one or more columns in a table.
      *
      * @param string $table_name        The name of the table.

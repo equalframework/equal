@@ -194,6 +194,13 @@ final class DBManipulatorMySQL extends DBManipulator {
         return "ALTER TABLE `{$table_name}` ADD INDEX(`".$column."`);";
     }
 
+    public function getQueryAddCompositeIndex($table_name, $columns) {
+        $index_name = 'idx_' . implode('_', $columns ?? []);
+        $cols = array_map(fn($c) => "`{$c}`", $columns);
+        $cols_sql = implode(',', $cols);
+        return "ALTER TABLE `{$table_name}` ADD INDEX `{$index_name}` ({$cols_sql});";
+    }
+
     public function getQueryAddUniqueConstraint($table_name, $columns) {
         return "ALTER TABLE `{$table_name}` ADD CONSTRAINT ".implode('_', $columns)." UNIQUE (`".implode('`,`', $columns)."`);";
     }
