@@ -90,8 +90,10 @@ foreach($classes as $class) {
     // then we append only the columns that do not exit yet
     $result[] = $db->getQueryCreateTable($table);
 
+    $columns_full = array_keys($schema);
+
     // retrieve list of fields that must be added to the schema
-    $columns_diff = ($params['full']) ? array_keys($schema) : array_diff(array_keys($schema), $columns);
+    $columns_diff = ($params['full']) ? $columns_full : array_diff($columns_full, $columns);
 
     foreach($columns_diff as $field) {
         // prevent processing a same column more than once
@@ -173,39 +175,42 @@ foreach($classes as $class) {
         }
     }
 
-    $map_indexed_columns = [];
-    if(method_exists($model, 'getUnique')) {
-        $constraints = (array) $model->getUnique();
+    // handle indexes - only at table creation / first call
+    if(count($columns_diff) === count($columns_full)) {
+        $map_indexed_columns = [];
+        if(method_exists($model, 'getUnique')) {
+            $constraints = (array) $model->getUnique();
 
-        foreach($constraints as $unique_fields) {
+            foreach($constraints as $unique_fields) {
 
-            $unique_fields = (array) $unique_fields;
-            // only keep fields that actually exist in schema
-            $unique_fields = array_values(array_filter(
-                $unique_fields,
-                fn($field) => isset($schema[$field])
-            ));
+                $unique_fields = (array) $unique_fields;
+                // only keep fields that actually exist in schema
+                $unique_fields = array_values(array_filter(
+                    $unique_fields,
+                    fn($field) => isset($schema[$field])
+                ));
 
-            if(empty($unique_fields)) {
-                continue;
+                if(empty($unique_fields)) {
+                    continue;
+                }
+
+                $map_indexed_columns[$unique_fields[0]] = true;
+
+                // create composite index
+                $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
             }
-
-            $map_indexed_columns[$unique_fields[0]] = true;
-
-            // create composite index
-            $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
         }
-    }
-    // second pass for fields with 'unique' attribute
-    foreach($columns_diff as $field) {
-        $descriptor = $schema[$field];
-        // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
-        if(isset($descriptor['unique']) && $descriptor['unique']) {
-            if(isset($map_indexed_columns[$field])) {
-                continue;
+        // second pass for fields with 'unique' attribute
+        foreach($columns_diff as $field) {
+            $descriptor = $schema[$field];
+            // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
+            if(isset($descriptor['unique']) && $descriptor['unique']) {
+                if(isset($map_indexed_columns[$field])) {
+                    continue;
+                }
+                $map_indexed_columns[$field] = true;
+                $result[] = $db->getQueryAddIndex($table, $field);
             }
-            $map_indexed_columns[$field] = true;
-            $result[] = $db->getQueryAddIndex($table, $field);
         }
     }
 }
