@@ -204,7 +204,7 @@ foreach($classes as $class) {
                 continue;
             }
             $map_indexed_columns[$field] = true;
-            $result[] = $db->getQueryAddIndex($table_name, $field);
+            $result[] = $db->getQueryAddIndex($table, $field);
         }
     }
 }
