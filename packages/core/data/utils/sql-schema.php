@@ -198,6 +198,7 @@ foreach($classes as $class) {
     }
     // second pass for fields with 'unique' attribute
     foreach($columns_diff as $field) {
+        $descriptor = $schema[$field];
         // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
         if(isset($descriptor['unique']) && $descriptor['unique']) {
             if(isset($map_indexed_columns[$field])) {
