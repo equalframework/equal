@@ -42,6 +42,7 @@ class Setting extends Model {
 
             'code' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:128',
                 'description'       => 'Unique code of the parameter.',
                 'required'          => true,
                 'dependents'        => ['name', 'setting_values_ids' => ['name']]
@@ -49,6 +50,7 @@ class Setting extends Model {
 
             'package' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:128',
                 'description'       => 'Package which the param refers to, if any.',
                 'default'           => 'core',
                 'dependents'        => ['name', 'setting_values_ids' => ['name']]

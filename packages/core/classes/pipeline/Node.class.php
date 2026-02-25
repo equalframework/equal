@@ -18,6 +18,7 @@ class Node extends Model
         return [
             'name' => [
                 'type'          => 'string',
+                'usage'         => 'text/plain:128',
                 'required'      => true
             ],
 

@@ -15,6 +15,7 @@ class Message extends Model {
         return [
             'object_class' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:128',
                 'description'       => "Class of entity targeted by the notification."
             ],
 
