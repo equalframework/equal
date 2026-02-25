@@ -28,8 +28,9 @@ class Passkey extends Model {
 
             'credential_id' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:2048',
                 'description'       => 'User credential id.',
-                'help'              => 'It allows to select the right public key depending on which credential the user choose to authenticate.',
+                'help'              => 'The credential is stored as hexadecimal string. It allows to select the right public key depending on which credential the user choose to authenticate.',
                 'required'          => true
             ],
 
@@ -61,7 +62,9 @@ class Passkey extends Model {
 
     public function getUnique(): array {
         return [
-            ['user_id', 'credential_id']
+            // #memo `credential_id` can be too big to be used as index
+            // ['user_id', 'credential_id']
+            ['user_id']
         ];
     }
 }

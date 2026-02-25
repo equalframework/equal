@@ -33,6 +33,7 @@ class Log extends Model {
 
             'object_class' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:128',
                 'description'       => "Class of entity this entry is related to."
             ],
 
