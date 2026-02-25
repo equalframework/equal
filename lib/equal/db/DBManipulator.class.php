@@ -200,7 +200,6 @@ class DBManipulator {
         return $this->last_id;
     }
 
-
     public function getAffectedRows() {
         return $this->affected_rows;
     }
@@ -227,6 +226,17 @@ class DBManipulator {
 
     protected function setLastQuery($query) {
         $this->last_query = $query;
+    }
+
+    public function getCompositeIndexName($columns) {
+        $index_name = 'idx_' . implode('_', $columns ?? []);
+        // #todo - use global constant - to adapt depending on DBMS and/or version
+        $MAX_LEN = 64;
+        // prevent index name size overflow
+        if(strlen($index_name) > $MAX_LEN) {
+            $index_name = 'idx_' . md5($index_name);
+        }
+        return $index_name;
     }
 
     /**

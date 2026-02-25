@@ -59,7 +59,8 @@ $m2m_tables = [];
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
 // associative array with 2 levels, mapping tables with their list of columns
-$processed_columns = [];
+$map_processed_columns = [];
+$map_processed_indexes = [];
 
 foreach($classes as $class) {
     // get the full class name
@@ -77,10 +78,6 @@ foreach($classes as $class) {
     // get the SQL table name
     $table = $orm->getObjectTableName($entity);
 
-    if(!isset($processed_columns[$table])) {
-        $processed_columns[$table] = [];
-    }
-
     // #memo - we cannot delete tables since it prevents keeping data across inherited classes
 
     // fetch existing column
@@ -97,11 +94,11 @@ foreach($classes as $class) {
 
     foreach($columns_diff as $field) {
         // prevent processing a same column more than once
-        if(isset($processed_columns[$table][$field])) {
+        if(isset($map_processed_columns[$table][$field])) {
             continue;
         }
 
-        $processed_columns[$table][$field] = true;
+        $map_processed_columns[$table][$field] = true;
         $raw_descriptor = $schema[$field];
 
         if($raw_descriptor['type'] == 'alias') {
@@ -196,8 +193,13 @@ foreach($classes as $class) {
 
                 $map_indexed_columns[$unique_fields[0]] = true;
 
-                // create composite index
-                $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
+                $index_name = $db->getCompositeIndexName($unique_fields);
+
+                if(!isset($map_processed_indexes[$table][$index_name])) {
+                    // create composite index
+                    $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
+                    $map_processed_indexes[$table][$index_name] = true;
+                }
             }
         }
         // second pass for fields with 'unique' attribute
@@ -211,15 +213,19 @@ foreach($classes as $class) {
                     continue;
                 }
                 $map_indexed_columns[$field] = true;
-                $result[] = $db->getQueryAddIndex($table, $field);
+
+                if(!isset($map_processed_indexes[$table][$field])) {
+                    $result[] = $db->getQueryAddIndex($table, $field);
+                    $map_processed_indexes[$table][$field] = true;
+                }
             }
         }
     }
 }
 
 foreach($m2m_tables as $table => $columns) {
-    if(!isset($processed_columns[$table])) {
-        $processed_columns[$table] = [];
+    if(!isset($map_processed_columns[$table])) {
+        $map_processed_columns[$table] = [];
     }
     // fetch existing columns
     $existing_columns = $db->getTableColumns($table);
@@ -232,7 +238,7 @@ foreach($m2m_tables as $table => $columns) {
         if(in_array($column, $existing_columns)) {
             continue;
         }
-        if(isset($processed_columns[$table][$column])) {
+        if(isset($map_processed_columns[$table][$column])) {
             continue;
         }
 
@@ -242,7 +248,7 @@ foreach($m2m_tables as $table => $columns) {
             'type'      => $adapter->castOutType(),
             'null'      => false
         ]);
-        $processed_columns[$table][$column] = true;
+        $map_processed_columns[$table][$column] = true;
     }
     // #todo - there is a particular case here: if an entity (with more fields) is associated with this m2m table (defined either before or after)
     $result[] = $db->getQueryAddUniqueConstraint($table, $columns);

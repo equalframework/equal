@@ -195,13 +195,7 @@ final class DBManipulatorMySQL extends DBManipulator {
     }
 
     public function getQueryAddCompositeIndex($table_name, $columns) {
-        $index_name = 'idx_' . implode('_', $columns ?? []);
-        // #todo - use global constant - to adapt depending on DBMS and/or version
-        $MAX_LEN = 64;
-        // prevent index name size overflow
-        if(strlen($index_name) > $MAX_LEN) {
-            $index_name = 'idx_' . md5($index_name);
-        }
+        $index_name = $this->getCompositeIndexName($columns);
         $cols = array_map(fn($c) => "`{$c}`", $columns);
         $cols_sql = implode(',', $cols);
         return "ALTER TABLE `{$table_name}` ADD INDEX `{$index_name}` ({$cols_sql});";
