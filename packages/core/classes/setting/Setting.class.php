@@ -42,7 +42,7 @@ class Setting extends Model {
 
             'code' => [
                 'type'              => 'string',
-                'usage'             => 'text/plain:128',
+                'usage'             => 'text/plain:100',
                 'description'       => 'Unique code of the parameter.',
                 'required'          => true,
                 'dependents'        => ['name', 'setting_values_ids' => ['name']]
