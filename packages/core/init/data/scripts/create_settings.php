@@ -16,6 +16,12 @@ Setting::assert_value('core', 'locale', 'numbers.decimal_separator', '.');
 Setting::assert_value('core', 'locale', 'numbers.decimal_precision', '2');
 Setting::assert_value('core', 'locale', 'date_format', 'd/m/Y');
 Setting::assert_value('core', 'locale', 'time_format', 'H:i');
+/*
+    #memo - this setting defines how time values are exchanged between front and back ends
+    "frontend": (default) UI adjusts according to the browser's time zone and sends in UTC
+    "backend" : UI sends the raw value; the backend interprets it in its own time zone
+*/
+Setting::assert_value('core', 'locale', 'time_encoding', 'frontend');
 Setting::assert_value('core', 'main', 'company.id', '1');
 Setting::assert_value('core', 'main', 'formats.paper', 'A4');
 Setting::assert_value('core', 'security', 'account_creation', '0');
