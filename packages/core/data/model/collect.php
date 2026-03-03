@@ -153,14 +153,20 @@ if(!$entity) {
 // get the complete schema of the object (including special fields)
 $schema = $entity->getSchema();
 
-// adapt received fields names for dot notation support
+// adapt received fields names (non recursive m2o fields & dot notation support)
 $fields = [];
 foreach($params['fields'] as $key => $field) {
     if(gettype($field) != 'string') {
-        if(!is_numeric($key)) {
-            $fields[$key] = (array) $field;
+        if(is_numeric($key) || !isset($schema[$key])) {
+            continue;
         }
-        continue;
+        if(is_array($field)) {
+            $fields[$key] = $field;
+        }
+        else {
+            // `$key` is the field name : ignore value
+            $fields[] = $key;
+        }
     }
     // handle dot notation: convert to array notation
     if(strpos($field, '.')) {
@@ -179,7 +185,7 @@ foreach($params['fields'] as $key => $field) {
         $target[] = array_shift($parts);
     }
     // regular field name
-    else if(isset($schema[$field])) {
+    elseif(isset($schema[$field])) {
         $fields[] = $field;
     }
 }
