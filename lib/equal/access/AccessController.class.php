@@ -813,7 +813,7 @@ class AccessController extends Service {
                 }
                 catch(\Exception $e) {
                     trigger_error("ORM::error while invoking '$called_method' (non-resolved method ?) for class '$called_class': " .$e->getMessage(), EQ_REPORT_INFO);
-                    $result['unknown_policy_method'] = "Faulty method {$called_method} provided for Policy {$policy} in class {$called_class}.";
+                    $result['unknown_policy_method'] = "Unknown method {$called_method} provided for Policy {$policy} in class {$called_class}.";
                 }
             }
         }
