@@ -169,7 +169,7 @@ class Container extends Service {
         }
         // if argument was a single name, return a single instance
         if(count($names) == 1) {
-            $instances = (count($instances))?$instances[0]:false;
+            $instances = (count($instances)) ? $instances[0] : false;
         }
         elseif(count($names) != count($instances)) {
             $instances = false;
