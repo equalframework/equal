@@ -212,7 +212,7 @@ catch(Throwable $e) {
         $request_method = $request->getMethod();
         $request_headers = $request->getHeaders(true);
         // get HTTP status code according to raised exception
-        $http_status = qn_error_http($error_code);
+        $http_status = eq_error_http($error_code);
         $http_allow_headers = '*';
         if($request_method == 'OPTIONS') {
             $http_status = 204;
@@ -244,11 +244,11 @@ catch(Throwable $e) {
             // append an 'error' section to response body
             ->extendBody([
                 // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
-                'errors' => [ qn_error_name($error_code) => ($data) ? $data : mb_convert_encoding($msg, 'UTF-8', 'auto') ]
+                'errors' => [ eq_error_name($error_code) => ($data) ? $data : mb_convert_encoding($msg, 'UTF-8', 'auto') ]
             ])
             ->send();
 
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . qn_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
 
     // if run from CLI, ensure the prompt appears on a new line

@@ -173,20 +173,27 @@ namespace {
     */
 
     /**
-     * Mapper from internal error codes to string constants
+     * #deprecated - use eq_error_code
      */
     function qn_error_name($error_id) {
+        return eq_error_name($error_id);
+    }
+
+    /**
+     * Mapper from internal error codes to string constants
+     */
+    function eq_error_name($error_id) {
         switch($error_id) {
-            case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
-            case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
-            case QN_ERROR_SQL:              return 'SQL_ERROR';
-            case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
-            case QN_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
-            case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
-            case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
-            case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
-            case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
-            case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
+            case EQ_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
+            case EQ_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
+            case EQ_ERROR_SQL:              return 'SQL_ERROR';
+            case EQ_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
+            case EQ_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
+            case EQ_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
+            case EQ_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
+            case EQ_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
+            case EQ_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
+            case EQ_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
         }
         return 'UNKNOWN_ERROR';
     }
@@ -210,18 +217,18 @@ namespace {
      */
     function eq_error_code($error_name) {
         switch($error_name) {
-            case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
-            case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
-            case 'SQL_ERROR':           return QN_ERROR_SQL;
-            case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
-            case 'UNKNOWN_OBJECT':      return QN_ERROR_UNKNOWN_OBJECT;
-            case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
-            case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
-            case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
-            case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
-            case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;
+            case 'MISSING_PARAM':       return EQ_ERROR_MISSING_PARAM;
+            case 'INVALID_PARAM':       return EQ_ERROR_INVALID_PARAM;
+            case 'SQL_ERROR':           return EQ_ERROR_SQL;
+            case 'NOT_ALLOWED':         return EQ_ERROR_NOT_ALLOWED;
+            case 'UNKNOWN_OBJECT':      return EQ_ERROR_UNKNOWN_OBJECT;
+            case 'INVALID_CONFIG':      return EQ_ERROR_INVALID_CONFIG;
+            case 'UNKNOWN_SERVICE':     return EQ_ERROR_UNKNOWN_SERVICE;
+            case 'LOCKED_OBJECT':       return EQ_ERROR_LOCKED_OBJECT;
+            case 'CONFLICT_OBJECT':     return EQ_ERROR_CONFLICT_OBJECT;
+            case 'INVALID_CREDENTIALS': return EQ_ERROR_INVALID_USER;
         }
-        return QN_ERROR_UNKNOWN;
+        return EQ_ERROR_UNKNOWN;
     }
 
     /**
