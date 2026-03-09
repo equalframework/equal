@@ -251,6 +251,15 @@ class Model implements \ArrayAccess, \Iterator {
      * #[\ReturnTypeWillChange]
      */
     public function offsetGet($field)/*: mixed*/ {
+        /*
+        // #todo
+        if(!isset($this->schema[$field])) {
+            throw new \Exception('unknown_field', EQ_ERROR_INVALID_PARAM);
+        }
+        if(!array_key_exists($field, $this->values)) {
+            throw new \Exception('field_not_loaded', EQ_ERROR_INVALID_PARAM);
+        }
+        */
         return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
