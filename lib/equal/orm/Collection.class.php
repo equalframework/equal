@@ -632,15 +632,24 @@ class Collection implements \Iterator, \Countable {
      */
     public function create(array $values=null, $lang=null) {
 
-        // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
+
+        // 1) sanitize and retrieve necessary values
+        if($values === null) {
+            $values = [];
+        }
+
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_values_map', EQ_ERROR_INVALID_PARAM);
+            }
+        });
+
         // drop invalid fields
-        $values = $this->sanitizeFields((array) $values, 'create');
+        $values = $this->sanitizeFields($values, 'create');
+
         // retrieve targeted fields names
-        $fields = array_map(function($value, $key) {
-                return is_numeric($key) ? $value : $key;
-            },
-            $values, array_keys($values));
+        $fields = array_keys($values);
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
@@ -932,70 +941,85 @@ class Collection implements \Iterator, \Countable {
      * @throws  Exception   if some value could not be validated against class constraints (see {class}::getConstraints method)
      */
     public function update(array $values, $lang=null) {
-        if(count($this->objects)) {
-            // 1) sanitize and retrieve necessary values
-            $user_id = $this->am->userId();
+        if(count($this->objects) <= 0)  {
+            return $this;
+        }
 
-            $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+        $user_id = $this->am->userId();
 
-            // silently drop invalid fields
-            $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
-            // retrieve targeted identifiers
-            $ids = $this->ids();
-            // retrieve targeted fields names
-            $fields = array_keys($values);
+        // 1) sanitize and retrieve necessary values
+        if($values === null) {
+            $values = [];
+        }
 
-            // by convention, update operation sets modifier as current user
-            $values['modifier'] = $user_id;
-
-            // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
-            // #memo - moved to ObjectManager::update()
-            /*
-            if(!isset($values['state']) || $values['state'] == 'draft') {
-                $values['state'] = 'instance';
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_values_map', EQ_ERROR_INVALID_PARAM);
             }
-            */
+        });
 
-            // 2) check that current user has enough privilege to perform the operation
-            if(!$this->ac->isAllowed(EQ_R_UPDATE, $this->class, $fields, $ids)) {
-                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
-            }
+        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
-            // 3) validate : check unique keys and required fields
-            // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
-            $this->validate($values, $ids, true, $is_draft);
+        // silently drop invalid fields
+        $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
 
-            // #memo - moved back from ObjectManager::update() (see above)
-            // by convention, `update()` forces a 'draft' to an 'instance'
-            if($is_draft) {
-                $values['state'] = 'instance';
-                // #todo - here we must check that all required fields (scalar types) have been provided, either at create() or during update()
-                // this should probably rather be done in ORM + making a distinction between partial validation & full validation
-            }
+        // retrieve targeted fields names
+        $fields = array_keys($values);
 
-            // check if fields (other than special columns) can be updated
-            $can_update = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
-            if(!empty($can_update)) {
-                throw new \Exception(serialize($can_update), QN_ERROR_NOT_ALLOWED);
-            }
+        // retrieve targeted identifiers
+        $ids = $this->ids();
 
-            // 4) update objects
-            $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
-            if($res <= 0) {
-                trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
-                throw new \Exception('update_failed', $res);
-            }
+        // by convention, update operation sets modifier as current user
+        $values['modifier'] = $user_id;
 
-            foreach($ids as $oid) {
-                // log action (if enabled)
-                $this->logger->log($user_id, 'update', $this->class, $oid, $values);
-                // store updated objects in current collection
-                $this->objects[$oid]['id'] = $oid;
-                foreach($values as $field => $value) {
-                    $this->objects[$oid][$field] = $value;
-                }
+        // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
+        // #memo - moved to ObjectManager::update()
+        /*
+        if(!isset($values['state']) || $values['state'] == 'draft') {
+            $values['state'] = 'instance';
+        }
+        */
+
+        // 2) check that current user has enough privilege to perform the operation
+        if(!$this->ac->isAllowed(EQ_R_UPDATE, $this->class, $fields, $ids)) {
+            throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        // 3) validate : check unique keys and required fields
+        // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
+        $this->validate($values, $ids, true, $is_draft);
+
+        // #memo - moved back from ObjectManager::update() (see above)
+        // by convention, `update()` forces a 'draft' to an 'instance'
+        if($is_draft) {
+            $values['state'] = 'instance';
+            // #todo - here we must check that all required fields (scalar types) have been provided, either at create() or during update()
+            // this should probably rather be done in ORM + making a distinction between partial validation & full validation
+        }
+
+        // check if fields (other than special columns) can be updated
+        $can_update = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
+        if(!empty($can_update)) {
+            throw new \Exception(serialize($can_update), QN_ERROR_NOT_ALLOWED);
+        }
+
+        // 4) update objects
+        $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
+        if($res <= 0) {
+            trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
+            throw new \Exception('update_failed', $res);
+        }
+
+        foreach($ids as $oid) {
+            // log action (if enabled)
+            $this->logger->log($user_id, 'update', $this->class, $oid, $values);
+            // store updated objects in current collection
+            $this->objects[$oid]['id'] = $oid;
+            foreach($values as $field => $value) {
+                $this->objects[$oid][$field] = $value;
             }
         }
+
         return $this;
     }
 
