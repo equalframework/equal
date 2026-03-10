@@ -641,7 +641,7 @@ class Collection implements \Iterator, \Countable {
 
         array_walk($values, function ($_, $key) {
             if(!is_string($key) || $key === '') {
-                throw new \Exception('invalid_values_map', EQ_ERROR_INVALID_PARAM);
+                throw new \Exception('invalid_creation_map', EQ_ERROR_INVALID_PARAM);
             }
         });
 
@@ -954,7 +954,7 @@ class Collection implements \Iterator, \Countable {
 
         array_walk($values, function ($_, $key) {
             if(!is_string($key) || $key === '') {
-                throw new \Exception('invalid_values_map', EQ_ERROR_INVALID_PARAM);
+                throw new \Exception('invalid_update_map', EQ_ERROR_INVALID_PARAM);
             }
         });
 
