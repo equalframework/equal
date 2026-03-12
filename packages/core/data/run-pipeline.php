@@ -131,4 +131,3 @@ foreach ($name_map as $key => $value) {
 $context->httpResponse()
     ->body($res)
     ->send();
-?>
