@@ -144,6 +144,15 @@ class Mail extends Model {
     public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
         $mail = self::createMail($email, $object_class, $object_id);
 
+        // ensure attachments contain binary data (createMail uses base64 for JSON safety)
+        if(isset($mail['attachments']) && count($mail['attachments'])) {
+            foreach($mail['attachments'] as &$attachment) {
+                if(isset($attachment['data'])) {
+                    $attachment['data'] = base64_decode($attachment['data']);
+                }
+            }
+        }
+
         try {
             // get SMTP mailer
             $mailer = self::provideMailer();
