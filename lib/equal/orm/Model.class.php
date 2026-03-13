@@ -586,6 +586,24 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
+     * Provide a list of additional composite indexes.
+     *
+     * Each entry must be an array of field names defining the index.
+     *
+     * Example:
+     * [
+     *     ['condo_id'],
+     *     ['condo_id', 'status'],
+     *     ['status', 'date']
+     * ]
+     *
+     * This method is meant to be overridden in child classes.
+     */
+    public function getIndexes(): array {
+        return [];
+    }
+
+    /**
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
      *

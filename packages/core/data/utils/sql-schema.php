@@ -220,6 +220,33 @@ foreach($classes as $class) {
                 }
             }
         }
+        if(method_exists($model, 'getIndexes')) {
+            $indexes = (array) $model->getIndexes();
+
+            foreach($indexes as $index_fields) {
+
+                $index_fields = (array) $index_fields;
+
+                // keep only fields present in schema
+                $index_fields = array_values(array_filter(
+                    $index_fields,
+                    fn($field) => isset($schema[$field])
+                ));
+
+                if(empty($index_fields)) {
+                    continue;
+                }
+
+                $map_indexed_columns[$index_fields[0]] = true;
+
+                $index_name = $db->getCompositeIndexName($index_fields);
+
+                if(!isset($map_processed_indexes[$table][$index_name])) {
+                    $result[] = $db->getQueryAddCompositeIndex($table, $index_fields);
+                    $map_processed_indexes[$table][$index_name] = true;
+                }
+            }
+        }
     }
 }
 
