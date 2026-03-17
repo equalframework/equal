@@ -21,7 +21,18 @@ class Reporter extends Service {
      *
      */
     public static function constants() {
-        return ['DEBUG_MODE', 'DEBUG_LEVEL', 'QN_LOG_STORAGE_DIR', 'QN_REPORT_SYSTEM', 'QN_REPORT_FATAL', 'QN_REPORT_ERROR', 'QN_REPORT_WARNING', 'QN_REPORT_DEBUG', 'QN_REPORT_INFO', 'QN_REPORT_DEBUG'];
+        return [
+            'DEBUG_MODE',
+            'DEBUG_LEVEL',
+            'EQ_LOG_STORAGE_DIR',
+            'EQ_REPORT_SYSTEM',
+            'EQ_REPORT_FATAL',
+            'EQ_REPORT_ERROR',
+            'EQ_REPORT_WARNING',
+            'EQ_REPORT_DEBUG',
+            'EQ_REPORT_INFO',
+            'EQ_REPORT_DEBUG'
+        ];
     }
 
     /**
@@ -142,6 +153,14 @@ class Reporter extends Service {
      * Appends one line to the log file.
      */
     private function log($code, $msg, $trace) {
+
+        static $logging_failed = false;
+
+        // prevent infinite recursion
+        if($logging_failed) {
+            return;
+        }
+
         // discard non-applicable log requests, with exception for $code = 0 (system message that must always be logged)
         if($code > 0 && ($this->debug_mode == 0 || $this->debug_level == 0 || !($code & $this->debug_level)))  {
             return;
@@ -187,21 +206,27 @@ class Reporter extends Service {
         ];
 
         // append backtrace if required (fatal errors)
-        if(!count($error_json['stack']) && in_array($code, [QN_REPORT_WARNING, QN_REPORT_ERROR, QN_REPORT_FATAL])) {
+        if(!count($error_json['stack']) && in_array($code, [EQ_REPORT_WARNING, EQ_REPORT_ERROR, EQ_REPORT_FATAL])) {
             $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
             // remove 2 calls related to Reporter Service
             array_splice($stack, 0, 2);
             $error_json['stack'] = $stack;
         }
 
-        $filepath = QN_LOG_STORAGE_DIR.'/equal.log';
+        $filepath = EQ_LOG_STORAGE_DIR . '/equal.log';
 
         $is_new = !file_exists($filepath);
 
         // append message to log file
-        file_put_contents($filepath, json_encode($error_json, JSON_PARTIAL_OUTPUT_ON_ERROR).PHP_EOL, FILE_APPEND | LOCK_EX);
+        $result = @file_put_contents($filepath, json_encode($error_json, JSON_PARTIAL_OUTPUT_ON_ERROR) . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        if($result === false) {
+            $logging_failed = true;
+            return;
+        }
 
         // #memo - when created using CLI, file is assigned with current UID (which might prevent the HTTP service to access it)
+        // #todo - create empty equal.log file at install
         if($is_new) {
             chmod($filepath, 0666);
         }
