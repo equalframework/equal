@@ -899,7 +899,7 @@ class Collection implements \Iterator, \Countable {
                 }
 
                 if(!count($subfields)) {
-                    if($target['result_type'] != 'many2one') {
+                    if($target['result_type'] !== 'many2one') {
                         foreach($this->objects as $id => $object) {
                             $searchDomain = new Domain($subdomain);
                             $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
@@ -917,7 +917,7 @@ class Collection implements \Iterator, \Countable {
                     /** @var Collection */
                     $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
 
-                    if($target['result_type'] == 'many2one') {
+                    if($target['result_type'] === 'many2one') {
                         // many2one might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
