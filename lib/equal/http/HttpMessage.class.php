@@ -269,8 +269,16 @@ class HttpMessage {
 
         // maintain headers consistency
         if($host = $this->uri->getHost()) {
-            if($port = $this->uri->getPort()) {
-                $host = $host.':'.$port;
+            $port = $this->uri->getPort();
+            $scheme = $this->uri->getScheme();
+            // Although RFC 7230 allows including the port in the Host header,
+            // many servers (proxies, WAF, load balancers) do not match hosts with default ports (80/443).
+            // To ensure interoperability, omit default ports and only include non-standard ones.
+            if($port && !(
+                ($scheme === 'http' && $port == 80) ||
+                ($scheme === 'https' && $port == 443)
+            )) {
+                $host = $host . ':' . $port;
             }
             $this->headers->set('Host', $host);
         }
