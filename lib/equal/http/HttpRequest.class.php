@@ -168,34 +168,42 @@ class HttpRequest extends HttpMessage {
                     false,
                     $context
                 );
+
             // build HTTP response object
-            if(isset($http_response_header[0])) {
-                $response_status = $http_response_header[0];
-                unset($http_response_header[0]);
-                $headers = [];
-                foreach($http_response_header as $line) {
-					list($header, $value) = ['', ''];
-                    $parts = array_map('trim', explode(':', $line));
-					if(isset($parts[0])) {
-                        $header = $parts[0];
-                    }
-					if(isset($parts[1])) {
-                        $value = $parts[1];
-                    }
-					if(strpos($header, 'HTTP/1.1') === 0) {
-						$response_status = $header;
-					}
-					else {
-						$headers[$header] = $value;
-					}
-                }
-                $response = new HttpResponse($response_status, $headers, $data);
-            }
-            else {
+            if(!isset($http_response_header) || !is_array($http_response_header)) {
                 $error = error_get_last();
-                trigger_error("PHP::Unable to send HTTP request to `{$uri}` : " . ($error['message'] ?? ''), EQ_REPORT_ERROR);
+                trigger_error(
+                    "PHP::Unable to send HTTP request to `{$uri}` : " . ($error['message'] ?? ''),
+                    EQ_REPORT_ERROR
+                );
                 throw new \Exception('failed_sending_http_request', QN_ERROR_UNKNOWN);
             }
+
+            $response_status = '';
+            $headers = [];
+
+            foreach($http_response_header as $line) {
+
+                // new response block (redirect or final response)
+                if(strpos($line, 'HTTP/') === 0) {
+                    $response_status = $line;
+                    // reset headers - keep ONLY final response
+                    $headers = [];
+                    continue;
+                }
+
+                // parse header safely (split on first `:` only)
+                $parts = explode(':', $line, 2);
+                $header = trim($parts[0]);
+                $value  = isset($parts[1]) ? trim($parts[1]) : '';
+
+                if($header !== '') {
+                    $headers[$header] = $value;
+                }
+            }
+
+            $response = new HttpResponse($response_status, $headers, $data);
+
         }
         return $response;
     }
