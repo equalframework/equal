@@ -167,14 +167,14 @@ class Reporter extends Service {
         }
         // retrieve reporting mode, if provided
         $mode = EQ_MODE_PHP;
-        if(strpos($msg, '::') == 3) {
+        if(strpos($msg, '::') === 3) {
             $source = $mode;
             $parts = explode('::', $msg, 2);
             if($parts && count($parts) > 1) {
                 $source = (strlen($parts[0])) ? ('EQ_MODE_'.$parts[0]) : $source;
                 $msg = $parts[1];
             }
-            if(!is_numeric($source) && @constant($source)) {
+            if(!is_numeric($source) && defined($source)) {
                 $source = constant($source);
             }
             $mode = (int) $source;
@@ -188,12 +188,13 @@ class Reporter extends Service {
             }
         }
 
-        $time_parts = explode(" ", microtime());
+        $microtime = microtime(true);
+
         // build error message
         $error_json = [
             'thread_id'     => $this->thread_id,
-            'time'          => date('c', $time_parts[1]),
-            'mtime'         => substr($time_parts[0], 2, 6),
+            'time'          => date('c', (int) $microtime),
+            'mtime'         => sprintf('%06d', ($microtime - floor($microtime)) * 1e6),
             'level'         => qn_debug_code_name($code),
             'mode'          => qn_debug_mode_name($mode),
             'class'         => (isset($trace['class'])) ? $trace['class'] : '',
@@ -226,9 +227,9 @@ class Reporter extends Service {
         }
 
         // #memo - when created using CLI, file is assigned with current UID (which might prevent the HTTP service to access it)
-        // #todo - create empty equal.log file at install
+        // #todo - create empty equal.log file at install (`init_fs`)
         if($is_new) {
-            chmod($filepath, 0666);
+            @chmod($filepath, 0666);
         }
     }
 
