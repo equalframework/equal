@@ -8,6 +8,7 @@
 namespace core;
 
 use equal\orm\Model;
+use equal\services\Container;
 
 /**
  * @property string     $name
@@ -26,6 +27,12 @@ class Permission extends Model {
             'name' => [
                 'type'              => 'alias',
                 'alias'             => 'class_name'
+            ],
+
+            'description' => [
+                'type'              => 'string',
+                'description'       => 'Short optional description explaining the role of the Permission.',
+                'default'           => ''
             ],
 
             'class_name' => [
@@ -63,7 +70,7 @@ class Permission extends Model {
 
             'rights' => [
                 'type' 	            => 'integer',
-                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8 DELETE, 16: MANAGE)",
+                'description'       => "Rights binary mask (1: CREATE, 2: READ, 4: WRITE, 8: DELETE, 16: MANAGE)",
                 'dependents'        => ['rights_txt']
             ],
 
@@ -118,4 +125,70 @@ class Permission extends Model {
         return $result;
     }
 
+    /**
+     * Check if current user can manage Permission objects.
+     */
+    private static function canManagePermissions(): bool {
+        [$auth, $access] = Container::getInstance()->get(['auth', 'access']);
+
+        $user_id = $auth->userId();
+
+        // No user
+        if($user_id <= 0) {
+            return false;
+        }
+
+        // Root bypass
+        if($user_id === EQ_ROOT_USER_ID) {
+            return true;
+        }
+
+        // Check MANAGE right on Permission class
+        return $access->hasRight(self::getType(), EQ_R_MANAGE);
+    }
+
+    protected static function cancreate($self) {
+        if(self::canManagePermissions()) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($self as $id => $values) {
+            $result[$id] = [
+                'not_allowed' => "You are not allowed to create permission rules."
+            ];
+        }
+
+        return $result;
+    }
+
+    protected static function canupdate($self) {
+        if (self::canManagePermissions()) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($self as $id => $permission) {
+            $result[$id] = [
+                'not_allowed' => "You are not allowed to modify permission rules."
+            ];
+        }
+
+        return $result;
+    }
+
+    protected static function candelete($self) {
+        if (self::canManagePermissions()) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($self as $id => $permission) {
+            $result[$id] = [
+                'not_allowed' => "You are not allowed to delete permission rules."
+            ];
+        }
+
+        return $result;
+    }
 }

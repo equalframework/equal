@@ -827,10 +827,17 @@ class Setting extends Model {
             if(strlen($val_format)) {
                 $type = substr($val_format, -1);
                 if($type == 'd') {
-                    $mod = pow(10,  intval(str_replace(['%', 'd'], '', $val_format)));
-                    $value = $value % $mod;
+                    if(is_numeric($value)) {
+                        $mod = pow(10, intval(str_replace(['%', 'd'], '', $val_format)));
+                        $value = ((int)$value) % $mod;
+                    }
+                    else {
+                        // fallback for non numeric values(ex: "22-23")
+                        $val_format = '%s';
+                    }
                 }
             }
+
             $values[] = $value;
         }
 
