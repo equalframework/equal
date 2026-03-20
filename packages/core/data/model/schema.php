@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -16,6 +17,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'required'      => true
         ],
+        'domain' => [
+            'description'   => 'Criterias that results have to match (series of conjunctions)',
+            'type'          => 'array',
+            'default'       => []
+        ]
     ],
     'response'      => [
         'content-type'  => 'application/json',
@@ -46,20 +52,36 @@ if(ctype_lower(substr($file, 0, 1))) {
     $path = implode('/', $parts);
     $operation = str_replace('\\', '_', $params['entity']);
 
-    if(file_exists(EQ_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
-        $result = eQual::run('do', $operation, ['announce' => true]);
+    try {
+        // #memo in case of announce as root (required for relaying params), an Exception with code 0 is raised and JSON is directly sent to stdout
+        ob_start();
+        if(file_exists(EQ_BASEDIR."/packages/{$package}/actions/{$path}/{$file}.php")) {
+            eQual::run('do', $operation, array_merge($params, ['announce' => true]), true);
+        }
+        elseif(file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
+            eQual::run('get', $operation, array_merge($params, ['announce' => true]), true);
+        }
+        else {
+            throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
+        }
+    }
+    catch( Exception $e) {
+        if($e->getCode() != 0) {
+            throw new Exception($e->getMessage(), $e->getCode());
+        }
+    }
+    finally {
+        $json = ob_get_clean();
+        $result = json_decode($json, true);
         $data = [
             'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
         ];
-    }
-    elseif(file_exists(EQ_BASEDIR."/packages/{$package}/data/{$path}/{$file}.php")) {
-        $result = eQual::run('get', $operation, ['announce' => true]);
-        $data = [
-            'fields' => isset($result['announcement']['params']) ? $result['announcement']['params'] : []
-        ];
-    }
-    else {
-        throw new Exception("unknown_entity", EQ_ERROR_UNKNOWN_OBJECT);
+        foreach($data['fields'] as $field => $descriptor) {
+            if(isset($descriptor['default'])) {
+                $f = new Field($descriptor, $field);
+                $data['fields'][$field]['default'] = $adapter->adaptOut($descriptor['default'], $f->getUsage());
+            }
+        }
     }
 }
 
@@ -110,12 +132,6 @@ if(!count($data)) {
         }
     }
 
-
-    /*
-    if(method_exists($model, 'getConstraints')) {
-        $data['constraints'] = $model::getConstraints();
-    }
-    */
 }
 
 

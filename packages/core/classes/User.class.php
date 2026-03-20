@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
@@ -24,6 +25,7 @@ class User extends Model {
 
     public static function getColumns() {
         return [
+
             'name' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
@@ -51,8 +53,7 @@ class User extends Model {
             'password' => [
                 'type'              => 'string',
                 'usage'             => 'password',
-                'onupdate'          => 'onupdatePassword',
-                'required'          => true
+                'onupdate'          => 'onupdatePassword'
             ],
 
             'nickname' => [
@@ -82,16 +83,16 @@ class User extends Model {
 
             'language' => [
                 'type'              => 'string',
-                'usage'             => 'language/iso-639',
-                'default'           => 'en',
+                'usage'             => 'locale',
+                'default'           => function() { return defined('DEFAULT_LANG') ? constant('DEFAULT_LANG') : 'en'; },
                 'description'       => "Preferred locale for user interfaces.",
             ],
 
             'validated' => [
                 'type'              => 'boolean',
                 'default'           => false,
-                'description'       => 'Flag telling if the User has validated his email address.',
-                'help'              => "This fields is used at signin to prevent non-validated user to log in."
+                'description'       => 'Flag telling if the User account has been validated.',
+                'help'              => "This fields is used at auth & signin to prevent non-validated user to log in."
             ],
 
             'groups_ids' => [
@@ -116,15 +117,35 @@ class User extends Model {
                 'description'       => 'List of settings that relate to the user.'
             ],
 
+            'passkeys_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\Passkey',
+                'foreign_field'     => 'user_id',
+                'description'       => 'List of passkeys owned by the user.'
+            ],
+
             // application logic related status of the object
             'status' => [
                 'type'              => 'string',
                 // initial status
                 'default'           => 'created',
-                // list of possible statuses corresponds to the keys of the map returned by `getWorkflow()`
-                // onupdate is allowed, but it is better practice to rely on transitions and related function properties in the workflow descriptor
+                'selection'         => [
+                    'created',
+                    'validated',
+                    'confirmed',
+                    'suspended'
+                ],
                 'generation'        => 'generateStatus'
+            ],
+
+            'allow_auth' => [
+                'type'              => 'boolean',
+                'description'       => "Mark user as allowed to authenticate using a password, passkey or email.",
+                'help'              => "Defaults to true. If set to false, the user will only be able to access using manually generated access tokens.
+                    This feature can be used to create Apps that can use the API but cannot authenticate from the UI.",
+                'default'           => true
             ]
+
         ];
     }
 
@@ -235,6 +256,12 @@ class User extends Model {
         return $result;
     }
 
+    public static function oncreate($self, $values) {
+        if(isset($values['password'])) {
+            $self->update(['password' => self::computePasswordHash($values['password'])]);
+        }
+    }
+
     /**
      * Filter method for password updates.
      * Make sure password is encrypted when stored to DB.
@@ -249,7 +276,7 @@ class User extends Model {
         $values = $om->read(self::getType(), $ids, ['password']);
         foreach($values as $id => $user) {
             if(substr($user['password'], 0, 4) != '$2y$') {
-                $om->update(self::getType(), $id, ['password' => password_hash($user['password'], PASSWORD_BCRYPT)]);
+                $om->update(self::getType(), $id, ['password' => self::computePasswordHash($user['password'])]);
             }
         }
     }
@@ -340,4 +367,21 @@ class User extends Model {
         return $statuses[mt_rand(0, count($statuses) - 1)];
     }
 
+    /**
+     * Filter method for password updates.
+     * Make sure password is encrypted when stored to DB.
+     * If not encrypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
+     * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
+     *
+     * @param   $om     Object  Instance of the ObjectManager Service
+     * @param   $ids    array   List of User objects identifiers
+     * @param   $lang   string  Language for multilang fields
+     */
+    private static function computePasswordHash($password) {
+        $result = $password;
+        if(substr($password, 0, 4) != '$2y$') {
+            $result = password_hash($password, PASSWORD_BCRYPT);
+        }
+        return $result;
+    }
 }

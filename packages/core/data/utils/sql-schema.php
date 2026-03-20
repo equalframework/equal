@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\ObjectManager;
@@ -58,7 +59,8 @@ $m2m_tables = [];
 $classes = eQual::run('get', 'config_classes', ['package' => $params['package']]);
 
 // associative array with 2 levels, mapping tables with their list of columns
-$processed_columns = [];
+$map_processed_columns = [];
+$map_processed_indexes = [];
 
 foreach($classes as $class) {
     // get the full class name
@@ -76,10 +78,6 @@ foreach($classes as $class) {
     // get the SQL table name
     $table = $orm->getObjectTableName($entity);
 
-    if(!isset($processed_columns[$table])) {
-        $processed_columns[$table] = [];
-    }
-
     // #memo - we cannot delete tables since it prevents keeping data across inherited classes
 
     // fetch existing column
@@ -89,16 +87,24 @@ foreach($classes as $class) {
     // then we append only the columns that do not exit yet
     $result[] = $db->getQueryCreateTable($table);
 
+    $columns_full = array_keys($schema);
+
     // retrieve list of fields that must be added to the schema
-    $columns_diff = ($params['full']) ? array_keys($schema) : array_diff(array_keys($schema), $columns);
+    $columns_diff = ($params['full']) ? $columns_full : array_diff($columns_full, $columns);
 
     foreach($columns_diff as $field) {
         // prevent processing a same column more than once
-        if(isset($processed_columns[$table][$field])) {
+        if(isset($map_processed_columns[$table][$field])) {
             continue;
         }
 
-        $processed_columns[$table][$field] = true;
+        $map_processed_columns[$table][$field] = true;
+        $raw_descriptor = $schema[$field];
+
+        if($raw_descriptor['type'] == 'alias') {
+            // skip non-stored alias fields
+            continue;
+        }
 
         $f = $model->getField($field);
         $descriptor = $f->getDescriptor();
@@ -161,35 +167,92 @@ foreach($classes as $class) {
                 // default is a scalar value
                 $default = $descriptor['default'];
             }
+            $default = $adapter->adaptOut($default, $f->getUsage());
             $result[] = $db->getQuerySetRecords($table, [$field => $default]);
         }
     }
 
-    if(method_exists($model, 'getUnique')) {
-        // #memo - Classes are allowed to override the getUnique method from their parent class. Unique checks are performed by ORM.
-        // Therefore we cannot apply parent uniqueness constraints on parent table since it would also applies on all inherited classes.
-        // However, even if check is made by ORM, each column member of a unique tuple must be indexed (for performance concerns).
-        $constraints = (array) $model->getUnique();
-        $map_index_fields = [];
-        foreach($constraints as $uniques) {
-            foreach((array) $uniques as $unique_field) {
-                if(isset($schema[$unique_field])) {
-                    $map_index_fields[$unique_field] = true;
+    // handle indexes - only at table creation / first init of the class
+    if(count($columns_diff) === count($columns_full)) {
+        $map_indexed_columns = [];
+        if(method_exists($model, 'getUnique')) {
+            $constraints = (array) $model->getUnique();
+
+            foreach($constraints as $unique_fields) {
+
+                $unique_fields = (array) $unique_fields;
+                // only keep fields that actually exist in schema
+                $unique_fields = array_values(array_filter(
+                    $unique_fields,
+                    fn($field) => isset($schema[$field])
+                ));
+
+                if(empty($unique_fields)) {
+                    continue;
+                }
+
+                $map_indexed_columns[$unique_fields[0]] = true;
+
+                $index_name = $db->getCompositeIndexName($unique_fields);
+
+                if(!isset($map_processed_indexes[$table][$index_name])) {
+                    // create composite index
+                    $result[] = $db->getQueryAddCompositeIndex($table, $unique_fields);
+                    $map_processed_indexes[$table][$index_name] = true;
                 }
             }
         }
-        foreach($map_index_fields as $unique_field => $flag) {
-            // create an index for fields not yet present in DB
-            if(!in_array($unique_field, $columns)) {
-                $result[] = $db->getQueryAddIndex($table, $unique_field);
+        // second pass for fields with 'unique' attribute
+        foreach($columns_diff as $field) {
+            $descriptor = $schema[$field];
+            // column uniqueness is handled by ORM, which will make SQL request for checking that column, so we create an additional index
+            // #memo - index size is often limited to 100, so we ensure a usage is defined
+            // #todo - we should make sure that the field definition does not imply an index size overflow
+            if(isset($descriptor['unique']) && $descriptor['unique'] && isset($descriptor['usage'])) {
+                if(isset($map_indexed_columns[$field])) {
+                    continue;
+                }
+                $map_indexed_columns[$field] = true;
+
+                if(!isset($map_processed_indexes[$table][$field])) {
+                    $result[] = $db->getQueryAddIndex($table, $field);
+                    $map_processed_indexes[$table][$field] = true;
+                }
+            }
+        }
+        if(method_exists($model, 'getIndexes')) {
+            $indexes = (array) $model->getIndexes();
+
+            foreach($indexes as $index_fields) {
+
+                $index_fields = (array) $index_fields;
+
+                // keep only fields present in schema
+                $index_fields = array_values(array_filter(
+                    $index_fields,
+                    fn($field) => isset($schema[$field])
+                ));
+
+                if(empty($index_fields)) {
+                    continue;
+                }
+
+                $map_indexed_columns[$index_fields[0]] = true;
+
+                $index_name = $db->getCompositeIndexName($index_fields);
+
+                if(!isset($map_processed_indexes[$table][$index_name])) {
+                    $result[] = $db->getQueryAddCompositeIndex($table, $index_fields);
+                    $map_processed_indexes[$table][$index_name] = true;
+                }
             }
         }
     }
 }
 
 foreach($m2m_tables as $table => $columns) {
-    if(!isset($processed_columns[$table])) {
-        $processed_columns[$table] = [];
+    if(!isset($map_processed_columns[$table])) {
+        $map_processed_columns[$table] = [];
     }
     // fetch existing columns
     $existing_columns = $db->getTableColumns($table);
@@ -202,7 +265,7 @@ foreach($m2m_tables as $table => $columns) {
         if(in_array($column, $existing_columns)) {
             continue;
         }
-        if(isset($processed_columns[$table][$column])) {
+        if(isset($map_processed_columns[$table][$column])) {
             continue;
         }
 
@@ -212,8 +275,9 @@ foreach($m2m_tables as $table => $columns) {
             'type'      => $adapter->castOutType(),
             'null'      => false
         ]);
-        $processed_columns[$table][$column] = true;
+        $map_processed_columns[$table][$column] = true;
     }
+    // #todo - there is a particular case here: if an entity (with more fields) is associated with this m2m table (defined either before or after)
     $result[] = $db->getQueryAddUniqueConstraint($table, $columns);
     // add an empty record (required for JOIN conditions on empty tables)
     $result[] = $db->getQueryAddRecords($table, $columns, [array_fill(0, count($columns), 0)]);

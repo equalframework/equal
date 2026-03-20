@@ -1,23 +1,23 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns schema of available types and related possible attributes.',
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'params'        => [
-    ],
+    'params'        => [],
     'providers'     => ['context', 'orm']
 ]);
 
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 
 // $types = array_merge($orm::$simple_types, $orm::$complex_types);
@@ -139,8 +139,11 @@ $types = [
         //'default'           => ['type' => 'string'],
         'function', 'result_type', 'onupdate', 'store', 'instant', 'multilang', 'onrevert'
     ],
+
     'array'     => [
-        'default','type' => ['type' => 'string'],'dependencies','onupdate', 'selection','usage'
+        'type'              => ['type' => 'string'],
+        'default'           => ['type' => 'string'],
+        'dependencies','onupdate', 'selection','usage'
     ]
 ];
 

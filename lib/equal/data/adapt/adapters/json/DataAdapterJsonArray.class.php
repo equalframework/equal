@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <https://github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\data\adapt\adapters\json;
@@ -105,13 +106,21 @@ class DataAdapterJsonArray implements DataAdapter {
                 // handle separator (next value or next attribute)
                 if($c == ',') {
                     if(strlen($current)) {
-                        $res = ($current === 'null')?null:json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
+                        $res = ($current === 'null') ? null : json_decode("[\"$current\"]", true, 512, JSON_BIGINT_AS_STRING)[0];
                         if(strlen($current_key)) {
                             $result[trim($current_key)] = $res;
                         }
                         else {
                             $result[] = $res;
                         }
+                    }
+                    // Skip white spaces after comma
+                    while(true) {
+                        $c = substr($value, $i+1, 1);
+                        if($c != ' ') {
+                            break;
+                        }
+                        $i++;
                     }
                     $current_key = '';
                     $current = '';

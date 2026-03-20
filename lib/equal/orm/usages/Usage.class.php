@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm\usages;
@@ -101,11 +102,12 @@ class Usage {
     /**
      * Retrieve the subtype (all tree or a specific component).
      * By default it returns the subtype with full tree.
-     * Call $tree_index set to 0 to retrieve the first level of the subtype.
+     * A call with $tree_index set to 0 retrieves the first level of the subtype.
+     *
      * @example For usage "text/plain.short"
-     *      getSubtype()   returns 'plain'
+     *      getSubtype(0)  returns 'plain'
      *      getSubtype(1)  returns 'short'
-     *      getSubtype(-1) returns 'plain.short'
+     *      getSubtype()   returns 'plain.short' (same as getSubtype(-1))
      */
     final public function getSubtype($tree_index=-1): ?string {
         $result = $this->subtype;
@@ -194,21 +196,21 @@ class Usage {
             // store original usage string
             $this->usage_str = $usage_str;
             // assign parts to dedicated members
-            $this->type = isset($matches[1])?$matches[1]:'';
+            $this->type = isset($matches[1])?$matches[1] : '';
             $this->is_array = isset($matches[2]) && strlen($matches[2]);
-            $this->size = (isset($matches[3]) && strlen($matches[3]))?intval($matches[3]):0;
-            $this->subtype = isset($matches[4])?$matches[4]:'';
-            $tree = isset($matches[6])?$matches[6]:'';
+            $this->size = (isset($matches[3]) && strlen($matches[3])) ? intval($matches[3]) : 0;
+            $this->subtype = isset($matches[4])?$matches[4] : '';
+            $tree = isset($matches[6]) ? $matches[6] : '';
             if(strlen($tree) > 0) {
                 $this->subtype .= '.'.$tree;
             }
             // accepts various formats ({length} (ex.'255'), {precision}.{scale} (ex. '5.3'), or {shortcut} (ex. 'medium'))
-            $this->length_str = (isset($matches[8]) && strlen($matches[8]))?$matches[8]:'';
-            $this->length = (isset($matches[8]) && strlen($matches[8]))?intval($matches[8]):0;
-            $this->precision = (isset($matches[9]) && strlen($matches[9]))?intval($matches[9]):0;
-            $this->scale = (isset($matches[10]) && strlen($matches[10]))?intval($matches[10]):0;
-            $this->min = (isset($matches[12]) && strlen($matches[12]))? +$matches[12] : 0;
-            $this->max = (isset($matches[14]) && strlen($matches[14]))? +$matches[14] : 0;
+            $this->length_str = (isset($matches[8]) && strlen($matches[8])) ? $matches[8] : '';
+            $this->length = (isset($matches[8]) && strlen($matches[8])) ? intval($matches[8]) : 0;
+            $this->precision = (isset($matches[9]) && strlen($matches[9])) ? intval($matches[9]) : 0;
+            $this->scale = (isset($matches[10]) && strlen($matches[10])) ? intval($matches[10]) : 0;
+            $this->min = (isset($matches[12]) && strlen($matches[12])) ? +$matches[12] : 0;
+            $this->max = (isset($matches[14]) && strlen($matches[14])) ? +$matches[14] : 0;
         }
 
     }

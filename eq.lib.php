@@ -4,7 +4,7 @@
 *    https://github.com/equalframework/equal
 *
 *    Some Rights Reserved, The eQual Framework, 2010-2024
-*    Original Author: Cedric Francoys
+*    Original Author(s): Cedric Francoys
 *    License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 *
 *    This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,11 @@ namespace {
     global $last_context;
     global $constants_schema;
 
-    define('__EQ_LIB', true) or die('fatal error: __EQ_LIB already defined or cannot be defined');
+    if(defined('__EQ_LIB')) {
+        echo "fatal error: __EQ_LIB already defined\n";
+        exit(1);
+    }
+    define('__EQ_LIB', true);
 
     /**
      *    All constants required by the core are prefixed with EQ_
@@ -116,7 +120,8 @@ namespace {
      *
      * Note: ensure http service has read/write permissions on this directory
      */
-    define('QN_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('EQ_LOG_STORAGE_DIR', EQ_BASEDIR.'/log');
+    define('QN_LOG_STORAGE_DIR', EQ_LOG_STORAGE_DIR);
 
     // EventHandler will deal with error and debug messages depending on debug source value
     ini_set('html_errors', false);                              // prevent HTML in logs
@@ -137,7 +142,7 @@ namespace {
     define('EQ_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_CREATE',       EQ_R_CREATE);
     define('QN_R_READ',         EQ_R_READ);
-    define('QN_R_WRITE',        EQ_R_WRITE);
+    define('QN_R_WRITE',        EQ_R_UPDATE);
     define('QN_R_DELETE',       EQ_R_DELETE);
     define('QN_R_MANAGE',       EQ_R_MANAGE);
     define('QN_R_ALL',          EQ_R_ALL);
@@ -168,47 +173,68 @@ namespace {
     */
 
     /**
-     * Mapper from internal error codes to string constants
+     * #deprecated - use eq_error_code
      */
     function qn_error_name($error_id) {
+        return eq_error_name($error_id);
+    }
+
+    /**
+     * Mapper from internal error codes to string constants
+     */
+    function eq_error_name($error_id) {
         switch($error_id) {
-            case QN_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
-            case QN_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
-            case QN_ERROR_SQL:              return 'SQL_ERROR';
-            case QN_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
-            case QN_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
-            case QN_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
-            case QN_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
-            case QN_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
-            case QN_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
-            case QN_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
+            case EQ_ERROR_MISSING_PARAM:    return 'MISSING_PARAM';
+            case EQ_ERROR_INVALID_PARAM:    return 'INVALID_PARAM';
+            case EQ_ERROR_SQL:              return 'SQL_ERROR';
+            case EQ_ERROR_NOT_ALLOWED:      return 'NOT_ALLOWED';
+            case EQ_ERROR_UNKNOWN_OBJECT:   return 'UNKNOWN_OBJECT';
+            case EQ_ERROR_INVALID_CONFIG:   return 'INVALID_CONFIG';
+            case EQ_ERROR_UNKNOWN_SERVICE:  return 'UNKNOWN_SERVICE';
+            case EQ_ERROR_LOCKED_OBJECT:    return 'LOCKED_OBJECT';
+            case EQ_ERROR_CONFLICT_OBJECT:  return 'CONFLICT_OBJECT';
+            case EQ_ERROR_INVALID_USER:     return 'INVALID_CREDENTIALS';
         }
         return 'UNKNOWN_ERROR';
     }
 
     /**
-     * Mapper from string constants to internal error codes
+     * #deprecated - use eq_error_code
      */
     function qn_error_code($error_name) {
+        return eq_error_code($error_name);
+    }
+
+    /**
+     * #deprecated - use eq_error_http
+     */
+    function qn_error_http($error_id) {
+        return eq_error_http($error_id);
+    }
+
+    /**
+     * Mapper from string constants to internal error codes
+     */
+    function eq_error_code($error_name) {
         switch($error_name) {
-            case 'MISSING_PARAM':       return QN_ERROR_MISSING_PARAM;
-            case 'INVALID_PARAM':       return QN_ERROR_INVALID_PARAM;
-            case 'SQL_ERROR':           return QN_ERROR_SQL;
-            case 'NOT_ALLOWED':         return QN_ERROR_NOT_ALLOWED;
-            case 'UNKNOWN_OBJECT':      return QN_ERROR_UNKNOWN_OBJECT;
-            case 'INVALID_CONFIG':      return QN_ERROR_INVALID_CONFIG;
-            case 'UNKNOWN_SERVICE':     return QN_ERROR_UNKNOWN_SERVICE;
-            case 'LOCKED_OBJECT':       return QN_ERROR_LOCKED_OBJECT;
-            case 'CONFLICT_OBJECT':     return QN_ERROR_CONFLICT_OBJECT;
-            case 'INVALID_CREDENTIALS': return QN_ERROR_INVALID_USER;
+            case 'MISSING_PARAM':       return EQ_ERROR_MISSING_PARAM;
+            case 'INVALID_PARAM':       return EQ_ERROR_INVALID_PARAM;
+            case 'SQL_ERROR':           return EQ_ERROR_SQL;
+            case 'NOT_ALLOWED':         return EQ_ERROR_NOT_ALLOWED;
+            case 'UNKNOWN_OBJECT':      return EQ_ERROR_UNKNOWN_OBJECT;
+            case 'INVALID_CONFIG':      return EQ_ERROR_INVALID_CONFIG;
+            case 'UNKNOWN_SERVICE':     return EQ_ERROR_UNKNOWN_SERVICE;
+            case 'LOCKED_OBJECT':       return EQ_ERROR_LOCKED_OBJECT;
+            case 'CONFLICT_OBJECT':     return EQ_ERROR_CONFLICT_OBJECT;
+            case 'INVALID_CREDENTIALS': return EQ_ERROR_INVALID_USER;
         }
-        return QN_ERROR_UNKNOWN;
+        return EQ_ERROR_UNKNOWN;
     }
 
     /**
      * Mapper from internal error codes to HTTP codes
      */
-    function qn_error_http($error_id) {
+    function eq_error_http($error_id) {
         switch($error_id) {
             case 0:                         return 200;
             case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
@@ -259,12 +285,14 @@ namespace {
      */
     $constants_schema = [];
     if(!file_exists(EQ_BASEDIR.'/config/schema.json')) {
-        die('Missing mandatory config schema.');
+        echo "fatal error: Missing mandatory config schema.\n";
+        exit(1);
     }
     else {
         $data = file_get_contents(EQ_BASEDIR.'/config/schema.json');
         if(!($constants_schema = json_decode($data, true))) {
-            die('Invalid config schema.');
+            echo "fatal error: Invalid config schema.\n";
+            exit(1);
         }
 
         // pass-1 - process properties defined in config file
@@ -276,7 +304,8 @@ namespace {
                 }
             }
             else {
-                die('Invalid config file.');
+                echo "fatal error: Invalid config file.\n";
+                exit(1);
             }
         }
         // pass-2 - process instant properties not present in config
@@ -307,6 +336,7 @@ namespace config {
     use equal\services\Container;
     use equal\error\Reporter;
     use equal\orm\Field;
+    use equal\data\DataConverter;
 
     /*
      * This section adds some config-utility functions to the 'config' namespace.
@@ -338,114 +368,28 @@ namespace config {
         return $output;
     }
 
-    function strtoint($value, $usage = '') {
-        if(is_string($value)) {
-            if($value == 'null') {
-                $value = null;
-            }
-            elseif(empty($value)) {
-                $value = 0;
-            }
-            elseif(in_array($value, ['TRUE', 'true'])) {
-                $value = 1;
-            }
-            elseif(in_array($value, ['FALSE', 'false'])) {
-                $value = 0;
-            }
-        }
-        // arg represents a numeric value (numeric type or string)
-        if(is_numeric($value)) {
-            $value = intval($value);
-        }
-        elseif(is_scalar($value)) {
-            // fallback suffixes coefficients (defaults)
-            $suffixes = [
-                'B'  => 1,
-                'KB' => 1024,
-                'MB' => 1048576,
-                'GB' => 1073741824,
-                's'  => 1,
-                'm'  => 60,
-                'h'  => 3600,
-                'd'  => 3600*24,
-                'w'  => 3600*24*7,
-                'M'  => 3600*24*30,
-                'Y'  => 3600*24*365
-            ];
-            // #todo - replicate this in DataAdapterJsonInteger
-            switch($usage) {
-                case 'amount/data':
-                    $suffixes = [
-                        'b'   => 1,
-                        'B'   => 1,
-                        'k'   => 1000,
-                        'K'   => 1000,
-                        'kb'  => 1000,
-                        'KB'  => 1000,
-                        'kib' => 1024,
-                        'KiB' => 1024,
-                        'm'   => 1000000,
-                        'M'   => 1000000,
-                        'mb'  => 1000000,
-                        'MB'  => 1000000,
-                        'mib' => 1048576,
-                        'MiB' => 1048576,
-                        'g'   => 1000000000,
-                        'gb'  => 1000000000,
-                        'gib' => 1073741824,
-                        'GiB' => 1073741824
-                    ];
-                    break;
-                case 'time/duration':
-                    $suffixes = [
-                        'ms' => 0.001,
-                        's'  => 1,
-                        'm'  => 60,
-                        'h'  => 3600,
-                        'd'  => 3600*24,
-                        'D'  => 3600*24,
-                        'w'  => 3600*24*7,
-                        'M'  => 3600*24*30,
-                        'y'  => 3600*24*365,
-                        'Y'  => 3600*24*365
-                    ];
-                    break;
-            }
-            $val = (string) $value;
-            $intval = intval($val);
-            foreach($suffixes as $suffix => $factor) {
-                if(strval($intval).$suffix == $val) {
-                    $value = $intval * $factor;
-                    break;
-                }
-            }
-        }
-        return $value;
-    }
-
-
     /**
      * Adds a parameter to the configuration array
      */
     function define($name, $value) {
-        if(!isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            $GLOBALS['QN_CONFIG_ARRAY'] = [];
+        if(!isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            $GLOBALS['EQ_CONFIG_ARRAY'] = [];
         }
-        $GLOBALS['QN_CONFIG_ARRAY'][$name] = $value;
+        $GLOBALS['EQ_CONFIG_ARRAY'][$name] = $value;
     }
 
     /**
      * Checks if a parameter has already been defined
      */
     function defined($name) {
-        return \defined($name) || isset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+        return \defined($name) || isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
     }
 
     /**
      * Retrieve a configuration parameter as a constant.
      */
     function constant($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name])) ? $GLOBALS['EQ_CONFIG_ARRAY'][$name] : $default;
     }
 
     /**
@@ -474,9 +418,8 @@ namespace config {
      * @deprecated
      */
     function config($name, $default=null) {
-        return (isset($GLOBALS['QN_CONFIG_ARRAY'][$name]))?$GLOBALS['QN_CONFIG_ARRAY'][$name]:$default;
+        return (isset($GLOBALS['EQ_CONFIG_ARRAY'][$name]))?$GLOBALS['EQ_CONFIG_ARRAY'][$name]:$default;
     }
-
 
     /**
      * Exports a property as constant to the global scope.
@@ -497,7 +440,11 @@ namespace config {
                 }
             }
             else {
-                $value = strtoint($value, $constants_schema[$property]['usage'] ?? '');
+                // #memo - this code might be reached before registering autoloader (i.e. for instant settings)
+                if (!class_exists('equal\data\DataConverter')) {
+                    eQual::loadClass('equal\data\DataConverter');
+                }
+                $value = DataConverter::convert($value, $constants_schema[$property]['usage'] ?? '');
             }
         }
         // handle encrypted values
@@ -520,8 +467,8 @@ namespace config {
      * @deprecated
      */
     function export_config() {
-        if(isset($GLOBALS['QN_CONFIG_ARRAY'])) {
-            foreach($GLOBALS['QN_CONFIG_ARRAY'] as $name => $value) {
+        if(isset($GLOBALS['EQ_CONFIG_ARRAY'])) {
+            foreach($GLOBALS['EQ_CONFIG_ARRAY'] as $name => $value) {
                 if(!\defined($name)) {
                     // handle encrypted values
                     if(is_string($value) && substr($value, 0, 7) == 'cipher:') {
@@ -529,7 +476,7 @@ namespace config {
                     }
                     \define($name, $value);
                 }
-                unset($GLOBALS['QN_CONFIG_ARRAY'][$name]);
+                unset($GLOBALS['EQ_CONFIG_ARRAY'][$name]);
             }
         }
         $GLOBALS['QN_CONFIG_EXPORTED'] = true;
@@ -543,7 +490,7 @@ namespace config {
         /**
          * Initialize eQual.
          *
-         * Adds the library folder to the include path (library folder should contain the Zend framework if required).
+         * Adds the library folder to the include path.
          * This is the bootstrap method for setting everything in place.
          *
          * @static
@@ -556,12 +503,12 @@ namespace config {
                 include_once(EQ_BASEDIR.'/vendor/autoload.php');
             }
 
-            // register own class loader
-            spl_autoload_register(__NAMESPACE__.'\eQual::load_class');
+            // register eQual specific class loader
+            spl_autoload_register(__NAMESPACE__.'\eQual::loadClass');
 
             // check service container availability
             if(!is_callable('equal\services\Container::getInstance')) {
-                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', QN_REPORT_FATAL);
+                throw new \Exception('eQual::init - Mandatory Container service is missing or cannot be instantiated.', EQ_REPORT_FATAL);
             }
             // instantiate service container
             $container = Container::getInstance();
@@ -569,27 +516,25 @@ namespace config {
             // register names for common services and assign default classes
             // (these can be overridden in the `config.json` of invoked package)
             $container->register([
-                'report'    => 'equal\error\Reporter',
-                'auth'      => 'equal\auth\AuthenticationManager',
-                'access'    => 'equal\access\AccessController',
-                'context'   => 'equal\php\Context',
-                'validate'  => 'equal\data\DataValidator',
-                'adapt'     => 'equal\data\adapt\DataAdapterProvider',
-                'orm'       => 'equal\orm\ObjectManager',
-                'route'     => 'equal\route\Router',
-                'log'       => 'equal\log\Logger',
-                'cron'      => 'equal\cron\Scheduler',
+                'access'    => constant('SERVICE_ACCESS_ACCESSCONTROLLER', 'equal\access\AccessController'),
+                'adapt'     => constant('SERVICE_DATA_DATAADAPTERPROVIDER', 'equal\data\adapt\DataAdapterProvider'),
+                'auth'      => constant('SERVICE_AUTH_AUTHENTICATIONMANAGER', 'equal\auth\AuthenticationManager'),
+                'db'        => constant('SERVICE_DB_DBCONNECTOR', 'equal\db\DBConnector'),
                 'dispatch'  => 'equal\dispatch\Dispatcher',
-                'db'        => 'equal\db\DBConnector'
+                'context'   => 'equal\php\Context',
+                'cron'      => constant('SERVICE_CRON_SCHEDULER', 'equal\cron\Scheduler'),
+                'log'       => 'equal\log\Logger',
+                'orm'       => constant('SERVICE_ORM_OBJECTMANAGER', 'equal\orm\ObjectManager'),
+                'report'    => 'equal\error\Reporter',
+                'route'     => 'equal\route\Router',
+                'validate'  => 'equal\data\DataValidator'
             ]);
 
             try {
                 // make mandatory dependencies available
-                $container->get(['report', 'context']);
+                $container->get(['report', 'context', 'equal\orm\Collections']);
                 // register ORM classes auto-loader
                 $om = $container->get('orm');
-                // init collections provider
-                $container->get('equal\orm\Collections');
                 spl_autoload_register([$om, 'getModel']);
             }
             catch(\Throwable $e) {
@@ -601,7 +546,7 @@ namespace config {
                     ],
                     JSON_PRETTY_PRINT);
                 // and raise an exception (will be output in PHP error log)
-                throw new \Exception("missing_mandatory_dependency", QN_REPORT_FATAL);
+                throw new \Exception("missing_mandatory_dependency", EQ_REPORT_FATAL, $e);
             }
         }
 
@@ -758,9 +703,10 @@ namespace config {
 
                     // #todo export this part of the logic to a cache manager
                 */
-                if( $method == 'GET'
+                if( $method === 'GET'
                     && isset($announcement['response']['cacheable'])
-                    && $announcement['response']['cacheable']) {
+                    && $announcement['response']['cacheable']
+                    && (!isset($body['announce']) || $body['announce']) ) {
                     // compute the cache ID
                     // remove 'cache' param from URI, if present
                     $request_id = trim(preg_replace('/&cache=[^&]*&/', '&', $request->uri().'&'), '&');
@@ -839,7 +785,7 @@ namespace config {
                                 ->status(200)
                                 // send HTTP response
                                 ->send();
-                            exit();
+                            throw new \Exception('', 0);
                         }
                     }
                 }
@@ -854,8 +800,12 @@ namespace config {
                 $announcement['access']['visibility'] = 'protected';
             }
 
-            // check access restrictions
-            if($announcement['access']['visibility'] != 'public' && php_sapi_name() != 'cli') {
+            // check access restrictions (no restriction for public controller, root user & preflight)
+            if($announcement['access']['visibility'] != 'public'
+                && php_sapi_name() != 'cli'
+                && !isset($body['announce'])
+                && $method !== 'OPTIONS'
+            ) {
                 // private is only allowed in CLI
                 if($announcement['access']['visibility'] == 'private') {
                     throw new \Exception('private_operation', EQ_ERROR_NOT_ALLOWED);
@@ -911,6 +861,25 @@ namespace config {
                         }
                     }
                 }
+                // check auth level (1: AAL1, 2: AAL2, 3: AAL3)
+                if(isset($announcement['access']['auth_level'])) {
+                    $jwt = $auth->retrieveAccessToken();
+                    if(!isset($jwt['amr'])) {
+                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
+                    }
+
+                    $allowed = false;
+                    foreach($jwt['amr'] as $amr) {
+                        if($amr['auth_level'] >= $announcement['access']['auth_level']) {
+                            $allowed = true;
+                            break;
+                        }
+                    }
+
+                    if(!$allowed) {
+                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
+                    }
+                }
             }
 
             /** @var \equal\data\adapt\DataAdapterProvider */
@@ -930,9 +899,9 @@ namespace config {
             }
             // if at least one mandatory param is missing, reply with announcement
             $missing_params = array_values(array_diff($mandatory_params, array_keys($body)));
-            if( count($missing_params) || isset($body['announce']) || $method == 'OPTIONS' ) {
+            if( count($missing_params) || isset($body['announce']) || $method === 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
-                // (for public and protected controllers this might be considered as security issue as it may reveals a part of the configuration)
+                // (for public and protected controllers this might be considered as security issue as it may reveal a part of the configuration)
                 // if 'help' is amongst the params and request was made through CLI
                 if(php_sapi_name() == 'cli' && isset($body['help'])) {
                     $help = 'Help about ';
@@ -974,7 +943,7 @@ namespace config {
                 }
                 // add announcement to response body
                 if(isset($announcement['params'])) {
-                    // default values must be adapted to JSON
+                    // default values must be retrieved and adapted to JSON
                     foreach((array) $announcement['params'] as $param => $config) {
                         if(isset($config['default'])) {
                             $f = new Field($config, $param);
@@ -983,8 +952,19 @@ namespace config {
                             if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                                 // either a php function (or a function from the global scope) or a closure object
                                 if(is_object($default_value)) {
-                                    // default is a closure
-                                    $default_value = $default_value();
+                                    // $default_value is a closure: inject args from received params
+                                    /** @var \ReflectionFunction */
+                                    $function = new \ReflectionFunction($default_value);
+                                    /** @var \ReflectionParameter[] */
+                                    $functionParams = $function->getParameters();
+                                    $f_args = [];
+                                    foreach($functionParams as $functionParam) {
+                                        $f_param = $functionParam->getName();
+                                        if(isset($body[$f_param])) {
+                                            $f_args[] = $body[$f_param];
+                                        }
+                                    }
+                                    $default_value = $default_value(...$f_args);
                                 }
                             }
                             elseif(is_string($default_value) && strpos($default_value, '::')) {
@@ -1002,7 +982,7 @@ namespace config {
                 $response->body(['announcement' => $announcement]);
 
                 // if user asked for the announcement or browser requested fingerprint, set status and header accordingly
-                if(isset($body['announce']) || $method == 'OPTIONS') {
+                if(isset($body['announce']) || $method === 'OPTIONS') {
                     $response->status(200)
                         // disable browser cache to refresh computed default values
                         ->header('Cache-Control', 'no-store, max-age=0')
@@ -1040,8 +1020,19 @@ namespace config {
                     if( (is_string($default_value) || is_object($default_value)) && is_callable($default_value)) {
                         // either a php function (or a function from the global scope) or a closure object
                         if(is_object($default_value)) {
-                            // default is a closure
-                            $default_value = $default_value();
+                            // $default_value is a closure: inject args from received params
+                            /** @var \ReflectionFunction */
+                            $function = new \ReflectionFunction($default_value);
+                            /** @var \ReflectionParameter[] */
+                            $functionParams = $function->getParameters();
+                            $f_args = [];
+                            foreach($functionParams as $functionParam) {
+                                $f_param = $functionParam->getName();
+                                if(isset($body[$f_param])) {
+                                    $f_args[] = $body[$f_param];
+                                }
+                            }
+                            $default_value = $default_value(...$f_args);
                         }
                     }
                     elseif(is_string($default_value) && strpos($default_value, '::')) {
@@ -1056,6 +1047,7 @@ namespace config {
                 }
                 if(!array_key_exists($param, $body)) {
                     // ignore optional params without default value (this allows PATCH of objects on specific fields only)
+                    // #memo - we must preserve the distinction between a parameter explicitly provided as null and a parameter that was not provided at all
                 }
                 else {
                     $f = new Field($config, $param);
@@ -1147,6 +1139,15 @@ namespace config {
             return $result;
         }
 
+        public static function constant($name) {
+            if(defined($name)) {
+                return constant($name);
+            }
+            if(\defined($name)) {
+                return \constant($name);
+            }
+            return null;
+        }
 
         /**
          * Execute a given operation.
@@ -1157,7 +1158,7 @@ namespace config {
          * @param string    $type           Type of operation to run ('do', 'get', 'show')
          * @param string    $operation      Path of the operation to run (e.g. 'core_model_collect')
          * @param array     $body           Payload to relay to the controller (associative array mapping params with their values).
-         * @param boolean   $root           Flag to run the operation as a first (root) call (following calls are stacked and their output is buffered).
+         * @param boolean   $root           Flag to run the operation using the first (root) context (following contexts are stacked and their output is buffered).
          *
          * @example run('get', 'model_read', ['entity' => 'core\Group', 'id'=> 1]);
          */
@@ -1210,6 +1211,19 @@ namespace config {
                     include($script);
                 }
                 catch(\Throwable $e) {
+                    // exceptions with code 0 are used as explicit process halt with no error
+                    if($e->getCode() != 0) {
+                        throw $e;
+                    }
+                }
+                return ob_get_clean();
+
+                // #todo - is this necessary ? the same is performed in run.php
+                // if a controller does not want to be interrupted when an exception arises, it can use a try/catch block
+                try {
+                    include($script);
+                }
+                catch(\Throwable $e) {
                     $error_code = $e->getCode();
                     if($e instanceof \Error) {
                         $error_code = QN_ERROR_UNKNOWN;
@@ -1226,12 +1240,12 @@ namespace config {
                         $response = $context->httpResponse();
                         // build response with error details
                         $response
-                        // set status and body according to raised exception
-                        ->status(qn_error_http($error_code))
-                        ->header('Content-Type', 'application/json')
-                        ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
-                        // send HTTP response
-                        ->send();
+                            // set status and body according to raised exception
+                            ->status(qn_error_http($error_code))
+                            ->header('Content-Type', 'application/json')
+                            ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
+                            // send HTTP response
+                            ->send();
                     }
                 }
                 return ob_get_clean();
@@ -1374,9 +1388,9 @@ namespace config {
          * @param   string    $class_name    in case the actual name of the class differs from the class file name (which may be the case when using namespaces)
          * @return  bool
          *
-         * @example load_class('equal\db\DBConnection');
+         * @example loadClass('equal\db\DBConnection');
          */
-        public static function load_class($class_name) {
+        public static function loadClass($class_name) {
             $result = false;
             if(class_exists($class_name, false) || isset($GLOBALS['eQual_loading_classes'][$class_name])) {
                 // class is already loaded or being loaded
@@ -1447,15 +1461,31 @@ namespace {
          * @return  mixed        Result of the call, according to the controller response.
          * @throws  Exception    In cas of error, an exception is raised relaying the error code and the message of the error.
          */
-        public static function run($type, $controller, $body=[], $root=false) {
+        public static function run($type, $controller, $body=[], $root=false, $raw=false) {
+
             $result = config\eQual::run($type, $controller, $body, $root);
-            // #todo - adapt values if controller has a response schema
-            $data = json_decode($result, true);
-            // if result is not JSON, return raw data
+
+            if($raw) {
+                return $result;
+            }
+
+            $announce = config\eQual::run($type, $controller, ['announce' => true], false);
+            $announcement = json_decode($announce, true);
+
+            if(!isset($announcement['announcement']['response']['content-type']) || $announcement['announcement']['response']['content-type'] !== 'application/json') {
+                return $result;
+            }
+
+            $data = @json_decode($result, true);
+
+            // invalid JSON: return raw response
             if(is_null($data)) {
                 return $result;
             }
-            if($data && isset($data['errors'])) {
+
+            // #memo - this shouldn't be necessary: if an Exception is raised in a controller this code is skipped anyway
+            /*
+            if(isset($data['errors'])) {
                 // raise an exception with first returned error code
                 foreach($data['errors'] as $name => $message) {
                     if(is_array($message)) {
@@ -1464,7 +1494,15 @@ namespace {
                     throw new \Exception($message, qn_error_code($name));
                 }
             }
+            */
+
+            // #todo - adapt values if controller has a response schema
+
             return $data;
+        }
+
+        public static function constant($name) {
+            return config\eQual::constant($name);
         }
 
         public static function announce(array $announcement) {

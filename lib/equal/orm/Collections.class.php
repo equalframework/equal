@@ -17,14 +17,16 @@ class Collections extends Service {
     protected function __construct(Container $container) {
     }
 
+    public static function constants() {
+        return ['SERVICE_ORM_COLLECTION_CLASS'];
+    }
+
     public function create($class) {
         // instantiate a new collection and give it access to available services through the container instance member
-        return new Collection($class,
-            $this->container->get('orm'),
-            $this->container->get('access'),
-            $this->container->get('auth'),
-            $this->container->get('adapt'),
-            $this->container->get('log')
+        $collectionClass = '\\'.constant('SERVICE_ORM_COLLECTION_CLASS');
+        return new $collectionClass (
+            $class,
+            $this->container
         );
     }
 }

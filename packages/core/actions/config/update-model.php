@@ -1,11 +1,13 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use PhpParser\{Node, NodeTraverser, NodeVisitorAbstract, ParserFactory, NodeFinder, NodeDumper, PrettyPrinter, BuilderFactory, Comment};
 use equal\orm\Model;
+use PhpParser\PhpVersion;
 
 list($params, $providers) = eQual::announce([
     'description'   => "Translate an entity definition to a PHP file and store it in related package dir.",
@@ -37,7 +39,7 @@ list($params, $providers) = eQual::announce([
 list($context, $orm) = [$providers['context'], $providers['orm']];
 
 // Create all the object to use for using PhpParser
-$parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+$parser = (new ParserFactory)->createForVersion(PhpVersion::getHostVersion());
 $nodeFinder = new NodeFinder;
 $traverser = new NodeTraverser;
 $prettyPrinter = new PhpParser\PrettyPrinter\Standard;
@@ -121,7 +123,6 @@ catch(Exception $e) {
 }
 
 $context->httpResponse()
-        ->body($result)
         ->send();
 
 /**

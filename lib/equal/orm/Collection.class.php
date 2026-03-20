@@ -1,52 +1,56 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
 
 class Collection implements \Iterator, \Countable {
 
+    /** @var \equal\services\Container */
+    private $container;
+
     /** @var \equal\orm\ObjectManager */
-    private $orm;
+    protected $orm;
 
     /** @var \equal\access\AccessController */
-    private $ac;
+    protected $ac;
 
     /** @var \equal\auth\AuthenticationManager */
-    private $am;
+    protected $am;
 
     /** @var \equal\data\adapt\DataAdapterProvider */
-    private $dap;
+    protected $dap;
 
     /** @var \equal\data\adapt\DataAdapter */
-    private $adapter;
+    protected $adapter;
 
     /** @var string */
-    private $lang;
+    protected $lang;
 
     /** @var \equal\log\Logger */
-    private $logger;
+    protected $logger;
 
     /**
      * Name of the class targeted by the Collection.
      * @var string
      */
-    private $class;
+    protected $class;
 
 
     /**
      * Instance of targeted class (used for retrieving fields and schema; inherits from Model class.
      * @var \equal\orm\Model
      */
-    private $model;
+    protected $model;
 
     /* map associating objects with their values with identifiers as keys */
-    private $objects;
+    protected $objects;
 
     /* pagination limit: size of a page when searching or loading sub-objects (default is 0, i.e. no limit) */
-    private $limit;
+    protected $limit;
 
     /**
      *
@@ -57,33 +61,32 @@ class Collection implements \Iterator, \Countable {
     /**
      * Collection constructor.
      * This is called through the Collections service, which retrieves the dependencies through its container.
-     * Collections service is a factory that creates Collection instances when requested
-     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`).
+     * Collections service is a factory that creates Collection instances when requested.
+     * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`)
      *
      * @var string                                  $class
-     * @var \equal\orm\ObjectManager                $objectManager
-     * @var \equal\access\AccessController          $accessController
-     * @var \equal\auth\AuthenticationManager       $authenticationManager
-     * @var \equal\data\adapt\DataAdapterProvider   $dataAdapterProvider
-     * @var \equal\log\Logger                       $logger
+     * @var \equal\service\Container                $container      Service container relayed from Collections service.
      */
-    public function __construct($class, $objectManager, $accessController, $authenticationManager, $dataAdapterProvider, $logger) {
+    public function __construct($class, $container) {
         // init objects map
         $this->objects = [];
 
         // assign private members
         $this->class = $class;
-        $this->orm = $objectManager;
-        $this->ac = $accessController;
-        $this->am = $authenticationManager;
-        $this->dap = $dataAdapterProvider;
+
+        $this->container = $container;
+
+        $this->orm = $this->container->get('orm');
+        $this->ac = $this->container->get('access');
+        $this->am = $this->container->get('auth');
+        $this->dap = $this->container->get('adapt');
+        $this->logger = $this->container->get('log');
+
         $this->adapter = null;
-        // $this->adapter = $dataAdapter;
 
         // default according to config
         $this->lang = constant('DEFAULT_LANG');
 
-        $this->logger = $logger;
         // check mandatory services
         if(!$this->orm || !$this->ac) {
             throw new \Exception(__CLASS__, EQ_ERROR_UNKNOWN);
@@ -198,7 +201,7 @@ class Collection implements \Iterator, \Countable {
             return null;
         }
         $object = reset($this->objects);
-        return ($to_array)?$this->_getRawObject($object, $to_array):$object;
+        return ($to_array) ? $this->_getRawObject($object, $to_array) : $object;
     }
 
     /**
@@ -315,23 +318,24 @@ class Collection implements \Iterator, \Countable {
             // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
             foreach($ids as $id) {
                 $this->objects[$id] = clone $this->model;
+                $this->objects[$id]['id'] = $id;
             }
         }
         return $this;
     }
 
     /**
-     * Filters a map of fields-values entries or an array of fields names by discarding:
-     *   special fields;
-     *   fields marked as readonly;
-     *   and fields unknown to the current class.
+     * Checks a given map of fields-values entries or an array of fields names, and filters out (discard):
+     *   - special fields;
+     *   - fields marked as readonly;
+     *   - fields unknown to the given class.
      *
      * @param   array   $fields         Associative array mapping field names with their values.
-     * @param   string  $operation      If set to true, readonly fields are discarded.
+     * @param   string  $operation      Targeted CRUD operation. If set to 'create', system fields are discarded.
      *
      * @return  array   Filtered array containing known fields names only.
      */
-    private function filter(array $fields, string $operation) {
+    private function sanitizeFields(array $fields, string $operation) {
         $result = [];
         if(count($fields)) {
             $schema = $this->model->getSchema();
@@ -345,7 +349,7 @@ class Collection implements \Iterator, \Countable {
             elseif($operation == 'update') {
                 // discard readonly fields
                 $readonly_fields = array_filter($allowed_fields, function ($field) use($schema) {
-                        return (isset($schema[$field]['readonly']))?($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed'):false;
+                        return (isset($schema[$field]['readonly'])) ? ($schema[$field]['readonly'] && $schema[$field]['type'] != 'computed') : false;
                     });
                 $allowed_fields = array_diff($allowed_fields, $readonly_fields);
                 // discard special fields (except `state`)
@@ -432,10 +436,15 @@ class Collection implements \Iterator, \Countable {
         // #memo - by default, we set start and limit arguments to 0 (to be ignored) because the final result set depends on User's permissions
         // (and therefore, in  most situation, start() and limit() are chained to the Collection for that purpose)
         $defaults = [
-            'sort'  => ['id' => 'asc'],
-            'limit' => 0,
-            'start' => 0
-        ];
+                'sort'  => ['id' => 'asc'],
+                'limit' => 0,
+                'start' => 0
+            ];
+
+        // check `$params` consistency
+        if(array_filter(array_keys($params), 'is_numeric')) {
+            throw new \Exception('invalid_search_params', EQ_ERROR_INVALID_PARAM);
+        }
 
         // retrieve current user id
         $user_id = $this->am->userId();
@@ -448,10 +457,13 @@ class Collection implements \Iterator, \Countable {
         // 1) sanitize and validate given domain
 
         if(!empty($domain)) {
-            $domain = Domain::normalize($domain);
             $schema = $this->model->getSchema();
             if(!Domain::validate($domain, $schema)) {
-                throw new \Exception(serialize(['invalid_domain' => Domain::toString($domain)]), EQ_ERROR_INVALID_PARAM);
+                trigger_error("ORM::received invalid domain in Collection for entity {$this->class}:" . Domain::toString($domain), EQ_REPORT_ERROR);
+                $domain = Domain::sanitize($domain, $schema);
+            }
+            else {
+                $domain = Domain::normalize($domain, $schema);
             }
         }
 
@@ -478,7 +490,7 @@ class Collection implements \Iterator, \Countable {
         }
         else {
             // if user is not granted for READ on full class (nor parent class), neither directly nor indirectly (groups)
-            if(!$this->ac->hasRight($user_id, EQ_R_READ, $this->class)) {
+            if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
                 // find the objects for which the user is explicitly granted for READ
                 $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
                 if($permissions_ids > 0 && count($permissions_ids)) {
@@ -493,7 +505,7 @@ class Collection implements \Iterator, \Countable {
         // 3) perform search
 
         // search according to resulting domain and specific params, if given
-        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang);
+        $ids = $this->orm->search($this->class, $domain, $params['sort'], $params['start'], $params['limit'], $lang ?? $this->lang);
 
         // $ids is an error code
         if($ids < 0) {
@@ -620,15 +632,24 @@ class Collection implements \Iterator, \Countable {
      */
     public function create(array $values=null, $lang=null) {
 
-        // 1) sanitize and retrieve necessary values
         $user_id = $this->am->userId();
+
+        // 1) sanitize and retrieve necessary values
+        if($values === null) {
+            $values = [];
+        }
+
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_creation_map', EQ_ERROR_INVALID_PARAM);
+            }
+        });
+
         // drop invalid fields
-        $values = $this->filter((array) $values, 'create');
+        $values = $this->sanitizeFields($values, 'create');
+
         // retrieve targeted fields names
-        $fields = array_map(function($value, $key) {
-                return is_numeric($key)?$value:$key;
-            },
-            $values, array_keys($values));
+        $fields = array_keys($values);
 
         // 2) check that current user has enough privilege to perform CREATE operation
         if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
@@ -636,15 +657,15 @@ class Collection implements \Iterator, \Countable {
         }
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $check_required = (isset($values['state']) && $values['state'] == 'draft')?false:true;
-
-        // 3) validate : check required fields accordingly
-        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
-        $this->validate($values, [], true, $check_required);
+        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
+
+        // 3) validate : check required fields accordingly
+        // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
+        $this->validate($values, [], true, !$is_draft);
 
         $cancreate = $this->call('cancreate', $values);
         if(!empty($cancreate)) {
@@ -652,7 +673,7 @@ class Collection implements \Iterator, \Countable {
         }
 
         // 4) create the new object
-        $id = $this->orm->create($this->class, $values, ($lang)?$lang:$this->lang);
+        $id = $this->orm->create($this->class, $values, ($lang) ? $lang : $this->lang);
         if($id <= 0) {
             throw new \Exception('creation_failed', EQ_ERROR_UNKNOWN);
         }
@@ -674,37 +695,64 @@ class Collection implements \Iterator, \Countable {
         }
 
         $method = new \ReflectionMethod($this->class, $method_name);
-        $params = $method->getParameters();
+        // make accessible, whatever the visibility
+        $method->setAccessible(true);
+        $methodParams = $method->getParameters();
 
         $args = [];
-        foreach($params as $param) {
-            $param_name = $param->getName();
-            if(in_array($param_name, ['om', 'orm'])) {
+        foreach($methodParams as $methodParam) {
+            $param = $methodParam->getName();
+            if(in_array($param, ['om', 'orm'])) {
                 $args[] = $this->orm;
             }
-            elseif(in_array($param_name, ['ids', 'oids'])) {
+            elseif(in_array($param, ['ids', 'oids'])) {
                 $args[] = $this->ids();
             }
-            elseif($param_name == 'values') {
+            elseif($param == 'values') {
                 $args[] = $values;
             }
-            elseif($param_name == 'lang') {
+            elseif($param == 'lang') {
                 $args[] = $this->lang;
             }
-            elseif($param_name == 'self') {
+            elseif($param == 'self') {
                 $args[] = $this;
+            }
+            elseif($param == 'access') {
+                $args[] = $this->ac;
+            }
+            elseif($param == 'auth') {
+                $args[] = $this->am;
+            }
+            elseif($param == 'adapt') {
+                $args[] = $this->dap;
+            }
+            elseif($param == 'log') {
+                $args[] = $this->logger;
+            }
+            elseif(in_array($param, [
+                    'report',
+                    'context',
+                    'validate',
+                    'route',
+                    'cron',
+                    'dispatch',
+                    'db'])) {
+                $args[] = $this->container->get($param);
             }
         }
 
         try {
-            $res = $this->class::$method_name(...$args);
+            if(!$method->isStatic()) {
+                throw new \Exception('non_static_method', EQ_ERROR_INVALID_PARAM);
+            }
+            $res = $method->invokeArgs(null, $args);
             if($res !== null) {
                 $result = $res;
             }
         }
         catch(\Exception $e) {
-            trigger_error("ORM::unexpected error when calling {$method_name} on {$this->class}", EQ_REPORT_ERROR);
-            throw new \Exception('method_call_failed', EQ_ERROR_UNKNOWN);
+            trigger_error("ORM::unexpected error when calling {$method_name} on {$this->class}: ".$e->getMessage(), EQ_REPORT_ERROR);
+            throw $e;
         }
 
         return $result;
@@ -724,8 +772,11 @@ class Collection implements \Iterator, \Countable {
             // retrieve current user id
             $user_id = $this->am->userId();
 
-            // force argument into an array (single field name is accepted; if empty array is given: load all fields)
-            $fields = (array) $fields;
+            if(!is_array($fields)) {
+                trigger_error("ORM::received non-array `\$fields` when reading `{$this->class}`: casting to array", EQ_REPORT_WARNING);
+                // force argument into an array (single field name is accepted; if empty array is given: load all fields)
+                $fields = (array) $fields;
+            }
 
             $schema = $this->model->getSchema();
 
@@ -764,8 +815,8 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted identifiers (remove null entries)
             $ids = $this->ids();
 
-			// 2) check that current user has enough privilege to perform READ operation
-			if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
+            // 2) check that current user has enough privilege to perform READ operation
+            if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
                 throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), EQ_ERROR_NOT_ALLOWED);
             }
 
@@ -776,7 +827,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             // 3) read values
-            $res = $this->orm->read($this->class, $ids, $requested_fields, ($lang) ? $lang : $this->lang);
+            $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
             // $res is an error code, something prevented to fetch requested fields
             if($res < 0) {
                 throw new \Exception($this->class.'::'.implode(',', $fields), $res);
@@ -808,8 +859,8 @@ class Collection implements \Iterator, \Countable {
                 }
             }
 
-            // 5) recursively load sub-fields, if any (load a batches of sub-objects grouped by field)
-            foreach($fields as $field => $subfields ) {
+            // 5) recursively load sub-fields, if any
+            foreach($fields as $field => $subfields) {
                 // discard direct fields
                 if(is_numeric($field)) {
                     continue;
@@ -827,27 +878,51 @@ class Collection implements \Iterator, \Countable {
                     continue;
                 }
 
-                $children_ids = [];
-                foreach($this->objects as $object) {
-                    foreach((array) $object[$field] as $oid) {
-                        $children_ids[] = $oid;
+                $subdomain = [];
+                $subparams = [];
+
+                if(isset($target['order'])) {
+                    $subparams['sort'] = [$target['order'] => (isset($target['sort'])) ? $target['sort'] : 'asc'];
+                }
+
+                foreach($subfields as $key => $val) {
+                    if($key === '@domain') {
+                        $subdomain = (array) $val;
+                        unset($subfields[$key]);
+                        continue;
+                    }
+                    if(in_array($key, ['@sort', '@limit', '@start'], true)) {
+                        $subparams[substr($key, 1)] = $val;
+                        unset($subfields[$key]);
+                        continue;
                     }
                 }
-                $children_fields = [];
-                foreach($subfields as $key => $val) {
-                    $children_fields[] = (!is_numeric($key)) ? $key : $val;
+
+                if(!count($subfields)) {
+                    if($target['result_type'] !== 'many2one') {
+                        foreach($this->objects as $id => $object) {
+                            $searchDomain = new Domain($subdomain);
+                            $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
+                            $this->objects[$id][$field] = $this->orm->search($target['foreign_object'], $searchDomain->toArray());
+                        }
+                    }
+                    continue;
                 }
-                // read all targeted children objects at once
-                $this->orm->read($target['foreign_object'], $children_ids, $children_fields, ($lang) ? $lang : $this->lang);
-                // assign retrieved values to the objects they relate to
+
+                // recursively load and assign retrieved values to the objects they relate to
                 foreach($this->objects as $id => $object) {
+                    $searchDomain = new Domain($subdomain);
+                    $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
+
                     /** @var Collection */
-                    $children = $target['foreign_object']::ids($this->objects[$id][$field])->read($subfields, ($lang) ? $lang : $this->lang);
-                    if($target['result_type'] == 'many2one') {
-                        // #memo - result might be either null or a Model object (which might contain sub-collections)
+                    $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
+
+                    if($target['result_type'] === 'many2one') {
+                        // many2one might be either null or a Model object (which might contain sub-collections)
                         $this->objects[$id][$field] = $children->first();
                     }
                     else {
+                        // one2many & many2many are Collection objects
                         $this->objects[$id][$field] = $children;
                     }
                 }
@@ -866,56 +941,85 @@ class Collection implements \Iterator, \Countable {
      * @throws  Exception   if some value could not be validated against class constraints (see {class}::getConstraints method)
      */
     public function update(array $values, $lang=null) {
-        if(count($this->objects)) {
-            // 1) sanitize and retrieve necessary values
-            $user_id = $this->am->userId();
-            // silently drop invalid fields
-            $values = $this->filter($values, 'update');
-            // retrieve targeted identifiers
-            $ids = $this->ids();
-            // retrieve targeted fields names
-            $fields = array_keys($values);
+        if(count($this->objects) <= 0)  {
+            return $this;
+        }
 
-            // by convention, update operation sets modifier as current user
-            $values['modifier'] = $user_id;
-            // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
-            if(!isset($values['state']) || $values['state'] == 'draft') {
-                $values['state'] = 'instance';
+        $user_id = $this->am->userId();
+
+        // 1) sanitize and retrieve necessary values
+        if($values === null) {
+            $values = [];
+        }
+
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_update_map', EQ_ERROR_INVALID_PARAM);
             }
+        });
 
-            // 2) check that current user has enough privilege to perform the operation
-            if(!$this->ac->isAllowed(EQ_R_WRITE, $this->class, $fields, $ids)) {
-                throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
-            }
+        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
-            // 3) validate : check unique keys and required fields
-            // if object is not yet an instance, check required fields (otherwise, partial update is allowed)
-            $check_required = (isset($values['state']) && $values['state'] == 'draft') ? true : false;
-            $this->validate($values, $ids, true, $check_required);
+        // silently drop invalid fields
+        $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
 
-            // check if fields (other than special columns) can be updated
-            $canupdate = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
-            if(!empty($canupdate)) {
-                throw new \Exception(serialize($canupdate), QN_ERROR_NOT_ALLOWED);
-            }
+        // retrieve targeted fields names
+        $fields = array_keys($values);
 
-            // 4) update objects
-            $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
-            if($res <= 0) {
-                trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
-                throw new \Exception('update_failed', $res);
-            }
+        // retrieve targeted identifiers
+        $ids = $this->ids();
 
-            foreach($ids as $oid) {
-                // log action (if enabled)
-                $this->logger->log($user_id, 'update', $this->class, $oid, $values);
-                // store updated objects in current collection
-                $this->objects[$oid]['id'] = $oid;
-                foreach($values as $field => $value) {
-                    $this->objects[$oid][$field] = $value;
-                }
+        // by convention, update operation sets modifier as current user
+        $values['modifier'] = $user_id;
+
+        // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
+        // #memo - moved to ObjectManager::update()
+        /*
+        if(!isset($values['state']) || $values['state'] == 'draft') {
+            $values['state'] = 'instance';
+        }
+        */
+
+        // 2) check that current user has enough privilege to perform the operation
+        if(!$this->ac->isAllowed(EQ_R_UPDATE, $this->class, $fields, $ids)) {
+            throw new \Exception($user_id.';UPDATE;'.$this->class.';['.implode(',', $fields).'];['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        // 3) validate : check unique keys and required fields
+        // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
+        $this->validate($values, $ids, true, $is_draft);
+
+        // #memo - moved back from ObjectManager::update() (see above)
+        // by convention, `update()` forces a 'draft' to an 'instance'
+        if($is_draft) {
+            $values['state'] = 'instance';
+            // #todo - here we must check that all required fields (scalar types) have been provided, either at create() or during update()
+            // this should probably rather be done in ORM + making a distinction between partial validation & full validation
+        }
+
+        // check if fields (other than special columns) can be updated
+        $can_update = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
+        if(!empty($can_update)) {
+            throw new \Exception(serialize($can_update), QN_ERROR_NOT_ALLOWED);
+        }
+
+        // 4) update objects
+        $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
+        if($res <= 0) {
+            trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
+            throw new \Exception('update_failed', $res);
+        }
+
+        foreach($ids as $oid) {
+            // log action (if enabled)
+            $this->logger->log($user_id, 'update', $this->class, $oid, $values);
+            // store updated objects in current collection
+            $this->objects[$oid]['id'] = $oid;
+            foreach($values as $field => $value) {
+                $this->objects[$oid][$field] = $value;
             }
         }
+
         return $this;
     }
 
@@ -971,14 +1075,19 @@ class Collection implements \Iterator, \Countable {
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function transition($transition) {
+        trigger_error("ORM::performing transition '{$transition}' on '{$this->class}'", EQ_REPORT_DEBUG);
         // retrieve targeted identifiers
-        $res = $this->orm->transition($this->class, $this->ids(), $transition);
-        if($res < 0) {
-            trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
-            throw new \Exception('transition_failed', $res);
-        }
-        elseif(count($res)) {
-            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+        $ids = $this->ids();
+        if(count($ids)) {
+            // attempt to perform transition
+            $can_transition = $this->orm->transition($this->class, $ids, $transition);
+            if($can_transition < 0) {
+                trigger_error("ORM::unexpected error for transition '{$transition}' on '{$this->class}' objects:".$this->orm->getLastError(), EQ_REPORT_WARNING);
+                throw new \Exception('transition_failed', $can_transition);
+            }
+            elseif(count($can_transition)) {
+                throw new \Exception(serialize($can_transition), EQ_ERROR_INVALID_PARAM);
+            }
         }
         return $this;
     }
@@ -990,34 +1099,95 @@ class Collection implements \Iterator, \Countable {
      * If there is no match or if there are some conditions on the transition that are not met, it returns an error code.
      *
      * @param   string      $action       Name of the requested action.
+     * @param   array       $values       Associative array mapping arbitrary keys with their values, that can be used to relay arguments.
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
-    public function do($action) {
-        // check if action can be performed
-        $user_id = $this->am->userId();
+    public function do($action, $values=[]) {
+        trigger_error("ORM::performing action '{$action}' on '{$this->class}'", EQ_REPORT_DEBUG);
+        // retrieve targeted identifiers
         $ids = $this->ids();
-        $res = $this->ac->canPerform($user_id, $action, $this->class, $ids);
-        if(count($res)) {
-            throw new \Exception(serialize($res), EQ_ERROR_NOT_ALLOWED);
+        if(count($ids)) {
+            // check if action can be performed
+            $res = $this->ac->canPerform($action, $this->class, $ids);
+
+            if(count($res)) {
+                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
+            }
+
+            // retrieve and perform action
+            $actions = $this->class::getActions();
+            if(isset($actions[$action]) && isset($actions[$action]['function'])) {
+                if(count($ids)) {
+                    $this->call($actions[$action]['function'], $values);
+                }
+            }
+            else {
+                trigger_error("ORM::unknown or missing function for action `$action` requested on `{$this->class}`", EQ_REPORT_WARNING);
+            }
+        }
+        return $this;
+    }
+
+
+    /**
+     * Asserts that the collection complies with one or several policies.
+     * Throws an exception if any policy is violated.
+     *
+     * @param string|array $policies
+     * @return Collection
+     * @throws \Exception
+     */
+    public function assert($policies) {
+        trigger_error("ORM::performing assert on '{$this->class}' for policies " . implode(',', (array) $policies), EQ_REPORT_DEBUG);
+
+        $ids = $this->ids();
+
+        // nothing to check
+        if(!count($ids)) {
+            return $this;
         }
 
-        $actions = $this->class::getActions();
+        // normalize to array
+        $policies = (array) $policies;
 
-        if(isset($actions[$action]) && isset($actions[$action]['function'])) {
-            if(count($ids)) {
-                $this->call($actions[$action]['function']);
+        // retrieve current user id
+        $user_id = $this->am->userId();
+
+        foreach($policies as $policy) {
+            // call AccessController check
+            $res = $this->ac->isCompliant($policy, $this->class, $ids, $user_id);
+
+            // throw Exception upon violation
+            if(count($res)) {
+                throw new \Exception(serialize($res), EQ_ERROR_INVALID_PARAM);
             }
         }
 
         return $this;
     }
 
+
     /**
-     * Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
-     * These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
-     * Collection::call() method which, in turn, invokes the class the Collection relates to.
-     * If the method is not defined in the child class, a new Collection is instantiated and the call is applied to it (hence their definition here).
+     * Apply a callback to each object of the collection.
+     * The callback receives the object id and the Model instance.
+     * This method does not alter the collection and allows chaining.
+     *
+     * @param callable $callback function(int $id, Model $object): void
+     * @return Collection
      */
+    public function each(callable $callback): Collection {
+        foreach($this->objects as $id => $object) {
+            $callback($id, $object);
+        }
+        return $this;
+    }
+
+    /*
+      Following methods are defined here to allow equal\orm\Model children classes having arbitrary parameters.
+      These methods are defined to prevent PHP strict errors & aot warnings, and are called through the
+      Collection::call() method which, in turn, invokes the class the Collection relates to.
+      If the method is not defined in the child class, a new Collection is instantiated and the call is applied to it (hence their definition here).
+    */
 
     /**
      * Check wether an object can be read by current user.
@@ -1093,7 +1263,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforeupdate(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforeupdate()`.
+     */
     public static function onupdate(...$params) {
+    }
+
+    /**
+     * Hook invoked after object update for performing object-specific additional operations.
+     * Previous values of the object are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterupdate(...$params) {
     }
 
     /**
@@ -1111,7 +1297,23 @@ class Collection implements \Iterator, \Countable {
      * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
      * @return void
      */
+    public static function onbeforedelete(...$params) {
+    }
+
+    /**
+     * Alias of `onbeforedelete()`.
+     */
     public static function ondelete(...$params) {
+    }
+
+    /**
+     * Hook invoked after object deletion for performing object-specific additional operations.
+     * The deleted objects are no longer available.
+     *
+     * Accepts variable list of arguments, based on their names (@see \equal\orm\Model class for list of available).
+     * @return void
+     */
+    public static function onafterdelete(...$params) {
     }
 
     /**

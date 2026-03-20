@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core\setting;
@@ -25,9 +26,10 @@ class SettingSequence extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Code to serve as reference (might not be unique).",
-                'function'          => 'calcName',
+                'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
-                'readonly'          => true
+                'readonly'          => true,
+                'instant'           => true
             ],
 
             'setting_id' => [
@@ -35,7 +37,15 @@ class SettingSequence extends Model {
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the sequence relates to.',
                 'ondelete'          => 'cascade',
-                'required'          => true
+                'required'          => true,
+                'dependents'        => ['name']
+            ],
+
+            'user_id' => [
+                'type'              => 'many2one',
+                'foreign_object'    => 'core\User',
+                'description'       => 'User the setting is specific to (optional).',
+                'ondelete'          => 'cascade'
             ],
 
             'value' => [
@@ -48,18 +58,9 @@ class SettingSequence extends Model {
         ];
     }
 
-    public static function calcName($self) {
-        $result = [];
-        $self->read(['setting_id' => ['name']]);
-        foreach($self as $id => $sequence) {
-            $result[$id] = $sequence['setting_id']['name'];
-        }
-        return $result;
-    }
-
     public function getUnique() {
         return [
-            ['setting_id']
+            ['setting_id', 'user_id']
         ];
     }
 }

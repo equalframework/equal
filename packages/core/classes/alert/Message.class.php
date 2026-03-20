@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core\alert;
@@ -14,6 +15,7 @@ class Message extends Model {
         return [
             'object_class' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:128',
                 'description'       => "Class of entity targeted by the notification."
             ],
 

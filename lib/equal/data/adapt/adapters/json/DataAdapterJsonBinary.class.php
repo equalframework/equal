@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <https://github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\data\adapt\adapters\json;
@@ -50,24 +51,32 @@ class DataAdapterJsonBinary implements DataAdapter {
                 // extract the base64 part @see RFC2397 (data:[<mediatype>][;base64],<data>)
                 $value = str_replace(' ', '+', substr($value, strpos($value, ',')+1));
             }
+            $value = trim($value);
+            if(empty($value)) {
+                return null;
+            }
             $result = base64_decode($value, true);
-            if(!$result) {
-                throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), QN_ERROR_INVALID_PARAM);
+            if($result === false) {
+                $result = null;
+                trigger_error("ORM::binary data holding invalid base64 characters.", EQ_REPORT_ERROR);
+                // #memo - this method should not interrupt the process
+                // throw new \Exception(serialize(["not_valid_base64" => "Invalid base64 data URI value."]), EQ_ERROR_INVALID_PARAM);
             }
             if(strlen($result) > constant('UPLOAD_MAX_FILE_SIZE')) {
-                throw new \Exception("file_exceeds_maximum_size", QN_ERROR_INVALID_PARAM);
+                // #memo - this is checked in ObjectManager::validate, using UsageBinary::getConstraints
+                trigger_error("ORM::binary data exceeding maximum allowed size.", EQ_REPORT_ERROR);
+                // throw new \Exception("file_exceeds_maximum_size", EQ_ERROR_INVALID_PARAM);
             }
         }
         else {
             // #todo - this should be done with PHP context extraction
             if(!isset($value['tmp_name'])) {
-                // throw new \Exception("binary data has not been received or cannot be retrieved", QN_ERROR_UNKNOWN);
-                trigger_error("ORM::binary data has not been received or cannot be retrieved", QN_REPORT_WARNING);
-                $result = '';
+                // throw new \Exception("binary data has not been received or cannot be retrieved", EQ_ERROR_UNKNOWN);
+                trigger_error("ORM::binary data has not been received or cannot be retrieved", EQ_REPORT_WARNING);
             }
             else {
                 if(isset($value['error']) && $value['error'] == 2 || isset($value['size']) && $value['size'] > constant('UPLOAD_MAX_FILE_SIZE')) {
-                    throw new \Exception("file_exceeds_maximum_size", QN_ERROR_INVALID_PARAM);
+                    throw new \Exception("file_exceeds_maximum_size", EQ_ERROR_INVALID_PARAM);
                 }
                 $result = file_get_contents($value['tmp_name']);
             }

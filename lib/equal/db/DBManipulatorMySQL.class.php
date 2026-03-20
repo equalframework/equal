@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\db;
@@ -191,6 +192,18 @@ final class DBManipulatorMySQL extends DBManipulator {
 
     public function getQueryAddIndex($table_name, $column) {
         return "ALTER TABLE `{$table_name}` ADD INDEX(`".$column."`);";
+    }
+
+    public function getQueryAddCompositeIndex($table_name, $columns) {
+        $index_name = $this->getCompositeIndexName($columns);
+        $cols = array_map(fn($c) => "`{$c}`", $columns);
+        $cols_sql = implode(',', $cols);
+        return "ALTER TABLE `{$table_name}` ADD INDEX `{$index_name}` ({$cols_sql});";
+    }
+
+    public function getQueryDropCompositeIndex($table_name, $columns) {
+        $index_name = 'idx_' . implode('_', $columns ?? []);
+        return "ALTER TABLE `{$table_name}` DROP INDEX `{$index_name}`;";
     }
 
     public function getQueryAddUniqueConstraint($table_name, $columns) {

@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -53,6 +54,8 @@ class DataGenerator {
                 return self::addressCountry($lang);
             case 'address':
                 return self::address($lang);
+            case 'uuid':
+                return self::uuid();
         }
 
         switch($field_descriptor['type']) {
@@ -881,5 +884,17 @@ class DataGenerator {
             self::addressCity($lang),
             self::addressCountry($lang)
         );
+    }
+
+    /**
+     * Generate a random UUID (version 4).
+     */
+    public static function uuid(): string {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        $uuid = vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+
+        return $uuid;
     }
 }

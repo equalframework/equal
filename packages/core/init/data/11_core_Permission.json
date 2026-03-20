@@ -1,0 +1,29 @@
+[
+    {
+        "name": "core\\Permission",
+        "lang": "en",
+		"description": "Grant READ permission on common objects (`core` package).",
+        "data": [
+            {
+                "class_name": "core\\*",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },
+            {
+                "class_name": "core\\Permission",
+                "description": "Explicit right for reading Permission objects (mandatory).",
+                "group_id": 2,
+                "user_id": null,
+                "rights": 2
+            },
+            {
+                "class_name": "core\\Permission",
+                "description": "Grant all permission management rights to Admins.",
+                "group_id": 1,
+                "user_id": null,
+                "rights": 31
+            }
+        ]
+    }
+]

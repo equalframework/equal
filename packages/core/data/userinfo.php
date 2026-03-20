@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use core\User;
@@ -53,15 +54,14 @@ if(!$user['validated']) {
 $user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $user['groups_ids']));
 
 // renew JWT access token
-$access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$access_token  = $auth->renewedToken(constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
 // send back basic info of the User object
 $context->httpResponse()
     ->cookie('access_token',  $access_token, [
         'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         'httponly'  => true,
-        'secure'    => constant('AUTH_TOKEN_HTTPS'),
-        'domain'    => parse_url(constant('BACKEND_URL'), PHP_URL_HOST)
+        'secure'    => constant('AUTH_TOKEN_HTTPS')
     ])
     ->body($user)
     ->send();

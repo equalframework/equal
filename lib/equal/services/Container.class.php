@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\services;
@@ -42,6 +43,11 @@ class Container extends Service {
         return $this;
     }
 
+    /**
+     * Resolves a registered name with its target class.
+     *
+     * @return string   The FQCN of the target class.
+     */
     private function resolve($name) {
         if(in_array($name, array_keys($this->register))) {
             $name = $this->register[$name];
@@ -115,7 +121,7 @@ class Container extends Service {
                 if(!count($unresolved_dependencies)) {
                     $instance = call_user_func_array($dependency.'::getInstance', $dependencies_instances);
                     // make container available to all services instances
-                    $instance->container = $this;
+                    $instance->setContainer($this);
                 }
             }
         }
@@ -163,7 +169,7 @@ class Container extends Service {
         }
         // if argument was a single name, return a single instance
         if(count($names) == 1) {
-            $instances = (count($instances))?$instances[0]:false;
+            $instances = (count($instances)) ? $instances[0] : false;
         }
         elseif(count($names) != count($instances)) {
             $instances = false;

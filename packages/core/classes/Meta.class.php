@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
@@ -27,13 +28,13 @@ class Meta extends Model {
             'code' => [
                 'type'              => 'string',
                 'description'       => 'Identifier of the meta (arbitrary: \'workflow\', \'uml\', \'pipeline\', ...).',
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'reference' => [
                 'type'              => 'string',
                 'description'       => 'Custom reference (arbitrary: object_class, object_class.object_id, UML name, ...).',
-                'dependencies'      => ['name']
+                'dependents'        => ['name']
             ],
 
             'value' => [
@@ -49,7 +50,7 @@ class Meta extends Model {
         $result = [];
         $self->read(['code', 'reference']);
         foreach($self as $id => $meta) {
-            $result[$id] = $meta['code'].'.'.$meta['reference'];
+            $result[$id] = $meta['code'] . '.' . $meta['reference'];
         }
         return $result;
     }

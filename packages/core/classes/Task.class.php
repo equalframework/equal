@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
@@ -32,7 +33,7 @@ class Task extends Model {
                     'running'
                 ],
                 'default'           => 'idle',
-                'description'       => 'current status of the processing (to avoid concurrent executions).'
+                'description'       => 'Current status of the processing (to avoid concurrent executions).'
             ],
 
             'pid' => [

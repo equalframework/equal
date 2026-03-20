@@ -1,13 +1,13 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use equal\orm\Field;
 use equal\orm\Collections;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Transform an object being edited in a view, according to the onchange method of the entity, if any.",
     'response'      => [
         'content-type'  => 'application/json',
@@ -19,6 +19,11 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Full name (including namespace) of the class to return (e.g. \'core\\User\').',
             'type'          => 'string',
             'required'      => true
+        ],
+        'view_id' =>  [
+            'description'   => 'The identifier of the view <type.name>.',
+            'type'          => 'string',
+            'default'       => 'form.default'
         ],
         'changes' =>  [
             'description'   => 'Associative array holding the fields whose values have been changed, with their related values.',
@@ -91,8 +96,11 @@ if(method_exists($params['entity'], 'onchange')) {
     foreach($changes as $field => $value) {
         try {
             $f = $model->getField($field);
-            // adapt received values based on their type (as defined in schema)
-            $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
+            // #memo - for binary fields meta data are relayed instead of binary data
+            if($f->getDescriptor()['result_type'] !== 'binary') {
+                // adapt received values based on their type (as defined in schema)
+                $changes[$field] = $adapter->adaptIn($value, $f->getUsage());
+            }
         }
         catch(Exception $e) {
             $msg = $e->getMessage();
@@ -127,6 +135,9 @@ if(method_exists($params['entity'], 'onchange')) {
         elseif($param_name == 'lang') {
             $args[] = $params['lang'];
         }
+        elseif($param_name == 'view') {
+            $args[] = $params['view_id'];
+        }
         elseif($param_name == 'self') {
             // #todo - should we add object id to the params ?
             $factory = Collections::getInstance();
@@ -155,6 +166,10 @@ if(method_exists($params['entity'], 'onchange')) {
         }
         else {
             $f = $model->getField($field);
+            if(!$f) {
+                trigger_error('APP::invalid field '.$field, EQ_REPORT_WARNING);
+                continue;
+            }
             // adapt received values based on their type (as defined in schema)
             $result[$field] = $adapter->adaptOut($value, $f->getUsage());
         }

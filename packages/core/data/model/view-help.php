@@ -1,10 +1,11 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Returns the MD formatted help relating to a given entity (class model), given a view ID (<type.name>).",
     'params'        => [
         'entity' =>  [
@@ -41,48 +42,58 @@ list($params, $providers) = eQual::announce([
 // fallback to empty string
 $result = '';
 
-try {
-    // #todo - handle "controller" entities
-    $entity = $params['entity'];
+[$view_type, $view_name] = explode('.', $params['view_id']);
 
-    $model = $orm->getModel($entity);
+$entity = str_replace('_', '\\', $params['entity']);
 
-    if(!$model) {
-        throw new Exception("unknown_entity", QN_ERROR_UNKNOWN_OBJECT);
+$file = null;
+
+// retrieve existing view meant for entity or it
+while(true) {
+    $parts = explode('\\', $entity);
+    $package = array_shift($parts);
+    $filename = array_pop($parts);
+    $class_path = implode('/', $parts);
+
+    $files = [
+        EQ_BASEDIR . "/packages/{$package}/i18n/{$params['lang']}/{$class_path}/{$filename}.{$view_type}.{$view_name}.md"
+    ];
+    if(strpos($params['lang'], '_') !== false) {
+        // fallback on language only
+        $language = explode('_', $params['lang'])[0];
+        $files[] = EQ_BASEDIR . "/packages/{$package}/i18n/{$language}/{$class_path}/{$filename}.{$view_type}.{$view_name}.md";
+    }
+    $files[] = EQ_BASEDIR . "/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.{$view_name}.md";
+
+    foreach($files as $f) {
+        if(file_exists($f)) {
+            $file = $f;
+            break 2;
+        }
     }
 
-    // retrieve existing view meant for entity or it
-    while(true) {
-        $parts = explode('\\', $entity);
-        $package = array_shift($parts);
-        $class_path = implode('/', $parts);
-        $parent = get_parent_class($entity);
-
-        $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_path}.{$params['view_id']}.md";
-        if(!file_exists($file)) {
-            $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}.{$params['view_id']}.md";
-        }
-
-        if(file_exists($file)) {
+    // go one level up through parents
+    try {
+        if(ctype_lower(substr($filename, 0, 1))) {
+            // support for controller entities
             break;
         }
-
+        $parent = get_parent_class($orm->getModel($entity));
         if(!$parent || $parent == 'equal\orm\Model') {
             break;
         }
         $entity = $parent;
     }
-
-    if(file_exists($file)) {
-        if( ($result = @file_get_contents($file)) === null) {
-            throw new Exception("unable_to_read_file", QN_ERROR_INVALID_CONFIG);
-        }
+    catch(Throwable $e) {
+        // unexpected error (unknown class)
+        break;
     }
-
 }
-catch(Exception $e) {
-    // #memo - unless an unexpected I/O error, this script should always returns a value
-    // throw new Exception("unknown_view_id", QN_ERROR_UNKNOWN_OBJECT);
+
+if(!is_null($file) && file_exists($file)) {
+    if(($result = @file_get_contents($file)) === null) {
+        throw new Exception("unable_to_read_file", EQ_ERROR_INVALID_CONFIG);
+    }
 }
 
 $context->httpResponse()

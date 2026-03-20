@@ -69,7 +69,10 @@
                                             {
                                                 "type": "field",
                                                 "value": "body",
-                                                "width": "100%"
+                                                "width": "100%",
+                                                "widget": {
+                                                    "height": "400"
+                                                }
                                             }
                                         ]
                                     },
@@ -89,7 +92,10 @@
                                             {
                                                 "type": "field",
                                                 "value": "attachments",
-                                                "width": "100%"
+                                                "width": "100%",
+                                                "widget": {
+                                                    "height": "400"
+                                                }
                                             }
                                         ]
                                     }

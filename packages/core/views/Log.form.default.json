@@ -1,68 +1,90 @@
 {
     "name": "Log entry",
     "description": "Simple form for displaying a log entry",
+    "header": {
+        "actions": {
+            "ACTION.EDIT": false
+        }
+    },
     "layout": {
         "groups": [
             {
-                "sections": [                    
+                "sections": [
                     {
                         "rows": [
                             {
                                 "columns": [
                                     {
-                                        "width": "50%",
+                                        "width": "33%",
                                         "align": "left",
                                         "items": [
                                             {
                                                 "type": "field",
-                                                "value": "id",
-                                                "width": "50%",
-                                                "label": "Log ID",
-                                                "readonly": true
+                                                "value": "created",
+                                                "width": "66%"
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "created",
-                                                "width": "50%"
-                                            },
+                                                "value": "user_id",
+                                                "width": "66%",
+                                                "label": "User",
+                                                "help": "User who performed the operation."
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "width": "33%",
+                                        "items": []
+                                    },
+                                    {
+                                        "width": "33%",
+                                        "align": "left",
+                                        "items": [
                                             {
                                                 "type": "field",
                                                 "value": "object_class",
-                                                "width": "50%",
+                                                "width": "100%",
                                                 "label": "Entity",
                                                 "help": "Entity on which the operation was performed."
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "object_id",
-                                                "width": "50%",
+                                                "width": "33%",
                                                 "label": "Identifier",
                                                 "help": "ID of the object on which the operation was performed."
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "width": "50%",
-                                        "align": "left",
-                                        "items": [
-                                            {
-                                                "type": "field",
-                                                "value": "user_id",
-                                                "width": "100%",
-                                                "label": "User",
-                                                "help": "User who performed the operation."
                                             },
                                             {
                                                 "type": "field",
                                                 "value": "action",
-                                                "width": "100%"
+                                                "width": "66%"
                                             }
                                         ]
-                                    }                                    
+                                    }
+                                ]
+                            },
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "history",
+                                                "width": "100%",
+                                                "label": "Log ID",
+                                                "readonly": true,
+                                                "widget": {
+                                                    "height": 400
+                                                }
+                                            }
+                                        ]
+                                    }
                                 ]
                             }
                         ]
-                    }            
+                    }
                 ]
             }
         ]

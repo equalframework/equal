@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
@@ -95,34 +96,34 @@ $updateNode = function (&$layout, $id, $node) {
                 $target = &$layout['groups'][$group_index];
                 break;
             }
-            $target_parent = &$layout['groups'][$group_index]['sections'];
             foreach($group['sections'] as $section_index => $section) {
                 if(isset($section['id']) && $section['id'] == $id) {
                     $target = &$layout['groups'][$group_index]['sections'][$section_index];
+                    $target_parent = &$layout['groups'][$group_index]['sections'];
                     $target_type = 'section';
                     $index = $section_index;
                     break 2;
                 }
-                $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'];
                 foreach($section['rows'] as $row_index => $row) {
                     if(isset($row['id']) && $row['id'] == $id) {
                         $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index];
+                        $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'];
                         $target_type = 'row';
                         $index = $row_index;
                         break 3;
                     }
-                    $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'];
                     foreach($row['columns'] as $column_index => $column) {
                         if(isset($column['id']) && $column['id'] == $id) {
                             $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index];
+                            $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'];
                             $target_type = 'column';
                             $index = $column_index;
                             break 4;
                         }
-                        $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'];
                         foreach($column['items'] as $item_index => $item) {
                             if(isset($item['id']) && $item['id'] == $id) {
                                 $target = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'][$item_index];
+                                $target_parent = &$layout['groups'][$group_index]['sections'][$section_index]['rows'][$row_index]['columns'][$column_index]['items'];
                                 $target_type = 'item';
                                 $index = $item_index;
                                 break 5;
@@ -185,11 +186,13 @@ $updateNode = function (&$layout, $id, $node) {
 
 $entity = $params['entity'];
 
-list($view_type, $view_name) = explode('.', $params['view_id']);
+[$view_type, $view_name] = explode('.', $params['view_id']);
 
 if(!in_array($view_type, ['form', 'list', 'chart', 'search', 'report', 'cards', 'dashboard'])) {
     throw new Exception('invalid_view_type', EQ_ERROR_INVALID_PARAM);
 }
+
+$entity = str_replace('_', '\\', $params['entity']);
 
 // pass-1 : retrieve existing view meant for entity (recurse through parents)
 while(true) {
@@ -198,27 +201,31 @@ while(true) {
     $filename = array_pop($parts);
     $class_path = implode('/', $parts);
 
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.{$view_name}.json";
+    $file = EQ_BASEDIR . "/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.{$view_name}.json";
     if(file_exists($file)) {
         break;
     }
 
     // fallback to default variant of the view
-    $file = QN_BASEDIR."/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.default.json";
+    $file = EQ_BASEDIR . "/packages/{$package}/views/{$class_path}/{$filename}.{$view_type}.default.json";
     if(file_exists($file)) {
         break;
     }
 
     // go one level up through parents
     try {
+        if(ctype_lower(substr($filename, 0, 1))) {
+            // support for controller entities
+            break;
+        }
         $parent = get_parent_class($orm->getModel($entity));
         if(!$parent || $parent == 'equal\orm\Model') {
             break;
         }
         $entity = $parent;
     }
-    catch(Exception $e) {
-        // support for controller entities
+    catch(Throwable $e) {
+        // unexpected error (unknown class)
         break;
     }
 }

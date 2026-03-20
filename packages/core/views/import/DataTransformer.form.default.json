@@ -60,31 +60,21 @@
                                                 "type": "field",
                                                 "value": "field_contains_value",
                                                 "width": "25%"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "visible": ["transformer_type", "=", "map-value"],
-                "sections": [
-                    {
-                        "id": "section.map-values",
-                        "label": "Map values",
-                        "rows": [
-                            {
-                                "columns": [
-                                    {
-                                        "width": "100%",
-                                        "items": [
+                                            },
                                             {
                                                 "type": "field",
-                                                "value": "map_values_ids",
-                                                "width": "100%"
+                                                "value": "replace_search_value",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "replace_replace_value",
+                                                "width": "25%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "phone_prefix",
+                                                "width": "25%"
                                             }
                                         ]
                                     }

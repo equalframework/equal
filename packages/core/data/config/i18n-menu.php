@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
@@ -39,11 +40,34 @@ list($context) = [ $providers['context'] ];
 
 $result = [];
 
-$file = QN_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu.{$params['menu_id']}.json";
+$files = [];
+$parts = explode('.', $params['menu_id']);
 
-// #memo - to prevent untimely log entries, this script always return a non-404 error
-if(file_exists($file) && ($schema = json_decode(@file_get_contents($file), true)) !== null) {
-    $result = $schema;
+while(!empty($parts)) {
+    $files[] = EQ_BASEDIR."/packages/{$params['package']}/i18n/{$params['lang']}/menu." . implode('.', $parts) . '.json';
+    if(strpos($params['lang'], '_') !== false) {
+        $language = explode('_', $params['lang'])[0];
+        $files[] = EQ_BASEDIR."/packages/{$params['package']}/i18n/{$language}/menu." . implode('.', $parts) . '.json';
+    }
+    array_pop($parts);
+}
+
+foreach($files as $file) {
+    if(!file_exists($file)) {
+        continue;
+    }
+
+    // #memo - to prevent untimely log entries, this script always return a non-404 error
+    if(($schema = json_decode(@file_get_contents($file), true)) === null) {
+        continue;
+    }
+
+    if(empty($result)) {
+        $result = $schema;
+    }
+    else {
+        $result = array_replace_recursive($result, $schema);
+    }
 }
 
 $context->httpResponse()

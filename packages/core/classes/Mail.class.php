@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core;
@@ -20,17 +21,6 @@ class Mail extends Model {
             'name' => [
                 'type'              => 'alias',
                 'alias'             => 'subject'
-            ],
-
-            'status' => [
-                'type'              => 'string',
-                'selection'         => [
-                    'pending',
-                    'failing',
-                    'sent'
-                ],
-                'default'           => 'pending',
-                'description'       => 'Sending status of the mail.'
             ],
 
             'to' => [
@@ -97,8 +87,18 @@ class Mail extends Model {
                 'default'           => '',
                 'visible'           => ['status', '<>', 'pending'],
                 'generation'        => 'generateResponse'
-            ]
+            ],
 
+            'status' => [
+                'type'              => 'string',
+                'selection'         => [
+                    'pending',
+                    'failing',
+                    'sent'
+                ],
+                'default'           => 'pending',
+                'description'       => 'Sending status of the mail.'
+            ]
         ];
     }
 
@@ -144,6 +144,15 @@ class Mail extends Model {
     public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
         $mail = self::createMail($email, $object_class, $object_id);
 
+        // ensure attachments contain binary data (createMail uses base64 for JSON safety)
+        if(isset($mail['attachments']) && count($mail['attachments'])) {
+            foreach($mail['attachments'] as &$attachment) {
+                if(isset($attachment['data'])) {
+                    $attachment['data'] = base64_decode($attachment['data']);
+                }
+            }
+        }
+
         try {
             // get SMTP mailer
             $mailer = self::provideMailer();
@@ -170,6 +179,38 @@ class Mail extends Model {
         }
 
         return $mail['id'];
+    }
+
+    /**
+     * Send an Email directly through SMTP without creating any ORM/DB object.
+     */
+    public static function sendRaw(Email $email, $options=[]): int {
+        try {
+            // Build a "message" array compatible with createEnvelope()
+            // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
+            $message = $email->toArray();
+
+            $mailer = self::provideMailer($options);
+            if(!$mailer) {
+                throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
+            }
+
+            $envelope = self::createEnvelope($message, $options);
+            if(!$envelope) {
+                throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
+            }
+
+            $sent = $mailer->send($envelope);
+
+            if($sent <= 0) {
+                throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
+            }
+        }
+        catch(\Exception $e) {
+            trigger_error("PHP::Mail::sendRaw() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
+            throw new \Exception($e->getMessage(), EQ_ERROR_UNKNOWN);
+        }
+        return $sent;
     }
 
     public static function isQueued(int $id): bool {
@@ -340,7 +381,7 @@ class Mail extends Model {
         return $email->setId($mail['id'])->toArray();
     }
 
-    private static function createEnvelope($message): \Swift_Message {
+    private static function createEnvelope($message, $options=[]): \Swift_Message {
         $envelope = null;
 
         try {
@@ -350,18 +391,24 @@ class Mail extends Model {
             }
             require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
 
-            $body = (isset($message['body']))?$message['body']:'';
-            $subject = (isset($message['subject']))?$message['subject']:'';
+            $body = (isset($message['body'])) ? $message['body'] : '';
+            $subject = (isset($message['subject'])) ? $message['subject'] : '';
 
             if(!isset($message['to']) || strlen($message['to']) <= 0) {
                 throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
+            }
+
+            $from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
+
+            if(isset($options['from'], $options['username']) && $options['from'] === $options['username']) {
+                $from = $options['from'];
             }
 
             $envelope = new \Swift_Message();
             // set sender and recipients
             $envelope
                 ->setTo($message['to'])
-                ->setFrom([constant('EMAIL_SMTP_ACCOUNT_EMAIL') => constant('EMAIL_SMTP_ACCOUNT_DISPLAYNAME')]);
+                ->setFrom([$from => $from]);
 
             if(isset($message['cc'])) {
                 if( (is_array($message['cc']) && count($message['cc']) > 0)
@@ -427,8 +474,29 @@ class Mail extends Model {
         return $envelope;
     }
 
-    private static function provideMailer() {
+    private static function provideMailer($options=[]) {
         $mailer = null;
+
+        $smtp_host = constant('EMAIL_SMTP_HOST');
+        $smtp_port = constant('EMAIL_SMTP_PORT');
+        $smtp_username = constant('EMAIL_SMTP_ACCOUNT_USERNAME');
+        $smtp_password = constant('EMAIL_SMTP_ACCOUNT_PASSWORD');
+
+        if(isset($options['host'])) {
+            $smtp_host = $options['host'];
+        }
+
+        if(isset($options['port'])) {
+            $smtp_port = $options['port'];
+        }
+
+        if(isset($options['username'])) {
+            $smtp_username = $options['username'];
+        }
+
+        if(isset($options['password'])) {
+            $smtp_password = $options['password'];
+        }
 
         try {
             // load dependencies
@@ -439,20 +507,22 @@ class Mail extends Model {
 
             // setup SMTP settings
             $transport = new \Swift_SmtpTransport(
-                constant('EMAIL_SMTP_HOST'),
-                constant('EMAIL_SMTP_PORT'),
-                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl']))?constant('EMAIL_SMTP_ENCRYPT'):null
+                $smtp_host,
+                $smtp_port,
+                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) ? constant('EMAIL_SMTP_ENCRYPT') : null
             );
 
             $transport
-                ->setUsername(constant('EMAIL_SMTP_ACCOUNT_USERNAME'))
-                ->setPassword(constant('EMAIL_SMTP_ACCOUNT_PASSWORD'));
+                ->setUsername($smtp_username)
+                ->setPassword($smtp_password);
 
             if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
                 $transport->setStreamOptions([
                     'ssl' => [
                         'allow_self_signed'     => true,
-                        'verify_peer'           => false
+                        'verify_peer'           => false,
+                        /* #memo don't use in prod to avoid MITM exploits */
+                        /*'verify_peer_name'    => false */
                     ]
                 ]);
             }

@@ -6,8 +6,6 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
-use equal\fs\FSManipulator as FS;
-use equal\orm\Field;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -38,8 +36,8 @@ list($params, $providers) = eQual::announce([
         ],
         'import' => [
             'description'   => 'Request importing initial data.',
-            'type'          => 'boolean',
-            'default'       => true
+            'help'          => 'No default is set in announcement since default value depends on previous initialization and `force` param.',
+            'type'          => 'boolean'
         ],
         'import_cascade' => [
             'description'   => 'Import initial data for dependencies as well.',
@@ -61,6 +59,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'boolean',
             'default'       => true
         ],
+        'ignore_platform' => [
+            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'type'        => 'boolean',
+            'default'     => false
+        ],
         'root' => [
             'description'   => 'Mark the script as top-level or as a sub-call (for recursion).',
             'type'          => 'boolean',
@@ -72,8 +75,7 @@ list($params, $providers) = eQual::announce([
     'access'        => [
         'visibility'    => 'protected',
         'groups'        => ['admins']
-
-    ],
+    ]
 ]);
 
 /**
@@ -113,21 +115,26 @@ $importDataFromFolderJsonFiles = function($data_folder) {
  * Action
  */
 
-$skip_package = false;
-
-if(file_exists("log/packages.json")) {
-    $json = file_get_contents("log/packages.json");
+// Check whether the package has already been initialized before
+$is_package_initialized = false;
+if(file_exists(EQ_BASEDIR."/log/packages.json")) {
+    $json = file_get_contents(EQ_BASEDIR."/log/packages.json");
     $packages = json_decode($json, true);
-    if(isset($packages[$params['package']]) && !$params['force']) {
-        $skip_package = true;
-    }
+    $is_package_initialized = isset($packages[$params['package']]);
 }
 
-if($skip_package) {
+// If the `import` parameter is not explicitly set, determine its default value based on context:
+// - If the package has never been initialized, default to importing data (`import = true`).
+// - If the package was already initialized and `force` is true, default to not importing data (`import = false`) to avoid unnecessarily reimporting initial data.
+if (!isset($params['import'])) {
+    $params['import'] = !$is_package_initialized || !$params['force'];
+}
+
+if($is_package_initialized && !$params['force']) {
     if($params['root']) {
         throw new Exception('package_already_initialized', EQ_ERROR_CONFLICT_OBJECT);
     }
-    // silently ignore package when dependency of another
+    // silently ignore package when being a dependency of another
 }
 else {
     // make sure DB is available
@@ -160,8 +167,8 @@ else {
 
     // retrieve manifest of target package, if any
     $package_manifest = [];
-    if(file_exists("packages/{$params['package']}/manifest.json")) {
-        $package_manifest = json_decode(file_get_contents("packages/{$params['package']}/manifest.json"), true);
+    if(file_exists(EQ_BASEDIR."/packages/{$params['package']}/manifest.json")) {
+        $package_manifest = json_decode(file_get_contents(EQ_BASEDIR."/packages/{$params['package']}/manifest.json"), true);
         if(!$package_manifest) {
             throw new Exception("Invalid manifest for package {$params['package']}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
         }
@@ -179,6 +186,7 @@ else {
                             'cascade'           => $params['cascade'],
                             'import'            => $params['import'] && $params['import_cascade'],
                             'force'             => $params['force'] && $params['force_cascade'],
+                            'ignore_platform'   => $params['ignore_platform'],
                             'root'              => false
                         ],
                         true);
@@ -194,7 +202,7 @@ else {
 
     // 1) Init DB with SQL schema
 
-    /*  start-tables_init */
+    /*  start tables init */
     // retrieve schema for given package
     $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
@@ -205,113 +213,108 @@ else {
     foreach($queries as $query) {
         $db->sendQuery($query);
     }
-    /*  end-tables_init */
+    /*  end tables init */
 
     // 2) Populate tables with predefined data
-    $data_folder = "packages/{$params['package']}/init/data";
-    if($params['import'] && file_exists($data_folder) && is_dir($data_folder)) {
+    $data_folder = EQ_BASEDIR."/packages/{$params['package']}/init/data";
+    if($params['import'] && is_dir($data_folder)) {
         $importDataFromFolderJsonFiles($data_folder);
-    }
-
-    // 2 bis) Populate tables with demo data, if requested
-    $demo_folder = "packages/{$params['package']}/init/demo";
-    if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
-        $importDataFromFolderJsonFiles($demo_folder);
-    }
-
-    // 2 ter) Populate tables with test data (intended for tests), if requested
-    $test_folder = "packages/{$params['package']}/init/test";
-    if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
-        $importDataFromFolderJsonFiles($test_folder);
-    }
-
-    // 3) If a `bin` folder exists, copy its content to /bin/<package>/
-    $bin_folder = "packages/{$params['package']}/init/bin";
-    if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
-        exec("cp -r $bin_folder bin/{$params['package']}");
-        exec("chown www-data:www-data -R bin/{$params['package']}");
-    }
-
-    // 4) If a `routes` folder exists, copy its content to /config/routing/
-    $route_folder = "packages/{$params['package']}/init/routes";
-    if(file_exists($route_folder) && is_dir($route_folder)) {
-        exec("cp -r $route_folder/* config/routing");
-    }
-
-    $assets_folder = "packages/{$params['package']}/init/assets";
-    if(file_exists($assets_folder) && is_dir($assets_folder)) {
-        exec("cp -r $assets_folder/* public/assets/");
-    }
-
-    // 5) Export the compiled apps to related public folders
-    // #memo - make sure ZIP library is available
-    if(isset($package_manifest['apps']) && is_array($package_manifest['apps']) && class_exists('ZipArchive')) {
-
-        foreach($package_manifest['apps'] as $app) {
-
-            // ignore app descriptors (inherited apps are handled in `installed-apps`)
-            if(is_array($app)) {
-                continue;
-            }
-
-            // path of the app
-            $app_path = "packages/{$params['package']}/apps/$app";
-
-            if(!file_exists($app_path) || !file_exists($app_path.'/web.app')) {
-                // ignore apps not relating to an actual folder inside {package}/apps
-                continue;
-            }
-
-            $app_manifest = [];
-
-            if(file_exists("$app_path/manifest.json")) {
-                $app_manifest = json_decode(file_get_contents("$app_path/manifest.json"), true);
-                if(!$package_manifest) {
-                    throw new Exception("Invalid manifest for app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
+        // Execute init scripts, if any
+        $scripts_folder = "$data_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
                 }
-            }
-
-            // checks wether the folder exists or not
-            if(file_exists("public/$app")) {
-                // remove existing folder, if present
-                if(FS::removeDir("public/$app")) {
-                    // trigger_error("PHP::error removing folder : $message", EQ_REPORT_DEBUG);
-                    // throw new Exception('fs_removing_file_failure', EQ_ERROR_UNKNOWN);
-                }
-            }
-
-            // (re)create the (empty) folder
-            if(!mkdir("public/$app")) {
-                // trigger_error("PHP::error moving file : $message", EQ_REPORT_DEBUG);
-                // throw new Exception('fs_moving_file_failure', EQ_ERROR_UNKNOWN);
-            }
-
-            // verify the checksum
-            $version_md5 = md5_file("$app_path/web.app");
-            if(isset($app_manifest['checksum'])) {
-                if($version_md5 != $app_manifest['checksum']) {
-                    // #todo - not required for now, nice to have: would increase version identification
-                    // throw new Exception("Invalid checksum for app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
-                }
-            }
-
-            // extract the app archive
-            $zip = new ZipArchive;
-            if (!$zip->open("$app_path/web.app")) {
-                throw new Exception("Unable to export app {$app}: ".json_last_error_msg().'.', EQ_ERROR_UNKNOWN);
-            }
-            // export to public folder
-            $zip->extractTo("public/$app/");
-            $zip->close();
-
-            // add a version file (holding md5 of the web.app archive)
-            if(file_exists("public/$app")) {
-                file_put_contents("public/$app/version", $version_md5);
             }
         }
     }
 
-    // 6) Inject composer dependencies if any
+    // 2 bis) Populate tables with demo data, if requested
+    $demo_folder = EQ_BASEDIR."/packages/{$params['package']}/init/demo";
+    if($params['demo'] && file_exists($demo_folder) && is_dir($demo_folder)) {
+        $importDataFromFolderJsonFiles($demo_folder);
+        // Execute init scripts, if any
+        $scripts_folder = "$demo_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
+                }
+            }
+        }
+    }
+
+    // 2 ter) Populate tables with test data (intended for tests), if requested
+    $test_folder = EQ_BASEDIR."/packages/{$params['package']}/init/test";
+    if($params['test'] && file_exists($test_folder) && is_dir($test_folder)) {
+        $importDataFromFolderJsonFiles($test_folder);
+        // Execute init scripts, if any
+        $scripts_folder = "$test_folder/scripts";
+        if(is_dir($scripts_folder)) {
+            foreach(scandir($scripts_folder) as $file) {
+                $path = $scripts_folder . DIRECTORY_SEPARATOR . $file;
+                if(is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+                    include_once $path;
+                }
+            }
+        }
+    }
+
+    // 3) If a `bin` folder exists, copy its content to /bin/<package>/
+    $bin_folder = EQ_BASEDIR."/packages/{$params['package']}/init/bin";
+    if($params['import'] && file_exists($bin_folder) && is_dir($bin_folder)) {
+        $target_folder = EQ_BASEDIR . "/bin/{$params['package']}";
+        exec("cp -r $bin_folder $target_folder");
+        exec("chown www-data:www-data -R $target_folder");
+    }
+
+    // 3 bis) If a `routes` folder exists, copy its content to /config/routing/
+    $route_folder = EQ_BASEDIR."/packages/{$params['package']}/init/routes";
+    if(file_exists($route_folder) && is_dir($route_folder)) {
+        $target_folder = EQ_BASEDIR . "/config/routing";
+        exec("cp -r $route_folder/* $target_folder");
+    }
+
+    // 3 ter) If a `assets` folder exists, copy its content to /public/assets/
+    $assets_folder = EQ_BASEDIR."/packages/{$params['package']}/init/assets";
+    if(file_exists($assets_folder) && is_dir($assets_folder)) {
+        $target_folder = EQ_BASEDIR . "/public/assets/";
+        exec("cp -r $assets_folder/* $target_folder");
+    }
+
+    // 3 quat) If a `lib` folder exists, copy its content to /lib/
+    $lib_folder = EQ_BASEDIR."/packages/{$params['package']}/init/lib";
+    if(file_exists($lib_folder) && is_dir($lib_folder)) {
+        $target_folder = EQ_BASEDIR . "/lib/";
+        exec("cp -r $lib_folder/* $target_folder");
+    }
+
+    // 4) Export the compiled apps to related public folders
+    // #memo - make sure ZIP library is available
+    if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
+
+        foreach($package_manifest['apps'] as $app) {
+            // ignore app descriptors (inherited apps are handled in `installed-apps`)
+            if(is_array($app)) {
+                continue;
+            }
+            try {
+                eQual::run('do', 'init_app', [
+                        'package'   => $params['package'],
+                        'app'       => $app,
+                    ]);
+            }
+            catch(Exception $e) {
+                // do not interrupt package init, but report error
+                trigger_error("PHP::unexpected error while installing app {$app}: ". $e->getMessage(), EQ_REPORT_WARNING);
+            }
+        }
+    }
+
+    // 5) Inject composer dependencies if any
     if(isset($package_manifest['requires']) && is_array($package_manifest['requires'])) {
         $map_composer = [
             'require'     => [],
@@ -339,15 +342,125 @@ else {
             unset($map_composer['require-dev']);
         }
 
+        // ensure that insecure packages can be installed if needed
+        $map_composer['config']['audit']['block-insecure'] = false;
+
         file_put_contents(EQ_BASEDIR.'/composer.json', json_encode($map_composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    // 7) Inject config values, if present
+    // 5 bis) External binaries dependencies if any
+    // #memo - when inside a containerized environment, restarting the instance will not persist installed binaries, since they are not part of the Docker image.
+    if(isset($package_manifest['requires_bin']) && is_array($package_manifest['requires_bin'])) {
+
+        $os = strtolower(PHP_OS_FAMILY);
+        foreach($package_manifest['requires_bin'] as $bin => $meta) {
+            try {
+                $check_cmd = $meta['check'] ?? "$bin --version";
+
+                $output = [];
+                exec($check_cmd . ' 2>&1', $output, $result_code);
+
+                // binary not present yet or returns an error code
+                if($result_code !== 0) {
+
+                    $binary_package_name = $meta['package']['generic'] ?? $bin;
+
+                    $linux_flavour = null;
+                    if($os === 'linux' && file_exists('/etc/os-release')) {
+                        $os_release = file_get_contents('/etc/os-release');
+                        if(preg_match('/^ID=(.+)$/m', $os_release, $m)) {
+                            $linux_flavour = trim(str_replace('"', '', $m[1]));
+                        }
+                    }
+
+                    if($os === 'linux') {
+                        if(isset($meta['package'][$linux_flavour])) {
+                            $binary_package_name = $meta['package'][$linux_flavour];
+                        }
+                        switch($linux_flavour) {
+                            case 'centos':
+                            case 'rhel':
+                            case 'redhat':
+                                $install_cmd = "yum install -y $binary_package_name";
+                                break;
+                            case 'fedora':
+                                $install_cmd = "dnf install -y $binary_package_name";
+                                break;
+                            case 'debian':
+                            case 'ubuntu':
+                                $install_cmd = "apt-get update && apt-get install -y $binary_package_name";
+                                break;
+                            default:
+                                $install_cmd = '';
+                        }
+                    }
+                    elseif($os === 'darwin') {
+                        if(isset($meta['package']['macos'])) {
+                            $binary_package_name = $meta['package']['macos'];
+                        }
+                        $install_cmd = "brew install $binary_package_name";
+                    }
+                    elseif($os === 'windows') {
+                        if(isset($meta['package']['windows'])) {
+                            $binary_package_name = $meta['package']['windows'];
+                        }
+                        $install_cmd = "choco install $binary_package_name -y";
+                    }
+                    else {
+                        throw new Exception('unsupported_os_for_binary', EQ_ERROR_UNKNOWN);
+                    }
+
+                    if(strlen($install_cmd) > 0) {
+                        system($install_cmd, $result_code);
+
+                        if($result_code !== 0) {
+                            throw new Exception('install_error_for_binary', EQ_ERROR_UNKNOWN);
+                        }
+                    }
+
+                    $output = [];
+
+                    ob_start();
+                    exec($check_cmd . ' 2>&1', $output, $result_code);
+                    ob_end_clean();
+
+                    if($result_code !== 0) {
+                        throw new Exception('binary_missing_after_install', EQ_ERROR_UNKNOWN);
+                    }
+
+                    // optional - copy binary to `/opt/bin` for persistency, if present
+                    $opt_bin_dir = '/opt/bin';
+                    if(file_exists($opt_bin_dir) && is_dir($opt_bin_dir)) {
+                        $whereis = [];
+                        exec("command -v $bin 2>/dev/null", $whereis);
+                        if(!empty($whereis[0])) {
+                            $src = trim($whereis[0]);
+                            $dst = "$opt_bin_dir/$bin";
+                            if(file_exists($dst)) {
+                                unlink($dst);
+                            }
+                            $linked = @symlink($src, $dst);
+                            if(!$linked) {
+                                copy($src, $dst);
+                            }
+                            chmod($dst, 0755);
+                        }
+                    }
+                }
+            }
+            catch(Exception $e) {
+                // do not interrupt package init, but report error
+                trigger_error("PHP::unexpected error while installing external binary {$bin}: ". $e->getMessage(), EQ_REPORT_WARNING);
+            }
+        }
+    }
+
+    // 6) Inject config values, if present
     if(isset($package_manifest['config']) && is_array($package_manifest['config'])) {
         $config = [];
 
-        if(file_exists(EQ_BASEDIR.'/config/config.json')) {
-            $json = file_get_contents(EQ_BASEDIR.'/config/config.json');
+        if(file_exists(EQ_BASEDIR . '/config/config.json')) {
+            $json = file_get_contents(EQ_BASEDIR . '/config/config.json');
             $data = json_decode($json, true);
             if($data) {
                 $config = $data;
@@ -358,7 +471,7 @@ else {
             $config[$constant] = $value;
         }
 
-        file_put_contents(EQ_BASEDIR.'/config/config.json', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        file_put_contents(EQ_BASEDIR . '/config/config.json', json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
 
@@ -370,13 +483,13 @@ else {
      */
     $packages = [];
 
-    if(file_exists("log/packages.json")) {
-        $json = file_get_contents("log/packages.json");
+    if(file_exists(EQ_BASEDIR."/log/packages.json")) {
+        $json = file_get_contents(EQ_BASEDIR."/log/packages.json");
         $packages = json_decode($json, true);
     }
 
     $packages[$params['package']] = date('c');
-    file_put_contents("log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
+    file_put_contents(EQ_BASEDIR."/log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
     // if script is running at top-level, it must run composer to install vendor dependencies
     if($params['root'] && $params['composer']) {
@@ -386,8 +499,17 @@ else {
             $map_composer_current = json_decode($json, true);
         }
 
-        if($map_composer_current != $map_composer_original) {
-            eQual::run('do', 'init_composer');
+        $composer_needed = false;
+
+        if(!file_exists(EQ_BASEDIR.'/vendor/autoload.php')) {
+            $composer_needed = true;
+        }
+        elseif($map_composer_current != $map_composer_original) {
+            $composer_needed = true;
+        }
+
+        if($composer_needed) {
+            eQual::run('do', 'init_composer', ['ignore_platform' => $params['ignore_platform']]);
         }
     }
 }

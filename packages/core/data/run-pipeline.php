@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -66,8 +67,21 @@ foreach ($pipeline_nodes as $node) {
             foreach ($node['params_ids'] as $param) {
                 $parameters[$param['param']] = json_decode($param['value']);
             }
-            $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
-            $count++;
+            try {
+                $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
+                $count++;
+            } catch (Exception $e) {
+                // Retourner les résultats partiels et l'erreur
+                $context->httpResponse()
+                        ->status(500)
+                        ->body([
+                            'error' => 'Pipeline execution failed at node: ' . $node['name'],
+                            'message' => $e->getMessage(),
+                            'partial_results' => $result_map
+                        ])
+                        ->send();
+                return;
+            }
         }
     }
 }
@@ -89,8 +103,20 @@ while ($count != count($result_map)) {
                 foreach ($node['params_ids'] as $param) {
                     $parameters[$param['param']] = json_decode($param['value']);
                 }
-                $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
-                $count++;
+                try {
+                    $result_map[$node['id']] = eQual::run($node['operation_type'], $node['operation_controller'], $parameters, true);
+                    $count++;
+                } catch (Exception $e) {
+                    $context->httpResponse()
+                            ->status(200)
+                            ->body([
+             -                   'error' => 'Pipeline execution failed at node: ' . $node['name'],
+                                'message' => $e->getMessage(),
+                                'partial_results' => $result_map
+                            ])
+                            ->send();
+                    return;
+                }
             }
         }
     }

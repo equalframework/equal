@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -62,6 +63,10 @@ class Field {
         $this->name = $field_name;
         // ensure local descriptor always has a result_type property
         if(!isset($descriptor['result_type'])) {
+            // computed fields MUST declare an explicit result_type
+            if($this->type === 'computed') {
+                trigger_error("ORM::missing result_type for computed field `{$this->name}`", E_USER_WARNING);
+            }
             $this->descriptor['result_type'] = $this->type;
         }
         if(strlen($package_name) > 0 && in_array($this->descriptor['result_type'], ['one2many', 'many2one', 'many2many'])) {
@@ -85,6 +90,10 @@ class Field {
     /**
      * Provides the usage string equivalent of the type of the Field instance.
      * This method maps `types` (implicit usage format) with explicit usage formats.
+     *
+     * #todo - we should know in advance if usage attribute resolves to an usage known of UsageFactory
+     * (otherwise, we should fallback to result_type)
+     *
      */
     protected function getUsageString(): string {
         $result = $this->descriptor['usage'] ?? '';
@@ -116,14 +125,14 @@ class Field {
             'array'         => 'array'
         ];
         $type = $this->descriptor['result_type'];
-        return $map[$type];
+        return $map[$type] ?? $type;
     }
 
     public function getUsage(): Usage {
         if(is_null($this->usage)) {
             // by default, use the usage string for which the field type is an alias
             $this->usage = UsageFactory::create($this->getUsageString());
-            trigger_error("ORM::no usage set for field `{$this->name}`: assigned to `".$this->getUsageString()."`", EQ_REPORT_INFO);
+            trigger_error("ORM::no usage set for field `{$this->name}`: assigned to `" . $this->getUsageString() . "`", EQ_REPORT_DEBUG);
         }
         return $this->usage;
     }
@@ -135,24 +144,41 @@ class Field {
      */
     public function getConstraints(): array {
         $constraints = $this->getUsage()->getConstraints();
-
-        // #memo - strict type constraint is not relevant since lose conversion is possible for some types (e.g. "30" is an accepted integer)
-
         // add constraint based on 'selection', if present
         if(isset($this->descriptor['selection']) && count($this->descriptor['selection'])) {
             $selection = $this->descriptor['selection'];
-            $constraints['invalid_value'] = [
+            $constraints['invalid_choice'] = [
                     'message'   => "Value is not amongst selection choices.",
                     'function'  =>  function($value) use($selection) {
-                        return (isset($selection[$value]) || in_array($value, $selection));
+                        // allow reset to null (`selection` implies no restriction)
+                        $found = is_null($value);
+                        // handle both map and list
+                        foreach($selection as $key => $val) {
+                            // #memo - key can be both an index or an explicit choice value mapped with another value possibly of the same type
+                            if($value === $key || $value === $val) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                        return $found;
+                    }
+                ];
+        }
+
+        // prevent null assignment for required fields
+        if(isset($this->descriptor['required']) && $this->descriptor['required']) {
+            $constraints['non_nullable'] = [
+                    'message'   => "Field is required and cannot be set to null.",
+                    'function'  =>  function($value) {
+                        return !is_null($value);
                     }
                 ];
         }
 
         // add constraint based on 'pattern', if present
-        if(isset($this->descriptor['pattern']) && count($this->descriptor['pattern'])) {
-            $pattern = $this->descriptor['pattern'];
-            $constraints['invalid_value'] = [
+        if(isset($this->descriptor['pattern'])) {
+            $pattern = (string) $this->descriptor['pattern'];
+            $constraints['pattern_mismatch'] = [
                     'message'   => "Value does not match provided pattern.",
                     'function'  =>  function($value) use($pattern) {
                         return preg_match($pattern, $value);

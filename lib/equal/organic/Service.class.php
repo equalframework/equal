@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\organic;
@@ -11,7 +12,7 @@ class Service extends Singleton {
     /*  All services are instantiated through the service container
         which instance is, in turn, made available as public member
     */
-    public $container;
+    protected $container;
 
     /**
      * Returns a list of constant names that the service expects to be available.
@@ -23,6 +24,10 @@ class Service extends Singleton {
 
     public function getContainer() {
         return $this->container;
+    }
+
+    public function setContainer(&$container) {
+        $this->container = $container;
     }
 
 }

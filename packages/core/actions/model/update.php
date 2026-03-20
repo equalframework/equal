@@ -1,11 +1,12 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Update (fully or partially) the given object.",
     'params'        => [
         'entity' =>  [
@@ -48,15 +49,16 @@ list($params, $providers) = eQual::announce([
     'access' => [
         'visibility'        => 'protected'
     ],
-    'providers'     => ['context', 'orm', 'adapt']
+    'providers'     => ['context', 'orm', 'adapt', 'auth']
 ]);
 
 /**
- * @var \equal\php\Context               $context
- * @var \equal\orm\ObjectManager         $orm
- * @var \equal\data\DataAdapterProvider  $dap
+ * @var \equal\php\Context                $context
+ * @var \equal\orm\ObjectManager          $orm
+ * @var \equal\data\DataAdapterProvider   $dap
+ * @var \equal\auth\AuthenticationManager $auth
  */
-list($context, $orm, $dap) = [$providers['context'], $providers['orm'], $providers['adapt']];
+['context' => $context, 'orm' => $orm, 'adapt' => $dap, 'auth' => $auth] = $providers;
 
 /** @var \equal\data\adapt\DataAdapter */
 $adapter = $dap->get('json');
@@ -65,14 +67,14 @@ $result = [];
 
 if(empty($params['ids'])) {
     if( !isset($params['id']) || $params['id'] <= 0 ) {
-        throw new Exception("object_invalid_id", QN_ERROR_INVALID_PARAM);
+        throw new Exception("object_invalid_id", EQ_ERROR_INVALID_PARAM);
     }
     $params['ids'][] = $params['id'];
 }
 
 $model = $orm->getModel($params['entity']);
 if(!$model) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 // adapt received values for parameter 'fields' (which are still formatted as text)
@@ -120,9 +122,10 @@ if(count($fields)) {
     if(count($params['ids']) == 1) {
         // handle draft edition
         if(isset($fields['state']) && $fields['state'] == 'draft') {
-            $object = $params['entity']::ids($params['ids'])->read(['state'])->first(true);
-            // if state has changed (which means it has been modified by another user in the meanwhile), then we need to create a new object
-            if($object['state'] != 'draft') {
+            $object = $params['entity']::ids($params['ids'])->read(['state', 'modifier'])->first(true);
+            // if state has changed by another user, then we need to create a new object
+            $user_id = $auth->userId();
+            if($object['state'] != 'draft' && $object['modifier'] != $user_id) {
                 // create object as draft to avoid a missing_mandatory error, and then update it
                 $instance = $params['entity']::create(['state' => 'draft'])
                     ->update($fields, $params['lang'])
@@ -133,17 +136,25 @@ if(count($fields)) {
             }
         }
         // handle instances edition
-        elseif(isset($fields['modified']) ) {
+        elseif(isset($fields['modified'])) {
             $object = $params['entity']::ids($params['ids'])->read(['modified'])->first(true);
             // a changed occurred in the meantime
             if($object['modified'] != $fields['modified'] && !$params['force']) {
-                throw new Exception("concurrent_change", QN_ERROR_CONFLICT_OBJECT);
+                throw new Exception("concurrent_change", EQ_ERROR_CONFLICT_OBJECT);
             }
         }
     }
 
+    // an object can never be set back to 'draft'
+    // #memo - moved back to Collection
+    /*
+    if(isset($fields['state']) && $fields['state'] == 'draft') {
+        $fields['state'] = 'instance';
+    }
+    */
+
     $result = $params['entity']::ids($params['ids'])
-        // update with received values (with validation - submit `state` if received)
+        // update with received values (with validation)
         ->update($fields, $params['lang'])
         ->read(['id', 'state', 'name', 'modified'])
         ->adapt('json')

@@ -1,0 +1,13 @@
+{
+    "name": "pdfjs",
+    "description": "",
+    "url": "/pdfjs",
+    "icon": "airline_seat_individual_suite",
+    "color": "#3F52B5",
+    "access": {
+        "groups": [
+            "users"
+        ]
+    },
+    "show_in_apps": false
+}

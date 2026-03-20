@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\http;
@@ -268,8 +269,16 @@ class HttpMessage {
 
         // maintain headers consistency
         if($host = $this->uri->getHost()) {
-            if($port = $this->uri->getPort()) {
-                $host = $host.':'.$port;
+            $port = $this->uri->getPort();
+            $scheme = $this->uri->getScheme();
+            // Although RFC 7230 allows including the port in the Host header,
+            // many servers (proxies, WAF, load balancers) do not match hosts with default ports (80/443).
+            // To ensure interoperability, omit default ports and only include non-standard ones.
+            if($port && !(
+                ($scheme === 'http' && $port == 80) ||
+                ($scheme === 'https' && $port == 443)
+            )) {
+                $host = $host . ':' . $port;
             }
             $this->headers->set('Host', $host);
         }
@@ -315,7 +324,7 @@ class HttpMessage {
             if(stripos($content_type, '+json')) {
                 $content_type = 'application/json';
             }
-            else if(stripos($content_type, '+xml')) {
+            elseif(stripos($content_type, '+xml')) {
                 $content_type = 'application/xml';
             }
             switch($content_type) {
@@ -331,11 +340,11 @@ class HttpMessage {
                     // build request array
                     $request = [];
                     // loop data blocks
-                    foreach ($blocks as $id => $block) {
+                    foreach($blocks as $id => $block) {
                         // skip empty blocks
-                        if (empty($block)) continue;
+                        if(empty($block)) continue;
                         // parse uploaded files
-                        if (strpos($block, 'application/octet-stream') !== FALSE) {
+                        if(strpos($block, 'application/octet-stream') !== FALSE) {
                             // match "name", then everything after "stream" (optional) except for prepending newlines
                             preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
                         }

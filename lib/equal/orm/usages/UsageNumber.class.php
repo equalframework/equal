@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm\usages;
@@ -53,6 +54,12 @@ class UsageNumber extends Usage {
                 return [
                     'not_integer' => [
                         'message'   => 'Value is not an integer.',
+                        'function'  =>  function($value) {
+                            return preg_match('/^[+-]?[0-9]+$/', (string) $value);
+                        }
+                    ],
+                    'size_exceeded' => [
+                        'message'   => 'Non supported number of digits.',
                         'function'  =>  function($value) {
                             return preg_match('/^[+-]?[0-9]{0,'.$this->getLength().'}$/', (string) $value);
                         }

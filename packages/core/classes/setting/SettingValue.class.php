@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace core\setting;
@@ -15,7 +16,7 @@ class SettingValue extends Model {
     }
 
     public static function getDescription() {
-        return "Configurations parameters are either specific to a user or global (user_id = 0).";
+        return "Configuration parameters are either specific to a user or global (user_id = 0).";
     }
 
     public static function getColumns() {
@@ -25,9 +26,10 @@ class SettingValue extends Model {
                 'type'              => 'computed',
                 'result_type'       => 'string',
                 'description'       => "Code to serve as reference (might not be unique).",
-                'function'          => 'calcName',
+                'relation'          => ['setting_id' => 'name'],
                 'store'             => true,
-                'readonly'          => true
+                'readonly'          => true,
+                'instant'           => true
             ],
 
             'setting_id' => [
@@ -35,34 +37,26 @@ class SettingValue extends Model {
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the value relates to.',
                 'ondelete'          => 'cascade',
-                'required'          => true
+                'required'          => true,
+                'dependents'        => ['name']
             ],
 
             'user_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
                 'description'       => 'User the setting is specific to (optional).',
-                'default'           => 0,
                 'ondelete'          => 'cascade'
             ],
 
             'value' => [
                 'type'              => 'string',
+                'usage'             => 'text/json',
                 'description'       => 'JSON value of the parameter.',
                 'help'              => 'For settings not having the is_multilang field set, translations are ignored.',
                 'multilang'         => true
             ]
 
         ];
-    }
-
-    public static function calcName($self) {
-        $result = [];
-        $self->read(['setting_id' => ['name']]);
-        foreach($self as $id => $value) {
-            $result[$id] = $value['setting_id']['name'];
-        }
-        return $result;
     }
 
     public function getUnique() {

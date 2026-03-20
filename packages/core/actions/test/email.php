@@ -1,15 +1,23 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\email\Email;
 use core\Mail;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
-    'description'	=>	"Send a test email.",
+[$params, $providers] = eQual::announce([
+    'description'	=>	"Send a test email (using current config) to `EMAIL_SMTP_ACCOUNT_EMAIL`.",
+    'params'        => [
+        'instant' => [
+            'type'              => 'boolean',
+            'description'       => 'Flag for sending instant message. If false, email is queued in the spooler.',
+            'default'           => true
+        ]
+    ],
     'constants'     => ['BACKEND_URL', 'EMAIL_SMTP_ACCOUNT_EMAIL'],
     'response'      => [
         'content-type'      => 'application/json',
@@ -48,8 +56,14 @@ $message->setTo(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))
     ->setContentType("text/html")
     ->setBody($body);
 
-// send instant message
-Mail::send($message);
+if($params['instant']) {
+    // send instant message
+    Mail::send($message);
+}
+else {
+    // put the message in the outgoing queue
+    Mail::queue($message);
+}
 
 $context->httpResponse()
         ->status(204)

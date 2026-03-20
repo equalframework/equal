@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
@@ -34,11 +35,20 @@ list($context) = [ $providers['context'] ];
 $result = [];
 
 // retrieve existing view meant for package
-$file = QN_BASEDIR."/packages/{$params['package']}/views/menu.{$params['menu_id']}.json";
+$file = EQ_BASEDIR . "/packages/{$params['package']}/views/menu.{$params['menu_id']}.json";
 
 // #memo - to prevent untimely log entries, this script always return a non-404 error
 if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) !== null) {
     $result = $view;
+}
+elseif(strpos($params['menu_id'], '.') !== false) {
+    $parts = explode('.', $params['menu_id']);
+    array_pop($parts);
+    $menu_id = implode('.', $parts);
+    $file = EQ_BASEDIR . "/packages/{$params['package']}/views/menu.{$menu_id}.json";
+    if(file_exists($file) && ($view = json_decode(@file_get_contents($file), true)) !== null) {
+        $result = $view;
+    }
 }
 
 $context->httpResponse()

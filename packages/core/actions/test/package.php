@@ -1,12 +1,13 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\test\Tester;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Check presence of test units for given package and run them, if any.',
     'params'        => [
         'package'   => [
@@ -31,7 +32,12 @@ list($params, $providers) = eQual::announce([
             'default'       => false
         ]
     ],
-    'providers'     => ['context']
+    'providers'     => ['context'],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
+    ]
 ]);
 
 
@@ -57,7 +63,7 @@ if(is_dir($tests_path)) {
 }
 
 if($params['logs']) {
-    $result['logs'] = file_get_contents(QN_LOG_STORAGE_DIR.'/error.log').file_get_contents(QN_LOG_STORAGE_DIR.'/eq_error.log');
+    $result['logs'] = file_get_contents(EQ_LOG_STORAGE_DIR.'/equal.log');
 }
 
 $providers['context']->httpResponse()

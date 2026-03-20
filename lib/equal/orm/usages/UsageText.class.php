@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm\usages;
@@ -17,36 +18,32 @@ class UsageText extends Usage {
      *  text/plain.small (65KB)
      *  text/plain.medium (16MB)
      *  text/plain.long (4GB)
+     *
+     * All 'text' usages (text/plain, text/html, text/json, text/xml, text/wiki) are handled the same way
+     *
      */
     public function __construct(string $usage_str) {
         parent::__construct($usage_str);
         if($this->length == 0) {
-            $this->length = 255;
-            // #memo - $this->subtype holds the full tree
-            switch($this->getSubtype(0)) {
-                case 'plain':
-                    switch($this->getSubtype(1))  {
-                        case 'short':
-                            $this->length = 255;
-                            break;
-                        case 'medium':
-                            $this->length = 16 * 1000 * 1000;
-                            break;
-                        case 'long':
-                            $this->length = 4 * 1000 * 1000 * 1000;
-                            break;
-                        case 'small':
-                        default:
-                            $this->length = 65 * 1000;
-                            break;
-                    }
-                    break;
-                case 'html':
-                case 'json':
-                case 'xml':
-                case 'wiki':
-                    $this->length = max($this->length, 65 * 1000);
-                    break;
+            if($this->getType() === 'text') {
+                // #memo - $this->subtype holds the full tree
+                switch($this->getSubtype(1))  {
+                    case 'short':
+                        $this->length = 255;
+                        break;
+                    case 'medium':
+                        $this->length = 16 * 1000 * 1000;
+                        break;
+                    case 'long':
+                        $this->length = 4 * 1000 * 1000 * 1000;
+                        break;
+                    case 'small':
+                    default:
+                        $this->length = 65 * 1000;
+                }
+            }
+            else {
+                $this->length = 255;
             }
         }
     }
@@ -66,7 +63,9 @@ class UsageText extends Usage {
             'broken_usage' => [
                 'message'   => 'String does not comply with usage format.',
                 'function'  =>  function($value) {
-                    $len = intval($this->getLength());
+                    if(empty($value)) {
+                        return true;
+                    }
                     switch($this->getSubtype(0)) {
                         case 'plain':
                             break;

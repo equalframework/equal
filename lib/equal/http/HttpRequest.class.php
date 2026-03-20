@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\http;
@@ -76,6 +77,7 @@ class HttpRequest extends HttpMessage {
 
         if(strlen($uri) > 0) {
             $method = $this->getMethod();
+            $headers = (array) $this->getHeaders(true);
 
             $http_options = [];
             $additional_headers = [
@@ -89,7 +91,7 @@ class HttpRequest extends HttpMessage {
                 'Accept-Charset'    => 'UTF-8'
             ];
             // retrieve content type
-            $content_type = $this->getHeaders()->getContentType();
+            $content_type = $headers['Content-Type'] ?? '';
 
             if(strlen($content_type) <= 0 && in_array($method,['GET', 'POST'])) {
                 // fallback to form encoded data
@@ -133,7 +135,7 @@ class HttpRequest extends HttpMessage {
             // set content-length (might be 0)
             $additional_headers['Content-Length'] = $body_length;
             // merge manually defined headers with additional headers (later overwrites the former)
-            $headers = array_merge((array) $this->getHeaders(true), $additional_headers);
+            $headers = array_merge($headers, $additional_headers);
             // if host is present in the header, it will void any redirection attempt - remove it if present
             // https://www.php.net/manual/en/context.http.php#125832
             if(isset($headers['Host'])) {
@@ -148,14 +150,17 @@ class HttpRequest extends HttpMessage {
                     // 'request_fulluri'   => true,
                     'header'            => $headers,
                     'ignore_errors'     => true,
-                    'timeout'           => (defined('HTTP_REQUEST_TIMEOUT'))?constant('HTTP_REQUEST_TIMEOUT'):10,
+                    'timeout'           => (defined('HTTP_REQUEST_TIMEOUT')) ? constant('HTTP_REQUEST_TIMEOUT') : 10,
                     'protocol_version'  => $this->getProtocolVersion(),
                     'follow_location'   => 1,
                     'max_redirects'     => 10
                 ]);
             // create the HTTP stream context
             $context = stream_context_create([
-                    'http' => $http_options
+                    'http' => $http_options,
+                    'ssl'  => [
+                        'verify_peer' => (defined('HTTP_REQUEST_VERIFY_SSL')) ? constant('HTTP_REQUEST_VERIFY_SSL') : true
+                    ]
                 ]);
             // send request
             $data = @file_get_contents(
@@ -163,32 +168,42 @@ class HttpRequest extends HttpMessage {
                     false,
                     $context
                 );
+
             // build HTTP response object
-            if(isset($http_response_header[0])) {
-                $response_status = $http_response_header[0];
-                unset($http_response_header[0]);
-                $headers = [];
-                foreach($http_response_header as $line) {
-					list($header, $value) = ['', ''];
-                    $parts = array_map('trim', explode(':', $line));
-					if(isset($parts[0])) {
-                        $header = $parts[0];
-                    }
-					if(isset($parts[1])) {
-                        $value = $parts[1];
-                    }
-					if(strpos($header, 'HTTP/1.1') === 0) {
-						$response_status = $header;
-					}
-					else {
-						$headers[$header] = $value;
-					}
-                }
-                $response = new HttpResponse($response_status, $headers, $data);
-            }
-            else {
+            if(!isset($http_response_header) || !is_array($http_response_header)) {
+                $error = error_get_last();
+                trigger_error(
+                    "PHP::Unable to send HTTP request to `{$uri}` : " . ($error['message'] ?? ''),
+                    EQ_REPORT_ERROR
+                );
                 throw new \Exception('failed_sending_http_request', QN_ERROR_UNKNOWN);
             }
+
+            $response_status = '';
+            $headers = [];
+
+            foreach($http_response_header as $line) {
+
+                // new response block (redirect or final response)
+                if(strpos($line, 'HTTP/') === 0) {
+                    $response_status = $line;
+                    // reset headers - keep ONLY final response
+                    $headers = [];
+                    continue;
+                }
+
+                // parse header safely (split on first `:` only)
+                $parts = explode(':', $line, 2);
+                $header = trim($parts[0]);
+                $value  = isset($parts[1]) ? trim($parts[1]) : '';
+
+                if($header !== '') {
+                    $headers[$header] = $value;
+                }
+            }
+
+            $response = new HttpResponse($response_status, $headers, $data);
+
         }
         return $response;
     }

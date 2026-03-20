@@ -1,0 +1,33 @@
+{
+    "name": "Task Models",
+    "description": "This view is intended for displaying the list of task models.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "name",
+                "width": "40%"
+            },
+            {
+                "type": "field",
+                "value": "object_class",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "tasks_group_name",
+                "width": "40%"
+            },
+            {
+                "type": "field",
+                "value": "trigger_event_id",
+                "width": "40%"
+            },
+            {
+                "type": "field",
+                "value": "deadline_event_id",
+                "width": "40%"
+            }
+        ]
+    }
+}

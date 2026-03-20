@@ -1,13 +1,13 @@
 <?php
 /*
-    This file is part of Symbiose Community Edition <https://github.com/yesbabylon/symbiose>
-    Some Rights Reserved, Yesbabylon SRL, 2020-2021
-    Licensed under GNU AGPL 3 license <http://www.gnu.org/licenses/>
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
+    Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-
 use core\Task;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => "Run a batch of scheduled task. Expected to be run with CLI `$ ./equal.run --do=cron_run`",
     'params'        => [
         'ids' =>  [

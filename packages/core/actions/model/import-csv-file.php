@@ -15,8 +15,7 @@ use core\import\EntityMapping;
             'type'              => 'many2one',
             'foreign_object'    => 'core\import\EntityMapping',
             'description'       => 'The entity mapping to use to adapt given data to eQual entities.',
-            'required'          => true,
-            'domain'            => ['mapping_type', '=', 'index']
+            'required'          => true
         ],
         'csv_separator_character' => [
             'type'              => 'string',
@@ -54,7 +53,7 @@ use core\import\EntityMapping;
 ['context' => $context] = $providers;
 
 $entity_mapping = EntityMapping::id($params['entity_mapping_id'])
-    ->read(['id'])
+    ->read(['id', 'mapping_type'])
     ->first();
 
 if(is_null($entity_mapping)) {
@@ -68,9 +67,27 @@ if(strlen($params['data']) > constant('UPLOAD_MAX_FILE_SIZE')) {
 $data = [];
 
 $lines = explode(PHP_EOL, $params['data']);
-foreach($lines as $line) {
-    if(!empty($line)) {
-        $data[] = str_getcsv($line, $params['csv_separator_character'], $params['csv_enclosure_character'], $params['csv_escape_character']);
+
+if($entity_mapping['mapping_type'] === 'index') {
+    foreach($lines as $line) {
+        if(!empty($line)) {
+            $data[] = str_getcsv($line, $params['csv_separator_character'], $params['csv_enclosure_character'], $params['csv_escape_character']);
+        }
+    }
+}
+else {
+    $header = array_shift($lines);
+    $header_columns = str_getcsv($header, $params['csv_separator_character'], $params['csv_enclosure_character'], $params['csv_escape_character']);
+
+    foreach($lines as $line) {
+        if(empty($line)) {
+            continue;
+        }
+
+        $row = str_getcsv($line, $params['csv_separator_character'], $params['csv_enclosure_character'], $params['csv_escape_character']);
+        if(count($row) === count($header_columns)) {
+            $data[] = array_combine($header_columns, $row);
+        }
     }
 }
 

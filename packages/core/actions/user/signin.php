@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use core\User;
@@ -9,6 +10,7 @@ use core\User;
 // announce script and fetch parameters values
 list($params, $providers) = eQual::announce([
     'description'	=>	"Attempts to log a user in.",
+    'deprecated'	=>	"Use user_auth_pwd instead.",
     'params' 		=>	[
         'login'		=>	[
             'description'   => "user name",
@@ -73,14 +75,23 @@ if(!$user || !$user['validated']) {
 }
 
 // generate a JWT access token
-$access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$access_token = $auth->token(
+        // user identifier
+        $user_id,
+        // validity of the token
+        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        // authentication method to register to AMR
+        [
+            'auth_type'  => 'pwd',
+            'auth_level' => 1
+        ]
+    );
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [
             'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
             'httponly'  => true,
-            'secure'    => constant('AUTH_TOKEN_HTTPS'),
-            'domain'    => parse_url(constant('BACKEND_URL'), PHP_URL_HOST)
+            'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
         ->status(204)
         ->send();

@@ -1,14 +1,15 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\Domain;
 use equal\orm\DomainCondition;
 use equal\orm\Operation;
 
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
@@ -89,6 +90,31 @@ list($params, $providers) = announce([
 
 ['context' => $context, 'orm' => $orm] = $providers;
 
+$getDateIndex = function($date, $interval) {
+    switch($interval) {
+        case 'week':
+            return date('Y-W', $date);
+        case 'month':
+            return date('Y-m', $date);
+        case 'year':
+        default:
+            return date('Y', $date);
+    }
+};
+
+$getNextDate = function($date, $interval) {
+    switch($interval) {
+        case 'week':
+            $day = date("w", $date);
+            $day = ($day == 0)?7:$day;
+            return $date + ((8-$day)*24*3600);
+        case 'month':
+            return strtotime(date("Y-m-t", $date)) + (48*3600);
+        case 'year':
+        default:
+            return strtotime( (date('Y', $date) + 1).'-01-02');
+    }
+};
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
@@ -162,9 +188,9 @@ $results_map = [];
 if($params['group_by'] == 'range') {
     $date = $params['range_from'];
     while($date < $params['range_to']) {
-        $index = _get_date_index($date, $params['range_interval']);
+        $index = $getDateIndex($date, $params['range_interval']);
         $results_map[$index] = [];
-        $date = _get_next_date($date, $params['range_interval']);
+        $date = $getNextDate($date, $params['range_interval']);
     }
 }
 else {
@@ -208,7 +234,7 @@ foreach($datasets as $index => $dataset) {
         foreach($objects as $oid => $object) {
             if(in_array($schema[$params['field']]['type'], ['date', 'datetime'])) {
                 if($params['group_by'] == 'range') {
-                    $group_index = _get_date_index($object[$params['field']], $params['range_interval']);
+                    $group_index = $getDateIndex($object[$params['field']], $params['range_interval']);
                 }
                 else {
                     // #todo - check value of param 1
@@ -284,28 +310,3 @@ if($params['mode'] == 'grid') {
 $context->httpResponse()
         ->body($result)
         ->send();
-
-
-function _get_date_index($date, $interval) {
-    switch($interval) {
-        case 'week':
-            return date('Y-W', $date);
-        case 'month':
-            return date('Y-m', $date);
-        case 'year':
-            return date('Y', $date);
-    }
-}
-
-function _get_next_date($date, $interval) {
-    switch($interval) {
-        case 'week':
-            $day = date("w", $date);
-            $day = ($day == 0)?7:$day;
-            return $date + ((8-$day)*24*3600);
-        case 'month':
-            return strtotime(date("Y-m-t", $date)) + (48*3600);
-        case 'year':
-            return strtotime( (date('Y', $date) + 1).'-01-02');
-    }
-}

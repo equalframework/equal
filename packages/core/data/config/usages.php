@@ -1,10 +1,11 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'   => 'Returns an associative array mapping orm types with possible usages and their descriptors.',
     'response'      => [
         'content-type'      => 'application/json',
@@ -20,6 +21,20 @@ list($params, $providers) = announce([
  */
 list($context) = [$providers['context']];
 
+
+/*
+#todo - improve colors
+    color/hex	#RRGGBB	#FF00FF	6 chiffres hex
+    color/hex8	#RRGGBBAA	#FF00FF80	8 chiffres hex
+    color/css	mot-clé CSS	salmon	Nom CSS standard
+    color/rgb	rgb(R,G,B)	rgb(255,0,255)	format CSS
+    color/rgba	rgba(R,G,B,A)	rgba(255,0,255,0.5)	format CSS
+    color/hsl	hsl(H,S%,L%)	hsl(300,100%,50%)	format CSS
+    color/hsla	hsla(H,S%,L%,A)	hsla(300,100%,50%,0.8)	format CSS
+    color/cmyk	cmyk(C%,M%,Y%,K%)	cmyk(0%,100%,0%,0%)	si supporté
+    color/argb	#AARRGGBB	#80FF00FF	notation argb (Android, .NET)
+
+*/
 $schema = '{
     "string" : {
         "application" : {

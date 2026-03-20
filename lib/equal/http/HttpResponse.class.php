@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\http;
@@ -34,6 +35,20 @@ class HttpResponse extends HttpMessage {
 
     }
 
+    private static function arrayToXml(\SimpleXMLElement &$object, array $data) {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                if(is_numeric($key)) {
+                    $new_object = $object->addChild('elem');
+                    $new_object->addAttribute('id', $key);
+                }
+                else $new_object = $object->addChild($key);
+                self::arrayToXml($new_object, $value);
+            }
+            else $object->addChild($key, $value);
+        }
+    }
+
     /**
      * Sends a HTTP response to the output stream (stdout).
      * This method is meant to be used in conjunction with PHP context,
@@ -64,29 +79,29 @@ class HttpResponse extends HttpMessage {
 
         // set cookies, if any
         foreach($this->headers()->getCookies() as $cookie => $value) {
-            $hostname = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
-            // make sure the hostname does not contain a port number
-            $hostname = substr($hostname.':', 0, strpos($hostname.':', ':'));
             $params = $this->headers()->getCookieParams($cookie);
-            $expires = (isset($params['expires']))?$params['expires']:time()+60*60*24*365;
-            $path = (isset($params['path']))?$params['path']:'/';
-            $domain = (isset($params['domain']))?$params['domain']:$hostname;
-            $secure = (isset($params['secure']))?$params['secure']:false;
-            $httponly = (isset($params['httponly']))?$params['httponly']:false;
+            // Expiration date — defines when the cookie is deleted.
+            $expires  = $params['expires'] ?? (time() + 60*60*24*365);
+            // Path scope — '/' means the cookie is sent for all paths.
+            $path     = $params['path'] ?? '/';
+            // Domain scope — empty restricts it to the current host only.
+            $domain   = $params['domain'] ?? '';
+            // Secure flag — only sent over HTTPS when true.
+            $secure   = $params['secure'] ?? false;
+            // HttpOnly — hides cookie from JavaScript (server only).
+            $httponly = $params['httponly'] ?? false;
+            // SameSite — controls cross-site sending ('Lax', 'Strict', 'None').
+            $samesite = $params['samesite'] ?? 'Lax';
+            // #memo - empty domain will make the cookie available for original domain only (RFC 6265)
             // equivalent to header("Set-Cookie: cookiename=cookievalue; expires=Tue, 06-Jan-2018 23:39:49 GMT; path=/; domain=example.net");
-            setcookie($cookie, $value, $expires, $path, $domain, $secure, $httponly);
-            // #todo - handle samesite (as of PHP 7.3)
-            /*
-            $samesite = (isset($params['samesite']) && in_array($params['samesite'], ['None', 'Lax', 'Strict']))?$params['samesite']:'None';
-            setcookie($name, $value, [
+            setcookie($cookie, $value, [
                 'expires'   => $expires,
                 'path'      => $path,
                 'domain'    => $domain,
                 'secure'    => $secure,
                 'httponly'  => $httponly,
-                'samesite'  => 'None',
+                'samesite'  => $samesite,
             ]);
-            */
         }
 
         // retrieve body
@@ -122,21 +137,8 @@ class HttpResponse extends HttpMessage {
             case 'text/xml':
             case 'application/xml':
             case 'text/xml, application/xml':
-                function to_xml(\SimpleXMLElement &$object, array $data) {
-                    foreach ($data as $key => $value) {
-                        if (is_array($value)) {
-                            if(is_numeric($key)) {
-                                $new_object = $object->addChild('elem');
-                                $new_object->addAttribute('id', $key);
-                            }
-                            else $new_object = $object->addChild($key);
-                            to_xml($new_object, $value);
-                        }
-                        else $object->addChild($key, $value);
-                    }
-                }
                 $xml = new \SimpleXMLElement('<root/>');
-                to_xml($xml, $body);
+                self::arrayToXml($xml, $body);
                 $body = $xml->asXML();
                 break;
             default:
@@ -146,17 +148,17 @@ class HttpResponse extends HttpMessage {
         else {
             switch($this->headers()->getContentType()) {
             case 'text/csv':
-                if($this->headers()->getCharset() == 'UTF-8') {
-                     $body = "\xEF\xBB\xBF".$body;
+                if($this->headers()->getCharset() === 'UTF-8') {
+                    $body = "\xEF\xBB\xBF" . $body;
                 }
                 break;
             }
         }
         // set header accordingly to body size
-        header('Content-Length: '.strlen($body));
+        header('Content-Length: ' . strlen($body));
         // output body
         print($body);
-        // we return a pointer to current instance for consistency, but no output should be emitted after this point
+        // return a pointer to current instance for consistency, but no output should be emitted after this point
         return $this;
     }
 

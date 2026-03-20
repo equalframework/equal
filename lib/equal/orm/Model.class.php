@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -31,11 +32,15 @@ use equal\services\Container;
  * @method static array canclone(mixed ...$params)  Check wether an object can be cloned.
  *
  * 2) `on...()` methods - event handlers:
- * @method static array onchange(mixed ...$params)  Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
- * @method static void oncreate(mixed ...$params)   Hook invoked AFTER object creation for performing object-specific additional operations.
- * @method static void onupdate(mixed ...$params)   Hook invoked BEFORE object update for performing object-specific additional operations.
- * @method static void ondelete(mixed ...$params)   Hook invoked BEFORE object deletion for performing object-specific additional operations.
- * @method static void onclone(mixed ...$params)    Hook invoked AFTER object cloning for performing object-specific additional operations.
+ * @method static array onchange(mixed ...$params)      Hook invoked by UI for single object values change. Returns an associative array mapping fields with new (virtual) values to be set in UI (not saved yet).
+ * @method static void oncreate(mixed ...$params)       Hook invoked AFTER object creation for performing object-specific additional operations.
+ * @method static void onbeforeupdate(mixed ...$params) Hook invoked BEFORE object update for performing object-specific additional operations.
+ * @method static void onupdate(mixed ...$params)       Alias of onbeforeupdate.
+ * @method static void onafterupdate(mixed ...$params)  Hook invoked AFTER object update for performing object-specific additional operations.
+ * @method static void onbeforedelete(mixed ...$params) Hook invoked BEFORE object deletion for performing object-specific additional operations.
+ * @method static void ondelete(mixed ...$params)       Alias of onbeforedelete.
+ * @method static void onafterdelete(mixed ...$params)  Hook invoked AFTER object deletion for performing object-specific additional operations.
+ * @method static void onclone(mixed ...$params)        Hook invoked AFTER object cloning for performing object-specific additional operations.
  *
  * Possible params (handled by dependency injection):
  * - Collection                         $self       Collection holding a series of objects of current class.
@@ -166,7 +171,7 @@ class Model implements \ArrayAccess, \Iterator {
                 }
                 elseif(is_string($defaults[$field]) && method_exists($this->getType(), $defaults[$field])) {
                     // default is a method of the class (or parents')
-                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field]);
+                    $this->values[$field] = $orm->callonce($this->getType(), $defaults[$field], [], $values);
                 }
                 elseif($defaults[$field] === 'defaultFromSetting') {
                     $class_name = get_called_class();
@@ -181,12 +186,12 @@ class Model implements \ArrayAccess, \Iterator {
                     // use dots instead of backslashes
                     $class_name = implode('.', $parts);
                     // convert PascalCase to snake_case
-                    $setting_code_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
+                    $class_name_prefix = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $class_name));
 
                     $default = Setting::get_value(
                             $package,
                             'default',
-                            "$setting_code_prefix.$field",
+                            "$class_name_prefix.$field",
                             $setting_defaults[$field] ?? null
                         );
 
@@ -243,8 +248,18 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * @return mixed
+     * #[\ReturnTypeWillChange]
      */
     public function offsetGet($field)/*: mixed*/ {
+        /*
+        // #todo
+        if(!isset($this->schema[$field])) {
+            throw new \Exception('unknown_field', EQ_ERROR_INVALID_PARAM);
+        }
+        if(!array_key_exists($field, $this->values)) {
+            throw new \Exception('field_not_loaded', EQ_ERROR_INVALID_PARAM);
+        }
+        */
         return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
@@ -257,6 +272,10 @@ class Model implements \ArrayAccess, \Iterator {
         reset($this->values);
     }
 
+    /**
+     * @return mixed
+     * #[\ReturnTypeWillChange]
+     */
     public function current()/*: mixed*/ {
         return current($this->values);
     }
@@ -567,6 +586,24 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
+     * Provide a list of additional composite indexes.
+     *
+     * Each entry must be an array of field names defining the index.
+     *
+     * Example:
+     * [
+     *     ['condo_id'],
+     *     ['condo_id', 'status'],
+     *     ['status', 'date']
+     * ]
+     *
+     * This method is meant to be overridden in child classes.
+     */
+    public function getIndexes(): array {
+        return [];
+    }
+
+    /**
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
      *
@@ -600,10 +637,27 @@ class Model implements \ArrayAccess, \Iterator {
                 return call_user_func_array([$collection, $name], $arguments);
             }
             else {
-                throw new \Exception("call to non-existing method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
+                throw new \Exception("call to non-existing (or non-accessible) method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
             }
         }
         return null;
     }
+
+    /*
+    #todo
+    Complete "Collection" logic, by allowing same methods on single objects.
+    When called, these create a Collection with a single object and call the target method and return the result
+
+        clone()     ->  new object (Model)
+        update()    ->  original (modified) object ($this)
+        delete()    ->  (void)
+
+    example:
+
+        public function delete() {
+            ($this->getType())::id($this->fields['id'])->delete();
+        }
+
+    */
 
 }

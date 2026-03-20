@@ -1,24 +1,24 @@
 <?php
 
-list($params, $providers) = announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Provide a unique identifier of the current git revision.\n".
                        "This script assumes the current installation is versioned using git.",
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
     ],
-    'params'    => [
-    ],
-    'providers' =>  ['context']
+    'params'    => [],
+    'providers' => ['context']
 ]);
 
-list(   $context,
-        $head_path,
-        $index_path
-) = [
+[
+    $context,
+    $head_path,
+    $index_path
+] = [
     $providers['context'],
-    '../.git/HEAD',
-    '../.git/index'
+    EQ_BASEDIR . '/.git/HEAD',
+    EQ_BASEDIR . '/.git/index'
 ];
 
 if(!file_exists($head_path)) {
@@ -37,12 +37,11 @@ if(!$files || !count($files)) {
 
 $file = trim($files[1]);
 
-$file_path = "../.git/$file";
+$file_path = EQ_BASEDIR . "/.git/$file";
 
 if(!file_exists($file_path)) {
     throw new Exception('inconsistent git index', QN_ERROR_INVALID_CONFIG);
 }
-
 
 // read first bytes from current branch revision hash
 $hash = substr(file_get_contents($file_path), 0, 7);
@@ -50,4 +49,7 @@ $time = filemtime($index_path);
 $date = date("Y.m.d", $time);
 
 
-$context->httpResponse()->body(['revision' => "$date.$hash"])->send();
+$context
+    ->httpResponse()
+    ->body(['revision' => "$date.$hash"])
+    ->send();

@@ -62,26 +62,6 @@ $getTranslationLanguageCodes = function(string $default_lang_code): array {
 };
 
 /**
- * Returns all entities of given package
- *
- * @param string $package
- * @return array
- */
-$getPackageEntities = function(string $package): array {
-    $directory = new RecursiveDirectoryIterator(EQ_BASEDIR."/packages/$package/classes");
-    $iterator = new RecursiveIteratorIterator($directory);
-
-    $regex = new RegexIterator($iterator, '/^.+\.class\.php$/i', RecursiveRegexIterator::GET_MATCH);
-
-    $entities = [];
-    foreach ($regex as $file) {
-        $entities[] = $package . '\\' . str_replace('.class.php', '', substr($file[0], strlen(EQ_BASEDIR . "/packages/$package/classes/")));
-    }
-
-    return $entities;
-};
-
-/**
  * Returns entity fields except one2many and not stored computed fields because not needed for export
  *
  * @param string $entity
@@ -168,8 +148,9 @@ foreach($packages as $package) {
         continue;
     }
 
-    $entities = $getPackageEntities($package);
-    foreach($entities as $entity) {
+    $entities = eQual::run('get', 'core_config_classes', ['package' => $package]);
+    foreach($entities as $entity_name) {
+        $entity = $package . '\\' . $entity_name;
         if(
             (isset($params['entity']) && $params['entity'] !== $entity)
             || $entity === 'core\Translation' || $entity === 'core\Log'
@@ -180,7 +161,7 @@ foreach($packages as $package) {
         try {
             $model = $orm->getModel($entity);
             if(!$model) {
-                throw new Exception(serialize(['unknown_entity' => "$entity does not exist"]), EQ_REPORT_WARNING);
+                throw new Exception(serialize(['unknown_entity' => "$entity does not exist"]), EQ_ERROR_INVALID_PARAM);
             }
             // #todo - load by batch of MAX objects and append to related JSON file
             $fields = $getEntityFieldsToExport($entity);

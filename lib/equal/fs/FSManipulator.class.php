@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\fs;
@@ -699,31 +700,112 @@ class FSManipulator {
         "zmm"			=>	"application/vnd.handheld-entertainment+xml"
     ];
 
-    public static function assertPath($path) {
-        $parts = explode('/', str_replace('\\', '/', $path));
-        $path = $parts[0];
-        for($i = 1, $n = count($parts); $i < $n; ++$i) {
-            $path .= '/'.$parts[$i];
-               if (!is_dir($path)) {
-                @mkdir($path, 0777, true);
+    /**
+     * Convert a string intended to serve as filename to a segmented path.
+     * $filename is expected to be a string with a valid filename.
+     *
+     * Example: "12345678901" → "012/345/678/12345678901"
+     */
+    public static function getSegmentedPath(string $filename): string {
+        $length = strlen($filename);
+        $remainder = $length % 3;
+
+        // pad filename on the left to make its length a multiple of 3
+        if($remainder !== 0) {
+            $padding_length = 3 - $remainder;
+            $filename = str_repeat('0', $padding_length) . $filename;
+        }
+
+        $segments = str_split(substr($filename, 0, -3), 3);
+        $segments[] = $filename;
+
+        return implode('/', $segments);
+    }
+
+    protected static function isValidPath(string $path): bool {
+
+        if(strpos($path, '\\') !== false) {
+            return false;
+        }
+
+        if(strpos($path, "\0") !== false) {
+            return false;
+        }
+
+        if(strlen($path) > 4096) {
+            return false;
+        }
+
+        if(preg_match('#(^|/)\.\.(?=/|$)#', $path)) {
+            return false;
+        }
+
+        if(!preg_match('#^[a-zA-Z0-9/_\-.]+$#', $path)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Ensures that the parent directories of a given file path exist.
+     *
+     * This method validates the given path for security and structural correctness.
+     * It assumes that the last part of the path is a file, not a directory.
+     *
+     * If the parent directories do not exist, they will be created recursively.
+     * If any part of the parent path exists as a non-directory file, an exception is thrown.
+     *
+     * @param string $path The full file path (including the filename) to validate and prepare.
+     *
+     * @throws Exception If the path is invalid, if a non-directory exists in the parent path,
+     *                   or if the directories cannot be created.
+     */
+    public static function assertPath(string $path): void {
+        if (!self::isValidPath($path)) {
+            throw new \Exception("invalid_path");
+        }
+
+        $directory = dirname($path);
+
+        if(file_exists($directory)) {
+            if(!is_dir($directory)) {
+                throw new \Exception("path_exists_not_dir");
             }
+            return;
+        }
+
+        if(!mkdir($directory, 0777, true)) {
+            throw new \Exception("cannot_create_dir");
         }
     }
 
-    public static function getSanitizedPath($path) {
+
+    public static function getSanitizedPath(string $path): string {
+        // decode all potentials URL encoded chars
+        while(strpos($path, '%') !== false) {
+            $decoded = urldecode($path);
+            if($decoded === $path) {
+                break;
+            }
+            $path = $decoded;
+        }
+        // normalize separators
+        $path = str_replace('\\', '/', $path);
+        // remove forbidden sequences
         $banned = [
-            "%252e%252e%255c",
-            "%2e%2e%2f",
-            "%2e%2e%5c",
-            "%2e%2e/",
-            "..%255c",
-            "..%2f",
-            "..%5c",
-            "../",
-            "\0"
+            '../', '..\\', '..',    // directory traversal
+            './', '.\\',            // current dir
+            "\0"                    // null byte
         ];
-        return str_replace($banned, '', str_replace('\\', '/', $path));
+        $path = str_replace($banned, '', $path);
+        // remove redundant slashes
+        $path = preg_replace('#/+#', '/', $path);
+        // remove spaces before and after path
+        $path = trim($path, '/');
+        return $path;
     }
+
 
     public static function getSanitizedName($file_name) {
         // note: remember to maintain current file charset to UTF-8 !

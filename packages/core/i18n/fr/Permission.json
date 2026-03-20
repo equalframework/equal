@@ -1,0 +1,46 @@
+{
+    "name": "Permission",
+    "plural": "Permissions",
+    "description": "Les permissions (ACL) permettent d'assigner des droits à un utilisateur ou un groupe d'utilisateurs sur une classe (entité) ou sur un objet (instance d'une classe).",
+    "model": {
+        "class_name":{
+            "label": "Classe",
+            "description": "",
+            "help":""
+        },
+        "domain":{
+            "label":"Domaine",
+            "description": "",
+            "help": ""
+        },
+        "object_id":{
+            "label":"Objet",
+            "description": "",
+            "help": ""
+        },
+        "group_id":{
+            "label":"Groupe",
+            "description": "",
+            "help": ""
+        },
+        "user_id":{
+            "label":"Utilisateur",
+            "description": "",
+            "help": ""
+        },
+        "rights":{
+            "label":"Droits",
+            "description": "",
+            "help": ""
+        },
+        "rights_txt":{
+            "label":"Droits",
+            "description": "",
+            "help": ""
+        }
+    },
+    "view": {
+    },
+    "error": {
+    }
+}

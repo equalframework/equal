@@ -1,4 +1,10 @@
 {
+    "/auth/pwd": {
+        "POST": {
+            "description": "Attempt to authenticate user with credentials.",
+            "operation": "?do=core_user_auth_pwd"
+        }
+    },
     "/users": {
         "GET": {
             "description": "Search Users",

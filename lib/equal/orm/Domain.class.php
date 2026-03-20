@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
@@ -258,39 +259,36 @@ class Domain {
     private static function conditionCheck($condition, $schema=[]) {
         // condition must be an array
         if(!is_array($condition)) {
-            trigger_error("ORM::condition is not an array", QN_REPORT_ERROR);
+            trigger_error("ORM::condition is not an array", EQ_REPORT_ERROR);
             return false;
         }
         // condition must be composed of 3 elements (field, operator, operand)
         if(count($condition) != 3) {
-            trigger_error("ORM::missing condition in domain", QN_REPORT_ERROR);
+            trigger_error("ORM::missing condition in domain", EQ_REPORT_ERROR);
             return false;
         }
-        // we need to have access to class definition to fully check conditions
+
         if(!empty($schema)) {
             $field = $condition[0];
             $operator = $condition[1];
             // first operand (field) must be a valid field
             if(!in_array($field, array_keys($schema))) {
-                trigger_error("ORM::unknown field '{$field}' in domain", QN_REPORT_ERROR);
+                trigger_error("ORM::unknown field '{$field}' in domain", EQ_REPORT_WARNING);
                 return false;
             }
             // handle 'alias'
-            $is_alias = false;
+
             while($schema[$field]['type'] == 'alias') {
-                $is_alias = true;
-                $field = $schema[$field]['alias'];
+                $field = $schema[$field]['alias'] ?? '';
             }
             $target_type = $schema[$field]['type'];
             if($target_type == 'computed') {
                 $target_type = $schema[$field]['result_type'];
             }
-            if($is_alias) {
-            // #todo - adapt operator based on target type
-            }
+
             // operator must be amongst valid operators for specified field
             if(!in_array($operator, ObjectManager::$valid_operators[$target_type])) {
-                trigger_error("ORM::invalid operator '{$operator}' in domain", QN_REPORT_ERROR);
+                trigger_error("ORM::invalid operator '{$operator}' in domain", EQ_REPORT_ERROR);
                 return false;
             }
         }
@@ -317,8 +315,8 @@ class Domain {
         return true;
     }
 
-    public static function normalize($domain) {
-        if(!is_array($domain) || empty($domain) ) {
+    public static function normalize($domain, $schema=[]) {
+        if(!is_array($domain) || empty($domain)) {
             return [];
         }
 
@@ -335,8 +333,42 @@ class Domain {
                 $domain = [$domain];
             }
         }
+
+        // handle edge cases for operators & values
+        foreach($domain as &$clause) {
+            foreach($clause as &$condition) {
+                if(count($condition) !== 3) {
+                    continue;
+                }
+
+                [$field, $operator, $value] = $condition;
+
+                if(in_array($operator, ['in', 'not in'])) {
+                    if(!is_array($value)) {
+                        $value = [$value];
+                    }
+                    if(!count($value)) {
+                        // fallback to avoid invalid condition
+                        $value = ['0'];
+                    }
+                }
+
+                if(is_null($value) || $value === 'null') {
+                    if($operator === '=') {
+                        $operator = 'is';
+                    }
+                    elseif($operator === '<>') {
+                        $operator = 'is not';
+                    }
+                }
+
+                $condition = [$field, $operator, $value];
+            }
+        }
+
         return $domain;
     }
+
 
     /**
      * @param Domain    $domain     Domain to be merged with current domain.
@@ -365,6 +397,32 @@ class Domain {
     public static function validate($domain, $schema=[]) {
         $domain = self::normalize($domain);
         return self::domainCheck($domain, $schema);
+    }
+
+    /**
+     * Static version of sanitize() to work on array-style domains.
+     *
+     * @param array $domain
+     * @param array $schema
+     * @return array
+     */
+    public static function sanitize(array $domain, array $schema = []) {
+        $normalized = self::normalize($domain, $schema);
+        $result = [];
+
+        foreach($normalized as $clause) {
+            $validConditions = [];
+            foreach($clause as $condition) {
+                if(self::conditionCheck($condition, $schema)) {
+                    $validConditions[] = $condition;
+                }
+            }
+            if(!empty($validConditions)) {
+                $result[] = $validConditions;
+            }
+        }
+
+        return $result;
     }
 
     public static function toString($domain) {
@@ -435,6 +493,7 @@ class Domain {
 
 
 class DomainClause {
+    /** @var DomainCondition[] */
     public $conditions;
 
     public function __construct($conditions = []) {

@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\http\HttpRequest;
@@ -11,7 +12,13 @@ use equal\http\HttpResponse;
 list($params, $providers) = eQual::announce([
     'description'   => "Downloads `composer.phar` and runs it for installing dependencies found in `composer.json`.",
     'help'          => "This controller relies on the PHP binary (`/usr/bin/php`). In order to make them work, sure the PHP binary is present in the PATH. If no `composer.json` is found, an error is returned.",
-    'params'        => [],
+    'params'        => [
+        'ignore_platform' => [
+            'description' => 'Ignore platform-related constraints (PHP, extensions, OS) in operations where applicable.',
+            'type'        => 'boolean',
+            'default'     => false
+        ]
+    ],
     'access'        => [
         'visibility'    => 'private'
     ],
@@ -61,8 +68,19 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
     unlink(EQ_BASEDIR.'/composer.lock');
 }
 
-// run composer to install dependencies (quiet mode, no interactions, ignore PHP version)
-if(exec('php composer.phar install --ignore-platform-reqs -q -n') === false) {
+// run composer to install dependencies (verbose, no interactions)
+$cmd = 'php composer.phar update -vvv -n';
+if($params['ignore_platform']) {
+    $cmd .= ' --ignore-platform-reqs';
+}
+
+// prevent direct output
+$cmd .= ' 2>&1';
+
+$output = [];
+
+if(exec($cmd, $output) === false) {
+    trigger_error("PHP::Composer command failed: ".implode("\n", $output), EQ_REPORT_ERROR);
     throw new Exception('composer_failed', EQ_ERROR_UNKNOWN);
 }
 

@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
@@ -18,16 +19,16 @@ list($params, $providers) = eQual::announce([
             'default' 		=> constant('DEFAULT_LANG')
         ]
     ],
-    'constants'     => ['DEFAULT_LANG'],
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8',
         'accept-origin' => '*'
     ],
+    'constants'     => ['DEFAULT_LANG'],
     'providers'     => ['context', 'orm']
 ]);
 
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'orm' => $orm] = $providers;
 
 $entity = $params['entity'];
 $parents = [];
@@ -53,34 +54,39 @@ if(!ctype_lower(substr($file, 0, 1))) {
 $parents[] = $params['entity'];
 
 // init resulting lang schema
-$lang = [];
+$result = [];
 
 foreach($parents as $entity) {
     $parts = explode('\\', $entity);
     $package = array_shift($parts);
 
     $class_dir = implode('/', $parts);
-    $file = QN_BASEDIR."/packages/{$package}/i18n/{$params['lang']}/{$class_dir}.json";
 
-    if(!file_exists($file)) {
-        continue;
+    $files = [QN_BASEDIR."/packages/$package/i18n/{$params['lang']}/$class_dir.json"];
+    if(strpos($params['lang'], '_') !== false) {
+        // fallback on language only
+        $language = explode('_', $params['lang'])[0];
+        array_unshift($files, QN_BASEDIR."/packages/$package/i18n/$language/$class_dir.json");
     }
 
-    if(($schema = json_decode(@file_get_contents($file), true)) === null) {
-        throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
-    }
-    if(empty($lang)) {
-        $lang = $schema;
-    }
-    else {
-        $lang = array_replace_recursive($lang, $schema);
-    }
-}
+    foreach($files as $file) {
+        if(!file_exists($file)) {
+            continue;
+        }
 
-if(empty($lang)) {
-    throw new Exception("empty_lang_file", QN_ERROR_UNKNOWN_OBJECT);
+        if(($schema = json_decode(@file_get_contents($file), true)) === null) {
+            throw new Exception("malformed_json", QN_ERROR_INVALID_CONFIG);
+        }
+
+        if(empty($result)) {
+            $result = $schema;
+        }
+        else {
+            $result = array_replace_recursive($result, $schema);
+        }
+    }
 }
 
 $context->httpResponse()
-        ->body($lang)
+        ->body($result)
         ->send();

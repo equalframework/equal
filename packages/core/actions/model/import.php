@@ -6,6 +6,7 @@
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\setting\Setting;
 use equal\orm\Field;
 use equal\orm\ObjectManager;
 use equal\php\Context;
@@ -67,7 +68,7 @@ $extractEntityAndSchema = function(array $params) use ($orm): array {
 
     $model = $orm->getModel($entity);
     if(!$model) {
-        throw new Exception('unknown_entity', QN_ERROR_INVALID_PARAM);
+        throw new Exception('unknown_entity', EQ_ERROR_INVALID_PARAM);
     }
 
     return [$entity, $model->getSchema()];
@@ -106,18 +107,40 @@ $lang = $extractLang($params);
 
 $object_ids = [];
 foreach($data as $entity_data) {
+    // adapt values according to type set in schema
     foreach($entity_data as $field => $value) {
         if(!isset($schema[$field])) {
             $reporter->warning("ORM::unknown field $field for entity $entity in given data.");
             continue;
         }
-        $f = new Field($schema[$field]);
+        $f = new Field($schema[$field], $field);
         $entity_data[$field] = $adapter->adaptIn($value, $f->getUsage());
+    }
+
+    // #deprecated #todo - SettingValue objects shouldn't be created through import but using `/init/scripts` with `Setting::assert_value()`
+    if($entity === 'core\setting\SettingValue') {
+        // `id` is discarded to prevent mixing up references across settings from several packages
+        /*
+        // #memo - we cannot do that since identical entities would be recreated at each import and refs would be lost for translations
+        if(isset($entity_data['id'])) {
+            unset($entity_data['id']);
+        }
+        */
+        if(!isset($entity_data['name'])) {
+            $reporter->warning("ORM::missing setting name {$entity_data['name']} for core\\setting\\SettingValue");
+            throw new Exception('missing_setting_name', EQ_ERROR_INVALID_CONFIG);
+        }
+        $settings_ids = Setting::search(['name', '=', $entity_data['name']])->ids();
+        if(empty($settings_ids)) {
+            $reporter->warning("ORM::unknown setting {$entity_data['name']} for core\\setting\\SettingValue");
+            throw new Exception('unknown_setting', EQ_ERROR_INVALID_CONFIG);
+        }
+        $entity_data['setting_id'] = reset($settings_ids);
     }
 
     if(isset($entity_data['id'])) {
         $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
-        if($ids < 0 || !count($ids)) {
+        if(!is_array($ids) || empty($ids)) {
             $orm->create($entity, ['id' => $entity_data['id']], $lang, false);
         }
 
@@ -125,7 +148,7 @@ foreach($data as $entity_data) {
         unset($entity_data['id']);
     }
     else {
-        $id = $orm->create($entity, [], $lang);
+        $id = $orm->create($entity, [], $lang, false);
     }
 
     $orm->update($entity, $id, $entity_data, $lang);
@@ -135,7 +158,7 @@ foreach($data as $entity_data) {
 
 $computed_fields = [];
 foreach($schema as $field => $def) {
-    if($def['type'] === 'computed') {
+    if($def['type'] === 'computed' && isset($def['store']) && $def['store'] === true) {
         $computed_fields[] = $field;
     }
 }

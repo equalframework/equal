@@ -1,13 +1,14 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\http\HttpRequest;
 
 // announce script and fetch parameters values
-list($params, $providers) = announce([
+list($params, $providers) = eQual::announce([
     'description'	=>	"Attempt to auth a user from an external social network.",
     'params' 		=>	[
         'network_name'  =>  [
@@ -21,6 +22,7 @@ list($params, $providers) = announce([
             'required'      => true
         ]
     ],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY'],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -142,7 +144,7 @@ $om->write('core\User', $user_id, [
 ]);
 
 // generate access_token
-$access_token = $auth->token($user_id, AUTH_ACCESS_TOKEN_VALIDITY);
+$access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
 $context->httpResponse()
         // store token in cookie

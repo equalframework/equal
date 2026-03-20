@@ -1,14 +1,15 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 use Dompdf\Dompdf;
 use Dompdf\Options as DompdfOptions;
 use core\setting\Setting;
 
-list($params, $providers) = announce([
+[$params, $providers] = eQual::announce([
     'description'   => "Returns a view populated with a collection of objects and outputs it as a PDF document.",
     'params'        => [
         'entity' =>  [
@@ -40,6 +41,12 @@ list($params, $providers) = announce([
             'description'   => 'Language in which labels and multilang field have to be returned (2 letters ISO 639-1).',
             'type'          => 'string',
             'default'       => constant('DEFAULT_LANG')
+        ],
+        'nolimit' => [
+            'description'   => 'Explicit request for ignoring limit and return all matching objects.',
+            'help'          => 'When activated start and limit parameters are ignored.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DEFAULT_LANG'],
@@ -105,7 +112,7 @@ if(!isset($view_schema['layout']['items'])) {
     throw new Exception('invalid_view', QN_ERROR_INVALID_CONFIG);
 }
 
-$group_by = (isset($view_schema['group_by']))?$view_schema['group_by']:[];
+$group_by = (isset($view_schema['group_by'])) ? $view_schema['group_by'] : [];
 
 $view_fields = [];
 foreach($view_schema['layout']['items'] as $item) {
@@ -156,14 +163,24 @@ if($is_controller_entity) {
 // entity is a Model
 else {
     if(in_array($params['controller'], ['model_collect', 'core_model_collect'])) {
-        $limit = (isset($params['params']['limit']))?$params['params']['limit']:25;
-        $start = (isset($params['params']['start']))?$params['params']['start']:0;
-        $order = (isset($params['params']['order']))?$params['params']['order']:'id';
-        $sort = (isset($params['params']['sort']))?$params['params']['sort']:'asc';
+        $limit = (isset($params['params']['limit'])) ? $params['params']['limit'] : 25;
+        $start = (isset($params['params']['start'])) ? $params['params']['start'] : 0;
+        $order = (isset($params['params']['order'])) ? $params['params']['order'] : 'id';
+        $sort  = (isset($params['params']['sort']))  ? $params['params']['sort'] : 'asc';
         if(is_array($order)) {
             $order = $order[0];
         }
-        $values = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]])->shift($start)->limit($limit)->read($fields_to_read)->get();
+        $collection = $params['entity']::search($params['domain'], ['sort' => [$order => $sort]]);
+
+        if(!$params['nolimit']) {
+            $collection
+                ->shift($start)
+                ->limit($limit);
+        }
+
+        $values = $collection
+            ->read($fields_to_read)
+            ->get();
     }
     else {
         $body = [
@@ -174,7 +191,8 @@ else {
                 'start'     => 0,
                 'order'     => 'id',
                 'sort'      => 'asc',
-                'lang'      => $params['lang']
+                'lang'      => $params['lang'],
+                'nolimit'   => $params['nolimit']
             ];
 
         foreach($params['params'] as $param => $value) {
@@ -200,13 +218,11 @@ else {
 */
 
 // retrieve translation data (for fields names), if any
-$json = run('get', 'config_i18n', [
+$i18n = eQual::run('get', 'config_i18n', [
     'entity'        => $params['entity'],
     'lang'          => $params['lang']
 ]);
 
-// decode json into an array
-$i18n = json_decode($json, true);
 $translations = [];
 if(!isset($i18n['errors']) && isset($i18n['model'])) {
     foreach($i18n['model'] as $field => $descr) {
@@ -348,14 +364,14 @@ if($is_controller_entity) {
                     $align = 'right';
                 }
             }
-            else if($type == 'date') {
+            elseif($type == 'date') {
                 $align = 'center';
             }
-            else if($type == 'time') {
+            elseif($type == 'time') {
                 $align = 'center';
                 $value = date($settings['time_format'], strtotime('today') + $value);
             }
-            else if($type == 'datetime') {
+            elseif($type == 'datetime') {
                 $align = 'center';
             }
             else {
@@ -395,14 +411,16 @@ if($is_controller_entity) {
 }
 else {
     // with group_by support
-    // create initial stack of goups / objects
+    // create initial stack of groups / objects
     $stack = [$values];
     if(count($group_by) && !$is_controller_entity) {
-        $groups = groupObjects($schema, $values, $group_by);
+        $groups = groupObjects($schema, $values, $group_by, $settings);
         $stack = [$groups];
     }
     while(true) {
-        if(count($stack) == 0) break;
+        if(count($stack) == 0) {
+            break;
+        }
 
         $elem = array_pop($stack);
         $first = reset($elem);
@@ -416,7 +434,7 @@ else {
 
             // #todo - if operations are defined, add a line for each group
         }
-        else if(isset($elem['_is_group'])) {
+        elseif(isset($elem['_is_group'])) {
             $row = createGroupRow($doc, $elem, $view_fields, $translations);
             $table->appendChild($row);
         }
@@ -426,7 +444,9 @@ else {
             sort($keys);
             $keys = array_reverse( $keys );
             foreach($keys as $key) {
-                if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) continue;
+                if(in_array($key, ['_id', '_parent_id', '_key', '_label'])) {
+                    continue;
+                }
                 // add object or array
                 if(isset($elem[$key]['_data'])) {
                     $stack[] = $elem[$key]['_data'];
@@ -492,8 +512,7 @@ $context->httpResponse()
  * @param array $objects    List of (partial) array representation of an object collection.
  * @param array $group_by   Descriptor of the fields grouping
  */
-function groupObjects($schema, $objects, $group_by) {
-    global $settings;
+function groupObjects($schema, $objects, $group_by, $settings) {
     $groups = [];
 
     // group objects
@@ -535,11 +554,10 @@ function groupObjects($schema, $objects, $group_by) {
             }
 
             if(in_array($model_def['type'], ['date', 'datetime'])) {
-                // #todo - convert according to settings (date format)
                 $label = date($settings['date_format'], $key);
                 $key = date('Y-m-d', $key);
             }
-            else if(isset($model_def['usage'])) {
+            elseif(isset($model_def['usage'])) {
                 if($model_def['usage'] == 'date/month') {
                     // convert ISO8601 month (1-12) to js month  (0-11)
                     $key = intval($key);
@@ -630,17 +648,17 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
                 $class = 'right';
             }
         }
-        else if($type == 'date') {
+        elseif($type == 'date') {
             $class = 'center';
-            $value = ($value)?date($settings['date_format'], $value):'';
+            $value = ($value) ? date($settings['date_format'], $value) : '';
         }
-        else if($type == 'time') {
+        elseif($type == 'time') {
             $class = 'center';
             $value = date($settings['time_format'], strtotime('today') + $value);
         }
-        else if($type == 'datetime') {
+        elseif($type == 'datetime') {
             $class = 'center';
-            $value = ($value)?date($settings['date_format'].' '.$settings['time_format'], $value):'';
+            $value = ($value) ? date($settings['date_format'].' '.$settings['time_format'], $value) : '';
         }
         else {
             if($type == 'string') {
@@ -677,7 +695,7 @@ function createObjectRow($doc, $object, &$view_items, &$translations, &$schema, 
         }
 
         if($type == 'string' && strpos($usage, 'text/') === 0) {
-            $class += ' allow-wrap';
+            $class .= ' allow-wrap';
         }
 
         $cell->setAttribute('class', $class);
@@ -701,14 +719,14 @@ function createGroupRow($doc, $group, &$view_items, &$translations) {
         $parent_tr = getElementByAttributeValue($doc, 'tr', 'data-id', $parent_group_id);
         $prev_td = $parent_tr->firstChild;
         if($prev_td) {
-            $prefix = $prev_td->getAttribute('title').' › ';
+            $prefix = $prev_td->getAttribute('title') . ' › ';
         }
     }
 
     if(isset($group['_data'])) {
         $children_count = count($group['_data']);
 
-        if(count($group['_operation'])) {
+        if(count($group['_operation'] ?? [])) {
             $op_result = 0;
             $op_type = $group['_operation'][0];
             // target should be 'object.{field_name}'

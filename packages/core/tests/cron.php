@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\ObjectManager;
@@ -18,7 +19,7 @@ $tests = [
             'return'            =>  ['boolean'],
             'expected'          =>  true,
             'test'              =>  function () {
-                                        list($params, $providers) = announce([
+                                        list($params, $providers) = eQual::announce([
                                             'providers' => ['cron']
                                         ]);
                                         return is_callable([$providers['cron'], 'run'], true);
@@ -30,7 +31,7 @@ $tests = [
             'return'            =>  ['boolean'],
             'expected'          =>  true,
             'test'              =>  function () {
-                                        list($params, $providers) = announce([
+                                        list($params, $providers) = eQual::announce([
                                             'providers' => ['cron']
                                         ]);
                                         /**

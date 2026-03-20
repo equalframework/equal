@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
@@ -18,12 +19,12 @@ $db = DBConnector::getInstance(constant('DB_HOST'), constant('DB_PORT'), constan
 
 // 1) test access to DBMS service
 if(!$db->canConnect()) {
-    throw new Exception('Unable to establish connection to DBMS host (wrong hostname).', QN_ERROR_INVALID_CONFIG);
+    throw new Exception('Unable to establish connection to DBMS host (wrong hostname).', EQ_ERROR_INVALID_CONFIG);
 }
 // 2) try to connect to DBMS
 if(!$db->connected()) {
     if($db->connect(false) == false) {
-        throw new Exception('Unable to establish connection to DBMS host (wrong port or wrong credentials).', QN_ERROR_INVALID_CONFIG);
+        throw new Exception('Unable to establish connection to DBMS host (wrong port or wrong credentials).', EQ_ERROR_INVALID_CONFIG);
     }
 }
 // 3) everything went well: disconnect

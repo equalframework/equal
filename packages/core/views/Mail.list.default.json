@@ -3,14 +3,20 @@
     "description": "List of outgoing emails.",
     "order": "created",
     "sort": "desc",
+    "header": {
+        "actions": {
+            "ACTION.CREATE": false
+        }
+    },
     "layout": {
         "items": [
             {
                 "type": "field",
                 "value": "name",
-                "width": "25%",
+                "width": "30%",
                 "widget": {
-                    "sortable": true
+                    "sortable": true,
+                    "wrap": true
                 }
             },
             {

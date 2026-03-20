@@ -1,11 +1,15 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\orm;
-
+use Exception;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionException;
 class Entity {
     /**
      * @var string
@@ -101,5 +105,136 @@ class Entity {
             $filepath .= $this->getName().'.php';
         }
         return $filepath;
+    }
+
+
+    public function updateMethod(string $methodName, array $newData) {
+        try {
+            $class = new ReflectionClass($this->full_name);
+
+            if (!$class->hasMethod($methodName)) {
+                throw new Exception("missing_method", QN_ERROR_UNKNOWN);
+            }
+
+            $method_code = "    public static function $methodName() {\n" .
+                           "        return " . (empty($newData) ? '[]' : $this->arrayExport($newData, 4, 2, true)) . ";\n" .
+                           "    }";
+
+            $this->updateMethodCode($class, $methodName, $method_code);
+        } catch (ReflectionException $e) {
+            throw new Exception("reflection_error: " . $e->getMessage(), QN_ERROR_UNKNOWN);
+        }
+    }
+
+    public function updateMethodLine(string $methodName, string $newKey, $defaultValue = []) {
+        try {
+            $class = new ReflectionClass($this->full_name);
+
+            if (!$class->hasMethod($methodName)) {
+                throw new Exception("missing_method", QN_ERROR_UNKNOWN);
+            }
+
+            $oldData = call_user_func([$this->full_name, $methodName]);
+            if (!is_array($oldData)) {
+                $oldData = [];
+            }
+
+            if (!array_key_exists($newKey, $oldData)) {
+                $oldData[$newKey] = $defaultValue;
+            }
+
+            $method_code = "    public static function $methodName() {\n" .
+                           "        return " . $this->arrayExport($oldData, 4, 2, true) . ";\n" .
+                           "    }";
+
+            $this->updateMethodCode($class, $methodName, $method_code);
+        } catch (ReflectionException $e) {
+            throw new Exception("reflection_error: " . $e->getMessage(), QN_ERROR_UNKNOWN);
+        }
+    }
+
+
+    private function updateMethodCode(ReflectionClass $class, string $methodName, string $newCode) {
+        try {
+            $file = $class->getFileName();
+            if (!$file || !file_exists($file)) {
+                throw new Exception("File not found: $file", QN_ERROR_UNKNOWN);
+            }
+
+            $code = file_get_contents($file);
+            if ($code === false) {
+                throw new Exception("Failed to read file: $file", QN_ERROR_UNKNOWN);
+            }
+
+            $lines = explode("\n", $code);
+
+            try {
+                $method = new ReflectionMethod($class->getName(), $methodName);
+            } catch (ReflectionException $e) {
+                throw new Exception("Method $methodName not found in class " . $class->getName(), QN_ERROR_UNKNOWN);
+            }
+
+            $start_index = $method->getStartLine() - 1;
+            $end_index = $method->getEndLine() - 1;
+
+            if ($start_index < 0 || $end_index < 0 || $end_index < $start_index) {
+                throw new Exception("Invalid method boundaries for $methodName", QN_ERROR_UNKNOWN);
+            }
+
+            $result = '';
+            foreach ($lines as $index => $line) {
+                if ($index < $start_index) {
+                    $result .= $line . "\n";
+                } elseif ($index == $start_index) {
+                    $result .= $newCode . "\n";
+                } elseif ($index > $end_index) {
+                    $result .= $line . "\n";
+                }
+            }
+
+            if (file_put_contents($file, rtrim($result) . "\n") === false) {
+                throw new Exception("Failed to write to file: $file", QN_ERROR_UNKNOWN);
+            }
+        } catch (Exception $e) {
+            error_log("Error in updateMethodCode: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+
+
+
+    private function arrayExport($array, $indent_spaces = 4, $pad_indents = 0, $ignore_first_indent = false) {
+        if (!is_array($array)) {
+            return '';
+        }
+
+        $export = var_export($array, true);
+
+        $patterns = [
+            "/array \(/"                        => '[',
+            "/^([ ]*)\)(,?)$/m"                 => '$1]$2',
+            "/=>[ ]?\n[ ]+\[/"                  => '=> [',
+            "/([ ]*)(\'[^\']+\') => ([\[\'])/"  => '$1$2 => $3',
+            "/[0-9]+ => /"                      => ''
+        ];
+
+        $result = preg_replace(array_keys($patterns), array_values($patterns), $export);
+        if (empty($result)) {
+            return '';
+        }
+
+        $lines = explode("\n", $result);
+        foreach ($lines as $index => $line) {
+            if (!$ignore_first_indent || $index > 0) {
+                $code = ltrim($line);
+                $indents = (strlen($line) - strlen($code)) / 2;
+                $lines[$index] = str_pad('', $pad_indents * $indent_spaces, ' ') .
+                                 str_pad('', $indents * $indent_spaces, ' ') .
+                                 $code;
+            }
+        }
+
+        return implode("\n", $lines);
     }
 }

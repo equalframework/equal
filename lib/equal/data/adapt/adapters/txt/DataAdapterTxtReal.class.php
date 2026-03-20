@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <https://github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\data\adapt\adapters\txt;
@@ -97,7 +98,7 @@ class DataAdapterTxtReal implements DataAdapter {
             case 'money':
                 $currency_symbol_position = Locale::get_format('core', 'currency.symbol_position', 'before', $locale);
                 $currency_symbol_separator = Locale::get_format('core', 'currency.symbol_separator', '', $locale);
-                $currency_symbol = Setting::get_value('core', 'units', 'currency', '$');
+                $currency_symbol = Setting::get_value('core', 'locale', 'currency', '$');
                 if($currency_symbol_position == 'before') {
                     $number = $currency_symbol.$currency_symbol_separator.$number;
                 }

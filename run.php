@@ -63,7 +63,11 @@ try {
     // retrieve current user
     $auth = Container::getInstance()->get('auth');
     // keep track of the access in the log
-    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::".json_encode(['type' => 'auth', 'user_id' => $auth->userId(), 'ip_address' => $request->getHeaders()->getIpAddress()]));
+    Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::" . json_encode([
+            'type'          => 'auth',
+            'user_id'       => $auth->userId(),
+            'ip_address'    => $request->getHeaders()->getIpAddress()
+        ]));
     // get HTTP method of current request
     $method = $request->getMethod();
     // get HttpUri object (@see equal\http\HttpUri class for URI structure)
@@ -102,7 +106,7 @@ try {
         ]) ) {
         $router = Router::getInstance();
         // add routes providers according to current request
-        $router->add(QN_BASEDIR.'/config/routing/*.json');
+        $router->add(EQ_BASEDIR.'/config/routing/*.json');
         // translate preflight requests (OPTIONS) to be handled as GET, with announcement
         // (so API does not have to explicitly define OPTIONS routes)
         if($method == 'OPTIONS') {
@@ -117,7 +121,7 @@ try {
         }
         // if route cannot be resolved, raise a "UNKNOWN_OBJECT" exception (HTTP 404)
         if(!($route = $router->resolve($path, $method))) {
-            throw new Exception("Unknown route '$method':'$path'", QN_ERROR_UNKNOWN_OBJECT);
+            throw new Exception("Unknown route '$method':'$path'", EQ_ERROR_UNKNOWN_OBJECT);
         }
         // fetch resolved parameters
         $params = $route['params'];
@@ -150,7 +154,7 @@ try {
     }
     else {
         $route = [
-            'operation' => Router::normalizeOperation('?'.$uri->query())
+            'operation' => Router::normalizeOperation('?' . http_build_query((array) $request->body()))
         ];
         // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root `config.json`)
         if(!isset($route['operation']['name'])) {
@@ -172,8 +176,17 @@ try {
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
         );
 
+    if($route['operation']['name'] === 'core' && $route['operation']['type'] !== 'show') {
+        throw new Exception("No controller provided for request type `{$route['operation']['type']}`.", EQ_ERROR_MISSING_PARAM);
+    }
+
     // output result to STDOUT
     echo run($route['operation']['type'], $route['operation']['name'], (array) $request->body(), true);
+
+    // if run from CLI, ensure the prompt appears on a new line
+    if(php_sapi_name() === 'cli') {
+        echo PHP_EOL;
+    }
 
     // store NET info to access log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
@@ -186,7 +199,7 @@ try {
 // something went wrong: send a HTTP response according to the raised exception
 catch(Throwable $e) {
     if( !($e instanceof Exception) ) {
-        $error_code = QN_ERROR_UNKNOWN;
+        $error_code = EQ_ERROR_UNKNOWN;
     }
     else {
         $error_code = $e->getCode();
@@ -199,7 +212,7 @@ catch(Throwable $e) {
         $request_method = $request->getMethod();
         $request_headers = $request->getHeaders(true);
         // get HTTP status code according to raised exception
-        $http_status = qn_error_http($error_code);
+        $http_status = eq_error_http($error_code);
         $http_allow_headers = '*';
         if($request_method == 'OPTIONS') {
             $http_status = 204;
@@ -230,12 +243,19 @@ catch(Throwable $e) {
             ->header('Access-Control-Allow-Credentials', 'true')
             // append an 'error' section to response body
             ->extendBody([
-                    // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
-                    'errors' => [ qn_error_name($error_code) => ($data)?$data:mb_convert_encoding($msg, 'UTF-8', mb_list_encodings()) ]
-                ])
+                // #memo - mb_convert_encoding returns an empty string in PHP 8.1.0 (fixed in 8.1.2)
+                'errors' => [ eq_error_name($error_code) => ($data) ? $data : mb_convert_encoding($msg, 'UTF-8', 'auto') ]
+            ])
             ->send();
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status ".qn_error_name($error_code).": ".$msg, ($http_status < 500)?EQ_REPORT_WARNING:EQ_REPORT_ERROR);
+
+        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
+
+    // if run from CLI, ensure the prompt appears on a new line
+    if(php_sapi_name() === 'cli') {
+        echo PHP_EOL;
+    }
+
     // store NET info to access log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "NET::".json_encode([
                 'start'     => $_SERVER["REQUEST_TIME_FLOAT"],
@@ -243,7 +263,7 @@ catch(Throwable $e) {
                 'ip'        => $request->getHeaders()->getIpAddress()
             ])
         );
-    // an exception with code 0 is an explicit request to halt process with no error
+    // #memo - an exception with code 0 is an explicit request to halt process with no error
     if($error_code != 0) {
        // return an error code (for compliance under CLI environment)
         exit(1);

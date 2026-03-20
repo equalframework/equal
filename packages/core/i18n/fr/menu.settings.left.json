@@ -1,0 +1,70 @@
+{
+    "name": "Menu Settings",
+    "description": "",
+    "view": {
+        "security": {
+            "label": "Sécurité",
+            "help": ""
+        },
+        "permissions": {
+            "label": "Permissions",
+            "help": ""
+        },
+        "users": {
+            "label": "Utilisateurs",
+            "help": ""
+        },
+        "groups": {
+            "label": "Groupes",
+            "help": ""
+        },
+        "communication": {
+            "label": "Communication",
+            "help": ""
+        },
+        "communication.alerts": {
+            "label": "Alertes",
+            "help": ""
+        },
+        "communication.alert.messages": {
+            "label": "Tous les messages",
+            "help": ""
+        },
+        "communication.alert.message_models": {
+            "label": "Modèles de message",
+            "help": ""
+        },
+        "settings": {
+            "label": "Configuration",
+            "help": ""
+        },
+        "settings.scheduler": {
+            "label": "Planificateur",
+            "help": ""
+        },
+        "settings.cron.tasks": {
+            "label": "Toutes les tâches",
+            "help": ""
+        },
+        "settings.cron.tasks.recurring": {
+            "label": "Tâches récurrentes",
+            "help": ""
+        },
+        "settings.settings": {
+            "label": "Paramètres",
+            "help": ""
+        },
+        "settings.settings.settings_values": {
+            "label": "Valeurs des paramètres",
+            "help": ""
+        },
+        "settings.settings.settings_choices": {
+            "label": "Choix des paramètres",
+            "help": ""
+        },
+        "settings.settings.settings": {
+            "label": "Tous les paramètres",
+            "help": ""
+        }
+    }
+}

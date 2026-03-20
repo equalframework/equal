@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\dispatch;
@@ -41,11 +42,11 @@ class Dispatcher extends Service {
     public function dispatch($message_model, $object_class, $object_id, $severity='notice', $controller=null, $params=[], $links=[], $user_id=null, $group_id=null) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
-        trigger_error("PHP::dispatching message", QN_REPORT_DEBUG);
+        trigger_error("PHP::dispatching message", EQ_REPORT_DEBUG);
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
-        if($message_models_ids > 0 && count($message_models_ids)){
+        if($message_models_ids > 0 && count($message_models_ids)) {
             $message_model_id = reset($message_models_ids);
             // prevent creating duplicates
             $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]]);
@@ -70,7 +71,7 @@ class Dispatcher extends Service {
             }
         }
         else {
-            trigger_error("PHP::unknown message model", E_USER_WARNING);
+            trigger_error("PHP::Unknown alert MessageModel {$message_model}", E_USER_WARNING);
         }
     }
 
@@ -85,9 +86,9 @@ class Dispatcher extends Service {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $messages_ids = $orm->search('core\alert\Message', ['id', '=', $id]);
-        if($messages_ids > 0 && count($messages_ids)) {
+        if(is_array($messages_ids) && count($messages_ids)) {
             $messages = $orm->read('core\alert\Message', $messages_ids, ['id', 'controller', 'params']);
-            if($messages > 0 && count($messages)) {
+            if(is_array($messages) && count($messages)) {
                 $message = reset($messages);
                 $orm->delete('core\alert\Message', $message['id'], true);
                 if($message['controller']) {
@@ -114,14 +115,14 @@ class Dispatcher extends Service {
     public function cancel($message_model, $object_class, $object_id) {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
-        trigger_error("PHP::cancelling message", QN_REPORT_DEBUG);
+        trigger_error("PHP::cancelling message", EQ_REPORT_DEBUG);
 
         $message_models_ids = $orm->search('core\alert\MessageModel', ['name', '=', $message_model]);
 
-        if($message_models_ids > 0 ){
+        if(is_array($message_models_ids) && count($message_models_ids)){
             $message_model_id = reset($message_models_ids);
             $messages_ids = $orm->search('core\alert\Message', [['message_model_id', '=', $message_model_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id]] );
-            if($messages_ids > 0) {
+            if(is_array($messages_ids) && count($messages_ids)) {
                 $orm->delete('core\alert\Message', $messages_ids, true);
             }
         }

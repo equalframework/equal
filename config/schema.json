@@ -57,7 +57,7 @@
     },
     "CIPHER_KEY": {
         "type": "string",
-        "description": "Private key to use for secrets decryption. This property should be defined before any encryption/decryption operation.",
+        "description": "Private key to use for secrets encryption/decryption. This property should be defined before any encryption/decryption operation.",
         "instant": true,
         "environment": "EQ_CIPHER_KEY",
         "examples": [
@@ -138,7 +138,7 @@
         "type": "string",
         "description": "Password for authenticating on DB host.",
         "instant": true,
-        "environment": "EQ_DB_PASSWORD",
+        "environment": "EQ_DB_PASS",
         "default": "test"
     },
     "DB_NAME": {
@@ -175,8 +175,8 @@
         "default": 0,
         "examples": [
             0,
-            "EQ_R_READ | EQ_R_WRITE",
-            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_WRITE | EQ_R_MANAGE",
+            "EQ_R_READ | EQ_R_UPDATE",
+            "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_UPDATE | EQ_R_MANAGE",
             "EQ_R_ALL"
         ]
     },
@@ -293,6 +293,12 @@
         "instant": true,
         "default": 10
     },
+    "HTTP_REQUEST_VERIFY_SSL": {
+        "type": "boolean",
+        "description": "Maximum wait time, in seconds, before cancelling a pending HTTP request. Must not exceed `max_execution_time`.",
+        "instant": true,
+        "default": true
+    },
     "HTTP_PROCESS_USERNAME": {
         "type": "string",
         "description": "Username used by the HTTP service (for rights checks).",
@@ -325,7 +331,7 @@
     },
     "UPLOAD_MAX_FILE_SIZE": {
         "type": "integer",
-        "usage": "amount/data",
+        "usage": "number/integer",
         "description": "Maximum authorized size for file upload (in bytes). Keep in mind that this parameter does not override the PHP 'upload_max_filesize' directive, o it can be more restrictive but will not be effective if set higher.",
         "default": "64MB",
         "examples": [
@@ -336,11 +342,11 @@
     },
     "MEM_FREE_LIMIT": {
         "type": "integer",
-        "usage": "amount/data",
+        "usage": "number/integer",
         "description": "Minimum amount of free memory (in bytes) of the system (instance) below which no new process should start.",
         "help": "This parameter is a threshold that eQual tries not to exceed (the task scheduler stops running tasks while free memory is below limit). However, under certain circumstances, this limit may still be momentarily surpassed. That value is complementary to the memory_limit set in php.ini (that limits the amount of memory that each PHP threads can use).",
         "instant": true,
-        "environment": "EQ_MEM_LIMIT",
+        "environment": "EQ_MEM_FREE_LIMIT",
         "default": "256MB",
         "examples": [
             "512MB",
@@ -382,6 +388,41 @@
         "deprecated": "Please use BACKEND_URL instead.",
         "description": "The URL of the root folder (mapped with `./public`), with the scheme but without trailing slash (no path).",
         "default": "http://equal.local"
+    },
+    "SERVICE_AUTH_AUTHENTICATIONMANAGER": {
+        "type": "string",
+        "description": "Class to use as AuthenticationManager service (under `lib` folder).",
+        "help": "This allows to customize behavior related to identity & access management. The target class must be inherited from equal\\auth\\AccessController.",
+        "default": "equal\\auth\\AuthenticationManager",
+        "instant": true
+    },
+    "SERVICE_ACCESS_ACCESSCONTROLLER": {
+        "type": "string",
+        "description": "Class to use as AccessController service (under `lib` folder).",
+        "help": "This allows to customize behavior related to identity & access management. The target class must be inherited from equal\\access\\AccessController.",
+        "default": "equal\\access\\AccessController",
+        "instant": true
+    },
+    "SERVICE_CRON_SCHEDULER" : {
+        "type": "string",
+        "description": "Class to use as Scheduler service (under `lib` folder).",
+        "help": "This allows to customize behavior related to task scheduling. The target class must be inherited from equal\\cron\\Scheduler.",
+        "default": "equal\\cron\\Scheduler",
+        "instant": true
+    },
+    "SERVICE_ORM_OBJECTMANAGER": {
+        "type": "string",
+        "description": "Class to use as ObjectManager service (under `lib` folder).",
+        "help": "This allows to customize behavior related to objects management. The target class must be inherited from equal\\orm\\ObjectManager.",
+        "default": "equal\\orm\\ObjectManager",
+        "instant": true
+    },
+    "SERVICE_ORM_COLLECTION_CLASS": {
+        "type": "string",
+        "description": "Class to use for Collection instances (under `lib` folder).",
+        "help": "This allows to customize behavior related to Collections and calls to `{Entity}::{method}()` by changing the targeted Collection class. The target class must be inherited from equal\\orm\\Collection.",
+        "default": "equal\\orm\\Collection",
+        "instant": true
     },
     "TASK_EXECUTION_TIMEOUT": {
         "type": "integer",

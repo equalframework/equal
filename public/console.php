@@ -2,12 +2,13 @@
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, The eQual Framework, 2010-2024
-    Author: The eQual Framework Contributors
-    Original Author: Cedric Francoys
+    Author: The eQual Framework Community
+    Original Author(s): Cedric Francoys
     License:  GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 error_reporting(0);
 define('MAX_FILESIZE', 100 * 1000 * 1000);
+define('MAX_DISPLAY_LINES', 5000);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
@@ -364,6 +365,10 @@ if(!count($_GET)) {
                 text-overflow: ellipsis;
             }
 
+            div.thread div.thread_line div.line-title code {
+                color: #4f4f4f;
+            }
+
             div.thread div.thread_line div.line-title.match, div.thread div.thread_line div.line-title.match code {
                 background-color: yellow !important;
             }
@@ -588,20 +593,20 @@ if(!count($_GET)) {
                 let div = document.createElement("div");
                 let content = template;
                 let info = get_level_info(line.level);
-                let origin = ((line.class.length) ? line.class+"::" : "") + line.function;
-                let inside = "<b>in</b> <code class=\"" + info.class +"\">" + origin + "</code>";
-                content = content.replace("$mode", line.mode);
-                content = content.replace("$time", line.time);
-                content = content.replace("$mtime", line.mtime);
-                content = content.replace("$file", line.file);
-                content = content.replace("$line", line.line);
+                let origin = ( (line?.class?.length) ? line.class + "::" : "" ) + line.function;
+                let inside = "<b>in</b> <code class=\"" + (info?.class ?? "") + "\">" + origin + "</code>";
+                content = content.replace("$mode", line?.mode ?? "");
+                content = content.replace("$time", line?.time ?? "");
+                content = content.replace("$mtime", line?.mtime ?? "");
+                content = content.replace("$file", line?.file ?? "");
+                content = content.replace("$line", line?.line ?? "");
                 content = content.replace("$in", inside);
-                content = content.replaceAll("$type", info.type);
-                content = content.replaceAll("$class", info.class);
-                content = content.replaceAll("$icon", info.icon);
+                content = content.replaceAll("$type", info?.type ?? "");
+                content = content.replaceAll("$class", info?.class ?? "");
+                content = content.replaceAll("$icon", info?.icon ?? "");
                 content = content.replaceAll(
                             "$msg",
-                            line.message.replace(/&/g, "&amp;")
+                             (line?.message ?? "").replace(/&/g, "&amp;")
                                         .replace(/</g, "&lt;")
                                         .replace(/>/g, "&gt;")
                                         .replace(/"/g, "&quot;")
@@ -841,8 +846,8 @@ if(!count($_GET)) {
                 </div>
             </form>
             <div style="width: 100%; padding: 0 15px;">
-                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
                 <button id="btn-DEBUG" class="btn btn-success applied" onclick="btnFilterClick(this)">DEBUG</button>
+                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
                 <button id="btn-WARNING" class="btn btn-warning applied" onclick="btnFilterClick(this)">WARNING</button>
                 <button id="btn-ERROR" class="btn btn-danger applied" onclick="btnFilterClick(this)">ERROR</button>
             </div>
@@ -893,16 +898,25 @@ else {
 
         $filesize = filesize('../log/'.$log_file);
 
-        // limit processing base on filesize to prevent overload
-        if($filesize > constant('MAX_FILESIZE')) {
-            echo constant('MAX_FILESIZE');
-            // set response as 'no content'
-            http_response_code(204);
-            die();
+        // limit processing based on filesize to prevent overload
+        $max_filesize = constant('MAX_FILESIZE');
+        $offset = 0;
+
+        if($filesize > $max_filesize) {
+            // start reading from the last MAX_FILESIZE bytes
+            $offset = $filesize - $max_filesize;
         }
 
         // read raw data from log file
         if($f = fopen('../log/'.$log_file, 'r')) {
+
+            // move pointer if needed (tail behavior)
+            if($offset > 0) {
+                fseek($f, $offset);
+
+                // discard first partial line (we are likely in the middle of a line)
+                fgets($f);
+            }
 
             // lines request (return lines matching filters within a given thread_id)
             if(isset($_GET['thread_id'])) {
@@ -933,12 +947,10 @@ else {
                     }
                     $result[] = $line;
                     ++$count_lines;
-                    // all threads start and end with a 'NET' entry
-                    if($line['mode'] == 'NET' && $count_lines > 2) {
+                    if($count_lines >= constant('MAX_DISPLAY_LINES')) {
                         break;
                     }
                 }
-
             }
             // threads request (return threads summary: lines count, max level, first time)
             else {

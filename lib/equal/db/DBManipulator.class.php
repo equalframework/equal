@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\db;
@@ -199,7 +200,6 @@ class DBManipulator {
         return $this->last_id;
     }
 
-
     public function getAffectedRows() {
         return $this->affected_rows;
     }
@@ -226,6 +226,17 @@ class DBManipulator {
 
     protected function setLastQuery($query) {
         $this->last_query = $query;
+    }
+
+    public function getCompositeIndexName($columns) {
+        $index_name = 'idx_' . implode('_', $columns ?? []);
+        // #todo - use global constant - to adapt depending on DBMS and/or version
+        $MAX_LEN = 64;
+        // prevent index name size overflow
+        if(strlen($index_name) > $MAX_LEN) {
+            $index_name = 'idx_' . md5($index_name);
+        }
+        return $index_name;
     }
 
     /**
@@ -349,6 +360,16 @@ class DBManipulator {
      * @return string SQL query to add an index.
      */
     public function getQueryAddIndex($table_name, $column) {}
+
+    /**
+     * Generates a SQL query to add a composite index to a table.
+     *
+     * @param string $table_name    The name of the table.
+     * @param array $columns       Array holding the names of the columns for the composite index.
+     * @return string SQL query to add an index.
+     */
+    public function getQueryAddCompositeIndex($table_name, $columns) {
+    }
 
     /**
      * Generates a SQL query to add a unique constraint to one or more columns in a table.

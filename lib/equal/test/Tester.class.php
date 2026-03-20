@@ -1,7 +1,8 @@
 <?php
 /*
-    This file is part of the eQual framework <http://www.github.com/cedricfrancoys/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 namespace equal\test;
@@ -88,7 +89,7 @@ class Tester {
                 }
                 catch(\Exception $e) {
                     $this->results[$id]['logs'][] = "Error while performing `arrange()`: ".$e->getMessage();
-                    throw new \Exception("test {$id} raised an unexpected exception: ".$e->getMessage(), QN_ERROR_UNKNOWN);
+                    throw new \Exception("test {$id} raised an unexpected exception: ".$e->getMessage(), $e->getCode());
                 }
             }
 
@@ -158,23 +159,29 @@ class Tester {
                 }
             }
 
-            $this->results[$id]['status'] = $success?'ok':'ko';
+            $this->results[$id]['status'] = $success ? 'ok' : 'ko';
 
             $result_txt = $result;
             if(gettype($result) == 'object') {
                 $result_txt = get_class($result).' object';
                 if(is_a($result, Model::getType())) {
-                    $result_txt .= ':'.json_encode($result->toArray());
+                    $result_txt .= ':' . json_encode($result->toArray());
                 }
             }
-            $this->results[$id]['result'] = $result_txt;
+            elseif(gettype($result) == 'array') {
+                $result_txt = json_encode($result);
+            }
+            else {
+                $result_txt = (string) $result;
+            }
+            $this->results[$id]['result'] = (strlen($result_txt) > 255) ? substr($result_txt, 0, 255) . '[...]' : $result_txt;
 
             if(isset($test['expected'])) {
                 $this->results[$id]['expected'] = $test['expected'];
             }
 
             if(isset($test['arrange'])) {
-                $this->results[$id]['arrange'] = (gettype($precondition) == 'object')?'('.get_class($precondition).' object)':$precondition;
+                $this->results[$id]['arrange'] = (gettype($precondition) == 'object') ? '('.get_class($precondition).' object)' : $precondition;
             }
         }
 

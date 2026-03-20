@@ -1,7 +1,8 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2021
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
@@ -28,8 +29,7 @@ $context->httpResponse()
         ->cookie('access_token', '', [
             'expires'   => time(),
             'httponly'  => true,
-            'secure'    => constant('AUTH_TOKEN_HTTPS'),
-            'domain'    => parse_url(constant('BACKEND_URL'), PHP_URL_HOST)
+            'secure'    => constant('AUTH_TOKEN_HTTPS')
         ])
         ->status(204)
         ->send();

@@ -1,10 +1,13 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, Cedric Francoys, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\db\DBConnector;
+
+use function PHPUnit\Framework\isEmpty;
 
 // get listing of existing packages
 $packages = eQual::run('get', 'config_packages');
@@ -24,6 +27,11 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'selection'     => ['*', 'warn', 'error'],
             'default'       => '*'
+        ],
+        'strict'	=>  [
+            'description'   => 'Flag to enable strict mode.',
+            'type'          => 'boolean',
+            'default'       => false
         ]
     ],
     'constants'     => ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_DBMS'],
@@ -55,6 +63,11 @@ list($context, $orm) = [$providers['context'], $providers['orm']];
     * for each class, check that all fields are each field is present at least in one view
 
     * check for potential versions conflicts across packages in manifest `requires` (composer dependencies)
+
+
+    * check consistency of import files (JSON)
+        if($entity === 'core\setting\SettingValue') => setting_id should not be present and name should be set.
+
 */
 
 // result of the tests : array containing errors (if no errors are found, array is empty)
@@ -104,10 +117,16 @@ foreach($classes as $class) {
         throw new Exception("FATAL - unknown class '{$class_name}'", QN_ERROR_UNKNOWN_OBJECT);
     }
 
+    // get the complete schema of the object (including special fields)
+    // #memo - we want the fields as they are defined in the class, not as they are returned by getSchema()
+    $schema = $model->getSpecialColumns();
+    $stack_classes = [$model->getType()];
+
     // verify that the class actually inherits from Model
     // retrieve root class (before Model)
     $root_parent = get_parent_class($model);
     while($root_parent && $root_parent != 'equal\orm\Model') {
+        $stack_classes[] = $root_parent;
         $root_parent = get_parent_class($root_parent);
     }
 
@@ -115,8 +134,9 @@ foreach($classes as $class) {
         throw new Exception("FATAL - ORM - Class $class_name does not inherit from `equal\orm\Model` root class.", QN_ERROR_UNKNOWN_OBJECT);
     }
 
-    // get the complete schema of the object (including special fields)
-    $schema = $model->getSchema();
+    foreach(array_reverse($stack_classes) as $item) {
+        $schema = array_merge($schema, $item::getColumns());
+    }
 
     // 1) check fields descriptors consistency
 
@@ -142,7 +162,7 @@ foreach($classes as $class) {
         }
         foreach($descriptor as $attribute => $value) {
             if(!in_array($attribute, $orm::$valid_attributes[$descriptor['type']])) {
-                $result[] = "ERROR - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
+                $result[] = "WARN  - ORM - Class $class: Unknown attribute '$attribute' for field '$field' ({$descriptor['type']}) - Possible attributes are : ".implode(', ', $orm::$valid_attributes[$descriptor['type']])." ($class_filename)";
                 $is_error = true;
             }
             if(in_array($attribute, array('store', 'multilang', 'readonly')) && $value !== true && $value !== false) {
@@ -203,7 +223,7 @@ foreach($classes as $class) {
     foreach($view_files as $view_file) {
         $json = file_get_contents($view_file);
         $data = @json_decode($json, true);
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
             $result[] = "ERROR - GUI - Syntax error in file: $view_file";
             $is_error = true;
             continue;
@@ -351,7 +371,7 @@ foreach($classes as $class) {
     }
 
     // todo : 7) check apps / data / actions  files consistency (.php)
-    // - presence of " = announce( "
+    // - presence of " = eQual::announce( "
 
 }
 
@@ -541,17 +561,23 @@ if($is_error) {
  */
 
 
-
 function view_test($data, $structure) {
     $sub_keys = array_keys($data);
     if(!is_numeric($sub_keys[0])) {
         $data = [$data];
     }
     foreach($data as $index => $elem) {
+        if(empty($elem)) {
+            continue;
+        }
         foreach($structure as $item => $def) {
-            $key = is_numeric($item)?$def:$item;
+            $key = is_numeric($item) ? $def : $item;
             if(is_numeric($item)) {
                 if(!isset($elem[$key])) {
+                    if($key === 'width' && (isset($elem['visible']) || isset($elem['widget']['visible']))) {
+                        // width is non-mandatory if the item is not visible
+                        continue;
+                    }
                     return "missing property '$key' for item $index";
                 }
             }
