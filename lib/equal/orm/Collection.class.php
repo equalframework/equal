@@ -293,7 +293,23 @@ class Collection implements \Iterator, \Countable {
      * @return Collection Returns the Collection with a single empty object.
      */
     public function id($id) {
-        return $this->ids((array) $id);
+        if($id instanceof \equal\orm\Model) {
+            $id = $id['id'];
+        }
+        elseif(is_array($id)) {
+            if(isset($id['id']) && is_scalar($id['id'])) {
+                $id = $id['id'];
+            }
+            else {
+                throw new \Exception("non_scalar_or_missing_id", EQ_ERROR_INVALID_PARAM);
+            }
+        }
+
+        if(!is_scalar($id)) {
+            throw new \Exception("non_scalar_id", EQ_ERROR_INVALID_PARAM);
+        }
+
+        return $this->ids([(int) $id]);
     }
 
     /**
