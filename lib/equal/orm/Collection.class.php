@@ -324,19 +324,62 @@ class Collection implements \Iterator, \Countable {
      */
     public function ids() {
         $args = func_get_args();
+
+        // Getter
         if(count($args) <= 0) {
-            return array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
+            return array_filter(array_keys($this->objects), function($a) {
+                return ($a > 0);
+            });
         }
+
+        // Setter
+        $input = $args[0];
+        $ids = [];
+
+        // Collection
+        if($input instanceof self) {
+            if($input->getClass() !== $this->class) {
+                throw new \Exception("collection_class_mismatch", EQ_ERROR_INVALID_PARAM);
+            }
+            $ids = $input->ids();
+        }
+        // array
         else {
-            $ids = $this->orm->filterExistingIdentifiers($this->class, (array) $args[0]);
-            // reset list
-            $this->objects = [];
-            // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
-            foreach($ids as $id) {
-                $this->objects[$id] = clone $this->model;
-                $this->objects[$id]['id'] = $id;
+            // normalize to array
+            foreach((array) $input as $item) {
+
+                // Model
+                if($item instanceof \equal\orm\Model) {
+                    $item = $item['id'];
+                }
+                // array with id
+                elseif(is_array($item)) {
+                    if(!array_key_exists('id', $item) || !is_scalar($item['id'])) {
+                        throw new \Exception("invalid_array_id", EQ_ERROR_INVALID_PARAM);
+                    }
+                    $item = $item['id'];
+                }
+
+                // scalar validation
+                if(!is_scalar($item) || !is_numeric($item)) {
+                    throw new \Exception("invalid_non_scalar_id", EQ_ERROR_INVALID_PARAM);
+                }
+
+                $ids[] = (int) $item;
             }
         }
+
+        // filter existing
+        $ids = $this->orm->filterExistingIdentifiers($this->class, $ids);
+
+        // reset collection
+        $this->objects = [];
+
+        foreach($ids as $id) {
+            $this->objects[$id] = clone $this->model;
+            $this->objects[$id]['id'] = $id;
+        }
+
         return $this;
     }
 
@@ -1227,6 +1270,9 @@ class Collection implements \Iterator, \Countable {
     public static function cancreate(...$params) {
         return [];
     }
+
+    // #todo
+    // make distinction with an additionnal caninstantiate()
 
     /**
      * Check wether an object can be updated.
