@@ -343,10 +343,16 @@ class Collection implements \Iterator, \Countable {
             }
             $ids = $input->ids();
         }
-        // array
+        // Array / mixed
         else {
-            // normalize to array
+
             foreach((array) $input as $item) {
+
+                // Ignore null / false / empty string
+                if($item === null || $item === false || $item === '') {
+                    trigger_error("ORM::Ignored empty value received in Collection.", EQ_REPORT_WARNING);
+                    continue;
+                }
 
                 // Model
                 if($item instanceof \equal\orm\Model) {
@@ -355,14 +361,16 @@ class Collection implements \Iterator, \Countable {
                 // array with id
                 elseif(is_array($item)) {
                     if(!array_key_exists('id', $item) || !is_scalar($item['id'])) {
-                        throw new \Exception("invalid_array_id", EQ_ERROR_INVALID_PARAM);
+                        trigger_error("ORM::Ignored invalid scalar value or array without `id` key.", EQ_REPORT_WARNING);
+                        continue;
                     }
                     $item = $item['id'];
                 }
 
                 // scalar validation
                 if(!is_scalar($item) || !is_numeric($item)) {
-                    throw new \Exception("invalid_non_scalar_id", EQ_ERROR_INVALID_PARAM);
+                    trigger_error("ORM::Ignored non scalar `id` value.", EQ_REPORT_WARNING);
+                    continue;
                 }
 
                 $ids[] = (int) $item;
