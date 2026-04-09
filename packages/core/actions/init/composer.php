@@ -70,7 +70,7 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
 }
 
 // run composer to install dependencies (verbose, no interactions)
-$cmd = 'php composer.phar update -vvv -n';
+$cmd = PHP_BINARY . ' composer.phar update -vvv -n';
 if($params['ignore_platform']) {
     $cmd .= ' --ignore-platform-reqs';
 }
