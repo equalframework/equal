@@ -193,8 +193,8 @@ class Collection implements \Iterator, \Countable {
      * Return the first object present in the collection.
      * (This method does not alter the collection.)
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map). If set to true, the object is also adapted using the current DataAdapter.
-     * @return array|null  If current queue is not empty, returns the first object, otherwise returns null.
+     * @param  $to_array   boolean    Flag to ask conversion to an array (instead of a map). If set to true, the object is also adapted using the current DataAdapter.
+     * @return Model|array|null  If current queue is not empty, returns the first object, otherwise returns null.
      */
     public function first($to_array=false) {
         if(!count($this->objects)) {
@@ -208,8 +208,8 @@ class Collection implements \Iterator, \Countable {
      * Return the last object present in the collection.
      * (This method does not alter the collection.)
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
-     * @return array|null  If current queue is not empty, returns the last object, otherwise returns null.
+     * @param  $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @return Model|array|null  If current queue is not empty, returns the last object, otherwise returns null.
      */
     public function last($to_array=false) {
         if(!count($this->objects)) {
