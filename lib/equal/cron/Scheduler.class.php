@@ -83,11 +83,18 @@ class Scheduler extends Service {
 
             // do not run the task if current available memory is below MEM_FREE_LIMIT
             $mem_available = self::computeAvailableMemory();
-            if( ($mem_available - constant('MEM_FREE_LIMIT')) <= 0 ) {
-                trigger_error("PHP::Ignoring scheduler batch because free memory is below MEM_FREE_LIMIT (" . $mem_available . " < " . constant('MEM_FREE_LIMIT') . ")", EQ_REPORT_WARNING);
+            // allow 10% tolerance below limit
+            $tolerance_ratio = 0.1;
+            $threshold = constant('MEM_FREE_LIMIT') * (1 - $tolerance_ratio);
+
+            if($mem_available <= $threshold) {
+                trigger_error(
+                    "PHP::Ignoring scheduler batch because free memory is below tolerated threshold (" .
+                    number_format($mem_available, 0, '.', ' ') . " < " . number_format($threshold, 0, '.', ' ') . ", limit=" . number_format(constant('MEM_FREE_LIMIT'), 0, '.', ' ') . ")",
+                    EQ_REPORT_WARNING
+                );
                 return;
             }
-
             // if an exclusive task is already running, ignore current batch
             $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running'], ['is_exclusive', '=', true]]);
             if($running_tasks_ids > 0 && count($running_tasks_ids)) {
