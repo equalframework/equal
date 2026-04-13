@@ -14,7 +14,7 @@ class Field {
 
     public const MAP_TYPE_USAGE = [
         'boolean'       => 'number/boolean',
-        'integer'       => 'number/integer:9',
+        'integer'       => 'number/integer:' . (PHP_INT_SIZE === 8 ? 18 : 9),
         'float'         => 'number/real:10.2',
         'string'        => 'text/plain:255',
         'text'          => 'text/plain:32000',
