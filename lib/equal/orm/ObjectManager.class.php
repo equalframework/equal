@@ -2998,6 +2998,11 @@ class ObjectManager extends Service {
                         if( in_array($operator, ['in', 'not in']) ) {
                             $value = is_array($value) ? $value : ($value === null ? [] : [$value]);
                             if(!count($value)) {
+                                // `not in []` is always true (skip condition)
+                                if($operator === 'not in') {
+                                    continue;
+                                }
+                                // `in []` must match nothing (keep SQL valid with a sentinel impossible value)
                                 $value = ['0'];
                             }
                         }
