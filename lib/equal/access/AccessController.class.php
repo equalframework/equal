@@ -180,7 +180,9 @@ class AccessController extends Service {
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
         // users are always granted the default permissions and root user always has full rights
-        $user_rights = ($user_id == EQ_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
+        $user_rights = ($user_id == EQ_ROOT_USER_ID)
+            ? (int) EQ_R_ALL
+            : (int) $this->default_rights;
 
         if($user_rights == EQ_R_ALL) {
             return $user_rights;
