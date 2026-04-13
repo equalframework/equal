@@ -337,19 +337,23 @@ class Domain {
         // handle edge cases for operators & values
         foreach($domain as &$clause) {
             foreach($clause as &$condition) {
-                if(count($condition) !== 3) {
+                if(!is_array($condition) || count($condition) < 2) {
                     continue;
+                }
+
+                if(count($condition) < 3) {
+                    // keep malformed conditions usable by normalizing to a null operand.
+                    $condition = array_pad($condition, 3, null);
                 }
 
                 [$field, $operator, $value] = $condition;
 
                 if(in_array($operator, ['in', 'not in'])) {
-                    if(!is_array($value)) {
-                        $value = [$value];
+                    if(is_null($value) || $value === 'null') {
+                        $value = [];
                     }
-                    if(!count($value)) {
-                        // fallback to avoid invalid condition
-                        $value = ['0'];
+                    elseif(!is_array($value)) {
+                        $value = [$value];
                     }
                 }
 
