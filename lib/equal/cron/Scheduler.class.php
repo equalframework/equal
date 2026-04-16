@@ -27,10 +27,9 @@ class Scheduler extends Service {
     protected static function computeAvailableMemory() {
         $memory = 0;
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            if($output = shell_exec('wmic OS get FreePhysicalMemory /Value')) {
-                preg_match('/FreePhysicalMemory=(\d+)/', $output, $matches);
-                $memory = isset($matches[1]) ? intval($matches[1]) : 0;
-            }
+            $cmd = 'powershell -Command "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"';
+            $output = shell_exec($cmd);
+            $memory = ((int) trim($output)) * 1024;
         }
         else {
             $meminfo = @file_get_contents('/proc/meminfo');
