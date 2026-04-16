@@ -293,6 +293,13 @@ class Collection implements \Iterator, \Countable {
      * @return Collection Returns the Collection with a single empty object.
      */
     public function id($id) {
+        if($id === null) {
+            trigger_error(
+                "ORM::Unexpected null id received in `Collection::id()` - returning empty collection",
+                E_USER_WARNING
+            );
+            return $this->ids([]);
+        }
         if($id instanceof \equal\orm\Model) {
             $id = $id['id'];
         }
