@@ -167,7 +167,7 @@ class Field {
 
         // prevent null assignment for required fields
         if(isset($this->descriptor['required']) && $this->descriptor['required']) {
-            $constraints['non_nullable'] = [
+            $constraints['null_mandatory'] = [
                     'message'   => "Field is required and cannot be set to null.",
                     'function'  =>  function($value) {
                         return !is_null($value);
