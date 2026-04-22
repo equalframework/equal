@@ -1019,6 +1019,10 @@ class Collection implements \Iterator, \Countable {
             return $this;
         }
 
+        if(count($values) <= 0)  {
+            return $this;
+        }
+
         $user_id = $this->am->userId();
 
         // 1) sanitize and retrieve necessary values
@@ -1034,7 +1038,7 @@ class Collection implements \Iterator, \Countable {
 
         $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
-        // silently drop invalid fields
+        // drop invalid fields
         $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
 
         // retrieve targeted fields names
