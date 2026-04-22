@@ -9,11 +9,6 @@ use core\User;
 
 list($params, $providers) = eQual::announce([
     'description'   => 'Revoke privilege from a given user.',
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'user' =>  [
             'description'   => 'login (email address) or ID of targeted user.',
@@ -31,6 +26,14 @@ list($params, $providers) = eQual::announce([
             'type'          => 'string',
             'default'       => '*'
         ]
+    ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
     ],
     'providers'     => ['context', 'auth', 'access', 'orm']
 ]);
