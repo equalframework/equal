@@ -87,9 +87,9 @@ class HttpResponse extends HttpMessage {
             // Domain scope — empty restricts it to the current host only.
             $domain   = $params['domain'] ?? '';
             // Secure flag — only sent over HTTPS when true.
-            $secure   = $params['secure'] ?? false;
+            $secure   = $params['secure'] ?? true;
             // HttpOnly — hides cookie from JavaScript (server only).
-            $httponly = $params['httponly'] ?? false;
+            $httponly = $params['httponly'] ?? true;
             // SameSite — controls cross-site sending ('Lax', 'Strict', 'None').
             $samesite = $params['samesite'] ?? 'Lax';
             // #memo - empty domain will make the cookie available for original domain only (RFC 6265)
