@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:menu.default",
+  "title": "eQual Menu Definition",
+  "description": "Schema for eQual menu files (menu.{app}.{position}.json files)",
+  "type": "object",
+  "required": ["layout"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Menu name"
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true,
+      "description": "Access rules for the menu"
+    },
+    "search": {
+      "type": "boolean",
+      "description": "Whether menu entries are searchable"
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Root menu items"
+        }
+      }
+    }
+
+  },
+  "$defs": {
+    "menuItem": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique menu item identifier"
+        },
+        "label": {
+          "type": "string",
+          "description": "Display label (translatable)"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier (Material Design Icons)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Tooltip or help text"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action controller or route (package_action)"
+        },
+        "route": {
+          "type": "string",
+          "description": "Alternative to action: URI or view reference"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["entry", "parent", "link", "submenu", "divider", "header"],
+          "default": "entry",
+          "description": "Menu item type"
+        },
+        "visible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Item visibility"
+        },
+        "roles": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Required roles for visibility"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Parameters passed to action/route"
+        },
+        "context": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "array"},
+            {"type": "object"}
+          ],
+          "additionalProperties": true,
+          "description": "Context payload for entity/view-driven entries"
+        },
+        "badge": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "color": {"type": "string"},
+            "count_field": {
+              "type": "string",
+              "description": "Model field for dynamic count"
+            }
+          },
+          "description": "Badge display on menu item"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Submenu items (for submenu type)"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "description": "Nested items (legacy parent/entry format)"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
