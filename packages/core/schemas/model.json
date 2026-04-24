@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:model.class",
+  "title": "eQual Model Class Definition",
+  "description": "Schema for eQual ORM model class structure (*.class.php files converted to JSON representation)",
+  "type": "object",
+  "required": ["name", "fields"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9_ ]*$",
+      "description": "Model class short name (for example: User, Booking, TaskEvent)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the model"
+    },
+    "parent": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9\\\\]*$",
+      "description": "Parent class this model extends"
+    },
+    "root": {
+      "type": "string",
+      "description": "Root class name when inheritance applies"
+    },
+    "table": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Database table name (auto-generated if not specified)"
+    },
+    "link": {
+      "type": "string",
+      "description": "Optional relation table name for many-to-many links"
+    },
+    "fields": {
+      "type": "object",
+      "description": "Map of model fields keyed by field name.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/fieldDescriptor"
+      }
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "description": "Visibility level for the model"
+        }
+      },
+      "additionalProperties": true
+    },
+    "workflow": {
+      "type": "object",
+      "description": "Workflow state machine definition"
+    },
+    "unique": {
+      "oneOf": [
+        {
+          "type": "array"
+        },
+        {
+          "type": "object"
+        }
+      ],
+      "description": "Optional unique constraints declaration"
+    }
+  },
+  "$defs": {
+    "fieldDescriptor": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        },
+        "usage": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "unique": {
+          "type": "boolean"
+        },
+        "multilang": {
+          "type": "boolean"
+        },
+        "result_type": {
+          "type": "string"
+        },
+        "foreign_object": {
+          "type": "string"
+        },
+        "foreign_field": {
+          "type": "string"
+        },
+        "selection": {
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "default": {},
+        "dependents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+
+  "additionalProperties": true
+}
