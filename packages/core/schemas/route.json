@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:api.route",
+  "title": "eQual API Route Definition",
+  "description": "Schema for route files in config/routing/*.json and packages/*/init/routes/*.json.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/pathMap"
+    },
+    {
+      "$ref": "#/$defs/legacyArray"
+    }
+  ],
+  "$defs": {
+    "methodDescriptor": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable route description"
+        },
+        "operation": {
+          "type": "string",
+          "description": "eQual operation query string (for example: ?get=core_model_collect)"
+        },
+        "params": {
+          "type": "object",
+          "description": "Optional route parameter contract",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "operation"
+      ],
+      "additionalProperties": true
+    },
+    "methodMap": {
+      "type": "object",
+      "description": "Map of HTTP methods to route descriptors.",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[A-Z]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/methodDescriptor"
+      }
+    },
+    "routeResolver": {
+      "description": "Either a shorthand operation string (GET implied) or a method map.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/methodMap"
+        }
+      ]
+    },
+    "pathMap": {
+      "type": "object",
+      "description": "Current route format: { \"/path\": { \"GET\": { ... } } }",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/routeResolver"
+      }
+    },
+    "legacyRouteEntry": {
+      "type": "object",
+      "description": "Legacy route format: [{\"GET\":\"/path\",\"operation\":\"?get=...\"}]",
+      "properties": {
+        "GET": {
+          "type": "string"
+        },
+        "POST": {
+          "type": "string"
+        },
+        "PUT": {
+          "type": "string"
+        },
+        "PATCH": {
+          "type": "string"
+        },
+        "DELETE": {
+          "type": "string"
+        },
+        "HEAD": {
+          "type": "string"
+        },
+        "OPTIONS": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation"
+      ],
+      "anyOf": [
+        {
+          "required": ["GET"]
+        },
+        {
+          "required": ["POST"]
+        },
+        {
+          "required": ["PUT"]
+        },
+        {
+          "required": ["PATCH"]
+        },
+        {
+          "required": ["DELETE"]
+        },
+        {
+          "required": ["HEAD"]
+        },
+        {
+          "required": ["OPTIONS"]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "legacyArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/legacyRouteEntry"
+      }
+    }
+  }
+}
