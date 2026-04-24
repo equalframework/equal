@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:menu-translations",
+    "title": "eQual Menu Translation",
+    "description": "Schema for menu translation files and optional language maps.",
+    "anyOf": [
+        {
+            "$ref": "#/$defs/translationFile"
+        },
+        {
+            "$ref": "#/$defs/languageMap"
+        }
+    ],
+    "$defs": {
+        "translationFile": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "view": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/menuItemTranslation"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "languageMap": {
+            "type": "object",
+            "description": "Optional wrapper for multi-language payloads: { lang_code: translation }.",
+            "minProperties": 1,
+            "propertyNames": {
+                "pattern": "^[a-z]{2}(?:_[A-Z]{2})?$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/translationFile"
+            }
+        },
+        "menuItemTranslation": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "help": {
+                    "type": "string"
+                },
+                "layout": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}
