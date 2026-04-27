@@ -133,6 +133,31 @@
                                 ]
                             }
                         ]
+                    },
+                    {
+                        "label": "Tokens",
+                        "id": "section.tokens",
+                        "rows": [
+                            {
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "align": "left",
+                                        "items": [
+                                            {
+                                                "type": "field",
+                                                "value": "access_tokens_ids",
+                                                "label": "Tokens",
+                                                "width": "100%",
+                                                "widget": {
+                                                    "view": "list.user"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
