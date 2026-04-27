@@ -44,6 +44,15 @@
         "section.details": {
             "label": "Détails"
         },
+        "section.tokens": {
+            "label": "Tokens d'accès"
+        },
+        "section.preferences": {
+            "label": "Préférences"
+        },
+        "section.groups": {
+            "label": "Groupes"
+        },
         "identification":{
             "label":"Identification"
         },
