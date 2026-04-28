@@ -361,6 +361,23 @@ class User extends Model {
         ];
     }
 
+    public static function getCapabilities(): array {
+        return [
+            EQ_R_UPDATE => [
+                'accept' => [
+                    'root'      => true,
+                    'manager'   => ['firstname', 'lastname', 'language']
+                ],
+                'reject' => ['groups_ids', 'permissions_ids', 'passkeys_ids', 'validated', 'status']
+            ],
+            EQ_R_DELETE => [
+                'accept' => [
+                    'root' => true
+                ]
+            ]
+        ];
+    }
+
     public static function generateStatus(): string {
         $statuses = array_keys(self::getWorkflow());
 
