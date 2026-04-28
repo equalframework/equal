@@ -19,11 +19,6 @@
                                             },
                                             {
                                                 "type": "field",
-                                                "value": "token",
-                                                "width": "100%"
-                                            },
-                                            {
-                                                "type": "field",
                                                 "value": "expiry",
                                                 "width": "100%"
                                             },

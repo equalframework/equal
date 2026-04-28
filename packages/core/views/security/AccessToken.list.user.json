@@ -10,11 +10,6 @@
             },
             {
                 "type": "field",
-                "value": "token",
-                "width": "33%"
-            },
-            {
-                "type": "field",
                 "value": "expiry",
                 "width": "33%"
             },
