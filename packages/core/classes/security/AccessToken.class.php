@@ -17,6 +17,11 @@ class AccessToken extends Model {
 
     public static function getColumns() {
         return [
+            'jti' => [
+                'type'              => 'alias',
+                'alias'             => 'id'
+            ],
+
             'user_id' => [
                 'type'              => 'many2one',
                 'relation'          => 'core\User',
@@ -33,13 +38,7 @@ class AccessToken extends Model {
                 'description'       => 'Type of token (access or refresh).'
             ],
 
-            'token' => [
-                'type'              => 'string',
-                'usage'             => 'text/plain.small',
-                'description'       => "User the role is assigned to."
-            ],
-
-            'expiration' => [
+            'expiry' => [
                 'type'              => 'datetime',
                 'description'       => 'Token expiration date.'
             ],

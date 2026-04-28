@@ -72,8 +72,23 @@ class AuthenticationManager extends Service {
      */
     public function token(int $user_id = 0, int $validity = 0, array $auth_method = []) {
         $payload = [
+            // internal user identifier (non-standard claim)
             'id'    => $user_id ?: $this->user_id,
-            'amr'   => $auth_method
+
+            // subject of the token (standard JWT claim) - represents the authenticated user
+            'sub'   => $user_id ?: $this->user_id,
+
+            // Authentication Methods References (standard OpenID Connect claim) - describes how the user was authenticated (e.g. password, MFA, etc.)
+            'amr'   => $auth_method,
+
+            // Issued At (standard JWT claim) - timestamp when the token was generated
+            'iat'   => time(),
+
+            // Tracking flag (non-standard claim)
+            // Indicates whether the token is tracked server-side (e.g. stored in DB)
+            // If true, the token can be revoked (blacklist check required)
+            // If false, the token is considered stateless (no server-side validation beyond signature/exp)
+            'trk'   => false
         ];
         if($validity) {
             $payload['exp'] = time() + $validity;
