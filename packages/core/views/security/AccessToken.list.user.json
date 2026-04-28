@@ -1,0 +1,28 @@
+{
+    "name": "Tokens",
+    "description": "This view is intended for displaying an user listing of existing tokens.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "token_type",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "token",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "expiration",
+                "width": "33%"
+            },
+            {
+                "type": "field",
+                "value": "is_revoked",
+                "width": "33%"
+            }
+        ]
+    }
+}

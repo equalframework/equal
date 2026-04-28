@@ -24,7 +24,7 @@ class AccessToken extends Model {
 
             'user_id' => [
                 'type'              => 'many2one',
-                'relation'          => 'core\User',
+                'foreign_object'    => 'core\User',
                 'required'          => true,
                 'description'       => 'User associated with the token.'
             ],
