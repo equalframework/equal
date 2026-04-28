@@ -15,7 +15,7 @@
             },
             {
                 "type": "field",
-                "value": "expiration",
+                "value": "expiry",
                 "width": "33%"
             },
             {
