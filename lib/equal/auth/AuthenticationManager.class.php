@@ -63,14 +63,20 @@ class AuthenticationManager extends Service {
      *
      * The JWT access token is built on a payload holding:
      *   - id  : the user identifier
-     *   - exp : the datetime (timestamp) at which the token expires
+     *   - sub : the user identifier
      *   - amr : Authentication Methods Reference
+     *   - iat : the datetime (timestamp) at which the token was issued
+     *   - trk : is the token tracked or not
+     *   - exp : (optional) the datetime (timestamp) at which the token expires
+     *   - jti : (optional) id of the token to allow tracking
      *
-     * @param   $user_id    identifier of the user for who a token is requested
-     * @param   $validity   validity duration in seconds
-     * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
+     * @param   int $user_id        identifier of the user for whom a token is requested
+     * @param   int $validity       validity duration in seconds
+     * @param   array $auth_method  authentication method to describe how the user was authenticated (e.g. password, MFA, etc.)
+     * @param   int $jti            id of the token to track it, non-tracked tokens are completely stateless
+     * @return  string              token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token(int $user_id = 0, int $validity = 0, array $auth_method = []) {
+    public function token(int $user_id = 0, int $validity = 0, array $auth_method = [], int $jti = 0) {
         $payload = [
             // internal user identifier (non-standard claim)
             'id'    => $user_id ?: $this->user_id,
@@ -88,10 +94,15 @@ class AuthenticationManager extends Service {
             // Indicates whether the token is tracked server-side (e.g. stored in DB)
             // If true, the token can be revoked (blacklist check required)
             // If false, the token is considered stateless (no server-side validation beyond signature/exp)
-            'trk'   => false
+            'trk'   => $jti > 0
         ];
+        // handle expiry
         if($validity) {
             $payload['exp'] = time() + $validity;
+        }
+        // handle token id for tracking
+        if($jti > 0) {
+            $payload['jti'] = $jti;
         }
         return $this->createAccessToken($payload);
     }
