@@ -8,6 +8,7 @@
 namespace equal\auth;
 
 use equal\organic\Service;
+use equal\orm\ObjectManager;
 use equal\services\Container;
 
 class AuthenticationManager extends Service {
@@ -241,6 +242,9 @@ class AuthenticationManager extends Service {
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
     public function userId($token=null) {
+        /** @var ObjectManager $orm */
+        $orm = $this->container->get('orm');
+
         // unless already resolved, grant all rights when using CLI
         if($this->user_id <= 0 && php_sapi_name() === 'cli') {
             $this->user_id = EQ_ROOT_USER_ID;
@@ -260,6 +264,15 @@ class AuthenticationManager extends Service {
                 if(isset($jwt['exp']) && $jwt['exp'] < time()) {
                     // generate a 401 Unauthorized HTTP response
                     throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
+                }
+                if(isset($jwt['trk']) && $jwt['trk'] && !empty($jwt['jti'])) {
+                    $tk_ids = $orm->search('core\security\AccessToken', ['jti', '=', $jwt['jti']]);
+                    $tks = $orm->read('core\security\AccessToken', $tk_ids, ['is_revoked']);
+                    $tk = current($tks);
+                    if($tk && $tk['is_revoked']) {
+                        // generate a 401 Unauthorized HTTP response
+                        throw new \Exception('auth_revoked_token', EQ_ERROR_INVALID_USER);
+                    }
                 }
                 $this->user_id = $jwt['id'];
             }
@@ -288,7 +301,6 @@ class AuthenticationManager extends Service {
 
             if($this->user_id > 0) {
                 // additional check on User status
-                $orm = $this->container->get('orm');
                 $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
                 if($list < 0 || !count($list)) {
                     throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
