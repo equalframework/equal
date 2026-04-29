@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:controller.action",
+  "title": "eQual Controller Action Definition",
+  "description": "Schema for eQual action controller structure (data action PHP files converted to JSON)",
+  "type": "object",
+  "required": ["type", "name", "package_name"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Type identifier for the action definition"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique name for the action"
+    },
+    "package_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Package namespace containing the action"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the action"
+    },
+    "deprecated": {
+      "type": "boolean",
+      "description": "Indicates if the action is deprecated"
+    },
+    "help": {
+      "type": "string",
+      "description": "Extended help text for the action"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Data type of the parameter (e.g. string, integer, boolean)"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Indicates if the parameter is required"
+          },
+          "default": {
+            "description": "Default value for the parameter if not provided"
+          },
+          "selection": {
+            "oneOf": [
+              {"type": "array"},
+              {"type": "object"}
+            ],
+            "description": "Optional list/map of allowed values for the parameter"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the parameter for documentation purposes"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "content-type": {
+          "type": "string",
+          "examples": ["application/json", "text/plain", "text/html"],
+          "description": "Response MIME type"
+        },
+        "charset": {
+          "type": "string",
+          "default": "utf-8"
+        },
+        "accept-origin": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          ],
+          "description": "CORS origin policy"
+        }
+      },
+      "description": "Response configuration"
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "description": "Access visibility level"
+        },
+        "groups": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Required groups for access"
+        },
+        "users": {
+          "type": "array",
+          "items": {"type": "integer"},
+          "description": "Required users for access"
+        }
+      },
+      "description": "Access control rules"
+    },
+    "providers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "examples": ["context", "orm", "auth", "user"],
+      "description": "Required service providers"
+    },
+    "constants": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Required constant definitions for overriding"
+    },
+    "examples": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Action categorization examples for documentation"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:view.form.default",
+  "title": "eQual Form View",
+  "description": "Schema for eQual form views (Model.form.*.json files)",
+  "type": "object",
+  "required": ["name", "layout"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "View identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "View purpose and usage"
+    },
+    "icon": {
+      "type": "string",
+      "description": "View icon identifier"
+    },
+    "context": {
+      "type": "string",
+      "description": "Target user context"
+    },
+    "layout": {
+      "type": "object",
+      "required": ["groups"],
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "description": "Optional custom view identifier"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "label": {"type": "string"},
+              "description": {"type": "string"},
+              "icon": {"type": "string"},
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "label": {"type": "string"},
+                    "description": {"type": "string"},
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "string"},
+                          "label": {"type": "string"},
+                          "columns": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {"type": "string"},
+                                "label": {"type": "string"},
+                                "width": {
+                                  "type": "string",
+                                  "pattern": "^\\d+%?$"
+                                },
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/$defs/layoutItem"
+                                  }
+                                },
+                                "align": {
+                                  "type": "string",
+                                  "enum": ["left", "center", "right"],
+                                  "description": "Column text alignment"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Form groups containing sections, rows and fields"
+        }
+      },
+      "description": "Form layout definition"
+    },
+    "routes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "string"},
+            "label": {"type": "string"},
+            "icon": {"type": "string"},
+            "description": {"type": "string"},
+            "route": {"type": "string"},
+            "context": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Target user context (admin/user)"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {"type": "string"},
+                    "view": {"type": "string"},
+                    "domain": {"type": "array"},
+                    "reset": {"type": "boolean"}
+                  },
+                  "description": "Navigation context with entity and view reference"
+                }
+              ]
+            },
+            "visible": {
+              "type": "boolean"
+            }
+          }
+        }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "icon": {"type": "string"},
+          "description": {"type": "string"},
+          "controller": {
+            "type": "string",
+            "description": "Action controller (package_action)"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Show confirmation dialog"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Available form actions"
+    },
+    "menus": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "icon": {"type": "string"},
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {"type": "string"},
+                "label": {"type": "string"},
+                "icon": {"type": "string"},
+                "action": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "description": "Contextual menus"
+    }
+  },
+  "$defs": {
+    "layoutItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["field", "label", "section", "view", "html"],
+          "description": "Item type"
+        },
+        "id": {"type": "string"},
+        "value": {
+          "type": "string",
+          "description": "Field name or view reference"
+        },
+        "label": {"type": "string"},
+        "description": {"type": "string"},
+        "help": {
+          "type": "string",
+          "description": "Help text displayed below the field"
+        },
+        "width": {
+          "type": "string",
+          "pattern": "^\\d+%?$"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "widget": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"},
+            "values": {
+              "oneOf": [
+                {"type": "array"},
+                {"type": "object"}
+              ],
+              "description": "Select/dropdown options (array of values or object with labels)"
+            },
+            "filterable": {"type": "boolean"},
+            "heading": {
+              "type": "boolean",
+              "description": "Display field as a heading"
+            },
+            "height": {
+              "oneOf": [
+                {"type": "string"},
+                {"type": "integer"}
+              ],
+              "description": "Widget height in pixels or string (e.g., '400px', 'auto')"
+            }
+          },
+          "description": "Widget configuration"
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
