@@ -436,11 +436,10 @@ else {
                         if(!empty($whereis[0])) {
                             $src = trim($whereis[0]);
                             $dst = "$opt_bin_dir/$bin";
-                            if(file_exists($dst)) {
-                                unlink($dst);
-                            }
-                            $linked = @symlink($src, $dst);
-                            if(!$linked) {
+                            if($src !== $dst) {
+                                if(file_exists($dst)) {
+                                    unlink($dst);
+                                }
                                 copy($src, $dst);
                             }
                             chmod($dst, 0755);
