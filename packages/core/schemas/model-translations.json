@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:model-translations",
+  "title": "eQual Model Interface Translation",
+  "description": "Schema for model/interface translation JSON files and optional language maps.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/translationFile"
+    },
+    {
+      "$ref": "#/$defs/languageMap"
+    }
+  ],
+  "$defs": {
+    "translationFile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "plural": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "model": {
+          "description": "Field-level translations keyed by model field name.",
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/modelFieldTranslation"
+              }
+            }
+          ]
+        },
+        "view": {
+          "description": "View-level translations keyed by view id or layout item id.",
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/viewTranslationEntry"
+              }
+            }
+          ]
+        },
+        "error": {
+          "description": "Field and global error translations.",
+          "anyOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/errorTranslationEntry"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "languageMap": {
+      "type": "object",
+      "description": "Optional wrapper for multi-language payloads: { lang_code: translation }.",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z]{2}(?:_[A-Z]{2})?$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/translationFile"
+      }
+    },
+    "modelFieldTranslation": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        },
+        "selection": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "viewTranslationEntry": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        },
+        "layout": {
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/labeledTextEntry"
+              }
+            }
+          ]
+        },
+        "actions": {
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/labeledTextEntry"
+              }
+            }
+          ]
+        },
+        "routes": {
+          "oneOf": [
+            {
+              "type": "array"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/labeledTextEntry"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "labeledTextEntry": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "errorTranslationEntry": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
+}

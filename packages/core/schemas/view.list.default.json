@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:view.list.default",
+  "title": "eQual List View",
+  "description": "Schema for eQual list views (Model.list.*.json files)",
+  "type": "object",
+  "required": ["name", "layout"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "View identifier"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "context": {
+      "type": "string"
+      },
+    "order": {
+      "type": "string",
+      "description": "Default sort field"
+    },
+    "sort": {
+      "type": "string",
+      "enum": ["asc", "desc"],
+      "description": "Default sort direction"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 25,
+      "description": "Records per page"
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "label": {"type": "string"},
+        "description": {"type": "string"},
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "type": {
+                "type": "string",
+                "enum": ["field", "action"]
+              },
+              "value": {"type": "string"},
+              "label": {"type": "string"},
+              "width": {
+                "type": "string",
+                "pattern": "^\\d+%?$"
+              },
+              "visible": {"type": "boolean"},
+              "readonly": {"type": "boolean"},
+              "sortable": {"type": "boolean"},
+              "widget": {
+                "type": "object",
+                "properties": {
+                  "sortable": {"type": "boolean"},
+                  "filterable": {"type": "boolean"},
+                  "type": {"type": "string"},
+                  "link": {
+                    "type": "boolean",
+                    "description": "Make field value clickable/navigable"
+                  },
+                  "readonly": {"type": "boolean"},
+                  "values": {
+                    "oneOf": [
+                      {"type": "array"},
+                      {"type": "object"}
+                    ],
+                    "description": "Select/dropdown options (array of values or object with labels)"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "description": "List columns"
+        }
+      },
+      "required": ["items"]
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "description": {"type": "string"},
+          "field": {"type": "string"},
+          "operator": {
+            "type": "string",
+            "enum": ["contains", "eq", "gt", "gte", "lt", "lte", "in", "like"]
+          },
+          "value": {},
+          "clause": {
+            "type": "array",
+            "description": "Alternative filter format as [field, operator, value] array"
+          }
+        }
+      },
+      "description": "Default filters"
+    },
+    "header": {
+      "type": "object",
+      "properties": {
+        "selection": {
+          "type": "object",
+          "properties": {
+            "default": {"type": "boolean"},
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "label": {"type": "string"},
+                  "icon": {"type": "string"},
+                  "controller": {"type": "string"}
+                }
+              },
+              "description": "Bulk actions for selected rows"
+            }
+          }
+        }
+      },
+      "description": "List header configuration with bulk action selection"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "icon": {"type": "string"},
+          "description": {"type": "string"},
+          "controller": {"type": "string"},
+          "batch": {
+            "type": "boolean",
+            "description": "Can be applied to multiple rows"
+          }
+        }
+      },
+      "description": "Row and batch actions"
+    }
+  },
+  "additionalProperties": true
+}

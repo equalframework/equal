@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:view.dashboard.default",
+  "title": "eQual Dashboard View",
+  "description": "Schema for eQual dashboard views (*.dashboard.*.json files) - composite layouts embedding other views",
+  "type": "object",
+  "required": ["name", "layout"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Dashboard identifier"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "context": {
+      "type": "string"
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "label": {"type": "string"},
+        "description": {"type": "string"},
+        "groups": {
+          "type": "array",
+          "description": "Form-like grouped dashboard layout",
+          "items": {
+            "$ref": "#/$defs/group"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dashboardItem"
+          },
+          "description": "Dashboard widgets and embedded views"
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["items"]
+        },
+        {
+          "required": ["groups"]
+        }
+      ]
+    },
+    "refresh_interval": {
+      "type": "integer",
+      "description": "Auto-refresh interval in seconds"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "icon": {"type": "string"},
+          "controller": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "dashboardItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["widget", "view", "card", "group"],
+          "description": "Dashboard item type"
+        },
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "description": {"type": "string"},
+        "entity": {"type": "string"},
+        "view": {
+          "type": "string",
+          "description": "Reference to embedded view (for example: list.default, chart.metrics)"
+        },
+        "domain": {
+          "type": "array"
+        },
+        "width": {
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string", "pattern": "^\\d+%?$"}
+          ],
+          "description": "Widget width"
+        },
+        "height": {
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string"}
+          ],
+          "description": "Widget height"
+        },
+        "rows": {
+          "type": "integer",
+          "description": "Grid rows for responsive layout"
+        },
+        "cols": {
+          "type": "integer",
+          "description": "Grid columns for responsive layout"
+        },
+        "config": {
+          "type": "object",
+          "description": "Widget-specific configuration"
+        },
+        "items": {
+          "type": "array",
+          "description": "Nested items for group blocks",
+          "items": {
+            "$ref": "#/$defs/dashboardItem"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "group": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/section"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "section": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/row"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "row": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/column"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "column": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string", "pattern": "^\\d+%?$"}
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dashboardItem"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
