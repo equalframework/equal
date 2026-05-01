@@ -1,0 +1,58 @@
+
+body {
+ 	font-weight: 300;
+}
+
+article table {
+	font-size: 0.95em !important;
+	border-radius: 8px !important;
+}
+
+article :not(details) table th {
+	/* #memo - cannot capitalize since some titles are case-sensitive code or var names*/
+	/* text-transform: capitalize !important; */
+	padding: 4px 18px !important;
+    background-color: #5c5f70;
+	color: white;
+    font-weight: 500;
+	white-space: nowrap;
+}
+
+article table thead th:first-of-type {
+    border-top-left-radius: 8px;
+}
+
+article table thead th:last-of-type {
+    border-top-right-radius: 8px;
+}
+
+article table th strong {
+	color: white;
+	font-weight: 500;
+}
+
+article table th.filename {
+   background-color: var(--md-code-bg-color);
+}
+
+article .admonition {
+	font-size: 0.95em !important;
+}
+
+.md-nav.md-nav--primary {
+	/* left menu font size*/
+    font-size: 18px;
+}
+
+.md-grid {
+	/* allow use of max available space in the center area */
+    max-width: 100%;
+}
+
+.md-typeset__table {
+  width: 100%;
+}
+
+.md-typeset__table table:not([class]) {
+  display: table
+}
