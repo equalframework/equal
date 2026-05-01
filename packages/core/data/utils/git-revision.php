@@ -1,8 +1,15 @@
 <?php
+/*
+    This file is part of the eQual framework <http://www.github.com/equalframework/equal>
+    Some Rights Reserved, eQual framework, 2010-2024
+    Original author(s): Cédric FRANCOYS
+    Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
+*/
 
 [$params, $providers] = eQual::announce([
-    'description'   => "Provide a unique identifier of the current git revision.\n".
-                       "This script assumes the current installation is versioned using git.",
+    'description'   => "Provide a unique identifier of the current git revision.\n" .
+                       "This script assumes the current installation is versioned using git\n" .
+                       "and that a `.git` folder is present at the root of the installation.",
     'response'      => [
         'content-type'  => 'application/json',
         'charset'       => 'utf-8'
@@ -11,45 +18,50 @@
     'providers' => ['context']
 ]);
 
-[
-    $context,
-    $head_path,
-    $index_path
-] = [
-    $providers['context'],
-    EQ_BASEDIR . '/.git/HEAD',
-    EQ_BASEDIR . '/.git/index'
-];
+$context = $providers['context'];
 
-if(!file_exists($head_path)) {
-    throw new Exception('git HEAD not found', QN_ERROR_INVALID_CONFIG);
+try {
+    if(!is_dir(EQ_BASEDIR . '/.git')) {
+        throw new Exception('git repository not found', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    // get short commit hash
+    $commit = trim(shell_exec('git -C ' . escapeshellarg(EQ_BASEDIR) . ' rev-parse --short HEAD'));
+
+    if(!$commit) {
+        throw new Exception('unable to retrieve git commit', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    // get commit date (more reliable than index mtime)
+    $date = trim(shell_exec(
+        'git -C ' . escapeshellarg(EQ_BASEDIR) . ' log -1 --format=%cd --date=format:%Y.%m.%d'
+    ));
+
+    if(!$date) {
+        throw new Exception('unable to retrieve git date', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    $revision = "$date.$commit";
+
+    $branch = trim(shell_exec(
+        'git -C ' . escapeshellarg(EQ_BASEDIR) . ' rev-parse --abbrev-ref HEAD'
+    ));
+
+    $dirty = trim(shell_exec(
+        'git -C ' . escapeshellarg(EQ_BASEDIR) . ' status --porcelain'
+    )) !== '';
 }
-
-if(!file_exists($index_path)) {
-    throw new Exception('git index not found', QN_ERROR_INVALID_CONFIG);
+catch(Exception $e) {
+    trigger_error("PHP::Unable to retrieve git data: " . $e->getMessage(), EQ_REPORT_INFO);
+    throw new Exception('git_data_missing', $e->getCode());
 }
-
-$files = explode(' ', file_get_contents($head_path));
-
-if(!$files || !count($files)) {
-    throw new Exception('no files found in git index', QN_ERROR_INVALID_CONFIG);
-}
-
-$file = trim($files[1]);
-
-$file_path = EQ_BASEDIR . "/.git/$file";
-
-if(!file_exists($file_path)) {
-    throw new Exception('inconsistent git index', QN_ERROR_INVALID_CONFIG);
-}
-
-// read first bytes from current branch revision hash
-$hash = substr(file_get_contents($file_path), 0, 7);
-$time = filemtime($index_path);
-$date = date("Y.m.d", $time);
-
 
 $context
     ->httpResponse()
-    ->body(['revision' => "$date.$hash"])
+    ->body([
+        'revision'  => $revision,
+        'commit'    => $commit,
+        'branch'    => $branch,
+        'dirty'     => $dirty
+    ])
     ->send();
