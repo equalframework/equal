@@ -50,58 +50,58 @@ Beside its revolutionary edge, eQual is a fully-featured framework providing an 
 
 
 ### Low-Code
-☑️ **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, ...). 
-☑️ **Instant APIs Without Code**: Auto-documented controllers with an announcement system. 
-☑️ **Desktop & mobile**: Customizable layout to fit any device screen. 
-☑️ **Views**: Create any view without coding - form, lists, menus, charts, Dashboard. 
+☑️ **Visual Workbench for building Apps**: No-code editor for all components (models, views, routes, ...).  
+☑️ **Instant APIs Without Code**: Auto-documented controllers with an announcement system.  
+☑️ **Desktop & mobile**: Customizable layout to fit any device screen.  
+☑️ **Views**: Create any view without coding - form, lists, menus, charts, Dashboard.
 
 ### Architecture
-☑️ **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers. 
-☑️ **MVC segregation**: Strict distinction between Models (entities), Views and Controllers. 
-☑️ **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere. 
-☑️ **Data Adaptation**: Automatically transform received data based on format and context. 
-☑️ **Services Extensibility**: Ability to extend services behavior, and to register custom ones. 
-☑️ **Cascading Configuration**: Overridable settings at different levels (default, global, package). 
+☑️ **CQRS architecture**: Division of controllers into Action Handlers, Data Providers, and App Providers.  
+☑️ **MVC segregation**: Strict distinction between Models (entities), Views and Controllers.  
+☑️ **Dependency injection**: Inject services into classes, methods, controllers, or functions anywhere.  
+☑️ **Data Adaptation**: Automatically transform received data based on format and context.  
+☑️ **Services Extensibility**: Ability to extend services behavior, and to register custom ones.  
+☑️ **Cascading Configuration**: Overridable settings at different levels (default, global, package).  
 ☑️ **I/O as HTTP messages**: Inputs & outputs are handled as text in all contexts (default is 'application/json').
 
 ### Entities & ORM
-☑️ **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events. 
-☑️ **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.
-☑️ **Domains**: Simple array notation for any possible boolean condition, either directly or with references.
-☑️ **Date References**: Enables defining a date relative to another date using specific syntactic notations.
+☑️ **Model definition**: With support for inheritance, workflows, actions, roles and policies, transitions, and events.  
+☑️ **CRUD operations**: Perform create, read, update, and delete operations on individual objects or collections.  
+☑️ **Domains**: Simple array notation for any possible boolean condition, either directly or with references.  
+☑️ **Date References**: Enables defining a date relative to another date using specific syntactic notations.  
 ☑️ **Explicit typing (Usages)**: Attach any value to a Usage that can be flawlessly adapted (converted) to any other language or environment.
 
 ### Security
-☑️ **Authentication Management**: HTTP Auth support (JWT) & 3 levels of visibility (public, protected, private). 
-☑️ **Granular access control**: Set permissions of any kind at any level (ACL, RBAC, PBAC, ABAC, ReBAC). 
-☑️ **Security Policies**: Restrict access to a set of users or groups, based on their IP or Schedule. 
+☑️ **Authentication Management**: HTTP Auth support (JWT) & 3 levels of visibility (public, protected, private).  
+☑️ **Granular access control**: Set permissions of any kind at any level (ACL, RBAC, PBAC, ABAC, ReBAC).  
+☑️ **Security Policies**: Restrict access to a set of users or groups, based on their IP or Schedule.  
 ☑️ **Secure**: All the credentials are securely encrypted using bcrypt 448-bits with random salt.
 
 ### Native Features
-☑️ **Settings values**: Global, group, user, with multilingual support. 
-☑️ **Emails sending**: Send emails via SMTP, either instantly or queued. 
+☑️ **Settings values**: Global, group, user, with multilingual support.  
+☑️ **Emails sending**: Send emails via SMTP, either instantly or queued.  
 ☑️ **Multi-formats exports**: Export any Controller data in TXT, CSV, or PDF formats.
 
 ### Miscellaneous
-☑️ **Database**: Ability to connect to various data source (DBMS), with guidelines to develop your own if needed. 
-☑️ **Multi-user**: Allows concurrency through Optimistic Concurrency Control. 
-☑️ **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings. 
-☑️ **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more. 
-☑️ **Embedded documentation**: Embeds end-user documentation directly in Apps. 
-☑️ **CLI**: Powerful command-line tool to easily discover available controllers and their roles & expected params. 
-☑️ **Auto-documented Controllers**: Description with parameters along with their types and attributes. 
-☑️ **Logging**: Recording of the history of changes made to entities, including user and date. 
-☑️ **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time. 
+☑️ **Database**: Ability to connect to various data source (DBMS), with guidelines to develop your own if needed.  
+☑️ **Multi-user**: Allows concurrency through Optimistic Concurrency Control.  
+☑️ **Multi-lang & Multi-locale support**: Provides multilingual support and regional settings.  
+☑️ **Self-host**: Supports Docker, Kubernetes, AWS EC2, Google Cloud Run, and more.  
+☑️ **Embedded documentation**: Embeds end-user documentation directly in Apps.  
+☑️ **CLI**: Powerful command-line tool to easily discover available controllers and their roles & expected params.  
+☑️ **Auto-documented Controllers**: Description with parameters along with their types and attributes.  
+☑️ **Logging**: Recording of the history of changes made to entities, including user and date.  
+☑️ **Scheduled tasks**: Execute controllers as scheduled tasks, either recurring or one-time.  
 ☑️ **Alerts system**: Allows to manage alerts (notice or error) linked to Controllers, with ability to ignore retry execution.
 
 ### Coding Amenities
-☑️ **Selectable debug levels and modes**: Report anything, anywhere in the code, with 6 levels and 7 modes. 
-☑️ **Unit testing**: Use AAA (Arrange, Act, Assert) pattern and support for rollback. 
+☑️ **Selectable debug levels and modes**: Report anything, anywhere in the code, with 6 levels and 7 modes.  
+☑️ **Unit testing**: Use AAA (Arrange, Act, Assert) pattern and support for rollback.  
 ☑️ **Debug Console**: Search amongst logs, grouped by threads, with keywords, level or mode.
 
 ### Upcoming features
-:black_square_button: **Version control**: Keep track of all versions of any object. 
-:black_square_button: **Authentication Policies**: Set the level of required auth (token, password, mfa) based on the context (trust). 
+:black_square_button: **Version control**: Keep track of all versions of any object.  
+:black_square_button: **Authentication Policies**: Set the level of required auth (token, password, mfa) based on the context (trust).  
 :black_square_button: **Pipelines**: Ability to visually create and edit data flow by chaining controllers together.
 
 
