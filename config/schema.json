@@ -43,7 +43,7 @@
         "type": "boolean",
         "description": "Flag for limiting the sending of auth token over HTTPS.",
         "instant": true,
-        "default": false
+        "default": true
     },
     "BACKEND_URL": {
         "type": "string",
