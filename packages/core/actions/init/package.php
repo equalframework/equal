@@ -206,12 +206,14 @@ else {
     // retrieve schema for given package
     $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
-    // push each line/query into an array
-    $queries = explode(";", $data['result']);
+    if($data['result'] ?? null) {
+        // push each line/query into an array
+        $queries = explode(";", $data['result']);
 
-    // send first batch of queries to the DBMS
-    foreach($queries as $query) {
-        $db->sendQuery($query);
+        // send first batch of queries to the DBMS
+        foreach($queries as $query) {
+            $db->sendQuery($query);
+        }
     }
     /*  end tables init */
 
