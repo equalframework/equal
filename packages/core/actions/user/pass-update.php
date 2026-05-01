@@ -7,7 +7,7 @@
 */
 use core\User;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Updates the password related to a user account.',
     'response'      => [
         'content-type'  => 'application/json',
@@ -45,7 +45,7 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
-list($context, $orm, $auth) = [ $providers['context'], $providers['orm'], $providers['auth']];
+[$context, $orm, $auth] = [ $providers['context'], $providers['orm'], $providers['auth']];
 
 if(strcmp($params['password'], $params['confirm']) != 0) {
     throw new Exception('password_confirm_mismatch', QN_ERROR_INVALID_PARAM);
@@ -86,7 +86,8 @@ if(strlen($params['token'])) {
     $response->cookie('access_token',  $access_token, [
         'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         'httponly'  => true,
-        'secure'    => constant('AUTH_TOKEN_HTTPS')
+        'secure'    => constant('AUTH_TOKEN_HTTPS'),
+        'samesite'  => 'Strict'
     ]);
 }
 

@@ -14,7 +14,7 @@ class Field {
 
     public const MAP_TYPE_USAGE = [
         'boolean'       => 'number/boolean',
-        'integer'       => 'number/integer:9',
+        'integer'       => 'number/integer:' . (PHP_INT_SIZE === 8 ? 18 : 9),
         'float'         => 'number/real:10.2',
         'string'        => 'text/plain:255',
         'text'          => 'text/plain:32000',
@@ -167,7 +167,7 @@ class Field {
 
         // prevent null assignment for required fields
         if(isset($this->descriptor['required']) && $this->descriptor['required']) {
-            $constraints['non_nullable'] = [
+            $constraints['null_mandatory'] = [
                     'message'   => "Field is required and cannot be set to null.",
                     'function'  =>  function($value) {
                         return !is_null($value);

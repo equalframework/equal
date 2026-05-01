@@ -8,6 +8,7 @@
 namespace equal\auth;
 
 use equal\organic\Service;
+use equal\orm\ObjectManager;
 use equal\services\Container;
 
 class AuthenticationManager extends Service {
@@ -63,20 +64,46 @@ class AuthenticationManager extends Service {
      *
      * The JWT access token is built on a payload holding:
      *   - id  : the user identifier
-     *   - exp : the datetime (timestamp) at which the token expires
+     *   - sub : the user identifier
      *   - amr : Authentication Methods Reference
+     *   - iat : the datetime (timestamp) at which the token was issued
+     *   - trk : is the token tracked or not
+     *   - exp : (optional) the datetime (timestamp) at which the token expires
+     *   - jti : (optional) id of the token to allow tracking
      *
-     * @param   $user_id    identifier of the user for who a token is requested
-     * @param   $validity   validity duration in seconds
-     * @return  string      token using JWT format (https://tools.ietf.org/html/rfc7519)
+     * @param   int $user_id        identifier of the user for whom a token is requested
+     * @param   int $validity       validity duration in seconds
+     * @param   array $auth_method  authentication method to describe how the user was authenticated (e.g. password, MFA, etc.)
+     * @param   int $jti            id of the token to track it, non-tracked tokens are completely stateless
+     * @return  string              token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
-    public function token(int $user_id = 0, int $validity = 0, array $auth_method = []) {
+    public function token(int $user_id = 0, int $validity = 0, array $auth_method = [], int $jti = 0) {
         $payload = [
+            // internal user identifier (non-standard claim)
             'id'    => $user_id ?: $this->user_id,
-            'amr'   => $auth_method
+
+            // subject of the token (standard JWT claim) - represents the authenticated user
+            'sub'   => $user_id ?: $this->user_id,
+
+            // Authentication Methods References (standard OpenID Connect claim) - describes how the user was authenticated (e.g. password, MFA, etc.)
+            'amr'   => $auth_method,
+
+            // Issued At (standard JWT claim) - timestamp when the token was generated
+            'iat'   => time(),
+
+            // Tracking flag (non-standard claim)
+            // Indicates whether the token is tracked server-side (e.g. stored in DB)
+            // If true, the token can be revoked (blacklist check required)
+            // If false, the token is considered stateless (no server-side validation beyond signature/exp)
+            'trk'   => $jti > 0
         ];
+        // handle expiry
         if($validity) {
             $payload['exp'] = time() + $validity;
+        }
+        // handle token id for tracking
+        if($jti > 0) {
+            $payload['jti'] = $jti;
         }
         return $this->createAccessToken($payload);
     }
@@ -215,6 +242,9 @@ class AuthenticationManager extends Service {
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
     public function userId($token=null) {
+        /** @var ObjectManager $orm */
+        $orm = $this->container->get('orm');
+
         // unless already resolved, grant all rights when using CLI
         if($this->user_id <= 0 && php_sapi_name() === 'cli') {
             $this->user_id = EQ_ROOT_USER_ID;
@@ -234,6 +264,15 @@ class AuthenticationManager extends Service {
                 if(isset($jwt['exp']) && $jwt['exp'] < time()) {
                     // generate a 401 Unauthorized HTTP response
                     throw new \Exception('auth_expired_token', EQ_ERROR_INVALID_USER);
+                }
+                if(isset($jwt['trk']) && $jwt['trk'] && !empty($jwt['jti'])) {
+                    $tk_ids = $orm->search('core\security\AccessToken', ['jti', '=', $jwt['jti']]);
+                    $tks = $orm->read('core\security\AccessToken', $tk_ids, ['is_revoked']);
+                    $tk = current($tks);
+                    if($tk && $tk['is_revoked']) {
+                        // generate a 401 Unauthorized HTTP response
+                        throw new \Exception('auth_revoked_token', EQ_ERROR_INVALID_USER);
+                    }
                 }
                 $this->user_id = $jwt['id'];
             }
@@ -262,7 +301,6 @@ class AuthenticationManager extends Service {
 
             if($this->user_id > 0) {
                 // additional check on User status
-                $orm = $this->container->get('orm');
                 $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
                 if($list < 0 || !count($list)) {
                     throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);

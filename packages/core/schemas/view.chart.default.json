@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:equal:json-schema:core:view.chart.default",
+    "title": "eQual Chart View",
+    "description": "Schema for eQual chart views (Model.chart.*.json files)",
+    "type": "object",
+    "required": ["name", "layout"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "View identifier"
+      },
+      "description": {
+        "type": "string",
+        "description": "View purpose and usage"
+      },
+      "icon": {
+        "type": "string",
+        "description": "View icon identifier"
+      },
+      "context": {
+        "type": "string",
+        "description": "Target user context"
+      },
+      "layout": {
+        "type": "object",
+        "description": "Chart layout definition"
+      }
+    },
+
+    "additionalProperties": true
+  }
+  

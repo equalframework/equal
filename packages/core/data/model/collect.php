@@ -167,6 +167,7 @@ foreach($params['fields'] as $key => $field) {
             // `$key` is the field name : ignore value
             $fields[] = $key;
         }
+        continue;
     }
     // handle dot notation: convert to array notation
     if(strpos($field, '.')) {

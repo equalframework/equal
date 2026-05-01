@@ -8,7 +8,7 @@
 use equal\http\HttpRequest;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Attempt to auth a user from an external social network.",
     'params' 		=>	[
         'network_name'  =>  [
@@ -32,7 +32,7 @@ list($params, $providers) = eQual::announce([
 ]);
 
 // initalise local vars with inputs
-list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+list($orm, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
 list($result, $error_message_ids) = [true, []];
 
@@ -62,16 +62,6 @@ case 'facebook':
     list($login, $firstname, $lastname) = [$data['email'], $data['first_name'], $data['last_name']];
     break;
 case 'google':
-    /* upcoming changes : @see https://developers.google.com/people/api/rest/v1/people/get
-    $oauthRequest = new HttpRequest('/v1/people/me', ['Host' => 'people.googleapis.com:443']);
-    [...]
-    $response = $oauthRequest
-                ->setBody([
-                    'personFields' => 'names,emailAddresses',
-                    'access_token' => $network_token
-                ])->send();
-
-    */
     $oauthRequest = new HttpRequest('/userinfo/v2/me', ['Host' => 'www.googleapis.com:443']);
     $response = $oauthRequest
                 ->setBody([
@@ -91,7 +81,7 @@ default:
 
 
 // check if an account has already been created for this email address
-$ids = $om->search('core\User', ['login', '=',  $context->httpRequest()->get('login')]);
+$ids = $orm->search('core\User', ['login', '=',  $context->httpRequest()->get('login')]);
 
 if($ids < 0) {
     throw new Exception("action_failed", QN_ERROR_UNKNOWN);
@@ -139,7 +129,7 @@ else {
 if($user_id <= 0) throw new Exception("action_failed", QN_ERROR_UNKNOWN);
 
 // update user data
-$om->write('core\User', $user_id, [
+$orm->update('core\User', $user_id, [
     'validated'      => true
 ]);
 

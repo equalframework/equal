@@ -1,0 +1,15 @@
+@startuml passkey_register
+actor "User" as User
+participant "User Agent" as UserAgent
+participant "Relying Party" as RelyingParty
+participant "Authenticator" as Authenticator
+
+User -> UserAgent : Click register passkey button
+UserAgent -> RelyingParty : **user_passkey-register-options**
+UserAgent <-- RelyingParty : Challenge
+UserAgent -> Authenticator : Create new credentials (challenge)
+UserAgent <-- Authenticator : New credentials (signed challenge)
+UserAgent -> RelyingParty : **user_passkey-register** (public key + signed challenge)
+UserAgent <-- RelyingParty : Registered
+User <- UserAgent : Registered
+@enduml

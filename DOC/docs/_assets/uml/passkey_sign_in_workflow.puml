@@ -1,0 +1,51 @@
+```puml sign_in_workflow
+@startuml
+
+start
+
+:Enter login;
+
+if (User exists?) then (no)
+	stop
+else (yes)
+endif
+
+if (User has passkey?) then (yes)
+    if (Use passkey?) then (yes)
+	    if (Passkey valid?) then (yes)
+	        :Authenticated;
+	        end
+	    else (no)
+	        stop
+	    endif
+    else (no)
+    endif
+else (no)
+endif
+
+:Enter password;
+
+if (Password valid?) then (yes)
+else (no)
+    stop
+endif
+
+if (Passkey creation enabled?) then (yes)
+	if (User ignored passkey creation?) then (yes)
+	else (no)
+		if (Create passkey?) then (yes)
+		    :Create passkey;
+		elseif (Ignore passkey creation?) then (yes)
+			:Passkey creation ignored
+			for user next time;
+		else (no)
+		endif
+	endif
+else (no)
+endif
+
+:Authenticated;
+end
+
+@enduml
+```

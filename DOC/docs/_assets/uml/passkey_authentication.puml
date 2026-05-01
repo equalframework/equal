@@ -1,0 +1,15 @@
+@startuml passkey_authentication
+actor "User" as User
+participant "User Agent" as UserAgent
+participant "Relying Party" as RelyingParty
+participant "Authenticator" as Authenticator
+
+User -> UserAgent : Click authenticate with passkey button
+UserAgent -> RelyingParty : **user_passkey-auth-options**
+UserAgent <-- RelyingParty : Challenge (challenge + authentication options)
+UserAgent -> Authenticator : Get new credentials (challenge + credential id)
+UserAgent <-- Authenticator : Signed challenge
+UserAgent -> RelyingParty : **user_passkey-auth** (public key + signed)
+UserAgent <-- RelyingParty : Authenticated (access token cookie)
+User <- UserAgent : Authenticated
+@enduml

@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:equal:json-schema:core:package.manifest",
+  "title": "eQual Package Manifest",
+  "description": "Schema for eQual package manifest.json files defining package metadata, dependencies, and exposed applications.",
+  "type": "object",
+  "required": ["name", "version"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Package identifier in lowercase with underscores",
+      "examples": ["core", "blog", "tutorial"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the package"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(?:\\.\\d+)?(?:-[a-zA-Z0-9.]+)?$",
+      "description": "Semantic version (major.minor.patch)"
+    },
+    "license": {
+      "type": "string",
+      "description": "Package license identifier"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Package authors and maintainers"
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of packages that need to be present and initialized in order for the package to work"
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Composer dependencies for PHP 7.4 and above"
+    },
+    "requires_php8": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Composer dependencies for PHP 8.0 and above (overrides 'requires' when running on PHP 8)"
+    },
+    "require-dev": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Development dependencies (composer require-dev)"
+    },
+    "requires_bin": {
+      "type": "object",
+      "description": "Host binary dependencies by tool name",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "check": {
+            "type": "string"
+          },
+          "package": {
+            "type": "object",
+            "additionalProperties": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "config": {
+      "type": "object",
+      "description": "Package-level configuration constants",
+      "additionalProperties": true
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "name": {"type": "string"},
+              "extends": {"type": "string"},
+              "description": {"type": "string"},
+              "url": {"type": "string"},
+              "icon": {"type": "string"},
+              "color": {"type": "string"},
+              "text_color": {"type": "string"},
+              "access": {
+                "type": "object",
+                "properties": {
+                  "groups": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                  },
+                  "users": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                  }
+                },
+                "additionalProperties": true
+              },
+              "params": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "show_in_apps": {"type": "boolean"},
+              "tags": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "description": "Applications exposed by this package"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"}
+        },
+        "required": ["name"]
+      },
+      "description": "Custom roles defined by the package"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Package categorization tags"
+    }
+  },
+  "additionalProperties": true
+}

@@ -193,8 +193,8 @@ class Collection implements \Iterator, \Countable {
      * Return the first object present in the collection.
      * (This method does not alter the collection.)
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map). If set to true, the object is also adapted using the current DataAdapter.
-     * @return array|null  If current queue is not empty, returns the first object, otherwise returns null.
+     * @param  $to_array   boolean    Flag to ask conversion to an array (instead of a map). If set to true, the object is also adapted using the current DataAdapter.
+     * @return Model|array|null  If current queue is not empty, returns the first object, otherwise returns null.
      */
     public function first($to_array=false) {
         if(!count($this->objects)) {
@@ -208,8 +208,8 @@ class Collection implements \Iterator, \Countable {
      * Return the last object present in the collection.
      * (This method does not alter the collection.)
      *
-     * @param   $to_array   boolean    Flag to ask conversion to an array (instead of a map)
-     * @return array|null  If current queue is not empty, returns the last object, otherwise returns null.
+     * @param  $to_array   boolean    Flag to ask conversion to an array (instead of a map)
+     * @return Model|array|null  If current queue is not empty, returns the last object, otherwise returns null.
      */
     public function last($to_array=false) {
         if(!count($this->objects)) {
@@ -293,7 +293,30 @@ class Collection implements \Iterator, \Countable {
      * @return Collection Returns the Collection with a single empty object.
      */
     public function id($id) {
-        return $this->ids((array) $id);
+        if($id === null) {
+            trigger_error(
+                "ORM::Unexpected null id received in `Collection::id()` - returning empty collection",
+                E_USER_WARNING
+            );
+            return $this->ids([]);
+        }
+        if($id instanceof \equal\orm\Model) {
+            $id = $id['id'];
+        }
+        elseif(is_array($id)) {
+            if(isset($id['id']) && is_scalar($id['id'])) {
+                $id = $id['id'];
+            }
+            else {
+                throw new \Exception("non_scalar_or_missing_id", EQ_ERROR_INVALID_PARAM);
+            }
+        }
+
+        if(!is_scalar($id)) {
+            throw new \Exception("non_scalar_id", EQ_ERROR_INVALID_PARAM);
+        }
+
+        return $this->ids([(int) $id]);
     }
 
     /**
@@ -308,19 +331,70 @@ class Collection implements \Iterator, \Countable {
      */
     public function ids() {
         $args = func_get_args();
+
+        // Getter
         if(count($args) <= 0) {
-            return array_filter(array_keys($this->objects), function($a) { return ($a > 0); });
+            return array_filter(array_keys($this->objects), function($a) {
+                return ($a > 0);
+            });
         }
+
+        // Setter
+        $input = $args[0];
+        $ids = [];
+
+        // Collection
+        if($input instanceof self) {
+            if($input->getClass() !== $this->class) {
+                throw new \Exception("collection_class_mismatch", EQ_ERROR_INVALID_PARAM);
+            }
+            $ids = $input->ids();
+        }
+        // Array / mixed
         else {
-            $ids = $this->orm->filterExistingIdentifiers($this->class, (array) $args[0]);
-            // reset list
-            $this->objects = [];
-            // init keys of `objects` member (resulting in a map with keys and Model instances holding default values)
-            foreach($ids as $id) {
-                $this->objects[$id] = clone $this->model;
-                $this->objects[$id]['id'] = $id;
+
+            foreach((array) $input as $item) {
+
+                // Ignore null / false / empty string
+                if($item === null || $item === false || $item === '') {
+                    trigger_error("ORM::Ignored empty value received in Collection.", EQ_REPORT_WARNING);
+                    continue;
+                }
+
+                // Model
+                if($item instanceof \equal\orm\Model) {
+                    $item = $item['id'];
+                }
+                // array with id
+                elseif(is_array($item)) {
+                    if(!array_key_exists('id', $item) || !is_scalar($item['id'])) {
+                        trigger_error("ORM::Ignored invalid scalar value or array without `id` key.", EQ_REPORT_WARNING);
+                        continue;
+                    }
+                    $item = $item['id'];
+                }
+
+                // scalar validation
+                if(!is_scalar($item) || !is_numeric($item)) {
+                    trigger_error("ORM::Ignored non scalar `id` value.", EQ_REPORT_WARNING);
+                    continue;
+                }
+
+                $ids[] = (int) $item;
             }
         }
+
+        // filter existing
+        $ids = $this->orm->filterExistingIdentifiers($this->class, $ids);
+
+        // reset collection
+        $this->objects = [];
+
+        foreach($ids as $id) {
+            $this->objects[$id] = clone $this->model;
+            $this->objects[$id]['id'] = $id;
+        }
+
         return $this;
     }
 
@@ -945,6 +1019,10 @@ class Collection implements \Iterator, \Countable {
             return $this;
         }
 
+        if(count($values) <= 0)  {
+            return $this;
+        }
+
         $user_id = $this->am->userId();
 
         // 1) sanitize and retrieve necessary values
@@ -960,7 +1038,7 @@ class Collection implements \Iterator, \Countable {
 
         $is_draft = (isset($values['state']) && $values['state'] == 'draft');
 
-        // silently drop invalid fields
+        // drop invalid fields
         $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
 
         // retrieve targeted fields names
@@ -1211,6 +1289,9 @@ class Collection implements \Iterator, \Countable {
     public static function cancreate(...$params) {
         return [];
     }
+
+    // #todo
+    // make distinction with an additionnal caninstantiate()
 
     /**
      * Check wether an object can be updated.

@@ -8,7 +8,7 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Attempts to log a user in.",
     'deprecated'	=>	"Use user_auth_pwd instead.",
     'params' 		=>	[
@@ -91,7 +91,8 @@ $context->httpResponse()
         ->cookie('access_token',  $access_token, [
             'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
             'httponly'  => true,
-            'secure'    => constant('AUTH_TOKEN_HTTPS')
+            'secure'    => constant('AUTH_TOKEN_HTTPS'),
+            'samesite'  => 'Strict'
         ])
         ->status(204)
         ->send();

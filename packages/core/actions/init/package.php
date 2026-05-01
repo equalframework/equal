@@ -206,12 +206,14 @@ else {
     // retrieve schema for given package
     $data = eQual::run('get', 'utils_sql-schema', ['package' => $params['package'], 'full' => false]);
 
-    // push each line/query into an array
-    $queries = explode(";", $data['result']);
+    if($data['result'] ?? null) {
+        // push each line/query into an array
+        $queries = explode(";", $data['result']);
 
-    // send first batch of queries to the DBMS
-    foreach($queries as $query) {
-        $db->sendQuery($query);
+        // send first batch of queries to the DBMS
+        foreach($queries as $query) {
+            $db->sendQuery($query);
+        }
     }
     /*  end tables init */
 
@@ -436,11 +438,10 @@ else {
                         if(!empty($whereis[0])) {
                             $src = trim($whereis[0]);
                             $dst = "$opt_bin_dir/$bin";
-                            if(file_exists($dst)) {
-                                unlink($dst);
-                            }
-                            $linked = @symlink($src, $dst);
-                            if(!$linked) {
+                            if($src !== $dst) {
+                                if(file_exists($dst)) {
+                                    unlink($dst);
+                                }
                                 copy($src, $dst);
                             }
                             chmod($dst, 0755);

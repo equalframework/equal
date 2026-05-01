@@ -180,7 +180,9 @@ class AccessController extends Service {
      */
     public function getUserRights($user_id, $object_class, $object_ids=[], $operation=EQ_R_ALL) {
         // users are always granted the default permissions and root user always has full rights
-        $user_rights = ($user_id == EQ_ROOT_USER_ID) ? EQ_R_ALL : $this->default_rights;
+        $user_rights = ($user_id == EQ_ROOT_USER_ID)
+            ? (int) EQ_R_ALL
+            : (int) $this->default_rights;
 
         if($user_rights == EQ_R_ALL) {
             return $user_rights;
@@ -852,6 +854,53 @@ class AccessController extends Service {
             }
         }
         return $result;
+    }
+
+    public function userHasContext($user_id, $context, $object_class, $objects_ids=[]): bool {
+        return $this->hasContext($context, $object_class, $objects_ids, $user_id);
+    }
+
+    public function hasContext($context, $object_class, $object_ids=[], $user_id=null): bool {
+        if(is_null($user_id)) {
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $user_id = $auth->userId();
+        }
+
+        switch($context) {
+
+            case 'root':
+                return ($user_id == EQ_ROOT_USER_ID);
+
+            case 'guest':
+                return ($user_id == EQ_GUEST_USER_ID);
+
+            case 'manager':
+                return $this->hasRight(EQ_R_MANAGE, $object_class, $object_ids, $user_id);
+
+            case 'creator':
+                if(!count($object_ids)) {
+                    return false;
+                }
+
+                $orm = $this->container->get('orm');
+                $values = $orm->read($object_class, $object_ids, ['creator']);
+
+                if(count($values) !== count($object_ids)) {
+                    return false;
+                }
+
+                foreach($values as $object) {
+                    if(($object['creator'] ?? null) != $user_id) {
+                        return false;
+                    }
+                }
+
+                return true;
+            default:
+        }
+
+        return false;
     }
 
     public function getComplyingPolicyId() {

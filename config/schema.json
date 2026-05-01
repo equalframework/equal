@@ -43,7 +43,7 @@
         "type": "boolean",
         "description": "Flag for limiting the sending of auth token over HTTPS.",
         "instant": true,
-        "default": false
+        "default": true
     },
     "BACKEND_URL": {
         "type": "string",
@@ -177,7 +177,7 @@
             0,
             "EQ_R_READ | EQ_R_UPDATE",
             "EQ_R_CREATE | EQ_R_READ | EQ_R_DELETE | EQ_R_UPDATE | EQ_R_MANAGE",
-            "EQ_R_ALL"
+            "EQ_R_ALL | EQ_R_ALL"
         ]
     },
     "DEBUG_LEVEL": {

@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Sign a user out.",
     'params' 		=>	[
     ],
@@ -29,7 +29,8 @@ $context->httpResponse()
         ->cookie('access_token', '', [
             'expires'   => time(),
             'httponly'  => true,
-            'secure'    => constant('AUTH_TOKEN_HTTPS')
+            'secure'    => constant('AUTH_TOKEN_HTTPS'),
+            'samesite'  => 'Strict'
         ])
         ->status(204)
         ->send();

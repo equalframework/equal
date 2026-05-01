@@ -34,7 +34,8 @@ class UsageNumber extends Usage {
         }
         else {
             if($this->length == 0) {
-                $this->length = 10;
+                // set max digits based on PHP integer architecture (32 or 64 bits)
+                $this->length = (PHP_INT_SIZE === 8 ? 18 : 9);
             }
         }
     }

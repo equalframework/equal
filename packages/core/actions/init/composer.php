@@ -53,9 +53,10 @@ if(!file_exists(EQ_BASEDIR.'/composer.phar')) {
     }
 
     // run setup and remove script afterward
-    if(exec('php composer-setup.php --quiet') === false) {
+    if(exec(PHP_BINARY . ' composer-setup.php --quiet') === false) {
         throw new Exception('command_failed', EQ_ERROR_UNKNOWN);
     }
+
     unlink(EQ_BASEDIR.'/composer-setup.php');
 
     // check the presence of the executable
@@ -69,7 +70,7 @@ if(file_exists(EQ_BASEDIR.'/composer.lock')) {
 }
 
 // run composer to install dependencies (verbose, no interactions)
-$cmd = 'php composer.phar update -vvv -n';
+$cmd = PHP_BINARY . ' composer.phar update -vvv -n';
 if($params['ignore_platform']) {
     $cmd .= ' --ignore-platform-reqs';
 }

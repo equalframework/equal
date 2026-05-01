@@ -144,7 +144,14 @@ class User extends Model {
                 'help'              => "Defaults to true. If set to false, the user will only be able to access using manually generated access tokens.
                     This feature can be used to create Apps that can use the API but cannot authenticate from the UI.",
                 'default'           => true
-            ]
+            ],
+
+            'access_tokens_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\security\AccessToken',
+                'foreign_field'     => 'user_id',
+                'description'       => 'List of access tokens owned by the user.'
+            ],
 
         ];
     }
@@ -356,6 +363,23 @@ class User extends Model {
                     'function'      => function ($username, $values) {
                         return (bool) (preg_match('/^(?!-)[a-zA-Z0-9-]{1,20}(?<!-)$/u', $username));
                     }
+                ]
+            ]
+        ];
+    }
+
+    public static function getCapabilities(): array {
+        return [
+            EQ_R_UPDATE => [
+                'accept' => [
+                    'root'      => true,
+                    'manager'   => ['firstname', 'lastname', 'language']
+                ],
+                'reject' => ['groups_ids', 'permissions_ids', 'passkeys_ids', 'validated', 'status']
+            ],
+            EQ_R_DELETE => [
+                'accept' => [
+                    'root' => true
                 ]
             ]
         ];

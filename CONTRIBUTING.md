@@ -183,6 +183,61 @@ docs: improved comments
 docs: corrected spelling in CHANGELOG
 ```
 
+## AI-Agent Ready Contributions
+
+To help AI coding assistants generate safe, relevant, and framework-compliant components, contributions should follow these additional rules.
+
+### 1) Keep package boundaries explicit
+
+* Keep business changes inside a single package whenever possible.
+* Avoid cross-package side effects in the same PR.
+* Never couple package features to `packages/core` internals.
+
+### 2) Prefer schema-driven artifacts over implicit behavior
+
+* Keep model definitions (`classes/*.class.php`), views (`views/*.json`), and translations (`i18n/*/*.json`) aligned in the same change set.
+* For each added or renamed field, update:
+  * the entity `getColumns()` definition,
+  * impacted views,
+  * translations (`label`, `description`, `help`, `selection` where relevant).
+* Reuse existing schema conventions and field usages (`amount/money:2`, date usages, relation attributes, etc.) instead of inventing new patterns.
+
+### 3) Make controllers and providers self-describing
+
+* Add clear descriptions and parameter metadata for actions/data providers so generated API docs stay useful.
+* Keep controller names and paths consistent with entity namespaces.
+* Prefer small, single-purpose controllers over large multi-behavior handlers.
+
+### 4) Strengthen machine-verifiable consistency
+
+* Run consistency checks before opening a PR:
+  * `php run.php --do=test_fs-consistency`
+  * `php run.php --do=test_package-consistency --package=<package>`
+* Add or update tests when behavior changes, especially for validation rules, computed fields, and access policies.
+
+### 5) Optimize for deterministic generation
+
+* Keep naming conventions strict (snake_case for fields/params, predictable file naming for views/controllers).
+* Avoid hidden side effects in computed fields (for example, avoid write/update operations inside compute functions).
+* Keep action names, route keys, and section IDs stable to reduce translation and UI drift.
+
+### 6) Improve retrieval context for assistants
+
+* Keep feature-specific documentation close to the code (short README or `i18n/*.md` view notes).
+* Add concise examples for complex domains, relations, and workflows.
+* Document non-obvious constraints directly where they are enforced (class comments, controller description, or translation help text).
+
+### 7) Use PR structure that is easy for humans and agents to review
+
+* One functional intent per PR (entity change, view change, workflow fix, etc.).
+* In PR description, include:
+  * impacted package,
+  * files by artifact type (class/action/data/view/i18n),
+  * validation commands and results,
+  * migration or compatibility notes if applicable.
+
+Following these practices makes eQual changes easier for both human maintainers and AI assistants to understand, generate, validate, and maintain over time.
+
 ## Coding Conventions
 
 Coding conventions guidelines:

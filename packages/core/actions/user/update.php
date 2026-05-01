@@ -7,13 +7,8 @@
 */
 use core\User;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Updates a user account based on given details.',
-    'response'      => [
-        'content-type'  => 'application/json',
-        'charset'       => 'UTF-8',
-        'accept-origin' => '*'
-    ],
     'params'        => [
         'id' =>  [
             'description'   => 'Identifier of the user to update.',
@@ -23,40 +18,70 @@ list($params, $providers) = eQual::announce([
         'firstname' =>  [
             'description'   => 'User firstname.',
             'type'          => 'string',
-            'default'       => ''
         ],
         'lastname' => [
             'description'   => 'User lastname.',
-            'type'          => 'string',
-            'default'       => ''
+            'type'          => 'string'
         ],
         'language' => [
             'description'   => 'User language.',
-            'type'          => 'string',
-            'default'       => constant('DEFAULT_LANG')
+            'type'          => 'string'
         ]
     ],
+    'access' => [
+        'visibility'        => 'protected'
+    ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context', 'orm']
+    'response'      => [
+        'content-type'  => 'application/json',
+        'charset'       => 'UTF-8',
+        'accept-origin' => '*'
+    ],
+    'providers'     => ['context', 'auth']
 ]);
 
 /**
- * @var \equal\php\Context          $context
- * @var \equal\orm\ObjectManager    $orm
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
  */
-list($context, $orm) = [ $providers['context'], $providers['orm'] ];
+['context' => $context, 'auth' => $auth] = $providers;
+
+$user_id = $auth->userId();
+
+if($user_id != EQ_ROOT_USER_ID && $user_id != $params['id']) {
+    throw new Exception('not_allowed', EQ_ERROR_NOT_ALLOWED);
+}
 
 // update user instance
-$instance = User::id($params['id'])
-    ->update([
-        'firstname' => $params['firstname'],
-        'lastname'  => $params['lastname'],
-        'language'  => $params['language']
-    ])
+$collection = User::id($params['id']);
+
+if(!$collection->first()) {
+    throw new Exception('unknown_user', EQ_ERROR_INVALID_PARAM);
+}
+
+$values = [];
+
+if(isset($params['firstname']) && $params['firstname']) {
+    $values['firstname'] = $params['firstname'];
+}
+
+if(isset($params['lastname']) && $params['lastname']) {
+    $values['lastname'] = $params['lastname'];
+}
+
+if(isset($params['language']) && $params['language']) {
+    $values['language'] = $params['language'];
+}
+
+if(count($values)) {
+    $collection->update($values);
+}
+
+$user = $collection
     ->adapt('json')
     ->first(true);
 
 $context->httpResponse()
         ->status(200)
-        ->body($instance)
+        ->body($user)
         ->send();

@@ -5,7 +5,7 @@ use core\Mail;
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Attempt to register a new user.",
     'params' 		=>	[
         'email' => [
@@ -75,7 +75,7 @@ if(!constant('USER_ACCOUNT_REGISTRATION')) {
 }
 
 // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
-list($email, $domain) = explode('@', strtolower(trim($params['email'])));
+[$email, $domain] = explode('@', strtolower(trim($params['email'])));
 $email .= '+';
 $login = substr($email, 0, strpos($email, '+')).'@'.$domain;
 

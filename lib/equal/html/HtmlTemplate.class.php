@@ -27,22 +27,7 @@ class HtmlTemplate {
 	 */
 	protected function decorator($attributes, $innerHTML='') {
         $result = '';
-        // handle conditional statement
-        // note: if statement should only be used with parameters, not with renderer keys
-        if(isset($attributes['if'])) {
-            $condition = $attributes['if'];
-            // inside conditional statement, replace matching strings with values defined in params
-            foreach($this->params as $param => $value) {
-                // skip arrays and objects
-                if(is_string($value) || is_integer($value)) {
-                    $condition = str_replace($param, "'{$value}'", $condition);
-                }
-            }
-            $condition = html_entity_decode($condition);
-            $res = eval('return ('.$condition.');');
-            if(!$res) return '';
-        }
-        // if id attribute is present, use it to retrieve related value
+        // if `id` attribute is present, use it to retrieve related value
 		if(isset($attributes['id'])) {
             if(isset($this->renderer[$attributes['id']])) {
                 $result = $this->renderer[$attributes['id']]($this->params, $attributes);
