@@ -603,6 +603,28 @@ class Model implements \ArrayAccess, \Iterator {
         return [];
     }
 
+    public static function getIsSystem(): bool {
+        return false;
+    }
+
+    public static function getCapabilities(): array {
+        if(static::getIsSystem()) {
+            return [
+                EQ_R_CREATE => false,
+                EQ_R_UPDATE => false,
+                EQ_R_DELETE => false
+            ];
+        }
+
+        return [
+            EQ_R_CREATE => true,
+            EQ_R_READ   => true,
+            EQ_R_UPDATE => true,
+            EQ_R_DELETE => true,
+            EQ_R_MANAGE => true
+        ];
+    }
+
     /**
      * Return the name of the DB table to be used for storing objects of current class.
      * This method can be overridden by children classes to allow polymorphism at class level.
