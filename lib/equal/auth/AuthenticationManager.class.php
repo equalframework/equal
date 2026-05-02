@@ -7,6 +7,7 @@
 */
 namespace equal\auth;
 
+use core\security\AccessToken;
 use equal\organic\Service;
 use equal\orm\ObjectManager;
 use equal\services\Container;
@@ -74,7 +75,7 @@ class AuthenticationManager extends Service {
      * @param   int $user_id        identifier of the user for whom a token is requested
      * @param   int $validity       validity duration in seconds
      * @param   array $auth_method  authentication method to describe how the user was authenticated (e.g. password, MFA, etc.)
-     * @param   int $jti            id of the token to track it, non-tracked tokens are completely stateless
+     * @param   int $jti            id of the AccessToken to track it (non-tracked tokens are stateless)
      * @return  string              token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
     public function token(int $user_id = 0, int $validity = 0, array $auth_method = [], int $jti = 0) {
@@ -91,8 +92,7 @@ class AuthenticationManager extends Service {
             // Issued At (standard JWT claim) - timestamp when the token was generated
             'iat'   => time(),
 
-            // Tracking flag (non-standard claim)
-            // Indicates whether the token is tracked server-side (e.g. stored in DB)
+            // Tracking flag (non-standard claim) - Indicates whether the token is tracked server-side (e.g. stored in DB)
             // If true, the token can be revoked (blacklist check required)
             // If false, the token is considered stateless (no server-side validation beyond signature/exp)
             'trk'   => $jti > 0
@@ -105,7 +105,7 @@ class AuthenticationManager extends Service {
         if($jti > 0) {
             $payload['jti'] = $jti;
         }
-        return $this->createAccessToken($payload);
+        return $this->encodeToken($payload);
     }
 
     /**
@@ -128,7 +128,7 @@ class AuthenticationManager extends Service {
             'amr'   => $jwt['amr']
         ];
 
-        return $this->createAccessToken($payload);
+        return $this->encodeToken($payload);
     }
 
     /**
@@ -137,14 +137,38 @@ class AuthenticationManager extends Service {
      * @param  $payload array representation of the object to be encoded
      *
      * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
-     * @deprecated use createAccessToken instead
+     * @deprecated use encodeToken instead
      */
     public function encode(array $payload) {
         return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
     }
 
-    public function createAccessToken(array $payload) {
+    /**
+     * Encode an array to a JWT token
+     *
+     * @param  $payload array representation of the object to be encoded
+     *
+     * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
+     */
+    public function encodeToken(array $payload) {
         return JWT::encode($payload, constant('AUTH_SECRET_KEY'));
+    }
+
+    /**
+     * Create a stored access token and return it as a token
+     *
+     * @param   int $user_id        identifier of the user for whom a token is requested
+     * @param   int $validity       validity duration in seconds
+     *
+     * @return string token using JWT format (https://tools.ietf.org/html/rfc7519)
+     */
+    public function createAccessToken(int $user_id, int $validity = 0) {
+        $accessToken = AccessToken::create([
+                'user_id'   => $user_id,
+                'expiry'    => ($validity) ? (time() + $validity) : null
+            ])
+            ->first();
+        return $this->token($user_id, $validity, [], $accessToken['id']);
     }
 
     public function decodeToken($jwt) {
