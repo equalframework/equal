@@ -155,7 +155,7 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Create a stored access token and return it as a token
+     * Create a stored AccessToken and return it as a token
      *
      * @param   int $user_id        identifier of the user for whom a token is requested
      * @param   int $validity       validity duration in seconds
