@@ -1,0 +1,13 @@
+- [ ] The entity class exists at the expected path.
+- [ ] The namespace matches the file path.
+- [ ] The class name matches the file name.
+- [ ] The entity follows ORM conventions.
+- [ ] All fields have valid definitions.
+- [ ] Relation targets exist.
+- [ ] Computed fields have valid dependencies.
+- [ ] Required form/list views exist when needed.
+- [ ] Views reference only existing fields.
+- [ ] Translation files exist for all supported languages.
+- [ ] All fields are translated with `label`, `description`, and `help`.
+- [ ] View names and section IDs are translated.
+- [ ] No unrelated entity was modified.

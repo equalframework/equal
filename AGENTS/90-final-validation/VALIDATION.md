@@ -1,0 +1,14 @@
+- [ ] All modified files are inside the intended package.
+- [ ] The `core` package was not modified.
+- [ ] PHP syntax is valid.
+- [ ] JSON syntax is valid.
+- [ ] Namespaces match file paths.
+- [ ] Entity fields referenced in views exist.
+- [ ] Translations exist for all impacted languages.
+- [ ] Form section IDs are translated.
+- [ ] Actions referenced in views exist.
+- [ ] Action labels and errors are translated.
+- [ ] Obsolete field/view/i18n references were removed.
+- [ ] No unnecessary unrelated changes were made.
+- [ ] Existing package conventions were followed.
+- [ ] The final change can be reviewed by a human developer.

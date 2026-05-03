@@ -1,0 +1,12 @@
+- [ ] The view file path follows package conventions.
+- [ ] The view name follows package conventions.
+- [ ] JSON syntax is valid.
+- [ ] The referenced entity exists.
+- [ ] Every referenced field exists in the ORM class.
+- [ ] Form layout structure is valid.
+- [ ] List layout structure is valid.
+- [ ] Section IDs are translated.
+- [ ] View names are translated.
+- [ ] View actions reference valid actions.
+- [ ] Routes, exports, and filters are valid.
+- [ ] No obsolete fields remain in the view.
