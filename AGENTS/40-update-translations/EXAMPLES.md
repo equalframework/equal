@@ -1,4 +1,13 @@
-- Translation file path: `i18n/fr/booking/Booking.json`
+- Minimal i18n structure:
+```json
+{
+  "name": "Booking",
+  "plural": "Bookings",
+  "description": "Booking entity.",
+  "model": {},
+  "view": {}
+}
+```
 
 - Root metadata:
 ```json
@@ -21,7 +30,10 @@
 
 - View translation:
 ```json
-"Booking.list.default": { "name": "Bookings" }
+"Booking.form.default": {
+  "name": "Booking",
+  "layout": { "section.general": { "label": "General" } }
+}
 ```
 
 - Layout section translation:

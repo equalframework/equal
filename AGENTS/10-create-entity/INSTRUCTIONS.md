@@ -17,20 +17,17 @@
 17. Add entity actions in `getActions()` only when there is an actual business operation to expose.
 18. If actions are added, implement the corresponding methods and add their translations.
 19. Create the default form view in `{package}/views/{namespace}/{Entity}.form.default.json`.
-20. Structure the form view with sensible groups, sections, rows, and columns based on existing views in the same namespace.
-21. Add section `id`s in form views when the UI needs translated tab/section labels.
-22. Configure relation widgets, nested views, domains, and header actions only when needed.
-23. Create the default list view in `{package}/views/{namespace}/{Entity}.list.default.json`.
-24. Define useful list columns, default sorting, filters, grouping, exports, and selection actions only when justified by the feature.
-25. Add translations for every existing language folder already supported by the package, not a hardcoded language set.
-26. Place translations at `{package}/i18n/{lang}/{namespace}/{Entity}.json` when the namespace maps to subfolders.
-27. Translate all model fields with `label`, `description`, and `help`, including technical or invisible fields.
-28. Translate every created view entry, including view `name`, `description`, `actions`, `routes`, `exports`, and `layout.section.*` labels.
-29. Add custom error messages in the `error` block when validations return business error keys.
-30. Add action handlers in `actions/` or data providers in `data/` only if the new entity requires dedicated endpoints or custom data rendering.
-31. Add seed/init data only if the entity is a reference entity that must exist by default.
-32. Avoid modifying unrelated entities, views, or translations unless a relation or navigation requirement makes it necessary.
-33. Run a consistency pass on filenames, namespaces, relation targets, translation paths, and view ids.
-34. Validate the package with `php run.php --do=test_package-consistency --package={package}` when the environment allows it.
-35. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
-36. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.
+20. Create the default list view in `{package}/views/{namespace}/{Entity}.list.default.json`.
+21. For view conventions and implementation details, follow `AGENTS/30-create-or-update-view/INSTRUCTIONS.md`.
+22. Add translations for every existing language folder already supported by the package, not a hardcoded language set.
+23. Place translations at `{package}/i18n/{lang}/{namespace}/{Entity}.json` when the namespace maps to subfolders.
+24. Translate all model fields with `label`, `description`, and `help`, including technical or invisible fields.
+25. Translate every created view entry, including view `name`, `description`, `actions`, `routes`, `exports`, and `layout.section.*` labels.
+26. Add custom error messages in the `error` block when validations return business error keys.
+27. Add action handlers in `actions/` or data providers in `data/` only if the new entity requires dedicated endpoints or custom data rendering.
+28. Add seed/init data only if the entity is a reference entity that must exist by default.
+29. Avoid modifying unrelated entities, views, or translations unless a relation or navigation requirement makes it necessary.
+30. Run a consistency pass on filenames, namespaces, relation targets, translation paths, and view ids.
+31. Validate the package with `php run.php --do=test_package-consistency --package={package}` when the environment allows it.
+32. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
+33. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.
