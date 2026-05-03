@@ -1,0 +1,12 @@
+- [ ] The field exists in the intended entity class.
+- [ ] The field type and properties are valid.
+- [ ] Relations reference valid objects and fields.
+- [ ] Computed field dependencies are complete.
+- [ ] All view references are valid.
+- [ ] Form views were updated when user-facing input is required.
+- [ ] List views were updated when the field must be visible in lists.
+- [ ] Filters, actions, data providers, and exports were checked.
+- [ ] Translation entries exist in every supported language.
+- [ ] Each impacted field has `label`, `description`, and `help`.
+- [ ] Removed or renamed fields have no stale references.
+- [ ] No unrelated field was modified.
