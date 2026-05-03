@@ -1,0 +1,13 @@
+- [ ] All supported languages were updated.
+- [ ] Translation files follow the entity namespace path.
+- [ ] Root keys are present.
+- [ ] Every impacted field has `label`, `description`, and `help`.
+- [ ] Selection values are translated.
+- [ ] View names are translated.
+- [ ] View descriptions are present when required.
+- [ ] Section IDs used in views are translated.
+- [ ] Actions referenced in views are translated.
+- [ ] Routes and exports are translated when present.
+- [ ] Business errors are translated.
+- [ ] No obsolete field or view translation remains after renaming or deletion.
+- [ ] JSON syntax is valid.
