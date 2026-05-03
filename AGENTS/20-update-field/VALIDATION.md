@@ -1,12 +1,14 @@
-- The field exists in the intended entity class.
-- The field type and properties are valid.
-- Relations reference valid objects and fields.
-- Computed field dependencies are complete.
-- All view references are valid.
-- Form views were updated when user-facing input is required.
-- List views were updated when the field must be visible in lists.
-- Filters, actions, data providers, and exports were checked.
-- Translation entries exist in every supported language.
-- Each impacted field has `label`, `description`, and `help`.
-- Removed or renamed fields have no stale references.
-- No unrelated field was modified.
+# Validation checklist — Update field
+
+- [ ] The field exists (or is intentionally introduced/removed) in the intended entity.
+- [ ] The field type and options are valid for the business intent.
+- [ ] Relation updates point to existing entities/fields and preserve consistency.
+- [ ] Computed/derived field dependencies were updated and remain complete.
+- [ ] All impacted view references (form/list/search/filter) are valid.
+- [ ] Form views were updated when the field affects data entry.
+- [ ] List views were updated when the field affects table visibility or sorting.
+- [ ] Related filters, actions, data providers, exports, and routes were reviewed.
+- [ ] Translation entries were updated in every supported language.
+- [ ] Impacted field translations include `label`, `description`, and `help`.
+- [ ] Removed/renamed fields no longer have stale references in code, views, or i18n.
+- [ ] No unrelated field changes were introduced in the same entity/package.

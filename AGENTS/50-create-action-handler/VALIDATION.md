@@ -1,10 +1,13 @@
-- The file is in the correct `actions/` or `data/` path.
-- The linked entity exists.
-- Parameters are validated.
-- Return structure is explicit and consistent with package conventions.
-- Business errors are explicit.
-- Business errors are translated.
-- View references to the action are valid.
-- Action labels and descriptions are translated.
-- No duplicate business logic was introduced.
-- No unrelated action or data handler was modified.
+# Validation checklist — Create action handler
+
+- [ ] The handler file is located in the correct `actions/` path.
+- [ ] The linked entity/business object exists and is correctly referenced.
+- [ ] Input parameters are explicitly validated (presence, type, constraints).
+- [ ] Authorization/security expectations are respected for the action context.
+- [ ] Return payload structure is explicit and consistent with package conventions.
+- [ ] Business errors are explicit, deterministic, and mapped to clear conditions.
+- [ ] Business errors/messages are translated in supported languages.
+- [ ] Any view/button/menu reference to this action is valid.
+- [ ] Action label/description translations are present where required.
+- [ ] No duplicate logic was added when reusable services already exist.
+- [ ] No unrelated action or data-provider files were modified.
