@@ -1,10 +1,10 @@
-- [ ] All modified files are inside the intended package.
-- [ ] The `core` package was not modified.
-- [ ] No unrelated files were changed.
-- [ ] Naming conventions match nearby files.
-- [ ] Namespaces match paths.
-- [ ] PHP syntax is valid.
-- [ ] JSON syntax is valid.
-- [ ] Existing package conventions were followed.
-- [ ] No obsolete or duplicate logic was introduced.
-- [ ] The change is understandable for a human reviewer.
+- All modified files are inside the intended package.
+- The `core` package was not modified.
+- No unrelated files were changed.
+- Naming conventions match nearby files.
+- Namespaces match paths.
+- PHP syntax is valid.
+- JSON syntax is valid.
+- Existing package conventions were followed.
+- No obsolete or duplicate logic was introduced.
+- The change is understandable for a human reviewer.

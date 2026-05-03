@@ -1,10 +1,10 @@
-- [ ] The file is in the correct `actions/` or `data/` path.
-- [ ] The linked entity exists.
-- [ ] Parameters are validated.
-- [ ] Return structure is explicit and consistent with package conventions.
-- [ ] Business errors are explicit.
-- [ ] Business errors are translated.
-- [ ] View references to the action are valid.
-- [ ] Action labels and descriptions are translated.
-- [ ] No duplicate business logic was introduced.
-- [ ] No unrelated action or data handler was modified.
+- The file is in the correct `actions/` or `data/` path.
+- The linked entity exists.
+- Parameters are validated.
+- Return structure is explicit and consistent with package conventions.
+- Business errors are explicit.
+- Business errors are translated.
+- View references to the action are valid.
+- Action labels and descriptions are translated.
+- No duplicate business logic was introduced.
+- No unrelated action or data handler was modified.
