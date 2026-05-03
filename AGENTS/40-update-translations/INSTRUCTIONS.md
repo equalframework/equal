@@ -13,4 +13,4 @@
 13. Preserve exact technical keys from classes and views.
 14. Use clear, concise, professional language.
 15. Do not omit intentionally empty keys; use `""` when needed.
-16. Refer to `AGENTS_REFERENCE.md` for the complete i18n structure.
+16. Refer to `AGENTS/AGENTS_REFERENCE.md` for the complete i18n structure.

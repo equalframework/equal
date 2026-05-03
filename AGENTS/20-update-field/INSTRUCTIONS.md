@@ -9,4 +9,4 @@
 9. Update translations in every supported language.
 10. Remove obsolete references if a field is renamed or deleted.
 11. Avoid changing unrelated fields.
-12. Refer to `AGENTS_REFERENCE.md` for detailed field conventions.
+12. Refer to `AGENTS/AGENTS_REFERENCE.md` for detailed field conventions.

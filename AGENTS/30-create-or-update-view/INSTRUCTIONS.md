@@ -18,4 +18,4 @@
 18. Remove obsolete fields, actions, routes, filters, exports, or layout entries when the view is being updated.
 19. Preserve existing layout and file naming conventions from nearby views.
 20. Validate JSON syntax and run a final consistency pass on filenames, translation keys, section IDs, and referenced actions.
-21. Refer to `AGENTS_REFERENCE.md` for detailed view conventions.
+21. Refer to `AGENTS/AGENTS_REFERENCE.md` for detailed view conventions.
