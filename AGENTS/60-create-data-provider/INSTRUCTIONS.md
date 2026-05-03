@@ -22,4 +22,4 @@
 22. Build the HTTP response explicitly with `httpResponse()`: body, headers, status, and binary mode when needed.
 23. Link the provider to views only when the UI genuinely needs a custom `get=` endpoint beyond standard model reads and collects.
 24. Update translations only for user-facing labels, descriptions, route labels, or view texts related to that provider; do not treat data providers like form actions by default.
-25. Do not reference `AGENTS_REFERENCE.md` here; in this repository the relevant references are `AGENTS.md` and the framework docs for controllers and data providers.
+25. Do not reference `AGENTS/AGENTS_REFERENCE.md` here; in this repository the relevant references are `AGENTS.md` and the framework docs for controllers and data providers.

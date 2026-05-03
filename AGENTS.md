@@ -23,4 +23,4 @@
 | Update translations | `AGENTS/40-update-translations/INSTRUCTIONS.md`, `AGENTS/40-update-translations/EXAMPLES.md`, `AGENTS/40-update-translations/VALIDATION.md` |
 | Create action or data handler | `AGENTS/50-create-action-or-data-handler/INSTRUCTIONS.md`, `AGENTS/50-create-action-or-data-handler/EXAMPLES.md`, `AGENTS/50-create-action-or-data-handler/VALIDATION.md` |
 
-For detailed eQual framework conventions, see `AGENTS_REFERENCE.md`.
+For detailed eQual framework conventions, see `AGENTS/AGENTS_REFERENCE.md`.
