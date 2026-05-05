@@ -21,6 +21,7 @@
 | Update field | `AGENTS/20-update-field/INSTRUCTIONS.md`, `AGENTS/20-update-field/EXAMPLES.md`, `AGENTS/20-update-field/VALIDATION.md` |
 | Create or update view | `AGENTS/30-create-or-update-view/INSTRUCTIONS.md`, `AGENTS/30-create-or-update-view/EXAMPLES.md`, `AGENTS/30-create-or-update-view/VALIDATION.md` |
 | Update translations | `AGENTS/40-update-translations/INSTRUCTIONS.md`, `AGENTS/40-update-translations/EXAMPLES.md`, `AGENTS/40-update-translations/VALIDATION.md` |
-| Create action or data handler | `AGENTS/50-create-action-or-data-handler/INSTRUCTIONS.md`, `AGENTS/50-create-action-or-data-handler/EXAMPLES.md`, `AGENTS/50-create-action-or-data-handler/VALIDATION.md` |
+| Create action handler | `AGENTS/50-create-action-handler/INSTRUCTIONS.md`, `AGENTS/50-create-action-handler/EXAMPLES.md`, `AGENTS/50-create-action-handler/VALIDATION.md` |
+| Create data provider | `AGENTS/60-create-data-provider/INSTRUCTIONS.md`, `AGENTS/60-create-data-provider/EXAMPLES.md`, `AGENTS/60-create-data-provider/VALIDATION.md` |
 
 For detailed eQual framework conventions, see `AGENTS/AGENTS_REFERENCE.md`.
