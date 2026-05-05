@@ -5,8 +5,8 @@
 - [ ] No unrelated files were changed.
 - [ ] Naming conventions match nearby package files.
 - [ ] Namespaces and paths are consistent.
-- [ ] PHP syntax is valid for all touched PHP files.
-- [ ] JSON syntax is valid for all touched JSON files.
+- [ ] PHP syntax is valid for all touched PHP files (see validation procedures).
+- [ ] JSON syntax is valid for all touched JSON files (see validation procedures).
 - [ ] Existing package conventions were followed.
 - [ ] No obsolete or duplicate logic was introduced.
 - [ ] The change is understandable and reviewable by a human developer.
