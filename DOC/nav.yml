@@ -1,0 +1,125 @@
+- 'Welcome':
+    - 'eQual': 'index.md'
+    - 'Release notes': 'welcome/release-notes.md'
+    - 'Choose your path': 'welcome/choose-path.md'
+    - 'Contribute': 'welcome/contribute.md'
+    - 'End Users': 'welcome/end-users.md'
+- 'Application Developers':
+    - 'Getting Started':
+        - 'Installation': 'application-developers/getting-started/installation.md'
+        - 'Quick Start': 'application-developers/getting-started/quick-start.md'
+        - 'Deployment': 'application-developers/getting-started/deployment.md'
+        - 'Configuration': 'application-developers/getting-started/configuration.md'
+        - 'Versioning': 'application-developers/getting-started/versioning.md'
+    - 'Core Development Guide':
+        - 'Models (Entities / Actions / Workflows)':
+              - 'Actions': 'application-developers/core-development-guide/models/actions.md'
+              - 'Authorization':
+                    - 'Authorization Concepts': 'application-developers/core-development-guide/models/authorization/authorization-overview.md'
+                    - 'Authentication': 'application-developers/core-development-guide/models/authorization/authentication.md'
+                    - 'Access Control Lists': 'application-developers/core-development-guide/models/authorization/access-control-lists.md'
+                    - 'Passkeys': 'application-developers/core-development-guide/models/authorization/passkeys.md'
+              - 'Collections':
+                    - 'Collections Overview': 'application-developers/core-development-guide/models/collections/collections-overview.md'
+                    - 'Collection Special Architectures': 'application-developers/core-development-guide/models/collections/collections-special-architectures.md'
+                    - 'Collection Usage': 'application-developers/core-development-guide/models/collections/collections-usage.md'
+                    - 'Collection Best Practices': 'application-developers/core-development-guide/models/collections/collections-best-practices.md'
+              - 'Data Anonymization': 'application-developers/core-development-guide/models/data-anonymization.md'
+              - 'Data Import': 'application-developers/core-development-guide/models/data-import.md'
+              - 'Domains': 'application-developers/core-development-guide/models/domains.md'
+              - 'Entities':
+                    - 'Entities Overview': 'application-developers/core-development-guide/models/entities/entities.md'
+                    - 'Fields': 'application-developers/core-development-guide/models/entities/fields.md'
+                    - 'Computed Fields': 'application-developers/core-development-guide/models/entities/computed-fields.md'
+                    - 'Seeding': 'application-developers/core-development-guide/models/entities/seeding.md'
+              - 'Model Factory': 'application-developers/core-development-guide/models/model-factory.md'
+              - 'Operations': 'application-developers/core-development-guide/models/operations.md'
+              - 'ORM': 'application-developers/core-development-guide/models/orm.md'
+              - 'Programming Paradigm': 'application-developers/core-development-guide/models/programming-paradigm.md'
+              - 'Workflows': 
+                    - 'Workflows Overview': 'application-developers/core-development-guide/models/workflows/workflows.md'
+                    - 'Tasks': 'application-developers/core-development-guide/models/workflows/tasks.md'
+              - 'Services': 'application-developers/core-development-guide/models/services.md'
+        - 'Views & UI': 
+              - 'Views':
+                    - 'Common Structures': 
+                      - 'Common Structures Overview': 'application-developers/core-development-guide/views-ui/views/common-structures/common-structures.md'
+                      - 'Views & Actions' : 'application-developers/core-development-guide/views-ui/views/common-structures/views-actions.md'
+                    - 'Forms' : 'application-developers/core-development-guide/views-ui/views/forms.md'
+                    - 'Lists' : 'application-developers/core-development-guide/views-ui/views/lists.md'
+                    - 'Charts' : 'application-developers/core-development-guide/views-ui/views/charts.md'
+                    - 'Dashboards' : 'application-developers/core-development-guide/views-ui/views/dashboards.md'
+                    - 'Searches' : 'application-developers/core-development-guide/views-ui/views/searches.md'
+                    - 'Widgets': 
+                          - 'Widget Overview': 'application-developers/core-development-guide/views-ui/views/widgets/widgets.md'
+                          - 'Widget Types': 'application-developers/core-development-guide/views-ui/views/widgets/widget-types.md'
+              - 'Inheritance' : 'application-developers/core-development-guide/views-ui/inheritance.md'
+              - 'Frontend logic': 'application-developers/core-development-guide/views-ui/frontend-logic.md'
+              - 'Menus' : 'application-developers/core-development-guide/views-ui/menus.md'
+              - 'Contexts': 'application-developers/core-development-guide/views-ui/contexts.md'
+              - 'Low-Code Overview': 'application-developers/core-development-guide/views-ui/low-code-overview.md'
+        - 'Validation & Searching': 
+              - 'Validation': 'application-developers/core-development-guide/validation-searching/validation.md'
+              - 'Searching': 'application-developers/core-development-guide/validation-searching/searching.md'
+              - 'JSON Schemas': 
+                    - 'JSON Schemas Overview': 'application-developers/core-development-guide/validation-searching/json-schemas/json-schemas-overview.md'
+                    - 'JSON Schemas in eQual': 'application-developers/core-development-guide/validation-searching/json-schemas/json-schemas-equal.md'
+        - 'Internationalization':
+              - 'Internationalization Overview': 'application-developers/core-development-guide/i18n/i18n-overview.md'
+              - 'Interface': 'application-developers/core-development-guide/i18n/i18n-interface.md'
+              - 'Model Data': 'application-developers/core-development-guide/i18n/i18n-model-data.md'
+        - 'Controllers & Routing':
+              - 'Controllers': 'application-developers/core-development-guide/controllers-routing/controllers.md'
+              - 'Routing': 'application-developers/core-development-guide/controllers-routing/routing.md'
+    - 'How-Tos & Reference':
+        - 'Tutorials / Examples': 
+              - 'Tutorial: Using the Workbench': 'application-developers/how-tos-references/tutorials-examples/tutorial-building-simple-app.md'
+              - 'Tutorial: Creating a ReST API': 'application-developers/how-tos-references/tutorials-examples/tutorial-rest-api.md'
+              - 'Tutorial: A basic WebApp' : 'application-developers/how-tos-references/tutorials-examples/tutorial-basic-webapp.md'
+              - 'Example: A basic Controller' : 'application-developers/how-tos-references/tutorials-examples/example-basic-controller.md'
+              - 'Example: Domains': 'application-developers/how-tos-references/tutorials-examples/example-domain.md'
+              - 'Example: Shared-lib Code Snippets': 'application-developers/how-tos-references/tutorials-examples/shared-lib-code-snippets.md'
+        - 'Cheat Sheets': 'application-developers/how-tos-references/cheat-sheet.md'
+        - 'API / CLI Reference': 'application-developers/how-tos-references/api-cli.md' 
+        - 'Package': 'application-developers/how-tos-references/package.md'
+        - 'Using Shared-lib': 'application-developers/how-tos-references/using-shared-lib.md'
+        - 'Workbench':
+              - 'Workbench Overview': 'application-developers/how-tos-references/workbench/workbench-overview.md'
+              - 'Workbench URL Navigation': 'application-developers/how-tos-references/workbench/workbench-url-navigation.md'
+- 'Operations (DevOps / Sysadmin)':
+    - 'Deployment & Environment':
+        - 'Server setup': 'operations/deployment-environment/server-setup.md'
+        - 'Docker setup': 'operations/deployment-environment/docker-setup.md'
+        - 'CI/CD': 'operations/deployment-environment/ci-cd.md'
+        - 'PHP compatibility': 'operations/deployment-environment/php-compatibility.md'
+        - 'Installation & Config Utilities': 'operations/deployment-environment/installation-config-utilities.md'
+        - 'Package Utilities': 'operations/deployment-environment/package-utilities.md'
+        - 'Shared-lib Setup': 'operations/deployment-environment/shared-lib-setup.md'
+        - 'Pipeline Utilities': 'operations/deployment-environment/pipelines-utilities.md'
+    - 'Database & Storage':
+        - 'Data Manipulation Utilities': 'operations/database-storage/data-manipulation-utilities.md'
+    - 'Monitoring & Maintenance':
+        - 'Rights Management Utilities': 'operations/monitoring-maintenance/rights-management-utilities.md'
+        - 'Rights Management': 'operations/monitoring-maintenance/rights-management.md'
+        - 'Logging': 'operations/monitoring-maintenance/logging-overview.md'
+        - 'Performance': 'operations/monitoring-maintenance/performance.md'  
+- 'Community (Core / Contributors)':
+    - 'Contribution Guide':
+        - 'Coding standards': 'community/contribution-guide/coding-standards.md'
+        - 'Commit standards': 'community/contribution-guide/commit-standards.md'
+        - 'How to Help': 'community/contribution-guide/how-to-help.md'
+        - 'Licensing guidelines': 'community/contribution-guide/licensing-guidelines.md'
+        - 'PR workflow': 'community/contribution-guide/pr-workflow.md'
+        - 'Tests & coverage': 'community/contribution-guide/tests-coverage.md'
+    - 'Internal Architecture':
+        - 'Framework internals': 'community/internal-architecture/framework-internals.md'
+- 'Help & Support':
+    - 'Troubleshooting & Diagnostics': 
+        - 'Common issues': 'help-support/troubleshooting-diagnostic/common-issues.md'
+        - 'Debugging tools': 'help-support/troubleshooting-diagnostic/debugging-tools.md'
+    - 'Logging & Error Handling':
+        - 'Logs structure': 'help-support/logging-error-handling/logs-structure.md'
+        - 'Error codes': 'help-support/logging-error-handling/error-codes.md'
+    - 'Contact & Support':
+        - 'Report a bug': 'help-support/contact-support/report-bug.md'
+        - 'Support channels': 'help-support/contact-support/support-channels.md'

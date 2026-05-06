@@ -807,10 +807,22 @@ class AccessController extends Service {
                     else {
                         $res = (array) $called_class::$called_method(...$args);
                     }
-
+                    // relay result to provide details about the broken policy
                     if(count($res)) {
-                        // relay result to provide details about the broken policy
-                        $result = current($res);
+                        // normalize response
+                        $current = current($res);
+                        if($current === false || is_null($current)) {
+                            $result = ['error' => 'policy_failed'];
+                        }
+                        elseif($current === true) {
+                            $result = [];
+                        }
+                        elseif(is_array($current)) {
+                            $result = $current;
+                        }
+                        else {
+                            $result = ['error' => $current];
+                        }
                     }
                 }
                 catch(\Exception $e) {

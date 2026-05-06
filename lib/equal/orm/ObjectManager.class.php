@@ -566,6 +566,8 @@ class ObjectManager extends Service {
         $schema = $object->getSchema();
         // retrieve the name of the DB table associated to the class
         $table_name = $this->getObjectTableName($class);
+        // make sure that there are not fields repetition
+        $fields = array_unique($fields);
 
         try {
             // get DB handler (init DB connection if necessary)

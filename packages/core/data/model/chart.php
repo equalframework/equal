@@ -232,7 +232,8 @@ foreach($datasets as $index => $dataset) {
     if($objects && count($objects)) {
         // group objects by date interval
         foreach($objects as $oid => $object) {
-            if(in_array($schema[$params['field']]['type'], ['date', 'datetime'])) {
+            $field_type = $schema[$params['field']]['result_type'] ?? $schema[$params['field']]['type'];
+            if(in_array($field_type, ['date', 'datetime'])) {
                 if($params['group_by'] == 'range') {
                     $group_index = $getDateIndex($object[$params['field']], $params['range_interval']);
                 }

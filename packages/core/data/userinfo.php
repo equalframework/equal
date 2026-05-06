@@ -7,7 +7,7 @@
 */
 use core\User;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns descriptor of current User, based on received access_token',
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'BACKEND_URL'],
     'response'      => [
@@ -56,8 +56,17 @@ $user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $us
 // renew JWT access token
 $access_token  = $auth->renewedToken(constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
+$csrf_token = $auth->token($user_id);
+
 // send back basic info of the User object
 $context->httpResponse()
+    ->header('X-CSRF-Token', $csrf_token)
+    ->cookie('csrf_token',  $csrf_token, [
+        'expires'   => time() + 86400,
+        'httponly'  => true,
+        'secure'    => constant('AUTH_TOKEN_HTTPS'),
+        'samesite'  => 'Lax'
+    ])
     ->cookie('access_token',  $access_token, [
         'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         'httponly'  => true,

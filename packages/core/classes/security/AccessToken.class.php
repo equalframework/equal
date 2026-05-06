@@ -35,7 +35,8 @@ class AccessToken extends Model {
                     'access_token',
                     'refresh_token'
                 ],
-                'description'       => 'Type of token (access or refresh).'
+                'description'       => 'Type of token (access or refresh).',
+                'default'           => 'access_token'
             ],
 
             'expiry' => [
@@ -48,6 +49,22 @@ class AccessToken extends Model {
                 'default'           => false,
                 'description'       => 'Indicates if the token has been revoked.'
             ],
+
+            'last_use' => [
+                'type'              => 'datetime',
+                'description'       => 'Timestamp of last usage.'
+            ],
+
+            'use_count' => [
+                'type'              => 'integer',
+                'description'       => 'Amount of time the token has been used.',
+                'default'           => 0
+            ],
+
+            'use_limit' => [
+                'type'              => 'integer',
+                'description'       => 'Max amount of time the token can be used before revoked.'
+            ]
 
         ];
     }

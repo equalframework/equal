@@ -168,7 +168,7 @@ if($jwt) {
     }
     // append to existing auth methods
     $jwt['amr'][] = $auth_method;
-    $access_token = $auth->createAccessToken($jwt);
+    $access_token = $auth->encodeToken($jwt);
 }
 else {
     // generate new access token
