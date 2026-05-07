@@ -575,7 +575,7 @@ class Model implements \ArrayAccess, \Iterator {
      * This method can be overridden to define a more precise set of unique constraints (i.e when keys are formed of several fields).
      *
      */
-    public function getUnique() {
+    public function getUniques(): array {
         $uniques = [];
         foreach($this->schema as $field => $definition) {
             if(isset($definition['unique']) && $definition['unique']) {
@@ -583,6 +583,13 @@ class Model implements \ArrayAccess, \Iterator {
             }
         }
         return $uniques;
+    }
+
+    /**
+     * @deprecated Use getUniques() instead.
+     */
+    public function getUnique(): array {
+        return static::getUniques();
     }
 
     /**
@@ -603,16 +610,25 @@ class Model implements \ArrayAccess, \Iterator {
         return [];
     }
 
-    public static function getIsSystem(): bool {
-        return false;
+    /**
+     * Checks whether the entity has a given flag.
+     */
+    public static function hasFlag(int $flag): bool {
+        return ((static::getFlags() & $flag) === $flag);
+    }
+
+    public static function getFlags(): int {
+        return 0;
     }
 
     public static function getCapabilities(): array {
-        if(static::getIsSystem()) {
+        if(static::hasFlag(EQ_FLAG_SYSTEM)) {
             return [
                 EQ_R_CREATE => false,
+                EQ_R_READ   => true,
                 EQ_R_UPDATE => false,
-                EQ_R_DELETE => false
+                EQ_R_DELETE => false,
+                EQ_R_MANAGE => false
             ];
         }
 

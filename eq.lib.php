@@ -38,7 +38,7 @@ namespace {
     /**
      * Current version of eQual
      */
-    define('EQ_VERSION', '2.0.0');
+    define('EQ_VERSION', '2');
 
     /**
      * Root directory of current install
@@ -47,6 +47,18 @@ namespace {
     // equivalence for constant names migration
     // #deprecated
     define('QN_BASEDIR', EQ_BASEDIR);
+
+
+    /**
+     * Entity structural flags.
+     * Flags define transversal characteristics of a Model and alter
+     * framework behaviors such as CRUD exposure, API visibility,
+     * auditing, or instantiation rules.
+     */
+    define('EQ_FLAG_SYSTEM',    1);      // entity is part of the framework core or security model and should not be modified through generic CRUD controllers
+    define('EQ_FLAG_PRIVATE',   2);      // entity must not be exposed publicly through generic APIs or external integrations
+    define('EQ_FLAG_ABSTRACT',  4);      // entity is a non-instantiable base model intended only for inheritance
+    define('EQ_FLAG_AUDIT',     8);      // entity changes should be tracked and historized through Change entries and audit mechanisms
 
     /**
      * Error codes
