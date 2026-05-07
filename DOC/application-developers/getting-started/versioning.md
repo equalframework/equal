@@ -1,24 +1,270 @@
 # Versioning Strategy
 
-eQual uses a simple and declarative versioning model based on a `VERSION` file, optionally enriched with Git information when available.
+eQual uses a strict and declarative versioning model centered around the `VERSION` file.
 
-## Core Principles
+The versioning system is designed to provide:
 
-- The **official version** of eQual is defined in the root `VERSION` file.
-- Each version corresponds to a **Git tag** following the convention:
+- strong installation traceability
+- deterministic maintenance branches
+- reproducible deployments
+- simplified support workflows
+- controlled upgrade paths
+- strict compatibility tracking between installations
+
+The model intentionally avoids build-based versioning and relies directly on repository state.
+
+
+
+# Core Principles
+
+## VERSION as Source of Truth
+
+The official version of an eQual installation is defined exclusively by the root `VERSION` file.
+
+Example:
+
+```text
+2.0.1
+```
+
+The `VERSION` file defines:
+
+- the official semantic version
+- the expected release lineage
+- the expected Git branch
+- the expected release tag
+
+The `VERSION` file is the canonical reference for all runtime version information.
+
+
+
+# Branch Types
+
+eQual uses two categories of branches.
+
+
+
+## Development Branches
+
+Development branches are temporary integration branches used to prepare future releases.
+
+Convention:
+
+```text
+dev-x.y
+```
+
+Examples:
+
+```text
+dev-2.1
+dev-3.0
+```
+
+Development branches are used for:
+
+- feature development
+- refactoring
+- architecture changes
+- integration work
+
+Development branches are temporary and are deleted once the corresponding stable release is created.
+
+
+
+## Stable Release Branches
+
+Stable branches represent maintained release lineages.
+
+Convention:
+
+```text
+x.y.z
+```
+
+Examples:
+
+```text
+2.0.1
+2.1.0
+3.0.0
+```
+
+Stable branches are used for:
+
+- production deployments
+- maintenance
+- bugfixes
+- security patches
+- client support
+
+Each stable branch corresponds to the initial release of a maintained lineage.
+
+
+
+# Release Tags
+
+Each official release must have an immutable Git tag.
+
+Convention:
 
 ```text
 v{VERSION}
 ```
 
+Examples:
+
+```text
+v2.0.1
+v2.0.2
+v2.1.0
+```
+
+Tags provide:
+
+- exact reproducibility
+- deployment traceability
+- deterministic rollback capability
+- GitHub release compatibility
+
+Tags are immutable snapshots of official releases.
+
+
+
+# Master Branch
+
+The `master` branch always points to the latest recommended stable release.
+
 Example:
 
 ```text
-VERSION = 2.0.0 → tag = v2.0.0
+master -> 2.1.0
 ```
 
-- No build step is required: a version is defined by the **state of the repository at a given moment**.
-- Git is used as a **runtime source of truth** when available, but is not required.
+This ensures that:
+
+- cloning `master` provides the latest stable version
+- new installations are aligned with the current recommended release
+- support alignment remains simple
+
+
+
+# Release Lifecycle
+
+A typical release lifecycle follows this structure:
+
+```text
+feature/*
+    ↓
+dev-2.1
+    ↓
+2.1.0
+    ↓
+v2.1.0
+    ↓
+master
+```
+
+After release:
+
+- `dev-2.1` is deleted
+- `2.1.0` becomes the maintained stable branch
+- future development resumes on:
+
+```text
+dev-2.2
+```
+
+
+
+# Stable Branch Lifecycle
+
+A stable branch represents a maintained release lineage.
+
+Example:
+
+```text
+2.1.0
+```
+
+This branch may later produce:
+
+```text
+v2.1.0
+v2.1.1
+v2.1.2
+```
+
+The branch itself remains unchanged:
+
+```text
+2.1.0
+```
+
+while the `VERSION` file evolves to reflect the latest maintained release state.
+
+
+
+# Version Alignment
+
+eQual defines a strict consistency model between:
+
+- the `VERSION` file
+- the active Git branch
+- the release tag
+
+An installation is considered aligned when:
+
+```text
+branch == VERSION
+```
+
+or when the installation runs directly from:
+
+```text
+master
+```
+
+with a matching release state.
+
+Examples:
+
+| VERSION | branch | aligned |
+|----------|--------|----------|
+| 2.0.1 | 2.0.1 | true |
+| 2.0.3 | 2.0.3 | true |
+| 2.0.3 | master | true |
+| 2.0.3 | 2.0.1 | false |
+| 2.0.3 | dev-2.1 | false |
+| 2.0.3 | feature/x | false |
+
+Example of an aligned installation:
+
+```text
+branch  = 2.0.3
+VERSION = 2.0.3
+tag     = v2.0.3
+```
+
+Example of a mismatch:
+
+```text
+branch  = 2.0.1
+VERSION = 2.0.3
+tag     = v2.0.3
+```
+
+This situation may still function technically, but it indicates that the repository context does not match the declared release lineage and is therefore not considered a recommended or supported state.
+
+The `mismatch` flag reflects this condition:
+
+```text
+mismatch = (
+    branch != VERSION
+    AND
+    branch != master
+)
+```
 
 
 
@@ -26,7 +272,9 @@ VERSION = 2.0.0 → tag = v2.0.0
 
 The behavior of version detection depends on how eQual is installed.
 
-## 1. Installation via Git (recommended)
+
+
+# 1. Installation via Git (recommended)
 
 Example:
 
@@ -34,29 +282,31 @@ Example:
 git clone https://github.com/equalframework/equal
 ```
 
-### Characteristics
+## Characteristics
 
 - `.git` directory is present
-- Full Git metadata is available
+- full Git metadata is available
 
-### Behavior
+## Behavior
 
-The system can expose:
+The runtime can expose:
 
-- version (from `VERSION`)
-- current branch
+- declared version
+- active branch
+- release tag
 - commit hash
 - commit date
-- working tree state (clean/dirty)
+- working tree state
 
 Example:
 
 ```json
 {
-  "version": "2.0.0",
-  "branch": "master",
-  "commit": "ba572ed4",
-  "date": "2026.04.28",
+  "version": "2.0.3",
+  "tag": "v2.0.3",
+  "branch": "2.0.3",
+  "commit": "81303632",
+  "date": "2026.05.06",
   "dirty": false,
   "mismatch": false,
   "source": "git"
@@ -65,33 +315,34 @@ Example:
 
 
 
-## 2. Installation from a ZIP archive
+# 2. Installation from ZIP Archive
 
 Example:
 
 ```text
-equal-2.0.0.zip
+equal-2.0.3.zip
 ```
 
-### Characteristics
+## Characteristics
 
 - no `.git` directory
-- no local commit information
+- no local branch information
 
-### Behavior
+## Behavior
 
 The system:
 
 - reads the `VERSION` file
-- optionally resolves commit info via GitHub API (if network is available)
+- optionally resolves metadata using GitHub API
 
 Example:
 
 ```json
 {
-  "version": "2.0.0",
-  "commit": "ba572ed4",
-  "date": "2026.04.28",
+  "version": "2.0.3",
+  "tag": "v2.0.3",
+  "commit": "81303632",
+  "date": "2026.05.06",
   "source": "github"
 }
 ```
@@ -100,38 +351,39 @@ If no network is available:
 
 ```json
 {
-  "version": "2.0.0",
+  "version": "2.0.3",
   "source": "version"
 }
 ```
 
 
 
-## 3. Modified or Development Environments
+# 3. Development Environments
 
-When working on a non-standard branch:
+Examples:
 
 ```text
+dev-2.1
 feature/*
-dev-*
 custom branches
 ```
 
-### Behavior
+## Behavior
 
-- `version` still reflects the `VERSION` file
-- `branch` reflects the current working context
-- `dirty` indicates uncommitted changes
-- `mismatch` indicates divergence from expected version alignment
+The runtime reflects:
+
+- the declared target version
+- the active development context
+- local repository modifications
 
 Example:
 
 ```json
 {
-  "version": "2.0.0",
-  "branch": "dev-2.0",
+  "version": "2.1.0-dev",
+  "branch": "dev-2.1",
   "commit": "ba572ed4",
-  "date": "2026.04.28",
+  "date": "2026.05.06",
   "dirty": true,
   "mismatch": true,
   "source": "git"
@@ -140,291 +392,431 @@ Example:
 
 
 
-# Version Alignment
+# Retrieving Runtime Version Information
 
-eQual defines a simple consistency rule:
-
-An installation is considered **aligned** if:
-
-- the current branch is `master` (or `main`), OR
-- the branch name matches the version exactly
-
-```text
-branch == "master"
-OR
-branch == VERSION
-```
-
-### Examples
-
-| VERSION | branch    | aligned |
-| ------- | --------- | ------- |
-| 2.0.0   | master    | true    |
-| 2.0.0   | 2.0.0     | true    |
-| 2.0.0   | dev-2.0   | false   |
-| 2.0.0   | feature/x | false   |
-
-The `mismatch` flag is simply:
-
-```text
-mismatch = !aligned
-```
-
-------
-
-# Retrieving the Current Version
-
-You can retrieve version and runtime information using:
+You can retrieve runtime version information using:
 
 ```bash
 ./equal.run --get=version
 ```
 
-This command provides a **unified view of the current installation**, combining:
+This command provides a unified view of:
 
-- declared version (`VERSION`)
-- execution context (Git or not)
-- runtime state (branch, commit, modifications)
-
-
-
-## Example Output
-
-```json
-{
-    "version": "2.0.0",
-    "branch": "dev-2.0",
-    "commit": "ba572ed4",
-    "date": "2026.04.28",
-    "dirty": true,
-    "mismatch": true,
-    "source": "git"
-}
-```
+- declared release version
+- Git execution context
+- runtime repository state
 
 
 
-## Field Description
-
-### `version`
-
-- Source: `VERSION` file
-- Meaning: **official declared version of eQual**
-- Always present
-
-------
-
-### `branch`
-
-- Source: Git (if available)
-- Meaning: current Git branch
-- Example: `master`, `2.0.0`, `dev-2.0`
-- May be absent if Git is not available
-
-------
-
-### `commit`
-
-- Source: Git or GitHub
-- Meaning: short hash of the current commit
-- Identifies the exact code state
-
-------
-
-### `date`
-
-- Source: Git or GitHub
-- Meaning: commit date (formatted as `YYYY.MM.DD`)
-- Used to build a human-readable revision
-
-------
-
-### `dirty`
-
-- Source: Git
-- Meaning: indicates whether the working directory contains uncommitted changes
-
-| value | meaning                     |
-| ----- | --------------------------- |
-| true  | local modifications present |
-| false | working tree clean          |
-
-------
-
-### `mismatch`
-
-- Meaning: indicates whether the current branch is aligned with the declared version
-
-| value | meaning                                        |
-| ----- | ---------------------------------------------- |
-| true  | branch does not match expected version context |
-| false | branch is consistent with version              |
-
-------
-
-### `source`
-
-- Indicates how the information was resolved
-
-| value     | meaning                  |
-| --------- | ------------------------ |
-| `git`     | local Git repository     |
-| `github`  | resolved via GitHub API  |
-| `version` | fallback to VERSION only |
-
-
-
-## Interpretation Guidelines
-
-### Production (expected)
+# Example Output
 
 ```json
 {
-  "version": "2.0.0",
-  "branch": "master",
+  "version": "2.0.3",
+  "tag": "v2.0.3",
+  "branch": "2.0.3",
+  "commit": "81303632",
+  "date": "2026.05.06",
   "dirty": false,
-  "mismatch": false
+  "mismatch": false,
+  "source": "git"
 }
 ```
 
-- clean state
-- aligned version
-- safe to run
-
-------
-
-### Development
-
-```json
-{
-  "version": "2.0.0",
-  "branch": "dev-2.0",
-  "dirty": true,
-  "mismatch": true
-}
-```
-
-- working on a development branch
-- local changes present
-- not aligned with release version
-
-------
-
-### Minimal environment (manual / zip)
-
-```json
-{
-  "version": "2.0.0",
-  "source": "version"
-}
-```
-
-- minimal information
-- still sufficient for identifying the release
 
 
-Below is a concise documentation section you can add.
-
----
-
-# Release Process
-
-This section describes the standard procedure to create a new eQual release.
-
-The process is intentionally simple and relies on Git conventions and the `VERSION` file.
+# Field Description
 
 
 
-## General Rules
+## `version`
 
-* The version branch (`2.0.1`) allows:
+Source:
+- `VERSION` file
 
-  * hotfixes
-  * maintenance of a specific release line
-* The tag (`v2.0.1`) provides:
+Meaning:
+- official declared version of the installation
 
-  * an immutable reference
-  * compatibility with version resolution (GitHub API, etc.)
-* The `VERSION` file is the **source of truth**
-* Each release must correspond to a **Git tag**:
+
+
+## `tag`
+
+Source:
+- Git or GitHub
+
+Meaning:
+- immutable release identifier
+
+Convention:
 
 ```text
 v{VERSION}
 ```
 
-Example:
+
+
+## `branch`
+
+Source:
+- Git
+
+Meaning:
+- active release lineage or development context
+
+Examples:
 
 ```text
-VERSION = 2.0.1 → tag = v2.0.1
+2.0.3
+dev-2.1
+feature/orm-refactor
 ```
 
-* Each version should have a **dedicated branch** named after the version
 
----
 
-## Standard Release Workflow
+## `commit`
 
-For any release (patch, minor, or major):
+Source:
+- Git or GitHub
 
-### 1. Create a version branch
+Meaning:
+- exact repository revision
 
-```bash
-git checkout -b 2.0.1
-```
 
----
 
-### 2. Update the VERSION file
+## `date`
 
-Edit the `VERSION` file:
+Source:
+- Git or GitHub
+
+Meaning:
+- commit date
+
+Format:
 
 ```text
-2.0.1
+YYYY.MM.DD
 ```
 
----
 
-### 3. Commit the change
+
+## `dirty`
+
+Source:
+- Git
+
+Meaning:
+- indicates whether uncommitted local modifications exist
+
+| value | meaning |
+|--------|----------|
+| true | local modifications present |
+| false | working tree clean |
+
+
+
+## `mismatch`
+
+Meaning:
+- indicates whether the runtime Git context matches the declared release version
+
+| value | meaning |
+|--------|----------|
+| true | inconsistent runtime context |
+| false | aligned installation |
+
+
+
+## `source`
+
+Indicates how metadata was resolved.
+
+| value | meaning |
+|--------|----------|
+| `git` | local Git repository |
+| `github` | resolved via GitHub API |
+| `version` | VERSION file only |
+
+
+
+# Interpretation Guidelines
+
+
+
+## Stable Production Installation
+
+```json
+{
+  "version": "2.0.3",
+  "tag": "v2.0.3",
+  "branch": "2.0.3",
+  "dirty": false,
+  "mismatch": false
+}
+```
+
+This indicates:
+
+- aligned release lineage
+- clean repository state
+- supported production installation
+
+
+
+## Development Environment
+
+```json
+{
+  "version": "2.1.0-dev",
+  "branch": "dev-2.1",
+  "dirty": true,
+  "mismatch": true
+}
+```
+
+This indicates:
+
+- active development context
+- non-release state
+- local modifications
+
+
+
+## Minimal ZIP Installation
+
+```json
+{
+  "version": "2.0.3",
+  "source": "version"
+}
+```
+
+This provides:
+
+- minimal but sufficient release identification
+
+
+
+# Support Policy
+
+eQual intentionally limits the number of supported release lines.
+
+At any given time:
+
+| State | Support Level |
+|--------|----------------|
+| N | full support |
+| N-1 | maintenance support |
+| N-2 | limited support |
+| older | unsupported |
+
+This policy ensures:
+
+- manageable maintenance effort
+- predictable upgrade paths
+- rapid client realignment
+
+Clients are expected to upgrade regularly.
+
+The target model is to maintain installations reasonably close to the latest stable release line.
+
+
+
+# Release Process
+
+The release process is intentionally deterministic and relies entirely on:
+
+- Git branches
+- Git tags
+- the `VERSION` file
+
+
+
+# General Rules
+
+- `VERSION` is the source of truth
+- each official release must have:
+  - a stable branch
+  - a matching Git tag
+- `master` always reflects the latest recommended stable release
+- development never occurs directly on stable branches
+- development branches are temporary
+
+
+
+# Standard Release Workflow
+
+Example: preparing release `2.1.0`.
+
+
+
+## 1. Create development branch
 
 ```bash
-git commit -a -m "Release 2.0.1"
+git checkout -b dev-2.1
 ```
 
----
+Development work occurs on:
 
-### 4. Push the branch
+- features
+- refactors
+- architecture changes
+- integration work
+
+
+
+## 2. Freeze development branch
+
+Once stabilization begins:
+
+- no new features are merged
+- the branch becomes frozen for release preparation
+
+
+
+## 3. Create stable release branch
+
+Create the stable branch:
 
 ```bash
-git push origin 2.0.1
+git checkout -b 2.1.0
 ```
 
----
+Update `VERSION`:
 
-### 5. Create the release tag
+```text
+2.1.0
+```
+
+
+
+## 4. Commit release state
 
 ```bash
-git tag v2.0.1
-git push origin v2.0.1
+git commit -a -m "Release 2.1.0"
 ```
 
-(Or create the release directly via GitHub using the same tag.)
 
----
 
-## Main Release (Production)
+## 5. Create release tag
 
-For a main (official) release, an additional step is required:
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+```
 
-### 6. Update the master branch
+The tag represents the immutable official release snapshot.
+
+
+
+## 6. Publish stable branch
+
+```bash
+git push origin 2.1.0
+```
+
+The branch now becomes the maintained stable lineage.
+
+
+
+## 7. Update master
 
 ```bash
 git checkout master
-git merge 2.0.1
+git merge 2.1.0
 git push origin master
 ```
 
 This ensures that:
 
-* `master` always reflects the latest stable release
-* new installations from `master` are aligned with the latest version
+- `master` remains the recommended production reference
+- new installations align automatically with the latest stable version
+
+
+
+## 8. Remove development branch
+
+```bash
+git branch -d dev-2.1
+```
+
+Future work resumes on:
+
+```bash
+git checkout -b dev-2.2
+```
+
+
+
+# Patch Release Workflow
+
+Patch releases occur directly on the maintained stable branch.
+
+Example: releasing `2.1.1` from branch `2.1.0`.
+
+
+
+## 1. Checkout stable branch
+
+```bash
+git checkout 2.1.0
+```
+
+
+
+## 2. Apply fixes
+
+Apply:
+
+- bug fixes
+- hotfixes
+- security patches
+- maintenance updates
+
+
+
+## 3. Update VERSION
+
+```text
+2.1.1
+```
+
+
+
+## 4. Commit patch release
+
+```bash
+git commit -a -m "Release 2.1.1"
+```
+
+
+
+## 5. Create patch tag
+
+```bash
+git tag v2.1.1
+git push origin v2.1.1
+```
+
+
+
+## 6. Push updated branch
+
+```bash
+git push origin 2.1.0
+```
+
+The branch remains:
+
+```text
+2.1.0
+```
+
+while the `VERSION` file reflects the latest release state.
+
+Future patch releases continue on the same stable branch:
+
+```text
+v2.1.2
+v2.1.3
+```
 
