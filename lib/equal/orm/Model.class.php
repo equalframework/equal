@@ -588,7 +588,7 @@ class Model implements \ArrayAccess, \Iterator {
     /**
      * @deprecated Use getUniques() instead.
      */
-    public function getUnique(): array {
+    public function getUnique() {
         return static::getUniques();
     }
 
