@@ -160,13 +160,8 @@ class Mail extends Model {
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
-            // build envelope
-            $envelope = self::createEnvelope($mail);
-            if(!$envelope) {
-                throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
-            }
             // send email message
-            if($mailer->send($envelope) == 0) {
+            if($mailer->send($email) == 0) {
                 throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
             }
             trigger_error("PHP::Mail::send() successfully sent email message {$mail['id']}", EQ_REPORT_INFO);
