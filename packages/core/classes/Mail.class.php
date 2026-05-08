@@ -7,6 +7,7 @@
 */
 namespace core;
 
+use equal\mailer\MailerFactory;
 use equal\orm\Model;
 use equal\email\Email;
 use equal\orm\usages\UsageEmail;
@@ -155,7 +156,7 @@ class Mail extends Model {
 
         try {
             // get SMTP mailer
-            $mailer = self::provideMailer();
+            $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp');
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
@@ -186,22 +187,12 @@ class Mail extends Model {
      */
     public static function sendRaw(Email $email, $options=[]): int {
         try {
-            // Build a "message" array compatible with createEnvelope()
-            // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
-            $message = $email->toArray();
-
-            $mailer = self::provideMailer($options);
+            $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp', $options);
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
 
-            $envelope = self::createEnvelope($message, $options);
-            if(!$envelope) {
-                throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
-            }
-
-            $sent = $mailer->send($envelope);
-
+            $sent = $mailer->send($email, $options);
             if($sent <= 0) {
                 throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
             }
@@ -249,7 +240,7 @@ class Mail extends Model {
         $queue = self::fetchQueue();
 
         // get SMTP mailer
-        $mailer = self::provideMailer();
+        $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp');
         if(!$mailer) {
             throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
         }
@@ -274,14 +265,8 @@ class Mail extends Model {
                     }
                 }
 
-                $envelope = self::createEnvelope($message);
-
-                if(!$envelope) {
-                    throw new \Exception('failed_creating_envelope', EQ_ERROR_UNKNOWN);
-                }
-
                 // send email
-                if($mailer->send($envelope) == 0) {
+                if($mailer->send($message) == 0) {
                     throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
                 }
 
@@ -379,161 +364,6 @@ class Mail extends Model {
 
         // export resulting message as array
         return $email->setId($mail['id'])->toArray();
-    }
-
-    private static function createEnvelope($message, $options=[]): \Swift_Message {
-        $envelope = null;
-
-        try {
-            // load dependencies
-            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
-            }
-            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
-
-            $body = (isset($message['body'])) ? $message['body'] : '';
-            $subject = (isset($message['subject'])) ? $message['subject'] : '';
-
-            if(!isset($message['to']) || strlen($message['to']) <= 0) {
-                throw new \Exception('empty_recipient', EQ_ERROR_INVALID_PARAM);
-            }
-
-            $from = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
-
-            if(isset($options['from'], $options['username']) && $options['from'] === $options['username']) {
-                $from = $options['from'];
-            }
-
-            $envelope = new \Swift_Message();
-            // set sender and recipients
-            $envelope
-                ->setTo($message['to'])
-                ->setFrom([$from => $from]);
-
-            if(isset($message['cc'])) {
-                if( (is_array($message['cc']) && count($message['cc']) > 0)
-                        || (is_string($message['cc']) && strlen($message['cc']) > 0) ) {
-                    $envelope->setCc($message['cc']);
-                }
-            }
-
-            if(isset($message['bcc'])) {
-                if( (is_array($message['bcc']) && count($message['bcc']) > 0)
-                        || (is_string($message['bcc']) && strlen($message['bcc']) > 0) ) {
-                    $envelope->setBcc($message['bcc']);
-                }
-            }
-
-            if(isset($message['reply_to']) && strlen($message['reply_to']) > 0) {
-                $envelope->setReplyTo($message['reply_to']);
-            }
-
-            // add subject
-            $envelope->setSubject($subject);
-
-            // process body according to content type
-            if(isset($message['content-type']) && $message['content-type'] == 'text/html') {
-                $envelope->setContentType('text/html');
-                // handle embedded images, if any
-                $body = preg_replace_callback('/(src="?)([^"]*)("?)/i',
-                    function ($matches) use (&$envelope) {
-                        $cid = $matches[2];
-                        if(substr($cid, 4, 1) == ':') {
-                            list($scheme, $data) = explode(':', $cid);
-                            if($scheme == 'data') {
-                                list($content_type, $data) = explode(';', $data);
-                                list($encoding, $raw) = explode(',', $data);
-                                if($encoding == 'base64') {
-                                    $raw = base64_decode($raw);
-                                }
-                                list($type, $extension) = explode('/', $content_type);
-                                $img = new \Swift_Image($raw, 'img_'.rand(1,999).'.'.$extension , $content_type);
-                                $img->setDisposition('inline');
-                                $cid = $envelope->embed($img);
-                            }
-                        }
-                        return $matches[1].$cid.$matches[3];
-                    },
-                    $body);
-            }
-
-            // add body
-            $envelope->setBody($body);
-
-            // add attachments
-            if(isset($message['attachments']) && count($message['attachments'])) {
-                foreach($message['attachments'] as $key => $attachment) {
-                    $envelope->attach(new \Swift_Attachment($attachment['data'], $attachment['name'], $attachment['type']));
-                }
-            }
-        }
-        catch(\Exception $e) {
-            trigger_error("ORM::createEnvelope: ".$e->getMessage(), EQ_REPORT_ERROR);
-        }
-
-        return $envelope;
-    }
-
-    private static function provideMailer($options=[]) {
-        $mailer = null;
-
-        $smtp_host = constant('EMAIL_SMTP_HOST');
-        $smtp_port = constant('EMAIL_SMTP_PORT');
-        $smtp_username = constant('EMAIL_SMTP_ACCOUNT_USERNAME');
-        $smtp_password = constant('EMAIL_SMTP_ACCOUNT_PASSWORD');
-
-        if(isset($options['host'])) {
-            $smtp_host = $options['host'];
-        }
-
-        if(isset($options['port'])) {
-            $smtp_port = $options['port'];
-        }
-
-        if(isset($options['username'])) {
-            $smtp_username = $options['username'];
-        }
-
-        if(isset($options['password'])) {
-            $smtp_password = $options['password'];
-        }
-
-        try {
-            // load dependencies
-            if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
-                throw new \Exception("missing_dependency", EQ_ERROR_INVALID_CONFIG);
-            }
-            require_once(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php');
-
-            // setup SMTP settings
-            $transport = new \Swift_SmtpTransport(
-                $smtp_host,
-                $smtp_port,
-                (defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) ? constant('EMAIL_SMTP_ENCRYPT') : null
-            );
-
-            $transport
-                ->setUsername($smtp_username)
-                ->setPassword($smtp_password);
-
-            if(defined('EMAIL_SMTP_ENCRYPT') && in_array(constant('EMAIL_SMTP_ENCRYPT'), ['tls', 'ssl'])) {
-                $transport->setStreamOptions([
-                    'ssl' => [
-                        'allow_self_signed'     => true,
-                        'verify_peer'           => false,
-                        /* #memo don't use in prod to avoid MITM exploits */
-                        /*'verify_peer_name'    => false */
-                    ]
-                ]);
-            }
-
-            $mailer = new \Swift_Mailer($transport);
-        }
-        catch(\Exception $e) {
-            // #todo - log error
-        }
-
-        return $mailer;
     }
 
     public static function generateCc(): ?string {
