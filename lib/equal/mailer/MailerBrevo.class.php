@@ -47,19 +47,24 @@ class MailerBrevo extends Mailer {
 
         $request = new HttpRequest("POST {$this->api_url}");
 
+        $from = $options['from'] ?? $this->email_from;
+
         $body = [
-            'sender'            => ['email' => $options['from'] ?? $this->email_from],
+            'sender'            => ['email' => $from],
             'subject'           => $email->subject,
-            'replyTo'           => $email->reply_to,
-            'cc'                => $email->cc,
-            'bcc'               => $email->bcc,
-            'htmlContent'       => $email->body,
-            'messageVersions'   => [
-                [
-                    'to' => ['email' => $email->to]
-                ]
-            ]
+            'to'                => [['email' => $email->to]],
+            'htmlContent'       => $email->body
         ];
+
+        if(!empty($email->reply_to)) {
+            $body['replyTo'] = ['email' => $email->reply_to];
+        }
+        if(!empty($email->cc)) {
+            $body['cc'] = array_map(fn($email_address) => ['email' => $email_address], $email->cc);
+        }
+        if(!empty($email->bcc)) {
+            $body['bcc'] = array_map(fn($email_address) => ['email' => $email_address], $email->bcc);
+        }
 
         $response = $request
             ->header('Accept', 'application/json')
@@ -75,6 +80,6 @@ class MailerBrevo extends Mailer {
             return 0;
         }
 
-        return 0;
+        return !empty($data['messageIds']) ? count($data['messageIds']) : 1;
     }
 }

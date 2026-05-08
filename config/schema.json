@@ -211,6 +211,12 @@
         "description": "Duration in days before recycling draft objects.",
         "default": 0
     },
+    "EMAIL_PROVIDER": {
+        "type": "string",
+        "description": "Provider to use to send email.",
+        "instant": true,
+        "default": "smtp"
+    },
     "EMAIL_SMTP_HOST": {
         "type": "string",
         "description": "Hostname of the SMTP server to use for sending emails.",
@@ -258,6 +264,18 @@
         "description": "",
         "instant": true,
         "default": "abuse@example.com"
+    },
+    "EMAIL_BREVO_API_URL": {
+        "type": "string",
+        "description": "Brevo email provider API url.",
+        "instant": true,
+        "default": "https://api.brevo.com/v3/smtp/email"
+    },
+    "EMAIL_BREVO_API_KEY": {
+        "type": "string",
+        "description": "Brevo email provider API key.",
+        "instant": true,
+        "default": ""
     },
     "ENV_MODE": {
         "type": "string",
