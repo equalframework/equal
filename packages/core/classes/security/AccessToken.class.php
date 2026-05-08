@@ -64,6 +64,12 @@ class AccessToken extends Model {
             'use_limit' => [
                 'type'              => 'integer',
                 'description'       => 'Max amount of time the token can be used before revoked.'
+            ],
+
+            'description' => [
+                'type'              => 'string',
+                'usage'             => 'text/plain',
+                'description'       => "Description of the token usage and who is using it."
             ]
 
         ];
