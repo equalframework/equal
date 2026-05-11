@@ -21,11 +21,11 @@
 
 - [ ] Required default form and/or list views were created when the entity is user-facing.
 - [ ] Newly created views reference only existing fields.
-- [ ] **Form view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.form.default`
-- [ ] **List view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.list.default`
-- [ ] **Dashboard view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.dashboard.default`
-- [ ] **Search view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.search.default`
-- [ ] **Chart view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.chart.default`
+- [ ] **Form view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.form`
+- [ ] **List view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.list`
+- [ ] **Dashboard view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.dashboard`
+- [ ] **Search view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.search`
+- [ ] **Chart view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.chart`
 - [ ] See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed validation procedures
 
 ## Translation Validation

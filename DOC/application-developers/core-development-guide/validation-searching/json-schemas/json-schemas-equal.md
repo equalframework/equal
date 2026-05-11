@@ -43,7 +43,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 5. **Form View** (`view.form.default.json`)
-- **Schema ID**: `urn:equal:json-schema:core:view.form.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.form`
 - **Usage**: Validate form views (`Model.form.*.json`)
 - **Required fields**: `name`, `layout`
 - **Layout requirements**: `layout.groups` is required
@@ -114,9 +114,9 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ### Validate a Form View
 
 ```
-GET http://equal.local/?get=core_json-validate
-  &json={"name":"Post.form.default",...}
-  &schema_id=urn:equal:json-schema:core:view.form.default
+GET http://equal.local/?do=core_test_view-consistency
+  &entity='core\User'
+  &view_id='form.default'
 ```
 
 ### Validate a Package Manifest

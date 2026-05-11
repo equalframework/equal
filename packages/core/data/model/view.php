@@ -235,17 +235,17 @@ if(!file_exists($file)) {
 }
 
 if(($view = json_decode(@file_get_contents($file), true)) === null) {
-    throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
 }
 
 if(!isset($view['layout'])) {
-    throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+    throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
 }
 
 // pass-2 : adapt the view if inheritance is involved
 if(isset($view['extends'])) {
     if(!isset($view['extends']['view'])) {
-        throw new Exception("malformed_view_schema", QN_ERROR_INVALID_CONFIG);
+        throw new Exception("malformed_view_json", QN_ERROR_INVALID_CONFIG);
     }
     $view_id = $view['extends']['view'];
     $entity = $view['extends']['entity'] ?? $params['entity'];

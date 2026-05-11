@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:equal:json-schema:core:view.search.default",
+  "$id": "urn:equal:json-schema:core:view.search",
   "title": "eQual Search View",
   "description": "Schema for eQual search/filter views (*.search.*.json files)",
   "type": "object",

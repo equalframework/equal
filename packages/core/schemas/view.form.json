@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:equal:json-schema:core:view.form.default",
+  "$id": "urn:equal:json-schema:core:view.form",
   "title": "eQual Form View",
   "description": "Schema for eQual form views (Model.form.*.json files)",
   "type": "object",

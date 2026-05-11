@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "urn:equal:json-schema:core:view.chart.default",
+    "$id": "urn:equal:json-schema:core:view.chart",
     "title": "eQual Chart View",
     "description": "Schema for eQual chart views (Model.chart.*.json files)",
     "type": "object",

@@ -16,13 +16,13 @@ When agents create or modify content, they must validate the structure using ava
   ```
 
 ### Views - Form
-- **Schema ID**: `urn:equal:json-schema:core:view.form.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.form`
 - **Usage**: Validate form view files (Model.form.*.json)
 - **Required fields**: `name`, `layout`
 - **File pattern**: `packages/{package}/views/{EntityName}.form.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.form.default
+  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.form
   ```
 
 ### Views - List

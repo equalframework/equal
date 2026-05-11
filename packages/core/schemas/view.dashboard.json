@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:equal:json-schema:core:view.dashboard.default",
+  "$id": "urn:equal:json-schema:core:view.dashboard",
   "title": "eQual Dashboard View",
   "description": "Schema for eQual dashboard views (*.dashboard.*.json files) - composite layouts embedding other views",
   "type": "object",

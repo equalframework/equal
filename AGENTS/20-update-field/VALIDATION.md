@@ -20,11 +20,11 @@
 If views, models or translation files were modified as part of the field update, validate (for specifics about validation procedures see `AGENTS/00-general/VALIDATION-SCHEMAS.md`) them:
 
 - [ ] **View schema validation** (if views modified):
-  - Form views: Use schema `urn:equal:json-schema:core:view.form.default`
-  - List views: Use schema `urn:equal:json-schema:core:view.list.default`
-  - Dashboard views: Use schema `urn:equal:json-schema:core:view.dashboard.default`
-  - Search views: Use schema `urn:equal:json-schema:core:view.search.default`
-  - Chart views: Use schema `urn:equal:json-schema:core:view.chart.default`
+  - Form views: Use schema `urn:equal:json-schema:core:view.form`
+  - List views: Use schema `urn:equal:json-schema:core:view.list`
+  - Dashboard views: Use schema `urn:equal:json-schema:core:view.dashboard`
+  - Search views: Use schema `urn:equal:json-schema:core:view.search`
+  - Chart views: Use schema `urn:equal:json-schema:core:view.chart`
   - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for procedures
 
 - [ ] **Model class validation** (if class modified):
