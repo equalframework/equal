@@ -26,7 +26,7 @@ class MailerSmtp extends Mailer {
      * @param string|null $from_email
      * @return void
      */
-    public function create($host, $port, $username, $password, $encryption = null, $from_email = null) {
+    public function __construct($host, $port, $username, $password, $encryption = null, $from_email = null) {
         try {
             // load dependencies
             if(!file_exists(EQ_BASEDIR.'/vendor/swiftmailer/swiftmailer/lib/swift_required.php')) {
@@ -187,7 +187,7 @@ class MailerSmtp extends Mailer {
      * @return int
      * @throws \Exception
      */
-    public function send($email, $options = []): int {
+    public function send(Email $email, $options = []): int {
         if(!$this->swiftMailer) {
             throw new \Exception("mailer_not_created");
         }
@@ -196,11 +196,11 @@ class MailerSmtp extends Mailer {
         // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
         $message = $email->toArray();
 
-        $enveloppe = $this->createEnvelope($message, $options);
-        if(!$enveloppe) {
+        $envelope = $this->createEnvelope($message, $options);
+        if(!$envelope) {
             throw new \Exception("failed_creating_envelope", EQ_ERROR_UNKNOWN);
         }
 
-        return $this->swiftMailer->send($enveloppe);
+        return $this->swiftMailer->send($envelope);
     }
 }

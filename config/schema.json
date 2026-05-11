@@ -211,9 +211,9 @@
         "description": "Duration in days before recycling draft objects.",
         "default": 0
     },
-    "EMAIL_PROVIDER": {
+    "EMAIL_TRANSPORT": {
         "type": "string",
-        "description": "Provider to use to send email.",
+        "description": "Transport to use to send email. Possible values are 'smtp' and 'api'.",
         "instant": true,
         "default": "smtp"
     },
@@ -265,17 +265,16 @@
         "instant": true,
         "default": "abuse@example.com"
     },
-    "EMAIL_BREVO_API_URL": {
+    "EMAIL_API_PROVIDER": {
         "type": "string",
-        "description": "Brevo email provider API url.",
+        "description": "HTTP API external service provider.",
+        "help": "Value must match one of the Email Service Provider available in current installation." ,
         "instant": true,
-        "default": "https://api.brevo.com/v3/smtp/email"
-    },
-    "EMAIL_BREVO_API_KEY": {
-        "type": "string",
-        "description": "Brevo email provider API key.",
-        "instant": true,
-        "default": ""
+        "examples": [
+            "brevo",
+            "mailgun",
+            "sendgrid"
+        ]
     },
     "ENV_MODE": {
         "type": "string",

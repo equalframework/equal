@@ -7,7 +7,7 @@
 */
 namespace core;
 
-use equal\mailer\MailerFactory;
+use equal\mailer\Mailer;
 use equal\orm\Model;
 use equal\email\Email;
 use equal\orm\usages\UsageEmail;
@@ -123,7 +123,7 @@ class Mail extends Model {
             throw new \Exception('failed_json_conversion', EQ_ERROR_UNKNOWN);
         }
         // export to outbox
-        $filename = self::MESSAGE_FOLDER.'/'.md5(time().'-'.$email->subject.'-'.$email->to);
+        $filename = self::MESSAGE_FOLDER . '/' . md5(time() . '-' . $email->subject . '-' . $email->to);
         if(file_put_contents($filename, $data) === false) {
             throw new \Exception('failed_file_creation', EQ_ERROR_UNKNOWN);
         }
@@ -156,7 +156,7 @@ class Mail extends Model {
 
         try {
             // get SMTP mailer
-            $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp');
+            $mailer = Mailer::create(constant('EMAIL_TRANSPORT') ?? 'smtp');
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
@@ -182,7 +182,7 @@ class Mail extends Model {
      */
     public static function sendRaw(Email $email, $options=[]): int {
         try {
-            $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp', $options);
+            $mailer = Mailer::create(constant('EMAIL_TRANSPORT') ?? 'smtp', $options);
             if(!$mailer) {
                 throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
             }
@@ -235,7 +235,7 @@ class Mail extends Model {
         $queue = self::fetchQueue();
 
         // get SMTP mailer
-        $mailer = MailerFactory::create(constant('EMAIL_PROVIDER') ?? 'smtp');
+        $mailer = Mailer::create(constant('EMAIL_TRANSPORT') ?? 'smtp');
         if(!$mailer) {
             throw new \Exception('failed_creating_mailer', EQ_ERROR_UNKNOWN);
         }
@@ -255,20 +255,22 @@ class Mail extends Model {
                     $mailMessage = self::id($message['id'])->read(['status'])->first();
                     // prevent re-sending already sent messages
                     if($mailMessage['status'] == 'sent') {
-                        unlink(self::MESSAGE_FOLDER.'/'.$file);
+                        unlink(self::MESSAGE_FOLDER . '/' . $file);
                         continue;
                     }
                 }
 
+                $email = self::emailFromArray($message);
+
                 // send email
-                if($mailer->send($message) == 0) {
+                if($mailer->send($email) == 0) {
                     throw new \Exception('failed_sending_email', EQ_ERROR_UNKNOWN);
                 }
 
                 trigger_error("APP::Mail::send() successfully sent email message {$message['id']}", EQ_REPORT_INFO);
 
                 // upon successful sending, remove the mail from the outbox
-                $filename = self::MESSAGE_FOLDER.'/'.$file;
+                $filename = self::MESSAGE_FOLDER . '/' . $file;
                 unlink($filename);
 
                 // if the message is linked to a core\Mail object, update the latter's status
@@ -327,6 +329,7 @@ class Mail extends Model {
     /**
      * Create a Mail object and return an associative array representation of it.
      * The Mail object is attached to an object, if provided ($object_class::$object_id).
+     *
      */
     private static function createMail(Email $email, string $object_class = '', int $object_id = 0): array {
         $values = [
@@ -360,6 +363,60 @@ class Mail extends Model {
         // export resulting message as array
         return $email->setId($mail['id'])->toArray();
     }
+
+    private static function emailFromArray(array $message): Email {
+        $email = new Email();
+
+        if(isset($message['id'])) {
+            $email->setId($message['id']);
+        }
+
+        if(isset($message['to'])) {
+            $email->setTo($message['to']);
+        }
+
+        if(isset($message['reply_to']) && !empty($message['reply_to'])) {
+            $email->setReplyTo($message['reply_to']);
+        }
+
+        if(isset($message['subject'])) {
+            $email->setSubject($message['subject']);
+        }
+
+        if(isset($message['content-type']) && !empty($message['content-type'])) {
+            $email->setContentType($message['content-type']);
+        }
+
+        if(isset($message['body'])) {
+            $email->setBody($message['body']);
+        }
+
+        if(isset($message['cc']) && is_array($message['cc'])) {
+            foreach($message['cc'] as $cc) {
+                $email->addCc($cc);
+            }
+        }
+
+        if(isset($message['bcc']) && is_array($message['bcc'])) {
+            foreach($message['bcc'] as $bcc) {
+                $email->addBcc($bcc);
+            }
+        }
+
+        if(isset($message['attachments']) && is_array($message['attachments'])) {
+            foreach($message['attachments'] as $attachment) {
+                $email->addAttachment(new \equal\email\EmailAttachment(
+                    $attachment['name'],
+                    $attachment['data'],
+                    $attachment['type']
+                ));
+            }
+        }
+
+        return $email;
+    }
+
+
 
     public static function generateCc(): ?string {
         return self::generateMultiEmailFieldValue();
