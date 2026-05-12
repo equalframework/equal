@@ -7,34 +7,40 @@
 */
 [$params, $providers] = eQual::announce([
     'description'   => "Create a new empty view as a json file, for a given entity.",
+    'params'        => [
+        'entity' => [
+            'description'   => 'name of the entity',
+            'type'          => 'string',
+            'required'      => true
+        ],
+        'view_id' => [
+            'description'   => 'id of the view',
+            'type'          => 'string',
+            'required'      => true
+        ],
+        'overwrite' => [
+            'description'   => 'overwrite view file if already exists',
+            'type'          => 'boolean',
+            'default'       => false
+        ]
+    ],
+    'access'        => [
+        'visibility'    => 'protected',
+        'groups'        => ['admins']
+    ],
     'response'      => [
         'content-type'  => 'text/plain',
         'charset'       => 'UTF-8',
         'accept-origin' => '*'
     ],
-    'params' => [
-        'entity' => [
-            'description' => 'name of the entity',
-            'type' => 'string',
-            'required' => true
-        ],
-        'view_id' => [
-            'description' => 'id of the view',
-            'type' => 'string',
-            'required' => true
-        ],
-    ],
-    'access' => [
-        'visibility'        => 'protected',
-        'groups'            => ['admins']
-    ],
-    'providers'     => ['context']
+    'providers'     => ['context', 'orm']
 ]);
 
 /**
- * @var \equal\php\Context  $context
+ * @var \equal\php\Context          $context
+ * @var \equal\orm\ObjectManager    $orm
  */
-['context' => $context] = $providers;
+['context' => $context, 'orm' => $orm] = $providers;
 
 $parts = explode("\\",$params['entity']);
 
@@ -58,26 +64,104 @@ if(count($parts) > 0) {
     throw new Exception("view_id_invalid", QN_ERROR_INVALID_PARAM);
 }
 
-$file = QN_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
+$file = EQ_BASEDIR."/packages/{$package}/views/{$entity}.{$type}.{$name}.json";
 
 // Check if the view exists
-if(file_exists($file)){
+if(!$params['overwrite'] && file_exists($file)){
     throw new Exception('view_already_exists', QN_ERROR_INVALID_PARAM);
 }
 
 $path = dirname($entity);
 
-if(!is_dir(QN_BASEDIR."/packages/{$package}/views/{$path}")){
-    mkdir(QN_BASEDIR."/packages/{$package}/views/{$path}", 0777, true);
-    if(!is_dir(QN_BASEDIR."/packages/{$package}/views/{$path}")) {
-        throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
+if(!is_dir(EQ_BASEDIR."/packages/{$package}/views/{$path}")){
+    mkdir(EQ_BASEDIR."/packages/{$package}/views/{$path}", 0777, true);
+    if(!is_dir(EQ_BASEDIR."/packages/{$package}/views/{$path}")) {
+        throw new Exception('file_access_denied', EQ_ERROR_UNKNOWN);
     }
 }
 
-if(!file_put_contents($file, $type === "form" || $type === "search"
-    ? "{\"layout\" : {\"groups\" : []}}"
-    : "{\"layout\" : {\"items\" : []}}")) {
-    throw new Exception('file_access_denied', QN_ERROR_UNKNOWN);
+$content = ['name' => ''];
+if($type === 'form' || $type === 'search') {
+    $content['layout'] = ['groups' => []];
+
+    $model = $orm->getModel($params['entity']);
+    if($model) {
+        $columns = $model->getColumns();
+
+        $main_group = ['sections' => [['rows' => [['columns' => [['width' => '33%', 'items' => []]]]]]]];
+        foreach($columns as $name => $column) {
+            if (in_array($column['type'], ['many2many', 'one2many']) || ($column['usage'] ?? '') === 'text/plain') {
+                continue;
+            }
+
+            $main_group['sections'][0]['rows'][0]['columns'][0]['items'][] = [
+                'type'  => 'field',
+                'value' => $name,
+                'width' => '100%'
+            ];
+        }
+        $content['layout']['groups'][] = $main_group;
+
+        $tabs_group = ['sections' => []];
+        foreach($columns as $name => $column) {
+            if(!in_array($column['type'], ['many2many', 'one2many']) && ($column['usage'] ?? '') !== 'text/plain') {
+                continue;
+            }
+
+            $label = $name;
+            if(in_array($column['type'], ['many2many', 'one2many'])) {
+                $label = str_replace('_ids', '', $label);
+            }
+            $label = str_replace('_', ' ', $label);
+
+            $tabs_group['sections'][] = [
+                'id'    => "section.$name",
+                'label' => $label,
+                'rows'  => [
+                    [
+                        'columns' => [
+                            [
+                                'width' => ($column['usage'] ?? '') === 'text/plain' ? '50%' : '100%',
+                                'items' => [
+                                    [
+                                        'type'  => 'field',
+                                        'value' => $name,
+                                        'width' => '100%'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+        }
+        $content['layout']['groups'][] = $tabs_group;
+    }
+}
+else {
+    $content['layout'] = ['items' => []];
+
+    $model = $orm->getModel($params['entity']);
+    if($model) {
+        $columns = $model->getColumns();
+        foreach($columns as $name => $column) {
+            if(in_array($column['type'], ['many2many', 'one2many'])) {
+                continue;
+            }
+
+            $content['layout']['items'][] = [
+                'type'      => 'field',
+                'value'     => $name,
+                'width'     => '20%',
+                'sortable'  => false,
+                'readonly'  => true
+            ];
+        }
+    }
+}
+
+if(!file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT))) {
+    throw new Exception('file_access_denied', EQ_ERROR_UNKNOWN);
 }
 
 $result = file_get_contents($file);
