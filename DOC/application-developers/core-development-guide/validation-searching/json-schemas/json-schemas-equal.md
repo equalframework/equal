@@ -122,9 +122,8 @@ GET http://equal.local/?do=core_test_view-consistency
 ### Validate a Package Manifest
 
 ```
-GET http://equal.local/?get=core_json-validate
-  &json={"name":"blog","description":"Blog package",...}
-  &schema_id=urn:equal:json-schema:core:package.manifest
+GET http://equal.local/?do=core_test_manifest-consistency
+  &package=core
 ```
 
 ### Validate an API Route

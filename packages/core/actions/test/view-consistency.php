@@ -37,8 +37,11 @@ if(count($parts) !== 2 || !isset($parts[0]) || !strlen($parts[0]) || !isset($par
 }
 
 $schema_ids = [
-    'form' => 'urn:equal:json-schema:core:view.form',
-    'list' => 'urn:equal:json-schema:core:view.list'
+    'form'      => 'urn:equal:json-schema:core:view.form',
+    'list'      => 'urn:equal:json-schema:core:view.list',
+    'chart'     => 'urn:equal:json-schema:core:view.chart',
+    'dashboard' => 'urn:equal:json-schema:core:view.dashboard',
+    'search'    => 'urn:equal:json-schema:core:view.search'
 ];
 
 $view_type = $parts[0];

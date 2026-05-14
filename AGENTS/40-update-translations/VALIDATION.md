@@ -19,8 +19,8 @@
 
 Validate each modified translation file using the appropriate schema:
 
-- [ ] **Model translations** (`i18n/{lang}/{Entity}.json`): Use schema `urn:equal:json-schema:core:model-translations`
-- [ ] **Menu translations** (`i18n/{lang}/menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu-translations`
+- [ ] **Model translations** (`i18n/{lang}/{Entity}.json`): Use schema `urn:equal:json-schema:core:model.translations`
+- [ ] **Menu translations** (`i18n/{lang}/menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.translations`
 
 **Validation procedure for each file**:
 - Run `php run.php --get=core_json-validate` with:

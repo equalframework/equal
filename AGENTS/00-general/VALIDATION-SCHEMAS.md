@@ -26,33 +26,33 @@ When agents create or modify content, they must validate the structure using ava
   ```
 
 ### Views - List
-- **Schema ID**: `urn:equal:json-schema:core:view.list.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.list`
 - **Usage**: Validate list/table view files (Model.list.*.json)
 - **Required fields**: `name`, `layout`
 - **File pattern**: `packages/{package}/views/{EntityName}.list.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list.default
+  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list
   ```
 
 ### Views - Dashboard
-- **Schema ID**: `urn:equal:json-schema:core:view.dashboard.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.dashboard`
 - **Usage**: Validate dashboard view files (*.dashboard.*.json)
 - **Required fields**: `name`, `layout`
 - **File pattern**: `packages/{package}/views/{EntityName}.dashboard.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.dashboard.default
+  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.dashboard
   ```
 
 ### Views - Search
-- **Schema ID**: `urn:equal:json-schema:core:view.search.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.search`
 - **Usage**: Validate search/filter view files (*.search.*.json)
 - **Required fields**: `name`, `layout`
 - **File pattern**: `packages/{package}/views/{EntityName}.search.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.search.default
+  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.search
   ```
 
 ### Menus
@@ -90,23 +90,23 @@ When agents create or modify content, they must validate the structure using ava
   ```
 
 ### Model Translations
-- **Schema ID**: `urn:equal:json-schema:core:model-translations`
+- **Schema ID**: `urn:equal:json-schema:core:model.translations`
 - **Usage**: Validate model/entity translation files
 - **File pattern**: `packages/{package}/i18n/{lang}/{EntityName}.json`
 - **Contains**: Field labels, descriptions, help text, view translations, and error messages
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={translation_contents} --schema_id=urn:equal:json-schema:core:model-translations
+  php run.php --get=core_json-validate --json={translation_contents} --schema_id=urn:equal:json-schema:core:model.translations
   ```
 
 ### Menu Translations
-- **Schema ID**: `urn:equal:json-schema:core:menu-translations`
+- **Schema ID**: `urn:equal:json-schema:core:menu.translations`
 - **Usage**: Validate menu translation files
 - **File pattern**: `packages/{package}/i18n/{lang}/menu.{type}.{position}.json`
 - **Contains**: Menu item labels, descriptions, and layout translations
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={menu_translation_contents} --schema_id=urn:equal:json-schema:core:menu-translations
+  php run.php --get=core_json-validate --json={menu_translation_contents} --schema_id=urn:equal:json-schema:core:menu.translations
   ```
 
 ### API Routes

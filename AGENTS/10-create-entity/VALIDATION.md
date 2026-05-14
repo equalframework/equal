@@ -33,7 +33,7 @@
 - [ ] Translation files were created or updated for all supported languages.
 - [ ] Field translations include `label`, `description`, and `help` where required.
 - [ ] View names and section identifiers introduced by this entity are translated.
-- [ ] **Translation schema validation**: Use schema `urn:equal:json-schema:core:model-translations` for each translation file
+- [ ] **Translation schema validation**: Use schema `urn:equal:json-schema:core:model.translations` for each translation file
 
 ## General
 

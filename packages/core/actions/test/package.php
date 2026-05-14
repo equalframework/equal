@@ -52,6 +52,7 @@ if(is_dir($tests_path)) {
         if(isset($params['set']) && $params['set'] != $set) {
             continue;
         }
+        $tests = [];
         include($filename);
         $tester = new Tester($tests);
         $body = $tester->test($params['test'])->toArray();

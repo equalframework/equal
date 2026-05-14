@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:equal:json-schema:core:menu-translations",
+  "$id": "urn:equal:json-schema:core:menu.translations",
     "title": "eQual Menu Translation",
     "description": "Schema for menu translation files and optional language maps.",
     "anyOf": [

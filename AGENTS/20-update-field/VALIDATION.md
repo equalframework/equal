@@ -37,6 +37,6 @@ If views, models or translation files were modified as part of the field update,
   - Confirm: no validation errors returned
 
 - [ ] **Translation schema validation** (if i18n files modified):
-  - Model translations: Use schema `urn:equal:json-schema:core:model-translations`
+  - Model translations: Use schema `urn:equal:json-schema:core:model.translations`
   - Run `php run.php --get=core_json-validate` for each modified translation file
   - Confirm: no validation errors returned

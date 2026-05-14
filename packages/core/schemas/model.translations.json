@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:equal:json-schema:core:model-translations",
+  "$id": "urn:equal:json-schema:core:model.translations",
   "title": "eQual Model Interface Translation",
   "description": "Schema for model/interface translation JSON files and optional language maps.",
   "anyOf": [

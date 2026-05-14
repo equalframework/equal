@@ -22,7 +22,7 @@ Validate the created/updated view file using the appropriate schema based on vie
 - [ ] **List view** (`*.list.*.json`): Use schema `urn:equal:json-schema:core:view.list`
 - [ ] **Dashboard view** (`*.dashboard.*.json`): Use schema `urn:equal:json-schema:core:view.dashboard`
 - [ ] **Search view** (`*.search.*.json`): Use schema `urn:equal:json-schema:core:view.search`
-- [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu`
+- [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.default`
 
 **Validation procedure**:
 - Run `php run.php --get=core_json-validate` with:
