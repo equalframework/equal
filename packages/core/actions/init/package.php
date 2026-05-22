@@ -294,6 +294,18 @@ else {
         exec("cp -r $lib_folder/* $target_folder");
     }
 
+    // 3 quinquies) If a `packages` folder exists, copy its content to /packages/
+    // This allows a package to override or extend files from another package during initialization.
+    // Example:
+    //   /packages/lathus/init/packages/sale/classes/...
+    // copied to:
+    //   /packages/sale/classes/...
+    $packages_folder = EQ_BASEDIR."/packages/{$params['package']}/init/packages";
+    if(file_exists($packages_folder) && is_dir($packages_folder)) {
+        $target_folder = EQ_BASEDIR . "/packages";
+        exec("cp -r " . escapeshellarg($packages_folder) . "/. " . escapeshellarg($target_folder));
+    }
+
     // 4) Export the compiled apps to related public folders
     // #memo - make sure ZIP library is available
     if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
