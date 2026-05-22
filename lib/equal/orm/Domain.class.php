@@ -122,7 +122,7 @@ class Domain {
                 $value = $condition->value;
 
                 // handle object references as `value` part
-                if(is_string($value) && strpos($value, 'object.') == 0 ) {
+                if(is_string($value) && strpos($value, 'object.') === 0 ) {
                     $target = substr($value, strlen('object.'));
                     if(!$object || !isset($object[$target])) {
                         continue;
@@ -145,14 +145,14 @@ class Domain {
                     }
                 }
                 // handle user references as `value` part
-                elseif(is_string($value) && strpos($value, 'user.') == 0) {
+                elseif(is_string($value) && strpos($value, 'user.') === 0) {
                     $target = substr($value, strlen('user.'));
                     if(!$user || !isset($user[$target])) {
                         continue;
                     }
                     $value = $user[$target];
                 }
-                elseif(is_string($value) && strpos($value, 'date.') == 0) {
+                elseif(is_string($value) && strpos($value, 'date.') === 0) {
                     $value = (new DateReference($value)).getDate();
                 }
 
@@ -171,7 +171,7 @@ class Domain {
      */
     public function evaluate($object) {
         $res = false;
-        if(count($this->clauses) == 0) {
+        if(count($this->clauses) <= 0) {
             return true;
         }
         // parse any reference to object in conditions
@@ -469,7 +469,7 @@ class Domain {
         $domain = self::normalize($domain);
 
         // create an empty clause if none yet
-        if(count($domain) == 0) {
+        if(count($domain) <= 0) {
             $domain[] = [];
         }
 
@@ -501,7 +501,7 @@ class DomainClause {
     public $conditions;
 
     public function __construct($conditions = []) {
-        if(!is_array($conditions) || count($conditions) == 0) {
+        if(!is_array($conditions) || count($conditions) <= 0) {
             $this->conditions = [];
         }
         else {
