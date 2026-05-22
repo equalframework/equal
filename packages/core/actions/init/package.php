@@ -157,6 +157,37 @@ else {
         }
     }
 
+    // 0) If a `packages` folder exists, copy its content to /packages/
+    // This allows a package to override or extend files from another package during initialization.
+    // Example:
+    //   /packages/{custom}/init/packages/sale/classes/...
+    // copied to:
+    //   /packages/sale/classes/...
+    $packages_folder = EQ_BASEDIR."/packages/{$params['package']}/init/packages";
+    if(file_exists($packages_folder) && is_dir($packages_folder)) {
+        $target_folder = EQ_BASEDIR . "/packages";
+        $output = [];
+        $result_code = 0;
+        exec(
+            'cp -r ' . escapeshellarg($packages_folder . '/.') . ' ' . escapeshellarg($target_folder) . ' 2>&1',
+            $output,
+            $result_code
+        );
+
+        if($result_code !== 0) {
+            trigger_error("PHP::Unable to copy package overlays from {$packages_folder} to {$target_folder}: " . implode("\n", $output), EQ_REPORT_WARNING);
+            throw new Exception('failed_init_package_files_copy', EQ_ERROR_UNKNOWN);
+        }
+
+        // prevent loading of obsolete files for impacted classes
+        if(function_exists('clearstatcache')) {
+            clearstatcache(true);
+        }
+        if(function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+    }
+
     // 1) Check in manifest.json for prerequisite initialization
 
     // mark current package as being initialized (to prevent recursion)
