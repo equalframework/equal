@@ -622,23 +622,22 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     public static function getCapabilities(): array {
-        if(static::hasFlag(EQ_FLAG_SYSTEM)) {
-            return [
-                EQ_R_CREATE => false,
-                EQ_R_READ   => true,
-                EQ_R_UPDATE => false,
-                EQ_R_DELETE => false,
-                EQ_R_MANAGE => false
-            ];
-        }
-
-        return [
+        $capabilities = [
             EQ_R_CREATE => true,
             EQ_R_READ   => true,
             EQ_R_UPDATE => true,
             EQ_R_DELETE => true,
             EQ_R_MANAGE => true
         ];
+
+        if(static::hasFlag(EQ_FLAG_SYSTEM)) {
+            $capabilities[EQ_R_CREATE] = false;
+            $capabilities[EQ_R_UPDATE] = false;
+            $capabilities[EQ_R_DELETE] = false;
+            $capabilities[EQ_R_MANAGE] = false;
+        }
+
+        return $capabilities;
     }
 
     /**
