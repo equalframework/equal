@@ -80,7 +80,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 9. **Menu** (`menu.json`)
-- **Schema ID**: `urn:equal:json-schema:core:menu.default`
+- **Schema ID**: `urn:equal:json-schema:core:menu`
 - **Usage**: Validate menu definitions (`menu.{app}.{position}.json`)
 - **Required fields**: `layout`
 - **Top-level fields**: `name`, `access`, `search`, `layout`
