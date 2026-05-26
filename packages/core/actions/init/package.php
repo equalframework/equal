@@ -180,9 +180,8 @@ else {
         }
 
         // prevent loading of obsolete files for impacted classes
-        if(function_exists('clearstatcache')) {
-            clearstatcache(true);
-        }
+        clearstatcache(true);
+
         if(function_exists('opcache_reset')) {
             @opcache_reset();
         }
