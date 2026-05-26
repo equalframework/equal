@@ -36,6 +36,8 @@ $ ./equal.run --do=test_fs-consistency
 | **CLI**         | `$ ./equal.run --do=test_db-access`                                                                                                   |
 | **DESCRIPTION** | Tests access to the database specified in the config file. This controller uses db-connectivity before trying to access the database. |
 
+When run from the CLI, this controller returns no output and exits with status `0` when the database configured in `config/config.json` is accessible. If it fails because the configured database does not exist yet, ensure `config/config.json` exists and contains valid database settings, then run `php run.php --do=init_db`.
+
 #### `fs-consistency`
 
 | **PATH**        | `core\actions\test\fs-consistency.php`                                                                                                                                                          |

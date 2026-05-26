@@ -26,6 +26,12 @@ This utility ensures that your package is ready for testing and deployment. If i
 | **CLI**         | `$ ./equal.run --do=init_package --package=core`                                                                                                                            |
 | **DESCRIPTION** | Initialize database for given package. If no package is given, initialize core package. Compile the apps (`apps folder`) of the package and copy them in the public folder. |
 
+After creating a new class or modifying any `.class.php` model behavior in a package, reinitialize that package with `--force=true` so the database schema and generated package metadata are refreshed:
+
+```bash
+php run.php --do=init_package --package={package} --force=true
+```
+
 #### `init_seed`
 | **PATH**        | `core\actions\init\seed.php`                                                       |
 | --------------- | ---------------------------------------------------------------------------------- |

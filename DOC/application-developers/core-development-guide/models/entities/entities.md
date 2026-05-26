@@ -66,6 +66,24 @@ Classes are mapped to database tables, with each table's structure (columns) mat
 
 When a new class is created or the schema of a class is modified, the SQL schema must be adapted accordingly. The controllers `core_init_package` and `utils_sql-schema` help with this task.
 
+Before initializing a package, check that the configured database is accessible:
+
+```bash
+php run.php --do=test_db-access
+```
+
+If the command exits with status `0`, the database configured in `config/config.json` is accessible. If the configured database does not exist yet, make sure `config/config.json` exists and contains valid database settings, then create the database:
+
+```bash
+php run.php --do=init_db
+```
+
+After creating a class or modifying any `.class.php` model behavior, reinitialize the impacted package so the database schema and package metadata are refreshed:
+
+```bash
+php run.php --do=init_package --package={package} --force=true
+```
+
 !!! tip "Consistency Testing"
     The action controller `core_test_package-consistency` can help spot any incompatibility or inconsistency in class definitions within a given package.
 

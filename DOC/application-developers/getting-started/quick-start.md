@@ -20,6 +20,14 @@ If no error message is returned (the command ends with a `0` exit code), you can
 | **CLI**         | `$ ./equal.run --do=init_db`             |
 | **DESCRIPTION** | Creates a database using the details provided in config file. This controllers calls db-connectivity and if connection can be established with the host, it requests the creation of the database, if it does not exist yet. |
 
+After the database is expected to exist, verify that the configured database can be selected:
+
+```bash
+php run.php --do=test_db-access
+```
+
+This command exits with status `0` when the database configured in `config/config.json` is accessible.
+
 eQual holds a native `core` package that holds a few classes and operations. All packages depend on the ORM layer, which is responsible of storing the objects into the database. So, in order to start using a package that defines object classes, you have to initialize it. 
 
 This can be done using the `init_package` tool :
@@ -126,8 +134,10 @@ $ ./equal.run --do=init_package --package=core
 Then we do the same for our package. It will automatically create **one table per associated class**.
 
 ```bash
-$ ./equal.run --do=init_package --package=mypackage
+php run.php --do=init_package --package=mypackage --force=true
 ```
+
+Run the same forced package initialization whenever you create or modify a `.class.php` file in the package.
 
 Now the database should have the following tables:  
 
