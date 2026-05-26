@@ -37,4 +37,7 @@
 
 ## General
 
+- [ ] Database access was checked with `php run.php --do=test_db-access`, or the environment limitation was recorded.
+- [ ] If the configured database was missing, `config/config.json` was confirmed valid and `php run.php --do=init_db` was run.
+- [ ] The impacted package was reinitialized with `php run.php --do=init_package --package={package} --force=true`.
 - [ ] No unrelated entity definition was modified.

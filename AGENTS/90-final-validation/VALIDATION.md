@@ -11,6 +11,9 @@
 
 - [ ] Namespaces match file paths.
 - [ ] Every entity field referenced in impacted views exists.
+- [ ] If a class schema or any other `.class.php` behavior changed, database access was checked with `php run.php --do=test_db-access`.
+- [ ] If a class schema or any other `.class.php` behavior changed and the configured database was missing, `config/config.json` was confirmed valid and `php run.php --do=init_db` was run.
+- [ ] If a class schema or any other `.class.php` behavior changed, the impacted package was reinitialized with `php run.php --do=init_package --package={package} --force=true`.
 - [ ] Translations exist for every impacted supported language.
 - [ ] Form/list section identifiers used in views are translated.
 - [ ] Actions and data providers referenced in views exist.

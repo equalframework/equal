@@ -17,4 +17,6 @@
 17. For an inline action invoked via `core_model_do`, do not build a specific HTTP payload unless necessary; in this repository, such actions mainly mutate business state and rely on standard refresh behavior.
 18. Update translations when the action is exposed to the user: at minimum `view -> form.* -> actions -> action.xxx -> label/description`, and include business errors in the `error` block when they must be translatable in the UI.
 19. Check business side effects on related objects; in this repository, several actions synchronize or create related objects, so these dependencies must be explicit and consistent.
-20. Replace the reference to `AGENTS/AGENTS_REFERENCE.md`: this file does not exist in this repository. Relevant references here are `AGENTS.md` and `DOC/docs/application-developers/core-development-guide/models/actions.md`.
+20. If implementing the action requires editing `getActions()`, `getWorkflow()`, validations, computed fields, or any other `.class.php` method, run `php run.php --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `php run.php --do=init_db`.
+21. If any `.class.php` file was modified, reinitialize the impacted package with `php run.php --do=init_package --package={package} --force=true`.
+22. Replace the reference to `AGENTS/AGENTS_REFERENCE.md`: this file does not exist in this repository. Relevant references here are `AGENTS.md` and `DOC/docs/application-developers/core-development-guide/models/actions.md`.

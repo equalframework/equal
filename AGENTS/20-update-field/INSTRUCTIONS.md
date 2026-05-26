@@ -9,4 +9,6 @@
 9. Update translations in every supported language.
 10. Remove obsolete references if a field is renamed or deleted.
 11. Avoid changing unrelated fields.
-12. Refer to `AGENTS/AGENTS_REFERENCE.md` for detailed field conventions.
+12. If the entity class was modified, run `php run.php --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `php run.php --do=init_db`.
+13. If the entity class was modified, reinitialize the impacted package with `php run.php --do=init_package --package={package} --force=true`.
+14. Refer to `AGENTS/AGENTS_REFERENCE.md` for detailed field conventions.

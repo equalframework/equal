@@ -582,6 +582,7 @@ To test and run the eQual-based projects:
    php run.php --do=test_fs-consistency
    php run.php --do=test_db-connectivity
    php run.php --do=init_db
+   php run.php --do=test_db-access
    php run.php --do=init_package --package=core --ignore_platform
    ```
 

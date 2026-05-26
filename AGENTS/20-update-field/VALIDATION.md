@@ -14,6 +14,9 @@
 - [ ] Impacted field translations include `label`, `description`, and `help`.
 - [ ] Removed/renamed fields no longer have stale references in code, views, or i18n.
 - [ ] No unrelated field changes were introduced in the same entity/package.
+- [ ] If a `.class.php` file was modified, database access was checked with `php run.php --do=test_db-access`, or the environment limitation was recorded.
+- [ ] If a `.class.php` file was modified and the configured database was missing, `config/config.json` was confirmed valid and `php run.php --do=init_db` was run.
+- [ ] If a `.class.php` file was modified, the impacted package was reinitialized with `php run.php --do=init_package --package={package} --force=true`.
 
 ## JSON Schema Validation (when applicable)
 

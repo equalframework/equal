@@ -28,6 +28,8 @@
 28. Add seed/init data only if the entity is a reference entity that must exist by default.
 29. Avoid modifying unrelated entities, views, or translations unless a relation or navigation requirement makes it necessary.
 30. Run a consistency pass on filenames, namespaces, relation targets, translation paths, and view ids.
-31. Validate the package with `php run.php --do=test_package-consistency --package={package}` when the environment allows it.
-32. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
-33. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.
+31. Before package initialization, run `php run.php --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `php run.php --do=init_db`.
+32. Reinitialize the impacted package with `php run.php --do=init_package --package={package} --force=true` after creating the entity class.
+33. Validate the package with `php run.php --do=test_package-consistency --package={package}` when the environment allows it.
+34. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
+35. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.

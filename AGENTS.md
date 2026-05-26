@@ -9,7 +9,9 @@
 1. Identify the task type before editing files.
 2. Read the required instruction files from the routing table.
 3. If a task impacts multiple layers (for example class + view + i18n), read every matching task folder before making changes.
-4. Finish every task by running:
+4. For any task that creates or modifies `classes/*.class.php`, run `php run.php --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `php run.php --do=init_db`.
+5. After any `classes/*.class.php` change, reinitialize the impacted package with `php run.php --do=init_package --package={package} --force=true`.
+6. Finish every task by running:
    - the task-specific `VALIDATION.md`
    - `AGENTS/00-general/VALIDATION.md`
    - `AGENTS/90-final-validation/VALIDATION.md`
