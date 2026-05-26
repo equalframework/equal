@@ -55,10 +55,11 @@ namespace {
      * framework behaviors such as CRUD exposure, API visibility,
      * auditing, or instantiation rules.
      */
-    define('EQ_FLAG_SYSTEM',    1);      // entity is part of the framework core or security model and should not be modified by users
-    define('EQ_FLAG_PRIVATE',   2);      // entity must not be exposed publicly through generic APIs or external integrations
-    define('EQ_FLAG_ABSTRACT',  4);      // entity is a non-instantiable base model intended only for inheritance
-    define('EQ_FLAG_AUDIT',     8);      // entity changes should be tracked and historized through Change entries and audit mechanisms
+    define('EQ_FLAG_SYSTEM',     1);      // entity is part of the framework core or security model and should not be modified by users
+    define('EQ_FLAG_PRIVATE',    2);      // entity must not be exposed publicly through generic APIs or external integrations
+    define('EQ_FLAG_ABSTRACT',   4);      // entity is a non-instantiable base model intended only for inheritance (no table)
+    define('EQ_FLAG_AUDIT',      8);      // entity changes should be tracked and historized through Change entries and audit mechanisms
+    define('EQ_FLAG_OWN_TABLE', 16);      // entity uses a dedicated table instead of sharing the table resolved from its parent class
 
     /**
      * Error codes
