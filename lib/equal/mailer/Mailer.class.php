@@ -85,11 +85,6 @@ class Mailer {
                 return $mailer;
 
             case 'api':
-                $from_email = null;
-                if(defined('EMAIL_SMTP_ACCOUNT_EMAIL') && !empty(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))) {
-                    $from_email = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
-                }
-
                 $config = [];
 
                 if(defined('EMAIL_API_PROVIDER')) {
@@ -99,16 +94,22 @@ class Mailer {
                 if(isset($options['api_url'])) {
                     $config['api_url'] = $options['api_url'];
                 }
+                elseif(defined('EMAIL_API_URL')) {
+                    $config['api_url'] = constant('EMAIL_API_URL');
+                }
 
                 if(isset($options['api_key'])) {
                     $config['api_key'] = $options['api_key'];
+                }
+                elseif(defined('EMAIL_API_KEY')) {
+                    $config['api_key'] = constant('EMAIL_API_KEY');
                 }
 
                 if(isset($options['from'])) {
                     $config['from'] = $options['from'];
                 }
-                elseif(!empty($from_email)) {
-                    $config['from'] = $from_email;
+                elseif(defined('EMAIL_SMTP_ACCOUNT_EMAIL') && !empty(constant('EMAIL_SMTP_ACCOUNT_EMAIL'))) {
+                    $config['from'] = constant('EMAIL_SMTP_ACCOUNT_EMAIL');
                 }
 
                 if(isset($options['auth']) && is_array($options['auth'])) {

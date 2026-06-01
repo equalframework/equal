@@ -276,6 +276,16 @@
             "sendgrid"
         ]
     },
+    "EMAIL_API_URL": {
+        "type": "string",
+        "description": "HTTP API url.",
+        "instant": true
+    },
+    "EMAIL_API_KEY": {
+        "type": "string",
+        "description": "HTTP API authentication key.",
+        "instant": true
+    },
     "ENV_MODE": {
         "type": "string",
         "description": "Possible values are: 'development', 'staging', 'production'",
