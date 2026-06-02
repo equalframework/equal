@@ -890,8 +890,10 @@ class ObjectManager extends Service {
                     $load_fields['computed']($this, $missing_ids, array($field), $target_lang);
                     try {
                         // store newly computed fields to database (fields with 'store' attribute set to true)
-                        $computed_ids = array_filter($ids, fn($id) => isset($this->cache[$table_name][$id][$target_lang][$field]));
-                        $this->store($class, $computed_ids, array($field), $target_lang);
+                        $computed_ids = array_filter($missing_ids, fn($id) => isset($this->cache[$table_name][$id][$target_lang][$field]));
+                        if(!empty($computed_ids)) {
+                            $this->store($class, $computed_ids, array($field), $target_lang);
+                        }
                     }
                     catch(Exception $e) {
                         trigger_error('ORM::unable to store computed field: '.$e->getMessage(), EQ_REPORT_ERROR);
