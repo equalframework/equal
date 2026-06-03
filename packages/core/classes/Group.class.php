@@ -51,4 +51,26 @@ class Group extends Model {
         ];
     }
 
+    public static function getCapabilities(): array {
+        return [
+            EQ_R_CREATE => [
+                'root' => true
+            ],
+
+            EQ_R_READ   => true,
+
+            EQ_R_UPDATE => [
+                'root' => true
+            ],
+
+            EQ_R_DELETE => [
+                'root' => true
+            ],
+
+            EQ_R_MANAGE => [
+                'root' => true
+            ]
+        ];
+    }
+
 }
