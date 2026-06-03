@@ -437,12 +437,12 @@ class Collection implements \Iterator, \Countable {
         return $result;
     }
 
-    private function assertCapabilities(int $operation, array $ids=[], array $fields=[]): void {
+    private function assertCapabilities(int $operation, array $ids=[], array $fields=[]): self {
         $capabilities = $this->class::getCapabilities();
         $rule = $capabilities[$operation] ?? true;
 
         if($rule === true) {
-            return;
+            return $this;
         }
 
         if($rule === false) {
@@ -465,7 +465,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             if($context_rule === true) {
-                return;
+                return $this;
             }
 
             if($operation !== EQ_R_UPDATE) {
@@ -490,6 +490,71 @@ class Collection implements \Iterator, \Countable {
                 throw new \Exception('forbidden_field', EQ_ERROR_NOT_ALLOWED);
             }
         }
+        return $this;
+    }
+
+    /**
+     * Assert that the lifecycle hook associated with an operation allows it.
+     *
+     * The lifecycle hook is resolved from the CRUD operation:
+     * - EQ_R_CREATE => cancreate
+     * - EQ_R_UPDATE => canupdate
+     * - EQ_R_DELETE => candelete
+     *
+     * If no lifecycle hook is mapped for the given operation, the assertion is ignored.
+     *
+     * @param int   $operation Operation being checked.
+     * @param array $values    Values to provide to the lifecycle hook.
+     *
+     * @return self
+     *
+     * @throws \Exception
+     */
+    private function assertLifecycle(int $operation, array $values=[]): self {
+        static $map_hooks = [
+            EQ_R_CREATE => 'cancreate',
+            EQ_R_UPDATE => 'canupdate',
+            EQ_R_DELETE => 'candelete'
+        ];
+
+        if(!isset($map_hooks[$operation])) {
+            throw new \Exception('invalid_operation_code', EQ_ERROR_INVALID_PARAM);
+        }
+
+        $result = $this->call($map_hooks[$operation], $values);
+
+        if(!empty($result)) {
+            throw new \Exception(serialize($result), EQ_ERROR_NOT_ALLOWED);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Assert that the current user has the required access rights for an operation
+     * on the current collection.
+     *
+     * @param int   $operation Operation being checked.
+     * @param array $fields    Fields involved in the operation, when applicable.
+     *
+     * @return self
+     *
+     * @throws \Exception
+     */
+    private function assertAccessControl(int $operation, array $fields=[]): self {
+        $ids = $this->ids();
+        $user_id = $this->am->userId();
+
+        if(!$this->ac->isAllowed($operation, $this->class, $fields, $ids)) {
+            trigger_error(
+                "ORM::Access denied: user {$user_id}, operation {$operation}, class {$this->class}, fields [" . implode(',', $fields) . '], ids [' . implode(',', $ids) . ']',
+                EQ_REPORT_WARNING
+            );
+
+            throw new \Exception('access_denied', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        return $this;
     }
 
     /**
@@ -1276,6 +1341,12 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+    /**
+     * @deprecated  use assertPolicies()
+     */
+    public function assert($policies): self {
+        return $this->assertPolicies($policies);
+    }
 
     /**
      * Asserts that the collection complies with one or several policies.
@@ -1285,7 +1356,7 @@ class Collection implements \Iterator, \Countable {
      * @return Collection
      * @throws \Exception
      */
-    public function assert($policies) {
+    public function assertPolicies($policies): self {
         trigger_error("ORM::performing assert on '{$this->class}' for policies " . implode(',', (array) $policies), EQ_REPORT_DEBUG);
 
         $ids = $this->ids();
