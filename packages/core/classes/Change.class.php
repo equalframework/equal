@@ -25,7 +25,8 @@ class Change extends Model {
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\\Log',
                 'description'       => "Reference to the parent log.",
-                'required'          => true
+                'required'          => true,
+                'ondelete'          => 'cascade'
             ],
 
             'object_class' => [
