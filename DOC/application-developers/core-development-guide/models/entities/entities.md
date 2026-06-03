@@ -141,6 +141,8 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getRoles()           | Returns the list of [roles](../actions/#groups-vs-roles) explicitly associated with the entity.           |
 | getActions()         | Returns a list of available [actions](../actions.md) that can be triggered on the entity.                 |
 | getPolicies()        | Returns the [access control policies](../authorization/access-control-lists.md) applicable to the entity. |
+| getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
+| getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
 | getSchema()          | Returns the full schema of the entity, including system fields.                                           |
 | getSettingDefaults() | Returns an associative array of setting defaults for fields.                                              |
 
@@ -173,6 +175,381 @@ Private methods can still be invoked internally within the class, including from
 ---
 
 ## Entity-Level Access Control
+
+### Capabilities
+
+Capabilities define, at `Model` level, which generic CRUD operations are structurally exposed for an entity. They also define the user contexts in which those operations are exposed and, for updates, the fields that can be updated through a generic operation.
+
+Capabilities complement the existing permission system (`AccessController`, ACL, roles and policies). They answer a different question: whether the generic operation is structurally available before user rights and business rules are evaluated.
+
+Generic `Collection` operations evaluate capabilities before checking ACLs and before running dynamic business rules such as `cancreate`, `canupdate`, `candelete` or `canread`.
+
+#### Entity Flags
+
+Flags describe structural characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility, auditing, instantiation rules or table mapping.
+
+The current entity flags are defined in `eq.lib.php`:
+
+```php
+define('EQ_FLAG_SYSTEM',     1);  // entity is part of the framework core or security model
+define('EQ_FLAG_PRIVATE',    2);  // entity must not be exposed publicly through generic APIs or external integrations
+define('EQ_FLAG_ABSTRACT',   4);  // entity is a non-instantiable base model intended only for inheritance
+define('EQ_FLAG_AUDIT',      8);  // entity changes should be tracked through Change entries and audit mechanisms
+define('EQ_FLAG_OWN_TABLE', 16);  // entity uses a dedicated table instead of sharing the parent table
+```
+
+Each entity can override `getFlags()`:
+
+```php
+public static function getFlags(): int {
+    return EQ_FLAG_SYSTEM | EQ_FLAG_AUDIT;
+}
+```
+
+The base `Model` also provides a helper:
+
+```php
+public static function hasFlag(int $flag): bool {
+    return ((static::getFlags() & $flag) === $flag);
+}
+```
+
+#### Defining Capabilities
+
+Each entity can override:
+
+```php
+public static function getCapabilities(): array
+```
+
+The method returns an array indexed by CRUD right constants:
+
+```php
+EQ_R_CREATE
+EQ_R_READ
+EQ_R_UPDATE
+EQ_R_DELETE
+EQ_R_MANAGE
+```
+
+Capabilities are intended for generic operations exposed through `Collection`, for example `create()`, `read()`, `update()`, `delete()` and generic controllers that call them. Dedicated controllers can still implement a narrower business workflow for sensitive operations.
+
+#### Capability Grammar
+
+A capability can be global:
+
+```php
+EQ_R_CREATE => true
+```
+
+The operation is structurally exposed.
+
+```php
+EQ_R_DELETE => false
+```
+
+The operation is structurally blocked.
+
+A capability can also be contextual:
+
+```php
+EQ_R_DELETE => [
+    'root' => true
+]
+```
+
+The operation is exposed only if the `root` context matches. Contextual capabilities are always written as a map:
+
+```php
+context => rule
+```
+
+The shorthand form below is intentionally avoided because it is less regular and less explicit:
+
+```php
+EQ_R_DELETE => ['root']
+```
+
+#### Supported Contexts
+
+Capabilities rely on contexts evaluated dynamically by the `AccessController`:
+
+```php
+$access->hasContext($context, $object_class, $object_ids);
+```
+
+| Context   | Description                                                        |
+| --------- | ------------------------------------------------------------------ |
+| `root`    | The root user (`EQ_ROOT_USER_ID`).                                 |
+| `guest`   | The guest user (`EQ_GUEST_USER_ID`).                               |
+| `creator` | The current user is the creator of every object in the collection. |
+| `manager` | The current user has `EQ_R_MANAGE` on the collection.              |
+| `self`    | The current user is acting on its own `core\User` object.          |
+
+Object-bound contexts such as `creator` must be true for all objects in the collection.
+
+#### Operation Rules
+
+The following operations are evaluated only at operation level:
+
+```php
+EQ_R_CREATE
+EQ_R_READ
+EQ_R_DELETE
+EQ_R_MANAGE
+```
+
+For these operations, there is no field-level capability. Valid values are:
+
+```php
+true
+false
+[
+    'root'    => true,
+    'creator' => true,
+    'manager' => true,
+    'guest'   => true
+]
+```
+
+A contextual `false` value is allowed but does not grant anything:
+
+```php
+EQ_R_DELETE => [
+    'root'    => true,
+    'manager' => false
+]
+```
+
+In this example, `root` can delete. The `manager` context grants no delete capability.
+
+`EQ_R_UPDATE` can be evaluated at field level. A contextual rule can expose:
+
+- all technically updatable fields (`true`);
+- no field (`false`);
+- an explicit list of fields.
+
+```php
+EQ_R_UPDATE => [
+    'root'    => true,
+    'manager' => ['name', 'description', 'status'],
+    'creator' => ['name', 'description']
+]
+```
+
+In this example, `root` can update all technically modifiable fields. `manager` can update `name`, `description` and `status`. `creator` can update only `name` and `description`.
+
+#### Interpreting `false`
+
+In a contextual rule, `false` is not a priority denial. It only means that this context grants nothing.
+
+```php
+EQ_R_UPDATE => [
+    'root'    => true,
+    'creator' => false,
+    'manager' => ['firstname', 'lastname']
+]
+```
+
+If the current user is both `creator` and `manager`, the user can update `firstname` and `lastname`. If the current user is both `root` and `creator`, the user keeps the full update capability granted by `root`.
+
+This avoids reintroducing reject logic in the capability map.
+
+#### Evaluation Order
+
+For a generic operation:
+
+1. The `Collection` retrieves the rule from `Model::getCapabilities()`.
+2. `true` exposes the operation structurally.
+3. `false` blocks the operation.
+4. A contextual map is evaluated with `AccessController::hasContext()`.
+5. For `CREATE`, `READ`, `DELETE` and `MANAGE`, one matching context with `true` exposes the operation.
+6. For `UPDATE`, allowed fields are built from every matching context.
+7. ACLs are then checked with `AccessController::isAllowed()`.
+8. Validation and business rules are then executed.
+9. The operation is finally delegated to the ORM.
+
+```text
+Controller
+    |
+Collection
+    |
+Capabilities
+    |
+AccessController / ACL
+    |
+Validation
+    |
+Business hooks
+    |
+ORM
+```
+
+Capabilities and ACLs are complementary:
+
+| Mechanism                     | Question answered                                      |
+| ----------------------------- | ------------------------------------------------------ |
+| `Capabilities`                | Is the generic operation structurally exposed?         |
+| `AccessController` / ACL      | Does the current user have the required rights?        |
+| `canupdate`, `cancreate`, etc | Is the operation valid in the current business state?  |
+| `ObjectManager`               | How is the operation technically executed?             |
+
+A user must satisfy both capabilities and ACLs.
+
+#### Default Capabilities
+
+The base `Model` exposes all generic CRUD operations by default:
+
+```php
+[
+    EQ_R_CREATE => true,
+    EQ_R_READ   => true,
+    EQ_R_UPDATE => true,
+    EQ_R_DELETE => true,
+    EQ_R_MANAGE => true
+]
+```
+
+For entities marked with `EQ_FLAG_SYSTEM`, the default is restricted:
+
+```php
+[
+    EQ_R_CREATE => false,
+    EQ_R_READ   => true,
+    EQ_R_UPDATE => false,
+    EQ_R_DELETE => false,
+    EQ_R_MANAGE => false
+]
+```
+
+System entities should be changed through dedicated controllers instead of generic CRUD operations.
+
+#### Examples
+
+A standard business entity can inherit the default behavior:
+
+```php
+public static function getFlags(): int {
+    return 0;
+}
+
+public static function getCapabilities(): array {
+    return parent::getCapabilities();
+}
+```
+
+A business entity with limited generic updates can define contextual field lists:
+
+```php
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => true,
+        EQ_R_READ   => true,
+
+        EQ_R_UPDATE => [
+            'root'    => true,
+            'manager' => ['name', 'description', 'status'],
+            'creator' => ['name', 'description']
+        ],
+
+        EQ_R_DELETE => [
+            'root'    => true,
+            'manager' => true
+        ],
+
+        EQ_R_MANAGE => [
+            'root' => true
+        ]
+    ];
+}
+```
+
+An entity editable only by its creator can expose a small update surface:
+
+```php
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => true,
+        EQ_R_READ   => true,
+
+        EQ_R_UPDATE => [
+            'root'    => true,
+            'creator' => ['title', 'content']
+        ],
+
+        EQ_R_DELETE => [
+            'root'    => true,
+            'creator' => true
+        ],
+
+        EQ_R_MANAGE => [
+            'root' => true
+        ]
+    ];
+}
+```
+
+An abstract entity should not expose generic operations directly:
+
+```php
+public static function getFlags(): int {
+    return EQ_FLAG_ABSTRACT;
+}
+
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => false,
+        EQ_R_READ   => false,
+        EQ_R_UPDATE => false,
+        EQ_R_DELETE => false,
+        EQ_R_MANAGE => false
+    ];
+}
+```
+
+An internal private entity can restrict generic access to `root`:
+
+```php
+public static function getFlags(): int {
+    return EQ_FLAG_PRIVATE;
+}
+
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => ['root' => true],
+        EQ_R_READ   => ['root' => true],
+        EQ_R_UPDATE => ['root' => true],
+        EQ_R_DELETE => ['root' => true],
+        EQ_R_MANAGE => ['root' => true]
+    ];
+}
+```
+
+The `core\User` entity is a system entity with explicit generic update limits:
+
+```php
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => false,
+        EQ_R_READ   => true,
+
+        EQ_R_UPDATE => [
+            'root' => true,
+            'self' => ['firstname', 'lastname', 'language', 'password']
+        ],
+
+        EQ_R_DELETE => [
+            'root' => true
+        ],
+
+        EQ_R_MANAGE => [
+            'root' => true
+        ]
+    ];
+}
+```
+
+In this example, generic user creation is blocked, reading remains structurally exposed, `root` can update all technically modifiable fields, and `self` can update only the listed profile fields. Sensitive fields such as groups, permissions, passkeys, validation state or status must be changed through dedicated controllers.
 
 ### Field Access
 

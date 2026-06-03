@@ -8,6 +8,7 @@ Authorization in eQual is a critical component of the framework, ensuring secure
 
 eQual supports a variety of Access Control strategies to meet diverse security requirements:
 
+- **Capabilities:** Define which generic CRUD operations are structurally exposed by an entity before ACLs and business rules are evaluated. See [Entity Capabilities](../entities/entities.md#capabilities).
 - **ACL (Access Control Lists):** Assigns permissions to users or groups for specific resources.
 - **ABAC (Attribute-Based Access Control):** Grants access based on attributes of the user, resource, or environment.
 - **RBAC (Role-Based Access Control):** Manages permissions based on user roles.
