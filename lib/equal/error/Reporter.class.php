@@ -47,7 +47,7 @@ class Reporter extends Service {
         $this->debug_level = (defined('DEBUG_LEVEL'))?constant('DEBUG_LEVEL'):0;
         // ::errorHandler() will deal with errors and debug messages depending on debug source value
         ini_set('display_errors', 1);
-        // use QN_REPORT_x for reporting, E_ERROR for fatal errors only, E_ALL for all errors
+        // use EQ_REPORT_x for reporting, E_ERROR for fatal errors only, E_ALL for all errors
         error_reporting($this->debug_level);
         set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
         set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
@@ -87,7 +87,7 @@ class Reporter extends Service {
             $trace['line'] = $exception->getLine();
             // #memo - $backtrace may contain non json-encodable objects (which would lead to an error when calling json_encode)
             $trace['stack'] = self::filterOutObjects($backtrace);
-            $instance->log(QN_REPORT_ERROR, $msg, $trace);
+            $instance->log(EQ_REPORT_ERROR, $msg, $trace);
         }
     }
 
@@ -195,8 +195,8 @@ class Reporter extends Service {
             'thread_id'     => $this->thread_id,
             'time'          => date('c', (int) $microtime),
             'mtime'         => sprintf('%06d', ($microtime - floor($microtime)) * 1e6),
-            'level'         => qn_debug_code_name($code),
-            'mode'          => qn_debug_mode_name($mode),
+            'level'         => eq_debug_code_name($code),
+            'mode'          => eq_debug_mode_name($mode),
             'class'         => (isset($trace['class'])) ? $trace['class'] : '',
             'function'      => (isset($trace['function'])) ? (strlen($trace['function'])?$trace['function'].'()':'[main]') : '',
             'file'          => (isset($trace['file'])) ? $trace['file'] : '',
@@ -276,24 +276,24 @@ class Reporter extends Service {
     }
 
     public function fatal($msg) {
-        $this->log(QN_REPORT_FATAL, $msg, self::getTrace(1));
+        $this->log(EQ_REPORT_FATAL, $msg, self::getTrace(1));
         die('fatal_error');
     }
 
     public function error($msg) {
-        $this->log(QN_REPORT_ERROR, $msg, self::getTrace(1));
+        $this->log(EQ_REPORT_ERROR, $msg, self::getTrace(1));
     }
 
     public function warning($msg) {
-        $this->log(QN_REPORT_WARNING, $msg, self::getTrace(1));
+        $this->log(EQ_REPORT_WARNING, $msg, self::getTrace(1));
     }
 
     public function info($msg) {
-        $this->log(QN_REPORT_INFO, $msg, self::getTrace(1));
+        $this->log(EQ_REPORT_INFO, $msg, self::getTrace(1));
     }
 
     public function debug($msg) {
-        $this->log(QN_REPORT_DEBUG, $msg, self::getTrace(1));
+        $this->log(EQ_REPORT_DEBUG, $msg, self::getTrace(1));
     }
 
 }

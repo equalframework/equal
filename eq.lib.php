@@ -267,7 +267,7 @@ namespace {
         return 500;
     }
 
-    function qn_debug_code_name($code) {
+    function eq_debug_code_name($code) {
         switch($code) {
             case QN_REPORT_DEBUG:    return 'DEBUG';
             case QN_REPORT_INFO:     return 'INFO';
@@ -279,7 +279,7 @@ namespace {
         return 'UNKNOWN';
     }
 
-    function qn_debug_mode_name($mode) {
+    function eq_debug_mode_name($mode) {
         switch($mode) {
             case QN_MODE_PHP:    return 'PHP';
             case QN_MODE_SQL:    return 'SQL';
