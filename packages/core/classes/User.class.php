@@ -390,7 +390,10 @@ class User extends Model {
      */
     public static function getCapabilities(): array {
         return [
-            EQ_R_CREATE => false,
+            EQ_R_CREATE => [
+                'root' => true
+            ],
+
             EQ_R_READ   => true,
 
             EQ_R_UPDATE => [
