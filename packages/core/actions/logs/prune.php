@@ -32,7 +32,7 @@ list($params, $providers) = eQual::announce([
 
 
 // retrieve logs expiry delay, in months
-$delay = Setting::get('core', 'main', 'logs.expiry', constant('LOGS_EXPIRY_DELAY'));
+$delay = Setting::get_value('core', 'main', 'logs.expiry', constant('LOGS_EXPIRY_DELAY'));
 
 // compute pivot date for removing older logs
 $time = strtotime("-$delay months");
