@@ -630,8 +630,10 @@ class Model implements \ArrayAccess, \Iterator {
             EQ_R_MANAGE => true
         ];
 
+        // read-only + creation through ORM only
         if(static::hasFlag(EQ_FLAG_SYSTEM)) {
             $capabilities[EQ_R_CREATE] = false;
+            $capabilities[EQ_R_READ]   = true;
             $capabilities[EQ_R_UPDATE] = false;
             $capabilities[EQ_R_DELETE] = false;
             $capabilities[EQ_R_MANAGE] = false;
