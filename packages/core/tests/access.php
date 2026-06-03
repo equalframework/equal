@@ -138,7 +138,7 @@ $tests = [
             'description'       => "Check root user rights.",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->userHasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
+                    return $access->userHasRight(EQ_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -146,7 +146,7 @@ $tests = [
             'description'       => "Re-Check root user rights (to ensure using the rights cache).",
             'assert'            => function() use($providers) {
                     $access = $providers['access'];
-                    return $access->userHasRight(QN_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
+                    return $access->userHasRight(EQ_ROOT_USER_ID, EQ_R_MANAGE, 'core\User');
                 },
         ],
 
@@ -159,7 +159,8 @@ $tests = [
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    return $access->userHasRight($user_id, EQ_R_WRITE, 'core\User', $user_id);
+                    // #todo - check actual ability to update itself
+                    return $access->userHasContext($user_id, 'self', 'core\User', [$user_id]);
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_4@example.com'])->delete(true);
@@ -178,13 +179,13 @@ $tests = [
                 },
             'act'               => function ($group_id) use($providers) {
                     $access = $providers['access'];
-                    $access->grantGroups($group_id, EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
+                    $access->grantGroups($group_id, EQ_R_READ|EQ_R_UPDATE|EQ_R_MANAGE, '*');
                     return $group_id;
                 },
             'assert'            => function($group_id) use($providers) {
                     $access = $providers['access'];
                     $user = User::search(['login', '=', 'user_test_5@example.com'])->read(['id'])->first();
-                    return $access->userHasRight($user['id'], EQ_R_READ|EQ_R_WRITE|EQ_R_MANAGE, '*');
+                    return $access->userHasRight($user['id'], EQ_R_READ|EQ_R_UPDATE|EQ_R_MANAGE, '*');
                 },
             'rollback'          => function() {
                     Group::search(['name', '=', 'test2'])->delete(true);
