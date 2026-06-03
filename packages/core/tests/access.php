@@ -151,16 +151,23 @@ $tests = [
         ],
 
     '0303' => [
-            'description'       => "Check if a user has a right on its own object.",
-            'help'              => "Create a user, and check if it has the resulting user has the MANAGE right on itself.",
+            'description'       => "Check if a user can update its own profile fields.",
+            'help'              => "Create a user, then check that this user can update firstname, lastname and password on its own User object.",
             'arrange'           => function() use($providers) {
                     $user = User::create(['login' => 'user_test_4@example.com', 'password' => 'abcd1234'])->first();
                     return $user['id'];
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
-                    // #todo - check actual ability to update itself
-                    return $access->userHasContext($user_id, 'self', 'core\User', [$user_id]);
+                    $result = true;
+                    try {
+                        User::id($user_id)->assertOperation(EQ_R_UPDATE, ['firstname', 'lastname', 'password']);
+                        $result &= $access->userHasContext($user_id, 'self', 'core\User', [$user_id]);
+                    }
+                    catch(\Exception $e) {
+                        $result = false;
+                    }
+                    return $result;
                 },
             'rollback'          => function() {
                     User::search(['login', '=', 'user_test_4@example.com'])->delete(true);

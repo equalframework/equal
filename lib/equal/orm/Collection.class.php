@@ -505,7 +505,7 @@ class Collection implements \Iterator, \Countable {
      * If no lifecycle hook is mapped for the given operation, the assertion fails.
      *
      * @param int   $operation Operation being checked.
-     * @param array $values    Values to provide to the lifecycle hook.
+     * @param array $values    Associative array mapping fields names with values, to provide to the lifecycle hook.
      *
      * @return self
      *
@@ -520,7 +520,7 @@ class Collection implements \Iterator, \Countable {
         ];
 
         if(!isset($map_hooks[$operation])) {
-            throw new \Exception('invalid_operation_code', EQ_ERROR_INVALID_PARAM);
+            return $this;
         }
 
         $result = $this->call($map_hooks[$operation], $values);
@@ -1350,6 +1350,43 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+    /**
+     * Assert that an operation can be performed on the current collection.
+     *
+     * This assertion checks structural capabilities and ACL access control.
+     *
+     * The $fields argument accepts either:
+     * - a list of field names: ['name', 'status']
+     * - a map of values: ['name' => 'Test', 'status' => 'draft']
+     *
+     * When a value map is provided, field names are extracted from its keys.
+     * Lifecycle hooks are checked only when $with_lifecycle is true.
+     *
+     * @param int      $operation       Operation being checked.
+     * @param array    $fields          Field names or associative field-value map.
+     *
+     * @return self
+     *
+     * @throws \Exception
+     */
+    public function assertOperation(int $operation, array $fields=[]): self {
+        $is_value_map = count($fields) > 0 && array_keys($fields) !== range(0, count($fields) - 1);
+
+        $values = $is_value_map ? $fields : [];
+        $field_names = $is_value_map ? array_keys($fields) : $fields;
+
+        $ids = $this->ids();
+
+        $this
+            ->assertCapabilities($operation, $field_names, $ids)
+            ->assertAccessControl($operation, $field_names, $ids);
+
+        if($is_value_map) {
+            $this->assertLifecycle($operation, $values);
+        }
+
+        return $this;
+    }
 
     /**
      * Apply a callback to each object of the collection.
