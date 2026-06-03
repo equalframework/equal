@@ -64,8 +64,8 @@ class Collection implements \Iterator, \Countable {
      * Collections service is a factory that creates Collection instances when requested.
      * (i.e. when a magic method is called on a class that derives from namespace `equal\orm\Model`)
      *
-     * @var string                                  $class
-     * @var \equal\service\Container                $container      Service container relayed from Collections service.
+     * @var string                      $class
+     * @var \equal\service\Container    $container      Service container relayed from Collections service.
      */
     public function __construct($class, $container) {
         // init objects map
@@ -437,7 +437,7 @@ class Collection implements \Iterator, \Countable {
         return $result;
     }
 
-    private function assertCapabilities(int $operation, array $ids=[], array $fields=[]): self {
+    private function assertCapabilities(int $operation, array $fields=[], array $ids=[]): self {
         $capabilities = $this->class::getCapabilities();
         $rule = $capabilities[$operation] ?? true;
 
@@ -498,10 +498,11 @@ class Collection implements \Iterator, \Countable {
      *
      * The lifecycle hook is resolved from the CRUD operation:
      * - EQ_R_CREATE => cancreate
+     * - EQ_R_READ => canread
      * - EQ_R_UPDATE => canupdate
      * - EQ_R_DELETE => candelete
      *
-     * If no lifecycle hook is mapped for the given operation, the assertion is ignored.
+     * If no lifecycle hook is mapped for the given operation, the assertion fails.
      *
      * @param int   $operation Operation being checked.
      * @param array $values    Values to provide to the lifecycle hook.
@@ -513,6 +514,7 @@ class Collection implements \Iterator, \Countable {
     private function assertLifecycle(int $operation, array $values=[]): self {
         static $map_hooks = [
             EQ_R_CREATE => 'cancreate',
+            EQ_R_READ   => 'canread',
             EQ_R_UPDATE => 'canupdate',
             EQ_R_DELETE => 'candelete'
         ];
@@ -536,18 +538,18 @@ class Collection implements \Iterator, \Countable {
      *
      * @param int   $operation Operation being checked.
      * @param array $fields    Fields involved in the operation, when applicable.
+     * @param array $ids       Object identifiers involved in the operation, when applicable.
      *
      * @return self
      *
      * @throws \Exception
      */
-    private function assertAccessControl(int $operation, array $fields=[]): self {
-        $ids = $this->ids();
+    private function assertAccessControl(int $operation, array $fields=[], array $ids=[]): self {
         $user_id = $this->am->userId();
 
         if(!$this->ac->isAllowed($operation, $this->class, $fields, $ids)) {
             trigger_error(
-                "ORM::Access denied: user {$user_id}, operation {$operation}, class {$this->class}, fields [" . implode(',', $fields) . '], ids [' . implode(',', $ids) . ']',
+                "ORM::Access denied: User[{$user_id}], operation {$operation}, class {$this->class}, fields [" . implode(',', $fields) . '], ids [' . implode(',', $ids) . ']',
                 EQ_REPORT_WARNING
             );
 
@@ -732,12 +734,9 @@ class Collection implements \Iterator, \Countable {
         $schema = $this->model->getSchema();
         $fields = array_keys($schema);
 
-        $this->assertCapabilities(EQ_R_CREATE);
-
-        // 2) check that current user has enough privilege to perform CREATE operation
-        if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
-            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', EQ_ERROR_NOT_ALLOWED);
-        }
+        $this
+            ->assertCapabilities(EQ_R_CREATE)
+            ->assertAccessControl(EQ_R_CREATE, $fields);
 
         $canclone = $this->call('canclone');
         if(!empty($canclone)) {
@@ -794,10 +793,7 @@ class Collection implements \Iterator, \Countable {
             // validate : check unique keys
             $this->validate($values, [], true);
 
-            $cancreate = $this->call('cancreate', $values);
-            if(!empty($cancreate)) {
-                throw new \Exception(serialize($cancreate), EQ_ERROR_NOT_ALLOWED);
-            }
+            $this->assertLifecycle(EQ_R_CREATE, $values);
 
             // create the clone
             $new_id = $this->orm->clone($this->class, $id, $values, $lang);
@@ -847,12 +843,9 @@ class Collection implements \Iterator, \Countable {
         // retrieve targeted fields names
         $fields = array_keys($values);
 
-        $this->assertCapabilities(EQ_R_CREATE);
-
-        // 2) check that current user has enough privilege to perform CREATE operation
-        if(!$this->ac->isAllowed(EQ_R_CREATE, $this->class, $fields)) {
-            throw new \Exception('CREATE,'.$this->class.',['.implode(',', $fields).']', EQ_ERROR_NOT_ALLOWED);
-        }
+        $this
+            ->assertCapabilities(EQ_R_CREATE)
+            ->assertAccessControl(EQ_R_CREATE, $fields);
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
         $is_draft = (isset($values['state']) && $values['state'] == 'draft');
@@ -865,10 +858,7 @@ class Collection implements \Iterator, \Countable {
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
         $this->validate($values, [], true, !$is_draft);
 
-        $cancreate = $this->call('cancreate', $values);
-        if(!empty($cancreate)) {
-            throw new \Exception(serialize($cancreate), EQ_ERROR_NOT_ALLOWED);
-        }
+        $this->assertLifecycle(EQ_R_CREATE, $values);
 
         // 4) create the new object
         $id = $this->orm->create($this->class, $values, ($lang) ? $lang : $this->lang);
@@ -967,9 +957,6 @@ class Collection implements \Iterator, \Countable {
     public function read($fields, $lang=null) {
 
         if(count($this->objects)) {
-            // retrieve current user id
-            $user_id = $this->am->userId();
-
             if(!is_array($fields)) {
                 trigger_error("ORM::received non-array `\$fields` when reading `{$this->class}`: casting to array", EQ_REPORT_WARNING);
                 // force argument into an array (single field name is accepted; if empty array is given: load all fields)
@@ -1013,18 +1000,10 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted identifiers (remove null entries)
             $ids = $this->ids();
 
-            $this->assertCapabilities(EQ_R_READ, $ids);
-
-            // 2) check that current user has enough privilege to perform READ operation
-            if(!$this->ac->isAllowed(EQ_R_READ, $this->class, $requested_fields, $ids)) {
-                throw new \Exception($user_id.';READ;'.$this->class.';'.implode(',',$ids), EQ_ERROR_NOT_ALLOWED);
-            }
-
-            // #memo - this is necessary when non-ACL policies are set, otherwise it is redundant with access::isAllowed(R_READ)
-            $canread = $this->call('canread', $requested_fields);
-            if(!empty($canread)) {
-                throw new \Exception(serialize($canread), EQ_ERROR_NOT_ALLOWED);
-            }
+            $this
+                ->assertCapabilities(EQ_R_READ, $requested_fields, $ids)
+                ->assertAccessControl(EQ_R_READ, $requested_fields, $ids)
+                ->assertLifecycle(EQ_R_READ, $requested_fields);
 
             // 3) read values
             $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
@@ -1170,8 +1149,17 @@ class Collection implements \Iterator, \Countable {
         // retrieve targeted fields names
         $fields = array_keys($values);
 
+        if(!count($fields)) {
+            return $this;
+        }
+
         // retrieve targeted identifiers
         $ids = $this->ids();
+
+        // 2) assert Capabilities & ACL
+        $this
+            ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
+            ->assertAccessControl(EQ_R_UPDATE, $fields, $ids);
 
         // by convention, update operation sets modifier as current user
         $values['modifier'] = $user_id;
@@ -1183,14 +1171,6 @@ class Collection implements \Iterator, \Countable {
             $values['state'] = 'instance';
         }
         */
-
-        $this->assertCapabilities(EQ_R_UPDATE, $ids, $fields);
-
-        // 2) check that current user has enough privilege to perform the operation
-        if(!$this->ac->isAllowed(EQ_R_UPDATE, $this->class, $fields, $ids)) {
-            trigger_error("ORM::{$user_id} ;UPDATE; {$this->class} '; [" . implode(',', $fields) . '];[' . implode(',', $ids) . "]", EQ_ERROR_NOT_ALLOWED);
-            throw new \Exception('update_not_allowed', EQ_ERROR_NOT_ALLOWED);
-        }
 
         // 3) validate : check unique keys and required fields
         // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
@@ -1204,11 +1184,7 @@ class Collection implements \Iterator, \Countable {
             // this should probably rather be done in ORM + making a distinction between partial validation & full validation
         }
 
-        // check if fields (other than special columns) can be updated
-        $can_update = $this->call('canupdate', array_diff_key($values, Model::getSpecialColumns()));
-        if(!empty($can_update)) {
-            throw new \Exception(serialize($can_update), QN_ERROR_NOT_ALLOWED);
-        }
+        $this->assertLifecycle(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // 4) update objects
         $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
@@ -1242,21 +1218,10 @@ class Collection implements \Iterator, \Countable {
             // retrieve targeted identifiers
             $ids = $this->ids();
 
-            $this->assertCapabilities(EQ_R_DELETE, $ids);
-
-            // AssertAccessControl
-
-            // 2) check that current user has enough privilege to perform WRITE operation
-            if(!$this->ac->isAllowed(EQ_R_DELETE, $this->class, [], $ids)) {
-                throw new \Exception($user_id.';DELETE,'.$this->class.'['.implode(',', $ids).']', EQ_ERROR_NOT_ALLOWED);
-            }
-
-            // AssertLifeCycle
-
-            $candelete = $this->call('candelete');
-            if(!empty($candelete)) {
-                throw new \Exception(serialize($candelete), EQ_ERROR_NOT_ALLOWED);
-            }
+            $this
+                ->assertCapabilities(EQ_R_DELETE, [], $ids)
+                ->assertAccessControl(EQ_R_DELETE, [], $ids)
+                ->assertLifecycle(EQ_R_DELETE);
 
             // 3) delete objects
             $res = $this->orm->delete($this->class, $ids, $permanent);
