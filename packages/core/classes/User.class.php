@@ -23,6 +23,10 @@ class User extends Model {
         return 'A User object holds information and contact details about a specific user account.';
     }
 
+    public static function getFlags(): int {
+        return EQ_FLAG_SYSTEM;
+    }
+
     public static function getColumns() {
         return [
 
@@ -368,19 +372,38 @@ class User extends Model {
         ];
     }
 
+    /**
+     * Defines structural capabilities for User entities.
+     *
+     * User is a system entity: generic CRUD operations must remain restricted
+     * because user records are part of the authentication and authorization model.
+     *
+     * The generic update operation is intentionally limited:
+     * - root can update all technically modifiable fields;
+     * - self can update only basic profile fields;
+     * - sensitive fields such as groups, permissions, passkeys, validation state
+     *   or status must be changed through dedicated controllers.
+     *
+     * Delete and manage operations are restricted to root.
+     *
+     * @return array<int, bool|array>
+     */
     public static function getCapabilities(): array {
         return [
+            EQ_R_CREATE => false,
+            EQ_R_READ   => true,
+
             EQ_R_UPDATE => [
-                'accept' => [
-                    'root'      => true,
-                    'manager'   => ['firstname', 'lastname', 'language']
-                ],
-                'reject' => ['groups_ids', 'permissions_ids', 'passkeys_ids', 'validated', 'status']
+                'root' => true,
+                'self' => ['firstname', 'lastname', 'language', 'password']
             ],
+
             EQ_R_DELETE => [
-                'accept' => [
-                    'root' => true
-                ]
+                'root' => true
+            ],
+
+            EQ_R_MANAGE => [
+                'root' => true
             ]
         ];
     }

@@ -11,6 +11,10 @@ use equal\orm\Model;
 
 class Group extends Model {
 
+    public static function getFlags(): int {
+        return EQ_FLAG_SYSTEM;
+    }
+
     public static function getColumns() {
         return [
             'name' => [
