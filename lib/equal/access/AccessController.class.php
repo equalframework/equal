@@ -204,13 +204,6 @@ class AccessController extends Service {
                 $user_rights = $this->permissionsTable[$user_id][$object_class];
             }
             else {
-                // grant READ on system entities ('core' package)
-                /*
-                // #memo - this is done through Permissions object to allow fine grained handling
-                if(ObjectManager::getObjectPackage(ObjectManager::getObjectRootClass($object_class)) == 'core') {
-                    $user_rights |= EQ_R_READ;
-                }
-                */
                 if(strpos($object_class, '*') === false) {
                     $user_rights |= $this->getUserRightsOnClass($user_id, $object_class);
                 }
@@ -222,11 +215,6 @@ class AccessController extends Service {
                 }
                 $this->permissionsTable[$user_id][$object_class] = $user_rights;
             }
-        }
-
-        // grant user RW rights on its own object
-        if(count($object_ids) == 1 && $object_ids[0] == $user_id && ObjectManager::getObjectRootClass($object_class) == 'core\User') {
-            $user_rights |= EQ_R_READ | EQ_R_UPDATE;
         }
 
         return $user_rights;
@@ -882,10 +870,13 @@ class AccessController extends Service {
         switch($context) {
 
             case 'root':
-                return ($user_id == EQ_ROOT_USER_ID);
+                return ($user_id === EQ_ROOT_USER_ID);
 
             case 'guest':
-                return ($user_id == EQ_GUEST_USER_ID);
+                return ($user_id === EQ_GUEST_USER_ID);
+
+            case 'self':
+                return (ObjectManager::getObjectRootClass($object_class) === 'core\User' && count($object_ids) === 1 && $object_ids[0] === $user_id && $user_id);
 
             case 'manager':
                 return $this->hasRight(EQ_R_MANAGE, $object_class, $object_ids, $user_id);
@@ -903,7 +894,7 @@ class AccessController extends Service {
                 }
 
                 foreach($values as $object) {
-                    if(($object['creator'] ?? null) != $user_id) {
+                    if(($object['creator'] ?? null) !== $user_id) {
                         return false;
                     }
                 }
