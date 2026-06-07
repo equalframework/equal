@@ -14,9 +14,9 @@
 - [ ] Impacted field translations include `label`, `description`, and `help`.
 - [ ] Removed/renamed fields no longer have stale references in code, views, or i18n.
 - [ ] No unrelated field changes were introduced in the same entity/package.
-- [ ] If a `.class.php` file was modified, database access was checked with `php run.php --do=test_db-access`, or the environment limitation was recorded.
-- [ ] If a `.class.php` file was modified and the configured database was missing, `config/config.json` was confirmed valid and `php run.php --do=init_db` was run.
-- [ ] If a `.class.php` file was modified, the impacted package was reinitialized with `php run.php --do=init_package --package={package} --force=true`.
+- [ ] If a `.class.php` file was modified, database access was checked with `./equal.run --do=test_db-access`, or the environment limitation was recorded.
+- [ ] If a `.class.php` file was modified and the configured database was missing, `config/config.json` was confirmed valid and `./equal.run --do=init_db` was run.
+- [ ] If a `.class.php` file was modified, the impacted package was reinitialized with `./equal.run --do=init_package --package={package} --force=true`.
 
 ## JSON Schema Validation (when applicable)
 
@@ -32,8 +32,8 @@ If views, models or translation files were modified as part of the field update,
 
 - [ ] **Model class validation** (if class modified):
   - Use schema `urn:equal:json-schema:core:model.class`
-  - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through `php run.php --get=model_export --package={package} --entity={EntityName}`
-  - Run `php run.php --get=core_json-validate` with:
+  - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
+  - Run `./equal.run --get=core_json-validate` with:
     - `json` parameter: the JSON representation of the updated model class
     - `schema_id` parameter: `urn:equal:json-schema:core:model.class`
     - `package` parameter: the package name where the entity is defined
@@ -41,5 +41,5 @@ If views, models or translation files were modified as part of the field update,
 
 - [ ] **Translation schema validation** (if i18n files modified):
   - Model translations: Use schema `urn:equal:json-schema:core:model.translations`
-  - Run `php run.php --get=core_json-validate` for each modified translation file
+  - Run `./equal.run --get=core_json-validate` for each modified translation file
   - Confirm: no validation errors returned

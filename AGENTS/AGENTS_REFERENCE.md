@@ -578,18 +578,18 @@ To test and run the eQual-based projects:
 3. Initialize environment:
 
    ```
-   php run.php --do=init_fs
-   php run.php --do=test_fs-consistency
-   php run.php --do=test_db-connectivity
-   php run.php --do=init_db
-   php run.php --do=test_db-access
-   php run.php --do=init_package --package=core --ignore_platform
+   ./equal.run --do=init_fs
+   ./equal.run --do=test_fs-consistency
+   ./equal.run --do=test_db-connectivity
+   ./equal.run --do=init_db
+   ./equal.run --do=test_db-access
+   ./equal.run --do=init_package --package=core --ignore_platform
    ```
 
 4. Run your package tests:
 
    ```
-   php run.php --do=test_package-consistency --package=your_package
+   ./equal.run --do=test_package-consistency --package=your_package
    ```
 
 Ensure `equal` is the root directory, and your repository content is copied into the `packages/` folder.

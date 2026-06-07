@@ -8,10 +8,10 @@ For action handlers and data providers, the CLI controller name is derived from 
 
 | File path | Controller type | CLI call |
 | --- | --- | --- |
-| `packages/{package}/actions/{name}.php` | action handler | `php run.php --do={package}_{name}` |
-| `packages/{package}/actions/{dir}/{name}.php` | action handler | `php run.php --do={package}_{dir}_{name}` |
-| `packages/{package}/data/{name}.php` | data provider | `php run.php --get={package}_{name}` |
-| `packages/{package}/data/{dir}/{name}.php` | data provider | `php run.php --get={package}_{dir}_{name}` |
+| `packages/{package}/actions/{name}.php` | action handler | `./equal.run --do={package}_{name}` |
+| `packages/{package}/actions/{dir}/{name}.php` | action handler | `./equal.run --do={package}_{dir}_{name}` |
+| `packages/{package}/data/{name}.php` | data provider | `./equal.run --get={package}_{name}` |
+| `packages/{package}/data/{dir}/{name}.php` | data provider | `./equal.run --get={package}_{dir}_{name}` |
 
 For nested paths, replace each `/` path separator below `actions/` or `data/` with `_`. Keep the PHP filename as-is without the `.php` extension, including hyphens when the file name contains them.
 
@@ -23,11 +23,11 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Schema ID**: `urn:equal:json-schema:core:model.class`
 - **Usage**: Validate the JSON representation of ORM model class definitions
 - **Required fields**: `name`, `fields`
-- **Convert the PHP file** structure to JSON representation with `php run.php --get=model_export --entity={EntityName}`
+- **Convert the PHP file** structure to JSON representation with `./equal.run --get=model_export --entity={EntityName}`
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={"name":"Post","fields":{...}} --schema_id=urn:equal:json-schema:core:model.class
+  ./equal.run --get=core_json-validate --json={"name":"Post","fields":{...}} --schema_id=urn:equal:json-schema:core:model.class
   ```
 
 ### Views - Form
@@ -37,7 +37,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.form.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.form
+  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.form
   ```
 
 ### Views - List
@@ -47,7 +47,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.list.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list
+  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list
   ```
 
 ### Views - Dashboard
@@ -57,7 +57,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.dashboard.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.dashboard
+  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.dashboard
   ```
 
 ### Views - Search
@@ -67,7 +67,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.search.*.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.search
+  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.search
   ```
 
 ### Menus
@@ -77,7 +77,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/menu.{app}.{position}.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={menu_contents} --schema_id=urn:equal:json-schema:core:menu.default
+  ./equal.run --get=core_json-validate --json={menu_contents} --schema_id=urn:equal:json-schema:core:menu.default
   ```
 
 ### Action Handlers
@@ -85,11 +85,11 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Validate action handler definitions (JSON representation of PHP action files)
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/actions/{path}/{action}.php`
-- **Get JSON representation**: Use `php run.php --do={package}_{path}_{action} --announce=true` to extract the action metadata as JSON.
+- **Get JSON representation**: Use `./equal.run --do={package}_{path}_{action} --announce=true` to extract the action metadata as JSON.
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={action_json} --schema_id=urn:equal:json-schema:core:controller.action
+  ./equal.run --get=core_json-validate --json={action_json} --schema_id=urn:equal:json-schema:core:controller.action
   ```
 
 ### Data Providers
@@ -97,11 +97,11 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Same as action handlers; data providers are validated as controller actions
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/data/{path}/{provider}.php`
-- **Get JSON representation**: Use `php run.php --get={package}_{path}_{provider} --announce=true` to extract the provider metadata as JSON.
+- **Get JSON representation**: Use `./equal.run --get={package}_{path}_{provider} --announce=true` to extract the provider metadata as JSON.
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={provider_json} --schema_id=urn:equal:json-schema:core:controller.action
+  ./equal.run --get=core_json-validate --json={provider_json} --schema_id=urn:equal:json-schema:core:controller.action
   ```
 
 ### Model Translations
@@ -111,7 +111,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Contains**: Field labels, descriptions, help text, view translations, and error messages
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={translation_contents} --schema_id=urn:equal:json-schema:core:model.translations
+  ./equal.run --get=core_json-validate --json={translation_contents} --schema_id=urn:equal:json-schema:core:model.translations
   ```
 
 ### Menu Translations
@@ -121,7 +121,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Contains**: Menu item labels, descriptions, and layout translations
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={menu_translation_contents} --schema_id=urn:equal:json-schema:core:menu.translations
+  ./equal.run --get=core_json-validate --json={menu_translation_contents} --schema_id=urn:equal:json-schema:core:menu.translations
   ```
 
 ### API Routes
@@ -130,25 +130,25 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `config/routing/{priority}-{name}.json`
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={route_contents} --schema_id=urn:equal:json-schema:core:api.route
+  ./equal.run --get=core_json-validate --json={route_contents} --schema_id=urn:equal:json-schema:core:api.route
   ```
 
 ### Package Manifest
 - **Schema ID**: `urn:equal:json-schema:core:package.manifest`
 - **Usage**: Validate package manifest files
 - **File pattern**: `packages/{package}/manifest.json`
-- **Get JSON representation**: Use `php run.php --get=packageinfo --package={package}` to get the manifest contents as JSON
+- **Get JSON representation**: Use `./equal.run --get=packageinfo --package={package}` to get the manifest contents as JSON
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  php run.php --get=core_json-validate --json={manifest_contents} --schema_id=urn:equal:json-schema:core:package.manifest
+  ./equal.run --get=core_json-validate --json={manifest_contents} --schema_id=urn:equal:json-schema:core:package.manifest
   ```
 
 ## Validation Procedure
 
 ### For JSON Files
 1. Read the created JSON file
-2. Run `php run.php --get=core_json-validate` data action with:
+2. Run `./equal.run --get=core_json-validate` data action with:
    - `--json` parameter: file contents as JSON string
    - `--schema_id` parameter: appropriate schema from table above
    - `--strict=false` for lenient validation (allows missing optional fields)

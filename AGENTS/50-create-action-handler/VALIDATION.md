@@ -22,9 +22,9 @@ Validate the action handler definition using the controller action schema:
 
 **Validation procedure**:
 1. Build the controller name from the file path: `packages/{package}/actions/{path}/{action}.php` becomes `{package}_{path_with_underscores}_{action}`; omit the path segment when the file is directly under `actions/`.
-2. Extract the `eQual::announce()` metadata through `php run.php --do={controller} --announce=true`; this returns the action contract without executing the business logic after `eQual::announce()`.
+2. Extract the `eQual::announce()` metadata through `./equal.run --do={controller} --announce=true`; this returns the action contract without executing the business logic after `eQual::announce()`.
 3. Use the returned `announcement` metadata as JSON representation.
-4. Run `php run.php --get=core_json-validate` with:
+4. Run `./equal.run --get=core_json-validate` with:
    - `--json` parameter: the metadata as JSON string
    - `--schema_id` parameter: `urn:equal:json-schema:core:controller.action`
    - Confirm: no validation errors returned

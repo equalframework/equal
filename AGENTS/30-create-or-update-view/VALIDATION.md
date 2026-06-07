@@ -25,7 +25,7 @@ Validate the created/updated view file using the appropriate schema based on vie
 - [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.default`
 
 **Validation procedure**:
-- Run `php run.php --get=core_json-validate` with:
+- Run `./equal.run --get=core_json-validate` with:
   - `json` parameter: the complete view file content as JSON
   - `schema_id` parameter: the appropriate schema ID from above
   - `package` parameter: the package name where the view is located

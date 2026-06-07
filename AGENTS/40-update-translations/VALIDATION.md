@@ -23,7 +23,7 @@ Validate each modified translation file using the appropriate schema:
 - [ ] **Menu translations** (`i18n/{lang}/menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.translations`
 
 **Validation procedure for each file**:
-- Run `php run.php --get=core_json-validate` with:
+- Run `./equal.run --get=core_json-validate` with:
   - `--json` parameter: the complete translation file content as JSON
   - `--schema_id` parameter: the appropriate schema ID from above
   - Confirm: no validation errors returned

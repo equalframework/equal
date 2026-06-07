@@ -11,8 +11,8 @@
 
 ## JSON Schema Validation
 
-- [ ] **Model class validation**: Run `php run.php --get=core_json-validate --json={json_string} --schema_id=urn:equal:json-schema:core:model.class --package={package}` with:
-  - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through `php run.php --get=model_export --package={package} --entity={EntityName}`
+- [ ] **Model class validation**: Run `./equal.run --get=core_json-validate --json={json_string} --schema_id=urn:equal:json-schema:core:model.class --package={package}` with:
+  - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
   - Use schema ID: `urn:equal:json-schema:core:model.class`
   - Use the package name where the entity was created
   - Confirm: no validation errors returned
@@ -37,7 +37,7 @@
 
 ## General
 
-- [ ] Database access was checked with `php run.php --do=test_db-access`, or the environment limitation was recorded.
-- [ ] If the configured database was missing, `config/config.json` was confirmed valid and `php run.php --do=init_db` was run.
-- [ ] The impacted package was reinitialized with `php run.php --do=init_package --package={package} --force=true`.
+- [ ] Database access was checked with `./equal.run --do=test_db-access`, or the environment limitation was recorded.
+- [ ] If the configured database was missing, `config/config.json` was confirmed valid and `./equal.run --do=init_db` was run.
+- [ ] The impacted package was reinitialized with `./equal.run --do=init_package --package={package} --force=true`.
 - [ ] No unrelated entity definition was modified.

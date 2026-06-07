@@ -1,7 +1,7 @@
 - Minimalist data provider example:
 - Provider path: `packages/mypackage/data/report/summary.php`
 - Provider CLI name from path: `mypackage_report_summary`
-- Provider CLI call: `php run.php --get=mypackage_report_summary --announce=true`
+- Provider CLI call: `./equal.run --get=mypackage_report_summary --announce=true`
 - Internal provider call from another controller:
 ```php
 $summary = eQual::run('get', 'mypackage_report_summary', ['id' => $report_id]);

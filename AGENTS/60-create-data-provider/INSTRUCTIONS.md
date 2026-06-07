@@ -14,8 +14,8 @@
 14. Keep the provider focused on retrieval logic; avoid embedding write-side business workflows in `data/`.
 15. If the provider is a composition layer, prefer orchestrating existing model logic or other providers with `eQual::run('get', ...)` instead of duplicating query behavior.
 16. If the provider must trigger a mutating workflow, call the existing action explicitly with `eQual::run('do', '{controller}', $params)` and keep the provider response contract read-oriented.
-17. Derive the provider controller name from its file path: `packages/{package}/data/{path}/{provider}.php` maps to `{package}_{path_with_underscores}_{provider}` and is called with `php run.php --get={controller}`.
-18. Use `php run.php --get={controller} --announce=true` to inspect or validate the provider contract without executing logic after `eQual::announce()`.
+17. Derive the provider controller name from its file path: `packages/{package}/data/{path}/{provider}.php` maps to `{package}_{path_with_underscores}_{provider}` and is called with `./equal.run --get={controller}`.
+18. Use `./equal.run --get={controller} --announce=true` to inspect or validate the provider contract without executing logic after `eQual::announce()`.
 19. Normalize or prune incompatible filters before building the final domain, especially when some parameters are conditionally hidden or mutually exclusive.
 20. Validate inputs as early as possible and fail with explicit exception keys such as `missing_id`, `unknown_mailbox`, or `document_unknown`.
 21. Use stable business error keys, not only free-text messages, so callers can handle failures predictably.
