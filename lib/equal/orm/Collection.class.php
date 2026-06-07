@@ -438,6 +438,8 @@ class Collection implements \Iterator, \Countable {
     }
 
     private function assertCapabilities(int $operation, array $fields=[], array $ids=[]): self {
+        $user_id = $this->am->userId();
+
         $capabilities = $this->class::getCapabilities();
         $rule = $capabilities[$operation] ?? true;
 
@@ -469,7 +471,7 @@ class Collection implements \Iterator, \Countable {
             }
 
             if($operation !== EQ_R_UPDATE) {
-                throw new \Exception('invalid_capability_rule', EQ_ERROR_INVALID_CONFIG);
+                throw new \Exception('inconsistent_capability_rule', EQ_ERROR_INVALID_CONFIG);
             }
 
             if(!is_array($context_rule) || array_values($context_rule) !== $context_rule) {
@@ -487,6 +489,11 @@ class Collection implements \Iterator, \Countable {
 
         foreach($fields as $field) {
             if(!in_array($field, $allowed_fields, true)) {
+                trigger_error(
+                    "ORM::Forbidden field: User[{$user_id}], operation {$operation}, class {$this->class}, field [{$field}], ids [" . implode(',', $ids) . ']',
+                    EQ_REPORT_WARNING
+                );
+
                 throw new \Exception('forbidden_field', EQ_ERROR_NOT_ALLOWED);
             }
         }

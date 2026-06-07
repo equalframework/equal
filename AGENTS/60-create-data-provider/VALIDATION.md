@@ -21,13 +21,14 @@ Validate the data provider definition using the controller action schema:
 - [ ] **Data provider schema validation**: Use schema `urn:equal:json-schema:core:controller.action`
 
 **Validation procedure**:
-1. Extract the `eQual::announce()` metadata array from the PHP file through `php run.php --do={package}_{path}_{provider} --announce=true` to get the JSON representation of the data provider definition.
-2. Convert the metadata to JSON representation
-3. Run `php run.php --get=core_json-validate` with:
+1. Build the controller name from the file path: `packages/{package}/data/{path}/{provider}.php` becomes `{package}_{path_with_underscores}_{provider}`; omit the path segment when the file is directly under `data/`.
+2. Extract the `eQual::announce()` metadata through `php run.php --get={controller} --announce=true`; this returns the provider contract without executing the retrieval logic after `eQual::announce()`.
+3. Use the returned `announcement` metadata as JSON representation.
+4. Run `php run.php --get=core_json-validate` with:
    - `--json` parameter: the metadata as JSON string
    - `--schema_id` parameter: `urn:equal:json-schema:core:controller.action`
    - Confirm: no validation errors returned
-4. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
+5. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
 
 **Required fields in metadata**:
 - `type`: "get" indicating retriever/data provider

@@ -13,13 +13,16 @@
 13. Read only the fields that are necessary for the output and for any access or business checks.
 14. Keep the provider focused on retrieval logic; avoid embedding write-side business workflows in `data/`.
 15. If the provider is a composition layer, prefer orchestrating existing model logic or other providers with `eQual::run('get', ...)` instead of duplicating query behavior.
-16. Normalize or prune incompatible filters before building the final domain, especially when some parameters are conditionally hidden or mutually exclusive.
-17. Validate inputs as early as possible and fail with explicit exception keys such as `missing_id`, `unknown_mailbox`, or `document_unknown`.
-18. Use stable business error keys, not only free-text messages, so callers can handle failures predictably.
-19. Reserve `trigger_error("APP::...")` for diagnostics and operational warnings; use exceptions for functional errors that must stop the request.
-20. Ensure business errors are translatable wherever they are surfaced to users.
-21. Adapt output only when needed, for example with `->adapt('json')`, and keep the final payload shape consistent across success cases.
-22. Build the HTTP response explicitly with `httpResponse()`: body, headers, status, and binary mode when needed.
-23. Link the provider to views only when the UI genuinely needs a custom `get=` endpoint beyond standard model reads and collects.
-24. Update translations only for user-facing labels, descriptions, route labels, or view texts related to that provider; do not treat data providers like form actions by default.
-25. Do not reference `AGENTS/AGENTS_REFERENCE.md` here; in this repository the relevant references are `AGENTS.md` and the framework docs for controllers and data providers.
+16. If the provider must trigger a mutating workflow, call the existing action explicitly with `eQual::run('do', '{controller}', $params)` and keep the provider response contract read-oriented.
+17. Derive the provider controller name from its file path: `packages/{package}/data/{path}/{provider}.php` maps to `{package}_{path_with_underscores}_{provider}` and is called with `php run.php --get={controller}`.
+18. Use `php run.php --get={controller} --announce=true` to inspect or validate the provider contract without executing logic after `eQual::announce()`.
+19. Normalize or prune incompatible filters before building the final domain, especially when some parameters are conditionally hidden or mutually exclusive.
+20. Validate inputs as early as possible and fail with explicit exception keys such as `missing_id`, `unknown_mailbox`, or `document_unknown`.
+21. Use stable business error keys, not only free-text messages, so callers can handle failures predictably.
+22. Reserve `trigger_error("APP::...")` for diagnostics and operational warnings; use exceptions for functional errors that must stop the request.
+23. Ensure business errors are translatable wherever they are surfaced to users.
+24. Adapt output only when needed, for example with `->adapt('json')`, and keep the final payload shape consistent across success cases.
+25. Build the HTTP response explicitly with `httpResponse()`: body, headers, status, and binary mode when needed.
+26. Link the provider to views only when the UI genuinely needs a custom `get=` endpoint beyond standard model reads and collects.
+27. Update translations only for user-facing labels, descriptions, route labels, or view texts related to that provider; do not treat data providers like form actions by default.
+28. Refer to `AGENTS/AGENTS_REFERENCE.md`, `AGENTS/00-general/VALIDATION-SCHEMAS.md`, and `DOC/application-developers/core-development-guide/controllers-routing/controllers.md` for detailed controller and data provider conventions.

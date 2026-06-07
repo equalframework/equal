@@ -21,13 +21,14 @@ Validate the action handler definition using the controller action schema:
 - [ ] **Action schema validation**: Use schema `urn:equal:json-schema:core:controller.action`
 
 **Validation procedure**:
-1. Extract the `eQual::announce()` metadata array from the PHP file through `php run.php --do={package}_{path}_{action} --announce=true` to get the JSON representation of the action handler definition.
-2. Convert the metadata to JSON representation
-3. Run `php run.php --get=core_json-validate` with:
+1. Build the controller name from the file path: `packages/{package}/actions/{path}/{action}.php` becomes `{package}_{path_with_underscores}_{action}`; omit the path segment when the file is directly under `actions/`.
+2. Extract the `eQual::announce()` metadata through `php run.php --do={controller} --announce=true`; this returns the action contract without executing the business logic after `eQual::announce()`.
+3. Use the returned `announcement` metadata as JSON representation.
+4. Run `php run.php --get=core_json-validate` with:
    - `--json` parameter: the metadata as JSON string
    - `--schema_id` parameter: `urn:equal:json-schema:core:controller.action`
    - Confirm: no validation errors returned
-4. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
+5. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
 
 **Required fields in metadata**:
 - `type`: "get" or "do" indicating retriever vs action

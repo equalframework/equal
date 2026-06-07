@@ -2,6 +2,21 @@
 
 When agents create or modify content, they must validate the structure using available JSON schemas.
 
+## Controller CLI Name Resolution
+
+For action handlers and data providers, the CLI controller name is derived from the PHP file path.
+
+| File path | Controller type | CLI call |
+| --- | --- | --- |
+| `packages/{package}/actions/{name}.php` | action handler | `php run.php --do={package}_{name}` |
+| `packages/{package}/actions/{dir}/{name}.php` | action handler | `php run.php --do={package}_{dir}_{name}` |
+| `packages/{package}/data/{name}.php` | data provider | `php run.php --get={package}_{name}` |
+| `packages/{package}/data/{dir}/{name}.php` | data provider | `php run.php --get={package}_{dir}_{name}` |
+
+For nested paths, replace each `/` path separator below `actions/` or `data/` with `_`. Keep the PHP filename as-is without the `.php` extension, including hyphens when the file name contains them.
+
+Use `--announce=true` to return the `eQual::announce()` metadata as JSON and stop before the controller business logic runs. This is the preferred way to validate controller params, response, access, providers, and constants.
+
 ## Schema Reference by Component Type
 
 ### Entities (Model Classes)
@@ -70,7 +85,7 @@ When agents create or modify content, they must validate the structure using ava
 - **Usage**: Validate action handler definitions (JSON representation of PHP action files)
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/actions/{path}/{action}.php`
-- **Get JSON representation**: Use `php run.php --do={package}_{path}_{action} --announce=true` to extract the action metadata as JSON`
+- **Get JSON representation**: Use `php run.php --do={package}_{path}_{action} --announce=true` to extract the action metadata as JSON.
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
@@ -82,7 +97,7 @@ When agents create or modify content, they must validate the structure using ava
 - **Usage**: Same as action handlers; data providers are validated as controller actions
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/data/{path}/{provider}.php`
-- **Get JSON representation**: Use `php run.php --get={package}_{path}_{provider} --announce=true` to extract the provider metadata as JSON`
+- **Get JSON representation**: Use `php run.php --get={package}_{path}_{provider} --announce=true` to extract the provider metadata as JSON.
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
