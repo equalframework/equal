@@ -1,6 +1,20 @@
 {
     "name": "Groups selection",
     "description": "Intended for picking up one or more group(s).",
+    "header": {
+        "actions": {
+            "ACTION.CREATE": [
+                {
+                    "visible": ["user.groups", "contains", "admins"]
+                }
+            ],
+            "ACTION.SELECT": [
+                {
+                    "visible": ["user.groups", "contains", "admins"]
+                }
+            ]
+        }
+    },
     "layout": {
         "items": [
             {
