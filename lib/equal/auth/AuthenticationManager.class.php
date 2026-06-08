@@ -8,6 +8,7 @@
 namespace equal\auth;
 
 use core\security\AccessToken;
+use core\setting\Setting;
 use equal\organic\Service;
 use equal\orm\ObjectManager;
 use equal\services\Container;
@@ -33,13 +34,16 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Provide the current user identifier (as is).
-     * There is no guarantee that the ID returned matches the user from which originates the current.
+     * Provides the resolved current user identifier.
      *
-     * @see UserId() for a safer way to get the current user identifier.
+     * This method is an alias of userId().
+     * It returns the final user id, after applying impersonation if any.
+     *
+     * @param string|null $token
+     * @return int
      */
-    public function getUserId() {
-        return $this->user_id;
+    public function getUserId($token = null): int {
+        return $this->userId($token);
     }
 
     /**
@@ -124,9 +128,16 @@ class AuthenticationManager extends Service {
 
         $payload = [
             'id'    => $jwt['id'],
-            'exp'   => time() + $validity,
-            'amr'   => $jwt['amr']
+            'sub'   => $jwt['sub'] ?? $jwt['id'],
+            'amr'   => $jwt['amr'] ?? [],
+            'iat'   => time(),
+            'trk'   => $jwt['trk'] ?? false,
+            'exp'   => time() + $validity
         ];
+
+        if(isset($jwt['jti'])) {
+            $payload['jti'] = $jwt['jti'];
+        }
 
         return $this->encodeToken($payload);
     }
@@ -260,8 +271,8 @@ class AuthenticationManager extends Service {
 
     /**
      * Retrieves the identifier of the current user.
-     * This method is distinct from getUserId() as it attempts to retrieve the user based on a token,
-     * and always returns the root ID when called via CLI.
+     * If not resolved yet, this method attempts to retrieve the user based on a token or HTTP header.
+     * When called via CLI, it always returns the root ID .
      *
      * @return  integer     Upon success, the id of the current user is returned. Otherwise, this method returns 0.
      */
@@ -280,6 +291,8 @@ class AuthenticationManager extends Service {
         }
 
         try {
+            $actual_user_id = 0;
+
             // retrieve JWT payload
             $jwt = $this->retrieveAccessToken($token);
 
@@ -298,9 +311,9 @@ class AuthenticationManager extends Service {
                         throw new \Exception('auth_revoked_token', EQ_ERROR_INVALID_USER);
                     }
                 }
-                $this->user_id = $jwt['id'];
+                $actual_user_id = $jwt['id'];
             }
-            // no jwt found: attempt using other Basic http auth, if allowed
+            // no jwt found: attempt using other Basic HTTP auth, if allowed
             else {
                 // #todo - add a config setting to enable Basic http auth
 
@@ -318,37 +331,31 @@ class AuthenticationManager extends Service {
                         [$username, $password] = explode(':', base64_decode($token));
                         // leave $jwt unset and authenticate (sets $user_id)
                         $this->authenticate($username, $password);
+                        $actual_user_id = $this->user_id;
                     }
                 }
-
             }
 
-            if($this->user_id > 0) {
-                // additional check on User status
-                $list = $orm->read('core\User', [$this->user_id], ['id', 'deleted', 'validated', 'status']);
-                if($list < 0 || !count($list)) {
-                    throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
-                }
+            if($actual_user_id > 0) {
+                // validate the real authenticated user
+                $this->assertActiveUser($actual_user_id);
 
-                $user = current($list);
-
-                if($user['deleted'] || !$user['validated'] || !in_array($user['status'], ['validated', 'confirmed'], true)) {
-                    throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
-                }
+                // resolve the final user (target user may exist without being active/validated/confirmed)
+                $this->user_id = $this->resolveUserId($actual_user_id);
             }
-
         }
         catch(\Exception $e) {
             trigger_error("AAA::unable to retrieve user ID: " . $e->getMessage(), EQ_REPORT_WARNING);
             $this->user_id = 0;
         }
+
         return $this->user_id;
     }
 
     /**
      * Attempts to authenticate a user based on given login and password, and set internal `user_id` accordingly.
      *
-     * @throws Exception    Raises an exception in case the credentials are not related to a user.
+     * @throws \Exception    Raises an exception in case the credentials are not related to a user.
      */
     public function authenticate($login, $password) {
         $orm = $this->container->get('orm');
@@ -393,5 +400,108 @@ class AuthenticationManager extends Service {
             $this->user_id = $user_id;
         }
         return $this;
+    }
+
+    /**
+     * Checks whether the given user exists and is allowed to authenticate.
+     *
+     * @throws \Exception
+     */
+    private function assertActiveUser(int $user_id): void {
+        /** @var ObjectManager $orm */
+        $orm = $this->container->get('orm');
+
+        $list = $orm->read('core\User', [$user_id], ['id', 'deleted', 'validated', 'status']);
+
+        if($list < 0 || !count($list)) {
+            throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
+        }
+
+        $user = current($list);
+
+        if($user['deleted'] || !$user['validated'] || !in_array($user['status'], ['validated', 'confirmed'], true)) {
+            throw new \Exception('invalid_user', EQ_ERROR_INVALID_USER);
+        }
+    }
+
+    /**
+     * Checks whether the given user exists.
+     *
+     * @throws \Exception
+     */
+    private function assertExistingUser(int $user_id): void {
+        /** @var ObjectManager $orm */
+        $orm = $this->container->get('orm');
+
+        $list = $orm->read('core\User', [$user_id], ['id']);
+
+        if($list < 0 || !count($list)) {
+            throw new \Exception('non_existing_user', EQ_ERROR_INVALID_USER);
+        }
+    }
+
+    /**
+     * Resolves the final user id by applying impersonation settings, if any.
+     *
+     * The given user id is the authenticated user id. It has already been validated as an active user before this method is called.
+     * The impersonation target only needs to exist. It does not need to be active, validated or confirmed.
+     *
+     * @param int $user_id Authenticated user id.
+     * @return int Final resolved user id.
+     */
+    private function resolveUserId(int $user_id): int {
+        if($user_id <= 0) {
+            return 0;
+        }
+
+        $enabled = Setting::get_value(
+            'core',
+            'security',
+            'impersonation.enabled',
+            false,
+            ['user_id' => $user_id]
+        );
+
+        if(!$enabled) {
+            return $user_id;
+        }
+
+        $target_user_id = (int) Setting::get_value(
+            'core',
+            'security',
+            'impersonation.user_id',
+            0,
+            ['user_id' => $user_id]
+        );
+
+        if(!$target_user_id || $target_user_id <= 0) {
+            return $user_id;
+        }
+
+        if($target_user_id === $user_id) {
+            return $user_id;
+        }
+
+        $expiry = (int) Setting::get_value(
+            'core',
+            'security',
+            'impersonation.expiry',
+            null,
+            ['user_id' => $user_id]
+        );
+
+        if($expiry && $expiry < time()) {
+            return $user_id;
+        }
+
+        try {
+            $this->assertExistingUser($target_user_id);
+        }
+        catch(\Exception $e) {
+            trigger_error("AAA::invalid impersonation target: " . $e->getMessage(), EQ_REPORT_WARNING);
+            return $user_id;
+        }
+
+        return $target_user_id;
     }
 }
