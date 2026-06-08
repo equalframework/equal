@@ -31,14 +31,15 @@ use core\setting\Setting;
         'content-type'      => 'application/json',
         'charset'           => 'utf-8'
     ],
-    'providers'     => ['context', 'auth']
+    'providers'     => ['context', 'auth', 'access']
 ]);
 
 /**
  * @var equal\php\Context                   $context
  * @var equal\auth\AuthenticationManager    $auth
+ * @var equal\access\AccessController       $access
  */
-['context' => $context, 'auth' => $auth] = $providers;
+['context' => $context, 'auth' => $auth, 'access' => $access] = $providers;
 
 $authenticated_user_id = $auth->authenticatedUserId();
 
@@ -57,13 +58,15 @@ if($target_user_id === $authenticated_user_id) {
 }
 
 // check whether the authenticated user has the right to impersonate
+$is_admin = $access->hasGroup('admins', $authenticated_user_id);
+
 $can_impersonate = Setting::get_value(
     'core', 'security', 'impersonation.enabled',
     false,
     ['user_id' => $authenticated_user_id]
 );
 
-if(!$can_impersonate) {
+if(!$can_impersonate && !$is_admin) {
     throw new Exception("impersonation_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
