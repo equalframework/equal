@@ -15,9 +15,19 @@ use equal\services\Container;
 
 class AuthenticationManager extends Service {
 
+    /**
+     * @var integer Final resolved user identifier, after applying impersonation if any.
+     */
     private $user_id;
 
-    // map for caching decoded tokens
+    /**
+     * @var integer Authenticated user identifier, as provided by the access token or Basic Auth, before applying impersonation.
+     */
+    private $authenticated_user_id;
+
+    /**
+     * @var array Map for caching decoded tokens.
+     */
     private $tokens;
 
     /**
@@ -26,6 +36,7 @@ class AuthenticationManager extends Service {
     protected function __construct(Container $container) {
         // initial configuration
         $this->user_id = 0;
+        $this->authenticated_user_id = 0;
         $this->tokens = [];
     }
 
@@ -270,6 +281,26 @@ class AuthenticationManager extends Service {
     }
 
     /**
+     * Provides the authenticated user identifier, before applying impersonation.
+     *
+     * This is the user id provided by the access token, or by Basic Auth when used.
+     * If no authenticated user has been resolved yet, this method resolves the
+     * current user first.
+     *
+     * @param string|null $token
+     * @return int
+     */
+    public function authenticatedUserId($token = null): int {
+        if($this->authenticated_user_id > 0) {
+            return $this->authenticated_user_id;
+        }
+
+        $this->userId($token);
+
+        return $this->authenticated_user_id;
+    }
+
+    /**
      * Retrieves the identifier of the current user.
      * If not resolved yet, this method attempts to retrieve the user based on a token or HTTP header.
      * When called via CLI, it always returns the root ID .
@@ -291,7 +322,7 @@ class AuthenticationManager extends Service {
         }
 
         try {
-            $actual_user_id = 0;
+            $authenticated_user_id = 0;
 
             // retrieve JWT payload
             $jwt = $this->retrieveAccessToken($token);
@@ -311,7 +342,7 @@ class AuthenticationManager extends Service {
                         throw new \Exception('auth_revoked_token', EQ_ERROR_INVALID_USER);
                     }
                 }
-                $actual_user_id = $jwt['id'];
+                $authenticated_user_id = $jwt['id'];
             }
             // no jwt found: attempt using other Basic HTTP auth, if allowed
             else {
@@ -331,17 +362,20 @@ class AuthenticationManager extends Service {
                         [$username, $password] = explode(':', base64_decode($token));
                         // leave $jwt unset and authenticate (sets $user_id)
                         $this->authenticate($username, $password);
-                        $actual_user_id = $this->user_id;
+                        $authenticated_user_id = $this->user_id;
                     }
                 }
             }
 
-            if($actual_user_id > 0) {
+            if($authenticated_user_id > 0) {
                 // validate the real authenticated user
-                $this->assertActiveUser($actual_user_id);
+                $this->assertActiveUser($authenticated_user_id);
+
+                // remember authenticated user before applying impersonation
+                $this->authenticated_user_id = $authenticated_user_id;
 
                 // resolve the final user (target user may exist without being active/validated/confirmed)
-                $this->user_id = $this->resolveUserId($actual_user_id);
+                $this->user_id = $this->resolveUserId($authenticated_user_id);
             }
         }
         catch(\Exception $e) {
@@ -397,6 +431,7 @@ class AuthenticationManager extends Service {
     public function su(int $user_id = EQ_ROOT_USER_ID) {
         if($user_id >= 0) {
             // update current user identifier
+            $this->authenticated_user_id = $user_id;
             $this->user_id = $user_id;
         }
         return $this;
@@ -455,9 +490,7 @@ class AuthenticationManager extends Service {
         }
 
         $enabled = Setting::get_value(
-            'core',
-            'security',
-            'impersonation.enabled',
+            'core', 'security', 'impersonation.enabled',
             false,
             ['user_id' => $user_id]
         );
@@ -467,9 +500,7 @@ class AuthenticationManager extends Service {
         }
 
         $target_user_id = (int) Setting::get_value(
-            'core',
-            'security',
-            'impersonation.user_id',
+            'core', 'security', 'impersonation.user_id',
             0,
             ['user_id' => $user_id]
         );
@@ -483,9 +514,7 @@ class AuthenticationManager extends Service {
         }
 
         $expiry = (int) Setting::get_value(
-            'core',
-            'security',
-            'impersonation.expiry',
+            'core', 'security', 'impersonation.expiry',
             null,
             ['user_id' => $user_id]
         );

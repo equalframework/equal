@@ -53,6 +53,3 @@ Setting::assert_value('core', 'security', 'passkey_authenticator_internal', '1')
 
 
 Setting::assert_value('core', 'security', 'impersonation.enabled', '1', ['user_id' => 1]);
-
-
-

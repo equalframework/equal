@@ -107,7 +107,7 @@ else {
         'password'      => $password,
         'firstname'     => $firstname,
         'lastname'      => $lastname,
-        'language'      => $language,
+        'language'      => $language ?? 'en',
         'send_confirm'  => false
     ]);
 
