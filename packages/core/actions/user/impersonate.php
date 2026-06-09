@@ -80,6 +80,10 @@ if(!$targetUser) {
 $duration = max(60, (int) $params['duration']);
 $expiry = time() + $duration;
 
+Setting::assert_value('core', 'security', 'impersonation.user_id', 0, ['user_id' => $authenticated_user_id]);
+
+Setting::assert_value('core', 'security', 'impersonation.expiry', 0, ['user_id' => $authenticated_user_id]);
+
 Setting::set_value(
     'core', 'security', 'impersonation.user_id',
     $target_user_id,
