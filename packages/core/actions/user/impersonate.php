@@ -57,8 +57,7 @@ if($target_user_id === $authenticated_user_id) {
     throw new Exception("cannot_impersonate_self", EQ_ERROR_INVALID_PARAM);
 }
 
-// check whether the authenticated user has the right to impersonate
-$is_admin = $access->hasGroup('admins', $authenticated_user_id);
+Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $authenticated_user_id]);
 
 $can_impersonate = Setting::get_value(
     'core', 'security', 'impersonation.enabled',
@@ -66,7 +65,7 @@ $can_impersonate = Setting::get_value(
     ['user_id' => $authenticated_user_id]
 );
 
-if(!$can_impersonate && !$is_admin) {
+if(!$can_impersonate) {
     throw new Exception("impersonation_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
