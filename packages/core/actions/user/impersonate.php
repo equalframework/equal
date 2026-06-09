@@ -53,14 +53,22 @@ if($target_user_id <= 0) {
     throw new Exception("invalid_user_id", EQ_ERROR_INVALID_PARAM);
 }
 
+Setting::assert_value('core', 'security', 'impersonation.allowed', false, ['user_id' => $authenticated_user_id]);
+Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $authenticated_user_id]);
+Setting::assert_value('core', 'security', 'impersonation.user_id', 0, ['user_id' => $authenticated_user_id]);
+Setting::assert_value('core', 'security', 'impersonation.expiry', 0, ['user_id' => $authenticated_user_id]);
+
 if($target_user_id === $authenticated_user_id) {
-    throw new Exception("cannot_impersonate_self", EQ_ERROR_INVALID_PARAM);
+    Setting::set_value(
+        'core', 'security', 'impersonation.enabled',
+        false,
+        ['user_id' => $authenticated_user_id]
+    );
+    throw new Exception("impersonation_disabled", 0);
 }
 
-Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $authenticated_user_id]);
-
 $can_impersonate = Setting::get_value(
-    'core', 'security', 'impersonation.enabled',
+    'core', 'security', 'impersonation.allowed',
     false,
     ['user_id' => $authenticated_user_id]
 );
@@ -68,6 +76,12 @@ $can_impersonate = Setting::get_value(
 if(!$can_impersonate) {
     throw new Exception("impersonation_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
+
+Setting::set_value(
+    'core', 'security', 'impersonation.enabled',
+    true,
+    ['user_id' => $authenticated_user_id]
+);
 
 // check that target user exists (the target user does not need to be active, validated or confirmed)
 $targetUser = User::id($target_user_id)->first();
@@ -78,10 +92,6 @@ if(!$targetUser) {
 
 $duration = max(60, (int) $params['duration']);
 $expiry = time() + $duration;
-
-Setting::assert_value('core', 'security', 'impersonation.user_id', 0, ['user_id' => $authenticated_user_id]);
-
-Setting::assert_value('core', 'security', 'impersonation.expiry', 0, ['user_id' => $authenticated_user_id]);
 
 Setting::set_value(
     'core', 'security', 'impersonation.user_id',
