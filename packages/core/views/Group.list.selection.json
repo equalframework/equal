@@ -5,12 +5,12 @@
         "actions": {
             "ACTION.CREATE": [
                 {
-                    "visible": ["user.groups", "contains", "admins"]
+                    "visible": ["admins", "in", "user.groups"]
                 }
             ],
             "ACTION.SELECT": [
                 {
-                    "visible": ["user.groups", "contains", "admins"]
+                    "visible": ["admins", "in", "user.groups"]
                 }
             ]
         }

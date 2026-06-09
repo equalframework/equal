@@ -489,6 +489,16 @@ class AuthenticationManager extends Service {
             return 0;
         }
 
+        $allowed = Setting::get_value(
+            'core', 'security', 'impersonation.allowed',
+            false,
+            ['user_id' => $user_id]
+        );
+
+        if(!$allowed) {
+            return $user_id;
+        }
+
         $enabled = Setting::get_value(
             'core', 'security', 'impersonation.enabled',
             false,
