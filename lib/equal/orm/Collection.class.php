@@ -455,7 +455,7 @@ class Collection implements \Iterator, \Countable {
             throw new \Exception('invalid_capability_rule', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $allowed_fields = [];
+        $allowed_fields = ['state', 'modified'];
 
         foreach($rule as $context => $context_rule) {
             if(!$this->ac->hasContext($context, $this->class, $ids)) {
