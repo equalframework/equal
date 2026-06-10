@@ -77,7 +77,7 @@ Each operation object can define the following properties:
 | `id`        | Translation key for [translation](../i18n/i18n-overview.md) support (optional)          |
 | `suffix`    | Text appended after the result (optional)                           |
 
-For more on output formatting, see [Field Usages](./entities/fields/#usages).
+For more on output formatting, see [Field Usages](../entities-persistence/fields.md#usages).
 
 ---
 

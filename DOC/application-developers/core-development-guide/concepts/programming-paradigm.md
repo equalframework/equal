@@ -6,7 +6,7 @@ eQual straddles the line between Object-Oriented Programming (OOP) and procedura
 
 ## Focus on Description
 
-eQual relies on an [Object-Relational Mapping](./orm.md) (ORM) that implements the Active Record pattern but prioritizes describing relationships and interactions between entities. This ensures the capability to validate, adapt, and export [collections](./collections/collections-overview.md) of objects.
+eQual relies on an [Object-Relational Mapping](../entities-persistence/orm.md) (ORM) that implements the Active Record pattern but prioritizes describing relationships and interactions between entities. This ensures the capability to validate, adapt, and export [collections](../entities-persistence/collections/collections-overview.md) of objects.
 
 Unlike traditional OOP, eQual:
 
@@ -24,7 +24,7 @@ This hybrid approach provides flexibility while maintaining simplicity in entity
 | Members defined directly in class         | Members described using `getColumns()`       |
 | Instance methods using `$this`            | Mostly static methods                        |
 | Direct object modification                | Use `create`, `update`, and `delete` methods |
-| Single object manipulation                | Bulk manipulation using [collections](./collections/collections-overview.md)  |
+| Single object manipulation                | Bulk manipulation using [collections](../entities-persistence/collections/collections-overview.md)  |
 
 ## Terminology
 
@@ -36,7 +36,7 @@ eQual uses specific terminology that differs from traditional OOP:
 | Object   | Instance          |
 | Member   | Property / Column |
 
-eQual [entities](./entities/entities-overview.md) can be manipulated as PHP objects (`stdClass`) or plain PHP arrays.
+eQual [entities](../entities-persistence/entities.md) can be manipulated as PHP objects (`stdClass`) or plain PHP arrays.
 
 ## Example: Working with Entities
 

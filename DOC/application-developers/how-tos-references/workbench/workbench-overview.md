@@ -6,7 +6,7 @@ The **eQual Workbench** is a powerful tool designed to simplify the development 
 
 ### Requirements
 
-To use the Workbench, you need a working instance of eQual (branch `dev-2.0`). Refer to the [Installation Guide](/application-developpers/getting-started/installation/) for setup instructions.
+To use the Workbench, you need a working instance of eQual (branch `dev-2.0`). Refer to the [Installation Guide](/application-developers/getting-started/installation/) for setup instructions.
 
 ### Installation
 
@@ -160,11 +160,11 @@ View are huge JSON file that are hard to read. Workbench give the user a simpler
 
 In the editor, view are segmented in 5 categories **(2)**. The content of these part may vary depending on the type of view you are editing.
 
-**1. Layout** : This is the part that vary the most. The [layout](../core-development-guide/views-ui/views/common-structures/common-structures.md#layout) is the part of the view that will display the object of a Model.
+**1. Layout** : This is the part that vary the most. The [layout](../../core-development-guide/views-ui/views/common-structures/common-structures.md#layout) is the part of the view that will display the object of a Model.
 
-**2. Header** : Refers to the [header part](../core-development-guide/views-ui/views/common-structures/common-structures.md#header) of a view. You can edit header actions and selection actions in this tab.
+**2. Header** : Refers to the [header part](../../core-development-guide/views-ui/views/common-structures/common-structures.md#header) of a view. You can edit header actions and selection actions in this tab.
 
-**3. Actions** : You can edit the custom [actions](../core-development-guide/views-ui/views/common-structures/common-structures.md#actions) of the view here
+**3. Actions** : You can edit the custom [actions](../../core-development-guide/views-ui/views/common-structures/common-structures.md#actions) of the view here
 
 **4. Routes** : You can edit the routes of the contextual menu of the view here
 
@@ -209,7 +209,7 @@ This list represents input parameters of the controller and can be filled to cal
 
 **3.** Allows you to **copy the http request** to call the controller with the parameter you entered in workbench.
 
-**4.** Give you all the **custom [routes](../core-development-guide/controllers-routing/routing.md)** enabled in the instance that uses this controller.
+**4.** Give you all the **custom [routes](../../core-development-guide/controllers-routing/routing.md)** enabled in the instance that uses this controller.
 
 **5.** Leads to the input **parameters editor** [see](#controller-editor)
 
@@ -259,7 +259,7 @@ The menu editor allows you to create/edit/delete menu items whilst having a prev
 
 **4. Edition of the properties** of the selected menu item
 
-All the editable properties of the view in workbench are properties findable in the [original menu structure](../core-development-guide/views-ui/menus.md).
+All the editable properties of the view in workbench are properties findable in the [original menu structure](../../core-development-guide/views-ui/menus.md).
 
 ### Package Side Menu
 

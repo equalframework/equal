@@ -7,7 +7,7 @@ If you're not familiar with ReST concepts, see [this great explanation](https://
 
 ## Prerequisites
 
-First, you'll need a working setup of equal-framework on your localhost. See [**Getting started > Quick start**](../../../getting-started/quick-start/) (skip point *3. Defining classes*)
+First, you'll need a working setup of equal-framework on your localhost. See [**Getting started > Quick start**](../../getting-started/quick-start.md) (skip point *3. Defining classes*)
 
 If you look at the **Directory structure**, you'll get a good idea of what comes with every project. In this one, we'll use **actions**, **classes**, and **data**.
 

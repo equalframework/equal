@@ -1,6 +1,6 @@
 # Entities
 
-Models are defined as PHP classes declared within related `.class.php` files. The model definitions are located in the `/packages/{package_name}/classes` folder of the package they relate to (see [Directory Structure](../../../../community/internal-architecture/framework-internals.md)).
+Entities are defined as PHP classes declared within related `.class.php` files. Entity definitions are located in the `/packages/{package_name}/classes` folder of the package they relate to (see [Directory Structure](../../../community/internal-architecture/framework-internals.md)).
 
 All classes inherit from a common `Model` ancestor declared in the `equal\orm` namespace and defined in `/lib/equal/orm/Model.class.php`. These base classes structure the data into various fields (`Field`).
 
@@ -111,7 +111,7 @@ Some fields are mandatory and defined in the `Model` base class:
 
 Some fields are reserved but optional, with established conventions:
 
-- **state**: Used when a [workflow](../workflows/workflows.md) applies to an entity.
+- **state**: Used when a [workflow](../business-logic/workflows/workflows.md) applies to an entity.
 - **alert**: Used in conjunction with `core\alert` entities. If defined, it is expected to be a computed field.
 
 ---
@@ -137,10 +137,10 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getValues()          | Returns values of static instance.                                                                        |
 | getDefaults()        | Return default values.                                                                                    |
 | getTable()           | Return the name of the DB table for storing objects of current class.                                     |
-| getWorkflow()        | Returns the [workflow](../workflows/workflows.md) associated with the entity.                             |
-| getRoles()           | Returns the list of [roles](../actions/#groups-vs-roles) explicitly associated with the entity.           |
-| getActions()         | Returns a list of available [actions](../actions.md) that can be triggered on the entity.                 |
-| getPolicies()        | Returns the [access control policies](../authorization/access-control-lists.md) applicable to the entity. |
+| getWorkflow()        | Returns the [workflow](../business-logic/workflows/workflows.md) associated with the entity.                             |
+| getRoles()           | Returns the list of [roles](../business-logic/actions.md#groups-vs-roles) explicitly associated with the entity.           |
+| getActions()         | Returns a list of available [actions](../business-logic/actions.md) that can be triggered on the entity.                 |
+| getPolicies()        | Returns the [access control policies](../security-access/access-control-lists.md) applicable to the entity. |
 | getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
 | getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
 | getSchema()          | Returns the full schema of the entity, including system fields.                                           |
@@ -560,7 +560,7 @@ If certain information involves distinct usage profiles, consider splitting the 
 **Field behavior modifiers:**
 
 - Fields can have specific behavior based on their descriptor (`readonly`, `required`, `visible`), which can be overridden based on the object's status.
-- Actions involving operations on certain fields can be conditioned by [policies](../authorization/authorization-overview/#policies).
+- Actions involving operations on certain fields can be conditioned by [policies](../security-access/authorization-overview.md#policies).
 - CRUD (Create, Read, Update, Delete) operations execute `can[...]()` methods, which allow filtering operations based on specific criteria.
 
 ### The `policies` Attribute

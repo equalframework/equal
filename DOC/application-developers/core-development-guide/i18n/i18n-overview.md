@@ -2,7 +2,7 @@
 
 Two distinct mechanisms are involved in i18n within the eQual framework:
     
-*   **Data Translation**: Translating the *values* stored in the database (e.g., a product description available in English and French). See [Model Data Translation](i18n-model-data.md).
+*   **Data Translation**: Translating the *values* stored in the database (e.g., a product description available in English and French). See [Entity Data Translation](i18n-model-data.md).
 *   **Interface Translation**: Translating the *structure* and *labels* when objects are rendered within a View (e.g., field labels, menu items, help text). See [Interface Translation](i18n-interface.md).
 
 ## Naming Conventions

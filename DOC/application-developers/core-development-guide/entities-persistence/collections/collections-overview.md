@@ -9,7 +9,7 @@ In eQual, a collection is a series of partial objects (the ORM loads only reques
 - **Bulk Operations**: Perform operations on multiple objects simultaneously.
 - **Lazy Loading**: Load only requested fields, reducing memory usage and improving performance.
 - **Consistent API**: Provides a unified interface for searching, retrieving, and modifying objects.
-- **Structural Checks**: Enforces entity [Capabilities](../entities/entities.md#capabilities) before ACLs and business rules on generic CRUD operations.
+- **Structural Checks**: Enforces entity [Capabilities](../entities.md#capabilities) before ACLs and business rules on generic CRUD operations.
 - **Method Chaining**: Write concise and readable code by chaining operations.
 
 For more details on the ORM and its integration with collections, see [ORM Documentation](../orm.md).

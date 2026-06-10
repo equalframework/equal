@@ -22,4 +22,4 @@ Please report any bug or issue on our [GitHub page](https://github.com/equalfram
 ## Helpful resources
 
 More practical information about how contribute and guidelines
-can be found on the [contribution guide](../contributing/contribution-guide.md)
+can be found on the [contribution guide](../community/contribution-guide/how-to-help.md)

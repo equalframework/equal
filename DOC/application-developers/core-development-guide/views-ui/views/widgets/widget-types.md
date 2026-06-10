@@ -95,7 +95,7 @@ The widget displays a field representing a many-to-one relationship.
 
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                             |
 | ------------ | --------- | ----------------------------------------------------------- |
-| `domain`     | `array`   | [Domain](../../../models/domains.md) conditions affecting display.                |
+| `domain`     | `array`   | [Domain](../../../data-rules-processing/domains.md) conditions affecting display.                |
 | `autoselect` | `boolean` | If `true`, automatically selects the only available option. |
 
 **Edit Mode vs View Mode**

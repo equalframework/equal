@@ -14,7 +14,7 @@ Entities are created with random values by default but can be customized as need
 
 ## Features Overview
 
-- **Randomized Data**: Entities are generated with random attributes based on field [usages](./entities/fields/#usages).
+- **Randomized Data**: Entities are generated with random attributes based on field [usages](fields.md#usages).
 - **Customizable Values**: Specific fields can be forced to predefined values.
 - **Batch Creation**: Supports generating multiple entities at once.
 - **Sequence Control**: Allows defining custom sequences for multiple entities.

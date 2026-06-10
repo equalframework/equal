@@ -27,4 +27,4 @@ Please refer to:
 If you believe you reached this page by mistake, you can return to the main documentation:
 
 - [Welcome](../index.md)
-- [Choose your path](./choose-your-path.md)
+- [Choose your path](./choose-path.md)

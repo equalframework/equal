@@ -2,7 +2,7 @@
 
 Passkey authentication enhances security and user convenience by allowing users to log in using cryptographic keys instead of passwords. This approach mitigates risks associated with password theft, such as phishing and brute-force attacks.
 
-Passkeys rely on the **Web Authentication (WebAuthn)** standard and can be securely stored on devices (software authenticators) or external hardware tokens (hardware authenticators). They integrate seamlessly with [Multi-Factor Authentication (MFA)](./authentication/#multi-factor-authentication-mfa).
+Passkeys rely on the **Web Authentication (WebAuthn)** standard and can be securely stored on devices (software authenticators) or external hardware tokens (hardware authenticators). They integrate seamlessly with [Multi-Factor Authentication (MFA)](authentication.md#multi-factor-authentication-mfa).
 
 ## Configuration
 
@@ -65,7 +65,7 @@ If the user identifies themselves and has a registered passkey:
 
 1.  **Prompt**: The system automatically offers passkey authentication.
 2.  **Action**:
-    *   **Use Passkey**: The backend generates an authentication challenge (`user_passkey-auth-options`). The device signs it. The backend verifies the signature (`user_passkey-auth`) and issues an [Access Token](./authentication/#access-token-management).
+    *   **Use Passkey**: The backend generates an authentication challenge (`user_passkey-auth-options`). The device signs it. The backend verifies the signature (`user_passkey-auth`) and issues an [Access Token](authentication.md#access-token-management).
     *   **Switch to Password**: The user can choose to fallback to password authentication (e.g., if the specific device containing the passkey is unavailable).
 
 <center><img src="/_assets/uml/passkey_authentication.png" /></center>

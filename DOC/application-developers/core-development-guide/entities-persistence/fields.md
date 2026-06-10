@@ -24,7 +24,7 @@ Most field types support these attributes:
 | type          | The field type (see below). Required for all fields.                            |
 | description   | Brief description of the field (max 65 characters).                             |
 | help          | Additional help text for the field.                                             |
-| visible       | [Domain](../domains.md) holding conditions for field visibility in UI.             |
+| visible       | [Domain](../data-rules-processing/domains.md) holding conditions for field visibility in UI.             |
 | default       | Default value or callable returning the default.                                |
 | usage         | Additional format information (see [Usages](#usages)).                          |
 | dependents    | List of computed fields to reset when this field is updated.                    |
@@ -32,8 +32,8 @@ Most field types support these attributes:
 | required      | Marks the field as mandatory (default: `false`).                                |
 | deprecated    | Marks the field as deprecated.                                                  |
 | onupdate      | Method to invoke when field is updated.                                         |
-| multilang     | Marks the field as [translatable](../../i18n/i18n-overview.md) (default: `false`).                     |
-| domain        | Additional conditions for relational field targets (see [Domains](../domains.md)). |
+| multilang     | Marks the field as [translatable](../i18n/i18n-overview.md) (default: `false`).                     |
+| domain        | Additional conditions for relational field targets (see [Domains](../data-rules-processing/domains.md)). |
 
 ---
 

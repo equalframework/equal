@@ -38,7 +38,7 @@ Dashboard items are objects representing embedded views on the dashboard. Each i
 | `height`      | `integer` | (optional) Height as a percentage of the dashboard height (1-100%)                                                        |
 | `entity`      | `string`  | Full class name (with namespace) of the entity (e.g., `core\User`, `sales\Order`)                                         |
 | `view`        | `string`  | View ID to embed (e.g., `list.default`, `chart.revenue`, `form.overview`)                                                 |
-| `domain`      | `array`   | (optional) [Domain](../../models/domains.md) conditions to filter the embedded view (e.g., `[["status", "=", "active"]]`) |
+| `domain`      | `array`   | (optional) [Domain](../../data-rules-processing/domains.md) conditions to filter the embedded view (e.g., `[["status", "=", "active"]]`) |
 
 ---
 
@@ -172,7 +172,7 @@ Dashboard items are arranged in a responsive grid layout. The `width` property c
 
 ## Filtering
 
-The `domain` property applies [domain](../../models/domains.md) conditions to filter data displayed in embedded views. Filters are applied independently to each item without affecting other dashboard items.
+The `domain` property applies [domain](../../data-rules-processing/domains.md) conditions to filter data displayed in embedded views. Filters are applied independently to each item without affecting other dashboard items.
 
 **Single Domain Condition:**
 
@@ -220,7 +220,7 @@ The `domain` property applies [domain](../../models/domains.md) conditions to fi
 
 ## Access Control
 
-Dashboard visibility can be restricted through the [access control](../../models/authorization/access-control-lists.md) system. Refer to the [views documentation](./common-structures/common-structures.md) for configuring group-based or user-based access restrictions.
+Dashboard visibility can be restricted through the [access control](../../security-access/access-control-lists.md) system. Refer to the [views documentation](./common-structures/common-structures.md) for configuring group-based or user-based access restrictions.
 
 Individual items within a dashboard inherit access restrictions from their referenced views. If a user lacks permissions to view a particular item's view or entity, that item is either hidden or displays an access denied message.
 

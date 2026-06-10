@@ -100,7 +100,7 @@ $results = MyEntity::search(['status' => 'active'])
     ->read(['id', 'name']);
 ```
 
-For more on domains and filtering, see [Domain Filtering](../domains.md).
+For more on domains and filtering, see [Domain Filtering](../../data-rules-processing/domains.md).
 
 ---
 

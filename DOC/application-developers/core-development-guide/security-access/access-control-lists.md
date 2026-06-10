@@ -18,7 +18,7 @@ eQual defines the following permission levels, which can be combined using a bin
 
 ### Rights Values
 
-The rights values are defined in [`eq.lib.php`](../../../../../../eq.lib.php) as follows:
+The rights values are defined in [`eq.lib.php`](../../../../eq.lib.php) as follows:
 
 ```php
 define('EQ_R_CREATE',  1);
@@ -57,7 +57,7 @@ The `rights` field is a binary mask representing the permissions granted to the 
 
 The `AccessController` service determines whether a user has the required rights for a specific operation. It evaluates permissions based on the following logic:
 
-Before ACLs are evaluated, generic `Collection` CRUD operations can be structurally blocked or limited by [Entity Capabilities](../entities/entities.md#capabilities). ACLs cannot grant an operation that the entity does not expose through its capabilities.
+Before ACLs are evaluated, generic `Collection` CRUD operations can be structurally blocked or limited by [Entity Capabilities](../entities-persistence/entities.md#capabilities). ACLs cannot grant an operation that the entity does not expose through its capabilities.
 
 1. **Class-Level Rights:** Checks ACLs for the class and its namespace.
    

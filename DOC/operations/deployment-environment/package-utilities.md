@@ -10,7 +10,7 @@ Before running tests, ensure the targeted package is consistent:
 | **CLI**         | `$ ./equal.run --do=test_package-consistency --package=myPackage`                                                            |
 | **DESCRIPTION** | Consistency checks between DB and class as well as syntax validation for classes (PHP), views, and translation files (JSON). |
 
-This utility ensures that your package is ready for testing and deployment. If it's not the case, see [**Writing the tests**](../../application-developpers/core-development-guide/models/orm.md/#writing-tests-for-entities).
+This utility ensures that your package is ready for testing and deployment. If it's not the case, see [**Writing the tests**](../../application-developers/core-development-guide/entities-persistence/orm.md#writing-tests-for-entities).
 
 > The level property has 3 options : 
 >
@@ -52,7 +52,7 @@ php run.php --do=init_package --package={package} --force=true
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **URL**         | `?do=test_package&package=core`                                                                                                 |
 | **CLI**         | `$ ./equal.run --do=test_package --package=core`                                                                                |
-| **DESCRIPTION** | This controller checks the presence of test units for a given package and runs them, if any. (page :['Testing'](./testing.md)). |
+| **DESCRIPTION** | This controller checks the presence of test units for a given package and runs them, if any. See [Tests & coverage](../../community/contribution-guide/tests-coverage.md). |
 
 ## Seeding with Command Line
 

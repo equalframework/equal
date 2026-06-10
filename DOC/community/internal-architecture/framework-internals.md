@@ -179,7 +179,7 @@ Custom services can also be defined in the `config.inc.php` file of a package to
 
 The `equal/orm/Domain.class.php` class is central to how the eQual framework handles filtering, searching, and conditional logic on obkects.
 
-A **domain** is a structured array that defines filter criteria for objects, used in searches, permissions, view visibility, and more. Domains are composed of **clauses** and **conditions**. More on that in the [Domain documentation](../../application-developpers/core-development-guide/models/domains.md).
+A **domain** is a structured array that defines filter criteria for objects, used in searches, permissions, view visibility, and more. Domains are composed of **clauses** and **conditions**. More on that in the [Domain documentation](../../application-developers/core-development-guide/data-rules-processing/domains.md).
 
 - **Filtering:** Used in ORM searches, views and widgets to filter objects.
 - **Visibility:** Controls UI element visibility based on object/user context.

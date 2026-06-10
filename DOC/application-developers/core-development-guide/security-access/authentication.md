@@ -7,7 +7,7 @@ Authentication in eQual ensures secure and scalable user identification. This se
 eQual uses **JWT (JSON Web Tokens)** for authentication. Tokens are exchanged as `HttpOnly` cookies and have a validity period defined by the `AUTH_ACCESS_TOKEN_VALIDITY` parameter. Each valid session token extends its validity upon user activity.
 
 !!! tip "CLI Authentication"
-    In the [Command-Line Interface (CLI)](../../../how-tos-references/api-cli.md) context, the user is identified as `root` with full privileges, bypassing authentication mechanisms.
+    In the [Command-Line Interface (CLI)](../../how-tos-references/api-cli.md) context, the user is identified as `root` with full privileges, bypassing authentication mechanisms.
 
 ### Token Example
 

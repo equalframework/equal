@@ -27,7 +27,7 @@ Charts are defined as JSON objects with properties for layout, data aggregation,
 | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`                                 | `string` | Unique identifier for the chart (used in dashboard references)                                                                                                                                                            |
 | `description`                          | `string` | (optional) Text description of the chart                                                                                                                                                                                  |
-| `access`                               | object   | (optional) List of group IDs allowed to view the chart (e.g., `"groups" = ["group.default.admin", "group.default.manager"]`). If omitted, visible to all authenticated users. Refer to [access control](../../models/authorization/access-control-lists.md) for details |
+| `access`                               | object   | (optional) List of group IDs allowed to view the chart (e.g., `"groups" = ["group.default.admin", "group.default.manager"]`). If omitted, visible to all authenticated users. Refer to [access control](../../security-access/access-control-lists.md) for details |
 | `controller`                           | string   | (optional) Custom controller for chart data processing. Defaults to `core_model_chart` if not specified. See [Custom Chart Controllers](../../controllers-routing/controllers.md) for advanced use cases.                                                     |
 | [`header`](#header-configuration) | object   | (optional) Header configuration for chart view, including available modes (e.g., `grid`, `chart`) and default mode.                                                                                                       |
 | [`layout`](#layout-configuration)      | object   | Chart display configuration, including type and axis definitions (structure varies by chart type)                                                                                                                         |
@@ -179,7 +179,7 @@ This displays data from January 1st of the current year through the last day of 
 
 ## Filtering
 
-The `domain` property applies [domain](../../models/domains.md) conditions to filter data before aggregation. This allows charts to visualize only relevant records.
+The `domain` property applies [domain](../../data-rules-processing/domains.md) conditions to filter data before aggregation. This allows charts to visualize only relevant records.
 
 **Single Condition:**
 

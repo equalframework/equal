@@ -8,11 +8,11 @@ Views in eQual share a common set of properties that define their behavior, appe
 
 For View-Type Specific properties, see the following documentation:
 
-* [List Views](lists.md)
-* [Form Views](forms.md)
-* [Menu Views](menus.md)
-* [Dashboard Views](dashboards.md)
-* [Search Views](search.md)
+* [List Views](../lists.md)
+* [Form Views](../forms.md)
+* [Menu Views](../../menus.md)
+* [Dashboard Views](../dashboards.md)
+* [Search Views](../searches.md)
 
 ---
 
@@ -122,7 +122,7 @@ The `selection` property allows to customize the list of bulk actions that are a
 | `actions`    | `array`   | An array of action items that can be applied on current selection                                                                           |
 | `id`         | `string`  | Identifier for translation and reference purposes                                                                                           |
 | `primary`    | `boolean` | If `true`, this action is the default selection action triggered when clicking on an item without choosing a specific action from the menu. |
-| `visible`    | `array`   | (optional) [Domain](../../../models/domains.md) conditions to determine if the selection action is shown for a given item                   |
+| `visible`    | `array`   | (optional) [Domain](../../../data-rules-processing/domains.md) conditions to determine if the selection action is shown for a given item                   |
 
 **Example: Allow only `ACTION.CLONE` and a custom action**
 
@@ -163,7 +163,7 @@ The `filters` property customizes the filtering features available in the view h
 | `id`          | `string`  | Unique identifier for translation purposes                                                                                       |
 | `label`       | `string`  | Default display name if no translation is set                                                                                    |
 | `description` | `string`  | Description explaining the filter's purpose                                                                                      |
-| `clause`      | `array`   | [Clause](../../../models/domains.md#clauses) that will be added to the domain when the filter is applied                                                       |
+| `clause`      | `array`   | [Clause](../../../data-rules-processing/domains.md#clauses) that will be added to the domain when the filter is applied                                                       |
 | `quicksearch` | `boolean` | If `true`, the filter is applied as the user types in the quicksearch input, allowing for dynamic filtering based on the clause. |
 
 **Example:**
@@ -197,7 +197,7 @@ The `actions` property defines custom actions for the view. Each action correspo
 | `label`       | `string`          | Button label displayed to the user                                                                                                                        |
 | `description` | `string`          | Description shown when the user hovers over the button                                                                                                    |
 | `controller`  | `string`          | [ORM/Entity controller](../../../controllers-routing/controllers.md) invoked when the action is triggered. The current object's `id` is sent as a parameter by default                           |
-| `visible`     | `array`           | (optional) [Domain](../../../models/domains.md) conditions to determine if the action button is shown                                                                           |
+| `visible`     | `array`           | (optional) [Domain](../../../data-rules-processing/domains.md) conditions to determine if the action button is shown                                                                           |
 | `confirm`     | `boolean`         | (optional) If `true`, a confirmation dialog appears before executing the action                                                                           |
 | `params`      | object            | (optional) Associative array mapping fields to values. Values can reference user properties (e.g., `user.login`) or object properties (e.g., `object.id`) |
 | `access`      | [Access](#access) | (optional) Access control to limit action visibility and invocation                                                                                       |
@@ -316,7 +316,7 @@ The `exports` property defines document export/print configurations for list vie
 | `description` | `string` | Description of what the export generates                                                       |
 | `controller`  | `string` | [ORM/Entity controller](../../../controllers-routing/controllers.md) that handles the export (e.g., `lodging_booking_print-contract`) |
 | `view`        | `string` | View ID for export display (typically `print.default`)                                         |
-| `visible`     | `array`  | (optional) [Domain](../../../models/domains.md) conditions to determine if the export button is displayed            |
+| `visible`     | `array`  | (optional) [Domain](../../../data-rules-processing/domains.md) conditions to determine if the export button is displayed            |
 
 **Example:**
 
@@ -340,12 +340,12 @@ The `exports` property defines document export/print configurations for list vie
 
 ### Domain
 
-The `domain` property conditionally filters which data is displayed in the view. It uses the [domain](../../../models/domains.md) syntax to define filter criteria.
+The `domain` property conditionally filters which data is displayed in the view. It uses the [domain](../../../data-rules-processing/domains.md) syntax to define filter criteria.
 
 | **PROPERTY** | **TYPE** | **DESCRIPTION**                                                                |
 | ------------ | -------- | ------------------------------------------------------------------------------ |
-| `clause`     | `array`  | [Clause](../../../models/domains.md#clauses) that will be added to the domain when the filter is applied     |
-| `domain`     | `array`  | (optional) Additional [domain](../../../models/domains.md) conditions to determine filter visibility |
+| `clause`     | `array`  | [Clause](../../../data-rules-processing/domains.md#clauses) that will be added to the domain when the filter is applied     |
+| `domain`     | `array`  | (optional) Additional [domain](../../../data-rules-processing/domains.md) conditions to determine filter visibility |
 
 
 **Example:**
@@ -392,15 +392,15 @@ Layout holds the structure of the view and defines how items are arranged on the
 
 ### Widget
 
-Widgets can be used to set properties that depend on the view type. For more details on available widget types and their specific properties, see the [Widgets](../widgets.md) documentation.
+Widgets can be used to set properties that depend on the view type. For more details on available widget types and their specific properties, see the [Widgets](../widgets/widgets.md) documentation.
 
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                                                 |
 | ------------ | --------- | ------------------------------------------------------------------------------- |
 | `link`       | `boolean` | If `true`, the item value displays as a clickable link                          |
 | `sortable`   | `boolean` | If `true`, users can sort the list by clicking this column header               |
 | `type`       | `string`  | Overrides the default display type (e.g., `text`, `select`, `date`, `one2many`) |
-| `usage`      | `string`  | Overrides the field's [usage](../../../models/entities/fields.md#usages) to customize formatting                     |
-| `domain`     | `array`   | [Domain](../../../models/domains.md) conditions affecting display                                     |
+| `usage`      | `string`  | Overrides the field's [usage](../../../entities-persistence/fields.md#usages) to customize formatting                     |
+| `domain`     | `array`   | [Domain](../../../data-rules-processing/domains.md) conditions affecting display                                     |
 
 ---
 
@@ -443,7 +443,7 @@ Define named calculation rows independent from groupings. Each row can contain m
 | **PROPERTY** | **TYPE** | **DESCRIPTION**                                                                          |
 | ------------ | -------- | ---------------------------------------------------------------------------------------- |
 | `operation`  | `string` | The operation to apply (e.g., `SUM`, `COUNT`, `AVG`)                                     |
-| `usage`      | `string` | [Usage](../../../models/entities/fields.md#usages) hint for displaying the result (e.g., `amount/money:2`, `numeric/integer`) |
+| `usage`      | `string` | [Usage](../../../entities-persistence/fields.md#usages) hint for displaying the result (e.g., `amount/money:2`, `numeric/integer`) |
 | `prefix`     | `string` | (optional) String prepended to the result                                                |
 | `suffix`     | `string` | (optional) String appended to the result                                                 |
 

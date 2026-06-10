@@ -9,7 +9,7 @@ In eQual, **domains** are a powerful tool for defining conditional filters and c
 A **Domain** is a structure that defines a set of conditions used to filter objects or evaluate boolean flags based on a given context. Domains are primarily used in:
 
 - **Views**: To control visibility.
-- **Models and Controllers**: To filter data.
+- **Entities and Controllers**: To filter data.
 
 Domains are represented as a logical structure of conditions, which can be incrementally built and manipulated. The eQual framework provides a `Domain` class to facilitate this process.
 

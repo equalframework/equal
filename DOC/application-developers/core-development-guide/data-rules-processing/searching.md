@@ -1,10 +1,10 @@
 # Searching
 
-The [ORM (Object-Relational Mapping)](../models/orm.md) handles searching through a `search()` method available on both the ObjectManager service and Collection objects. This method returns a list of object identifiers matching the specified criteria, which can then be used to retrieve the full objects or perform further operations.
+The [ORM (Object-Relational Mapping)](../entities-persistence/orm.md) handles searching through a `search()` method available on both the ObjectManager service and Collection objects. This method returns a list of object identifiers matching the specified criteria, which can then be used to retrieve the full objects or perform further operations.
 
 ## How Search Works
 
-The `search()` method accepts a `domain` argument that describes the search criteria using a structured format. To understand the domain syntax and advanced filtering options, refer to the [domain documentation](../models/domain.md).
+The `search()` method accepts a `domain` argument that describes the search criteria using a structured format. To understand the domain syntax and advanced filtering options, refer to the [domain documentation](domains.md).
 
 **Search results** consist of object identifiers that can be:
 
@@ -69,14 +69,14 @@ $collection = User::search([
 
 ## Access Control for Searching in Collections
 
-Search operations are subject to [access control](../models/authorization/access-control-lists.md) rules that vary depending on whether the entity implements role-based access control (via a `getRoles()` method) or permission-based access control.
+Search operations are subject to [access control](../security-access/access-control-lists.md) rules that vary depending on whether the entity implements role-based access control (via a `getRoles()` method) or permission-based access control.
 
 ### Create
 
 **Entities with role-based access control:**
 
 * Creation is not supported, as roles relate only to existing objects
-* Use [actions](../models/actions.md) (e.g., a 'create' action conditioned by [policies](../models/authorization/authorization-overview#policies)) to create objects and assign roles like 'owner' to the creating user
+* Use [actions](../business-logic/actions.md) (e.g., a 'create' action conditioned by [policies](../security-access/authorization-overview#policies)) to create objects and assign roles like 'owner' to the creating user
 
 **Entities with permission-based access control:**
 

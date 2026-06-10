@@ -42,11 +42,11 @@ See the [action flow diagram](/_assets/img/eq_confirm_diagram.png) for a visual 
 | `id`          | `string`       | Identifier for translation and reference purposes                                                                                                  |
 | `label`       | `string`       | Button label displayed to the user                                                                                                                 |
 | `description` | `string`       | Description shown on hover, explaining what the action does                                                                                        |
-| `controller`  | `string`       | [ORM/Entity controller](../../../models/orm.md) invoked when the action is triggered. The current object's `id` is sent as a parameter by default                    |
-| `visible`     | `array`        | (optional) [Domain](../../../models/domains.md) conditions to determine if the action button is shown (Example: `"visible": ["status", "=", "active"]`)                  |
+| `controller`  | `string`       | [ORM/Entity controller](../../../entities-persistence/orm.md) invoked when the action is triggered. The current object's `id` is sent as a parameter by default                    |
+| `visible`     | `array`        | (optional) [Domain](../../../data-rules-processing/domains.md) conditions to determine if the action button is shown (Example: `"visible": ["status", "=", "active"]`)                  |
 | `confirm`     | `boolean`      | (optional) If `true`, displays a confirmation dialog before execution                                                                              |
 | `params`      | object         | (optional) Associative array mapping field names to values. Values can reference user properties (`user.login`) or object properties (`object.id`) |
-| `access`      | [Access](../../../models/authorization/access-control-lists.md) | (optional) Access control to restrict visibility and invocation                                                                                    |
+| `access`      | [Access](../../../security-access/access-control-lists.md) | (optional) Access control to restrict visibility and invocation                                                                                    |
 
 ### Example: Booking State Machine
 
@@ -170,9 +170,9 @@ The `ACTION.CANCEL` action supports these variants:
 | ------------- | -------- | ------------------------------------------------------------------------------------ |
 | `id`          | `string` | Predefined action identifier (required for variants)                                 |
 | `description` | `string` | (optional) Custom description overriding the default                                 |
-| `domain`      | `array`  | (optional) [Domain](../../../models/domains.md) conditions for action (Example: `"visibility": ["admin"]`) |
+| `domain`      | `array`  | (optional) [Domain](../../../data-rules-processing/domains.md) conditions for action (Example: `"visibility": ["admin"]`) |
 | `view`        | `string` | (optional) ID of the view to display when the action requires a view                 |
-| `controller`  | `string` | (optional) Custom [ORM/Entity controller](../../../models/orm.md) to override default behavior         |
+| `controller`  | `string` | (optional) Custom [ORM/Entity controller](../../../entities-persistence/orm.md) to override default behavior         |
 
 ### Configuration Rules
 

@@ -52,13 +52,13 @@ An **Entry** item serves as a link. It defines a `context` that tells the framew
 
 #### Context Object configuration
 
-The `context` object determines the state of the application upon navigation. It links the menu item to a specific [Entity](../models/entities/entities.md).
+The `context` object determines the state of the application upon navigation. It links the menu item to a specific [Entity](../entities-persistence/entities.md).
 
 | Property | Type     | Description                                                                                                    |
 | :------- | :------- | :------------------------------------------------------------------------------------------------------------- |
-| `entity` | `string` | The fully qualified name of the [Entity](../models/entities/entities.md) to display (e.g., `core\User`, `lodging\sale\booking\Booking`). |
+| `entity` | `string` | The fully qualified name of the [Entity](../entities-persistence/entities.md) to display (e.g., `core\User`, `lodging\sale\booking\Booking`). |
 | `view`   | `string` | The ID of the [View](./views/common-structures/common-structures.md) to render (e.g., `list.default` => it will always be: `[type].[name]`).             |
-| `domain` | `array`  | (Optional) A [Domain](../models/domains.md) array defining filters to apply to the data (e.g., `[['status', '=', 'active']]`). |
+| `domain` | `array`  | (Optional) A [Domain](../data-rules-processing/domains.md) array defining filters to apply to the data (e.g., `[['status', '=', 'active']]`). |
 | `order`  | `string` | (Optional) The name of the field by which to sort the results.                                                 |
 | `sort`   | `string` | (Optional) The direction of the sort: `asc` (ascending, default) or `desc` (descending).                       |
 

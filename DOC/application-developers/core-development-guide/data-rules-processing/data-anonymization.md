@@ -30,7 +30,7 @@ eQual supports two main approaches to anonymization:
 
 ## Entity Schema for Anonymization
 
-At the level of field descriptors (as defined in [`getColumns()`](./entities/entities.md#defining-columns)), certain attributes define the behavior of anonymization:
+At the level of field descriptors (as defined in [`getColumns()`](../entities-persistence/entities.md#defining-columns)), certain attributes define the behavior of anonymization:
 
 ### Key Attributes
 
@@ -77,8 +77,8 @@ An anonymization schema is a JSON array where each object specifies a model to b
 | **Attribute**   | **Description**                                                                      |
 | --------------- | ------------------------------------------------------------------------------------ |
 | **`name`**      | Specifies the fully qualified name of the model class to be anonymized. *(required)* |
-| **`fields`**    | Lists the [fields](./entities/entities.md#defining-fields) that need to be anonymized.                                 |
-| **`relations`** | Defines relationships to other models and how to handle them.                        |
+| **`fields`**    | Lists the [fields](../entities-persistence/entities.md#defining-fields) that need to be anonymized.                                 |
+| **`relations`** | Defines relationships to other entities and how to handle them.                        |
 
 ---
 
@@ -87,7 +87,7 @@ An anonymization schema is a JSON array where each object specifies a model to b
 1. **Identify Sensitive Data**: Use the `sensitive` attribute to mark fields that must always be anonymized.
 2. **Define Clear Schemas**: Create well-structured anonymization schemas to ensure consistency and clarity.
 3. **Test Anonymization**: Validate the anonymization process to ensure compliance with privacy regulations and data integrity.
-4. **Document Relationships**: Clearly define how relationships between models should be anonymized to avoid data inconsistencies.
+4. **Document Relationships**: Clearly define how relationships between entities should be anonymized to avoid data inconsistencies.
 
 ---
 

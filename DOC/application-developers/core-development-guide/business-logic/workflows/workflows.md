@@ -1,6 +1,6 @@
 # Workflows
 
-Workflows are part of the [Model](../entities/entities.md) definition and describe the lifecycle of an entity through a series of statuses and transitions.
+Workflows are part of the [entity](../../entities-persistence/entities.md) definition and describe the lifecycle of an entity through a series of statuses and transitions.
 
 When a workflow must be assigned to an entity, a dedicated method, `getWorkflow()`, must be defined for describing the workflow.
 
@@ -95,8 +95,8 @@ The workflow is composed of **nodes** representing statuses (successive logical 
 | Property      | Description                                                                                                              |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `watch`       | Array of field names that trigger automatic transition evaluation when modified.                                         |
-| `domain`      | Condition that must be satisfied for the transition to be allowed. Uses [Domain](../domains.md) syntax.                  |
-| `policies`    | Array of [policy](../authorization/authorization-overview/#policies) names that must pass for the transition to proceed. |
+| `domain`      | Condition that must be satisfied for the transition to be allowed. Uses [Domain](../../data-rules-processing/domains.md) syntax.                  |
+| `policies`    | Array of [policy](../../security-access/authorization-overview.md#policies) names that must pass for the transition to proceed. |
 | `description` | Human-readable description of the transition.                                                                            |
 | `status`      | Target status after the transition completes.                                                                            |
 | `onbefore`    | Method name to call before the transition executes.                                                                      |
@@ -186,7 +186,7 @@ Variants like `published`, `approved`, `rejected`, or `cancelled` can be added d
 
 ## Using Policies in Workflows
 
-Transitions can reference [policies](../authorization/authorization-overview/#policies) to enforce authorization rules before allowing a status change. Policies are specified in the `policies` array of a transition definition.
+Transitions can reference [policies](../../security-access/authorization-overview.md#policies) to enforce authorization rules before allowing a status change. Policies are specified in the `policies` array of a transition definition.
 
 When a transition includes policies, the system verifies that all specified policies pass before executing the transition. If any policy fails, the transition is blocked.
 

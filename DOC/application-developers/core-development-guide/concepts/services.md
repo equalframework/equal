@@ -78,9 +78,9 @@ A **Setting** is a configurable parameter, uniquely identified by its `package`,
 
 ---
 
-## Alerts Lifecycle and Models
+## Alerts Lifecycle and Message Models
 
-Alerts in eQual are managed through dedicated models and entities, ensuring consistency and traceability.
+Alerts in eQual are managed through dedicated message-model entities, ensuring consistency and traceability.
 
 ### Message Model (`core\alert\MessageModel`)
 
@@ -106,6 +106,6 @@ The `Message` entity represents an emitted alert linked to a specific object. It
 
 Alerts are persisted through the ORM, and a uniqueness constraint ensures only one alert per `(object_class, object_id, message_model_id)` tuple.
 
-For more on ORM and persistence, see [Object Management](./orm/#object-definition).
+For more on ORM and persistence, see [Object Management](../entities-persistence/orm.md#object-definition).
 
 ---

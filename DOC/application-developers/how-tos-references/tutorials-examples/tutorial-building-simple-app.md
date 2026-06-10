@@ -29,7 +29,7 @@ Let's start by creating a package called `tutorial` and the Model `tutorial\Post
 ### Using the Base Menu
 
 
-By using the [base menu](../workbench-overview.md/#creating-equal-components), you can easily find the components you need. Let's look for our newly created Model:
+By using the [base menu](../workbench/workbench-overview.md#creating-equal-components), you can easily find the components you need. Let's look for our newly created Model:
 
 
 <img src="/_assets/img/workbench_find_example.png" style="width: 30%;">
@@ -206,7 +206,7 @@ First, let's create the application for our package `tutorial`. Edit the `manife
 ```
 
 
-Then, let's use the initialize button of the [package side menu](../workbench-overview.md/#package-side-menu).
+Then, let's use the initialize button of the [package side menu](../workbench/workbench-overview.md#package-side-menu).
 
 
 <center><img src="/_assets/img/workbench_package_init.png"></center>
@@ -219,7 +219,7 @@ Then, let's use the initialize button of the [package side menu](../workbench-ov
 You can initialize the package `tutorial` as follows.
 
 
-If all goes well, you will see this message in your [package side menu](../workbench-overview.md#package-side-menu)):
+If all goes well, you will see this message in your [package side menu](../workbench/workbench-overview.md#package-side-menu)):
 
 
 <center><img src="/_assets/img/workbench_package_initialized.png"></center>

@@ -321,7 +321,7 @@ Widgets configure how items are displayed and behave. Refer to the [widgets](./w
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                                     |
 | ------------ | --------- | ------------------------------------------------------------------- |
 | `sortable`   | `boolean` | If `true`, users can sort the list by clicking this column header   |
-| `domain`     | `array`   | [Domain](../../models/domains.md) conditions affecting display                         |
+| `domain`     | `array`   | [Domain](../../data-rules-processing/domains.md) conditions affecting display                         |
 
 **Relational Field Properties (many2one, many2many):**
 
@@ -462,7 +462,7 @@ The `width` property defines the list's width relative to the screen or its cont
 
 ### Visible
 
-The `visible` property controls whether the column is displayed based on a boolean value or a [domain](../../models/domains.md) condition.
+The `visible` property controls whether the column is displayed based on a boolean value or a [domain](../../data-rules-processing/domains.md) condition.
 
 ```json
 {
@@ -614,7 +614,7 @@ Operations apply calculations (aggregations) to list data, displaying summary ro
 | **PROPERTY** | **TYPE**            | **DESCRIPTION**                                                                          |
 | ------------ | ------------------- | ---------------------------------------------------------------------------------------- |
 | `operation`  | `string` or `array` | The operation to apply (e.g., `"SUM"`, `["SUM", "object.field"]`)                        |
-| `usage`      | `string`            | [Usage](../../models/entities/fields.md#usages) hint for formatting the result (e.g., `amount/money:2`, `numeric/integer`) |
+| `usage`      | `string`            | [Usage](../../entities-persistence/fields.md#usages) hint for formatting the result (e.g., `amount/money:2`, `numeric/integer`) |
 | `label`      | `string`            | (optional) Display label for the operation result                                        |
 | `id`         | `string`            | (optional) Identifier for translation purposes                                           |
 

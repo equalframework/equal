@@ -16,10 +16,10 @@ Seeding allows developers and testers to work with consistent datasets by:
 
 A seeding schema is a JSON array where each object represents a seeding operation for a specific data model. The file specifies:
 
-- Which models to seed
+- Which entities to seed
 - The quantity of records to create
 - Field values to set
-- Relationships between models
+- Relationships between entities
 
 ### Basic Example
 

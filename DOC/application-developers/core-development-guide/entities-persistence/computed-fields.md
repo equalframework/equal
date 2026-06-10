@@ -8,7 +8,7 @@ Computed fields allow you to dynamically derive values based on other data in th
 
 Storing the value in the database is necessary when the field needs to be:
 
-- Used in [domains](domains.md) or filtering conditions
+- Used in [domains](../data-rules-processing/domains.md) or filtering conditions
 - Indexed for performance
 - Queried without triggering computation
 

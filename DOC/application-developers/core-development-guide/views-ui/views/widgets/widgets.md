@@ -82,7 +82,7 @@ Widgets support a variety of properties that control their behavior and appearan
 | `value`      | `string`  | The field name or value to display (e.g., `created`, `total_amount`)                        |
 | `link`       | `boolean` | If `true`, the item content is displayed as a clickable link                                |
 | `type`       | `string`  | Overrides the default display type based on the field type (e.g., `text`, `select`, `date`) |
-| `usage`      | `string`  | Overrides the field's [usage](../../../models/entities/fields.md#usages) to change display formatting                            |
+| `usage`      | `string`  | Overrides the field's [usage](../../../entities-persistence/fields.md#usages) to change display formatting                            |
 
 #### Relational Field Widgets
 
@@ -108,7 +108,7 @@ The `usage` property applies formatting rules to field values based on predefine
 * `icon` - Icon selector or display
 * `url` - URL with link rendering
 
-For a complete list of available usages, refer to [content-type specifications](../../../models/entities/fields.md#common-usages).
+For a complete list of available usages, refer to [content-type specifications](../../../entities-persistence/fields.md#common-usages).
 
 **Example - Display date with short format:**
 

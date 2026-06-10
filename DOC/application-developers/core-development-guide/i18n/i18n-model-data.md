@@ -1,6 +1,6 @@
-# Model Data Translation
+# Entity Data Translation
 
-Any non-relational field can be translated. The [ORM](../models/orm.md) uses a dedicated Model `core\Translation` to store the translations of terms.
+Any non-relational field can be translated. The [ORM](../entities-persistence/orm.md) uses the dedicated entity `core\Translation` to store the translations of terms.
 
 When a field is marked as `multilang` in its definition, the values of its translations can be managed directly via CRUD operations.
 
