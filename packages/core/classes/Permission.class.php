@@ -94,7 +94,7 @@ class Permission extends Model {
         if($rights & EQ_R_READ) {
             $result[] = 'read';
         }
-        if($rights & EQ_R_WRITE) {
+        if($rights & EQ_R_UPDATE) {
             $result[] = 'write';
         }
         if($rights & EQ_R_DELETE) {

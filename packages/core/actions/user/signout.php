@@ -39,7 +39,7 @@ Setting::set_value(
 
 $context->httpResponse()
         ->cookie('access_token', '', [
-            'expires'   => time(),
+            'expires'   => time() - 3600,
             'httponly'  => true,
             'secure'    => constant('AUTH_TOKEN_HTTPS'),
             'samesite'  => 'Strict'

@@ -138,7 +138,7 @@ $timestamp = date('Ymd_His');
 
 $export_folder_path = EQ_BASEDIR.'/export/'.$timestamp;
 if(!mkdir($export_folder_path, 0754, true)) {
-    throw new Exception(serialize(['folder_creation_error' => "unable to create output folder $path"]), EQ_ERROR_UNKNOWN);
+    throw new Exception(serialize(['folder_creation_error' => "unable to create output folder {$export_folder_path}"]), EQ_ERROR_UNKNOWN);
 }
 
 $translation_language_codes = $getTranslationLanguageCodes(constant('DEFAULT_LANG'));
