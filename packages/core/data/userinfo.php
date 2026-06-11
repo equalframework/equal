@@ -27,6 +27,7 @@ list($context, $auth) = [$providers['context'], $providers['auth']];
 
 // retrieve current User identifier (HTTP headers lookup through Authentication Manager)
 $user_id = $auth->userId();
+$authenticated_user_id = $auth->authenticatedUserId();
 
 // make sure user is authenticated
 if($user_id <= 0) {
@@ -56,7 +57,7 @@ $user['groups'] = array_values(array_map(function ($a) {return $a['name'];}, $us
 // renew JWT access token
 $access_token  = $auth->renewedToken(constant('AUTH_ACCESS_TOKEN_VALIDITY'));
 
-$csrf_token = $auth->token($user_id);
+$csrf_token = $auth->token($authenticated_user_id);
 
 // send back basic info of the User object
 $context->httpResponse()

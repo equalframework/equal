@@ -37,13 +37,13 @@ Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user
 Setting::assert_value('core', 'security', 'impersonation.expiry', 0, ['user_id' => $authenticated_user_id]);
 
 Setting::set_value(
-    'core', 'security', 'impersonation.expiry',
+    'core', 'security', 'impersonation.enabled',
     false,
     ['user_id' => $authenticated_user_id]
 );
 
 Setting::set_value(
-    'core', 'security', 'impersonation.enabled',
+    'core', 'security', 'impersonation.expiry',
     time() - 3600,
     ['user_id' => $authenticated_user_id]
 );
