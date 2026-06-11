@@ -27,7 +27,7 @@ use core\setting\Setting;
  */
 ['context' => $context, 'auth' => $auth ] = $providers;
 
-$user_id = $auth->userId();
+$user_id = $auth->authenticatedUserId();
 
 Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $user_id]);
 
