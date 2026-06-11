@@ -6,6 +6,8 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\setting\Setting;
+
 [$params, $providers] = eQual::announce([
     'description'	=>	"Sign a user out.",
     'params' 		=>	[
@@ -16,14 +18,24 @@
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
     ],
-    'providers'     => ['context'],
+    'providers'     => ['context', 'auth'],
 ]);
 
 /**
  * @var equal\php\Context   $context
+ * @var equal\auth\AuthenticationManager    $auth
  */
-['context' => $context ] = $providers;
+['context' => $context, 'auth' => $auth ] = $providers;
 
+$user_id = $auth->userId();
+
+Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $user_id]);
+
+Setting::set_value(
+    'core', 'security', 'impersonation.enabled',
+    false,
+    ['user_id' => $user_id]
+);
 
 $context->httpResponse()
         ->cookie('access_token', '', [
