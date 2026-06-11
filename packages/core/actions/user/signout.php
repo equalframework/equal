@@ -44,5 +44,5 @@ $context->httpResponse()
             'secure'    => constant('AUTH_TOKEN_HTTPS'),
             'samesite'  => 'Strict'
         ])
-        ->status(204)
+        ->status(205)
         ->send();
