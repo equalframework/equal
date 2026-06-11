@@ -27,14 +27,25 @@ use core\setting\Setting;
  */
 ['context' => $context, 'auth' => $auth ] = $providers;
 
-$user_id = $auth->authenticatedUserId();
+$authenticated_user_id = $auth->authenticatedUserId();
 
-Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $user_id]);
+if($authenticated_user_id <= 0) {
+    throw new Exception("user_not_authenticated", EQ_ERROR_NOT_ALLOWED);
+}
+
+Setting::assert_value('core', 'security', 'impersonation.enabled', false, ['user_id' => $authenticated_user_id]);
+Setting::assert_value('core', 'security', 'impersonation.expiry', 0, ['user_id' => $authenticated_user_id]);
+
+Setting::set_value(
+    'core', 'security', 'impersonation.expiry',
+    false,
+    ['user_id' => $authenticated_user_id]
+);
 
 Setting::set_value(
     'core', 'security', 'impersonation.enabled',
-    false,
-    ['user_id' => $user_id]
+    time() - 3600,
+    ['user_id' => $authenticated_user_id]
 );
 
 $context->httpResponse()
