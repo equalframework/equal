@@ -90,7 +90,7 @@ if(!$targetUser) {
     throw new Exception("target_user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$duration = max(60, (int) $params['duration']);
+$duration = max(600, (int) $params['duration']);
 $expiry = time() + $duration;
 
 Setting::set_value(
