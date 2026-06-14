@@ -559,6 +559,18 @@ Place `.md` files in `i18n/` to document what a view does.
 
 To test and run the eQual-based projects:
 
+### CLI execution for agents
+
+Documentation and instruction examples intentionally use `./equal.run`.
+When an agent actually runs an eQual CLI command, it should prefer the direct PHP entry point from the project root:
+
+- On Windows with PowerShell: `php run.php --do=...`
+- On Linux with Bash: `php run.php --do=...`
+
+with the special chars escape rules that apply on the environment.
+
+Keep the same controller flags and arguments as in the documented `./equal.run` examples. For example, an instruction written as `./equal.run --do=test_db-access` should be executed by an agent as `php run.php --do=test_db-access`.
+
 1. Clone eQual framework (version dev-2.0):
 
    ```

@@ -31,7 +31,7 @@ The announcement array defines the controller's contract:
 *   **params**: Expected input parameters, their types, and constraints.
 *   **response**: Output format (content-type) and CORS settings.
 *   **access**: Access control configuration.
-*   **providers**: Required services to be injected.
+*   **providers**: Required services, or reserved providers, to be injected.
 *   **constants**: Package-specific constants used by the script.
 
 ### `description`
@@ -155,6 +155,60 @@ Developers can register custom services or override existing ones in eq.lib.php 
     'access' => 'custom\AccessController' // Use custom implementation
 ]
 ```
+
+### Reserved Provider: `self`
+
+For entity-bound `do` and `get` controllers, the reserved `self` provider injects an ORM collection for the object or objects targeted by the request.
+
+```php
+[$params, $providers] = eQual::announce([
+    'params' => [
+        'reason' => [
+            'type'     => 'string',
+            'required' => true
+        ]
+    ],
+    'providers' => ['context', 'self']
+]);
+
+/** @var \equal\orm\Collection $self */
+['context' => $context, 'self' => $self] = $providers;
+```
+
+Note: Custom provider aliases are not supported for `self`; declarations such as `'invoice' => 'self'` are invalid.
+
+When `self` is requested, eQual infers the ORM class from the controller path and automatically announces `id` and `ids` parameters if the controller did not already declare them:
+
+```php
+'id' => [
+    'type'           => 'many2one',
+    'foreign_object' => 'sale\Invoice'
+],
+'ids' => [
+    'type'           => 'one2many',
+    'foreign_object' => 'sale\Invoice'
+]
+```
+
+The caller must provide either `id` or `ids`. Passing an empty `id` or an empty `ids` collection is accepted and injects an empty ORM collection. If `ids` contains values, it takes precedence; otherwise a positive `id` is converted to a single-item collection.
+
+The inferred class is validated through the ORM when the provider is injected. If the controller path cannot be bound to an ORM class, or if the inferred class is not a known model, `announce()` raises a configuration error.
+
+### Entity-Bound Controller Paths
+
+For `do` and `get` controllers, eQual stores an inferred ORM class name in the resolved operation metadata. The class is derived from the parent directory of the controller script when the last directory segment starts with an uppercase letter.
+
+Examples:
+
+| **Controller path** | **Inferred class** |
+| :--- | :--- |
+| `packages/sale/actions/Invoice/validate.php` | `sale\Invoice` |
+| `packages/sale/actions/booking/Invoice/validate.php` | `sale\booking\Invoice` |
+| `packages/core/data/userinfo.php` | `null` |
+| `packages/core/actions/user/impersonate.php` | `null` |
+| `packages/core/actions/model/update.php` | `null` |
+
+The value is only a candidate during controller resolution. ORM validation happens later, when a controller explicitly requests the `self` provider.
 
 ---
 
