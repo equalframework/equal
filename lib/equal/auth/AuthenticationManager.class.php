@@ -273,7 +273,7 @@ class AuthenticationManager extends Service {
                 $result = $decoded['payload'];
             }
             catch(\Exception $e) {
-                trigger_error("API::Unable to decode token: ".$e->getMessage(), EQ_REPORT_ERROR);
+                trigger_error("API::Unable to decode token: " . $e->getMessage(), EQ_REPORT_ERROR);
             }
         }
 
