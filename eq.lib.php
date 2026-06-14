@@ -621,6 +621,35 @@ namespace config {
             }
 
             $operation = $context->get('operation');
+            $self_provider_requested = false;
+            if(isset($announcement['providers']) && count($announcement['providers'])) {
+                foreach($announcement['providers'] as $key => $name) {
+                    if($name == 'self') {
+                        if(!is_numeric($key)) {
+                            throw new \Exception("Provider 'self' does not support custom name mapping", EQ_ERROR_INVALID_CONFIG);
+                        }
+                        $self_provider_requested = true;
+                    }
+                }
+            }
+
+            if($self_provider_requested) {
+                if(!isset($operation['class_name']) || is_null($operation['class_name'])) {
+                    throw new \Exception("Controller is not bound to an ORM class", EQ_ERROR_INVALID_CONFIG);
+                }
+                if(!isset($announcement['params']['id'])) {
+                    $announcement['params']['id'] = [
+                        'type'           => 'many2one',
+                        'foreign_object' => $operation['class_name']
+                    ];
+                }
+                if(!isset($announcement['params']['ids'])) {
+                    $announcement['params']['ids'] = [
+                        'type'           => 'one2many',
+                        'foreign_object' => $operation['class_name']
+                    ];
+                }
+            }
 
             // handle controller inheritance
             if(isset($announcement['extends']))  {
@@ -1012,6 +1041,11 @@ namespace config {
                 throw new \Exception(implode(',', $missing_params), EQ_ERROR_MISSING_PARAM);
             }
 
+            if($self_provider_requested && !array_key_exists('id', $body) && !array_key_exists('ids', $body)) {
+                $response->body(['announcement' => $announcement]);
+                throw new \Exception('id,ids', EQ_ERROR_MISSING_PARAM);
+            }
+
             // 2) find any missing parameters
 
             $allowed_params = array_keys($announcement['params']);
@@ -1123,6 +1157,24 @@ namespace config {
                 $providers = [];
                 // inject dependencies
                 foreach($announcement['providers'] as $key => $name) {
+                    if($name == 'self') {
+                        /** @var \equal\orm\ObjectManager */
+                        $orm = $container->get('orm');
+                        $model = $orm->getModel($operation['class_name']);
+                        if($model === false) {
+                            throw new \Exception("Unknown ORM class {$operation['class_name']}", EQ_ERROR_INVALID_CONFIG);
+                        }
+
+                        $ids = [];
+                        if(!empty($result['ids'])) {
+                            $ids = $result['ids'];
+                        }
+                        elseif(isset($result['id']) && $result['id'] > 0) {
+                            $ids = [$result['id']];
+                        }
+                        $providers['self'] = $operation['class_name']::ids($ids);
+                        continue;
+                    }
                     // handle custom name mapping
                     if(!is_numeric($key)) {
                         $container->register($key, $name);
@@ -1194,7 +1246,8 @@ namespace config {
                 'operation'  => null,        // {package}_{script-path}
                 'visibility' => 'public',    // 'public', 'protected', or 'private'
                 'package'    => null,        // {package}
-                'script'     => null         // {path/to/script.php}
+                'script'     => null,        // {path/to/script.php}
+                'class_name' => null         // ORM class name inferred from controller path, if any
             ];
             // define valid operations specifications
             $operations = [
@@ -1285,6 +1338,16 @@ namespace config {
             // include resolved script, if any
             if(isset($operations[$resolved['type']])) {
                 $operation_conf = $operations[$resolved['type']];
+                if(in_array($resolved['type'], ['do', 'get']) && !empty($resolved['script'])) {
+                    $script_dir = dirname(str_replace('\\', '/', $resolved['script']));
+                    if($script_dir != '.') {
+                        $class_parts = explode('/', $script_dir);
+                        $class = end($class_parts);
+                        if(strlen($class) && ctype_upper(substr($class, 0, 1))) {
+                            $resolved['class_name'] = $resolved['package'].'\\'.implode('\\', $class_parts);
+                        }
+                    }
+                }
                 // normalize: remove operation parameter from request body, if any
                 if($request->get($resolved['type']) == $resolved['operation']) {
                     $request->del($resolved['type']);
