@@ -1230,38 +1230,6 @@ namespace config {
                     }
                 }
                 return ob_get_clean();
-
-                // #todo - is this necessary ? the same is performed in run.php
-                // if a controller does not want to be interrupted when an exception arises, it can use a try/catch block
-                try {
-                    include($script);
-                }
-                catch(\Throwable $e) {
-                    $error_code = $e->getCode();
-                    if($e instanceof \Error) {
-                        $error_code = QN_ERROR_UNKNOWN;
-                    }
-                    // an exception with code 0 is an explicit process halt with no error
-                    if($error_code != 0) {
-                        $msg = $e->getMessage();
-                        // handle serialized objects as message
-                        $data = @unserialize($msg);
-                        if ($data !== false) {
-                            $msg = $data;
-                        }
-                        // retrieve current HTTP response
-                        $response = $context->httpResponse();
-                        // build response with error details
-                        $response
-                            // set status and body according to raised exception
-                            ->status(qn_error_http($error_code))
-                            ->header('Content-Type', 'application/json')
-                            ->extendBody( [ 'errors' => [ qn_error_name($error_code) => $msg ] ] )
-                            // send HTTP response
-                            ->send();
-                    }
-                }
-                return ob_get_clean();
             };
 
             /** @var \equal\http\HttpRequest */
