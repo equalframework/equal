@@ -106,5 +106,6 @@ Setting::set_value(
 );
 
 $context->httpResponse()
-        ->status(205)
+        ->status(302)
+        ->header('Location', '/')
         ->send();
