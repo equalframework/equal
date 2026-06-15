@@ -9,10 +9,11 @@ Unless explicitly told otherwise:
 ## Mandatory workflow
 1. Identify the task type before editing files.
 2. Read the required instruction files from the routing table.
-3. If a task impacts multiple layers (for example class + view + i18n), read every matching task folder before making changes.
-4. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
-5. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
-6. Finish every task by running:
+3. When running commands from PowerShell, read and follow `AGENTS/00-general/POWERSHELL.md`.
+4. If a task impacts multiple layers (for example class + view + i18n), read every matching task folder before making changes.
+5. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
+6. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
+7. Finish every task by running:
    - the task-specific `VALIDATION.md`
    - `AGENTS/00-general/VALIDATION.md`
    - `AGENTS/90-final-validation/VALIDATION.md`

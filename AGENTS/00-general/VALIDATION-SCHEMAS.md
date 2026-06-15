@@ -153,6 +153,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
    - `--schema_id` parameter: appropriate schema from table above
    - `--strict=false` for lenient validation (allows missing optional fields)
 
+When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`.
+
 ### For PHP Files (Actions, Data Providers)
 1. Convert the PHP file structure to JSON representation using the appropriate php command (e.g., `model_export` for entities, `--announce=true` for actions/providers or `packageinfo` for packages)
 2. Call `core_json-validate` with the JSON representation

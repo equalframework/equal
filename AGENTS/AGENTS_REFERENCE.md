@@ -571,6 +571,8 @@ with the special chars escape rules that apply on the environment.
 
 Keep the same controller flags and arguments as in the documented `./equal.run` examples. For example, an instruction written as `./equal.run --do=test_db-access` should be executed by an agent as `php run.php --do=test_db-access`.
 
+When running commands from PowerShell, agents must also read and follow `AGENTS/00-general/POWERSHELL.md`, especially for UTF-8 JSON reads, JSON validation variables, quoting, `rg` usage, and Git output interpretation.
+
 1. Clone eQual framework (version dev-2.0):
 
    ```
