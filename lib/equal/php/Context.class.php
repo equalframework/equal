@@ -326,7 +326,15 @@ class Context extends Service {
                         else $args[$param][] = $value;
                     }
                     else {
-                        $args[$param] = $value;
+                        if(isset($args[$param])) {
+                            if(!is_array($args[$param])) {
+                                $args[$param] = [$args[$param]];
+                            }
+                            $args[$param][] = $value;
+                        }
+                        else {
+                            $args[$param] = $value;
+                        }
                     }
                 }
             }
