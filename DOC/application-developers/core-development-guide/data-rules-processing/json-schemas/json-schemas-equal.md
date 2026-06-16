@@ -113,10 +113,18 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 
 ### Validate a Form View
 
+Prefer the consistency controller for model views. It loads the view definition and validates it internally.
+
 ```
 GET http://equal.local/?do=core_test_view-consistency
   &entity='core\User'
   &view_id='form.default'
+```
+
+CLI equivalent:
+
+```
+php run.php --do=core_test_view-consistency --entity=core\User --view_id=form.default
 ```
 
 ### Validate a Package Manifest

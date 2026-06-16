@@ -14,6 +14,7 @@ These rules apply whenever the agent runs commands from PowerShell.
 ## Avoid fragile JSON escaping in CLI args
 
 - Avoid embedding large JSON directly in command arguments when possible.
+- For model views, prefer `php run.php --do=core_test_view-consistency --entity=<Entity> --view_id=<type.name>` instead of passing the full view JSON to `core_json-validate`.
 - Prefer assigning JSON to a variable first:
   - `$json = Get-Content -Raw -Encoding UTF8 path/to/file.json`
   - `php run.php --get=core_json-validate --json="$json" --schema_id=... --strict=false`

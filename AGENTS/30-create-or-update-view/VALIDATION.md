@@ -25,9 +25,8 @@ Validate the created/updated view file using the appropriate schema based on vie
 - [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.default`
 
 **Validation procedure**:
-- Run `./equal.run --get=core_json-validate` with:
-  - `json` parameter: the complete view file content as JSON
-  - `schema_id` parameter: the appropriate schema ID from above
-  - `package` parameter: the package name where the view is located
-  - Confirm: no validation errors returned
-  - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
+- For model views, run `./equal.run --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}`.
+- In PowerShell, prefer `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}`.
+- For menu views or raw JSON files, use `core_json-validate` with the appropriate schema ID.
+- Confirm no validation errors are returned.
+- See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures.

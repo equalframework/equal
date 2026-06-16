@@ -50,6 +50,16 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
   ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list
   ```
 
+### Views - Chart
+- **Schema ID**: `urn:equal:json-schema:core:view.chart`
+- **Usage**: Validate chart view files (Model.chart.*.json)
+- **Required fields**: `name`, `layout`
+- **File pattern**: `packages/{package}/views/{EntityName}.chart.*.json`
+- **Validation example**:
+  ```
+  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.chart
+  ```
+
 ### Views - Dashboard
 - **Schema ID**: `urn:equal:json-schema:core:view.dashboard`
 - **Usage**: Validate dashboard view files (*.dashboard.*.json)
@@ -145,6 +155,19 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
   ```
 
 ## Validation Procedure
+
+### For Model Views
+Prefer the dedicated view consistency controller. It retrieves the view and validates it internally, avoiding fragile shell escaping for full JSON payloads.
+
+```
+./equal.run --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}
+```
+
+When running from PowerShell, use the PHP entry point:
+
+```
+php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}
+```
 
 ### For JSON Files
 1. Read the created JSON file
