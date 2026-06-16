@@ -161,6 +161,15 @@ $datasets = [
 */
 
 $datasets = $params['datasets'];
+$schema = $entity->getSchema();
+
+if(!isset($schema[$params['field']])) {
+    throw new Exception("unknown_field", QN_ERROR_INVALID_PARAM);
+}
+
+$group_field_descriptor = $schema[$params['field']];
+$group_field_type = $group_field_descriptor['result_type'] ?? $group_field_descriptor['type'];
+$is_group_field_many2one = ($group_field_type == 'many2one' && isset($group_field_descriptor['foreign_object']));
 
 $fields = [];
 
@@ -169,10 +178,16 @@ $re = '/"object\.(.*)"/U';
 
 preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
 
-$fields = array_map(function($a) {return $a[1];}, $matches);
+$fields = array_values(array_unique(array_map(function($a) {return $a[1];}, $matches)));
 
 // make sure grouping field is amongst requested fields
-$fields[] = $params['field'];
+if($is_group_field_many2one) {
+    $fields = array_values(array_filter($fields, fn($field) => $field !== $params['field']));
+    $fields[$params['field']] = ['id', 'name'];
+}
+else if(!in_array($params['field'], $fields)) {
+    $fields[] = $params['field'];
+}
 
 // add clause related to time range
 $domain = new Domain($params['domain']);
@@ -200,22 +215,15 @@ else {
 // populate final result array with operations results
 $result = array_fill_keys(array_keys($results_map), []);
 
-// final array of legends (field)
-$labels = [];
-// final array of legends (range)
+// final array of dataset legends
 $legends = [];
-// working map for legends
-$legends_map = [];
+// working map for group labels
+$labels_map = [];
 
 foreach($datasets as $index => $dataset) {
     $operation = $dataset['operation'];
 
-    if($params['group_by'] == 'range') {
-        $legends_map[$index] = (isset($dataset['label']))?$dataset['label']:'';
-    }
-    else {
-        $labels[] = (isset($dataset['label']))?$dataset['label']:'#value';
-    }
+    $legends[$index] = (isset($dataset['label']))?$dataset['label']:'#value';
 
     $op = new Operation($operation);
 
@@ -228,12 +236,10 @@ foreach($datasets as $index => $dataset) {
     $result_map = $results_map;
     // search objects matching given domain and date range
     $objects = $params['entity']::search($dom->toArray())->read($fields)->get();
-    $schema = $entity->getSchema();
     if($objects && count($objects)) {
         // group objects by date interval
         foreach($objects as $oid => $object) {
-            $field_type = $schema[$params['field']]['result_type'] ?? $schema[$params['field']]['type'];
-            if(in_array($field_type, ['date', 'datetime'])) {
+            if(in_array($group_field_type, ['date', 'datetime'])) {
                 if($params['group_by'] == 'range') {
                     $group_index = $getDateIndex($object[$params['field']], $params['range_interval']);
                 }
@@ -241,9 +247,19 @@ foreach($datasets as $index => $dataset) {
                     // #todo - check value of param 1
                     $group_index = date('Y-m-d', $object[$params['field']]);
                 }
+                $group_label = $group_index;
+            }
+            else if($is_group_field_many2one) {
+                $group_index = $object[$params['field']]['id'] ?? null;
+                $group_label = $object[$params['field']]['name'] ?? $group_index;
             }
             else {
                 $group_index = $object[$params['field']];
+                $group_label = $group_index;
+            }
+
+            if(!isset($labels_map[$group_index])) {
+                $labels_map[$group_index] = strval($group_label);
             }
             $result_map[$group_index][] = $object;
         }
@@ -254,18 +270,16 @@ foreach($datasets as $index => $dataset) {
 }
 
 $datasets = [];
+$labels = [];
 foreach($result as $date_index => $sets) {
-    foreach($sets as $index => $value) {
+    foreach(array_keys($legends) as $index) {
         if(!isset($datasets[$index])) {
             $datasets[$index] = [];
         }
-        $datasets[$index][] = $value;
-        if($params['group_by'] == 'range' && !isset($legends[$index])) {
-            $legends[$index] = $legends_map[$index];
-        }
+        $datasets[$index][] = array_key_exists($index, $sets) ? $sets[$index] : null;
     }
     if($params['group_by'] == 'field') {
-        $legends[] = strval($date_index);
+        $labels[] = $labels_map[$date_index] ?? strval($date_index);
     }
 }
 
@@ -278,7 +292,7 @@ if($params['group_by'] == 'range') {
 }
 else if($params['group_by'] == 'field') {
     $result = [
-        'labels'    => $labels,
+        'labels'    => array_values($labels),
         'datasets'  => array_values($datasets),
         'legends'   => array_values($legends)
     ];
@@ -296,11 +310,8 @@ if($params['mode'] == 'grid') {
     }
     else if($params['group_by'] == 'field') {
         $keys = array_merge(['#label'], $result['labels']);
-        foreach($result['legends'] as $i => $legend) {
-            $values = [$legend];
-            foreach($result['datasets'] as $dataset) {
-                $values[] = $dataset[$i];
-            }
+        foreach($result['datasets'] as $i => $dataset) {
+            $values =  array_merge( [$result['legends'][$i]], $dataset);
             $res[] = array_combine($keys, $values);
         }
     }
