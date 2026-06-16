@@ -25,6 +25,11 @@ class Task extends Model {
                 'required'          => true
             ],
 
+            'description' => [
+                'type'              => 'string',
+                'description'       => "Short description of the booking task."
+            ],
+
             'is_done' => [
                 'type'              => 'boolean',
                 'description'       => "Whether the task is done.",

@@ -10,6 +10,11 @@
             },
             {
                 "type": "field",
+                "value": "description",
+                "width": "20%"
+            },
+            {
+                "type": "field",
                 "value": "object_class",
                 "width": "20%"
             },

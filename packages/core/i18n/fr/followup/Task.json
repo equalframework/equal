@@ -3,6 +3,11 @@
     "plural": "Tâches",
     "description": "Une tâche qui doit être réalisée pour une entité spécifique.",
     "model": {
+        "description": {
+            "label": "Description",
+            "description": "Description courte de la tâche à réaliser.",
+            "help": ""
+        },
         "is_done": {
             "label": "Réalisé",
             "description": "Est-ce que la tâche est réalisée?",
