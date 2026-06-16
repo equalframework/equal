@@ -25,6 +25,11 @@
             "description": "",
             "help": ""
         },
+        "range_field": {
+            "label": "Champ de période",
+            "description": "Champ date utilisé pour filtrer la période.",
+            "help": ""
+        },
         "group_by": {
             "label": "Grouper par",
             "description": "",
@@ -48,6 +53,7 @@
             "label": "Type d'intervalle",
             "description": "Groupement des valeurs par tranche de temps.",
             "selection": {
+                "day": "jour",
                 "week": "semaine",
                 "month": "mois",
                 "year": "année"

@@ -9,7 +9,7 @@ use equal\orm\Domain;
 use equal\orm\DomainCondition;
 use equal\orm\Operation;
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Returns a list of entities according to given domain (filter), start offset, limit and order.',
     'params'        => [
         'entity' =>  [
@@ -33,9 +33,13 @@ list($params, $providers) = eQual::announce([
             'default'       => []
         ],
         'field' => [
-            'description'   => 'Field to use for grouping the objects (date field in case of a time range).',
+            'description'   => 'Field to use for grouping the objects.',
             'type'          => 'string',
             'default'       => 'created'
+        ],
+        'range_field' => [
+            'description'   => 'Date field to use for filtering the objects by range and grouping time ranges.',
+            'type'          => 'string'
         ],
         'group_by' => [
             'description'   => 'Method for grouping the results.',
@@ -60,6 +64,7 @@ list($params, $providers) = eQual::announce([
             'description'   => 'Time interval for grouping abscissa values.',
             'type'          => 'string',
             'selection'     => [
+                'day',
                 'week',
                 'month',
                 'year'
@@ -92,6 +97,8 @@ list($params, $providers) = eQual::announce([
 
 $getDateIndex = function($date, $interval) {
     switch($interval) {
+        case 'day':
+            return date('Y-m-d', $date);
         case 'week':
             return date('Y-W', $date);
         case 'month':
@@ -104,22 +111,25 @@ $getDateIndex = function($date, $interval) {
 
 $getNextDate = function($date, $interval) {
     switch($interval) {
+        case 'day':
+            return strtotime(date('Y-m-d', $date).' +1 day');
         case 'week':
-            $day = date("w", $date);
-            $day = ($day == 0)?7:$day;
-            return $date + ((8-$day)*24*3600);
+            $date = strtotime(date('Y-m-d', $date));
+            $day = (int) date('N', $date);
+            return $date + ((8 - $day) * 24 * 3600);
         case 'month':
-            return strtotime(date("Y-m-t", $date)) + (48*3600);
+            return strtotime(date('Y-m-01', $date).' +1 month');
         case 'year':
+            return strtotime((date('Y', $date) + 1).'-01-01');
         default:
-            return strtotime( (date('Y', $date) + 1).'-01-02');
+            return strtotime(date('Y-m-d', $date).' +1 day');
     }
 };
 
 // retrieve target entity
 $entity = $orm->getModel($params['entity']);
 if(!$entity) {
-    throw new Exception("unknown_entity", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_entity", EQ_ERROR_INVALID_PARAM);
 }
 
 /*
@@ -134,14 +144,15 @@ POLAR, DOUGHNUT, PIE : a single dataset, each value corresponds to a segment => 
 
                             field                       range
                             -----                       -----
-    field                   field on which to group     field of type 'date' to use for grouping (defaults to 'created')
-    range_interval          /                           week, month, year
-    range_from              /
-    range_to                /
+    field                   field on which to group     /
+    range_field             field of type 'date'        field of type 'date' to use for grouping (defaults to field)
+    range_interval          /                           day, week, month, year
+    range_from              date range start            date range start
+    range_to                date range end              date range end
 
 Examples:
     /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=range&range_from=2022-03-01&range_to=2022-12-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]
-    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
+    /?get=model_chart&entity=lodging\sale\booking\Booking&group_by=field&range_field=created&range_from=2022-03-01&range_to=2022-06-30&datasets=[{"operation":["SUM","object.price"], "label":"test"}]&field=type_id
 
 */
 
@@ -164,12 +175,28 @@ $datasets = $params['datasets'];
 $schema = $entity->getSchema();
 
 if(!isset($schema[$params['field']])) {
-    throw new Exception("unknown_field", QN_ERROR_INVALID_PARAM);
+    throw new Exception("unknown_field", EQ_ERROR_INVALID_PARAM);
 }
 
 $group_field_descriptor = $schema[$params['field']];
 $group_field_type = $group_field_descriptor['result_type'] ?? $group_field_descriptor['type'];
 $is_group_field_many2one = ($group_field_type == 'many2one' && isset($group_field_descriptor['foreign_object']));
+
+$range_field = $params['range_field'] ?? (($params['group_by'] == 'range') ? $params['field'] : null);
+$range_field_type = null;
+
+if(!is_null($range_field)) {
+    if(!isset($schema[$range_field])) {
+        throw new Exception("unknown_range_field", EQ_ERROR_INVALID_PARAM);
+    }
+
+    $range_field_descriptor = $schema[$range_field];
+    $range_field_type = $range_field_descriptor['result_type'] ?? $range_field_descriptor['type'];
+
+    if(!in_array($range_field_type, ['date', 'datetime'])) {
+        throw new Exception("invalid_range_field", EQ_ERROR_INVALID_PARAM);
+    }
+}
 
 $fields = [];
 
@@ -189,12 +216,19 @@ else if(!in_array($params['field'], $fields)) {
     $fields[] = $params['field'];
 }
 
+if(!is_null($range_field) && !in_array($range_field, $fields)) {
+    $fields[] = $range_field;
+}
+
 // add clause related to time range
 $domain = new Domain($params['domain']);
 
-if($params['group_by'] == 'range') {
-    $domain->addCondition(new DomainCondition($params['field'], '>=', $params['range_from']))
-           ->addCondition(new DomainCondition($params['field'], '<=', $params['range_to']));
+if(!is_null($range_field)) {
+    $range_to_operator = ($range_field_type == 'datetime') ? '<' : '<=';
+    $range_to = ($range_field_type == 'datetime') ? $getNextDate($params['range_to'], 'day') : $params['range_to'];
+
+    $domain->addCondition(new DomainCondition($range_field, '>=', $params['range_from']))
+           ->addCondition(new DomainCondition($range_field, $range_to_operator, $range_to));
 }
 
 // init results_map as an empty associative array of intervals map
@@ -202,7 +236,7 @@ $results_map = [];
 
 if($params['group_by'] == 'range') {
     $date = $params['range_from'];
-    while($date < $params['range_to']) {
+    while($date <= $params['range_to']) {
         $index = $getDateIndex($date, $params['range_interval']);
         $results_map[$index] = [];
         $date = $getNextDate($date, $params['range_interval']);
@@ -239,14 +273,13 @@ foreach($datasets as $index => $dataset) {
     if($objects && count($objects)) {
         // group objects by date interval
         foreach($objects as $oid => $object) {
-            if(in_array($group_field_type, ['date', 'datetime'])) {
-                if($params['group_by'] == 'range') {
-                    $group_index = $getDateIndex($object[$params['field']], $params['range_interval']);
-                }
-                else {
-                    // #todo - check value of param 1
-                    $group_index = date('Y-m-d', $object[$params['field']]);
-                }
+            if($params['group_by'] == 'range') {
+                $group_index = $getDateIndex($object[$range_field], $params['range_interval']);
+                $group_label = $group_index;
+            }
+            else if(in_array($group_field_type, ['date', 'datetime'])) {
+                // #todo - check value of param 1
+                $group_index = date('Y-m-d', $object[$params['field']]);
                 $group_label = $group_index;
             }
             else if($is_group_field_many2one) {
