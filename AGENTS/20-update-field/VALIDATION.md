@@ -33,13 +33,14 @@ If views, models or translation files were modified as part of the field update,
 - [ ] **Model class validation** (if class modified):
   - Use schema `urn:equal:json-schema:core:model.class`
   - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
-  - Run `./equal.run --get=core_json-validate` with:
+  - Validate the returned JSON representation with `core_json-validate`:
     - `json` parameter: the JSON representation of the updated model class
     - `schema_id` parameter: `urn:equal:json-schema:core:model.class`
     - `package` parameter: the package name where the entity is defined
+  - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned
 
 - [ ] **Translation schema validation** (if i18n files modified):
   - Model translations: Use schema `urn:equal:json-schema:core:model.translations`
-  - Run `./equal.run --get=core_json-validate` for each modified translation file
+  - Prefer `php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}` for each modified model translation file
   - Confirm: no validation errors returned

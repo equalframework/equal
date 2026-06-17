@@ -24,10 +24,11 @@ Validate the action handler definition using the controller action schema:
 1. Build the controller name from the file path: `packages/{package}/actions/{path}/{action}.php` becomes `{package}_{path_with_underscores}_{action}`; omit the path segment when the file is directly under `actions/`.
 2. Extract the `eQual::announce()` metadata through `./equal.run --do={controller} --announce=true`; this returns the action contract without executing the business logic after `eQual::announce()`.
 3. Use the returned `announcement` metadata as JSON representation.
-4. Run `./equal.run --get=core_json-validate` with:
+4. Validate the returned metadata with `core_json-validate`:
    - `--json` parameter: the metadata as JSON string
    - `--schema_id` parameter: `urn:equal:json-schema:core:controller.action`
    - Confirm: no validation errors returned
+   - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
 5. See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
 
 **Required fields in metadata**:

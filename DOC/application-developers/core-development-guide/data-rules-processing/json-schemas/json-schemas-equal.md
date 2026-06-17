@@ -1,6 +1,6 @@
 # eQual JSON Schema Definitions
 
-This directory contains JSON Schema definitions (Draft 2020-12) for major eQual framework components. These schemas are used by the `json-validate` data action.
+This directory contains JSON Schema definitions (Draft 2020-12) for major eQual framework components. These schemas are used by the `json-validate` data action, usually through dedicated consistency controllers that load the target JSON internally.
 
 ---
 
@@ -33,7 +33,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 
 ### 4. **API Route** (`route.json`)
 - **Schema ID**: `urn:equal:json-schema:core:api.route`
-- **Usage**: Validate API route definitions in `config/routing/*.json`
+- **Usage**: Validate API route definitions in `packages/{package}/init/routes/*.json` and generated `config/routing/*.json`
 - **Structure**: Object keyed by URI path (e.g. `"/user/:ids"`) mapping to either:
   - HTTP method descriptors (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, etc.)
   - a shorthand operation string (GET implied)
@@ -52,7 +52,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 6. **List View** (`view.list.default.json`)
-- **Schema ID**: `urn:equal:json-schema:core:view.list.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.list`
 - **Usage**: Validate list/table views (`Model.list.*.json`)
 - **Required fields**: `name`, `layout`
 - **Layout requirements**: `layout.items` is required
@@ -61,7 +61,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 7. **Dashboard View** (`view.dashboard.default.json`)
-- **Schema ID**: `urn:equal:json-schema:core:view.dashboard.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.dashboard`
 - **Usage**: Validate dashboard views (`*.dashboard.*.json`) - composite layouts
 - **Required fields**: `name`, `layout`
 - **Layout requirements**: `layout.items` is required
@@ -71,7 +71,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 8. **Search View** (`view.search.default.json`)
-- **Schema ID**: `urn:equal:json-schema:core:view.search.default`
+- **Schema ID**: `urn:equal:json-schema:core:view.search`
 - **Usage**: Validate search/filter views (`*.search.*.json`)
 - **Required fields**: `name`, `layout`
 - **Layout options**: `layout.groups` (grouped layout) and/or `layout.sections` (flat layout)
@@ -92,7 +92,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 10. **Model Translations** (`model-translations.json`)
-- **Schema ID**: `urn:equal:json-schema:core:model-translations`
+- **Schema ID**: `urn:equal:json-schema:core:model.translations`
 - **Usage**: Validate model/interface translations (`packages/{package}/i18n/{lang}/{Model}.json`)
 - **Supported shapes**:
   - Single translation file object (`name`, `plural`, `description`, `model`, `view`, `error`)
@@ -101,7 +101,7 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ### 11. **Menu Translations** (`menu-translations.json`)
-- **Schema ID**: `urn:equal:json-schema:core:menu-translations`
+- **Schema ID**: `urn:equal:json-schema:core:menu.translations`
 - **Usage**: Validate menu translations (`packages/{package}/i18n/{lang}/menu.*.json`)
 - **Supported shapes**:
   - Single translation file object (`name`, `description`, `view`)
@@ -110,6 +110,8 @@ This directory contains JSON Schema definitions (Draft 2020-12) for major eQual 
 ---
 
 ## Usage Examples
+
+Prefer the consistency controllers below instead of passing raw JSON in a CLI or URL parameter. They avoid command-line escaping issues by loading the JSON file or view from PHP before calling `json-validate`.
 
 ### Validate a Form View
 
@@ -137,9 +139,33 @@ GET http://equal.local/?do=core_test_manifest-consistency
 ### Validate an API Route
 
 ```
-GET http://equal.local/?get=core_json-validate
-  &json={"/users":{"GET":{"operation":"?get=core_model_collect&entity=core\\User","description":"List users"}}}
-  &schema_id=urn:equal:json-schema:core:api.route
+GET http://equal.local/?do=core_test_route-consistency
+  &package=core
+  &file=99-default.json
+```
+
+CLI equivalent:
+
+```
+php run.php --do=core_test_route-consistency --package=core --file=99-default.json
+```
+
+### Validate a Model Translation
+
+```
+php run.php --do=core_test_translation-consistency --entity=core\User --lang=en
+```
+
+### Validate a Menu Definition
+
+```
+php run.php --do=core_test_menu-consistency --package=core --menu_id=settings.left
+```
+
+### Validate a Dashboard View
+
+```
+php run.php --do=core_test_dashboard-consistency --entity=core\alert\Message --view_id=dashboard.default
 ```
 
 ---
@@ -160,10 +186,12 @@ These schemas are retrieved by the `json-schema` data action:
 GET ?get=core_json-schema&id={schema_id}
 ```
 
-And validated by the `json-validate` data action:
+They can be validated directly by the `json-validate` data action when no dedicated consistency controller exists:
 ```
 GET ?get=core_json-validate&schema_id={schema_id}&json={json}&strict={boolean}
 ```
+
+Avoid passing large JSON strings directly in shell commands or URLs. Prefer a consistency controller, or pass JSON through a UTF-8 variable when direct validation is unavoidable.
 
 ---
 

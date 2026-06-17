@@ -11,10 +11,10 @@
 
 ## JSON Schema Validation
 
-- [ ] **Model class validation**: Run `./equal.run --get=core_json-validate --json={json_string} --schema_id=urn:equal:json-schema:core:model.class --package={package}` with:
+- [ ] **Model class validation**:
   - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
-  - Use schema ID: `urn:equal:json-schema:core:model.class`
-  - Use the package name where the entity was created
+  - Validate that JSON representation with schema ID `urn:equal:json-schema:core:model.class` and the package name where the entity was created
+  - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned
 
 ## View Validation
@@ -33,7 +33,7 @@
 - [ ] Translation files were created or updated for all supported languages.
 - [ ] Field translations include `label`, `description`, and `help` where required.
 - [ ] View names and section identifiers introduced by this entity are translated.
-- [ ] **Translation schema validation**: Use schema `urn:equal:json-schema:core:model.translations` for each translation file
+- [ ] **Translation schema validation**: Use `php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}` for each translation file
 
 ## General
 

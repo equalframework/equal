@@ -23,10 +23,9 @@ Validate each modified translation file using the appropriate schema:
 - [ ] **Menu translations** (`i18n/{lang}/menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.translations`
 
 **Validation procedure for each file**:
-- Run `./equal.run --get=core_json-validate` with:
-  - `--json` parameter: the complete translation file content as JSON
-  - `--schema_id` parameter: the appropriate schema ID from above
-  - Confirm: no validation errors returned
-  - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures
+- For model/entity translations, run `php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}`.
+- For menu translations, use `core_json-validate` until a dedicated menu translation consistency controller exists.
+- Confirm no validation errors are returned.
+- See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures.
 
 **Note**: Execute validation for each language file independently to ensure consistency.

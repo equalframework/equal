@@ -22,11 +22,13 @@ Validate the created/updated view file using the appropriate schema based on vie
 - [ ] **List view** (`*.list.*.json`): Use schema `urn:equal:json-schema:core:view.list`
 - [ ] **Dashboard view** (`*.dashboard.*.json`): Use schema `urn:equal:json-schema:core:view.dashboard`
 - [ ] **Search view** (`*.search.*.json`): Use schema `urn:equal:json-schema:core:view.search`
-- [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu.default`
+- [ ] **Menu view** (`menu.*.*.json`): Use schema `urn:equal:json-schema:core:menu`
 
 **Validation procedure**:
 - For model views, run `./equal.run --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}`.
 - In PowerShell, prefer `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}`.
-- For menu views or raw JSON files, use `core_json-validate` with the appropriate schema ID.
+- For dashboard views, `core_test_view-consistency` accepts `dashboard.{name}`; `core_test_dashboard-consistency` is also available when an explicit dashboard-only check is clearer.
+- For menu views, run `php run.php --do=core_test_menu-consistency --package={package} --menu_id={app}.{position}` instead of passing the JSON through the CLI.
+- Use `core_json-validate` only for raw JSON files that have no dedicated consistency controller.
 - Confirm no validation errors are returned.
 - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed procedures.

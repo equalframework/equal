@@ -25,11 +25,13 @@
 - [ ] All newly created JSON files have been validated against their respective schemas
 - [ ] Refer to task-specific VALIDATION.md files for schema validation details
 - [ ] Refer to `AGENTS/00-general/VALIDATION-SCHEMAS.md` for schema IDs and procedures
-- [ ] Use `./equal.run --get=core_json-validate` with appropriate schema IDs for:
-  - Views (form, list, dashboard, search, menu)
-  - Translations (model, menu)
-  - Entities (model class definitions)
-  - Actions/Data providers (controller action metadata)
+- [ ] Prefer dedicated consistency controllers instead of passing full JSON through CLI arguments:
+  - Views: `core_test_view-consistency`
+  - Dashboards: `core_test_dashboard-consistency` or `core_test_view-consistency` with `dashboard.{name}`
+  - Model translations: `core_test_translation-consistency`
+  - Menus: `core_test_menu-consistency`
+  - Package routes: `core_test_route-consistency`
+- [ ] Use `core_json-validate` only for schemas that do not yet have a dedicated consistency controller, such as model class definitions, menu translations, and action/data-provider metadata.
 
 ## Code Quality
 

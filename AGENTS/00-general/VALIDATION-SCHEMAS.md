@@ -2,6 +2,19 @@
 
 When agents create or modify content, they must validate the structure using available JSON schemas.
 
+Prefer dedicated consistency controllers whenever one exists. These controllers load the target file or view internally and call `json-validate` from PHP, which avoids fragile shell escaping for full JSON payloads.
+
+| Content type | Preferred controller |
+| --- | --- |
+| Model views (`form`, `list`, `chart`, `search`, `dashboard`) | `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}` |
+| Dashboard views only | `php run.php --do=core_test_dashboard-consistency --entity={EntityName} --view_id=dashboard.{name}` |
+| Model translations | `php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}` |
+| Menu definitions | `php run.php --do=core_test_menu-consistency --package={package} --menu_id={app}.{position}` |
+| Package route files | `php run.php --do=core_test_route-consistency --package={package} --file={priority-name.json}` |
+| Package manifest | `php run.php --do=core_test_manifest-consistency --package={package}` |
+
+Use `core_json-validate` directly only when no dedicated consistency controller covers the content type, or when validating an in-memory JSON representation such as controller `announcement` metadata.
+
 ## Controller CLI Name Resolution
 
 For action handlers and data providers, the CLI controller name is derived from the PHP file path.
@@ -27,7 +40,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={"name":"Post","fields":{...}} --schema_id=urn:equal:json-schema:core:model.class
+  ./equal.run --get=model_export --entity={EntityName}
+  # then validate the returned JSON representation with core_json-validate.
   ```
 
 ### Views - Form
@@ -37,7 +51,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.form.*.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.form
+  php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=form.{name}
   ```
 
 ### Views - List
@@ -47,7 +61,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.list.*.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.list
+  php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=list.{name}
   ```
 
 ### Views - Chart
@@ -57,7 +71,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.chart.*.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.chart
+  php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=chart.{name}
   ```
 
 ### Views - Dashboard
@@ -67,7 +81,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.dashboard.*.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.dashboard
+  php run.php --do=core_test_dashboard-consistency --entity={EntityName} --view_id=dashboard.{name}
   ```
 
 ### Views - Search
@@ -77,17 +91,17 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **File pattern**: `packages/{package}/views/{EntityName}.search.*.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={view_contents} --schema_id=urn:equal:json-schema:core:view.search
+  php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=search.{name}
   ```
 
 ### Menus
-- **Schema ID**: `urn:equal:json-schema:core:menu.default`
+- **Schema ID**: `urn:equal:json-schema:core:menu`
 - **Usage**: Validate menu definition files
 - **Required fields**: `layout`
 - **File pattern**: `packages/{package}/views/menu.{app}.{position}.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={menu_contents} --schema_id=urn:equal:json-schema:core:menu.default
+  php run.php --do=core_test_menu-consistency --package={package} --menu_id={app}.{position}
   ```
 
 ### Action Handlers
@@ -99,7 +113,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={action_json} --schema_id=urn:equal:json-schema:core:controller.action
+  ./equal.run --do={package}_{path}_{action} --announce=true
+  # then validate the returned announcement JSON with core_json-validate.
   ```
 
 ### Data Providers
@@ -111,7 +126,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={provider_json} --schema_id=urn:equal:json-schema:core:controller.action
+  ./equal.run --get={package}_{path}_{provider} --announce=true
+  # then validate the returned announcement JSON with core_json-validate.
   ```
 
 ### Model Translations
@@ -121,7 +137,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Contains**: Field labels, descriptions, help text, view translations, and error messages
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={translation_contents} --schema_id=urn:equal:json-schema:core:model.translations
+  php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}
   ```
 
 ### Menu Translations
@@ -131,16 +147,18 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Contains**: Menu item labels, descriptions, and layout translations
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={menu_translation_contents} --schema_id=urn:equal:json-schema:core:menu.translations
+  $json = Get-Content -Raw -Encoding UTF8 packages/{package}/i18n/{lang}/menu.{type}.{position}.json
+  php run.php --get=core_json-validate --json="$json" --schema_id=urn:equal:json-schema:core:menu.translations
   ```
+- **Note**: No dedicated menu translation consistency controller exists yet. Avoid inline JSON in PowerShell; pass content through a UTF-8 variable if direct validation is required.
 
 ### API Routes
 - **Schema ID**: `urn:equal:json-schema:core:api.route`
 - **Usage**: Validate API route definitions
-- **File pattern**: `config/routing/{priority}-{name}.json`
+- **File pattern**: `packages/{package}/init/routes/{priority}-{name}.json`
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={route_contents} --schema_id=urn:equal:json-schema:core:api.route
+  php run.php --do=core_test_route-consistency --package={package} --file={priority-name.json}
   ```
 
 ### Package Manifest
@@ -151,7 +169,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  ./equal.run --get=core_json-validate --json={manifest_contents} --schema_id=urn:equal:json-schema:core:package.manifest
+  php run.php --do=core_test_manifest-consistency --package={package}
   ```
 
 ## Validation Procedure
@@ -169,14 +187,26 @@ When running from PowerShell, use the PHP entry point:
 php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}
 ```
 
+### For Other Supported JSON Files
+Prefer the dedicated consistency controller for the file type:
+
+```
+php run.php --do=core_test_translation-consistency --entity={EntityName} --lang={lang}
+php run.php --do=core_test_menu-consistency --package={package} --menu_id={app}.{position}
+php run.php --do=core_test_route-consistency --package={package} --file={priority-name.json}
+php run.php --do=core_test_manifest-consistency --package={package}
+```
+
 ### For JSON Files
+Use this fallback only when no dedicated consistency controller exists.
+
 1. Read the created JSON file
 2. Run `./equal.run --get=core_json-validate` data action with:
    - `--json` parameter: file contents as JSON string
    - `--schema_id` parameter: appropriate schema from table above
    - `--strict=false` for lenient validation (allows missing optional fields)
 
-When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`.
+When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`. Do not embed full JSON directly in the command line.
 
 ### For PHP Files (Actions, Data Providers)
 1. Convert the PHP file structure to JSON representation using the appropriate php command (e.g., `model_export` for entities, `--announce=true` for actions/providers or `packageinfo` for packages)
