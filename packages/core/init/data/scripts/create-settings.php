@@ -112,7 +112,7 @@ $import_data('core\setting\Setting', [
         5  => ['title' => 'Nombre de décimales', 'description' => 'Nombre de décimales', 'help' => "Nombre de décimales à conserver pour les champs de type 'float'."],
         6  => ['title' => 'Format de date', 'description' => 'Format de date', 'help' => "Format pour l'affichage des dates."],
         7  => ['title' => 'Format des heures', 'description' => 'Format des heures', 'help' => "Format pour l'affichage des heures."],
-        8  => ['title' => 'Entreprise', 'description' => "Entreprise de l'installation", 'help' => "Identifiant de l'entreprise principale pour l'installation courante."],
+        8  => ['title' => 'Organisation', 'description' => "Organisation de l'installation", 'help' => "Identifiant de l'organisation principale pour l'installation courante."],
         9  => ['title' => 'Format du papier', 'description' => 'Taille papier par défaut', 'help' => "Taille papier par défaut (e.g. 'A4', 'legal_US', 'letter_US')."],
         10 => ['title' => 'Création de compte', 'description' => 'Autoriser la création de compte', 'help' => 'Autoriser les visiteurs à créer un compte utilisateur.'],
         11 => ['title' => 'Importer', 'description' => "Autoriser l'importation", 'help' => 'Autoriser les utilisateurs à importer des données depuis des fichiers (CSV/XLS/XLSX/ODS).'],
