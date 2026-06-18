@@ -36,13 +36,13 @@ list($params, $providers) = announce([
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
         'accept-origin'     => '*'
-    ],    
-    'providers'     => ['context', 'auth', 'orm'],     // Services are invoked                                   
-    
+    ],
+    'providers'     => ['context', 'auth', 'orm'],     // Services are invoked
+
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_REFRESH_TOKEN_VALIDITY',
-                        'AUTH_TOKEN_HTTPS']    
+                        'AUTH_TOKEN_HTTPS']
 ]);
-``` 
+```
 
 If the service is present in the global `config.inc.php`, it can also be overwritten inside the `config.inc.php` files of the packages. If a controller calls an other controller, the called controller won't access the services the calling controller has access to. There is no inheritance for services between controllers.
 
@@ -50,31 +50,9 @@ If the service is present in the global `config.inc.php`, it can also be overwri
 
 ## Configuration Parameters
 
-The eQual framework allows administrators to define and modify parameters used by controllers via the **Settings** application. These parameters are modeled using the `Setting` entity, providing flexibility and robust contextual configuration.
+The eQual framework allows administrators to define and modify runtime parameters through the **Settings** application. These parameters are modeled with `Setting`, `SettingValue`, and `SettingSequence` records, so package code can resolve contextual values without hard-coding environment-specific behavior.
 
-### Example: Setting Object
-
-```json
-{
-  "id": 5,
-  "code": "numbers.decimal_precision",
-  "title": "Number of decimal digits",
-  "package": "core",
-  "form_control": "select",
-  "section_id": 1,
-  "description": "Number of decimal digits",
-  "help": "Number of decimal digits to store for fields of type 'float'.",
-  "type": "integer"
-}
-```
-
-### Core Concepts
-
-A **Setting** is a configurable parameter, uniquely identified by its `package`, `section`, and `code`. Each setting must be linked to at least one value or sequence to be valid.
-
-* **SettingValues**: Hold the actual value of a setting. Values can be scoped to specific contexts using a **selector** (fields like `user_id`, `organization_id`, etc.).
-* **SettingSequences**: Special settings that manage numeric counters (e.g., invoice numbers). These also support contextual scoping via selectors, allowing separate counters per organization.
-
+For setting structure, naming conventions, sections, and examples, see [Settings](settings.md).
 
 ---
 

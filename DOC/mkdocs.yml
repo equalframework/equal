@@ -68,6 +68,7 @@ nav:
           - 'Concepts & Services':
                - 'Programming Paradigm': 'application-developers/core-development-guide/concepts/programming-paradigm.md'
                - 'Services': 'application-developers/core-development-guide/concepts/services.md'
+               - 'Settings': 'application-developers/core-development-guide/concepts/settings.md'
           - 'Entities & Persistence':
                - 'Entities Overview': 'application-developers/core-development-guide/entities-persistence/entities.md'
                - 'Fields': 'application-developers/core-development-guide/entities-persistence/fields.md'
