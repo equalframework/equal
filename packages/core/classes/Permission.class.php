@@ -144,7 +144,7 @@ class Permission extends Model {
         }
 
         // Check MANAGE right on Permission class
-        return $access->hasRight(self::getType(), EQ_R_MANAGE);
+        return $access->hasRight(EQ_R_MANAGE, self::getType());
     }
 
     protected static function cancreate($self) {
