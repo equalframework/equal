@@ -58,7 +58,6 @@ case 'facebook':
     $data = $response->getBody();
     $id = $data['id'];
     $account_type = 'facebook';
-    $avatar_url = "https://graph.facebook.com/{$id}/picture?height=@size&width=@size";
     list($login, $firstname, $lastname) = [$data['email'], $data['first_name'], $data['last_name']];
     break;
 case 'google':
@@ -72,7 +71,6 @@ case 'google':
     }
     $data = $response->getBody();
     $account_type = 'google';
-    $avatar_url = $data['picture'];
     list($login, $firstname, $lastname) = [$data['email'], $data['given_name'], $data['family_name']];
     break;
 default:
