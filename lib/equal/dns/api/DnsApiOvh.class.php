@@ -13,6 +13,39 @@ use equal\http\HttpRequest;
 
 class DnsApiOvh extends DnsApi {
 
+    /**
+     * OVH API credentials
+     *
+     * This class requires an OVH API access token composed of:
+     *
+     * - Application Key
+     * - Application Secret
+     * - Consumer Key
+     *
+     * Create the token from the OVHcloud token creation page:
+     *
+     * https://auth.eu.ovhcloud.com/api/createToken
+     *
+     * Recommended access rights for managing DNS records on a specific zone:
+     *
+     * GET    /domain/zone/{zone}/record*
+     * POST   /domain/zone/{zone}/record
+     * PUT    /domain/zone/{zone}/record/*
+     * POST   /domain/zone/{zone}/refresh
+     * GET    /auth/time
+     *
+     * Example for zone "example.com":
+     *
+     * GET    /domain/zone/example.com/record*
+     * POST   /domain/zone/example.com/record
+     * PUT    /domain/zone/example.com/record/*
+     * POST   /domain/zone/example.com/refresh
+     * GET    /auth/time
+     *
+     * Do not store credentials directly in source code.
+     * Provide them through environment variables, secured settings or another
+     * non-versioned secret storage mechanism.
+     */
     public function __construct(array $config = []) {
         $config = $this->mergeConfig(self::preset(), $config);
         parent::__construct($config);
