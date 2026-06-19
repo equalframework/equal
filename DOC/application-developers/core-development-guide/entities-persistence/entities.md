@@ -11,7 +11,7 @@ A class is always referred to as an **entity** and belongs to a specific package
 core\setting\SettingValue
 ```
 
----
+
 
 ## Class Definition
 
@@ -56,7 +56,7 @@ class Category extends Model {
 }
 ```
 
----
+
 
 ## Entity Storage
 
@@ -87,7 +87,7 @@ php run.php --do=init_package --package={package} --force=true
 !!! tip "Consistency Testing"
     The action controller `core_test_package-consistency` can help spot any incompatibility or inconsistency in class definitions within a given package.
 
----
+
 
 ## System Fields
 
@@ -114,7 +114,7 @@ Some fields are reserved but optional, with established conventions:
 - **state**: Used when a [workflow](../business-logic/workflows/workflows.md) applies to an entity.
 - **alert**: Used in conjunction with `core\alert` entities. If defined, it is expected to be a computed field.
 
----
+
 
 ## Getter Methods
 
@@ -172,19 +172,110 @@ It is **strongly recommended** to define these methods with **`private` scope** 
 
 Private methods can still be invoked internally within the class, including from lifecycle hooks or custom logic.
 
----
+
 
 ## Entity-Level Access Control
 
+eQual separates structural exposure, authorization, business validity and persistence.
+
+Generic CRUD operations are exposed through the `Collection` layer. Before delegating an operation to the ORM, `Collection` evaluates several independent mechanisms:
+
+1. **Capabilities** define whether the generic operation is structurally exposed for the entity.
+2. **Access control** checks whether the current user has the required rights.
+3. **Policies** check transversal or contextual access rules.
+4. **Operation guards** such as `cancreate`, `canread`, `canupdate` and `candelete` check whether the operation is valid in the current business state.
+5. **ObjectManager** executes the low-level persistence operation.
+
+These mechanisms are complementary and must not be used as substitutes for one another.
+
+| Mechanism                                        | Responsibility                                                                    |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `getCapabilities()`                              | Defines the maximum generic CRUD surface exposed through `Collection`.            |
+| `AccessController`, ACL, groups and roles        | Determine whether the current user has the required rights.                       |
+| `getPolicies()` and policy checks                | Apply transversal or contextual access constraints.                               |
+| `cancreate`, `canread`, `canupdate`, `candelete` | Apply business guards depending on the current object state and requested values. |
+| `getActions()` and workflows                     | Define named business operations and state transitions.                           |
+| `ObjectManager`                                  | Performs low-level persistence and lifecycle operations.                          |
+
+`ObjectManager` is a privileged persistence service. It does not decide whether a user is allowed to perform an operation. User-facing CRUD operations must go through `Collection`, unless the caller is trusted framework code and has already performed the required authorization checks.
+
+
+
 ### Capabilities
 
-Capabilities define, at `Model` level, which generic CRUD operations are structurally exposed for an entity. They also define the user contexts in which those operations are exposed and, for updates, the fields that can be updated through a generic operation.
+Capabilities define which generic CRUD operations are structurally exposed for an entity through `Collection`.
 
-Capabilities complement the existing permission system (`AccessController`, ACL, roles and policies). They answer a different question: whether the generic operation is structurally available before user rights and business rules are evaluated.
+They answer the following question:
+
+> Is this generic operation structurally available for this entity?
+
+They do **not** answer the following question:
+
+> Does this user or group have the right to perform this operation?
+
+User, group and role permissions remain the responsibility of `AccessController`, ACLs, object roles and policies.
+
+Capabilities must therefore be treated as a structural security boundary, not as a business permission system.
 
 Generic `Collection` operations evaluate capabilities before checking ACLs and before running dynamic business rules such as `cancreate`, `canupdate`, `candelete` or `canread`.
 
-#### Entity Flags
+```text
+Controller
+    |
+Collection
+    |
+Capabilities
+    |
+AccessController / ACL / roles
+    |
+Policies
+    |
+Operation guards: cancreate, canread, canupdate, candelete
+    |
+ObjectManager
+    |
+Database
+```
+
+A user must satisfy both:
+
+* the structural capability rule;
+* the effective authorization rules.
+
+If either layer denies the operation, the operation is rejected.
+
+
+
+### Capabilities Are Not ACLs
+
+Capabilities must not encode business groups or user-specific permission rules.
+
+The following approach should be avoided:
+
+```php
+EQ_R_UPDATE => [
+    'accountants' => ['account_id', 'vat_rate'],
+    'sales'       => ['price', 'discount']
+]
+```
+
+This would turn `getCapabilities()` into a second authorization system and would duplicate the role of ACLs, groups or policies.
+
+Instead, capabilities should use generic structural contexts:
+
+```php
+EQ_R_UPDATE => [
+    'root'    => true,
+    'manager' => ['name', 'description', 'status'],
+    'creator' => ['name', 'description']
+]
+```
+
+In this example, `manager` does not mean that the user belongs to a business group named "Managers". It means that the user has the `EQ_R_MANAGE` right on the target class or collection. The question of which users or groups receive `EQ_R_MANAGE` remains handled by ACLs, roles and permissions.
+
+
+
+### Entity Flags
 
 Flags describe structural characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility, auditing, instantiation rules or table mapping.
 
@@ -214,7 +305,18 @@ public static function hasFlag(int $flag): bool {
 }
 ```
 
-#### Defining Capabilities
+Flags and capabilities are related but distinct:
+
+| Mechanism           | Purpose                                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `getFlags()`        | Describes structural properties of the entity.                          |
+| `getCapabilities()` | Defines which generic CRUD operations are exposed through `Collection`. |
+
+For example, an entity marked with `EQ_FLAG_SYSTEM` should usually expose a very limited generic CRUD surface and rely on dedicated controllers for sensitive operations.
+
+
+
+### Defining Capabilities
 
 Each entity can override:
 
@@ -232,9 +334,36 @@ EQ_R_DELETE
 EQ_R_MANAGE
 ```
 
-Capabilities are intended for generic operations exposed through `Collection`, for example `create()`, `read()`, `update()`, `delete()` and generic controllers that call them. Dedicated controllers can still implement a narrower business workflow for sensitive operations.
+Capabilities are intended for generic operations exposed through `Collection`, for example:
 
-#### Capability Grammar
+```php
+create()
+read()
+update()
+delete()
+clone()
+```
+
+Dedicated controllers, named actions and workflows can still implement narrower business operations for sensitive processes.
+
+Examples of sensitive operations that should usually be represented as dedicated actions or workflow transitions rather than generic CRUD updates include:
+
+```text
+validate
+confirm
+cancel
+post
+reopen
+archive
+transfer
+refund
+allocate
+export
+```
+
+
+
+### Capability Grammar
 
 A capability can be global:
 
@@ -258,37 +387,75 @@ EQ_R_DELETE => [
 ]
 ```
 
-The operation is exposed only if the `root` context matches. Contextual capabilities are always written as a map:
+The operation is exposed only if the `root` context matches.
+
+Contextual capabilities are always written as a map:
 
 ```php
 context => rule
 ```
 
-The shorthand form below is intentionally avoided because it is less regular and less explicit:
+The shorthand form below should not be used because it is less explicit and less regular:
 
 ```php
 EQ_R_DELETE => ['root']
 ```
 
-#### Supported Contexts
 
-Capabilities rely on contexts evaluated dynamically by the `AccessController`:
+
+### Supported Capability Contexts
+
+Capabilities rely on contexts evaluated dynamically by `AccessController::hasContext()`:
 
 ```php
 $access->hasContext($context, $object_class, $object_ids);
 ```
 
-| Context   | Description                                                        |
-| --------- | ------------------------------------------------------------------ |
-| `root`    | The root user (`EQ_ROOT_USER_ID`).                                 |
-| `guest`   | The guest user (`EQ_GUEST_USER_ID`).                               |
-| `creator` | The current user is the creator of every object in the collection. |
-| `manager` | The current user has `EQ_R_MANAGE` on the collection.              |
-| `self`    | The current user is acting on its own `core\User` object.          |
+Supported contexts are intentionally limited.
 
-Object-bound contexts such as `creator` must be true for all objects in the collection.
+| Context   | Description                                                           |
+| --------- | --------------------------------------------------------------------- |
+| `root`    | The current user is the root user (`EQ_ROOT_USER_ID`).                |
+| `guest`   | The current user is the guest user (`EQ_GUEST_USER_ID`).              |
+| `self`    | The current user is acting on its own `core\User` object.             |
+| `manager` | The current user has `EQ_R_MANAGE` on the target class or collection. |
+| `creator` | The current user is the creator of every object in the collection.    |
 
-#### Operation Rules
+Object-bound contexts such as `self` and `creator` require existing object identifiers. They are therefore not generally applicable to `CREATE`.
+
+For collections containing several objects, object-bound contexts must match all objects in the collection.
+
+For example, `creator` is true only if the current user is the creator of every targeted object.
+
+
+
+### Contexts Are Structural, Not Business-Specific
+
+Capability contexts must remain structural and generic.
+
+They may describe:
+
+* a system identity, such as `root` or `guest`;
+* a relation between the user and the target object, such as `self` or `creator`;
+* an authorization abstraction, such as `manager`, which delegates to ACL rights.
+
+They must not describe business groups such as:
+
+```text
+accountant
+sales
+support_agent
+booking_operator
+project_manager
+```
+
+These concepts belong to ACLs, groups, object roles, policies or business guards.
+
+A new capability context should only be added if it describes a generic structural relation that can apply across multiple domains. For example, a future `owner` or `assignee` context may be acceptable if it is defined through a clear framework-level convention, but it should not be tied to a business-specific group.
+
+
+
+### Operation Rules
 
 The following operations are evaluated only at operation level:
 
@@ -325,9 +492,9 @@ In this example, `root` can delete. The `manager` context grants no delete capab
 
 `EQ_R_UPDATE` can be evaluated at field level. A contextual rule can expose:
 
-- all technically updatable fields (`true`);
-- no field (`false`);
-- an explicit list of fields.
+* all technically updatable fields with `true`;
+* no field with `false`;
+* an explicit list of fields.
 
 ```php
 EQ_R_UPDATE => [
@@ -337,9 +504,23 @@ EQ_R_UPDATE => [
 ]
 ```
 
-In this example, `root` can update all technically modifiable fields. `manager` can update `name`, `description` and `status`. `creator` can update only `name` and `description`.
+In this example:
 
-#### Interpreting `false`
+* `root` can update all technically modifiable fields;
+* `manager` can update `name`, `description` and `status`;
+* `creator` can update only `name` and `description`.
+
+The list of fields exposed by capabilities is the maximum generic update surface. ACLs, policies, field descriptors and business guards may further restrict the operation, but they must not expand this surface.
+
+Conceptually:
+
+```text
+effective_fields = capabilities ∩ ACL ∩ field_rules ∩ policies ∩ business_rules
+```
+
+
+
+### Interpreting `false`
 
 In a contextual rule, `false` is not a priority denial. It only means that this context grants nothing.
 
@@ -351,52 +532,127 @@ EQ_R_UPDATE => [
 ]
 ```
 
-If the current user is both `creator` and `manager`, the user can update `firstname` and `lastname`. If the current user is both `root` and `creator`, the user keeps the full update capability granted by `root`.
+If the current user is both `creator` and `manager`, the user can update `firstname` and `lastname`.
 
-This avoids reintroducing reject logic in the capability map.
+If the current user is both `root` and `creator`, the user keeps the full update capability granted by `root`.
 
-#### Evaluation Order
+This avoids reintroducing explicit reject logic in the capability map.
+
+Capability rules are grant-only. Denials should be expressed by not granting a capability, or by using ACLs, policies or business guards where a contextual denial is needed.
+
+
+
+### Evaluation Order
 
 For a generic operation:
 
-1. The `Collection` retrieves the rule from `Model::getCapabilities()`.
+1. `Collection` retrieves the rule from `Model::getCapabilities()`.
 2. `true` exposes the operation structurally.
-3. `false` blocks the operation.
+3. `false` blocks the operation structurally.
 4. A contextual map is evaluated with `AccessController::hasContext()`.
 5. For `CREATE`, `READ`, `DELETE` and `MANAGE`, one matching context with `true` exposes the operation.
 6. For `UPDATE`, allowed fields are built from every matching context.
-7. ACLs are then checked with `AccessController::isAllowed()`.
-8. Validation and business rules are then executed.
-9. The operation is finally delegated to the ORM.
-
-```text
-Controller
-    |
-Collection
-    |
-Capabilities
-    |
-AccessController / ACL
-    |
-Validation
-    |
-Business hooks
-    |
-ORM
-```
+7. ACLs are checked with `AccessController::isAllowed()`.
+8. Policies are checked when explicitly required by the operation, field or action.
+9. Validation is executed.
+10. Operation guards such as `cancreate`, `canread`, `canupdate` or `candelete` are executed.
+11. The operation is delegated to `ObjectManager`.
 
 Capabilities and ACLs are complementary:
 
-| Mechanism                     | Question answered                                      |
-| ----------------------------- | ------------------------------------------------------ |
-| `Capabilities`                | Is the generic operation structurally exposed?         |
-| `AccessController` / ACL      | Does the current user have the required rights?        |
-| `canupdate`, `cancreate`, etc | Is the operation valid in the current business state?  |
-| `ObjectManager`               | How is the operation technically executed?             |
+| Mechanism                      | Question answered                                       |
+| ------------------------------ | ------------------------------------------------------- |
+| `Capabilities`                 | Is the generic operation structurally exposed?          |
+| `AccessController` / ACL       | Does the current user have the required rights?         |
+| `Policies`                     | Does the request satisfy contextual access constraints? |
+| `canupdate`, `cancreate`, etc. | Is the operation valid in the current business state?   |
+| `ObjectManager`                | How is the operation technically executed?              |
 
 A user must satisfy both capabilities and ACLs.
 
-#### Default Capabilities
+
+
+### Collection and ObjectManager Responsibilities
+
+`Collection` is the secured façade for generic user-facing CRUD operations.
+
+It is responsible for:
+
+* checking capabilities;
+* checking ACL rights through `AccessController`;
+* applying policies when required;
+* running operation guards;
+* validating values;
+* delegating persistence to `ObjectManager`.
+
+`ObjectManager` is the low-level persistence service.
+
+It is responsible for:
+
+* loading and storing fields;
+* maintaining the object cache;
+* creating, updating, deleting and cloning records;
+* handling relations;
+* computing stored and instant computed fields;
+* triggering lifecycle hooks;
+* applying low-level workflow transitions.
+
+`ObjectManager` does not perform user authorization checks by design. Code handling user input should not call low-level `ObjectManager` CRUD methods directly unless authorization has already been explicitly checked.
+
+Preferred user-facing pattern:
+
+```php
+MyEntity::ids($ids)->update($values);
+```
+
+Privileged internal pattern:
+
+```php
+$orm->update(MyEntity::getType(), $ids, $values);
+```
+
+The second form should be reserved for trusted framework internals, migrations, system controllers, computed field recalculations, maintenance operations or code that has already performed authorization checks.
+
+
+
+### Actions and Workflows
+
+Capabilities govern generic CRUD operations only.
+
+Named business operations should be defined through:
+
+```php
+getActions()
+```
+
+and checked through action policies or `AccessController::canPerform()`.
+
+Workflow transitions should be defined through:
+
+```php
+getWorkflow()
+```
+
+and checked through workflow transition rules, transition domains and transition policies.
+
+A workflow transition should not be treated as a generic update of the workflow status field. It represents a named business operation and should be handled as such.
+
+For example, the following operations should usually be implemented as actions or workflow transitions, not as direct generic updates:
+
+```text
+confirm
+validate
+cancel
+post
+archive
+reopen
+transfer
+refund
+```
+
+
+
+### Default Capabilities
 
 The base `Model` exposes all generic CRUD operations by default:
 
@@ -422,9 +678,13 @@ For entities marked with `EQ_FLAG_SYSTEM`, the default is restricted:
 ]
 ```
 
-System entities should be changed through dedicated controllers instead of generic CRUD operations.
+System entities should usually be changed through dedicated controllers, named actions or privileged internal services instead of generic CRUD operations.
 
-#### Examples
+
+
+### Examples
+
+#### Standard Business Entity
 
 A standard business entity can inherit the default behavior:
 
@@ -438,7 +698,13 @@ public static function getCapabilities(): array {
 }
 ```
 
-A business entity with limited generic updates can define contextual field lists:
+This means generic CRUD operations are structurally exposed. The effective permissions still depend on ACLs, policies and business guards.
+
+
+
+#### Business Entity with Limited Generic Updates
+
+A business entity can expose only a limited generic update surface:
 
 ```php
 public static function getCapabilities(): array {
@@ -464,7 +730,13 @@ public static function getCapabilities(): array {
 }
 ```
 
-An entity editable only by its creator can expose a small update surface:
+In this example, `manager` does not refer to a business group. It refers to users who have `EQ_R_MANAGE` on the class or collection.
+
+
+
+#### Entity Editable by Its Creator
+
+An entity can expose a small update surface to its creator:
 
 ```php
 public static function getCapabilities(): array {
@@ -489,6 +761,12 @@ public static function getCapabilities(): array {
 }
 ```
 
+The `creator` context only exposes the structural capability. The user must still satisfy the required ACL rights.
+
+
+
+#### Abstract Entity
+
 An abstract entity should not expose generic operations directly:
 
 ```php
@@ -507,6 +785,10 @@ public static function getCapabilities(): array {
 }
 ```
 
+
+
+#### Internal Private Entity
+
 An internal private entity can restrict generic access to `root`:
 
 ```php
@@ -524,6 +806,10 @@ public static function getCapabilities(): array {
     ];
 }
 ```
+
+
+
+#### System User Entity
 
 The `core\User` entity is a system entity with explicit generic update limits:
 
@@ -549,23 +835,74 @@ public static function getCapabilities(): array {
 }
 ```
 
-In this example, generic user creation is blocked, reading remains structurally exposed, `root` can update all technically modifiable fields, and `self` can update only the listed profile fields. Sensitive fields such as groups, permissions, passkeys, validation state or status must be changed through dedicated controllers.
+In this example:
+
+* generic user creation is blocked;
+* reading remains structurally exposed;
+* `root` can update all technically modifiable fields;
+* `self` can update only the listed profile fields.
+
+Sensitive fields such as groups, permissions, passkeys, validation state or status must be changed through dedicated controllers, named actions or privileged internal services.
+
+
 
 ### Field Access
 
-eQual handles access permissions on a per-object basis. If a user is granted rights on an object, they have those rights on all fields of the object.
+eQual primarily handles access permissions on a per-object basis. If a user is granted rights on an object, those rights apply to the object as a whole.
 
-If certain information involves distinct usage profiles, consider splitting the object class into smaller entities with distinct rights for each.
+When different fields require different access profiles, prefer one of the following approaches:
 
-**Field behavior modifiers:**
+* split the model into smaller entities with distinct access rules;
+* expose a limited generic update surface through `getCapabilities()`;
+* use policies for contextual access checks;
+* use dedicated controllers or actions for sensitive operations;
+* use field descriptors for UI and technical behavior.
 
-- Fields can have specific behavior based on their descriptor (`readonly`, `required`, `visible`), which can be overridden based on the object's status.
-- Actions involving operations on certain fields can be conditioned by [policies](../security-access/authorization-overview.md#policies).
-- CRUD (Create, Read, Update, Delete) operations execute `can[...]()` methods, which allow filtering operations based on specific criteria.
+Field-level capabilities are currently supported only for `EQ_R_UPDATE`.
+
+They should be used to restrict the maximum generic update surface, not to define business group permissions.
+
+
+
+### Field Behavior Modifiers
+
+Fields can have specific behavior based on their descriptor:
+
+```php
+readonly
+required
+visible
+```
+
+These descriptors affect technical or UI behavior. They do not replace ACLs or capabilities.
+
+For example:
+
+* `readonly` prevents a field from being updated through normal update flows;
+* `visible` affects presentation and should not be treated as a security boundary by itself;
+* `required` affects validation;
+* `policies` can restrict access to fields or operations based on contextual rules.
+
+
 
 ### The `policies` Attribute
 
-The `policies` attribute holds a series of policy names. If any policy is not validated for the current user, access to the related field is denied. This is similar to the `visible` attribute but affects data access rather than just UI rendering.
+The `policies` attribute holds a series of policy names.
+
+If any policy is not validated for the current user, access to the related field or operation is denied.
+
+Policies are useful for contextual rules that do not belong in capabilities or ACLs.
+
+Examples:
+
+* the user must belong to the same organization as the object;
+* the object must be in a specific business state;
+* a time-based or environment-based condition must be satisfied;
+* a sensitive action requires an additional compliance rule.
+
+Policies should not be used to define the structural CRUD surface of an entity. That responsibility belongs to `getCapabilities()`.
+
+
 
 ### The `access` Attribute
 
@@ -580,14 +917,44 @@ The `access` attribute defines field accessibility for the current user:
 ]
 ```
 
-**Visibility levels:**
+Visibility levels:
 
-- **public**: No restriction (default)
-- **protected**: Accessible to authenticated users only
-- **private**: Accessible to root user only (system or CLI)—not revealed to regular users
+| Visibility  | Meaning                                           |
+| ----------- | ------------------------------------------------- |
+| `public`    | No restriction.                                   |
+| `protected` | Accessible to authenticated users only.           |
+| `private`   | Accessible to root user only, system code or CLI. |
 
-!!! note "ACL at Package Initialization"
-    For classes requiring initial Access Control Lists (ACL) and rights based on users and groups, include related JSON files in the `./init` folder of the package for importing those ACL at package initialization.
+The `access` attribute may restrict field access, but it does not replace entity-level capabilities or ACLs.
 
----
 
+
+### ACL at Package Initialization
+
+For classes requiring initial Access Control Lists and rights based on users or groups, include related JSON files in the `./init` folder of the package so they can be imported at package initialization.
+
+ACLs should be used to answer questions such as:
+
+* which groups can read this class;
+* which users can manage this object;
+* which roles imply update rights;
+* which wildcard permissions apply to a package or namespace.
+
+Capabilities should not be used for these questions.
+
+
+
+### Design Rules
+
+The following rules summarize the intended architecture:
+
+1. `getCapabilities()` defines the maximum generic CRUD surface exposed through `Collection`.
+2. Capabilities are structural and must not encode business group permissions.
+3. ACLs, groups and roles determine who has rights.
+4. Policies determine whether contextual access constraints are satisfied.
+5. `cancreate`, `canread`, `canupdate` and `candelete` determine whether the operation is valid in the current business state.
+6. Named business operations should use `getActions()` or workflows.
+7. User-facing CRUD operations should go through `Collection`.
+8. `ObjectManager` is a privileged persistence service and should not be used directly from user-facing code unless authorization has already been checked.
+9. Field-level capabilities are allowed for `EQ_R_UPDATE` only and represent a maximum generic update surface.
+10. Sensitive fields and operations should use dedicated controllers, actions, workflows or internal services rather than generic CRUD exposure.
