@@ -860,6 +860,20 @@ class AccessController extends Service {
         return $this->hasContext($context, $object_class, $objects_ids, $user_id);
     }
 
+    /**
+     * Checks whether the current user matches a structural capability context.
+     *
+     * Capability contexts are not business groups and must not be used as ACL substitutes.
+     * They are intended to express generic structural situations such as:
+     * - root user;
+     * - guest user;
+     * - current user acting on itself;
+     * - current user having MANAGE rights;
+     * - current user being the creator of all targeted objects.
+     *
+     * Group-based, role-based or business-specific authorization must remain handled
+     * by ACLs, roles, policies and operation guards.
+     */
     public function hasContext($context, $object_class, $object_ids=[], $user_id=null): bool {
         if(is_null($user_id)) {
             /** @var \equal\auth\AuthenticationManager */
@@ -867,16 +881,23 @@ class AccessController extends Service {
             $user_id = $auth->userId();
         }
 
+        $object_ids = (array) $object_ids;
+
         switch($context) {
 
             case 'root':
-                return ($user_id === EQ_ROOT_USER_ID);
+                return ((int) $user_id === EQ_ROOT_USER_ID);
 
             case 'guest':
-                return ($user_id === EQ_GUEST_USER_ID);
+                return ((int) $user_id === EQ_GUEST_USER_ID);
 
             case 'self':
-                return (ObjectManager::getObjectRootClass($object_class) === 'core\User' && count($object_ids) === 1 && $object_ids[0] === $user_id && $user_id);
+                return (
+                    ObjectManager::getObjectRootClass($object_class) === 'core\User'
+                    && count($object_ids) === 1
+                    && (int) $object_ids[0] === (int) $user_id
+                    && (int) $user_id > 0
+                );
 
             case 'manager':
                 return $this->hasRight(EQ_R_MANAGE, $object_class, $object_ids, $user_id);
