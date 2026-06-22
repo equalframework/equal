@@ -54,7 +54,7 @@
                 "type": "string",
                 "pattern": "^\\d+%?$"
               },
-              "visible": {"type": "boolean"},
+              "visible": {"$ref": "#/$defs/visibility"},
               "readonly": {"type": "boolean"},
               "sortable": {"type": "boolean"},
               "widget": {
@@ -122,7 +122,8 @@
                   "id": {"type": "string"},
                   "label": {"type": "string"},
                   "icon": {"type": "string"},
-                  "controller": {"type": "string"}
+                  "controller": {"type": "string"},
+                  "visible": {"$ref": "#/$defs/visibility"}
                 }
               },
               "description": "Bulk actions for selected rows"
@@ -142,6 +143,7 @@
           "icon": {"type": "string"},
           "description": {"type": "string"},
           "controller": {"type": "string"},
+          "visible": {"$ref": "#/$defs/visibility"},
           "batch": {
             "type": "boolean",
             "description": "Can be applied to multiple rows"
@@ -149,6 +151,52 @@
         }
       },
       "description": "Row and batch actions"
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "icon": {"type": "string"},
+          "description": {"type": "string"},
+          "route": {"type": "string"},
+          "context": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Target user context (admin/user)"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "entity": {"type": "string"},
+                  "view": {"type": "string"},
+                  "domain": {"type": "array"},
+                  "reset": {"type": "boolean"}
+                },
+                "description": "Navigation context with entity and view reference"
+              }
+            ]
+          },
+          "visible": {"$ref": "#/$defs/visibility"}
+        }
+      },
+      "description": "Available list routes"
+    }
+  },
+  "$defs": {
+    "visibility": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "array",
+          "description": "Conditional visibility domain"
+        }
+      ]
     }
   },
   "additionalProperties": true

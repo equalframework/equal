@@ -127,7 +127,7 @@
               ]
             },
             "visible": {
-              "type": "boolean"
+              "$ref": "#/$defs/visibility"
             }
           }
         }
@@ -150,7 +150,7 @@
             "description": "Show confirmation dialog"
           },
           "visible": {
-            "type": "boolean"
+            "$ref": "#/$defs/visibility"
           }
         }
       },
@@ -206,7 +206,7 @@
           "pattern": "^\\d+%?$"
         },
         "visible": {
-          "type": "boolean"
+          "$ref": "#/$defs/visibility"
         },
         "readonly": {
           "type": "boolean"
@@ -241,6 +241,17 @@
           "description": "Widget configuration"
         }
       }
+    },
+    "visibility": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "array",
+          "description": "Conditional visibility domain"
+        }
+      ]
     }
   },
   "additionalProperties": true
