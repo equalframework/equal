@@ -145,15 +145,6 @@ class Mail extends Model {
     public static function send(Email $email, string $object_class = '', int $object_id = 0): int {
         $mail = self::createMail($email, $object_class, $object_id);
 
-        // ensure attachments contain binary data (createMail uses base64 for JSON safety)
-        if(isset($mail['attachments']) && count($mail['attachments'])) {
-            foreach($mail['attachments'] as &$attachment) {
-                if(isset($attachment['data'])) {
-                    $attachment['data'] = base64_decode($attachment['data']);
-                }
-            }
-        }
-
         try {
             // get SMTP mailer
             $mailer = Mailer::create(constant('EMAIL_TRANSPORT') ?? 'smtp');
@@ -360,8 +351,8 @@ class Mail extends Model {
             throw new \Exception('failed_creating_mail', EQ_ERROR_UNKNOWN);
         }
 
-        // export resulting message as array
-        return $email->setId($mail['id'])->toArray();
+        // export resulting message as array with attachment data encoded in base64
+        return $email->setId($mail['id'])->toArray(true);
     }
 
     private static function emailFromArray(array $message): Email {
