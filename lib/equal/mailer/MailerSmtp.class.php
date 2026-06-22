@@ -192,9 +192,9 @@ class MailerSmtp extends Mailer {
             throw new \Exception("mailer_not_created");
         }
 
-        // Build a "message" array compatible with createEnvelope()
-        // Email::toArray() already matches what createEnvelope expects (to, subject, body, attachments, content-type, cc, bcc, reply_to, ...)
-        $message = $email->toArray();
+        // Build a "message" array compatible with createEnvelope().
+        // #memo - SMTP attachments must keep raw data (while the spool representation uses base64).
+        $message = $email->toArray(false);
 
         $envelope = $this->createEnvelope($message, $options);
         if(!$envelope) {

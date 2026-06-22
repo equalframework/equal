@@ -122,7 +122,7 @@ class Email {
         return $this;
     }
 
-    public function toArray() {
+    public function toArray(bool $encode_attachments = true) {
         // #memo - 'from' field cannot differ from the email account used for sending (@see config file)
         $values = [
             'id'            => $this->id,
@@ -140,7 +140,7 @@ class Email {
                 $values['attachments'][] = [
                     'name'  => $attachment->name,
                     'type'  => $attachment->content_type,
-                    'data'  => base64_encode($attachment->data)
+                    'data'  => $encode_attachments ? base64_encode($attachment->data) : $attachment->data
                 ];
             }
         }
