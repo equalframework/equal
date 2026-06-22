@@ -13,19 +13,24 @@ These rules apply whenever the agent runs commands from PowerShell.
 
 ## Avoid fragile JSON escaping in CLI args
 
-- Avoid embedding large JSON directly in command arguments when possible.
-- Prefer dedicated consistency controllers over passing complete JSON payloads to `core_json-validate`:
+- In PowerShell, do not pass raw JSON literals directly in command arguments.
+- Use dedicated consistency controllers for supported file types:
   - Model views: `php run.php --do=core_test_view-consistency --entity=<Entity> --view_id=<type.name>`
   - Dashboard views: `php run.php --do=core_test_dashboard-consistency --entity=<Entity> --view_id=dashboard.<name>`
   - Model translations: `php run.php --do=core_test_translation-consistency --entity=<Entity> --lang=<lang>`
   - Menu definitions: `php run.php --do=core_test_menu-consistency --package=<package> --menu_id=<app.position>`
   - Package route files: `php run.php --do=core_test_route-consistency --package=<package> --file=<priority-name.json>`
-- Use `core_json-validate` from PowerShell only when no dedicated consistency controller covers the file type.
-- If direct schema validation is unavoidable, prefer assigning JSON to a variable first:
+- Use this pattern for direct schema validation with `core_json-validate`:
   - `$json = Get-Content -Raw -Encoding UTF8 path/to/file.json`
-  - `php run.php --get=core_json-validate --json="$json" --schema_id=... --strict=false`
-- If a command behaves strangely with pretty JSON, compact the JSON before passing it:
+  - `php run.php --get=core_json-validate --json="$json" --schema_id=<schema> --package=<package> --strict=false`
+- Use compact JSON for direct schema validation:
   - `$json = Get-Content -Raw -Encoding UTF8 path/to/file.json | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress`
+  - `php run.php --get=core_json-validate --json="$json" --schema_id=<schema> --package=<package> --strict=false`
+- Use PowerShell's stop-parsing marker for inline PHP smoke tests that require exact nested quotes:
+  - Place `--%` immediately after `php`.
+  - PowerShell passes the rest of the line through literally.
+  - `php --% -r "var_export($argv);" -- --json={"name":"Test","layout":{"groups":[]}}`
+- Use normal `php run.php ...` commands for eQual controllers. Reserve `php --% -r ...` for inline PHP snippets and quote-preservation checks.
 
 ## Run eQual commands through the PHP entry point
 
@@ -35,12 +40,19 @@ These rules apply whenever the agent runs commands from PowerShell.
 
 ## Avoid PowerShell parsing surprises
 
-- Avoid regex patterns containing raw pipes (`|`) in shell commands. Use multiple `rg -e` patterns instead:
-  - Good: `rg -e '"section.invite"' -e '"section.minutes"' packages/realestate`
-  - Avoid: `rg '"section.invite"|"section.minutes"' packages/realestate`
-- Quote paths with spaces using `-LiteralPath` where available.
-- Prefer `rg --files`, `rg -n`, and `rg -e` over complex PowerShell pipelines when searching.
-- Do not rely on GNU/Linux options for PowerShell cmdlets. Example: older PowerShell versions may not support `Format-Hex -Count`; use simpler reads or version-compatible alternatives.
+- Use multiple `rg -e` flags instead of raw regex pipes (`|`) in search commands:
+  - `rg -e '"section.invite"' -e '"section.minutes"' packages/realestate`
+- Use `-LiteralPath` for paths supplied to PowerShell cmdlets:
+  - `Get-Content -Raw -Encoding UTF8 -LiteralPath "path/to/file.json"`
+  - `Remove-Item -LiteralPath "path/to/file.tmp"`
+- Use `rg --files`, `rg -n`, and `rg -e` for repository searches:
+  - `rg --files packages/core`
+  - `rg -n -e "needle" packages/core`
+- Use PowerShell-compatible cmdlet options only. Keep file inspection commands simple:
+  - `Get-Content -TotalCount 40 -LiteralPath "path/to/file"`
+  - `Get-Content -Tail 40 -LiteralPath "path/to/file"`
+- Use `php --% -r ...` for inline PHP snippets that need literal quotes or braces:
+  - `php --% -r "var_export($argv);" -- --json={"name":"Test"}`
 
 ## Git and output interpretation
 
