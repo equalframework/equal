@@ -107,13 +107,12 @@ elseif(preg_match('/^[0-9]+\.[0-9]+/', $version)) {
 
             $response['commit'] = $commit;
 
-            $latest_request = new HttpRequest("https://api.github.com/repos/fmt-saas/fmt/commits");
+            $githubRequest = new HttpRequest("https://api.github.com/repos/fmt-saas/fmt/commits");
+            $githubResponse = $githubRequest->send();
+            $github_data = $githubResponse->getBody();
 
-            $latest_response = $latest_request->send();
-            $latest_data = $latest_response->getBody();
-
-            if(!empty($latest_data[0]['sha'])) {
-                $latest_commit = substr($latest_data[0]['sha'], 0, 8);
+            if(!empty($github_data[0]['sha'])) {
+                $latest_commit = substr($github_data[0]['sha'], 0, 8);
                 $response['up_to_date'] = $latest_commit === $commit;
             }
 
