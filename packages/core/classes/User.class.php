@@ -398,8 +398,8 @@ class User extends Model {
 
             EQ_R_UPDATE => [
                 'root'      => true,
-                'creator'   => ['firstname', 'lastname', 'language', 'password', 'groups_ids'],
-                'self'      => ['firstname', 'lastname', 'language', 'password']
+                'creator'   => ['name', 'firstname', 'lastname', 'language', 'password', 'groups_ids'],
+                'self'      => ['name', 'firstname', 'lastname', 'language', 'password']
             ],
 
             EQ_R_DELETE => [
