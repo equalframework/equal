@@ -51,6 +51,20 @@ if(is_dir(EQ_BASEDIR . '/.git')) {
             $response['commit'] = $commit;
         }
 
+        $upstream = trim(shell_exec(
+            'git -C ' . escapeshellarg(EQ_BASEDIR) . ' rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null'
+        ));
+
+        if($upstream) {
+            $latest_commit = trim(shell_exec(
+                'git -C ' . escapeshellarg(EQ_BASEDIR) . ' rev-parse --short ' . escapeshellarg($upstream)
+            ));
+
+            if($latest_commit) {
+                $response['up_to_date'] = $latest_commit === $commit;
+            }
+        }
+
         $date = trim(shell_exec(
             'git -C ' . escapeshellarg(EQ_BASEDIR) . ' log -1 --format=%cd --date=format:%Y.%m.%d'
         ));
@@ -92,6 +106,17 @@ elseif(preg_match('/^[0-9]+\.[0-9]+/', $version)) {
             }
 
             $response['commit'] = $commit;
+
+            $latest_request = new HttpRequest("https://api.github.com/repos/fmt-saas/fmt/commits");
+
+            $latest_response = $latest_request->send();
+            $latest_data = $latest_response->getBody();
+
+            if(!empty($latest_data[0]['sha'])) {
+                $latest_commit = substr($latest_data[0]['sha'], 0, 8);
+                $response['up_to_date'] = $latest_commit === $commit;
+            }
+
             $source = 'github';
         }
     }
