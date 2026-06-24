@@ -42,12 +42,15 @@ list($params, $providers) = eQual::announce([
 ['context' => $context, 'orm' => $om, 'auth' => $auth] = $providers;
 
 // we might have received either a login (email) or a username
+
+// if provided login is an email address, attempt to resolve by login
 if(strpos($params['login'], '@') > 0) {
     // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
     list($username, $domain) = explode('@', strtolower(trim($params['login'])));
     $username .= '+';
     $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
 }
+// other format: attempt to resolve through username
 else {
     // find a user that matches the given username (there should be only one)
     $user = User::search(['username', '=', $params['login']])->read(['login'])->first();
