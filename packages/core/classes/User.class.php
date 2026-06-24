@@ -372,6 +372,13 @@ class User extends Model {
         ];
     }
 
+    public function getIndexes(): array {
+        return [
+            ['login'],
+            ['username']
+        ];
+    }
+
     /**
      * Defines structural capabilities for User entities.
      *
