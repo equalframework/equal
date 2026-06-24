@@ -121,6 +121,63 @@ Report::create()->do('init');
 
 Each action can define `policies` to restrict access.
 
+### ORM Actions and Synchronization Logic
+
+When a model needs to run synchronization logic, prefer exposing it as an ORM action instead of calling a private helper directly.
+
+Recommended pattern:
+
+```php
+public static function getActions() {
+  return array_merge(parent::getActions(), [
+    'sync_primary_lang' => [
+      'description' => 'Synchronize the primary language.',
+      'policies'    => [],
+      'function'    => 'doSyncPrimaryLang'
+    ]
+  ]);
+}
+```
+
+Implement the logic in a `do*` method:
+
+```php
+protected static function doSyncPrimaryLang($self) {
+  // synchronization logic
+}
+```
+
+Trigger the action from hooks by chaining on `$self`:
+
+```php
+protected static function onupdateLangId($self) {
+  $self->do('sync_primary_lang');
+}
+```
+
+Avoid bypassing the ORM action entry point:
+
+```php
+self::syncPrimaryLang($self);
+```
+
+Using ORM actions keeps business operations explicit, reusable, and consistent with the framework's execution model. It also makes synchronization behavior easier to trigger from other workflows, tests, controllers, or future batch operations.
+
+### Avoid Multiplying Public Helpers
+
+Do not add public helper methods unless they are clearly required by an existing consumer or a stable cross-entity API.
+
+Avoid adding narrowly scoped helpers such as:
+
+```php
+public static function getUsedLangCodes(...)
+public static function getPrimaryLangCode(...)
+```
+
+Prefer keeping business behavior inside model fields, actions, policies, or dedicated data providers depending on how the behavior is consumed.
+
+Unnecessary helpers increase the public API surface and make future refactoring harder. For model synchronization, a named ORM action is usually the better abstraction.
+
 ------
 
 ## 🎨 Views (`views/*.json`)

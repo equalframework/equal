@@ -19,3 +19,5 @@
 19. Use `--announce=true` to inspect or validate a controller contract without executing its business logic after `eQual::announce()`.
 20. When one controller must call another, use `eQual::run('do', '{controller}', $params)` for action handlers and `eQual::run('get', '{controller}', $params)` for data providers; do not duplicate the target controller logic.
 21. When testing a controller that calls another controller, verify both the caller behavior and the target controller contract, using `--announce=true` on the target when only its declared params/response need to be checked.
+22. For model synchronization logic, prefer a named ORM action triggered with `$self->do('action_name')` from hooks instead of a private helper call.
+23. Do not add public model helper methods unless an existing consumer or stable cross-entity API clearly requires them.

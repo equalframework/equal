@@ -11,9 +11,10 @@ Unless explicitly told otherwise:
 2. Read the required instruction files from the routing table.
 3. When running commands from PowerShell, read and follow `AGENTS/00-general/POWERSHELL.md`.
 4. If a task impacts multiple layers (for example class + view + i18n), read every matching task folder before making changes.
-5. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
-6. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
-7. Finish every task by running:
+5. For model behavior involving hooks, synchronization logic, ORM actions, or public helper APIs, follow the related conventions in `AGENTS/AGENTS_REFERENCE.md`.
+6. For any task that creates or modifies `packages/**/classes/*.class.php`, run `./equal.run --do=test_db-access` before package initialization. If it exits `0`, continue. If the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
+7. After any `packages/{package}/classes/*.class.php` change, reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true`.
+8. Finish every task by running:
    - the task-specific `VALIDATION.md`
    - `AGENTS/00-general/VALIDATION.md`
    - `AGENTS/90-final-validation/VALIDATION.md`

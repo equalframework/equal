@@ -14,22 +14,24 @@
 14. Avoid side effects inside computed logic, especially `update()` calls.
 15. Add uniqueness rules with `getUnique()` when the entity has a natural or business key.
 16. Add business validations in `cancreate()`, `canupdate()`, `candelete()`, or dedicated methods when the entity has lifecycle constraints.
-17. Add entity actions in `getActions()` only when there is an actual business operation to expose.
-18. If actions are added, implement the corresponding methods and add their translations.
-19. Create the default form view in `{package}/views/{namespace}/{Entity}.form.default.json`.
-20. Create the default list view in `{package}/views/{namespace}/{Entity}.list.default.json`.
-21. For view conventions and implementation details, follow `AGENTS/30-create-or-update-view/INSTRUCTIONS.md`.
-22. Add translations for every existing language folder already supported by the package, not a hardcoded language set.
-23. Place translations at `{package}/i18n/{lang}/{namespace}/{Entity}.json` when the namespace maps to subfolders.
-24. Translate all model fields with `label`, `description`, and `help`, including technical or invisible fields.
-25. Translate every created view entry, including view `name`, `description`, `actions`, `routes`, `exports`, and `layout.section.*` labels.
-26. Add custom error messages in the `error` block when validations return business error keys.
-27. Add action handlers in `actions/` or data providers in `data/` only if the new entity requires dedicated endpoints or custom data rendering.
-28. Add seed/init data only if the entity is a reference entity that must exist by default.
-29. Avoid modifying unrelated entities, views, or translations unless a relation or navigation requirement makes it necessary.
-30. Run a consistency pass on filenames, namespaces, relation targets, translation paths, and view ids.
-31. Before package initialization, run `./equal.run --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
-32. Reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true` after creating the entity class.
-33. Validate the package with `./equal.run --do=test_package-consistency --package={package}` when the environment allows it.
-34. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
-35. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.
+17. When the entity needs synchronization logic, expose it as a named ORM action in `getActions()` and trigger it with `$self->do('action_name')` from hooks instead of calling a private helper directly.
+18. Avoid adding public helper methods unless an existing consumer or stable cross-entity API clearly requires them.
+19. Add entity actions in `getActions()` only when there is an actual business operation to expose.
+20. If actions are added, implement the corresponding methods and add their translations.
+21. Create the default form view in `{package}/views/{namespace}/{Entity}.form.default.json`.
+22. Create the default list view in `{package}/views/{namespace}/{Entity}.list.default.json`.
+23. For view conventions and implementation details, follow `AGENTS/30-create-or-update-view/INSTRUCTIONS.md`.
+24. Add translations for every existing language folder already supported by the package, not a hardcoded language set.
+25. Place translations at `{package}/i18n/{lang}/{namespace}/{Entity}.json` when the namespace maps to subfolders.
+26. Translate all model fields with `label`, `description`, and `help`, including technical or invisible fields.
+27. Translate every created view entry, including view `name`, `description`, `actions`, `routes`, `exports`, and `layout.section.*` labels.
+28. Add custom error messages in the `error` block when validations return business error keys.
+29. Add action handlers in `actions/` or data providers in `data/` only if the new entity requires dedicated endpoints or custom data rendering.
+30. Add seed/init data only if the entity is a reference entity that must exist by default.
+31. Avoid modifying unrelated entities, views, or translations unless a relation or navigation requirement makes it necessary.
+32. Run a consistency pass on filenames, namespaces, relation targets, translation paths, and view ids.
+33. Before package initialization, run `./equal.run --do=test_db-access`; if the configured database does not exist, ensure `config/config.json` exists and is valid, then run `./equal.run --do=init_db`.
+34. Reinitialize the impacted package with `./equal.run --do=init_package --package={package} --force=true` after creating the entity class.
+35. Validate the package with `./equal.run --do=test_package-consistency --package={package}` when the environment allows it.
+36. If the entity introduces user-facing behavior, document any non-obvious view or workflow behavior in package docs when relevant.
+37. Refer to `AGENTS.md` and framework docs under `DOC/docs/application-developers/core-development-guide` for detailed conventions.
