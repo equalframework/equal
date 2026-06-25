@@ -106,7 +106,7 @@ if(!count($data)) {
     ];
 
     if(method_exists($model, 'getUnique')) {
-        $data['unique'] = $model->getUnique();
+        $data['unique'] = $model->getUniques();
     }
 
     if(method_exists($model, 'getDefaults')) {
@@ -122,8 +122,6 @@ if(!count($data)) {
             elseif(is_string($default_value) && strpos($default_value, '::')) {
                 list($class_name, $method_name) = explode('::', $default_value);
                 if(method_exists($class_name, $method_name)) {
-                    /** @var \equal\orm\ObjectManager */
-                    $orm = $container->get('orm');
                     $default_value = $orm->callonce($class_name, $method_name);
                 }
             }
