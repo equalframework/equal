@@ -748,7 +748,7 @@ namespace config {
                 if( $method === 'GET'
                     && isset($announcement['response']['cacheable'])
                     && $announcement['response']['cacheable']
-                    && (!isset($body['announce']) || $body['announce']) ) {
+                    && !isset($body['announce']) ) {
                     // compute the cache ID
                     // remove 'cache' param from URI, if present
                     $request_id = trim(preg_replace('/&cache=[^&]*&/', '&', $request->uri().'&'), '&');
