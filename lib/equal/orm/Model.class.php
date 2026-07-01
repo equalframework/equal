@@ -498,7 +498,7 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Returns the associative array mapping policies names with related descriptors.
+     * Returns the associative array mapping names of available policies for current entity with related descriptors.
      * This method is meant to be overridden by children classes.
      *
      * A policy descriptor contains a description and a pointer to the policy handler (method).
@@ -523,6 +523,70 @@ class Model implements \ArrayAccess, \Iterator {
      *
      */
     public static function getActions() {
+        return [];
+    }
+
+    /**
+     * Returns the associative array mapping generic Collection operations with the policy rules that must be complied with.
+     * This method is meant to be overridden by children classes.
+     *
+     * Operation policies are used to condition generic CRUD operations according to contextual or transversal rules.
+     * They do not define the structural CRUD surface of the entity: this is the responsibility of getCapabilities().
+     * They do not grant permissions to users or groups either: this remains the responsibility of ACLs, roles and AccessController.
+     *
+     * Operation policies are evaluated after capabilities and ACLs, and before operation guards such as canCreate(), canRead(),
+     * canUpdate() and canDelete().
+     *
+     * Each operation must be indexed by a CRUD right constant.
+     * Each operation maps to a set of scopes.
+     *
+     * The "*" scope defines the default rule for the whole operation.
+     *
+     * For update operations, field names may be used as scopes.
+     * Field-scoped rules apply only when the related field is involved in the operation.
+     *
+     * A scope rule can be:
+     *
+     * - true: the scope is allowed without additional policy at this level;
+     * - false: the scope is denied;
+     * - an array of policy names declared by getPolicies(): the scope is allowed only if all listed policies are satisfied.
+     *
+     * Field-scoped rules do not expose fields by themselves.
+     * They only restrict fields that are already exposed by capabilities, ACLs and field descriptors.
+     *
+     * If a field has no explicit rule, it inherits the "*" rule.
+     * If "*" is false, fields are denied by default unless they define their own explicit rule.
+     *
+     * Operation policy map example:
+     *
+     *  EQ_R_UPDATE => [
+     *      '*' => [
+     *          'same_organization'
+     *      ],
+     *
+     *      'name' => true,
+     *
+     *      'description' => [
+     *          'editable_state'
+     *      ],
+     *
+     *      'amount' => [
+     *          'accounting_period_open',
+     *          'not_posted'
+     *      ],
+     *
+     *      'internal_reference' => false
+     *  ],
+     *
+     *  EQ_R_DELETE => [
+     *      '*' => [
+     *          'same_organization',
+     *          'deletable_state'
+     *      ]
+     *  ]
+     *
+     */
+    public static function getOperationPolicies() {
         return [];
     }
 

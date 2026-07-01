@@ -141,6 +141,7 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getRoles()           | Returns the list of [roles](../business-logic/actions.md#groups-vs-roles) explicitly associated with the entity.           |
 | getActions()         | Returns a list of available [actions](../business-logic/actions.md) that can be triggered on the entity.                 |
 | getPolicies()        | Returns the [access control policies](../security-access/access-control-lists.md) applicable to the entity. |
+| getOperationPolicies() | Returns a map of generic Collection operations with one or more policies the entity must comply with in order to be allowed.                                     |
 | getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
 | getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
 | getSchema()          | Returns the full schema of the entity, including system fields.                                           |
@@ -150,19 +151,19 @@ This convention ensures a clear and controlled interface for exposing object dat
 
 | **Method**       | **Description**                                                                   |
 | ---------------- | --------------------------------------------------------------------------------- |
-| canRead()        | Check whether the current user can read the object. Returns an array of errors.   |
-| canCreate()      | Check whether the current user can create the object. Returns an array of errors. |
-| canUpdate()      | Check whether the current user can update the object. Returns an array of errors. |
-| canDelete()      | Check whether the current user can delete the object. Returns an array of errors. |
-| canClone()       | Check whether the current user can clone the object. Returns an array of errors.  |
-| onCreate()       | Hook invoked after object creation for performing additional operations.          |
-| onBeforeUpdate() | Hook invoked before object update for performing additional operations.           |
-| onUpdate()       | Alias of `onBeforeUpdate()`.                                                      |
-| onAfterUpdate()  | Hook invoked after object update for performing additional operations.            |
-| onBeforeDelete() | Hook invoked before object deletion for performing additional operations.         |
-| onDelete()       | Alias of `onBeforeDelete()`.                                                      |
-| onAfterDelete()  | Hook invoked after object deletion for performing additional operations.          |
-| onClone()        | Hook invoked after object cloning for performing additional operations.           |
+| canread()        | Check whether the current user can read the object. Returns an array of errors.   |
+| cancreate()      | Check whether the current user can create the object. Returns an array of errors. |
+| canupdate()      | Check whether the current user can update the object. Returns an array of errors. |
+| candelete()      | Check whether the current user can delete the object. Returns an array of errors. |
+| canclone()       | Check whether the current user can clone the object. Returns an array of errors.  |
+| oncreate()       | Hook invoked after object creation for performing additional operations.          |
+| onbeforeupdate() | Hook invoked before object update for performing additional operations.           |
+| onupdate()       | Alias of `onBeforeUpdate()`.                                                      |
+| onafterupdate()  | Hook invoked after object update for performing additional operations.            |
+| onbeforedelete() | Hook invoked before object deletion for performing additional operations.         |
+| ondelete()       | Alias of `onBeforeDelete()`.                                                      |
+| onafterdelete()  | Hook invoked after object deletion for performing additional operations.          |
+| onclone()        | Hook invoked after object cloning for performing additional operations.           |
 
 ## Custom Methods
 
@@ -176,29 +177,29 @@ Private methods can still be invoked internally within the class, including from
 
 ## Entity-Level Access Control
 
-eQual separates structural exposure, authorization, business validity and persistence.
+eQual separates structural exposure, authorization, contextual access rules, business validity and persistence.
 
 Generic CRUD operations are exposed through the `Collection` layer. Before delegating an operation to the ORM, `Collection` evaluates several independent mechanisms:
 
 1. **Capabilities** define whether the generic operation is structurally exposed for the entity.
 2. **Access control** checks whether the current user has the required rights.
-3. **Policies** check transversal or contextual access rules.
-4. **Operation guards** such as `cancreate`, `canread`, `canupdate` and `candelete` check whether the operation is valid in the current business state.
+3. **Operation policies** check whether the operation is allowed in the current context.
+4. **Operation guards** such as `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()` check whether the requested operation is valid for the target object in its current business state.
 5. **ObjectManager** executes the low-level persistence operation.
 
 These mechanisms are complementary and must not be used as substitutes for one another.
 
-| Mechanism                                        | Responsibility                                                                    |
-| ------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `getCapabilities()`                              | Defines the maximum generic CRUD surface exposed through `Collection`.            |
-| `AccessController`, ACL, groups and roles        | Determine whether the current user has the required rights.                       |
-| `getPolicies()` and policy checks                | Apply transversal or contextual access constraints.                               |
-| `cancreate`, `canread`, `canupdate`, `candelete` | Apply business guards depending on the current object state and requested values. |
-| `getActions()` and workflows                     | Define named business operations and state transitions.                           |
-| `ObjectManager`                                  | Performs low-level persistence and lifecycle operations.                          |
+| Mechanism                                                | Responsibility                                                                          |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `getCapabilities()`                                      | Defines the maximum generic CRUD surface exposed through `Collection`.                  |
+| `AccessController`, ACL, groups and roles                | Determine whether the current user has the required rights.                             |
+| `getPolicies()`                                          | Declares the policies available on the entity.                                          |
+| `getOperationPolicies()`                                 | Associates generic `Collection` operations with one or more policies.                   |
+| `canCreate()`, `canRead()`, `canUpdate()`, `canDelete()` | Apply local business guards depending on the current object state and requested values. |
+| `getActions()` and workflows                             | Define named business operations and state transitions.                                 |
+| `ObjectManager`                                          | Performs low-level persistence and lifecycle operations.                                |
 
-`ObjectManager` is a privileged persistence service. It does not decide whether a user is allowed to perform an operation. User-facing CRUD operations must go through `Collection`, unless the caller is trusted framework code and has already performed the required authorization checks.
-
+`ObjectManager` is a privileged persistence service. It does not decide whether a user is allowed to perform an operation. User-facing CRUD operations must go through `Collection`, unless the caller is trusted framework code and has already performed the required authorization and business checks.
 
 
 ### Capabilities
@@ -209,15 +210,21 @@ They answer the following question:
 
 > Is this generic operation structurally available for this entity?
 
-They do **not** answer the following question:
+They do **not** answer the following questions:
 
 > Does this user or group have the right to perform this operation?
 
-User, group and role permissions remain the responsibility of `AccessController`, ACLs, object roles and policies.
+> Is this operation allowed in the current business or security context?
+
+User, group and role permissions remain the responsibility of `AccessController`, ACLs and object roles.
+
+Contextual rules remain the responsibility of policies.
+
+Business validity remains the responsibility of operation guards such as `canCreate()`, `canUpdate()` and `canDelete()`.
 
 Capabilities must therefore be treated as a structural security boundary, not as a business permission system.
 
-Generic `Collection` operations evaluate capabilities before checking ACLs and before running dynamic business rules such as `cancreate`, `canupdate`, `candelete` or `canread`.
+Generic `Collection` operations evaluate capabilities before checking ACLs, operation policies and dynamic business guards.
 
 ```text
 Controller
@@ -228,22 +235,23 @@ Capabilities
     |
 AccessController / ACL / roles
     |
-Policies
+Operation policies
     |
-Operation guards: cancreate, canread, canupdate, candelete
+Operation guards: canCreate(), canRead(), canUpdate(), canDelete()
     |
 ObjectManager
     |
 Database
 ```
 
-A user must satisfy both:
+A user must satisfy all applicable layers:
 
 * the structural capability rule;
-* the effective authorization rules.
+* the effective authorization rules;
+* the operation policies;
+* the operation guards.
 
-If either layer denies the operation, the operation is rejected.
-
+If any layer denies the operation, the operation is rejected.
 
 
 ### Capabilities Are Not ACLs
@@ -259,20 +267,246 @@ EQ_R_UPDATE => [
 ]
 ```
 
-This would turn `getCapabilities()` into a second authorization system and would duplicate the role of ACLs, groups or policies.
+This would turn `getCapabilities()` into a second authorization system and would duplicate the role of ACLs, groups, roles or policies.
 
-Instead, capabilities should use generic structural contexts:
+Instead, capabilities should only describe the maximum generic CRUD surface exposed by the entity.
+
+For example:
 
 ```php
-EQ_R_UPDATE => [
-    'root'    => true,
-    'manager' => ['name', 'description', 'status'],
-    'creator' => ['name', 'description']
-]
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => true,
+        EQ_R_READ   => true,
+        EQ_R_UPDATE => true,
+        EQ_R_DELETE => false,
+        EQ_R_MANAGE => true
+    ];
+}
 ```
 
-In this example, `manager` does not mean that the user belongs to a business group named "Managers". It means that the user has the `EQ_R_MANAGE` right on the target class or collection. The question of which users or groups receive `EQ_R_MANAGE` remains handled by ACLs, roles and permissions.
+This means that generic create, read, update and manage operations are structurally exposed, while generic delete is structurally blocked.
 
+It does not mean that every user can perform those operations. The effective authorization still depends on ACLs, operation policies and business guards.
+
+
+### Capabilities Are Not Policies
+
+Capabilities should not encode contextual or business-specific rules.
+
+The following concepts should not be added as capability contexts:
+
+```text
+same_organization
+same_condo
+accounting_period_open
+invoice_not_posted
+feature_enabled
+requires_mfa
+booking_operator
+accountant
+project_manager
+```
+
+These concepts belong to ACLs, roles, operation policies, action policies, workflow transition rules or business guards.
+
+Capabilities should remain stable, structural and deliberately limited.
+
+Operation policies should be used when an operation is structurally exposed, but must still be conditioned by a wider or more specific rule.
+
+
+### Policies
+
+Policies are named contextual rules declared by an entity.
+
+Each entity can override:
+
+```php
+public static function getPolicies(): array
+```
+
+The method returns a catalogue of policies available on the entity.
+
+Example:
+
+```php
+public static function getPolicies(): array {
+    return [
+        'same_organization' => [
+            'description' => 'Verifies that the current user belongs to the same organization as the object.',
+            'function'    => 'policySameOrganization'
+        ],
+
+        'accounting_period_open' => [
+            'description' => 'Verifies that the accounting period related to the object is open.',
+            'function'    => 'policyAccountingPeriodOpen'
+        ],
+
+        'can_publish' => [
+            'description' => 'Verifies that all required information is provided before publication.',
+            'function'    => 'policyCanPublish'
+        ]
+    ];
+}
+```
+
+`getPolicies()` only declares policies. It does not, by itself, decide when those policies are applied.
+
+Policies may be used by:
+
+* generic `Collection` operations through `getOperationPolicies()`;
+* fields through the `policies` descriptor attribute;
+* named actions through `getActions()`;
+* workflow transitions;
+* dedicated controllers or internal services.
+
+
+### Operation Policies
+
+Operation policies associate generic `Collection` operations with one or more policies.
+
+Each entity can override:
+
+```php
+public static function getOperationPolicies(): array
+```
+
+The method returns an array indexed by CRUD right constants:
+
+```php
+EQ_R_CREATE
+EQ_R_READ
+EQ_R_UPDATE
+EQ_R_DELETE
+EQ_R_MANAGE
+```
+
+Example:
+
+```php
+public static function getOperationPolicies(): array {
+    return [
+        EQ_R_READ => [
+            'same_organization'
+        ],
+
+        EQ_R_UPDATE => [
+            'same_organization',
+            'accounting_period_open'
+        ],
+
+        EQ_R_DELETE => [
+            'same_organization',
+            'can_be_deleted'
+        ]
+    ];
+}
+```
+
+In this example:
+
+* the generic read operation is allowed only if the `same_organization` policy is satisfied;
+* the generic update operation is allowed only if both `same_organization` and `accounting_period_open` are satisfied;
+* the generic delete operation is allowed only if both `same_organization` and `can_be_deleted` are satisfied.
+
+Operation policies are evaluated after capabilities and ACLs.
+
+They answer the following question:
+
+> May the current user attempt this generic operation in the current context?
+
+They should be used for contextual, transversal or reusable rules, such as:
+
+```text
+same_organization
+same_condo
+accounting_period_open
+feature_enabled
+requires_mfa
+not_guest
+owned_by_current_customer
+```
+
+They should not be used to replace ACLs, capabilities or local business guards.
+
+
+### Operation Policies vs Operation Guards
+
+Operation policies and `can...()` methods may look similar, but they have different responsibilities.
+
+| Mechanism                                                | Responsibility                                                                                           | Typical examples                                                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `getOperationPolicies()`                                 | Determines whether the current user may attempt the operation in the current context.                    | same organization, same condominium, period open, MFA required, feature enabled                              |
+| `canCreate()`, `canRead()`, `canUpdate()`, `canDelete()` | Determines whether the requested operation is valid for the target object in its current business state. | posted invoice cannot be modified, locked entry cannot change account, cancelled booking cannot be confirmed |
+
+A policy should preferably be:
+
+* named;
+* reusable;
+* contextual;
+* applicable across several operations, actions or entities.
+
+A `can...()` guard should preferably be:
+
+* local to the entity;
+* close to the business invariant;
+* dependent on the current object state;
+* able to inspect the requested values.
+
+For example:
+
+```php
+public static function getOperationPolicies(): array {
+    return [
+        EQ_R_UPDATE => [
+            'same_condo',
+            'accounting_period_open'
+        ]
+    ];
+}
+```
+
+The policies above check whether the user operates within the correct perimeter and whether the accounting context allows modifications.
+
+The entity may still define a local guard:
+
+```php
+public static function canUpdate($self, array $values = []): array {
+    $errors = [];
+
+    if(isset($values['journal_id'])) {
+        foreach($self as $id => $entry) {
+            if($entry['is_posted']) {
+                $errors[] = 'Posted entries cannot change journal.';
+            }
+        }
+    }
+
+    return $errors;
+}
+```
+
+The guard above checks a local business invariant specific to the entity and to the submitted values.
+
+Avoid policies named only after CRUD operations, such as:
+
+```text
+can_update
+can_delete
+can_read
+```
+
+unless they express a specific reusable rule.
+
+Prefer more explicit policy names:
+
+```text
+same_organization
+same_condo
+accounting_period_open
+editable_scope
+requires_mfa
+```
 
 
 ### Entity Flags
@@ -312,9 +546,9 @@ Flags and capabilities are related but distinct:
 | `getFlags()`        | Describes structural properties of the entity.                          |
 | `getCapabilities()` | Defines which generic CRUD operations are exposed through `Collection`. |
 
-For example, an entity marked with `EQ_FLAG_SYSTEM` should usually expose a very limited generic CRUD surface and rely on dedicated controllers for sensitive operations.
+For example, an entity marked with `EQ_FLAG_SYSTEM` should usually expose a very limited generic CRUD surface and rely on dedicated controllers, named actions, workflow transitions or privileged internal services for sensitive operations.
 
-
+---
 
 ### Defining Capabilities
 
@@ -361,7 +595,7 @@ allocate
 export
 ```
 
-
+---
 
 ### Capability Grammar
 
@@ -402,7 +636,6 @@ EQ_R_DELETE => ['root']
 ```
 
 
-
 ### Supported Capability Contexts
 
 Capabilities rely on contexts evaluated dynamically by `AccessController::hasContext()`:
@@ -411,7 +644,7 @@ Capabilities rely on contexts evaluated dynamically by `AccessController::hasCon
 $access->hasContext($context, $object_class, $object_ids);
 ```
 
-Supported contexts are intentionally limited.
+Supported capability contexts are intentionally limited.
 
 | Context   | Description                                                           |
 | --------- | --------------------------------------------------------------------- |
@@ -426,7 +659,6 @@ Object-bound contexts such as `self` and `creator` require existing object ident
 For collections containing several objects, object-bound contexts must match all objects in the collection.
 
 For example, `creator` is true only if the current user is the creator of every targeted object.
-
 
 
 ### Contexts Are Structural, Not Business-Specific
@@ -449,10 +681,18 @@ booking_operator
 project_manager
 ```
 
-These concepts belong to ACLs, groups, object roles, policies or business guards.
+They must not describe domain-specific contextual rules such as:
 
-A new capability context should only be added if it describes a generic structural relation that can apply across multiple domains. For example, a future `owner` or `assignee` context may be acceptable if it is defined through a clear framework-level convention, but it should not be tied to a business-specific group.
+```text
+same_condo
+same_organization
+period_open
+invoice_not_posted
+```
 
+These concepts belong to ACLs, groups, object roles, operation policies, action policies, workflow rules or business guards.
+
+A new capability context should only be added if it describes a generic structural relation that can apply across multiple domains.
 
 
 ### Operation Rules
@@ -510,14 +750,13 @@ In this example:
 * `manager` can update `name`, `description` and `status`;
 * `creator` can update only `name` and `description`.
 
-The list of fields exposed by capabilities is the maximum generic update surface. ACLs, policies, field descriptors and business guards may further restrict the operation, but they must not expand this surface.
+The list of fields exposed by capabilities is the maximum generic update surface. ACLs, field descriptors, operation policies and business guards may further restrict the operation, but they must not expand this surface.
 
 Conceptually:
 
 ```text
-effective_fields = capabilities ∩ ACL ∩ field_rules ∩ policies ∩ business_rules
+effective_fields = capabilities ∩ ACL ∩ field_rules ∩ operation_policies ∩ business_guards
 ```
-
 
 
 ### Interpreting `false`
@@ -538,8 +777,7 @@ If the current user is both `root` and `creator`, the user keeps the full update
 
 This avoids reintroducing explicit reject logic in the capability map.
 
-Capability rules are grant-only. Denials should be expressed by not granting a capability, or by using ACLs, policies or business guards where a contextual denial is needed.
-
+Capability rules are grant-only. Denials should be expressed by not granting a capability, or by using ACLs, operation policies or business guards where a contextual denial is needed.
 
 
 ### Evaluation Order
@@ -549,27 +787,27 @@ For a generic operation:
 1. `Collection` retrieves the rule from `Model::getCapabilities()`.
 2. `true` exposes the operation structurally.
 3. `false` blocks the operation structurally.
-4. A contextual map is evaluated with `AccessController::hasContext()`.
+4. A contextual capability map is evaluated with `AccessController::hasContext()`.
 5. For `CREATE`, `READ`, `DELETE` and `MANAGE`, one matching context with `true` exposes the operation.
 6. For `UPDATE`, allowed fields are built from every matching context.
 7. ACLs are checked with `AccessController::isAllowed()`.
-8. Policies are checked when explicitly required by the operation, field or action.
-9. Validation is executed.
-10. Operation guards such as `cancreate`, `canread`, `canupdate` or `candelete` are executed.
-11. The operation is delegated to `ObjectManager`.
+8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for the requested operation.
+9. Field-level policies are evaluated when explicitly required by field descriptors.
+10. Validation is executed.
+11. Operation guards such as `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` are executed.
+12. The operation is delegated to `ObjectManager`.
 
-Capabilities and ACLs are complementary:
+Capabilities, ACLs, policies and guards are complementary:
 
-| Mechanism                      | Question answered                                       |
-| ------------------------------ | ------------------------------------------------------- |
-| `Capabilities`                 | Is the generic operation structurally exposed?          |
-| `AccessController` / ACL       | Does the current user have the required rights?         |
-| `Policies`                     | Does the request satisfy contextual access constraints? |
-| `canupdate`, `cancreate`, etc. | Is the operation valid in the current business state?   |
-| `ObjectManager`                | How is the operation technically executed?              |
+| Mechanism                          | Question answered                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------- |
+| `Capabilities`                     | Is the generic operation structurally exposed?                                        |
+| `AccessController` / ACL           | Does the current user have the required rights?                                       |
+| `Operation policies`               | May the current user attempt this operation in the current context?                   |
+| `canUpdate()`, `canCreate()`, etc. | Is the requested operation valid for the target object in its current business state? |
+| `ObjectManager`                    | How is the operation technically executed?                                            |
 
-A user must satisfy both capabilities and ACLs.
-
+A user must satisfy every applicable layer.
 
 
 ### Collection and ObjectManager Responsibilities
@@ -580,7 +818,8 @@ It is responsible for:
 
 * checking capabilities;
 * checking ACL rights through `AccessController`;
-* applying policies when required;
+* applying operation policies;
+* applying field-level policies when required;
 * running operation guards;
 * validating values;
 * delegating persistence to `ObjectManager`.
@@ -613,6 +852,78 @@ $orm->update(MyEntity::getType(), $ids, $values);
 
 The second form should be reserved for trusted framework internals, migrations, system controllers, computed field recalculations, maintenance operations or code that has already performed authorization checks.
 
+
+### Privilege Elevation
+
+Capabilities apply to generic user-facing CRUD operations.
+
+When a capability blocks a generic operation, the operation may still be performed by trusted framework code under controlled privilege elevation, provided that the caller is a dedicated action, workflow transition, controller, migration or system process that has already performed the required authorization and business checks.
+
+For example, an entity may block generic updates:
+
+```php
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => false,
+        EQ_R_READ   => true,
+        EQ_R_UPDATE => false,
+        EQ_R_DELETE => false,
+        EQ_R_MANAGE => false
+    ];
+}
+```
+
+This means that the entity cannot be updated through generic user-facing `Collection::update()` calls.
+
+It does not mean that the entity is technically immutable. A dedicated trusted operation may still update it internally after checking its own permissions, policies and business rules.
+
+Example:
+
+```php
+$auth->su();
+
+try {
+    $orm->update($object_class, $object_ids, $values);
+}
+finally {
+    $auth->su(false);
+}
+```
+
+Privilege elevation must be scoped to the specific internal operation.
+
+It must not be used as a general bypass of capabilities, ACLs, policies or business guards.
+
+A trusted elevated operation should follow this pattern:
+
+```text
+Dedicated controller / action / workflow transition
+    |
+Check permission to execute the dedicated operation
+    |
+Check action or transition policies
+    |
+Check business validity
+    |
+Enter controlled privilege elevation
+    |
+Perform the specific internal persistence operation
+    |
+Leave privilege elevation
+```
+
+Acceptable use cases include:
+
+* dedicated business controllers;
+* named actions;
+* workflow transitions;
+* migrations;
+* system processes;
+* maintenance operations;
+* computed field recalculations;
+* trusted internal services.
+
+User-facing code must not use privilege elevation to bypass `Collection`.
 
 
 ### Actions and Workflows
@@ -650,6 +961,7 @@ transfer
 refund
 ```
 
+Actions and workflow transitions may internally perform operations that are blocked for generic CRUD usage, provided that they are trusted, specific, and have performed the required authorization and business checks before using privileged persistence.
 
 
 ### Default Capabilities
@@ -678,8 +990,7 @@ For entities marked with `EQ_FLAG_SYSTEM`, the default is restricted:
 ]
 ```
 
-System entities should usually be changed through dedicated controllers, named actions or privileged internal services instead of generic CRUD operations.
-
+System entities should usually be changed through dedicated controllers, named actions, workflow transitions or privileged internal services instead of generic CRUD operations.
 
 
 ### Examples
@@ -698,8 +1009,58 @@ public static function getCapabilities(): array {
 }
 ```
 
-This means generic CRUD operations are structurally exposed. The effective permissions still depend on ACLs, policies and business guards.
+This means generic CRUD operations are structurally exposed. The effective permissions still depend on ACLs, operation policies and business guards.
 
+
+#### Business Entity with Operation Policies
+
+A business entity can expose generic CRUD operations while conditioning them with policies:
+
+```php
+public static function getCapabilities(): array {
+    return [
+        EQ_R_CREATE => true,
+        EQ_R_READ   => true,
+        EQ_R_UPDATE => true,
+        EQ_R_DELETE => false,
+        EQ_R_MANAGE => true
+    ];
+}
+
+public static function getPolicies(): array {
+    return [
+        'same_organization' => [
+            'description' => 'Verifies that the current user belongs to the same organization as the object.',
+            'function'    => 'policySameOrganization'
+        ],
+
+        'editable_state' => [
+            'description' => 'Verifies that the object is in a state that allows generic edition.',
+            'function'    => 'policyEditableState'
+        ]
+    ];
+}
+
+public static function getOperationPolicies(): array {
+    return [
+        EQ_R_READ => [
+            'same_organization'
+        ],
+
+        EQ_R_UPDATE => [
+            'same_organization',
+            'editable_state'
+        ]
+    ];
+}
+```
+
+In this example:
+
+* capabilities expose generic read and update structurally;
+* ACLs still determine whether the user has read or update rights;
+* operation policies condition those rights according to the current context;
+* local guards may still reject the operation based on entity-specific business rules.
 
 
 #### Business Entity with Limited Generic Updates
@@ -732,6 +1093,7 @@ public static function getCapabilities(): array {
 
 In this example, `manager` does not refer to a business group. It refers to users who have `EQ_R_MANAGE` on the class or collection.
 
+Operation policies may still further restrict the operation.
 
 
 #### Entity Editable by Its Creator
@@ -761,8 +1123,7 @@ public static function getCapabilities(): array {
 }
 ```
 
-The `creator` context only exposes the structural capability. The user must still satisfy the required ACL rights.
-
+The `creator` context only exposes the structural capability. The user must still satisfy the required ACL rights and operation policies.
 
 
 #### Abstract Entity
@@ -786,7 +1147,6 @@ public static function getCapabilities(): array {
 ```
 
 
-
 #### Internal Private Entity
 
 An internal private entity can restrict generic access to `root`:
@@ -806,7 +1166,6 @@ public static function getCapabilities(): array {
     ];
 }
 ```
-
 
 
 #### System User Entity
@@ -845,7 +1204,6 @@ In this example:
 Sensitive fields such as groups, permissions, passkeys, validation state or status must be changed through dedicated controllers, named actions or privileged internal services.
 
 
-
 ### Field Access
 
 eQual primarily handles access permissions on a per-object basis. If a user is granted rights on an object, those rights apply to the object as a whole.
@@ -854,14 +1212,13 @@ When different fields require different access profiles, prefer one of the follo
 
 * split the model into smaller entities with distinct access rules;
 * expose a limited generic update surface through `getCapabilities()`;
-* use policies for contextual access checks;
+* use operation or field policies for contextual access checks;
 * use dedicated controllers or actions for sensitive operations;
 * use field descriptors for UI and technical behavior.
 
 Field-level capabilities are currently supported only for `EQ_R_UPDATE`.
 
 They should be used to restrict the maximum generic update surface, not to define business group permissions.
-
 
 
 ### Field Behavior Modifiers
@@ -881,8 +1238,7 @@ For example:
 * `readonly` prevents a field from being updated through normal update flows;
 * `visible` affects presentation and should not be treated as a security boundary by itself;
 * `required` affects validation;
-* `policies` can restrict access to fields or operations based on contextual rules.
-
+* `policies` can restrict access to fields based on contextual rules.
 
 
 ### The `policies` Attribute
@@ -902,6 +1258,11 @@ Examples:
 
 Policies should not be used to define the structural CRUD surface of an entity. That responsibility belongs to `getCapabilities()`.
 
+For generic `Collection` operations, policies should be attached through `getOperationPolicies()`.
+
+For field-specific rules, policies may be attached through field descriptors.
+
+For named business operations, policies should be attached through `getActions()` or workflow transition definitions.
 
 
 ### The `access` Attribute
@@ -925,8 +1286,7 @@ Visibility levels:
 | `protected` | Accessible to authenticated users only.           |
 | `private`   | Accessible to root user only, system code or CLI. |
 
-The `access` attribute may restrict field access, but it does not replace entity-level capabilities or ACLs.
-
+The `access` attribute may restrict field access, but it does not replace entity-level capabilities, ACLs or policies.
 
 
 ### ACL at Package Initialization
@@ -942,19 +1302,46 @@ ACLs should be used to answer questions such as:
 
 Capabilities should not be used for these questions.
 
+Operation policies should not be used for static group or role assignment either. They should only condition the exercise of an existing right in a given context.
 
 
-### Design Rules
+## Access Control Performance Guidelines
 
-The following rules summarize the intended architecture:
+Permission checks may be expensive.
 
-1. `getCapabilities()` defines the maximum generic CRUD surface exposed through `Collection`.
-2. Capabilities are structural and must not encode business group permissions.
-3. ACLs, groups and roles determine who has rights.
-4. Policies determine whether contextual access constraints are satisfied.
-5. `cancreate`, `canread`, `canupdate` and `candelete` determine whether the operation is valid in the current business state.
-6. Named business operations should use `getActions()` or workflows.
-7. User-facing CRUD operations should go through `Collection`.
-8. `ObjectManager` is a privileged persistence service and should not be used directly from user-facing code unless authorization has already been checked.
-9. Field-level capabilities are allowed for `EQ_R_UPDATE` only and represent a maximum generic update surface.
-10. Sensitive fields and operations should use dedicated controllers, actions, workflows or internal services rather than generic CRUD exposure.
+Capabilities, ACLs, operation policies, field-level policies and operation guards can involve object loading, role resolution, group resolution, context evaluation, policy handlers, computed fields or additional database queries. When several mechanisms are combined unnecessarily, generic CRUD operations may become significantly slower, especially on large collections or batch operations.
+
+For this reason, access-control mechanisms should be used deliberately.
+
+As a general rule, each entity should only define the access-control methods that are relevant to its actual business logic.
+
+Avoid stacking mechanisms that answer the same question.
+
+For example:
+
+* do not use `getCapabilities()` to encode rules that belong to ACLs or policies;
+* do not use operation policies for rules that are already fully covered by capabilities;
+* do not use `canupdate()` to repeat checks already performed by operation policies;
+* do not add field-level operation rules unless field-specific restrictions are actually needed;
+* do not attach policies to generic CRUD operations when the same rule is only relevant to a dedicated action or workflow transition.
+
+Prefer the simplest applicable mechanism:
+
+| Need                                                  | Preferred mechanism                                      |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| Block or expose a generic CRUD operation structurally | `getCapabilities()`                                      |
+| Grant rights to users, groups or roles                | ACLs / `AccessController`                                |
+| Condition an operation by reusable contextual rules   | `getOperationPolicies()`                                 |
+| Restrict specific fields for an operation             | field-scoped operation rules                             |
+| Enforce local business invariants                     | `cancreate()`, `canread()`, `canupdate()`, `candelete()` |
+| Execute named business behavior                       | `getActions()` or workflow transitions                   |
+
+Entities should not override access-control methods only for completeness.
+
+A method should be overridden only when it expresses a meaningful rule for the entity.
+
+For standard business entities, inheriting the default behavior is often preferable. Additional capabilities, policies or guards should be introduced only when the entity has a clear structural, contextual or business requirement.
+
+In batch operations, the cost of permission checks can grow quickly. Policy handlers and `can...()` guards should therefore avoid unnecessary per-object queries and should prefer bulk reads whenever possible.
+
+Access-control logic should remain explicit, but not excessive.
