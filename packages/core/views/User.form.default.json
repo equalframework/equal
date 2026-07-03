@@ -125,7 +125,12 @@
                                                 "label": "Groups",
                                                 "width": "100%",
                                                 "widget": {
-                                                    "view": "list.selection"
+                                                    "view": "list.selection",
+                                                    "header": {
+                                                        "actions": {
+                                                            "ACTION.CREATE": false
+                                                        }
+                                                    }
                                                 }
                                             }
                                         ]
