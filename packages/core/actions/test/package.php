@@ -40,6 +40,7 @@ use equal\test\Tester;
     ]
 ]);
 
+['context' => $context] = $providers;
 
 $result = [];
 
@@ -67,9 +68,9 @@ if($params['logs']) {
     $result['logs'] = file_get_contents(EQ_LOG_STORAGE_DIR.'/equal.log');
 }
 
-$providers['context']->httpResponse()
-                     ->body($result)
-                     ->send();
+$context->httpResponse()
+        ->body($result)
+        ->send();
 
 // if at least one test failed, force non-zero exit code
 if($failed) {
