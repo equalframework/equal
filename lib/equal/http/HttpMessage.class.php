@@ -85,7 +85,7 @@ class HttpMessage {
     private $uri;
 
     /** @var HttpHeader */
-    private $headers;
+    protected $headers;
 
     /** @var string[] */
     protected static $HTTP_METHODS = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE', 'PURGE', 'OPTIONS', 'TRACE', 'CONNECT'];
@@ -254,7 +254,25 @@ class HttpMessage {
     }
 
     public function setContentType($content_type) {
-        $this->headers->setContentType($content_type);
+        if($this instanceof HttpResponse) {
+            $value = $content_type;
+            $charset = $this->headers->getCharset();
+
+            if(strlen($charset)) {
+                $value .= '; charset='.$charset;
+            }
+
+            $this->headers->set('Content-Type', $value);
+        }
+        else {
+            $this->headers->setContentType($content_type);
+        }
+
+        return $this;
+    }
+
+    public function setAccept($accept) {
+        $this->headers->setAccept($accept);
         return $this;
     }
 
@@ -462,6 +480,10 @@ class HttpMessage {
 
     public function getContentType() {
         return $this->headers->getContentType();
+    }
+
+    public function getAccept() {
+        return $this->headers->getAccept();
     }
 
     /**
@@ -689,7 +711,7 @@ class HttpMessage {
 
     /**
      * Content type getter/setter method based on arguments list
-     * reminder: content type in stored either in 'content-type' or 'accept' header
+     * reminder: content type is stored in 'content-type' header
      *
      */
     public function contentType() {
@@ -700,6 +722,21 @@ class HttpMessage {
         else {
             $content_type = $args[0];
             return $this->setContentType($content_type);
+        }
+    }
+
+    /**
+     * Accept getter/setter method based on arguments list.
+     *
+     */
+    public function accept() {
+        $args = func_get_args();
+        if(count($args) < 1) {
+            return $this->getAccept();
+        }
+        else {
+            $accept = $args[0];
+            return $this->setAccept($accept);
         }
     }
 
@@ -749,7 +786,7 @@ class HttpMessage {
             // get info for all namespaces
             $namespaces = $obj->getDocNamespaces(true);
             // append empty namespace
-            $namespaces[null] = null;
+            $namespaces[0] = null;
 
             foreach( $namespaces as $ns => $nsUrl ) {
                 // handle attributes
@@ -757,7 +794,7 @@ class HttpMessage {
                 foreach( $objAttributes as $attributeName => $attributeValue ) {
                     $attribName = trim($attributeName);
                     $attribVal = trim((string)$attributeValue);
-                    if (!empty($ns)) {
+                    if(!empty($ns)) {
                         $attribName = $ns . ':' . $attribName;
                     }
                     $attributes[$attribName] = $attribVal;
@@ -766,6 +803,7 @@ class HttpMessage {
                 // handle children
                 $objChildren = $obj->children($ns, true);
                 $count_children = count($objChildren);
+                $map_children_names = [];
                 if($count_children) {
                     $has_children = true;
                     foreach( $objChildren as $childName => $child) {

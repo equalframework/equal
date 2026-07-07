@@ -74,19 +74,19 @@ class HttpHeaders {
     }
 
     public function setContentType($content_type) {
-        // the header is part of a Request
-        if(isset($this->headers['Accept'])) {
-            return $this->set('Accept', $content_type);
+        $value = $content_type;
+        $charset = $this->getCharset();
+        if(strlen($charset)) {
+            $value .= '; charset='.$charset;
         }
-        // the header is part of a Response
-        else {
-            $value = $content_type;
-            $charset = $this->getCharset();
-            if(strlen($charset)) {
-                $value .= '; charset='.$charset;
-            }
-            return $this->set('Content-Type', $value);
+        return $this->set('Content-Type', $value);
+    }
+
+    public function setAccept($accept) {
+        if(is_array($accept)) {
+            $accept = implode(', ', $accept);
         }
+        return $this->set('Accept', $accept);
     }
 
     /**
@@ -300,6 +300,19 @@ class HttpHeaders {
             }
         }
         return $content_type;
+    }
+
+    public function getAccept() {
+        $accept = [];
+        if(isset($this->headers['Accept'])) {
+            // general syntax: type/subtype [q=qvalue]
+            // example: Accept: text/plain; q=0.5, text/html
+            $parts = explode(',', $this->headers['Accept']);
+            if(count($parts)) {
+                $accept = array_map(function($a) { return trim(explode(';', $a)[0]); }, $parts);
+            }
+        }
+        return $accept;
     }
 
 
