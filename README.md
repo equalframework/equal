@@ -1,5 +1,7 @@
 eQual is a complete open-source low-code web-based framework, designed to efficiently create and manage **modern softwares** that can **adapt to any Application Logic**.
 
+> eQual is not just about generating APIs from models. It is about making recurring application complexity explicit, structured, self-descriptive and reusable.
+
 "Not everyone can be a fullstack developer, but with eQual, anyone can develop like one": Developing an application from end to end is extremely complex and requires a wide range of skills that few people possess on their own. eQual's mission is to **enable any developer to create production-ready applications** by helping them compensate for the aspects they are less proficient in.
 
 ⭐ Before reaching the moon, we need stars: if you find eQual useful, nice, or simply relevant, please consider <a href="#">giving us a star on GitHub</a>! Your support encourages us and will help making eQual the most powerful framework ever.
@@ -152,7 +154,7 @@ If you'd like to contribute, please kindly read our [Contributing Guide](https:/
 
 ## Stats
 
-![Alt](https://repobeats.axiom.co/api/embed/5f9dfe02bd01e5a3d95b1e2ffde811c02f169000.svg "Repobeats Analytics")
+![Alt](https://repobeats.axiom.co/api/embed/3229db563e016e9a22d37b0bd1a915017468eb3f.svg "Repobeats Analytics")
 
 ## Questions & Support
 
