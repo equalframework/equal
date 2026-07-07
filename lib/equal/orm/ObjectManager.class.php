@@ -151,13 +151,15 @@ class ObjectManager extends Service {
         'binary'        => 'binary(64000000)'   // 64MB binary value
     ];
 
-    public const EVENTS_CLASS_ONCREATE       = 1;
-    public const EVENTS_CLASS_ONBEFOREUPDATE = 2;
-    public const EVENTS_CLASS_ONAFTERUPDATE  = 4;
-    public const EVENTS_CLASS_ONBEFOREDELETE = 8;
-    public const EVENTS_CLASS_ONAFTERDELETE  = 16;
-    public const EVENTS_CLASS_ONUPDATE = 6;
-    public const EVENTS_CLASS_ONDELETE = 24;
+    public const EVENTS_CLASS_ONCREATE              = 1;
+    public const EVENTS_CLASS_ONBEFOREINSTANTIATE   = 2;
+    public const EVENTS_CLASS_ONAFTERINSTANTIATE    = 4;
+    public const EVENTS_CLASS_ONBEFOREUPDATE        = 8;
+    public const EVENTS_CLASS_ONAFTERUPDATE         = 16;
+    public const EVENTS_CLASS_ONBEFOREDELETE        = 32;
+    public const EVENTS_CLASS_ONAFTERDELETE         = 64;
+    public const EVENTS_CLASS_ONUPDATE = 24;
+    public const EVENTS_CLASS_ONDELETE = 96;
     public const EVENTS_FIELD_ONCREATE = 32;
     public const EVENTS_FIELD_ONUPDATE = 64;
     public const EVENTS_FIELD_ONREVERT = 128;
@@ -1879,12 +1881,33 @@ class ObjectManager extends Service {
                 $fields['modified'] = time();
             }
 
+            $instantiated_ids = [];
+            if(!$create && isset($fields['state']) && $fields['state'] === 'instance') {
+                $objects = $this->read($class, $ids, ['state']);
+                if(is_array($objects) && count($objects)) {
+                    foreach($objects as $oid => $object) {
+                        if($object['state'] !== 'instance') {
+                            $instantiated_ids[] = $oid;
+                        }
+                    }
+                }
+            }
+
 
             // 3) make sure objects in the collection can be updated
             // #memo - moved to Collection
 
 
-            // 4) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
+            // 4) call 'onbeforeinstantiate' hook when objects are about to become instances
+            if(count($instantiated_ids)
+                && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREINSTANTIATE) === self::EVENTS_CLASS_ONBEFOREINSTANTIATE
+                && method_exists($class, 'onbeforeinstantiate')
+            ) {
+                $this->callonce($class, 'onbeforeinstantiate', $instantiated_ids, $fields, $lang);
+            }
+
+
+            // 5) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
             if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
                 if(method_exists($class, 'onbeforeupdate')) {
                     $this->callonce($class, 'onbeforeupdate', $ids, $fields, $lang);
@@ -1895,7 +1918,7 @@ class ObjectManager extends Service {
             }
 
 
-            // 5) update objects
+            // 6) update objects
 
             // remember callbacks that are triggered by the update
             $oncreate_fields = [];
@@ -1942,12 +1965,12 @@ class ObjectManager extends Service {
             }
 
 
-            // 6) write selected fields to DB
+            // 7) write selected fields to DB
 
             $this->store($class, $ids, array_keys($fields), $lang);
 
 
-            // 7) handle the resetting of dependent computed fields
+            // 8) handle the resetting of dependent computed fields
 
             // #memo - upon creation computed fields are left to null, unless explicitly assigned (in $fields) or marked as `instant`
 
@@ -2025,7 +2048,7 @@ class ObjectManager extends Service {
             }
 
 
-            // 8) handle fields onupdate & onrevert events, if any
+            // 9) handle fields onupdate & onrevert events, if any
 
             if(!$create || constant('ORM_EVENTS_FORCE_ONUPDATE_AT_CREATION')) {
                 // #memo - this must be done after modifications otherwise object values might be outdated
@@ -2054,7 +2077,7 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 9) handle automatic transitions
+            // 10) handle automatic transitions
 
             foreach($ids as $object_id) {
                 // for each object, we must retrieve the status field
@@ -2075,7 +2098,14 @@ class ObjectManager extends Service {
                 }
             }
 
-            // 10) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
+            if(count($instantiated_ids)
+                && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE
+                && method_exists($class, 'onafterinstantiate')
+            ) {
+                $this->callonce($class, 'onafterinstantiate', $instantiated_ids, $fields, $lang);
+            }
+
+            // 11) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
             // #todo - move this to a dedicated controller for CRON
 
             if(isset($fields['state']) && !in_array($fields['state'], ['draft', 'instance'])) {
