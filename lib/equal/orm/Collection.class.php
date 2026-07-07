@@ -567,6 +567,89 @@ class Collection implements \Iterator, \Countable {
     }
 
     /**
+     * Assert that the current collection complies with the operation policies
+     * declared by the target Model class.
+     */
+    private function assertOperationPolicies(int $operation, array $fields=[], array $ids=[]): self {
+        if(!in_array($operation, [EQ_R_READ, EQ_R_UPDATE, EQ_R_DELETE], true)) {
+            return $this;
+        }
+
+        $operation_policies = $this->class::getOperationPolicies();
+
+        if(!is_array($operation_policies)) {
+            throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        if(!isset($operation_policies[$operation])) {
+            return $this;
+        }
+
+        $operation_rule = $operation_policies[$operation];
+
+        if($operation_rule === true) {
+            return $this;
+        }
+
+        if($operation_rule === false) {
+            throw new \Exception('operation_policy_denied', EQ_ERROR_NOT_ALLOWED);
+        }
+
+        if(!is_array($operation_rule)) {
+            throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        $policy_rules = [];
+
+        if(array_values($operation_rule) === $operation_rule) {
+            $policy_rules[] = $operation_rule;
+        }
+        elseif($operation === EQ_R_UPDATE) {
+            $default_rule = $operation_rule['*'] ?? true;
+
+            foreach($fields as $field) {
+                $policy_rules[] = $operation_rule[$field] ?? $default_rule;
+            }
+        }
+        else {
+            if(!array_key_exists('*', $operation_rule)) {
+                return $this;
+            }
+
+            $policy_rules[] = $operation_rule['*'];
+        }
+
+        $user_id = $this->am->userId();
+
+        foreach($policy_rules as $rule) {
+            if($rule === true) {
+                continue;
+            }
+
+            if($rule === false) {
+                throw new \Exception('operation_policy_denied', EQ_ERROR_NOT_ALLOWED);
+            }
+
+            if(!is_array($rule) || array_values($rule) !== $rule) {
+                throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
+            }
+
+            foreach($rule as $policy) {
+                if(!is_string($policy) || $policy === '') {
+                    throw new \Exception('invalid_operation_policy_rule', EQ_ERROR_INVALID_CONFIG);
+                }
+
+                $inconsistencies = (array) $this->ac->isCompliant($policy, $this->class, $ids, $user_id);
+                if(count($inconsistencies)) {
+                    throw new \Exception(serialize([$policy => $inconsistencies]), EQ_ERROR_NOT_ALLOWED);
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Mark Collection to be converted using the DataAdapter matching the target type (specific content-type or 'json', 'sql', 'txt').
      * Conversion is asynchronous. It is performed at Collection export (`get(true)`, `first(true)` or `last(true)`) and is based on field types.
      *
@@ -1010,6 +1093,7 @@ class Collection implements \Iterator, \Countable {
             $this
                 ->assertCapabilities(EQ_R_READ, $requested_fields, $ids)
                 ->assertAccessControl(EQ_R_READ, $requested_fields, $ids)
+                ->assertOperationPolicies(EQ_R_READ, $requested_fields, $ids)
                 ->assertLifecycle(EQ_R_READ, $requested_fields);
 
             // 3) read values
@@ -1166,7 +1250,8 @@ class Collection implements \Iterator, \Countable {
         // 2) assert Capabilities & ACL
         $this
             ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
-            ->assertAccessControl(EQ_R_UPDATE, $fields, $ids);
+            ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids);
 
         // by convention, update operation sets modifier as current user
         $values['modifier'] = $user_id;
@@ -1215,6 +1300,26 @@ class Collection implements \Iterator, \Countable {
 
 
     /**
+     * Archive all objects in the collection by setting their state to 'archive'.
+     *
+     * @return  Collection  returns the current instance (allowing calls chaining)
+     */
+    public function archive() {
+        return $this->update(['state' => 'archive']);
+    }
+
+
+    /**
+     * Restore all objects in the collection by setting their state to 'instance'.
+     *
+     * @return  Collection  returns the current instance (allowing calls chaining)
+     */
+    public function restore() {
+        return $this->update(['state' => 'instance']);
+    }
+
+
+    /**
      * @return  Collection  returns the current instance (allowing calls chaining)
      */
     public function delete($permanent=false) {
@@ -1228,6 +1333,7 @@ class Collection implements \Iterator, \Countable {
             $this
                 ->assertCapabilities(EQ_R_DELETE, [], $ids)
                 ->assertAccessControl(EQ_R_DELETE, [], $ids)
+                ->assertOperationPolicies(EQ_R_DELETE, [], $ids)
                 ->assertLifecycle(EQ_R_DELETE);
 
             // 3) delete objects
@@ -1386,7 +1492,8 @@ class Collection implements \Iterator, \Countable {
 
         $this
             ->assertCapabilities($operation, $field_names, $ids)
-            ->assertAccessControl($operation, $field_names, $ids);
+            ->assertAccessControl($operation, $field_names, $ids)
+            ->assertOperationPolicies($operation, $field_names, $ids);
 
         if($is_value_map) {
             $this->assertLifecycle($operation, $values);
