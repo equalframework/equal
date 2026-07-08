@@ -1872,9 +1872,13 @@ class ObjectManager extends Service {
                     ARRAY_FILTER_USE_KEY
                 );
 
-            // #memo - update operation sets state to 'instance', unless when explicitly set in $fields to a distinct value
-            if(!$create && !isset($fields['state'])) {
-                $fields['state'] = 'instance';
+            // determine the target state for this write cycle
+            // #memo - by convention, writing an object makes it an instance unless state is explicitly set
+            $target_state = array_key_exists('state', $fields) ? $fields['state'] : 'instance';
+
+            // ensure that implicit target state is actually stored (this also matters during create(), if state was not present in $fields)
+            if(!array_key_exists('state', $fields)) {
+                $fields['state'] = $target_state;
             }
 
             if($touch) {
@@ -1882,17 +1886,29 @@ class ObjectManager extends Service {
             }
 
             $instantiated_ids = [];
-            if(!$create && isset($fields['state']) && $fields['state'] === 'instance') {
-                $objects = $this->read($class, $ids, ['state']);
-                if(is_array($objects) && count($objects)) {
-                    foreach($objects as $oid => $object) {
-                        if($object['state'] !== 'instance') {
-                            $instantiated_ids[] = $oid;
+
+            if($target_state === 'instance') {
+                if($create) {
+                    // In creation context, the object becomes an instance as part of this cycle.
+                    // If state=draft was explicitly provided, target_state is draft and this block is skipped.
+                    $instantiated_ids = $ids;
+                }
+                else {
+                    // Existing objects: only trigger when there is an actual transition to instance.
+                    $objects = $this->read($class, $ids, ['state'], $lang);
+
+                    if(is_array($objects) && count($objects)) {
+                        foreach($ids as $oid) {
+                            if(isset($objects[$oid]) && ($objects[$oid]['state'] ?? null) !== 'instance') {
+                                $instantiated_ids[] = $oid;
+                            }
                         }
                     }
                 }
             }
 
+
+            $updated_ids = array_values(array_diff($ids, $instantiated_ids));
 
             // 3) make sure objects in the collection can be updated
             // #memo - moved to Collection
@@ -1908,12 +1924,12 @@ class ObjectManager extends Service {
 
 
             // 5) call 'onbeforeupdate' hook : notify objects that they're about to be updated with given values
-            if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
+            if(!$create && count($updated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
                 if(method_exists($class, 'onbeforeupdate')) {
-                    $this->callonce($class, 'onbeforeupdate', $ids, $fields, $lang);
+                    $this->callonce($class, 'onbeforeupdate', $updated_ids, $fields, $lang);
                 }
                 else {
-                    $this->callonce($class, 'onupdate', $ids, $fields, $lang);
+                    $this->callonce($class, 'onupdate', $updated_ids, $fields, $lang);
                 }
             }
 
@@ -2092,9 +2108,9 @@ class ObjectManager extends Service {
                 }
             }
 
-            if(!$create && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERUPDATE) === self::EVENTS_CLASS_ONAFTERUPDATE) {
+            if(!$create && count($updated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERUPDATE) === self::EVENTS_CLASS_ONAFTERUPDATE) {
                 if(method_exists($class, 'onafterupdate')) {
-                    $this->callonce($class, 'onafterupdate', $ids, $fields, $lang);
+                    $this->callonce($class, 'onafterupdate', $updated_ids, $fields, $lang);
                 }
             }
 
