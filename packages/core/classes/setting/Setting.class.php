@@ -746,30 +746,45 @@ class Setting extends Model {
     }
 
 
-
-    public static function format_number($number, $decimal_precision=null) {
+    public static function format_number($number, $decimal_precision = null) {
         $thousands_separator = static::get_value('core', 'locale', 'numbers.thousands_separator', '.');
         $decimal_separator = static::get_value('core', 'locale', 'numbers.decimal_separator', ',');
 
         if(is_null($decimal_precision)) {
             $decimal_precision = static::get_value('core', 'locale', 'numbers.decimal_precision', 2);
         }
+
+        $number = (float) $number;
+
+        // avoid displaying "-0,00" when the value rounds to zero
+        if(round($number, $decimal_precision) == 0.0) {
+            $number = 0.0;
+        }
+
         return number_format($number, $decimal_precision, $decimal_separator, $thousands_separator);
     }
 
     public static function format_number_currency($amount) {
-        $result = '';
         $decimal_precision = static::get_value('core', 'locale', 'currency.decimal_precision', 2);
         $symbol_position = static::get_value('core', 'locale', 'currency.symbol_position', 'before');
         $currency = static::get_value('core', 'locale', 'currency', '$');
 
-        $result = static::format_number($amount, $decimal_precision);
+        $is_negative = ((float) $amount < 0);
+        $absolute_amount = abs((float) $amount);
+
+        $result = static::format_number($absolute_amount, $decimal_precision);
+
         if($symbol_position == 'after') {
-            $result = $result.' '.$currency;
+            $result = $result . ' ' . $currency;
         }
         else if($symbol_position == 'before') {
-            $result = $currency.' '.$result;
+            $result = $currency . ' ' . $result;
         }
+
+        if($is_negative) {
+            $result = '-' . $result;
+        }
+
         return $result;
     }
 
