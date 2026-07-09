@@ -7,7 +7,7 @@
     License:  GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 error_reporting(0);
-define('MAX_FILESIZE', 100 * 1000 * 1000);
+define('MAX_LOG_READ_BYTES', 100 * 1000 * 1000);
 define('DEFAULT_THREAD_LIMIT', 100);
 define('MAX_THREAD_LIMIT', 500);
 define('DEFAULT_LINE_LIMIT', 250);
@@ -492,7 +492,7 @@ if(!$is_data_request) {
             }
         </style>
         <script>
-            const THREAD_PAGE_SIZE = 100;
+            const THREAD_PAGE_SIZE = 200;
             const LINE_PAGE_SIZE = 250;
 
             const state = {
@@ -594,6 +594,11 @@ if(!$is_data_request) {
 
             function setLoading(active) {
                 document.getElementById("loader").style.display = active ? "block" : "none";
+            }
+
+            function updateRootLoadMoreVisibility() {
+                const hasSelectedThread = !!document.querySelector("#list .thread.selected");
+                document.getElementById("loadMoreThreads").style.display = (state.hasMoreThreads && !hasSelectedThread) ? "inline-block" : "none";
             }
 
             function getFormParams() {
@@ -794,7 +799,7 @@ if(!$is_data_request) {
                 const requestId = state.requestId;
                 state.loadingThreads = true;
                 setLoading(true);
-                document.getElementById("loadMoreThreads").style.display = "none";
+                updateRootLoadMoreVisibility();
 
                 try {
                     const data = await apiFetch("threads", {
@@ -824,7 +829,7 @@ if(!$is_data_request) {
                     if(requestId === state.requestId) {
                         state.loadingThreads = false;
                         setLoading(false);
-                        document.getElementById("loadMoreThreads").style.display = state.hasMoreThreads ? "inline-block" : "none";
+                        updateRootLoadMoreVisibility();
                     }
                 }
             }
@@ -898,6 +903,7 @@ if(!$is_data_request) {
                     thread.classList.remove("opened");
                     selector.checked = false;
                 }
+                updateRootLoadMoreVisibility();
             }
 
             function showAllThreads() {
@@ -905,6 +911,7 @@ if(!$is_data_request) {
                     thread.style.display = "block";
                     thread.classList.remove("selected");
                 }
+                updateRootLoadMoreVisibility();
             }
 
             async function feed(params) {
@@ -1154,13 +1161,13 @@ else {
 
         $filesize = filesize('../log/'.$log_file);
 
-        // limit processing based on filesize to prevent overload
-        $max_filesize = constant('MAX_FILESIZE');
+        // limit processing to the tail of the log file to prevent overload
+        $max_read_bytes = constant('MAX_LOG_READ_BYTES');
         $read_offset = 0;
 
-        if($filesize > $max_filesize) {
-            // start reading from the last MAX_FILESIZE bytes
-            $read_offset = $filesize - $max_filesize;
+        if($filesize > $max_read_bytes) {
+            // start reading from the last MAX_LOG_READ_BYTES bytes
+            $read_offset = $filesize - $max_read_bytes;
         }
 
         // read raw data from log file
