@@ -9,6 +9,8 @@ use equal\orm\ObjectManager;
 use equal\http\HttpRequest;
 use core\User;
 use core\Group;
+use core\test\Test as TestModel;
+use core\test\Test1 as Test1Model;
 
 $providers = eQual::inject(['context', 'orm', 'auth', 'access']);
 
@@ -270,7 +272,7 @@ $tests = [
                                             },
                     'act'               =>  function () {
                                                 $om = ObjectManager::getInstance();
-                                                $dummy_user_id = $om->search('core\Group', ['login', '=', 'dummy@example.com']);
+                                                $dummy_user_id = $om->search('core\User', ['login', '=', 'dummy@example.com']);
                                                 return $om->remove('core\User', $dummy_user_id, true);
                                             }
                     ),
@@ -299,28 +301,144 @@ $tests = [
     '2510' => array(
                     'description'       =>  "Search for some object : clause 'contains' on one2many field.",
                     'return'            =>  array('boolean'),
-                    'expected'          =>  true,
-                    'test'              =>  function (){
-    // todo
-                                                return true;
+                    'arrange'           =>  function () {
+                                                $om = ObjectManager::getInstance();
+
+                                                $test_a_id = $om->create(TestModel::getType(), ['string_short' => 'o2m2510a']);
+                                                $test_b_id = $om->create(TestModel::getType(), ['string_short' => 'o2m2510b']);
+                                                $test1_a_id = $om->create(Test1Model::getType(), ['test_id' => $test_a_id]);
+                                                $test1_b_id = $om->create(Test1Model::getType(), ['test_id' => $test_b_id]);
+
+                                                return [
+                                                    'test_ids'  => [$test_a_id, $test_b_id],
+                                                    'test1_ids' => [$test1_a_id, $test1_b_id]
+                                                ];
+                                            },
+                    'act'               =>  function ($fixtures) {
+                                                $om = ObjectManager::getInstance();
+
+                                                return [
+                                                    'ids'      => $om->search(TestModel::getType(), ['tests1_ids', 'contains', [$fixtures['test1_ids'][0]]]),
+                                                    'fixtures' => $fixtures
+                                                ];
+                                            },
+                    'assert'            =>  function ($result) {
+                                                if(!is_array($result) || !isset($result['ids']) || !is_array($result['ids'])) {
+                                                    return false;
+                                                }
+
+                                                $ids = array_map('intval', $result['ids']);
+
+                                                return (
+                                                    in_array($result['fixtures']['test_ids'][0], $ids, true)
+                                                    && !in_array($result['fixtures']['test_ids'][1], $ids, true)
+                                                );
+                                            },
+                    'rollback'          =>  function ($result) {
+                                                if(!isset($result['fixtures'])) {
+                                                    return;
+                                                }
+
+                                                $om = ObjectManager::getInstance();
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
                                             },
                     ),
     '2520' => array(
                     'description'       =>  "Search for some object : clause 'contains' on one2many field (using a foreign key different from 'id').",
                     'return'            =>  array('boolean'),
-                    'expected'          =>  true,
-                    'test'              =>  function () {
-    // todo
-                                                return true;
+                    'arrange'           =>  function () {
+                                                $om = ObjectManager::getInstance();
+
+                                                if(!class_exists('core\test\TestOne2manyForeignKey', false)) {
+                                                    $om->getObjectSchema(TestModel::getType());
+                                                    eval('namespace core\test; class TestOne2manyForeignKey extends \core\test\Test { public static function getColumns() { return ["tests1_by_test_id_ids" => ["type" => "one2many", "foreign_object" => "core\\\\test\\\\Test1", "foreign_field" => "test_id", "foreign_key" => "test_id"]]; } }');
+                                                }
+
+                                                $test_a_id = $om->create(TestModel::getType(), ['string_short' => 'o2m2520a']);
+                                                $test_b_id = $om->create(TestModel::getType(), ['string_short' => 'o2m2520b']);
+                                                $test1_a_id = $om->create(Test1Model::getType(), ['test_id' => $test_a_id]);
+                                                $test1_b_id = $om->create(Test1Model::getType(), ['test_id' => $test_b_id]);
+
+                                                return [
+                                                    'test_ids'  => [$test_a_id, $test_b_id],
+                                                    'test1_ids' => [$test1_a_id, $test1_b_id]
+                                                ];
+                                            },
+                    'act'               =>  function ($fixtures) {
+                                                $om = ObjectManager::getInstance();
+
+                                                return [
+                                                    'ids'      => $om->search('core\test\TestOne2manyForeignKey', ['tests1_by_test_id_ids', 'contains', [$fixtures['test_ids'][0]]]),
+                                                    'fixtures' => $fixtures
+                                                ];
+                                            },
+                    'assert'            =>  function ($result) {
+                                                if(!is_array($result) || !isset($result['ids']) || !is_array($result['ids'])) {
+                                                    return false;
+                                                }
+
+                                                $ids = array_map('intval', $result['ids']);
+
+                                                return (
+                                                    in_array($result['fixtures']['test_ids'][0], $ids, true)
+                                                    && !in_array($result['fixtures']['test_ids'][1], $ids, true)
+                                                );
+                                            },
+                    'rollback'          =>  function ($result) {
+                                                if(!isset($result['fixtures'])) {
+                                                    return;
+                                                }
+
+                                                $om = ObjectManager::getInstance();
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
                                             }
                     ),
     '2530' => array(
                     'description'       =>  "Search for some object : clause 'contains' on many2one field.",
                     'return'            =>  array('boolean'),
-                    'expected'          =>  true,
-                    'test'              =>  function () {
-    // todo
-                                                return true;
+                    'arrange'           =>  function () {
+                                                $om = ObjectManager::getInstance();
+
+                                                $test_a_id = $om->create(TestModel::getType(), ['string_short' => 'm2o2530a']);
+                                                $test_b_id = $om->create(TestModel::getType(), ['string_short' => 'm2o2530b']);
+                                                $test1_a_id = $om->create(Test1Model::getType(), ['test_id' => $test_a_id]);
+                                                $test1_b_id = $om->create(Test1Model::getType(), ['test_id' => $test_b_id]);
+
+                                                return [
+                                                    'test_ids'  => [$test_a_id, $test_b_id],
+                                                    'test1_ids' => [$test1_a_id, $test1_b_id]
+                                                ];
+                                            },
+                    'act'               =>  function ($fixtures) {
+                                                $om = ObjectManager::getInstance();
+
+                                                return [
+                                                    'ids'      => $om->search(Test1Model::getType(), ['test_id', 'contains', [$fixtures['test_ids'][0]]]),
+                                                    'fixtures' => $fixtures
+                                                ];
+                                            },
+                    'assert'            =>  function ($result) {
+                                                if(!is_array($result) || !isset($result['ids']) || !is_array($result['ids'])) {
+                                                    return false;
+                                                }
+
+                                                $ids = array_map('intval', $result['ids']);
+
+                                                return (
+                                                    in_array($result['fixtures']['test1_ids'][0], $ids, true)
+                                                    && !in_array($result['fixtures']['test1_ids'][1], $ids, true)
+                                                );
+                                            },
+                    'rollback'          =>  function ($result) {
+                                                if(!isset($result['fixtures'])) {
+                                                    return;
+                                                }
+
+                                                $om = ObjectManager::getInstance();
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
                                             }
                     ),
 
