@@ -35,7 +35,7 @@ This section maps field names to their translated attributes.
 
 ### The `view` Section
 
-This section translates specific [Views](../views-ui/frontend-logic.md) and their internal layout sections (tabs, groups). The keys correspond to the view types (e.g., `form.default`, `list.default`).
+This section translates specific [Views](../../equal-ui/frontend-logic.md) and their internal layout sections (tabs, groups). The keys correspond to the view types (e.g., `form.default`, `list.default`).
 
 *   `name`: The title of the view.
 *   `layout`: An object mapping section IDs (e.g., `section.identity_info`) to their translated `label`.

@@ -33,7 +33,7 @@ Layout → Groups → Sections → Rows → Columns → Items → Widgets
 | ------------ | ----------------------------- | ----------------------------------------------------------------------- |
 | `id`         | `string`                      | Unique identifier, used for translations                                |
 | `label`      | `string`                      | (optional) Display name if no translation is available                  |
-| `visible`    | `array` or boolean            | (optional) [Domain](../../data-rules-processing/domains.md) conditions to conditionally display the group |
+| `visible`    | `array` or boolean            | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to conditionally display the group |
 | `sections`   | array of [Section](#sections) | List of sections (displayed as tabs if more than one)                   |
 
 ### Sections
@@ -44,7 +44,7 @@ A **section** contains a portion of the layout presented in rows and columns. If
 | ------------ | --------------------- | ------------------------------------------------------------------------- |
 | `id`         | `string`              | Unique identifier, used for translations                                  |
 | `label`      | `string`              | (optional) Display name if no translation is available                    |
-| `visible`    | `array` or boolean    | (optional) [Domain](../../data-rules-processing/domains.md) conditions to conditionally display the section |
+| `visible`    | `array` or boolean    | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to conditionally display the section |
 | `rows`       | array of [Row](#rows) | List of rows organizing the section's content                             |
 
 ### Rows
@@ -55,7 +55,7 @@ A **section** contains a portion of the layout presented in rows and columns. If
 | ------------ | --------------------------- | --------------------------------------------------------------------- |
 | `id`         | `string`                    | Unique identifier, used for translations                              |
 | `label`      | `string`                    | (optional) Display name if no translation is available                |
-| `visible`    | `array` or boolean          | (optional) [Domain](../../data-rules-processing/domains.md) conditions to conditionally display the row |
+| `visible`    | `array` or boolean          | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to conditionally display the row |
 | `columns`    | array of [Column](#columns) | List of columns within the row                                        |
 
 | `width`      | `percentage`                | (optional) Width of the row as a percentage of its parent (0-100%)        |
@@ -69,14 +69,14 @@ A **section** contains a portion of the layout presented in rows and columns. If
 | ------------ | ----------------------- | -------------------------------------------------------------------------- |
 | `id`         | `string`                | Unique identifier, used for translations                                   |
 | `label`      | `string`                | (optional) Display name if no translation is available                     |
-| `visible`    | `array` or boolean      | (optional) [Domain](../../data-rules-processing/domains.md) conditions to conditionally display the column   |
+| `visible`    | `array` or boolean      | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to conditionally display the column   |
 | `width`      | `percentage`            | Width of the column as a percentage of its parent (0-100%)                 |
 | `align`      | `string`                | (optional) Alignment of items within the column: `left`, `center`, `right` |
 | `items`      | array of [Item](#items) | List of items (fields or labels) in the column                             |
 
 ### Items
 
-**Items** describe how a field or label from a Model is displayed in the form view. Each item can be a field (interactive) or a label (static text). See [common structures](./common-structures/common-structures.md) for detailed item properties.
+**Items** describe how a field or label from a Model is displayed in the form view. Each item can be a field (interactive) or a label (static text). See [views common structures](./views.md#layout) for detailed item properties.
 
 ### Widget
 
@@ -86,8 +86,8 @@ Widgets configure how items are displayed and behave. Full documentation is avai
 | **PROPERTY** | **TYPE** | **DESCRIPTION**                                                                                                                                                               |
 | ------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `view`       | `string` | Specifies the view ID to use for displaying the relation                                                                                                                      |
-| `header`     | `object` | Overrides the [header](./common-structures/common-structures.md#header) configuration for the relational view. Possible values are `domain` and `visible`, which accept the same parameters as their header counterparts |
-| `domain`     | `array`  | Overrides the [domain](../../data-rules-processing/domains.md) to filter displayed relations                                                                                                                    |
+| `header`     | `object` | Overrides the [header](./views.md#header) configuration for the relational view. Possible values are `domain` and `visible`, which accept the same parameters as their header counterparts |
+| `domain`     | `array`  | Overrides the [domain](../../core-development/data-rules-processing/domains.md) to filter displayed relations                                                                                                                    |
 
 
 **one2many**
@@ -117,7 +117,7 @@ Widgets configure how items are displayed and behave. Full documentation is avai
 
 #### Controlling Relational Field Actions
 
-For relational fields, the `header` configuration controls which action buttons are displayed. For more information on available actions, see the [Views & Actions](./common-structures/views-actions.md) documentation.
+For relational fields, the `header` configuration controls which action buttons are displayed. For more information on available actions, see the [Header Actions](./views.md#header-actions) documentation.
 
 ---
 
@@ -137,7 +137,7 @@ Forms can include a **routes** element that displays navigation buttons on the r
 | `context`     | `array` of [Context](../contexts.md) | (optional) Context object specifying entity, view, domain, and reset behavior                |
 | `target`      | `string`                   | (optional) Target for opening the route: `_blank` for new window, default is current context |
 | `absolute`    | `boolean`                  | (optional) If `true`, treats the route as an absolute URL                                    |
-| `visible`     | `array` or `boolean`       | (optional) [Domain](../../data-rules-processing/domains.md) conditions to control button visibility                            |
+| `visible`     | `array` or `boolean`       | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to control button visibility                            |
 
 **Example - Contextual navigation with form updates:**
 

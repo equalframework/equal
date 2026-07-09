@@ -19,7 +19,7 @@ Lists display multiple objects in a grid or table format, enabling users to brow
 
 ## Header Configuration
 
-The **header** section customizes the list view's header behavior and action buttons. For common header properties shared across all view types, refer to the [common view header](./common-structures/common-structures.md#header) documentation.
+The **header** section customizes the list view's header behavior and action buttons. For common header properties shared across all view types, refer to the [common view header](./views.md#header) documentation.
 
 List-specific header properties include:
 
@@ -91,7 +91,7 @@ Actions in the `selection.actions` array can reference predefined action IDs (li
 | `id`         | `string`  | Unique identifier for the action                                     |
 | `label`      | `string`  | Button label displayed to the user                                   |
 | `icon`       | `string`  | Icon identifier for the button                                       |
-| `controller` | `string`  | [ORM/Entity controller](../../controllers-routing/controllers.md) to invoke when the action is triggered |
+| `controller` | `string`  | [ORM/Entity controller](../../core-development/controllers-routing/controllers.md) to invoke when the action is triggered |
 | `confirm`    | `boolean` | (optional) If `true`, display a confirmation dialog before execution |
 
 ### Actions
@@ -267,7 +267,7 @@ Ony inline routes are supported and handled as actions opening the context given
 
 ### Advanced Search
 
-The `advanced_search` property controls whether an advanced search form is displayed. This is useful when the list uses a custom [controller](../../controllers-routing/controllers.md) with parameters that function as searchable fields.
+The `advanced_search` property controls whether an advanced search form is displayed. This is useful when the list uses a custom [controller](../../core-development/controllers-routing/controllers.md) with parameters that function as searchable fields.
 
 If a custom controller is specified (other than the default `core_model_collect`) and a view is associated with it, the controller's parameters are treated as searchable fields.
 
@@ -321,13 +321,13 @@ Widgets configure how items are displayed and behave. Refer to the [widgets](./w
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                                     |
 | ------------ | --------- | ------------------------------------------------------------------- |
 | `sortable`   | `boolean` | If `true`, users can sort the list by clicking this column header   |
-| `domain`     | `array`   | [Domain](../../data-rules-processing/domains.md) conditions affecting display                         |
+| `domain`     | `array`   | [Domain](../../core-development/data-rules-processing/domains.md) conditions affecting display                         |
 
 **Relational Field Properties (many2one, many2many):**
 
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                                              |
 | ------------ | --------- | ---------------------------------------------------------------------------- |
-| `header`     | object    | Override the [header](./common-structures/common-structures.md#header) configuration for the relational view            |
+| `header`     | object    | Override the [header](./views.md#header) configuration for the relational view            |
 | `controller` | `string`  | Custom controller for fetching related data                                  |
 | `group_by`   | `array`   | Group related items by field                                                 |
 | `sort`       | `string`  | Sort direction for related items                                             |
@@ -462,7 +462,7 @@ The `width` property defines the list's width relative to the screen or its cont
 
 ### Visible
 
-The `visible` property controls whether the column is displayed based on a boolean value or a [domain](../../data-rules-processing/domains.md) condition.
+The `visible` property controls whether the column is displayed based on a boolean value or a [domain](../../core-development/data-rules-processing/domains.md) condition.
 
 ```json
 {
@@ -476,7 +476,7 @@ The `visible` property controls whether the column is displayed based on a boole
 
 ### Controller
 
-The `controller` property specifies which [ORM/Entity controller](../../controllers-routing/controllers.md) fetches the object collection for the view. The default is `core_model_collect` (aliased as `model_collect`).
+The `controller` property specifies which [ORM/Entity controller](../../core-development/controllers-routing/controllers.md) fetches the object collection for the view. The default is `core_model_collect` (aliased as `model_collect`).
 
 ```json
 {
@@ -614,7 +614,7 @@ Operations apply calculations (aggregations) to list data, displaying summary ro
 | **PROPERTY** | **TYPE**            | **DESCRIPTION**                                                                          |
 | ------------ | ------------------- | ---------------------------------------------------------------------------------------- |
 | `operation`  | `string` or `array` | The operation to apply (e.g., `"SUM"`, `["SUM", "object.field"]`)                        |
-| `usage`      | `string`            | [Usage](../../entities-persistence/fields.md#usages) hint for formatting the result (e.g., `amount/money:2`, `numeric/integer`) |
+| `usage`      | `string`            | [Usage](../../core-development/entities-persistence/fields.md#usages) hint for formatting the result (e.g., `amount/money:2`, `numeric/integer`) |
 | `label`      | `string`            | (optional) Display label for the operation result                                        |
 | `id`         | `string`            | (optional) Identifier for translation purposes                                           |
 

@@ -1,6 +1,6 @@
 # Dashboards
 
-Dashboards are control panels that display multiple [views](./common-structures/common-structures.md) (lists, charts, forms) on a single page, enabling aggregated overviews and interactive data monitoring. They allow users to monitor multiple metrics and datasets simultaneously without navigating between different pages.
+Dashboards are control panels that display multiple [views](./views.md) (lists, charts, forms) on a single page, enabling aggregated overviews and interactive data monitoring. They allow users to monitor multiple metrics and datasets simultaneously without navigating between different pages.
 
 **Purpose:** Summarize and display data from multiple views or entities in a unified interface.
 
@@ -38,7 +38,7 @@ Dashboard items are objects representing embedded views on the dashboard. Each i
 | `height`      | `integer` | (optional) Height as a percentage of the dashboard height (1-100%)                                                        |
 | `entity`      | `string`  | Full class name (with namespace) of the entity (e.g., `core\User`, `sales\Order`)                                         |
 | `view`        | `string`  | View ID to embed (e.g., `list.default`, `chart.revenue`, `form.overview`)                                                 |
-| `domain`      | `array`   | (optional) [Domain](../../data-rules-processing/domains.md) conditions to filter the embedded view (e.g., `[["status", "=", "active"]]`) |
+| `domain`      | `array`   | (optional) [Domain](../../core-development/data-rules-processing/domains.md) conditions to filter the embedded view (e.g., `[["status", "=", "active"]]`) |
 
 ---
 
@@ -172,7 +172,7 @@ Dashboard items are arranged in a responsive grid layout. The `width` property c
 
 ## Filtering
 
-The `domain` property applies [domain](../../data-rules-processing/domains.md) conditions to filter data displayed in embedded views. Filters are applied independently to each item without affecting other dashboard items.
+The `domain` property applies [domain](../../core-development/data-rules-processing/domains.md) conditions to filter data displayed in embedded views. Filters are applied independently to each item without affecting other dashboard items.
 
 **Single Domain Condition:**
 
@@ -220,7 +220,7 @@ The `domain` property applies [domain](../../data-rules-processing/domains.md) c
 
 ## Access Control
 
-Dashboard visibility can be restricted through the [access control](../../security-access/access-control-lists.md) system. Refer to the [views documentation](./common-structures/common-structures.md) for configuring group-based or user-based access restrictions.
+Dashboard visibility can be restricted through the [access control](../../core-development/security-access/access-control-lists.md) system. Refer to the [views documentation](./views.md) for configuring group-based or user-based access restrictions.
 
 Individual items within a dashboard inherit access restrictions from their referenced views. If a user lacks permissions to view a particular item's view or entity, that item is either hidden or displays an access denied message.
 

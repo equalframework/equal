@@ -24,7 +24,7 @@ Search views provide users with powerful tools to filter and find records based 
 | `name`        | `string`  | Display name for the search view                                        |
 | `description` | `string`  | (optional) Description of the search view                               |
 | `entity`      | `string`  | The entity this search view is associated with (e.g., `tutorial\\Post`) |
-| `domain`      | `array`   | [Domain](../../data-rules-processing/domains.md) conditions to apply                                      |
+| `domain`      | `array`   | [Domain](../../core-development/data-rules-processing/domains.md) conditions to apply                                      |
 | `order`       | `string`  | Column to use for sorting results                                       |
 | `sort`        | `string`  | Sort direction for search results (e.g., `asc`, `desc`)         |
 | `start`       | `integer` | Pagination offset for search results                                    |
@@ -40,7 +40,7 @@ Searches are configured as JSON objects containing an array of search items. The
 | **PROPERTY** | **TYPE**  | **DESCRIPTION**                                                          |
 | ------------ | --------- | ------------------------------------------------------------------------ |
 | `id`         | `string`  | Unique identifier for the search view                                    |
-| `domain`     | `array`   | [Domain](../../data-rules-processing/domains.md) conditions to apply to search results                     |
+| `domain`     | `array`   | [Domain](../../core-development/data-rules-processing/domains.md) conditions to apply to search results                     |
 | `order`      | `string`  | Default sorting order for search results (e.g., `name asc`, `date desc`) |
 | `sort`       | `string`  | Default sort direction for search results (e.g., `asc`, `desc`)          |
 | `start`      | `integer` | Pagination offset for search results                                     |

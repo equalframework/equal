@@ -8,6 +8,6 @@ The `AccessController` service and the `Permission` class provide the foundation
 - Manage permissions using binary masks.
 - Override default behavior with custom logic.
 
-More on how these utilities work and how to use them can be found in the [ACL documentation](../../application-developers/core-development-guide/security-access/access-control-lists.md) or in the [Rights Management utilities documentation](./rights-management-utilities.md).
+More on how these utilities work and how to use them can be found in the [ACL documentation](../../application-developers/core-development/security-access/access-control-lists.md) or in the [Rights Management utilities documentation](./rights-management-utilities.md).
 
 ---

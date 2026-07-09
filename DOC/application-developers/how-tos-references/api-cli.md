@@ -6,9 +6,9 @@
 Controller Types (CQRS Pattern).
 The eQual framework uses three types of controllers, each located in specific directories:
 
-* [Data providers](../core-development-guide/controllers-routing/controllers.md#data-providers)
-* [Action handlers](../core-development-guide/controllers-routing/controllers.md#action-handlers)
-* [Application providers](../core-development-guide/controllers-routing/controllers.md#application-providers)
+* [Data providers](../core-development/controllers-routing/controllers.md#data-providers)
+* [Action handlers](../core-development/controllers-routing/controllers.md#action-handlers)
+* [Application providers](../core-development/controllers-routing/controllers.md#application-providers)
 
 #### run.php
 
@@ -260,7 +260,7 @@ Example:
 ./equal.run --do=init_db
 ```
 
-Example (see [anonymization](../core-development-guide/data-rules-processing/data-anonymization.md)):
+Example (see [anonymization](../core-development/data-rules-processing/data-anonymization.md)):
 ```bash
 ./equal.run --do_anonymize --package=core
 ```

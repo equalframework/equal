@@ -1,6 +1,6 @@
 # Operations
 
-**Operations** in eQual define aggregation or computation logic to be applied to one or more fields of a dataset—typically in a [list view](../views-ui/views/lists.md). They are essential for displaying totals, averages, counts, or custom calculations directly in the UI.
+**Operations** in eQual define aggregation or computation logic to be applied to one or more fields of a dataset—typically in a [list view](../../equal-ui/views/lists.md). They are essential for displaying totals, averages, counts, or custom calculations directly in the UI.
 
 ---
 

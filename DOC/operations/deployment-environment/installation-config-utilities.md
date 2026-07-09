@@ -68,8 +68,8 @@ The DEBUG_MODE constant expects a binary mask with the following values :
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | EQ_DEBUG_PHP | The layer is PHP code, the lowest one. **ex** : `trigger_error()`                                                                        |
 | EQ_DEBUG_SQL | The layer is SQL errors.                                                                                                                 |
-| EQ_DEBUG_ORM | The layer is eQual's ObjectManager. The [validation](../../application-developers/core-development-guide/data-rules-processing/validation.md) method also handles orm errors. |
-| EQ_DEBUG_APP | The application layer is handled by eQual's [controllers](../../application-developers/core-development-guide/controllers-routing/controllers.md) (data & actions folders).                                    |
+| EQ_DEBUG_ORM | The layer is eQual's ObjectManager. The [validation](../../application-developers/core-development/data-rules-processing/validation.md) method also handles orm errors. |
+| EQ_DEBUG_APP | The application layer is handled by eQual's [controllers](../../application-developers/core-development/controllers-routing/controllers.md) (data & actions folders).                                    |
 
 Collecting workspace informationThe content of the external-libraries.md file can be divided into smaller sections and integrated into your architecture as follows. I will suggest where each part fits best, and in some cases, I will propose slight modifications to titles or text to align with the context of the target section.
 
