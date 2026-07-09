@@ -8,20 +8,35 @@
 */
 error_reporting(0);
 define('MAX_FILESIZE', 100 * 1000 * 1000);
-define('MAX_DISPLAY_LINES', 5000);
+define('DEFAULT_THREAD_LIMIT', 100);
+define('MAX_THREAD_LIMIT', 500);
+define('DEFAULT_LINE_LIMIT', 250);
+define('MAX_LINE_LIMIT', 1000);
 
 // get log file, using variation from URL, if any
-$log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? $_GET['f'] : 'equal.log';
+$log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? basename($_GET['f']) : 'equal.log';
+if($log_file === '' || $log_file === '.' || $log_file === '..') {
+    $log_file = 'equal.log';
+}
 
 // retrieve logs history (variations on filename)
 $log_variations = [];
-foreach(glob('../log/*.log') as $file) {
-    $log_variations[] = pathinfo($file, PATHINFO_EXTENSION);
+foreach(glob('../log/*.log') ?: [] as $file) {
+    $log_variations[] = basename($file);
 }
+$log_variations = array_values(array_unique($log_variations));
+if(!in_array($log_file, $log_variations, true)) {
+    array_unshift($log_variations, $log_file);
+}
+$log_options = implode(PHP_EOL, array_map(function($file) use($log_file) {
+    $escaped_file = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
+    return '<option value="'.$escaped_file.'" '.(($log_file === $file)?'selected':'').'>'.$escaped_file.'</option>';
+}, $log_variations));
 
 
 // no param given: frond-end App provider
-if(!count($_GET)) {
+$is_data_request = isset($_GET['api']) || isset($_GET['thread_id']) || isset($_GET['empty-file']);
+if(!$is_data_request) {
     echo '
         <!DOCTYPE html>
         <html>
@@ -428,6 +443,14 @@ if(!count($_GET)) {
                 display: block;
             }
 
+            input.selector + div > button.load-lines {
+                display: none;
+            }
+
+            input.selector:checked + div > button.load-lines {
+                display: inline-block;
+            }
+
             input.selector:checked + div > i.fa {
                 transform: rotate(90deg);
             }
@@ -451,17 +474,49 @@ if(!count($_GET)) {
             button.btn.applied {
                 opacity: 1;
             }
+
+            button.load-more {
+                margin: 10px 20px;
+                padding: 6px 14px;
+                font-size: 13px;
+            }
         </style>
         <script>
-            function copy(node) {
-                document.querySelector(".snack").classList.add("show");
-                var copyText = document.querySelector("#clipboard");
-                copyText.value = node.nextSibling.textContent;
+            const THREAD_PAGE_SIZE = 100;
+            const LINE_PAGE_SIZE = 250;
+
+            const state = {
+                params: {},
+                threadOffset: 0,
+                hasMoreThreads: false,
+                requestId: 0,
+                loadingThreads: false
+            };
+
+            function showSnack() {
+                const snack = document.querySelector(".snack");
+                snack.classList.add("show");
+                setTimeout(function() {
+                    snack.classList.remove("show");
+                }, 2000);
+            }
+
+            function fallbackCopy(text) {
+                const copyText = document.querySelector("#clipboard");
+                copyText.value = text;
                 copyText.select();
                 document.execCommand("copy");
-                setTimeout(function() {
-                    document.querySelector(".snack").classList.remove("show");
-                }, 2000);
+                showSnack();
+            }
+
+            function copyText(text) {
+                if(navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(showSnack).catch(function() {
+                        fallbackCopy(text);
+                    });
+                    return;
+                }
+                fallbackCopy(text);
             }
 
             function get_level_info(level) {
@@ -511,231 +566,410 @@ if(!count($_GET)) {
                 return {type: type, icon: icon, class: classname};
             }
 
-            async function get_threads(params) {
-                let query = new URLSearchParams(params).toString();
-                if(typeof params == "undefined") {
-                    query = "a=1";
-                }
-                const response = await fetch("console.php?"+query);
+            function levelClass(level) {
+                return String(get_level_info(level).type).replace(/\s+/g, "_");
+            }
 
-                if(response.status != 200) {
+            async function apiFetch(api, params) {
+                const queryParams = {...params, api: api};
+                const query = new URLSearchParams(queryParams).toString();
+                const response = await fetch("console.php?" + query);
+
+                if(response.status !== 200) {
                     throw new Error(response.status);
                 }
 
-                const data = await response.json();
-                return data;
+                return response.json();
             }
 
-            async function get_lines(thread_id, params) {
-                if(typeof params == "undefined") {
-                    params = {};
+            function setLoading(active) {
+                document.getElementById("loader").style.display = active ? "block" : "none";
+            }
+
+            function getFormParams() {
+                const form = document.getElementById("searchForm");
+                const params = {
+                    q: form.elements.q.value,
+                    mode: form.elements.mode.value,
+                    level: form.elements.level.value,
+                    date: form.elements.date.value,
+                    f: form.elements.f.value
+                };
+
+                if(form.elements["empty-file"].checked) {
+                    params["empty-file"] = true;
                 }
-                params.thread_id = thread_id;
-                let query = new URLSearchParams(params).toString();
-                const response = await fetch("console.php?"+query);
-                const data = await response.json();
-                return data;
+
+                return params;
             }
 
-            function createThreadElement(thread, params) {
-                const template = document.getElementsByClassName("thread-template")[0].innerHTML;
-                let div = document.createElement("div");
-                let content = template;
-                let info = get_level_info(thread.level);
-                content = content.replace("$thread_id", thread.thread_id);
-                content = content.replace("$time", thread.time);
-                content = content.replace("$type", info.type);
-                content = content.replace("$class", info.class);
-                content = content.replace("$icon", info.icon);
-                div.innerHTML = content;
-                div.firstElementChild.classList.add(info.type);
-                div.querySelector("input").addEventListener("click", async function(event) {
-                        document.getElementById("loader").style.display = "block";
-                        event.target.parentNode.classList.add("selected");
-                        let list = document.getElementById("list");
-                        // pass-1 - hide threads
-                        for(let node of list.getElementsByClassName("thread")) {
-                            if(event.target.checked) {
-                                if(event.target.parentNode != node) {
-                                    node.style.display = "none";
-                                }
-                            }
-                        }
-                        // pass-2 - load lines
-                        for(let node of list.getElementsByClassName("thread")) {
-                            if(event.target.checked) {
-                                if(event.target.parentNode == node) {
-                                    // if not yet present, load lines
-                                    if(!node.classList.contains("loaded")) {
-                                        node.classList.add("loaded");
-                                        const lines = await get_lines(thread.thread_id, params);
-                                        let list = node.getElementsByClassName("thread-lines")[0];
-                                        for(const line of lines) {
-                                            let element = createLineElement(line);
-                                            list.append(element);
-                                        }
-                                    }
-                                }
-                            }
-                            else {
-                                node.style.display = "block";
-                            }
-                            node.classList.remove("selected");
-                        }
-                        event.target.parentNode.classList.add("selected");
-                        document.getElementById("loader").style.display = "none";
-                    });
-                return div.firstElementChild;
+            function syncLevelButtons() {
+                const level = document.getElementById("searchForm").elements.level.value;
+                for(const btn of document.querySelectorAll("#levelFilters button[data-level]")) {
+                    btn.classList.toggle("applied", !level || btn.dataset.level === level);
+                }
+            }
+
+            function showFeedback(message, noResult) {
+                const list = document.getElementById("list");
+                const div = document.createElement("div");
+                div.className = "feedback" + (noResult ? " no-result" : "");
+                if(message) {
+                    div.textContent = message;
+                }
+                list.replaceChildren(div);
+            }
+
+            function createIcon(info) {
+                const icon = document.createElement("i");
+                icon.className = "icon fa " + info.icon;
+                return icon;
+            }
+
+            function createThreadElement(thread) {
+                const info = get_level_info(thread.level);
+                const node = document.createElement("div");
+                node.className = "thread " + levelClass(thread.level);
+                node.dataset.threadId = thread.thread_id ?? "";
+                node.dataset.loaded = "false";
+
+                const title = document.createElement("div");
+                title.className = "thread-title";
+
+                const titleContent = document.createElement("div");
+                titleContent.className = info.class;
+                titleContent.title = info.type;
+
+                const hash = document.createElement("div");
+                hash.className = "thread-hash";
+                hash.append(createIcon(info), document.createTextNode(" " + (thread.thread_id ?? "")));
+
+                titleContent.append(hash, document.createTextNode(" " + (thread.time ?? "")));
+                if(thread.lines) {
+                    titleContent.append(document.createTextNode(" (" + thread.lines + ")"));
+                }
+                title.append(titleContent);
+
+                const selector = document.createElement("input");
+                selector.type = "checkbox";
+                selector.className = "selector";
+                selector.dataset.action = "toggle-thread";
+
+                const lines = document.createElement("div");
+                lines.className = "thread-lines";
+                lines.dataset.offset = "0";
+                lines.dataset.hasMore = "true";
+
+                const chevron = document.createElement("i");
+                chevron.className = "chevron fa fa-chevron-right";
+                lines.append(chevron);
+
+                node.append(title, selector, lines);
+                return node;
             }
 
             function createLineElement(line) {
-                const template = document.getElementsByClassName("line-template")[0].innerHTML;
-                let div = document.createElement("div");
-                let content = template;
-                let info = get_level_info(line.level);
-                let origin = ( (line?.class?.length) ? line.class + "::" : "" ) + line.function;
-                let inside = "<b>in</b> <code class=\"" + (info?.class ?? "") + "\">" + origin + "</code>";
-                content = content.replace("$mode", line?.mode ?? "");
-                content = content.replace("$time", line?.time ?? "");
-                content = content.replace("$mtime", line?.mtime ?? "");
-                content = content.replace("$file", line?.file ?? "");
-                content = content.replace("$line", line?.line ?? "");
-                content = content.replace("$in", inside);
-                content = content.replaceAll("$type", info?.type ?? "");
-                content = content.replaceAll("$class", info?.class ?? "");
-                content = content.replaceAll("$icon", info?.icon ?? "");
-                content = content.replaceAll(
-                            "$msg",
-                             (line?.message ?? "").replace(/&/g, "&amp;")
-                                        .replace(/</g, "&lt;")
-                                        .replace(/>/g, "&gt;")
-                                        .replace(/"/g, "&quot;")
-                                        .replace(/\'/g, "&#039;")
-                          );
-                div.innerHTML = content;
-                div.firstElementChild.classList.add(info.type);
+                const info = get_level_info(line.level);
+                const node = document.createElement("div");
+                node.className = "thread_line " + levelClass(line.level);
 
+                const title = document.createElement("div");
+                title.className = "line-title";
                 if(line.match) {
-                    div.getElementsByClassName("line-title")[0].classList.add("match");
+                    title.classList.add("match");
                 }
 
-                let list = div.getElementsByClassName("line-traces")[0];
-                let count = line.stack.length, i = 0;
-	            for(let trace of line.stack) {
-                    let values = {
-                            ...{
-                                function: "",
-                                line:     0,
-                                file:     "",
-                                class:    "",
-                                object:   null,
-                                args:     [],
-                            },
-                            ...trace
-                        };
-                    let element = createTraceElement(values, count-i);
-                    list.append(element);
-                    ++i;
+                const meta = document.createElement("span");
+                meta.className = info.class;
+                meta.title = info.type;
+                meta.append(
+                    createIcon(info),
+                    document.createTextNode(" " + (line.time ?? "") + " " + (line.mtime ?? "") + " " + (line.mode ?? ""))
+                );
+
+                const location = document.createElement("code");
+                location.className = info.class;
+                location.textContent = (line.file ?? "") + ":" + (line.line ?? "");
+
+                const inside = document.createElement("b");
+                inside.textContent = "in";
+
+                const origin = document.createElement("code");
+                origin.className = info.class;
+                origin.textContent = ((line?.class?.length) ? line.class + "::" : "") + (line.function ?? "");
+
+                const message = line.message ?? "";
+                title.title = message;
+                title.append(
+                    meta,
+                    document.createTextNode(" @ ["),
+                    location,
+                    document.createTextNode("] "),
+                    inside,
+                    document.createTextNode(" "),
+                    origin,
+                    document.createTextNode(": " + message)
+                );
+
+                const selector = document.createElement("input");
+                selector.className = "selector";
+                selector.type = "checkbox";
+
+                const traces = document.createElement("div");
+                traces.className = "line-traces";
+
+                const chevron = document.createElement("i");
+                chevron.className = "chevron fa fa-chevron-right";
+                traces.append(chevron);
+
+                const messageTrace = document.createElement("div");
+                messageTrace.className = "trace_line";
+
+                const copy = document.createElement("i");
+                copy.className = "fa fa-clipboard icon-copy";
+                copy.dataset.action = "copy-message";
+
+                const pre = document.createElement("pre");
+                pre.textContent = message;
+                messageTrace.append(copy, pre);
+                traces.append(messageTrace);
+
+                const stack = Array.isArray(line.stack) ? line.stack : [];
+                let index = stack.length;
+                for(const trace of stack) {
+                    traces.append(createTraceElement(trace, index));
+                    --index;
                 }
-                return div.firstElementChild;
+
+                node.append(title, selector, traces);
+                return node;
             }
 
-            function createTraceElement(trace, i) {
-                const template = document.getElementsByClassName("trace-template")[0].innerHTML;
-                let div = document.createElement("div");
-                let content = template;
-                content = content.replace("$function", trace.function);
-                content = content.replace("$line", trace.line);
-                content = content.replace("$file", trace.file);
-                content = content.replace("$class", trace.class);
-                content = content.replace("$i", i);
-                div.innerHTML = content;
-                return div.firstElementChild;
+            function createTraceElement(trace, index) {
+                const values = {
+                    function: "",
+                    line: 0,
+                    file: "",
+                    class: "",
+                    ...trace
+                };
+                const node = document.createElement("div");
+                node.className = "trace_line";
+                node.textContent = index + ". " + values.file + " line " + values.line + " (" + values.function + ")";
+                return node;
+            }
+
+            function createLoadMoreButton(action) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "material-button load-more " + (action === "load-lines" ? "load-lines" : "");
+                button.dataset.action = action;
+                button.textContent = "Load more";
+                return button;
+            }
+
+            function appendThreads(threads) {
+                const fragment = document.createDocumentFragment();
+                for(const thread of threads) {
+                    fragment.append(createThreadElement(thread));
+                }
+                document.getElementById("list").append(fragment);
+            }
+
+            async function loadThreads() {
+                if(state.loadingThreads || !state.hasMoreThreads && state.threadOffset > 0) {
+                    return;
+                }
+
+                const requestId = state.requestId;
+                state.loadingThreads = true;
+                setLoading(true);
+                document.getElementById("loadMoreThreads").style.display = "none";
+
+                try {
+                    const data = await apiFetch("threads", {
+                        ...state.params,
+                        offset: state.threadOffset,
+                        limit: THREAD_PAGE_SIZE
+                    });
+
+                    if(requestId !== state.requestId) {
+                        return;
+                    }
+
+                    appendThreads(data.items ?? []);
+                    state.threadOffset = data.next_offset ?? state.threadOffset;
+                    state.hasMoreThreads = !!data.has_more;
+
+                    if(state.threadOffset === 0 && !(data.items ?? []).length) {
+                        showFeedback("", true);
+                    }
+                }
+                catch(error) {
+                    if(requestId === state.requestId) {
+                        showFeedback("Unable to load log data.", false);
+                    }
+                }
+                finally {
+                    if(requestId === state.requestId) {
+                        state.loadingThreads = false;
+                        setLoading(false);
+                        document.getElementById("loadMoreThreads").style.display = state.hasMoreThreads ? "inline-block" : "none";
+                    }
+                }
+            }
+
+            async function loadThreadLines(threadNode) {
+                const linesNode = threadNode.querySelector(".thread-lines");
+                if(linesNode.dataset.loading === "true" || linesNode.dataset.hasMore === "false") {
+                    return;
+                }
+
+                const requestId = state.requestId;
+                linesNode.dataset.loading = "true";
+                setLoading(true);
+
+                try {
+                    const data = await apiFetch("lines", {
+                        ...state.params,
+                        thread_id: threadNode.dataset.threadId,
+                        offset: linesNode.dataset.offset || 0,
+                        limit: LINE_PAGE_SIZE
+                    });
+
+                    if(requestId !== state.requestId) {
+                        return;
+                    }
+
+                    const oldButton = linesNode.querySelector("button.load-lines");
+                    if(oldButton) {
+                        oldButton.remove();
+                    }
+
+                    const fragment = document.createDocumentFragment();
+                    for(const line of data.items ?? []) {
+                        fragment.append(createLineElement(line));
+                    }
+                    linesNode.append(fragment);
+
+                    linesNode.dataset.offset = data.next_offset ?? linesNode.dataset.offset;
+                    linesNode.dataset.hasMore = data.has_more ? "true" : "false";
+                    threadNode.dataset.loaded = "true";
+
+                    if(data.has_more) {
+                        linesNode.append(createLoadMoreButton("load-lines"));
+                    }
+                }
+                catch(error) {
+                    const div = document.createElement("div");
+                    div.className = "feedback";
+                    div.textContent = "Unable to load thread lines.";
+                    linesNode.append(div);
+                }
+                finally {
+                    if(requestId === state.requestId) {
+                        linesNode.dataset.loading = "false";
+                        setLoading(false);
+                    }
+                }
+            }
+
+            function showOnlySelectedThread(selectedThread) {
+                for(const thread of document.querySelectorAll("#list .thread")) {
+                    const selector = thread.querySelector("input.selector");
+                    if(thread === selectedThread) {
+                        thread.style.display = "block";
+                        thread.classList.add("selected");
+                        continue;
+                    }
+                    thread.style.display = "none";
+                    thread.classList.remove("selected");
+                    selector.checked = false;
+                }
+            }
+
+            function showAllThreads() {
+                for(const thread of document.querySelectorAll("#list .thread")) {
+                    thread.style.display = "block";
+                    thread.classList.remove("selected");
+                }
             }
 
             async function feed(params) {
-                let list = document.getElementById("list");
-                list.style.display = "none";
-                list.innerHTML = "";
-                document.getElementById("loader").style.display = "block";
-                try {
-                    const threads = await get_threads(params);
+                state.params = params || {};
+                state.threadOffset = 0;
+                state.hasMoreThreads = true;
+                state.requestId++;
+                document.getElementById("list").replaceChildren();
+                document.getElementById("loadMoreThreads").style.display = "none";
+                await loadThreads();
 
-                    for(const thread of threads) {
-                        let element = createThreadElement(thread, params);
-                        list.prepend(element);
-                    }
-                    if(!threads.length) {
-                        list.innerHTML = "<div class=\"feedback no-result\"></div>";
-                    }
-                }
-                catch(status) {
-                    console.log("an error occurred", status);
-                    list.innerHTML = "<div class=\"feedback\">Filesize over limit. Parsing blocked to prevent overload.</div>";
-                }
-                document.getElementById("loader").style.display = "none";
-                list.style.display = "block";
-            }
-
-            function btnFilterClick(btn) {
-                console.log(btn);
-                var type = btn.innerHTML;
-                console.log(type);
-                var levels = [\'ERROR\', \'WARNING\', \'INFO\', \'DEBUG\'];
-                for(level of levels) {
-                    var filter_btn = document.getElementById("btn-" + level);
-                    if(level != type) {
-                        filter_btn.classList.remove("applied");
-                    }
-                }
-                // hide all thread.{type} and thread_line.{type} that do not match the type
-                var count_thread_selected = 0;
-                var nodes_thread = document.getElementsByClassName("thread");
-                for(node of nodes_thread) {
-                    if(node.classList.contains("selected")) {
-                        ++count_thread_selected;
-                    }
-                    else {
-                        if(!node.classList.contains(type)) {
-                            node.style.display = "none";
-                        }
-                        else {
-                            // #todo -  only if no thread is selected
-                            // node.style.display = "block";
-                        }
-                    }
-                }
-                if(count_thread_selected > 0) {
-                    var nodes_lines = document.getElementsByClassName("thread_line");
-                    for(node of nodes_lines) {
-                        if(!node.classList.contains(type)) {
-                            node.style.display = "none";
-                        }
-                        else {
-                            // #todo - only if parent is selected
-                            // node.style.display = "block";
-                        }
-                    }
-                }
-            }
-
-            function btnResetClick() {
+                const form = document.getElementById("searchForm");
+                form.elements["empty-file"].checked = false;
             }
 
             document.addEventListener("DOMContentLoaded", async function() {
-                await feed();
-                document.getElementById("searchForm").addEventListener("submit", function (e) {
-                        e.preventDefault();
-                        const form = e.srcElement;
-                        let params = {
-                            q: form.elements.q.value,
-                            mode: form.elements.mode.value,
-                            level: form.elements.level.value,
-                            date: form.elements.date.value,
-                            "empty-file": form.elements["empty-file"].checked
+                const list = document.getElementById("list");
+                const form = document.getElementById("searchForm");
+
+                list.addEventListener("change", async function(event) {
+                    if(!event.target.matches("input.selector[data-action=\"toggle-thread\"]")) {
+                        return;
+                    }
+
+                    const thread = event.target.closest(".thread");
+                    if(event.target.checked) {
+                        showOnlySelectedThread(thread);
+                        if(thread.dataset.loaded !== "true") {
+                            await loadThreadLines(thread);
                         }
-                        feed(params);
-                    });
+                        return;
+                    }
+
+                    showAllThreads();
+                });
+
+                list.addEventListener("click", async function(event) {
+                    const actionNode = event.target.closest("[data-action]");
+                    if(!actionNode) {
+                        return;
+                    }
+
+                    if(actionNode.dataset.action === "copy-message") {
+                        const pre = actionNode.parentNode.querySelector("pre");
+                        copyText(pre ? pre.textContent : "");
+                    }
+
+                    if(actionNode.dataset.action === "load-lines") {
+                        await loadThreadLines(actionNode.closest(".thread"));
+                    }
+                });
+
+                document.getElementById("loadMoreThreads").addEventListener("click", loadThreads);
+
+                document.getElementById("levelFilters").addEventListener("click", function(event) {
+                    const btn = event.target.closest("button[data-level]");
+                    if(!btn) {
+                        return;
+                    }
+                    form.elements.level.value = form.elements.level.value === btn.dataset.level ? "" : btn.dataset.level;
+                    syncLevelButtons();
+                    feed(getFormParams());
+                });
+
+                form.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    syncLevelButtons();
+                    feed(getFormParams());
+                });
+
+                form.elements.level.addEventListener("change", syncLevelButtons);
+                form.elements.f.addEventListener("change", function() {
+                    feed(getFormParams());
+                });
+
+                syncLevelButtons();
+                await feed(getFormParams());
             });
 
         </script>
@@ -743,36 +977,6 @@ if(!count($_GET)) {
         <body>
         <input style="display: block; position: absolute; top: -100px;" id="clipboard" type="text">
         <div class="snack">Copied to clipboard</div>
-
-        <div class="thread-template" style="display:none">
-            <div class="thread">
-                <div class="thread-title">
-                    <div class="$class" title="$type">
-                        <div class="thread-hash"><i class="icon fa $icon"></i> $thread_id </div>
-                        $time
-                    </div>
-                </div>
-                <input type="checkbox" class="selector">
-                <div class="thread-lines">
-                    <i class="chevron fa fa-chevron-right"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="line-template" style="display: none">
-            <div class="thread_line">
-                <div class="line-title"><span class="$class" title="$type"><i class="icon fa $icon"></i> $time $mtime $mode</span> <b>@</b> [<code class="$class">$file:$line</code>] $in: $msg</div>
-                <input class="selector" type="checkbox">
-                <div class="line-traces">
-                    <i class="chevron fa fa-chevron-right"></i>
-                    <div class="trace_line"><i class="fa fa-clipboard icon-copy" onclick="copy(this)"></i><pre>$msg</pre></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="trace-template" style="display: none">
-            <div class="trace_line">$i. $file line $line ($function)</div>
-        </div>
 
 
         <div id="header">
@@ -835,9 +1039,8 @@ if(!count($_GET)) {
                     </div>
                     <div style="margin-left: auto;">
                         <div class="material-select" style="width: 100px;">
-                            <select name="f" onchange="this.form.submit()">
-                                <option value="">'.$log_file.'</option>'.
-                                implode(PHP_EOL, array_map(function($a) {return '<option value="'.$a.'" '.((isset($_GET['f']) && $_GET['f'] == $a)?'selected':'').'>'.$a.'</option>';}, $log_variations)).'
+                            <select name="f">
+                                '.$log_options.'
                             </select>
                             <label>File</label>
                             <div class="bar"></div>
@@ -845,16 +1048,17 @@ if(!count($_GET)) {
                     </div>
                 </div>
             </form>
-            <div style="width: 100%; padding: 0 15px;">
-                <button id="btn-DEBUG" class="btn btn-success applied" onclick="btnFilterClick(this)">DEBUG</button>
-                <button id="btn-INFO" class="btn btn-info applied" onclick="btnFilterClick(this)">INFO</button>
-                <button id="btn-WARNING" class="btn btn-warning applied" onclick="btnFilterClick(this)">WARNING</button>
-                <button id="btn-ERROR" class="btn btn-danger applied" onclick="btnFilterClick(this)">ERROR</button>
+            <div id="levelFilters" style="width: 100%; padding: 0 15px;">
+                <button id="btn-DEBUG" type="button" data-level="DEBUG" class="btn btn-success applied">DEBUG</button>
+                <button id="btn-INFO" type="button" data-level="INFO" class="btn btn-info applied">INFO</button>
+                <button id="btn-WARNING" type="button" data-level="WARNING" class="btn btn-warning applied">WARNING</button>
+                <button id="btn-ERROR" type="button" data-level="ERROR" class="btn btn-danger applied">ERROR</button>
             </div>
         </div>
         <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
         <div id="start"></div>
         <div id="list"></div>
+        <button id="loadMoreThreads" type="button" class="material-button load-more" style="display: none;">Load more</button>
         <div id="end"></div>
         </body>
         </html>
@@ -862,16 +1066,59 @@ if(!count($_GET)) {
 }
 // params given: back-end data provider
 else {
-    $result = [];
+    header('Content-Type: application/json; charset=UTF-8');
 
-    $map_codes = [
-        'SYSTEM'    => 0,
-        'DEBUG'     => E_USER_DEPRECATED,
-        'INFO'      => E_USER_NOTICE,
-        'WARNING'   => E_USER_WARNING,
-        'ERROR'     => E_USER_ERROR,
-        'FATAL'     => E_ERROR
+    $api = $_GET['api'] ?? (isset($_GET['thread_id']) ? 'lines' : 'threads');
+    $response = [
+        'items'       => [],
+        'next_offset' => 0,
+        'has_more'    => false
     ];
+
+    function console_int_param(string $name, int $default, int $max): int {
+        $value = filter_input(INPUT_GET, $name, FILTER_VALIDATE_INT);
+        if($value === false || $value === null) {
+            $value = $default;
+        }
+        return max(0, min($value, $max));
+    }
+
+    function console_level_rank($level): int {
+        $ranks = [
+            'FATAL'       => 0,
+            'Fatal error' => 0,
+            'Parse error' => 0,
+            E_ERROR       => 0,
+            'ERROR'       => 1,
+            E_USER_ERROR  => 1,
+            'WARNING'     => 2,
+            E_USER_WARNING => 2,
+            'INFO'        => 3,
+            'NOTICE'      => 3,
+            E_USER_NOTICE => 3,
+            'DEBUG'       => 4,
+            E_USER_DEPRECATED => 4,
+            'SYSTEM'      => 5,
+            0             => 5
+        ];
+        return array_key_exists($level, $ranks) ? $ranks[$level] : 6;
+    }
+
+    function console_line_matches(array $line, string $query): bool {
+        if(isset($_GET['level']) && $_GET['level'] !== '' && (($line['level'] ?? '') != $_GET['level'])) {
+            return false;
+        }
+        if(isset($_GET['mode']) && $_GET['mode'] !== '' && (($line['mode'] ?? '') != $_GET['mode'])) {
+            return false;
+        }
+        if(isset($_GET['date']) && $_GET['date'] !== '' && strpos(($line['time'] ?? ''), $_GET['date']) !== 0) {
+            return false;
+        }
+        if($query !== '' && stripos(($line['message'] ?? ''), $query) === false) {
+            return false;
+        }
+        return true;
+    }
 
     if(file_exists('../log/'.$log_file)) {
 
@@ -879,78 +1126,65 @@ else {
             $f = fopen('../log/'.$log_file,"r+");
             ftruncate($f, 0);
             fclose($f);
-            die(json_encode($result));
+            die(json_encode($response));
         }
 
         // get query from URL, if any
         $query = $_GET['q'] ?? '';
-
-        // adapt params
-        if(isset($_GET['level']) && $_GET['level'] == '') {
-            unset($_GET['level']);
-        }
-        if(isset($_GET['mode']) && $_GET['mode'] == '') {
-            unset($_GET['mode']);
-        }
-        if(isset($_GET['date']) && $_GET['date'] == '') {
-            unset($_GET['date']);
-        }
+        $item_offset = console_int_param('offset', 0, PHP_INT_MAX);
+        $limit = ($api === 'lines')
+            ? console_int_param('limit', DEFAULT_LINE_LIMIT, MAX_LINE_LIMIT)
+            : console_int_param('limit', DEFAULT_THREAD_LIMIT, MAX_THREAD_LIMIT);
 
         $filesize = filesize('../log/'.$log_file);
 
         // limit processing based on filesize to prevent overload
         $max_filesize = constant('MAX_FILESIZE');
-        $offset = 0;
+        $read_offset = 0;
 
         if($filesize > $max_filesize) {
             // start reading from the last MAX_FILESIZE bytes
-            $offset = $filesize - $max_filesize;
+            $read_offset = $filesize - $max_filesize;
         }
 
         // read raw data from log file
         if($f = fopen('../log/'.$log_file, 'r')) {
 
             // move pointer if needed (tail behavior)
-            if($offset > 0) {
-                fseek($f, $offset);
+            if($read_offset > 0) {
+                fseek($f, $read_offset);
 
                 // discard first partial line (we are likely in the middle of a line)
                 fgets($f);
             }
 
             // lines request (return lines matching filters within a given thread_id)
-            if(isset($_GET['thread_id'])) {
-                $count_lines = 0;
+            if($api === 'lines') {
+                $skipped = 0;
                 while(($data = fgets($f)) !== false) {
                     if(($line = json_decode($data,true)) === null) {
                         continue;
                     }
-                    if($line['thread_id'] != $_GET['thread_id']) {
+                    if(($line['thread_id'] ?? '') != ($_GET['thread_id'] ?? '')) {
                         continue;
                     }
-                    $match = true;
-                    $line['match'] = false;
-                    if( $match && (isset($_GET['level']) && $line['level'] != $_GET['level']) ) {
-                        $match = false;
+                    if(!console_line_matches($line, $query)) {
+                        continue;
                     }
-                    if( $match && (isset($_GET['mode']) && $line['mode'] != $_GET['mode']) ) {
-                        $match = false;
+
+                    if($skipped < $item_offset) {
+                        ++$skipped;
+                        continue;
                     }
-                    if( $match && (isset($_GET['date']) && strpos($line['time'], $_GET['date']) !== 0) ) {
-                        $match = false;
-                    }
-                    if( $match && (strlen($query) > 0 && stripos($line['message'], $query) === false) ) {
-                        $match = false;
-                    }
-                    if($match && strlen($query)) {
-                        $line['match'] = true;
-                    }
-                    $result[] = $line;
-                    ++$count_lines;
-                    if($count_lines >= constant('MAX_DISPLAY_LINES')) {
+
+                    $line['match'] = ($query !== '');
+                    if(count($response['items']) >= $limit) {
+                        $response['has_more'] = true;
                         break;
                     }
+                    $response['items'][] = $line;
                 }
+                $response['next_offset'] = $item_offset + count($response['items']);
             }
             // threads request (return threads summary: lines count, max level, first time)
             else {
@@ -960,53 +1194,52 @@ else {
                     if(($line = json_decode($data,true)) === null) {
                         continue;
                     }
-                    if(!isset($map_threads[$line['thread_id']])) {
-                        $map_threads[$line['thread_id']] = [
-                            'thread_id' => $line['thread_id'],
+                    if(!isset($line['thread_id'])) {
+                        continue;
+                    }
+
+                    $thread_id = $line['thread_id'];
+                    if(!isset($map_threads[$thread_id])) {
+                        $map_threads[$thread_id] = [
+                            'thread_id' => $thread_id,
                             'lines'     => 0,
-                            'level'     => $map_threads[$line['thread_id']]['level'],
+                            'level'     => $line['level'] ?? 'SYSTEM',
                             // threads will be sorted on timestamp using a map: we must avoid collisions
-                            'time'      => $line['time'].'.'.$line['mtime']
+                            'time'      => ($line['time'] ?? '').'.'.($line['mtime'] ?? '')
                         ];
                     }
-                    elseif($map_codes[$line['level']] && (!$map_codes[$map_threads[$line['thread_id']]['level']] || $map_codes[$line['level']] < $map_codes[$map_threads[$line['thread_id']]['level']])) {
-                        $map_threads[$line['thread_id']]['level'] = $line['level'];
+                    elseif(console_level_rank($line['level'] ?? 'SYSTEM') < console_level_rank($map_threads[$thread_id]['level'])) {
+                        $map_threads[$thread_id]['level'] = $line['level'];
                     }
 
-                    $match = true;
-
-                    if($map_threads[$line['thread_id']]['lines'] < 1) {
-                        if( $match && (isset($_GET['level']) && $line['level'] != $_GET['level']) ) {
-                            $match = false;
-                        }
-                        if( $match && (isset($_GET['mode']) && $line['mode'] != $_GET['mode']) ) {
-                            $match = false;
-                        }
-                        if( $match && (isset($_GET['date']) && strpos($line['time'], $_GET['date']) !== 0) ) {
-                            $match = false;
-                        }
-                        if( $match && strlen($query) && stripos($line['message'], $query) === false) {
-                            $match = false;
-                        }
-                    }
-                    if($match) {
-                        ++$map_threads[$line['thread_id']]['lines'];
+                    if(console_line_matches($line, $query)) {
+                        ++$map_threads[$thread_id]['lines'];
                     }
                 }
                 // step-2 : keep only threads with matching lines
-                foreach($map_threads as $thread_id => $thread) {
+                $threads = [];
+                foreach($map_threads as $thread) {
                     if($thread['lines'] <= 0) {
                         continue;
                     }
-                    // order threads by time (ascending)
-                    $result[$thread['time']] = $thread;
+                    $threads[] = $thread;
                 }
-                $result = array_values($result);
+                usort($threads, function($a, $b) {
+                    return strcmp($b['time'], $a['time']);
+                });
+
+                $page = array_slice($threads, $item_offset, $limit + 1);
+                if(count($page) > $limit) {
+                    $response['has_more'] = true;
+                    array_pop($page);
+                }
+                $response['items'] = $page;
+                $response['next_offset'] = $item_offset + count($page);
             }
             fclose($f);
         }
 
     }
 
-    echo json_encode($result, JSON_PRETTY_PRINT);
+    echo json_encode($response);
 }
