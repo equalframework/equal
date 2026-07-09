@@ -938,7 +938,7 @@ class Collection implements \Iterator, \Countable {
             ->assertAccessControl(EQ_R_CREATE, $fields);
 
         // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+        $is_draft = (isset($values['state']) && $values['state'] === 'draft');
 
         // set current user as creator and modifier
         $values['creator'] = $user_id;
@@ -1232,7 +1232,7 @@ class Collection implements \Iterator, \Countable {
             }
         });
 
-        $is_draft = (isset($values['state']) && $values['state'] == 'draft');
+        $is_draft = (isset($values['state']) && $values['state'] === 'draft');
 
         // drop invalid fields
         $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');

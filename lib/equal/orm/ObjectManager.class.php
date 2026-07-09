@@ -1646,6 +1646,67 @@ class ObjectManager extends Service {
         return (count($res)) ? [$error_code => $res] : [];
     }
 
+    /**
+     * Validates required fields against stored values patched with pending values.
+     *
+     * @param string    $class
+     * @param int[]     $ids
+     * @param array     $values
+     * @param array     $schema
+     * @param string    $lang
+     *
+     * @throws Exception
+     */
+    private function assertRequiredFields($class, $ids, $values, $schema, $lang) {
+        if(!count($ids)) {
+            return;
+        }
+
+        $required_fields = [];
+        foreach($schema as $field => $def) {
+            if(($def['type'] ?? null) === 'computed') {
+                continue;
+            }
+            if(($def['required'] ?? false)) {
+                $required_fields[] = $field;
+            }
+        }
+
+        if(!count($required_fields)) {
+            return;
+        }
+
+        $stored_fields = array_values(array_diff($required_fields, array_keys($values)));
+        $stored_values = [];
+
+        if(count($stored_fields)) {
+            $stored_values = $this->read($class, $ids, $stored_fields, $lang);
+            if(!is_array($stored_values)) {
+                throw new Exception('required_validation_failed', $stored_values);
+            }
+        }
+
+        foreach($ids as $id) {
+            $effective_values = [];
+
+            foreach($stored_fields as $field) {
+                $effective_values[$field] = $stored_values[$id][$field] ?? null;
+            }
+
+            foreach($required_fields as $field) {
+                if(array_key_exists($field, $values)) {
+                    $effective_values[$field] = $values[$field];
+                }
+            }
+
+            $errors = $this->validate($class, [$id], $effective_values, false, true);
+            if(count($errors)) {
+                $error_code = (int) array_key_first($errors);
+                throw new Exception(serialize($errors[$error_code]), $error_code);
+            }
+        }
+    }
+
 
     /**
      * Creates a new instance of given class and, if given, assigns values to targeted fields.
@@ -1909,6 +1970,7 @@ class ObjectManager extends Service {
 
 
             $updated_ids = array_values(array_diff($ids, $instantiated_ids));
+            $this->assertRequiredFields($class, $instantiated_ids, $fields, $schema, $lang);
 
             // 3) make sure objects in the collection can be updated
             // #memo - moved to Collection
