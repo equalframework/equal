@@ -269,8 +269,8 @@ class Mail extends Model {
                     self::id($message['id'])->update(['status' => 'sent', 'response_status' => 250]);
                 }
 
-                // prevent flooding the SMTP (wait 100 ms)
-                usleep(100 *1000);
+                // prevent flooding the SMTP (wait 1000 ms)
+                usleep(1000 * 1000);
                 ++$i;
             }
             catch(\Exception $e) {
