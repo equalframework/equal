@@ -252,14 +252,16 @@ if(!$is_data_request) {
 
             .loader-overlay {
                 display: none;
-                position: relative;
+                position: fixed;
+                inset: 0;
+                z-index: 10;
+                pointer-events: none;
             }
 
             .loader-overlay .loader-container {
                 position: absolute;
                 top: calc(40vh - 50px);
                 left: calc(50% - 50px);
-                z-index: 1;
             }
 
             .loader-overlay .loader-spinner {
