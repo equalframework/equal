@@ -141,14 +141,18 @@ foreach($data as $entity_data) {
     if(isset($entity_data['id'])) {
         $ids = $orm->search($entity, ['id', '=', $entity_data['id']]);
         if(!is_array($ids) || empty($ids)) {
-            $orm->create($entity, ['id' => $entity_data['id']], $lang, false);
+            $id = $orm->create($entity, $entity_data, $lang, false);
+            $object_ids[] = $id;
+            continue;
         }
 
         $id = $entity_data['id'];
         unset($entity_data['id']);
     }
     else {
-        $id = $orm->create($entity, [], $lang, false);
+        $id = $orm->create($entity, $entity_data, $lang, false);
+        $object_ids[] = $id;
+        continue;
     }
 
     $orm->update($entity, $id, $entity_data, $lang);
