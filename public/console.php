@@ -349,7 +349,8 @@ if(!$is_data_request) {
                 cursor: pointer;
             }
 
-            div.thread.selected div.thread-title {
+            div.thread.selected div.thread-title,
+            div.thread.opened div.thread-title {
                 background-color: #e1f0f5;
             }
 
@@ -413,6 +414,10 @@ if(!$is_data_request) {
                 margin: 0 !important;
             }
 
+            input.selector[data-action="toggle-thread"] {
+                height: 22px;
+            }
+
             div.thread_line div.trace_line {
                 margin-left: 20px;
             }
@@ -449,6 +454,11 @@ if(!$is_data_request) {
 
             input.selector:checked + div > button.load-lines {
                 display: inline-block;
+            }
+
+            button.load-lines {
+                position: relative;
+                z-index: 2;
             }
 
             input.selector:checked + div > i.fa {
@@ -880,10 +890,12 @@ if(!$is_data_request) {
                     if(thread === selectedThread) {
                         thread.style.display = "block";
                         thread.classList.add("selected");
+                        thread.classList.add("opened");
                         continue;
                     }
                     thread.style.display = "none";
                     thread.classList.remove("selected");
+                    thread.classList.remove("opened");
                     selector.checked = false;
                 }
             }
@@ -936,11 +948,15 @@ if(!$is_data_request) {
                     }
 
                     if(actionNode.dataset.action === "copy-message") {
+                        event.preventDefault();
+                        event.stopPropagation();
                         const pre = actionNode.parentNode.querySelector("pre");
                         copyText(pre ? pre.textContent : "");
                     }
 
                     if(actionNode.dataset.action === "load-lines") {
+                        event.preventDefault();
+                        event.stopPropagation();
                         await loadThreadLines(actionNode.closest(".thread"));
                     }
                 });
