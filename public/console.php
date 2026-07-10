@@ -603,6 +603,10 @@ if(!$is_data_request) {
                 padding: 8px 15px 0;
             }
 
+            .quick-filtered-out {
+                display: none !important;
+            }
+
             button.btn {
                 height: 18px;
                 border: none !important;
@@ -710,10 +714,6 @@ if(!$is_data_request) {
                 return {type: type, icon: icon, class: classname};
             }
 
-            function levelClass(level) {
-                return String(get_level_info(level).type).replace(/\s+/g, "_");
-            }
-
             async function apiFetch(api, params) {
                 const queryParams = {...params, api: api};
                 const query = new URLSearchParams(queryParams).toString();
@@ -752,32 +752,18 @@ if(!$is_data_request) {
                 return params;
             }
 
-            function intersectLists(values, filters) {
-                if(!values.length) {
-                    return [...filters];
-                }
-                return values.filter(function(value) {
-                    return filters.includes(value);
-                });
-            }
+            function applyQuickFilters() {
+                const selectedThread = document.querySelector("#list .thread.selected");
+                const showAllLevels = state.quickLevels.length === QUICK_FILTER_LEVELS.length;
 
-            function paramsWithQuickFilters(params) {
-                if(state.quickLevels.length === QUICK_FILTER_LEVELS.length) {
-                    return params;
+                for(const thread of document.querySelectorAll("#list .thread")) {
+                    const matches = showAllLevels || state.quickLevels.includes(thread.dataset.level);
+                    thread.classList.toggle("quick-filtered-out", !selectedThread && !matches);
                 }
 
-                const values = params.level ? params.level.split(",") : [];
-                const levels = intersectLists(values, state.quickLevels);
-
-                return {
-                    ...params,
-                    level: levels.length ? levels.join(",") : "__none__"
-                };
-            }
-
-            function syncQuickFilters() {
-                for(const button of document.querySelectorAll("#quickFilters button[data-level]")) {
-                    button.classList.toggle("applied", state.quickLevels.includes(button.dataset.level));
+                for(const line of document.querySelectorAll("#list .thread_line")) {
+                    const matches = showAllLevels || state.quickLevels.includes(line.dataset.level);
+                    line.classList.toggle("quick-filtered-out", !matches);
                 }
             }
 
@@ -797,8 +783,10 @@ if(!$is_data_request) {
                     state.quickLevels.push(level);
                 }
 
-                syncQuickFilters();
-                feed(getFormParams());
+                for(const button of document.querySelectorAll("#quickFilters button[data-level]")) {
+                    button.classList.toggle("applied", state.quickLevels.includes(button.dataset.level));
+                }
+                applyQuickFilters();
             }
 
             function syncCheckboxSelects() {
@@ -828,16 +816,11 @@ if(!$is_data_request) {
                 list.replaceChildren(div);
             }
 
-            function createIcon(info) {
-                const icon = document.createElement("i");
-                icon.className = "icon fa " + info.icon;
-                return icon;
-            }
-
             function createThreadElement(thread) {
                 const info = get_level_info(thread.level);
                 const node = document.createElement("div");
-                node.className = "thread " + levelClass(thread.level);
+                node.className = "thread " + String(info.type).replace(/\s+/g, "_");
+                node.dataset.level = info.type;
                 node.dataset.threadId = thread.thread_id ?? "";
                 node.dataset.loaded = "false";
 
@@ -850,7 +833,9 @@ if(!$is_data_request) {
 
                 const hash = document.createElement("div");
                 hash.className = "thread-hash";
-                hash.append(createIcon(info), document.createTextNode(" " + (thread.thread_id ?? "")));
+                const hashIcon = document.createElement("i");
+                hashIcon.className = "icon fa " + info.icon;
+                hash.append(hashIcon, document.createTextNode(" " + (thread.thread_id ?? "")));
 
                 titleContent.append(hash, document.createTextNode(" " + (thread.time ?? "")));
                 if(thread.lines) {
@@ -882,7 +867,8 @@ if(!$is_data_request) {
             function createLineElement(line) {
                 const info = get_level_info(line.level);
                 const node = document.createElement("div");
-                node.className = "thread_line " + levelClass(line.level);
+                node.className = "thread_line " + String(info.type).replace(/\s+/g, "_");
+                node.dataset.level = info.type;
 
                 const title = document.createElement("div");
                 title.className = "line-title";
@@ -893,8 +879,10 @@ if(!$is_data_request) {
                 const meta = document.createElement("span");
                 meta.className = info.class;
                 meta.title = info.type;
+                const metaIcon = document.createElement("i");
+                metaIcon.className = "icon fa " + info.icon;
                 meta.append(
-                    createIcon(info),
+                    metaIcon,
                     document.createTextNode(" " + (line.time ?? "") + " " + (line.mtime ?? "") + " " + (line.mode ?? ""))
                 );
 
@@ -948,43 +936,21 @@ if(!$is_data_request) {
                 const stack = Array.isArray(line.stack) ? line.stack : [];
                 let index = stack.length;
                 for(const trace of stack) {
-                    traces.append(createTraceElement(trace, index));
+                    const values = {
+                        function: "",
+                        line: 0,
+                        file: "",
+                        ...trace
+                    };
+                    const stackLine = document.createElement("div");
+                    stackLine.className = "trace_line";
+                    stackLine.textContent = index + ". " + values.file + " line " + values.line + " (" + values.function + ")";
+                    traces.append(stackLine);
                     --index;
                 }
 
                 node.append(title, selector, traces);
                 return node;
-            }
-
-            function createTraceElement(trace, index) {
-                const values = {
-                    function: "",
-                    line: 0,
-                    file: "",
-                    class: "",
-                    ...trace
-                };
-                const node = document.createElement("div");
-                node.className = "trace_line";
-                node.textContent = index + ". " + values.file + " line " + values.line + " (" + values.function + ")";
-                return node;
-            }
-
-            function createLoadMoreButton(action) {
-                const button = document.createElement("button");
-                button.type = "button";
-                button.className = "material-button load-more " + (action === "load-lines" ? "load-lines" : "");
-                button.dataset.action = action;
-                button.textContent = "Load more";
-                return button;
-            }
-
-            function appendThreads(threads) {
-                const fragment = document.createDocumentFragment();
-                for(const thread of threads) {
-                    fragment.append(createThreadElement(thread));
-                }
-                document.getElementById("list").append(fragment);
             }
 
             async function loadThreads() {
@@ -1008,7 +974,12 @@ if(!$is_data_request) {
                         return;
                     }
 
-                    appendThreads(data.items ?? []);
+                    const fragment = document.createDocumentFragment();
+                    for(const thread of data.items ?? []) {
+                        fragment.append(createThreadElement(thread));
+                    }
+                    document.getElementById("list").append(fragment);
+                    applyQuickFilters();
                     state.threadOffset = data.next_offset ?? state.threadOffset;
                     state.hasMoreThreads = !!data.has_more;
 
@@ -1068,8 +1039,14 @@ if(!$is_data_request) {
                     threadNode.dataset.loaded = "true";
 
                     if(data.has_more) {
-                        linesNode.append(createLoadMoreButton("load-lines"));
+                        const loadMore = document.createElement("button");
+                        loadMore.type = "button";
+                        loadMore.className = "material-button load-more load-lines";
+                        loadMore.dataset.action = "load-lines";
+                        loadMore.textContent = "Load more";
+                        linesNode.append(loadMore);
                     }
+                    applyQuickFilters();
                 }
                 catch(error) {
                     const div = document.createElement("div");
@@ -1099,6 +1076,7 @@ if(!$is_data_request) {
                     thread.classList.remove("opened");
                     selector.checked = false;
                 }
+                applyQuickFilters();
                 updateRootLoadMoreVisibility();
             }
 
@@ -1107,11 +1085,12 @@ if(!$is_data_request) {
                     thread.style.display = "block";
                     thread.classList.remove("selected");
                 }
+                applyQuickFilters();
                 updateRootLoadMoreVisibility();
             }
 
             async function feed(params) {
-                state.params = paramsWithQuickFilters(params || {});
+                state.params = params || {};
                 state.threadOffset = 0;
                 state.hasMoreThreads = true;
                 state.requestId++;
@@ -1226,7 +1205,6 @@ if(!$is_data_request) {
                 });
 
                 syncCheckboxSelects();
-                syncQuickFilters();
                 await feed(getFormParams());
             });
 
