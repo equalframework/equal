@@ -351,7 +351,7 @@ if(!$is_data_request) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 135px;
+                height: 140px;
                 width: 100%;
                 background: white;
                 z-index: 4;
@@ -361,6 +361,7 @@ if(!$is_data_request) {
                 padding: 25px 20px 15px 20px;
                 background: #f5f5f5;
                 margin: 10px;
+                margin-bottom: 0px;
                 border: solid 1px #dfdfdf;
                 border-radius: 15px;
             }
@@ -603,7 +604,7 @@ if(!$is_data_request) {
                 display: flex;
                 justify-content: space-between;
                 width: 100%;
-                padding: 8px 15px 0;
+                padding: 0px 15px;
             }
 
             .quick-filter-actions {
