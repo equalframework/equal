@@ -130,7 +130,8 @@ foreach($classes as $class) {
             throw new Exception('unresolved_adapter', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $type = $adapter->castOutType($f->getUsage());
+        $usage = $f->getUsage();
+        $type = $adapter->castOutType($usage);
         if(!strlen($type)) {
             trigger_error("ORM::unresolved type for usage {$usage->getName()}", EQ_REPORT_DEBUG);
             throw new Exception('unresolved_sql_type', EQ_ERROR_INVALID_CONFIG);
