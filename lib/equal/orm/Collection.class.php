@@ -937,16 +937,13 @@ class Collection implements \Iterator, \Countable {
             ->assertCapabilities(EQ_R_CREATE)
             ->assertAccessControl(EQ_R_CREATE, $fields);
 
-        // if state is forced to draft, do not check required fields (to allow creation of empty/draft objects)
-        $is_draft = (isset($values['state']) && $values['state'] === 'draft');
-
         // set current user as creator and modifier
         $values['creator'] = $user_id;
         $values['modifier'] = $user_id;
 
         // 3) validate : check required fields accordingly
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
-        $this->validate($values, [], true, !$is_draft);
+        $this->validate($values, [], true);
 
         $this->assertLifecycle(EQ_R_CREATE, $values);
 
@@ -1256,33 +1253,23 @@ class Collection implements \Iterator, \Countable {
         // by convention, update operation sets modifier as current user
         $values['modifier'] = $user_id;
 
-        // unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
-        // #memo - moved to ObjectManager::update()
-        /*
-        if(!isset($values['state']) || $values['state'] == 'draft') {
-            $values['state'] = 'instance';
-        }
-        */
-
         // 3) validate : check unique keys and required fields
         // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
-        $this->validate($values, $ids, true, $is_draft);
-
-        // #memo - moved back from ObjectManager::update() (see above)
-        // by convention, `update()` forces a 'draft' to an 'instance'
-        if($is_draft) {
-            $values['state'] = 'instance';
-            // #todo - here we must check that all required fields (scalar types) have been provided, either at create() or during update()
-            // this should probably rather be done in ORM + making a distinction between partial validation & full validation
-        }
+        $this->validate($values, $ids, true);
 
         $this->assertLifecycle(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // 4) update objects
-        $res = $this->orm->update($this->class, $ids, $values, ($lang)?$lang:$this->lang);
+        // #memo - unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
+        $res = $this->orm->update($this->class, $ids, $values, ($lang) ? $lang : $this->lang);
         if($res <= 0) {
             trigger_error("ORM::unexpected error when updating {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
             throw new \Exception('update_failed', $res);
+        }
+
+        // by convention, `orm::update()` forces a 'draft' to an 'instance' - keep collection value accurate
+        if(!array_key_exists('state', $values)) {
+            $values['state'] = 'instance';
         }
 
         foreach($ids as $oid) {
