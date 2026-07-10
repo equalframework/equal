@@ -520,7 +520,7 @@ class HttpMessage {
         if(is_array($param)) {
             $res = [];
             foreach($param as $p) {
-                if(isset($this->body[$p])) {
+                if(is_array($this->body) && array_key_exists($p, $this->body)) {
                     $res[$p] = $this->body[$p];
                 }
                 else {
@@ -531,7 +531,7 @@ class HttpMessage {
         else {
             $res = $default;
             if(isset($this->body) && is_array($this->body)) {
-                if(isset($this->body[$param])) {
+                if(array_key_exists($param, $this->body)) {
                     $res = $this->body[$param];
                 }
             }
