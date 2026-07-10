@@ -351,10 +351,14 @@ if(!$is_data_request) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 145px;
+                height: 140px;
                 width: 100%;
                 background: white;
                 z-index: 4;
+            }
+
+            #start {
+                padding-top: 140px;
             }
 
             #searchForm {
@@ -364,10 +368,6 @@ if(!$is_data_request) {
                 margin-bottom: 5px;
                 border: solid 1px #dfdfdf;
                 border-radius: 15px;
-            }
-
-            #start {
-                padding-top: 145px;
             }
 
             .loader-overlay {
