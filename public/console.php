@@ -253,6 +253,8 @@ if(!$is_data_request) {
                 margin-right: 12px;
                 background: white;
                 font-family: "Roboto", sans-serif;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
             }
 
             .checkbox-select-trigger {
