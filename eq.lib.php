@@ -944,7 +944,8 @@ namespace config {
             if( count($missing_params) || isset($body['announce']) || $method === 'OPTIONS' ) {
                 // #memo - we don't remove anything from the schema, so it can be returned as is for the UI
                 // (for public and protected controllers this might be considered as security issue as it may reveal a part of the configuration)
-                // if 'help' is amongst the params and request was made through CLI
+
+                // text/plain output if 'help' is amongst the params and request was made through CLI
                 if(php_sapi_name() == 'cli' && isset($body['help'])) {
                     $help = 'Help about ';
                     $help .= strtoupper($operation['type']).' '.$operation['operation']." :\n\n";
@@ -983,6 +984,7 @@ namespace config {
                         ->send();
                     throw new \Exception('', 0);
                 }
+
                 // add announcement to response body
                 if(isset($announcement['params'])) {
                     // default values must be retrieved and adapted to JSON
