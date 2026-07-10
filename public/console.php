@@ -361,6 +361,7 @@ if(!$is_data_request) {
                 padding: 25px 20px 15px 20px;
                 background: #f5f5f5;
                 margin: 10px;
+                margin-bottom: 5px;
                 border: solid 1px #dfdfdf;
                 border-radius: 15px;
             }
