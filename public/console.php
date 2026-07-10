@@ -315,8 +315,29 @@ if(!$is_data_request) {
                 white-space: nowrap;
             }
 
-            .checkbox-select-menu label:hover {
+            .checkbox-select-menu label:hover,
+            .checkbox-select-option:hover {
                 background: #f5f5f5;
+            }
+
+            .checkbox-select-option {
+                display: block;
+                width: 100%;
+                margin: 0;
+                padding: 5px 10px;
+                border: none;
+                background: transparent;
+                color: #333;
+                cursor: pointer;
+                font-size: 13px;
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .checkbox-select-separator {
+                height: 1px;
+                margin: 6px 0;
+                background: #dfdfdf;
             }
 
             #header {
@@ -1080,15 +1101,26 @@ if(!$is_data_request) {
 
                 form.addEventListener("click", function(event) {
                     const trigger = event.target.closest(".checkbox-select-trigger");
-                    if(!trigger) {
+                    if(trigger) {
+                        const select = trigger.closest(".checkbox-select");
+                        const wasOpen = select.classList.contains("open");
+                        for(const node of form.querySelectorAll(".checkbox-select.open")) {
+                            node.classList.remove("open");
+                        }
+                        select.classList.toggle("open", !wasOpen);
                         return;
                     }
-                    const select = trigger.closest(".checkbox-select");
-                    const wasOpen = select.classList.contains("open");
-                    for(const node of form.querySelectorAll(".checkbox-select.open")) {
-                        node.classList.remove("open");
+
+                    const option = event.target.closest(".checkbox-select-option[data-select]");
+                    if(!option) {
+                        return;
                     }
-                    select.classList.toggle("open", !wasOpen);
+                    const select = option.closest(".checkbox-select");
+                    const checked = option.dataset.select === "all";
+                    for(const input of select.querySelectorAll("input[type=\"checkbox\"]")) {
+                        input.checked = checked;
+                    }
+                    syncCheckboxSelects();
                 });
 
                 document.addEventListener("click", function(event) {
@@ -1111,7 +1143,6 @@ if(!$is_data_request) {
                         return;
                     }
                     syncCheckboxSelects();
-                    feed(getFormParams());
                 });
 
                 form.elements.f.addEventListener("change", function() {
@@ -1141,6 +1172,9 @@ if(!$is_data_request) {
                         <button class="checkbox-select-trigger" type="button"><span class="checkbox-select-value">All</span></button>
                         <label>Levels</label>
                         <div class="checkbox-select-menu">
+                            <button class="checkbox-select-option" type="button" data-select="all">Select all</button>
+                            <button class="checkbox-select-option" type="button" data-select="none">Select none</button>
+                            <div class="checkbox-select-separator"></div>
                             <label><input type="checkbox" name="level" value="SYSTEM" checked> SYSTEM</label>
                             <label><input type="checkbox" name="level" value="DEBUG" checked> DEBUG</label>
                             <label><input type="checkbox" name="level" value="INFO" checked> INFO</label>
@@ -1153,6 +1187,9 @@ if(!$is_data_request) {
                         <button class="checkbox-select-trigger" type="button"><span class="checkbox-select-value">All</span></button>
                         <label>Layers</label>
                         <div class="checkbox-select-menu">
+                            <button class="checkbox-select-option" type="button" data-select="all">Select all</button>
+                            <button class="checkbox-select-option" type="button" data-select="none">Select none</button>
+                            <div class="checkbox-select-separator"></div>
                             <label><input type="checkbox" name="mode" value="PHP" checked> PHP</label>
                             <label><input type="checkbox" name="mode" value="SQL" checked> SQL</label>
                             <label><input type="checkbox" name="mode" value="ORM" checked> ORM</label>
