@@ -351,7 +351,7 @@ if(!$is_data_request) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 105px;
+                height: 135px;
                 width: 100%;
                 background: white;
                 z-index: 4;
@@ -366,7 +366,7 @@ if(!$is_data_request) {
             }
 
             #start {
-                padding-top:  105px;
+                padding-top:  135px;
             }
 
             .loader-overlay {
@@ -598,6 +598,11 @@ if(!$is_data_request) {
                 white-space: break-spaces;
             }
 
+            .quick-filters {
+                width: 100%;
+                padding: 8px 15px 0;
+            }
+
             button.btn {
                 height: 18px;
                 border: none !important;
@@ -621,9 +626,11 @@ if(!$is_data_request) {
         <script>
             const THREAD_PAGE_SIZE = 200;
             const LINE_PAGE_SIZE = 250;
+            const QUICK_FILTER_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"];
 
             const state = {
                 params: {},
+                quickLevels: [...QUICK_FILTER_LEVELS],
                 threadOffset: 0,
                 hasMoreThreads: false,
                 requestId: 0,
@@ -743,6 +750,55 @@ if(!$is_data_request) {
                 };
 
                 return params;
+            }
+
+            function intersectLists(values, filters) {
+                if(!values.length) {
+                    return [...filters];
+                }
+                return values.filter(function(value) {
+                    return filters.includes(value);
+                });
+            }
+
+            function paramsWithQuickFilters(params) {
+                if(state.quickLevels.length === QUICK_FILTER_LEVELS.length) {
+                    return params;
+                }
+
+                const values = params.level ? params.level.split(",") : [];
+                const levels = intersectLists(values, state.quickLevels);
+
+                return {
+                    ...params,
+                    level: levels.length ? levels.join(",") : "__none__"
+                };
+            }
+
+            function syncQuickFilters() {
+                for(const button of document.querySelectorAll("#quickFilters button[data-level]")) {
+                    button.classList.toggle("applied", state.quickLevels.includes(button.dataset.level));
+                }
+            }
+
+            function setQuickFilter(level) {
+                if(state.quickLevels.length === QUICK_FILTER_LEVELS.length) {
+                    state.quickLevels = [level];
+                }
+                else if(state.quickLevels.includes(level)) {
+                    state.quickLevels = state.quickLevels.filter(function(value) {
+                        return value !== level;
+                    });
+                    if(!state.quickLevels.length) {
+                        state.quickLevels = [...QUICK_FILTER_LEVELS];
+                    }
+                }
+                else {
+                    state.quickLevels.push(level);
+                }
+
+                syncQuickFilters();
+                feed(getFormParams());
             }
 
             function syncCheckboxSelects() {
@@ -1055,7 +1111,7 @@ if(!$is_data_request) {
             }
 
             async function feed(params) {
-                state.params = params || {};
+                state.params = paramsWithQuickFilters(params || {});
                 state.threadOffset = 0;
                 state.hasMoreThreads = true;
                 state.requestId++;
@@ -1106,6 +1162,14 @@ if(!$is_data_request) {
                 });
 
                 document.getElementById("loadMoreThreads").addEventListener("click", loadThreads);
+
+                document.getElementById("quickFilters").addEventListener("click", function(event) {
+                    const button = event.target.closest("button[data-level]");
+                    if(!button) {
+                        return;
+                    }
+                    setQuickFilter(button.dataset.level);
+                });
 
                 form.addEventListener("click", function(event) {
                     const trigger = event.target.closest(".checkbox-select-trigger");
@@ -1162,6 +1226,7 @@ if(!$is_data_request) {
                 });
 
                 syncCheckboxSelects();
+                syncQuickFilters();
                 await feed(getFormParams());
             });
 
@@ -1242,6 +1307,12 @@ if(!$is_data_request) {
                     </div>
                 </div>
             </form>
+            <div id="quickFilters" class="quick-filters">
+                <button id="btn-DEBUG" class="btn btn-success applied" type="button" data-level="DEBUG">DEBUG</button>
+                <button id="btn-INFO" class="btn btn-info applied" type="button" data-level="INFO">INFO</button>
+                <button id="btn-WARNING" class="btn btn-warning applied" type="button" data-level="WARNING">WARNING</button>
+                <button id="btn-ERROR" class="btn btn-danger applied" type="button" data-level="ERROR">ERROR</button>
+            </div>
         </div>
         <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
         <div id="start"></div>
