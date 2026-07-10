@@ -15,16 +15,25 @@ define('MAX_LINE_LIMIT', 1000);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? basename($_GET['f']) : 'equal.log';
-if($log_file === '' || $log_file === '.' || $log_file === '..') {
+if(!preg_match('/^equal\.log(?:\.\d+)?$/', $log_file)) {
     $log_file = 'equal.log';
 }
 
 // retrieve logs history (variations on filename)
 $log_variations = [];
-foreach(glob('../log/*.log') ?: [] as $file) {
-    $log_variations[] = basename($file);
+foreach(glob('../log/equal.log*') ?: [] as $file) {
+    $file = basename($file);
+    if(preg_match('/^equal\.log(?:\.\d+)?$/', $file)) {
+        $log_variations[] = $file;
+    }
 }
 $log_variations = array_values(array_unique($log_variations));
+usort($log_variations, function($a, $b) {
+    $rank = function($file) {
+        return ($file === 'equal.log') ? 0 : (int) substr($file, strlen('equal.log.'));
+    };
+    return $rank($a) <=> $rank($b);
+});
 if(!in_array($log_file, $log_variations, true)) {
     array_unshift($log_variations, $log_file);
 }
@@ -365,6 +374,12 @@ if(!$is_data_request) {
                 width: 100px;
             }
 
+            div.thread div.thread-title small.thread-line-count {
+                display: inline-block;
+                width: 50px;
+                text-align: right;
+            }
+
             div.thread i.icon {
                 display: inline-block;
                 text-align: center;
@@ -663,7 +678,10 @@ if(!$is_data_request) {
 
                 titleContent.append(hash, document.createTextNode(" " + (thread.time ?? "")));
                 if(thread.lines) {
-                    titleContent.append(document.createTextNode(" (" + thread.lines + ")"));
+                    const lineCount = document.createElement("small");
+                    lineCount.className = "thread-line-count";
+                    lineCount.textContent = "" + thread.lines;
+                    titleContent.append(document.createTextNode(" "), lineCount);
                 }
                 title.append(titleContent);
 
