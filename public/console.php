@@ -183,7 +183,7 @@ if(!$is_data_request) {
                 color: #fff;
                 background-color: #3f51b5;
                 border: none;
-                border-radius: 5px;
+                border-radius: 25px;
                 cursor: pointer;
                 transition: background-color 0.3s ease;
             }
@@ -194,12 +194,15 @@ if(!$is_data_request) {
 
             .material-icon-button {
                 display: flex;
+                justify-content: center;
                 border-radius: 50%;
                 width: 34px;
                 height: 34px;
                 background-color: #f5f5f5;
                 align-items: center;
+                border: none;
                 cursor: pointer;
+                padding: 0;
                 text-decoration: none !important;
             }
 
@@ -628,10 +631,6 @@ if(!$is_data_request) {
                     f: form.elements.f.value
                 };
 
-                if(form.elements["empty-file"].checked) {
-                    params["empty-file"] = true;
-                }
-
                 return params;
             }
 
@@ -942,9 +941,6 @@ if(!$is_data_request) {
                 document.getElementById("list").replaceChildren();
                 document.getElementById("loadMoreThreads").style.display = "none";
                 await loadThreads();
-
-                const form = document.getElementById("searchForm");
-                form.elements["empty-file"].checked = false;
             }
 
             document.addEventListener("DOMContentLoaded", async function() {
@@ -1011,6 +1007,10 @@ if(!$is_data_request) {
                     feed(getFormParams());
                 });
 
+                document.getElementById("emptyFile").addEventListener("click", function() {
+                    feed({...getFormParams(), "empty-file": true});
+                });
+
                 syncLevelButtons();
                 await feed(getFormParams());
             });
@@ -1065,13 +1065,8 @@ if(!$is_data_request) {
                         <div class="bar"></div>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; height: 30px; margin-left: 10px; margin-right: 25px;">
-                        <div style="display: flex;">
-                            <input type="checkbox" name="empty-file"> <span style="margin-left: 5px">Empty file</span>
-                        </div>
-                    </div>
                     <div>
-                        <button class="material-button" type="submit">Go</button>
+                        <button class="material-button" type="submit">Filter</button>
                     </div>
                     <div style="width: 50px;"></div>
                     <div>
@@ -1080,7 +1075,7 @@ if(!$is_data_request) {
                     <div>
                         <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-long-arrow-up"></i></a>
                     </div>
-                    <div style="margin-left: auto;">
+                    <div style="margin-left: auto; display: flex; align-items: flex-end;">
                         <div class="material-select" style="width: 100px;">
                             <select name="f">
                                 '.$log_options.'
@@ -1088,6 +1083,7 @@ if(!$is_data_request) {
                             <label>File</label>
                             <div class="bar"></div>
                         </div>
+                        <button id="emptyFile" class="material-icon-button" type="button" title="Empty file"><i class="fa fa-trash-o"></i></button>
                     </div>
                 </div>
             </form>
@@ -1163,10 +1159,10 @@ else {
         return true;
     }
 
-    if(file_exists('../log/'.$log_file)) {
+    if(file_exists('../log/' . $log_file)) {
 
         if(isset($_GET['empty-file']) && $_GET['empty-file'] === 'true') {
-            $f = fopen('../log/'.$log_file,"r+");
+            $f = fopen('../log/' . $log_file, "r+");
             ftruncate($f, 0);
             fclose($f);
             die(json_encode($response));
@@ -1179,7 +1175,7 @@ else {
             ? console_int_param('limit', DEFAULT_LINE_LIMIT, MAX_LINE_LIMIT)
             : console_int_param('limit', DEFAULT_THREAD_LIMIT, MAX_THREAD_LIMIT);
 
-        $filesize = filesize('../log/'.$log_file);
+        $filesize = filesize('../log/' . $log_file);
 
         // limit processing to the tail of the log file to prevent overload
         $max_read_bytes = constant('MAX_LOG_READ_BYTES');
