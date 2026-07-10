@@ -241,10 +241,88 @@ if(!$is_data_request) {
                 width: 50%;
             }
 
+            .checkbox-select {
+                position: relative;
+                width: 130px;
+                margin-right: 12px;
+                background: white;
+                font-family: "Roboto", sans-serif;
+            }
+
+            .checkbox-select-trigger {
+                width: 100%;
+                min-height: 38px;
+                padding: 12px 24px 4px 5px;
+                border: none;
+                border-bottom: 1px solid #757575;
+                background: transparent;
+                color: #333;
+                cursor: pointer;
+                font-size: 14px;
+                outline: none;
+                overflow: hidden;
+                text-align: left;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .checkbox-select-trigger::after {
+                content: "\\25BC";
+                position: absolute;
+                right: 10px;
+                top: 14px;
+                color: #505050;
+                pointer-events: none;
+            }
+
+            .checkbox-select > label {
+                color: #5264ae;
+                font-size: 12px;
+                font-weight: normal;
+                left: 5px;
+                pointer-events: none;
+                position: absolute;
+                top: -20px;
+            }
+
+            .checkbox-select-menu {
+                display: none;
+                position: absolute;
+                left: 0;
+                top: 42px;
+                min-width: 100%;
+                padding: 6px 0;
+                background: white;
+                border: solid 1px #dfdfdf;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+                z-index: 8;
+            }
+
+            .checkbox-select.open .checkbox-select-menu {
+                display: block;
+            }
+
+            .checkbox-select-menu label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                margin: 0;
+                padding: 5px 10px;
+                color: #333;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: normal;
+                white-space: nowrap;
+            }
+
+            .checkbox-select-menu label:hover {
+                background: #f5f5f5;
+            }
+
             #header {
                 position: fixed;
                 top: 0;
-                height: 135px;
+                height: 105px;
                 width: 100%;
                 background: white;
                 z-index: 4;
@@ -259,7 +337,7 @@ if(!$is_data_request) {
             }
 
             #start {
-                padding-top:  135px;
+                padding-top:  105px;
             }
 
             .loader-overlay {
@@ -623,10 +701,14 @@ if(!$is_data_request) {
 
             function getFormParams() {
                 const form = document.getElementById("searchForm");
+                const levels = [...form.querySelectorAll("input[name=\"level\"]")];
+                const modes = [...form.querySelectorAll("input[name=\"mode\"]")];
+                const checkedLevels = levels.filter(function(input) { return input.checked; });
+                const checkedModes = modes.filter(function(input) { return input.checked; });
                 const params = {
                     q: form.elements.q.value,
-                    mode: form.elements.mode.value,
-                    level: form.elements.level.value,
+                    mode: checkedModes.length === modes.length ? "" : (checkedModes.length ? checkedModes.map(function(input) { return input.value; }).join(",") : "__none__"),
+                    level: checkedLevels.length === levels.length ? "" : (checkedLevels.length ? checkedLevels.map(function(input) { return input.value; }).join(",") : "__none__"),
                     date: form.elements.date.value,
                     f: form.elements.f.value
                 };
@@ -634,10 +716,20 @@ if(!$is_data_request) {
                 return params;
             }
 
-            function syncLevelButtons() {
-                const level = document.getElementById("searchForm").elements.level.value;
-                for(const btn of document.querySelectorAll("#levelFilters button[data-level]")) {
-                    btn.classList.toggle("applied", !level || btn.dataset.level === level);
+            function syncCheckboxSelects() {
+                for(const select of document.querySelectorAll(".checkbox-select")) {
+                    const inputs = [...select.querySelectorAll("input[type=\"checkbox\"]")];
+                    const checked = inputs.filter(function(input) { return input.checked; });
+                    const valueNode = select.querySelector(".checkbox-select-value");
+                    if(checked.length === inputs.length) {
+                        valueNode.textContent = "All";
+                    }
+                    else if(!checked.length) {
+                        valueNode.textContent = "None";
+                    }
+                    else {
+                        valueNode.textContent = checked.map(function(input) { return input.value; }).join(", ");
+                    }
                 }
             }
 
@@ -986,23 +1078,42 @@ if(!$is_data_request) {
 
                 document.getElementById("loadMoreThreads").addEventListener("click", loadThreads);
 
-                document.getElementById("levelFilters").addEventListener("click", function(event) {
-                    const btn = event.target.closest("button[data-level]");
-                    if(!btn) {
+                form.addEventListener("click", function(event) {
+                    const trigger = event.target.closest(".checkbox-select-trigger");
+                    if(!trigger) {
                         return;
                     }
-                    form.elements.level.value = form.elements.level.value === btn.dataset.level ? "" : btn.dataset.level;
-                    syncLevelButtons();
-                    feed(getFormParams());
+                    const select = trigger.closest(".checkbox-select");
+                    const wasOpen = select.classList.contains("open");
+                    for(const node of form.querySelectorAll(".checkbox-select.open")) {
+                        node.classList.remove("open");
+                    }
+                    select.classList.toggle("open", !wasOpen);
+                });
+
+                document.addEventListener("click", function(event) {
+                    if(event.target.closest(".checkbox-select")) {
+                        return;
+                    }
+                    for(const select of form.querySelectorAll(".checkbox-select.open")) {
+                        select.classList.remove("open");
+                    }
                 });
 
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
-                    syncLevelButtons();
+                    syncCheckboxSelects();
                     feed(getFormParams());
                 });
 
-                form.elements.level.addEventListener("change", syncLevelButtons);
+                form.addEventListener("change", function(event) {
+                    if(!event.target.matches(".checkbox-select input[type=\"checkbox\"]")) {
+                        return;
+                    }
+                    syncCheckboxSelects();
+                    feed(getFormParams());
+                });
+
                 form.elements.f.addEventListener("change", function() {
                     feed(getFormParams());
                 });
@@ -1011,7 +1122,7 @@ if(!$is_data_request) {
                     feed({...getFormParams(), "empty-file": true});
                 });
 
-                syncLevelButtons();
+                syncCheckboxSelects();
                 await feed(getFormParams());
             });
 
@@ -1026,31 +1137,30 @@ if(!$is_data_request) {
             <form id="searchForm">
                 <div style="display: flex; align-items: flex-end;">
                     <a class="equal-logo" href=""></a>
-                    <div class="material-select" style="width: 100px;">
-                        <select name="level">
-                            <option value="">All</option>
-                            <option value="SYSTEM">SYSTEM</option>
-                            <option value="DEBUG">DEBUG</option>
-                            <option value="INFO">INFO</option>
-                            <option value="WARNING">WARNING</option>
-                            <option value="ERROR">ERROR</option>
-                        </select>
-                        <label>Level</label>
-                        <div class="bar"></div>
+                    <div class="checkbox-select">
+                        <button class="checkbox-select-trigger" type="button"><span class="checkbox-select-value">All</span></button>
+                        <label>Levels</label>
+                        <div class="checkbox-select-menu">
+                            <label><input type="checkbox" name="level" value="SYSTEM" checked> SYSTEM</label>
+                            <label><input type="checkbox" name="level" value="DEBUG" checked> DEBUG</label>
+                            <label><input type="checkbox" name="level" value="INFO" checked> INFO</label>
+                            <label><input type="checkbox" name="level" value="WARNING" checked> WARNING</label>
+                            <label><input type="checkbox" name="level" value="ERROR" checked> ERROR</label>
+                            <label><input type="checkbox" name="level" value="FATAL" checked> FATAL</label>
+                        </div>
                     </div>
-                    <div class="material-select" style="width: 100px;">
-                        <select name="mode">
-                            <option value="">All</option>
-                            <option value="PHP">PHP</option>
-                            <option value="SQL">SQL</option>
-                            <option value="ORM">ORM</option>
-                            <option value="API">API</option>
-                            <option value="APP">APP</option>
-                            <option value="AAA">AAA</option>
-                            <option value="NET">NET</option>
-                        </select>
-                        <label>Layer</label>
-                        <div class="bar"></div>
+                    <div class="checkbox-select">
+                        <button class="checkbox-select-trigger" type="button"><span class="checkbox-select-value">All</span></button>
+                        <label>Layers</label>
+                        <div class="checkbox-select-menu">
+                            <label><input type="checkbox" name="mode" value="PHP" checked> PHP</label>
+                            <label><input type="checkbox" name="mode" value="SQL" checked> SQL</label>
+                            <label><input type="checkbox" name="mode" value="ORM" checked> ORM</label>
+                            <label><input type="checkbox" name="mode" value="API" checked> API</label>
+                            <label><input type="checkbox" name="mode" value="APP" checked> APP</label>
+                            <label><input type="checkbox" name="mode" value="AAA" checked> AAA</label>
+                            <label><input type="checkbox" name="mode" value="NET" checked> NET</label>
+                        </div>
                     </div>
 
                     <div class="material-input" style="width: 200px;">
@@ -1087,12 +1197,6 @@ if(!$is_data_request) {
                     </div>
                 </div>
             </form>
-            <div id="levelFilters" style="width: 100%; padding: 0 15px;">
-                <button id="btn-DEBUG" type="button" data-level="DEBUG" class="btn btn-success applied">DEBUG</button>
-                <button id="btn-INFO" type="button" data-level="INFO" class="btn btn-info applied">INFO</button>
-                <button id="btn-WARNING" type="button" data-level="WARNING" class="btn btn-warning applied">WARNING</button>
-                <button id="btn-ERROR" type="button" data-level="ERROR" class="btn btn-danger applied">ERROR</button>
-            </div>
         </div>
         <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
         <div id="start"></div>
@@ -1122,6 +1226,19 @@ else {
         return max(0, min($value, $max));
     }
 
+    function console_list_param(string $name): array {
+        static $params = [];
+        if(array_key_exists($name, $params)) {
+            return $params[$name];
+        }
+        if(!isset($_GET[$name]) || $_GET[$name] === '') {
+            $params[$name] = [];
+            return $params[$name];
+        }
+        $params[$name] = array_values(array_filter(array_map('trim', explode(',', $_GET[$name])), 'strlen'));
+        return $params[$name];
+    }
+
     function console_level_rank($level): int {
         $ranks = [
             'FATAL'       => 0,
@@ -1144,10 +1261,12 @@ else {
     }
 
     function console_line_matches(array $line, string $query): bool {
-        if(isset($_GET['level']) && $_GET['level'] !== '' && (($line['level'] ?? '') != $_GET['level'])) {
+        $levels = console_list_param('level');
+        if(count($levels) && !in_array((string) ($line['level'] ?? ''), $levels, true)) {
             return false;
         }
-        if(isset($_GET['mode']) && $_GET['mode'] !== '' && (($line['mode'] ?? '') != $_GET['mode'])) {
+        $modes = console_list_param('mode');
+        if(count($modes) && !in_array((string) ($line['mode'] ?? ''), $modes, true)) {
             return false;
         }
         if(isset($_GET['date']) && $_GET['date'] !== '' && strpos(($line['time'] ?? ''), $_GET['date']) !== 0) {
