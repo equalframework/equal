@@ -351,7 +351,7 @@ if(!$is_data_request) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 140px;
+                height: 135px;
                 width: 100%;
                 background: white;
                 z-index: 4;
@@ -609,6 +609,10 @@ if(!$is_data_request) {
 
             .quick-filter-actions {
                 display: flex;
+            }
+
+            .quick-filter-actions button {
+                margin-right: 5px;
             }
 
             .quick-view-actions {
