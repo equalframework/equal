@@ -60,6 +60,10 @@ if(!$is_data_request) {
                 height:100%;
             }
 
+            a:focus {
+                outline: none !important;
+            }
+
             .equal-logo {
                 position: relative;
                 width: 40px;
@@ -91,6 +95,8 @@ if(!$is_data_request) {
                 position: relative;
                 background: white;
                 font-family: \'Roboto\', sans-serif;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
             }
 
             .material-input input,
