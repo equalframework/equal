@@ -9,10 +9,8 @@ namespace equal\orm;
 
 use equal\organic\Service;
 use equal\db\DBConnector;
-use equal\data\DataValidator;
 use equal\fs\FSManipulator;
 use \Exception as Exception;
-
 
 
 class ObjectManager extends Service {
@@ -68,9 +66,9 @@ class ObjectManager extends Service {
      */
     private $db;
 
-    public static $virtual_types = array('alias');
-    public static $simple_types  = array('boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one');
-    public static $complex_types = array('one2many', 'many2many', 'computed');
+    public static $virtual_types = ['alias'];
+    public static $simple_types  = ['boolean', 'integer', 'float', 'string', 'text', 'date', 'time', 'datetime', 'file', 'binary', 'many2one'];
+    public static $complex_types = ['one2many', 'many2many', 'computed'];
 
     /**
      * #dev-2.0 - 'dependencies' has been deprecated in favor to 'dependents'
@@ -151,22 +149,29 @@ class ObjectManager extends Service {
         'binary'        => 'binary(64000000)'   // 64MB binary value
     ];
 
-    public const EVENTS_CLASS_ONCREATE              = 1;
+    public const EVENTS_CLASS_ONAFTERCREATE         = 1;
+    public const EVENTS_CLASS_ONCREATE              = self::EVENTS_CLASS_ONAFTERCREATE;
+
     public const EVENTS_CLASS_ONBEFOREINSTANTIATE   = 2;
     public const EVENTS_CLASS_ONAFTERINSTANTIATE    = 4;
+    public const EVENTS_CLASS_ONINSTANTIATE         = self::EVENTS_CLASS_ONAFTERINSTANTIATE;
+
     public const EVENTS_CLASS_ONBEFOREUPDATE        = 8;
     public const EVENTS_CLASS_ONAFTERUPDATE         = 16;
+    public const EVENTS_CLASS_ONUPDATE              = self::EVENTS_CLASS_ONAFTERUPDATE;
+
     public const EVENTS_CLASS_ONBEFOREDELETE        = 32;
     public const EVENTS_CLASS_ONAFTERDELETE         = 64;
-    public const EVENTS_CLASS_ONUPDATE = 24;
-    public const EVENTS_CLASS_ONDELETE = 96;
-    public const EVENTS_FIELD_ONCREATE = 32;
-    public const EVENTS_FIELD_ONUPDATE = 64;
-    public const EVENTS_FIELD_ONREVERT = 128;
+    public const EVENTS_CLASS_ONDELETE              = self::EVENTS_CLASS_ONBEFOREDELETE;
 
-    public const EVENTS_ALL = 255;
+    public const EVENTS_FIELD_ONCREATE              = 128;
+    public const EVENTS_FIELD_ONUPDATE              = 256;
+    public const EVENTS_FIELD_ONREVERT              = 512;
+
+    public const EVENTS_ALL                         = 1023;
 
     private $enabled_events;
+
 
     public function enableEvents($events_mask = self::EVENTS_ALL) {
         $this->enabled_events |= $events_mask;
@@ -920,6 +925,13 @@ class ObjectManager extends Service {
      * @param string $lang      Lang id (2 chars) in which to store multilang fields.
      */
     private function store($class, $ids, $fields, $lang) {
+        /** @var \equal\data\adapt\DataAdapterProvider */
+        $dap = $this->container->get('adapt');
+        /** @var \equal\data\adapt\DataAdapter */
+        $adapter = $dap->get('sql');
+        /** @var \equal\auth\AuthenticationManager */
+        $auth = $this->container->get('auth');
+
         // get the object instance
         $object = $this->getStaticInstance($class);
         // get the complete schema of the object (including special fields)
@@ -933,7 +945,7 @@ class ObjectManager extends Service {
             // array holding functions to store each type of fields
             $store_fields = array(
             // 'multilang' is a particular case of simple field
-            'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
+            'multilang'    =>    function($om, $ids, $fields) use ($adapter, $auth, $schema, $class, $table_name, $lang) {
                 $parts = explode('_', $table_name);
                 $parts[] = ucfirst(array_pop($parts));
                 $final_class = implode('\\', $parts);
@@ -950,10 +962,9 @@ class ObjectManager extends Service {
                     ],
                     'object_id'
                 );
-                /** @var \equal\data\adapt\DataAdapterProvider */
-                $dap = $this->container->get('adapt');
-                /** @var \equal\data\adapt\DataAdapter */
-                $adapter = $dap->get('sql');
+
+                $user_id = $auth->userId() ?: EQ_ROOT_USER_ID;
+                $now = $adapter->adaptOut(time(), 'datetime');
 
                 $values_array = [];
                 foreach($ids as $oid) {
@@ -965,13 +976,13 @@ class ObjectManager extends Service {
                             $oid,
                             $adapter->adaptOut($om->cache[$table_name][$oid][$lang][$field], 'binary'),
                             // creator
-                            EQ_ROOT_USER_ID,
+                            $user_id,
                             // created
-                            $adapter->adaptOut(time(), 'datetime'),
+                            $now,
                             // modifier
-                            EQ_ROOT_USER_ID,
+                            $user_id,
                             // modified
-                            $adapter->adaptOut(time(), 'datetime'),
+                            $now,
                             // state
                             'instance',
                             // deleted
@@ -995,11 +1006,7 @@ class ObjectManager extends Service {
                         $values_array
                     );
             },
-            'simple'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name) {
-                /** @var \equal\data\adapt\DataAdapterProvider */
-                $dap = $this->container->get('adapt');
-                /** @var \equal\data\adapt\DataAdapter */
-                $adapter = $dap->get('sql');
+            'simple'    =>    function($om, $ids, $fields) use ($adapter, $auth, $schema, $class, $table_name) {
                 // #memo - this handler is for non-multilang fields
                 $lang = constant('DEFAULT_LANG');
                 foreach($ids as $oid) {
@@ -1272,7 +1279,7 @@ class ObjectManager extends Service {
             $methodParams = $reflectionMethod->getParameters();
         }
         catch(\Exception $e) {
-            trigger_error("ORM::ignoring non-resolved method '$method' for class '$class'", EQ_REPORT_INFO);
+            trigger_error("ORM::ignoring non-resolved method '$method' for class '$class'", EQ_REPORT_DEBUG);
             return EQ_ERROR_UNKNOWN;
         }
 
@@ -1861,7 +1868,12 @@ class ObjectManager extends Service {
 
             // 6) call 'oncreate' hook
             if(($this->enabled_events & self::EVENTS_CLASS_ONCREATE) === self::EVENTS_CLASS_ONCREATE) {
-                $this->callonce($class, 'oncreate', (array) $id, $creation_array, $lang);
+                if(method_exists($class, 'oncreate')) {
+                    $this->callonce($class, 'oncreate', (array) $id, $creation_array, $lang);
+                }
+                if(method_exists($class, 'onaftercreate')) {
+                    $this->callonce($class, 'onaftercreate', (array) $id, $creation_array, $lang);
+                }
             }
         }
         catch(Exception $e) {
@@ -1950,12 +1962,12 @@ class ObjectManager extends Service {
 
             if($target_state === 'instance') {
                 if($create) {
-                    // In creation context, the object becomes an instance as part of this cycle.
-                    // If state=draft was explicitly provided, target_state is draft and this block is skipped.
+                    // in creation context, the object becomes an instance as part of this cycle
+                    // if state=draft was explicitly provided, target_state is draft and this block is skipped
                     $instantiated_ids = $ids;
                 }
                 else {
-                    // Existing objects: only trigger when there is an actual transition to instance.
+                    // existing objects: only trigger when there is an actual transition to instance
                     $objects = $this->read($class, $ids, ['state'], $lang);
 
                     if(is_array($objects) && count($objects)) {
@@ -1970,6 +1982,7 @@ class ObjectManager extends Service {
 
 
             $updated_ids = array_values(array_diff($ids, $instantiated_ids));
+
             $this->assertRequiredFields($class, $instantiated_ids, $fields, $schema, $lang);
 
             // 3) make sure objects in the collection can be updated
@@ -1977,11 +1990,10 @@ class ObjectManager extends Service {
 
 
             // 4) call 'onbeforeinstantiate' hook when objects are about to become instances
-            if(count($instantiated_ids)
-                && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREINSTANTIATE) === self::EVENTS_CLASS_ONBEFOREINSTANTIATE
-                && method_exists($class, 'onbeforeinstantiate')
-            ) {
-                $this->callonce($class, 'onbeforeinstantiate', $instantiated_ids, $fields, $lang);
+            if(count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREINSTANTIATE) === self::EVENTS_CLASS_ONBEFOREINSTANTIATE) {
+                if(method_exists($class, 'onbeforeinstantiate')) {
+                    $this->callonce($class, 'onbeforeinstantiate', $instantiated_ids, $fields, $lang);
+                }
             }
 
 
@@ -1989,9 +2001,6 @@ class ObjectManager extends Service {
             if(!$create && count($updated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONBEFOREUPDATE) === self::EVENTS_CLASS_ONBEFOREUPDATE) {
                 if(method_exists($class, 'onbeforeupdate')) {
                     $this->callonce($class, 'onbeforeupdate', $updated_ids, $fields, $lang);
-                }
-                else {
-                    $this->callonce($class, 'onupdate', $updated_ids, $fields, $lang);
                 }
             }
 
@@ -2171,16 +2180,21 @@ class ObjectManager extends Service {
             }
 
             if(!$create && count($updated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERUPDATE) === self::EVENTS_CLASS_ONAFTERUPDATE) {
+                if(method_exists($class, 'onupdate')) {
+                    $this->callonce($class, 'onupdate', $updated_ids, $fields, $lang);
+                }
                 if(method_exists($class, 'onafterupdate')) {
                     $this->callonce($class, 'onafterupdate', $updated_ids, $fields, $lang);
                 }
             }
 
-            if(count($instantiated_ids)
-                && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE
-                && method_exists($class, 'onafterinstantiate')
-            ) {
-                $this->callonce($class, 'onafterinstantiate', $instantiated_ids, $fields, $lang);
+            if(count($instantiated_ids) && ($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE) {
+                if(method_exists($class, 'oninstantiate')) {
+                    $this->callonce($class, 'oninstantiate', $instantiated_ids, $fields, $lang);
+                }
+                if(method_exists($class, 'onafterinstantiate')) {
+                    $this->callonce($class, 'onafterinstantiate', $instantiated_ids, $fields, $lang);
+                }
             }
 
             // 11) upon state update (to 'archived' or 'deleted'), remove any pending alert related to the object
@@ -2480,7 +2494,7 @@ class ObjectManager extends Service {
                 if(method_exists($class, 'onbeforedelete')) {
                     $this->callonce($class, 'onbeforedelete', $ids);
                 }
-                else {
+                if(method_exists($class, 'ondelete')) {
                     $this->callonce($class, 'ondelete', $ids);
                 }
             }
@@ -2554,28 +2568,18 @@ class ObjectManager extends Service {
 
             // soft deletion
             if (!$permanent) {
-                $db->setRecords($table_name, $ids, ['deleted' => 1]);
+                /** @var \equal\data\adapt\DataAdapterProvider $dap */
+                $dap = $this->container->get('adapt');
+                /** @var \equal\data\adapt\DataAdapter $adapter */
+                $adapter = $dap->get('sql');
+                /** @var \equal\auth\AuthenticationManager */
+                $auth = $this->container->get('auth');
 
-                // #todo - set modified as well
-                /*
-                // but we don't want to trigger any callback
-                $this->update($class, $ids, [
-                        'modified'  => time(),
-                        'deleted'   => 1
-                    ]);
-
-                $lang = constant('DEFAULT_LANG');
-                $fields = [
-                        'modified'  => time(),
-                        'deleted'   => 1
-                    ];
-                foreach($fields as $field => $value) {
-                    foreach($ids as $id) {
-                        $this->cache[$table_name][$id][$lang][$field] = $value;
-                    }
-                }
-                $this->store($class, $ids, array_keys($fields), $lang);
-                */
+                $db->setRecords($table_name, $ids, [
+                    'deleted'  => 1,
+                    'modified' => $adapter->adaptOut(time(), 'datetime'),
+                    'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
+                ]);
             }
             // hard deletion
             else {
