@@ -599,8 +599,20 @@ if(!$is_data_request) {
             }
 
             .quick-filters {
+                align-items: center;
+                display: flex;
+                justify-content: space-between;
                 width: 100%;
                 padding: 8px 15px 0;
+            }
+
+            .quick-filter-actions {
+                display: flex;
+            }
+
+            .quick-view-actions {
+                display: flex;
+                gap: 8px;
             }
 
             .quick-filtered-out {
@@ -617,6 +629,17 @@ if(!$is_data_request) {
                 opacity: 0.5;
             }
 
+            button.btn-info:focus, button.btn-info.focus {
+                background-color: #5982bf;
+            }
+
+            button.btn-system,
+            button.btn-system:hover,
+            button.btn-system:focus {
+                background-color: #000;
+                color: #fff;
+            }
+
             button.btn.applied {
                 opacity: 1;
             }
@@ -630,7 +653,7 @@ if(!$is_data_request) {
         <script>
             const THREAD_PAGE_SIZE = 200;
             const LINE_PAGE_SIZE = 250;
-            const QUICK_FILTER_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"];
+            const QUICK_FILTER_LEVELS = ["SYSTEM", "DEBUG", "INFO", "WARNING", "ERROR"];
 
             const state = {
                 params: {},
@@ -1267,12 +1290,6 @@ if(!$is_data_request) {
                         <button class="material-button" type="submit">Filter</button>
                     </div>
                     <div style="width: 50px;"></div>
-                    <div>
-                        <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-long-arrow-down"></i></a>
-                    </div>
-                    <div>
-                        <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-long-arrow-up"></i></a>
-                    </div>
                     <div style="margin-left: auto; display: flex; align-items: flex-end;">
                         <div class="material-select" style="width: 100px;">
                             <select name="f">
@@ -1286,10 +1303,17 @@ if(!$is_data_request) {
                 </div>
             </form>
             <div id="quickFilters" class="quick-filters">
-                <button id="btn-DEBUG" class="btn btn-success applied" type="button" data-level="DEBUG">DEBUG</button>
-                <button id="btn-INFO" class="btn btn-info applied" type="button" data-level="INFO">INFO</button>
-                <button id="btn-WARNING" class="btn btn-warning applied" type="button" data-level="WARNING">WARNING</button>
-                <button id="btn-ERROR" class="btn btn-danger applied" type="button" data-level="ERROR">ERROR</button>
+                <div class="quick-filter-actions">
+                    <button id="btn-SYSTEM" class="btn btn-system applied" type="button" data-level="SYSTEM">SYSTEM</button>
+                    <button id="btn-DEBUG" class="btn btn-success applied" type="button" data-level="DEBUG">DEBUG</button>
+                    <button id="btn-INFO" class="btn btn-info applied" type="button" data-level="INFO">INFO</button>
+                    <button id="btn-WARNING" class="btn btn-warning applied" type="button" data-level="WARNING">WARNING</button>
+                    <button id="btn-ERROR" class="btn btn-danger applied" type="button" data-level="ERROR">ERROR</button>
+                </div>
+                <div class="quick-view-actions">
+                    <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-long-arrow-down"></i></a>
+                    <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-long-arrow-up"></i></a>
+                </div>
             </div>
         </div>
         <div id="loader" class="loader-overlay"><div class="loader-container"><div class="loader-spinner"></div></div></div>
