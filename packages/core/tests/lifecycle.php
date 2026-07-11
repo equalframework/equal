@@ -380,7 +380,7 @@ namespace {
             ],
 
         '5010' => [
-                'description' => 'Lifecycle consistency: unique checks ignore drafts but block conflicting instantiation.',
+                'description' => 'Lifecycle compatibility: ObjectManager::update keeps legacy direct unique behavior.',
                 'arrange'     => function () {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleConsistencyProbe::getType();
@@ -405,7 +405,7 @@ namespace {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleConsistencyProbe::getType();
                         $result = $fixtures;
-                        $result['error'] = $om->update($class, [$fixtures['draft_id']], ['state' => 'instance']);
+                        $result['update'] = $om->update($class, [$fixtures['draft_id']], ['state' => 'instance']);
 
                         $draft = LifecycleConsistencyProbe::id($fixtures['draft_id'])
                             ->read(['state'])
@@ -418,8 +418,8 @@ namespace {
                 'assert'      => function($result) {
                         return ($result['draft_id'] ?? 0) > 0
                             && ($result['instance_id'] ?? 0) > 0
-                            && ($result['error'] ?? 0) === EQ_ERROR_CONFLICT_OBJECT
-                            && ($result['draft_state'] ?? null) === 'draft';
+                            && ($result['update'] ?? 0) === [$result['draft_id']]
+                            && ($result['draft_state'] ?? null) === 'instance';
                     },
                 'rollback'    => function($result) {
                         $ids = [];
@@ -435,7 +435,7 @@ namespace {
                     }
             ],
         '5011' => [
-                'description' => 'Lifecycle consistency: ObjectManager::create enforces required fields before insertion.',
+                'description' => 'Lifecycle compatibility: ObjectManager::create keeps legacy required failure after insertion.',
                 'act'         => function () {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleConsistencyProbe::getType();
@@ -444,19 +444,28 @@ namespace {
                             ['deleted', 'in', ['0', '1']]
                         ];
 
-                        $before = count($om->search($class, $domain));
+                        $before = $om->search($class, $domain);
                         $result = $om->create($class, []);
-                        $after = count($om->search($class, $domain));
+                        $after = $om->search($class, $domain);
+                        $created_ids = array_values(array_diff($after, $before));
 
                         return [
-                            'result' => $result,
-                            'before' => $before,
-                            'after'  => $after
+                            'result'       => $result,
+                            'before_count' => count($before),
+                            'after_count'  => count($after),
+                            'created_ids'  => $created_ids
                         ];
                     },
                 'assert'      => function($result) {
-                        return ($result['result'] ?? 0) === EQ_ERROR_MISSING_PARAM
-                            && ($result['before'] ?? -1) === ($result['after'] ?? -2);
+                        return ($result['result'] ?? 0) === EQ_ERROR_INVALID_PARAM
+                            && ($result['after_count'] ?? -1) === (($result['before_count'] ?? -2) + 1)
+                            && count($result['created_ids'] ?? []) === 1;
+                    },
+                'rollback'    => function($result) {
+                        $ids = $result['created_ids'] ?? [];
+                        if(count($ids)) {
+                            LifecycleConsistencyProbe::ids($ids)->delete(true);
+                        }
                     }
             ],
 
