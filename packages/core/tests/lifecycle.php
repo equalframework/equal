@@ -75,6 +75,7 @@ namespace {
     use core\test\LifecycleConsistencyProbe;
     use core\test\LifecycleProbe;
     use core\test\Test;
+    use equal\orm\ObjectManager;
 
     $tests = [
 
@@ -381,38 +382,30 @@ namespace {
         '5010' => [
                 'description' => 'Lifecycle consistency: unique checks ignore drafts but block conflicting instantiation.',
                 'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleConsistencyProbe::getType();
                         $value = 'u'.substr(md5((string) microtime(true)), 0, 8);
 
-                        $draft = LifecycleConsistencyProbe::create([
+                        $draft_id = $om->create($class, [
                                 'state'        => 'draft',
                                 'string_short' => $value
-                            ])
-                            ->read(['id'])
-                            ->first();
+                            ], null, false);
 
-                        $instance = LifecycleConsistencyProbe::create([
+                        $instance_id = $om->create($class, [
                                 'string_short' => $value
-                            ])
-                            ->read(['id'])
-                            ->first();
+                            ], null, false);
 
                         return [
                             'value'       => $value,
-                            'draft_id'    => $draft['id'] ?? 0,
-                            'instance_id' => $instance['id'] ?? 0
+                            'draft_id'    => $draft_id,
+                            'instance_id' => $instance_id
                         ];
                     },
                 'act'         => function ($fixtures) {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleConsistencyProbe::getType();
                         $result = $fixtures;
-                        $result['error'] = 0;
-
-                        try {
-                            LifecycleConsistencyProbe::id($fixtures['draft_id'])
-                                ->update(['state' => 'instance']);
-                        }
-                        catch(Exception $e) {
-                            $result['error'] = $e->getCode();
-                        }
+                        $result['error'] = $om->update($class, [$fixtures['draft_id']], ['state' => 'instance']);
 
                         $draft = LifecycleConsistencyProbe::id($fixtures['draft_id'])
                             ->read(['state'])
@@ -438,6 +431,64 @@ namespace {
                         }
                         if(count($ids)) {
                             LifecycleConsistencyProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
+        '5011' => [
+                'description' => 'Lifecycle consistency: ObjectManager::create enforces required fields before insertion.',
+                'act'         => function () {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleConsistencyProbe::getType();
+                        $domain = [
+                            ['state', 'in', ['draft', 'instance']],
+                            ['deleted', 'in', ['0', '1']]
+                        ];
+
+                        $before = count($om->search($class, $domain));
+                        $result = $om->create($class, []);
+                        $after = count($om->search($class, $domain));
+
+                        return [
+                            'result' => $result,
+                            'before' => $before,
+                            'after'  => $after
+                        ];
+                    },
+                'assert'      => function($result) {
+                        return ($result['result'] ?? 0) === EQ_ERROR_MISSING_PARAM
+                            && ($result['before'] ?? -1) === ($result['after'] ?? -2);
+                    }
+            ],
+
+        '5012' => [
+                'description' => 'Lifecycle consistency: ObjectManager::update enforces required fields on instantiation.',
+                'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+                        return $om->create(LifecycleConsistencyProbe::getType(), ['state' => 'draft']);
+                    },
+                'act'         => function ($id) {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleConsistencyProbe::getType();
+
+                        $result = [
+                            'id'     => $id,
+                            'update' => $om->update($class, [$id], ['state' => 'instance'])
+                        ];
+
+                        $object = $om->read($class, [$id], ['state']);
+                        $result['state'] = $object[$id]['state'] ?? null;
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['update'] ?? 0) === EQ_ERROR_INVALID_PARAM
+                            && ($result['state'] ?? null) === 'draft';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
                         }
                     }
             ],
