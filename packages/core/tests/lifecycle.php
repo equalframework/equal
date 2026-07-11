@@ -51,10 +51,28 @@ namespace core\test {
             }
         }
     }
+
+    if(!class_exists('core\test\LifecycleConsistencyProbe', false)) {
+        class LifecycleConsistencyProbe extends Test {
+
+            public static function getColumns() {
+                return [
+                    'string_short' => [
+                        'type'       => 'string',
+                        'usage'      => 'text/plain:9',
+                        'required'   => true,
+                        'unique'     => true,
+                        'dependents' => ['tests1_ids' => ['test']]
+                    ]
+                ];
+            }
+        }
+    }
 }
 
 namespace {
 
+    use core\test\LifecycleConsistencyProbe;
     use core\test\LifecycleProbe;
     use core\test\Test;
 
@@ -291,5 +309,137 @@ namespace {
                     }
             ],
 
+        '5008' => [
+                'description' => 'Lifecycle consistency: draft creation allows missing required fields.',
+                'act'         => function () {
+                        $test = LifecycleConsistencyProbe::create(['state' => 'draft'])
+                            ->read(['id'])
+                            ->first();
+
+                        return $test['id'] ?? null;
+                    },
+                'assert'      => function($result) {
+                        $test = LifecycleConsistencyProbe::id($result)
+                            ->read(['state'])
+                            ->first();
+
+                        return $result > 0
+                            && $test
+                            && $test['state'] === 'draft';
+                    },
+                'rollback'    => function($result) {
+                        if($result > 0) {
+                            LifecycleConsistencyProbe::id($result)->delete(true);
+                        }
+                    }
+            ],
+
+        '5009' => [
+                'description' => 'Lifecycle consistency: instantiating a draft requires mandatory fields.',
+                'arrange'     => function () {
+                        $test = LifecycleConsistencyProbe::create(['state' => 'draft'])
+                            ->read(['id'])
+                            ->first();
+
+                        return $test['id'];
+                    },
+                'act'         => function ($id) {
+                        $result = [
+                            'id'    => $id,
+                            'error' => 0
+                        ];
+
+                        try {
+                            LifecycleConsistencyProbe::id($id)
+                                ->update(['state' => 'instance']);
+                        }
+                        catch(Exception $e) {
+                            $result['error'] = $e->getCode();
+                        }
+
+                        $test = LifecycleConsistencyProbe::id($id)
+                            ->read(['state'])
+                            ->first();
+
+                        $result['state'] = $test['state'] ?? null;
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['error'] ?? 0) === EQ_ERROR_INVALID_PARAM
+                            && ($result['state'] ?? null) === 'draft';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5010' => [
+                'description' => 'Lifecycle consistency: unique checks ignore drafts but block conflicting instantiation.',
+                'arrange'     => function () {
+                        $value = 'u'.substr(md5((string) microtime(true)), 0, 8);
+
+                        $draft = LifecycleConsistencyProbe::create([
+                                'state'        => 'draft',
+                                'string_short' => $value
+                            ])
+                            ->read(['id'])
+                            ->first();
+
+                        $instance = LifecycleConsistencyProbe::create([
+                                'string_short' => $value
+                            ])
+                            ->read(['id'])
+                            ->first();
+
+                        return [
+                            'value'       => $value,
+                            'draft_id'    => $draft['id'] ?? 0,
+                            'instance_id' => $instance['id'] ?? 0
+                        ];
+                    },
+                'act'         => function ($fixtures) {
+                        $result = $fixtures;
+                        $result['error'] = 0;
+
+                        try {
+                            LifecycleConsistencyProbe::id($fixtures['draft_id'])
+                                ->update(['state' => 'instance']);
+                        }
+                        catch(Exception $e) {
+                            $result['error'] = $e->getCode();
+                        }
+
+                        $draft = LifecycleConsistencyProbe::id($fixtures['draft_id'])
+                            ->read(['state'])
+                            ->first();
+
+                        $result['draft_state'] = $draft['state'] ?? null;
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['draft_id'] ?? 0) > 0
+                            && ($result['instance_id'] ?? 0) > 0
+                            && ($result['error'] ?? 0) === EQ_ERROR_CONFLICT_OBJECT
+                            && ($result['draft_state'] ?? null) === 'draft';
+                    },
+                'rollback'    => function($result) {
+                        $ids = [];
+                        if(($result['draft_id'] ?? 0) > 0) {
+                            $ids[] = $result['draft_id'];
+                        }
+                        if(($result['instance_id'] ?? 0) > 0) {
+                            $ids[] = $result['instance_id'];
+                        }
+                        if(count($ids)) {
+                            LifecycleConsistencyProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
     ];
 }
