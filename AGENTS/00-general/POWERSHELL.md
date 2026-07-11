@@ -2,12 +2,13 @@
 
 These rules apply whenever the agent runs commands from PowerShell.
 
-## Read JSON and translation files as UTF-8
+## Read JSON, Markdown, and translation files as UTF-8
 
-- Always read JSON and translation files with explicit UTF-8 encoding:
+- Always read JSON, Markdown, and translation files with explicit UTF-8 encoding:
   - `Get-Content -Raw -Encoding UTF8 path/to/file.json`
   - `Get-Content -Encoding UTF8 path/to/file.json`
-- Do not trust default `Get-Content` output for accented French text; it may display mojibake if encoding is not explicit.
+  - `Get-Content -Raw -Encoding UTF8 path/to/file.md`
+- Do not trust default `Get-Content` output for accented French text or Markdown headings; it may display mojibake if encoding is not explicit.
 - Validate JSON syntax locally with PowerShell before schema validation:
   - `Get-Content -Raw -Encoding UTF8 path/to/file.json | ConvertFrom-Json | Out-Null`
 

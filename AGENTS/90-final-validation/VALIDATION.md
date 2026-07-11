@@ -2,8 +2,8 @@
 
 ## Scope and Syntax
 
-- [ ] All modified files are inside the intended package.
-- [ ] The `core` package was not modified.
+- [ ] All modified files are inside the intended package, or inside the identified framework subsystem for framework internals tasks.
+- [ ] The `packages/core` package was not modified unless explicitly requested.
 - [ ] PHP syntax is valid.
 - [ ] JSON syntax is valid.
 
@@ -36,5 +36,6 @@
 ## Code Quality
 
 - [ ] No unnecessary unrelated changes were introduced.
-- [ ] Existing package conventions were respected.
+- [ ] Existing package or framework subsystem conventions were respected.
 - [ ] The final diff is coherent and reviewable end-to-end.
+- [ ] The final response separates changes, validation run, and validation skipped.
