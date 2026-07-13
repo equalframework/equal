@@ -152,7 +152,7 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
         ->update(['signature_counter' => $sign_count]);
 }
 
-// passkey auth could be an escalation: check if a token is already present
+// passkey auth could be an escalation: check if a token is already present (and not expired)
 $jwt = $auth->retrieveAccessToken();
 
 // #todo - set auth_level based on $passkey['fmt'] (could be 2 or 3)

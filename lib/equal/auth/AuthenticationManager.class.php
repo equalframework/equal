@@ -231,7 +231,7 @@ class AuthenticationManager extends Service {
      *
      * @param string $jwt   The JSON Web Token (JWT) string to decode. If not provided, the function will attempt to extract the token from the HTTP request.
      *
-     * @return array|null   Decoded access token payload as an associative array mapping 'id', 'exp' & 'amr' (@see `token()` method).
+     * @return array|null   Decoded, non-expired access token payload as an associative array mapping 'id', 'exp' & 'amr' (@see `token()` method).
      */
     public function retrieveAccessToken($jwt = null) {
 
@@ -270,6 +270,11 @@ class AuthenticationManager extends Service {
                 if(!isset($decoded['payload']['id']) || $decoded['payload']['id'] <= 0) {
                     throw new \Exception('jwt_invalid_payload');
                 }
+
+                if(isset($decoded['payload']['exp']) && $decoded['payload']['exp'] < time()) {
+                    return null;
+                }
+
                 $result = $decoded['payload'];
             }
             catch(\Exception $e) {
