@@ -433,7 +433,8 @@ Interactions:
 
 | Property | Effect |
 | --- | --- |
-| `layout.interactions.click: false` or `interactions.click: false` | Prevents opening the form when clicking a row. |
+| `layout.interactions.click` | Configure how clicking a row reacts (opening object in a ne context or not). |
+| `layout.interactions.autofocus` | Configure how selectable fields react. |
 
 By default, clicking a row opens `form.{name}` on the same object. If the list is a widget, closing that context triggers a refresh of the parent view.
 
