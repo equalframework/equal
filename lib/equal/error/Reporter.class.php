@@ -11,6 +11,8 @@ use equal\organic\Service;
 
 class Reporter extends Service {
 
+    private const PHP_LEGACY_STRICT_ERROR = 2048;
+
     private $debug_mode;
     private $debug_level;
 
@@ -138,7 +140,7 @@ class Reporter extends Service {
                     $code = EQ_REPORT_WARNING;
                     break;
                 }
-            case E_STRICT:
+            case self::PHP_LEGACY_STRICT_ERROR:
             case E_DEPRECATED:
                 $code = EQ_REPORT_INFO;
                 break;
