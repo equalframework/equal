@@ -18,7 +18,7 @@ $tests = [
             'act'               =>  function () use ($providers) {
                     $orm = $providers['orm'];
                     $res = $orm->read('core\User', QN_ROOT_USER_ID, ['name', 'groups_ids.name', 'groups_ids.id', 'groups_ids.users_ids.name']);
-                    return ($res > 0 && count($res))?reset($res):[];
+                    return (is_array($res) && count($res))?reset($res):[];
                 },
             'assert'            =>  function($result) {
                     $res = [];
