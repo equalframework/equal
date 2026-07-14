@@ -695,6 +695,28 @@ class Collection implements \Iterator, \Countable {
         }
     }
 
+    private function areDrafts(array $ids, $lang=null): bool {
+        if(!count($ids)) {
+            return false;
+        }
+
+        $objects = $this->orm->read($this->class, $ids, ['state'], $lang ?? $this->lang);
+        if(!is_array($objects)) {
+            return false;
+        }
+
+        foreach($ids as $id) {
+            $state = $objects[$id]['state'] ?? null;
+            $this->objects[$id]['state'] = $state;
+
+            if($state !== 'draft') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      *
      */
@@ -1229,7 +1251,12 @@ class Collection implements \Iterator, \Countable {
             }
         });
 
-        $is_draft = (isset($values['state']) && $values['state'] === 'draft');
+        // retrieve targeted identifiers
+        $ids = $this->ids();
+
+        $target_state = array_key_exists('state', $values) ? $values['state'] : 'instance';
+        $is_draft = ($target_state === 'draft')
+            || ($target_state === 'instance' && $this->areDrafts($ids, $lang));
 
         // drop invalid fields
         $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
@@ -1240,9 +1267,6 @@ class Collection implements \Iterator, \Countable {
         if(!count($fields)) {
             return $this;
         }
-
-        // retrieve targeted identifiers
-        $ids = $this->ids();
 
         // 2) assert Capabilities & ACL
         $this

@@ -68,11 +68,28 @@ namespace core\test {
             }
         }
     }
+
+    if(!class_exists('core\test\LifecycleReadonlyRequiredProbe', false)) {
+        class LifecycleReadonlyRequiredProbe extends Test {
+
+            public static function getColumns() {
+                return [
+                    'string_short' => [
+                        'type'     => 'string',
+                        'usage'    => 'text/plain:9',
+                        'required' => true,
+                        'readonly' => true
+                    ]
+                ];
+            }
+        }
+    }
 }
 
 namespace {
 
     use core\test\LifecycleConsistencyProbe;
+    use core\test\LifecycleReadonlyRequiredProbe;
     use core\test\LifecycleProbe;
     use core\test\Test;
     use equal\orm\ObjectManager;
@@ -498,6 +515,51 @@ namespace {
                         $id = $result['id'] ?? 0;
                         if($id > 0) {
                             LifecycleConsistencyProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+        '5013' => [
+                'description' => 'Lifecycle consistency: draft instantiation accepts required readonly fields.',
+                'arrange'     => function () {
+                        $test = LifecycleReadonlyRequiredProbe::create(['state' => 'draft'])
+                            ->read(['id'])
+                            ->first();
+
+                        return $test['id'];
+                    },
+                'act'         => function ($id) {
+                        $result = [
+                            'id'    => $id,
+                            'error' => 0
+                        ];
+
+                        try {
+                            LifecycleReadonlyRequiredProbe::id($id)
+                                ->update(['string_short' => 'required']);
+                        }
+                        catch(Exception $e) {
+                            $result['error'] = $e->getCode();
+                        }
+
+                        $test = LifecycleReadonlyRequiredProbe::id($id)
+                            ->read(['state', 'string_short'])
+                            ->first();
+
+                        $result['state'] = $test['state'] ?? null;
+                        $result['string_short'] = $test['string_short'] ?? null;
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['error'] ?? 0) === 0
+                            && ($result['state'] ?? null) === 'instance'
+                            && ($result['string_short'] ?? null) === 'required';
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleReadonlyRequiredProbe::id($id)->delete(true);
                         }
                     }
             ],
