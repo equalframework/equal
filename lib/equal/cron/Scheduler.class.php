@@ -55,6 +55,7 @@ class Scheduler extends Service {
     public function run($tasks_ids=[]) {
         $orm = $this->container->get('orm');
 
+        $tasks_ids = (array) $tasks_ids;
         $selected_tasks_ids = $tasks_ids;
         $now = time();
 
@@ -71,14 +72,16 @@ class Scheduler extends Service {
         // handle erroneous `running` tasks, if any (marked as running while not, due to unexpected end of parent process)
         $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running']]);
         $res = $orm->read('core\Task', $running_tasks_ids, ['last_run', 'pid']);
-        foreach($res as $task_id => $task) {
-            if($now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
-                // #todo - check if related PID is running and matches
-                $orm->update('core\Task', $task_id, ['status' => 'idle']);
+        if(is_array($res)) {
+            foreach($res as $task_id => $task) {
+                if($now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
+                    // #todo - check if related PID is running and matches
+                    $orm->update('core\Task', $task_id, ['status' => 'idle']);
+                }
             }
         }
 
-        if($selected_tasks_ids > 0 && count($selected_tasks_ids)) {
+        if(is_array($selected_tasks_ids) && count($selected_tasks_ids)) {
 
             // do not run the task if current available memory is below MEM_FREE_LIMIT
             $mem_available = self::computeAvailableMemory();
@@ -96,14 +99,14 @@ class Scheduler extends Service {
             }
             // if an exclusive task is already running, ignore current batch
             $running_tasks_ids = $orm->search('core\Task', [['status', '=', 'running'], ['is_exclusive', '=', true]]);
-            if($running_tasks_ids > 0 && count($running_tasks_ids)) {
+            if(is_array($running_tasks_ids) && count($running_tasks_ids)) {
                 trigger_error("PHP::Ignoring scheduler batch because at least one exclusive task is already running (running tasks ".implode(',', $running_tasks_ids).")", EQ_REPORT_INFO);
                 return;
             }
             foreach($selected_tasks_ids as $tid) {
                 // #memo - reading is done just before processing, to make sure to get up-to-date values (tasks might have been updated by another process)
                 $tasks = $orm->read('core\Task', $tid, ['id', 'moment', 'status', 'is_exclusive', 'is_recurring', 'repeat_axis', 'repeat_step', 'after_execution', 'controller', 'params']);
-                if($tasks < 0 || !count($tasks)) {
+                if(!is_array($tasks) || !count($tasks)) {
                     continue;
                 }
                 $task = reset($tasks);
@@ -115,7 +118,7 @@ class Scheduler extends Service {
                 // prevent concurrent execution for exclusive tasks
                 if($task['is_exclusive']) {
                     $running_tasks_ids = $orm->search('core\Task', ['status', '=', 'running']);
-                    if($running_tasks_ids > 0 && count($running_tasks_ids)) {
+                    if(is_array($running_tasks_ids) && count($running_tasks_ids)) {
                         trigger_error("PHP::Ignoring execution of task that is exclusive [{$task['id']}] - [{$task['controller']}] (running tasks ".implode(',', $running_tasks_ids).")", EQ_REPORT_INFO);
                         continue;
                     }
@@ -221,7 +224,7 @@ class Scheduler extends Service {
     public function cancel($name) {
         $orm = $this->container->get('orm');
         $tasks_ids = $orm->search('core\Task', ['name', '=', $name]);
-        if($tasks_ids > 0 && count($tasks_ids)) {
+        if(is_array($tasks_ids) && count($tasks_ids)) {
             return $orm->remove('core\Task', $tasks_ids, true);
         }
         return EQ_ERROR_UNKNOWN_OBJECT;

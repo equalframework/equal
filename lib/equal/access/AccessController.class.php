@@ -60,7 +60,7 @@ class AccessController extends Service {
             /** @var \equal\orm\ObjectManager */
             $orm = $this->container->get('orm');
             $values = $orm->read('core\User', $user_id, ['groups_ids']);
-            if($values > 0 && isset($values[$user_id])) {
+            if(is_array($values) && isset($values[$user_id])) {
                 $this->groupsTable[$user_id] = array_unique(array_merge($this->groupsTable[$user_id], $values[$user_id]['groups_ids']));
             }
         }
@@ -120,8 +120,11 @@ class AccessController extends Service {
 
             foreach($objects_ids as $object_id) {
                 $assignments_ids = $orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['object_class', '=', $object_class], ['object_id', '=', $object_id] ]);
+                if(!is_array($assignments_ids) || !count($assignments_ids)) {
+                    continue;
+                }
                 $assignments = $orm->read('core\Assignment', (array) $assignments_ids, ['role']);
-                if($assignments > 0 && count($assignments)) {
+                if(is_array($assignments) && count($assignments)) {
                     $map_assignment_roles = [];
                     foreach($assignments as $aid => $assignment) {
                         foreach($getResultingRoles($assignment['role']) as $resulting_role) {
@@ -155,7 +158,7 @@ class AccessController extends Service {
         if(!isset($this->usersTable[$group_id])) {
             $orm = $this->container->get('orm');
             $values = $orm->read('core\Group', $group_id, ['users_ids']);
-            if($values > 0 && isset($values[$group_id])) {
+            if(is_array($values) && isset($values[$group_id])) {
                 $this->usersTable[$group_id] = $values[$group_id]['users_ids'];
             }
             else {
@@ -251,7 +254,7 @@ class AccessController extends Service {
             $domain[] = [ ['class_name', '=', $object_class], ['group_id', 'in', $groups_ids], ['object_id', 'is', null] ];
         }
         $acl_ids = $orm->search('core\Permission', $domain);
-        if($acl_ids > 0 && count($acl_ids)) {
+        if(is_array($acl_ids) && count($acl_ids)) {
             $acls = $orm->read('core\Permission', $acl_ids, ['rights']);
             foreach($acls as $acl_id => $acl) {
                 $result |= $acl['rights'];
@@ -333,7 +336,7 @@ class AccessController extends Service {
         }
 
         $acl_ids = $orm->search('core\Permission', $domain);
-        if($acl_ids > 0 && count($acl_ids)) {
+        if(is_array($acl_ids) && count($acl_ids)) {
             $acls = $orm->read('core\Permission', $acl_ids, ['rights']);
             foreach($acls as $acl_id => $acl) {
                 $result |= $acl['rights'];
@@ -386,7 +389,7 @@ class AccessController extends Service {
         }
 
         $acl_ids = $orm->search('core\Permission', $domain);
-        if($acl_ids > 0 && count($acl_ids)) {
+        if(is_array($acl_ids) && count($acl_ids)) {
             $acls = $orm->read('core\Permission', $acl_ids, ['object_id', 'rights']);
             $map_objects_rights = [];
             // step-1 - map acl by object id (on a same object, rights are added)
@@ -432,7 +435,7 @@ class AccessController extends Service {
             $orm = $this->container->get('orm');
             // search for an ACL describing this specific user
             $acl_ids = $orm->search('core\Permission', [ ['class_name', '=', $object_class], [$identity.'_id', '=', $identity_id] ]);
-            if(count($acl_ids)) {
+            if(is_array($acl_ids) && count($acl_ids)) {
                 $values = $orm->read('core\Permission', $acl_ids, ['rights']);
                 // there should be only one result
                 foreach($values as $acl_id => $acl) {
@@ -553,7 +556,7 @@ class AccessController extends Service {
         if( !is_numeric($group) ) {
             // fetch all ACLs variants
             $groups_ids = $orm->search(Group::getType(), ['name', '=', $group]);
-            if($groups_ids < 0 || empty($groups_ids)) {
+            if(!is_array($groups_ids) || empty($groups_ids)) {
                 return false;
             }
             $group = $groups_ids[0];
@@ -701,7 +704,7 @@ class AccessController extends Service {
             foreach($objects_ids as $object_id) {
                 // retrieve all assignments objects implying one or more roles of the list, given to user on given object_class, object_id
                 $assignments_ids = $orm->search(Assignment::getType(), [ ['object_id', '=', $object_id], ['object_class', '=', $object_class], ['user_id', '=', $user_id], ['role', 'in', array_keys($map_role_matches)] ]);
-                if($assignments_ids <= 0 || !count($assignments_ids)) {
+                if(!is_array($assignments_ids) || !count($assignments_ids)) {
                     $result = false;
                     break;
                 }
@@ -910,7 +913,7 @@ class AccessController extends Service {
                 $orm = $this->container->get('orm');
                 $values = $orm->read($object_class, $object_ids, ['creator']);
 
-                if(count($values) !== count($object_ids)) {
+                if(!is_array($values) || count($values) !== count($object_ids)) {
                     return false;
                 }
 
@@ -943,7 +946,7 @@ class AccessController extends Service {
         /** @var \equal\orm\ObjectManager */
         $orm = $this->container->get('orm');
         $security_policies_ids = $orm->search(SecurityPolicy::getType(), [['is_active', '=', true]]);
-        if($security_policies_ids > 0 && count($security_policies_ids)) {
+        if(is_array($security_policies_ids) && count($security_policies_ids)) {
             $result = false;
             $policies = $orm->read(SecurityPolicy::getType(), $security_policies_ids, ['id', 'policy_rules_ids']);
 

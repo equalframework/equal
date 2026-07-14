@@ -2415,7 +2415,7 @@ class ObjectManager extends Service {
                         $sub_ids = (array) ($this->cache[$table_name][$oid][$target_lang][$field] ?? []);
                         if(count($sub_ids)) {
                             $sub_values = $this->read($descriptor['foreign_object'], $sub_ids, (array) $sub_path, $lang);
-                            if($sub_values <= 0 || !count($sub_values)) {
+                            if(!is_array($sub_values) || !count($sub_values)) {
                                 continue;
                             }
                             if($field_type == 'many2one') {
