@@ -767,7 +767,7 @@ class Collection implements \Iterator, \Countable {
             }
             // find the objects for which the user is explicitly assigned to one of these roles
             $assignments_ids = $this->orm->search('core\Assignment', [ ['user_id', '=', $user_id], ['role', 'in', $roles], ['object_class', '=', $this->class] ]);
-            if($assignments_ids > 0 && count($assignments_ids)) {
+            if(is_array($assignments_ids) && count($assignments_ids)) {
                 $assignments = $this->orm->read('core\Assignment', $assignments_ids, ['object_id']);
                 $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($assignments));
                 // limit search amongst those objects
@@ -779,7 +779,7 @@ class Collection implements \Iterator, \Countable {
             if(!$this->ac->hasRight(EQ_R_READ, $this->class)) {
                 // find the objects for which the user is explicitly granted for READ
                 $permissions_ids = $this->orm->search('core\Permission', [ ['user_id', '=', $user_id], ['rights', '>=', EQ_R_READ], ['object_class', '=', $this->class] ]);
-                if($permissions_ids > 0 && count($permissions_ids)) {
+                if(is_array($permissions_ids) && count($permissions_ids)) {
                     $permissions = $this->orm->read('core\Permission', $permissions_ids, ['object_id']);
                     $objects_ids = array_map(function ($a) {return $a['object_id'];}, array_values($permissions));
                     // limit search amongst those objects
