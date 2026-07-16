@@ -357,7 +357,7 @@ class Collection implements \Iterator, \Countable {
 
                 // Ignore null / false / empty string
                 if($item === null || $item === false || $item === '') {
-                    trigger_error("ORM::Ignored empty value received in Collection.", EQ_REPORT_WARNING);
+                    trigger_error("ORM::ignoring empty value received in Collection.", EQ_REPORT_DEBUG);
                     continue;
                 }
 
