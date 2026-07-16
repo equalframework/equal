@@ -695,12 +695,12 @@ class Collection implements \Iterator, \Countable {
         }
     }
 
-    private function areDrafts(array $ids, $lang=null): bool {
+    private function areDrafts(array $ids): bool {
         if(!count($ids)) {
             return false;
         }
 
-        $objects = $this->orm->read($this->class, $ids, ['state'], $lang ?? $this->lang);
+        $objects = $this->orm->read($this->class, $ids, ['state']);
         if(!is_array($objects)) {
             return false;
         }
@@ -1256,7 +1256,7 @@ class Collection implements \Iterator, \Countable {
 
         $target_state = array_key_exists('state', $values) ? $values['state'] : 'instance';
         $is_draft = ($target_state === 'draft')
-            || ($target_state === 'instance' && $this->areDrafts($ids, $lang));
+            || ($target_state === 'instance' && $this->areDrafts($ids));
 
         // drop invalid fields
         $values = $this->sanitizeFields($values, $is_draft ? 'create' : 'update');
