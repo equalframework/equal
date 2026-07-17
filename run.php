@@ -248,7 +248,8 @@ catch(Throwable $e) {
             ])
             ->send();
 
-        trigger_error("PHP::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
+        $mode = (in_array($http_status, [401, 403], true)) ? 'AAA' : 'PHP';
+        trigger_error("$mode::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
 
     // if run from CLI, ensure the prompt appears on a new line
