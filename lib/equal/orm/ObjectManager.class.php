@@ -2880,17 +2880,15 @@ class ObjectManager extends Service {
                 }
                 // status field is always writeable and non-multilang
                 $this->cache[$table_name][$id][$lang]['status'] = $t_descr['status'];
+                // commit status change (do not call `update()` to prevent any check)
+                $this->store($class, (array) $id, ['status'], $lang);
                 // if a 'onafter' method is defined for applied transition, call it
                 if(isset($t_descr['onafter'])) {
                     $this->callonce($class, $t_descr['onafter'], $id);
                 }
-                // commit status change (do not call `update()` to prevent any check)
-                $this->store($class, (array) $id, ['status'], $lang);
             }
         }
         catch(\Exception $e) {
-            // rollback
-            unset($this->cache[$table_name][$id][$lang]['status']);
             trigger_error("ORM::".$e->getMessage(), EQ_REPORT_WARNING);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
