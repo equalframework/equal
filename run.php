@@ -247,8 +247,12 @@ catch(Throwable $e) {
                 'errors' => [ eq_error_name($error_code) => ($data) ? $data : mb_convert_encoding($msg, 'UTF-8', 'auto') ]
             ])
             ->send();
-
-        $mode = (in_array($http_status, [401, 403], true)) ? 'AAA' : 'PHP';
+        $mode = [
+            400 => 'NET',
+            401 => 'AAA',
+            403 => 'AAA',
+            404 => 'NET',
+        ][$http_status] ?? 'PHP';
         trigger_error("$mode::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
     }
 
