@@ -1467,6 +1467,7 @@ class ObjectManager extends Service {
      */
     public function validate($class, $ids, $values, $check_unique=false, $check_required=false) {
         $res = [];
+        $error_code = EQ_ERROR_UNKNOWN;
 
         /** @var \equal\orm\Model */
         $model = $this->getStaticInstance($class);
@@ -2789,8 +2790,25 @@ class ObjectManager extends Service {
         return $res;
     }
 
+    /**
+     * Checks whether a workflow transition can be applied to all targeted objects.
+     *
+     * This method is the preflight guard for ObjectManager::transition(): it validates
+     * that every object has a current status, that the requested transition exists from
+     * that status, and that the transition domain and policies are satisfied.
+     *
+     * Transition execution is expected to remain all-or-nothing after this check.
+     * Workflow policies must therefore cover the business preconditions required by
+     * onbefore/onafter hooks, so that hooks do not fail after the transition has started.
+     *
+     * @param   string  $class          Class name of the objects to test.
+     * @param   array   $ids            Array of object identifiers.
+     * @param   string  $transition     Name of the requested workflow transition.
+     *
+     * @return  array                   Empty array when the transition can be applied;
+     *                                  otherwise a map of blocking errors.
+     */
     public function canTransition($class, $ids, $transition) {
-        /** @var array */
         $res = [];
         $model = $this->getStaticInstance($class);
         $schema = $model->getSchema();
@@ -2859,8 +2877,10 @@ class ObjectManager extends Service {
     public function transition($class, $ids, $transition) {
         /** @var array */
         $res = $this->canTransition($class, $ids, $transition);
-        // stop upon errors (all-or-nothing behavior)
+        // Transition policies must cover every condition required by onbefore/onafter hooks
+        // so that, once the transition starts, no business inconsistency can interrupt it.
         if(count($res)) {
+            // stop upon errors (all-or-nothing behavior)
             return $res;
         }
         $res = [];
