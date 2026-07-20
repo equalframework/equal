@@ -336,6 +336,13 @@ else {
         exec("cp -r " . escapeshellarg($packages_folder) . "/. " . escapeshellarg($target_folder));
     }
 
+    // 3 sexies) If an `updates` folder exists, copy its content to /packages/{package}/updates/
+    $updates_folder = EQ_BASEDIR."/packages/{$params['package']}/init/updates";
+    if(file_exists($updates_folder) && is_dir($updates_folder)) {
+        $target_folder = EQ_BASEDIR . "/packages/{$params['package']}/updates";
+        exec("cp -r " . escapeshellarg($updates_folder) . "/. " . escapeshellarg($target_folder));
+    }
+
     // 4) Export the compiled apps to related public folders
     // #memo - make sure ZIP library is available
     if(isset($package_manifest['apps']) && is_array($package_manifest['apps'])) {
