@@ -251,7 +251,7 @@ namespace {
         switch($error_id) {
             case 0:                         return 200;
             case QN_ERROR_MISSING_PARAM:    return 400;     // 'Bad Request'            missing data or invalid format for mandatory parameter
-            case QN_ERROR_INVALID_PARAM:    return 400;
+            case QN_ERROR_INVALID_PARAM:    return 400;     // (idem)
             case QN_ERROR_SQL:              return 456;     // 'Unrecoverable Error'    an unhandled scenario append and operation could not be performed
             case QN_ERROR_NOT_ALLOWED:      return 403;     // 'Forbidden'              user has not enough privilege to perform requested operation (includes method not allowed-
             case QN_ERROR_UNKNOWN_OBJECT:   return 404;     // 'Not Found'              object or route does not exist
