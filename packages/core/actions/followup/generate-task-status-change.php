@@ -10,6 +10,7 @@ use core\followup\TaskModel;
 
 [$params, $providers] = eQual::announce([
     'description'	=> "Generate task models' tasks when an entity status changes.",
+    'help'          => "This controller is intended to be called after a target entity changes status. It evaluates status-based task model triggers for the given object, and creates or refreshes matching follow-up tasks with their configured visibility and deadline dates.",
     'params' 		=> [
 
         'entity' => [
@@ -107,7 +108,7 @@ if(!empty($task_models)) {
         $task = Task::search([
                 ['task_model_id', '=', $task_model['id']],
                 ['object_class', '=', $params['entity']],
-                ['entity_id', '=', $params['entity_id']],
+                ['object_id', '=', $params['entity_id']],
             ])
             ->read(['notes'])
             ->first();

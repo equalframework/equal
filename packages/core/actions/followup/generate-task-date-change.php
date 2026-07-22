@@ -10,6 +10,7 @@ use core\followup\TaskModel;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Generate task models' tasks when the date changes.",
+    'help'          => "This controller is intended for scheduled runs. It scans the target entity for task models triggered by date fields, and creates or refreshes the corresponding follow-up tasks when the trigger date plus its offset falls on the current day.",
     'params'        => [
 
         'entity' => [

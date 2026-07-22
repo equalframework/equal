@@ -66,7 +66,7 @@ if($task['is_done']) {
     eQual::run('do', 'core_alert_dismiss', ['id' => $task['id']]);
 }
 else {
-    $dispatch->dispatch($params['message_model'], $task['object_class'], $task['object_id'], $params['severity'], 'core_followup_check-done', [
+    $dispatch->dispatch($params['message_model'], $task['object_class'], $task['object_id'], $params['severity'], 'core_followup_Task_check-done', [
         'id'            => $task['id'],
         'message_model' => $params['message_model'],
         'severity'      => $params['severity']

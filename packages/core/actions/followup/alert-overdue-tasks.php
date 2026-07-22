@@ -10,6 +10,7 @@ use core\followup\Task;
 
 [$params, $providers] = eQual::announce([
     'description'   => "Alerts followup tasks that should have be done by today.",
+    'help'          => "This controller is intended for scheduled runs. It finds unfinished follow-up tasks whose deadline has passed and dispatches an alert on the related business object, using the task check callback to dismiss or renew the alert later.",
     'params'        => [
 
         'entity' => [
