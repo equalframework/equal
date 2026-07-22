@@ -552,7 +552,12 @@ else {
             $first_init_date = date('c', $first_user['created']);
         }
 
-        $packages[$params['package']]['first'] = $first_init_date;
+        if(is_array($packages[$params['package']])) {
+            $packages[$params['package']]['first'] = $first_init_date;
+        }
+        else {
+            $packages[$params['package']] = ['first' => $first_init_date];
+        }
     }
     $packages[$params['package']]['last'] = $date;
     file_put_contents(EQ_BASEDIR."/log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
