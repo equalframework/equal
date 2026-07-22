@@ -117,11 +117,7 @@ foreach($update_scripts as $script => $filename) {
                 new DateTimeZone(constant('L10N_TIMEZONE'))
             );
 
-            if(
-                $script_created_at !== false
-                && $script_created_at->format('YmdHis') === $matches[1]
-                && $package_initialized_at <= $script_created_at
-            ) {
+            if($script_created_at !== false && $package_initialized_at->format('YmdHis') <= $script_created_at) {
                 $update_script_created_after_init = true;
             }
         }
