@@ -7,7 +7,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'   => 'Seed objects for package using json configuration files in "{package}/init/seed/".',
     'params'        => [
         'package' =>  [
