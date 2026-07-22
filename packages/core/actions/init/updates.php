@@ -42,7 +42,7 @@ if(!in_array($params['package'], $packages, true)) {
 
 $package = $params['package'];
 $packages_log_file = EQ_BASEDIR . '/log/packages.json';
-$package_initialized_at = null;
+$package_first_init_at = null;
 
 if(file_exists($packages_log_file)) {
     $json = file_get_contents($packages_log_file);
@@ -56,12 +56,12 @@ if(file_exists($packages_log_file)) {
     }
 
     if(isset($map_packages[$package])) {
-        if(!is_string($map_packages[$package])) {
+        if(empty($map_packages[$package]['first'])) {
             throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
         }
 
         try {
-            $package_initialized_at = new DateTimeImmutable($map_packages[$package]);
+            $package_first_init_at = new DateTimeImmutable($map_packages[$package]['first']);
         }
         catch(Exception $e) {
             throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
@@ -108,7 +108,7 @@ foreach($update_scripts as $script => $filename) {
         continue;
     }
 
-    if($package_initialized_at !== null) {
+    if($package_first_init_at !== null) {
         $update_script_created_after_init = false;
         if(preg_match('/^(\d{14})_/', $script, $matches) === 1) {
             $script_created_at = DateTimeImmutable::createFromFormat(
@@ -117,7 +117,7 @@ foreach($update_scripts as $script => $filename) {
                 new DateTimeZone(constant('L10N_TIMEZONE'))
             );
 
-            if($script_created_at !== false && $package_initialized_at->format('YmdHis') <= $script_created_at) {
+            if($script_created_at !== false && $package_first_init_at->format('YmdHis') <= $script_created_at) {
                 $update_script_created_after_init = true;
             }
         }
