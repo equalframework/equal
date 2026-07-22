@@ -25,6 +25,7 @@
         'visibility'    => 'protected',
         'groups'        => ['admins']
     ],
+    'constants'     => ['L10N_TIMEZONE'],
     'providers'     => ['context']
 ]);
 
@@ -40,7 +41,35 @@ if(!in_array($params['package'], $packages, true)) {
 }
 
 $package = $params['package'];
-$updates_folder = EQ_BASEDIR . "/packages/{$package}/updates";
+$packages_log_file = EQ_BASEDIR . '/log/packages.json';
+$package_first_init_at = null;
+
+if(file_exists($packages_log_file)) {
+    $json = file_get_contents($packages_log_file);
+    if($json === false) {
+        throw new Exception('packages_log_not_accessible', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    $map_packages = json_decode($json, true);
+    if(!is_array($map_packages)) {
+        throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    if(isset($map_packages[$package])) {
+        if(empty($map_packages[$package]['first'])) {
+            throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        try {
+            $package_first_init_at = new DateTimeImmutable($map_packages[$package]['first']);
+        }
+        catch(Exception $e) {
+            throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
+        }
+    }
+}
+
+$updates_folder = EQ_BASEDIR . "/packages/$package/updates";
 $updates_log_file = EQ_BASEDIR . '/log/updates.json';
 $packages_log_file = EQ_BASEDIR . '/log/packages.json';
 $map_updates = [];
@@ -121,6 +150,26 @@ foreach($update_scripts as $script => $filename) {
         continue;
     }
 
+    if($package_first_init_at !== null) {
+        $update_script_created_after_init = false;
+        if(preg_match('/^(\d{14})_/', $script, $matches) === 1) {
+            $script_created_at = DateTimeImmutable::createFromFormat(
+                '!YmdHis',
+                $matches[1],
+                new DateTimeZone(constant('L10N_TIMEZONE'))
+            );
+
+            if($script_created_at !== false && $package_first_init_at <= $script_created_at) {
+                $update_script_created_after_init = true;
+            }
+        }
+
+        if(!$update_script_created_after_init) {
+            $skipped[] = $script;
+            continue;
+        }
+    }
+
     $updates_log_folder = dirname($updates_log_file);
 
     if(!is_dir($updates_log_folder) || !is_writable($updates_log_folder)) {
@@ -144,10 +193,11 @@ foreach($update_scripts as $script => $filename) {
     $executed[] = $script;
 }
 
-$context->httpResponse()
-        ->body([
-            'package'  => $package,
-            'executed' => $executed,
-            'skipped'  => $skipped
-        ])
-        ->send();
+$context
+    ->httpResponse()
+    ->body([
+        'package'  => $package,
+        'executed' => $executed,
+        'skipped'  => $skipped
+    ])
+    ->send();

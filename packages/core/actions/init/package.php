@@ -5,6 +5,8 @@
     Original author(s): Cedric FRANCOYS
     License: GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use core\User;
 use equal\db\DBConnector;
 
 // get listing of existing packages
@@ -538,7 +540,26 @@ else {
         $packages = json_decode($json, true);
     }
 
-    $packages[$params['package']] = date('c');
+    $date = date('c');
+    if(!isset($packages[$params['package']])) {
+        $packages[$params['package']] = ['first' => $date];
+    }
+    elseif(!isset($packages[$params['package']]['first'])) {
+        $first_user = User::search()->read(['created'])->first();
+
+        $first_init_date = $date;
+        if(isset($first_user['created'])) {
+            $first_init_date = date('c', $first_user['created']);
+        }
+
+        if(is_array($packages[$params['package']])) {
+            $packages[$params['package']]['first'] = $first_init_date;
+        }
+        else {
+            $packages[$params['package']] = ['first' => $first_init_date];
+        }
+    }
+    $packages[$params['package']]['last'] = $date;
     file_put_contents(EQ_BASEDIR."/log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
     // if script is running at top-level, it must run composer to install vendor dependencies
