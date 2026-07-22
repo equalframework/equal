@@ -30,7 +30,6 @@
         'visibility'    => 'protected',
         'groups'        => ['admins']
     ],
-    'constants'     => ['L10N_TIMEZONE'],
     'providers'     => ['context']
 ]);
 
@@ -39,18 +38,14 @@
  */
 ['context' => $context] = $providers;
 
-// handle timezone
-$tz = new DateTimeZone(constant('L10N_TIMEZONE'));
-$tz_offset = $tz->getOffset(new DateTime('@' . time()));
-
 // add timestamp to given file name
-$file_name = date('YmdHis', time() + $tz_offset).'_'.str_replace(' ', '_', $params['name']);
+$file_name = date('YmdHis', time()) . '_' . str_replace(' ', '_', $params['name']);
 
 // remove extension if given
 $file_name = str_replace('.php', '', $file_name);
 
 // create directory if missing
-$directory = EQ_BASEDIR."/packages/{$params['package']}/init/updates";
+$directory = EQ_BASEDIR . "/packages/{$params['package']}/init/updates";
 if (!is_dir($directory)) {
     mkdir($directory, 0777, true);
 }
