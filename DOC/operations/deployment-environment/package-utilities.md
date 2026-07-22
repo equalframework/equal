@@ -32,6 +32,41 @@ After creating a new class or modifying any `.class.php` model behavior in a pac
 php run.php --do=init_package --package={package} --force=true
 ```
 
+#### Package update scripts
+
+Use update scripts for one-off package maintenance tasks that must run after a package has already been initialized, such as data migrations or repair operations that cannot be expressed only through schema initialization.
+
+Create a timestamped empty update script with `config_generate-update`:
+
+| **PATH**        | `core\actions\config\generate-update.php`                                      |
+| --------------- | -------------------------------------------------------------------------------- |
+| **URL**         | `?do=config_generate-update&package=myPackage&name=my-update`                    |
+| **CLI**         | `$ ./equal.run --do=config_generate-update --package=myPackage --name=my-update` |
+| **DESCRIPTION** | Create an empty PHP update script in `packages/{package}/init/updates/`.         |
+
+The generated file name starts with a `YmdHis` timestamp, followed by `_` and the provided name, for example:
+
+```text
+packages/myPackage/init/updates/20260722121916_my-update.php
+```
+
+During package initialization, files from `packages/{package}/init/updates/` are copied to `packages/{package}/updates/`. On an already initialized instance, make sure the generated script is present in `packages/{package}/updates/` before running the updates controller.
+
+To execute pending update scripts for an initialized package, run:
+
+| **PATH**        | `core\actions\init\updates.php`                                      |
+| --------------- | ----------------------------------------------------------------------- |
+| **URL**         | `?do=init_updates&package=myPackage`                                    |
+| **CLI**         | `$ ./equal.run --do=init_updates --package=myPackage`                   |
+| **DESCRIPTION** | Execute pending PHP update scripts from `packages/{package}/updates/`. |
+
+`init_updates` only considers PHP files whose first filename segment, split on `_` or `-`, is a `YmdHis` timestamp. The timestamp must be greater than the package initialization timestamp recorded in `log/packages.json`. Executed scripts are recorded in `log/updates.json`, so the same script is not executed again.
+
+Update execution relies on two log files in `./log`:
+
+- `log/packages.json` is created or updated by `init_package` after a successful package initialization. It maps each package name to the latest initialization timestamp, using the `date('c')` format, for example `{ "myPackage": "2026-07-22T14:31:32+00:00" }`. `init_updates` uses this timestamp as the baseline: if the file is missing, or if the package has no usable entry, no update script is eligible for execution. For compatibility with older instances, `init_updates` can also read an object entry that contains a string `first` value.
+- `log/updates.json` is read by `init_updates` when it exists and is created on the first successful update script execution. It maps each package to the scripts already executed and the execution timestamp, for example `{ "myPackage": { "20260722121916_my-update.php": "2026-07-22T14:35:00+00:00" } }`. If this file is missing, `init_updates` treats all eligible scripts as pending. The `log` directory, and the file itself when already present, must be writable.
+
 #### `init_seed`
 | **PATH**        | `core\actions\init\seed.php`                                                       |
 | --------------- | ---------------------------------------------------------------------------------- |
