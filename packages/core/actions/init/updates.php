@@ -42,6 +42,7 @@ if(!in_array($params['package'], $packages, true)) {
 $package = $params['package'];
 $updates_folder = EQ_BASEDIR . "/packages/{$package}/updates";
 $updates_log_file = EQ_BASEDIR . '/log/updates.json';
+$packages_log_file = EQ_BASEDIR . '/log/packages.json';
 $map_updates = [];
 
 if(file_exists($updates_log_file)) {
@@ -62,11 +63,52 @@ if(!isset($map_updates[$package]) || !is_array($map_updates[$package])) {
     $map_updates[$package] = [];
 }
 
+$package_initialized_timestamp = null;
+
+if(file_exists($packages_log_file)) {
+    $json = file_get_contents($packages_log_file);
+
+    if($json === false) {
+        throw new Exception('packages_log_not_accessible', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    $map_packages = json_decode($json, true);
+
+    if(!is_array($map_packages)) {
+        throw new Exception('invalid_packages_log', EQ_ERROR_INVALID_CONFIG);
+    }
+
+    if(isset($map_packages[$package])) {
+        if(!is_string($map_packages[$package])) {
+            throw new Exception('invalid_package_init_date', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        if(!preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/', $map_packages[$package], $matches)) {
+            throw new Exception('invalid_package_init_date', EQ_ERROR_INVALID_CONFIG);
+        }
+
+        $package_initialized_timestamp = $matches[1] . $matches[2] . $matches[3] . $matches[4] . $matches[5] . $matches[6];
+    }
+}
+
 $update_scripts = [];
 
 if(is_dir($updates_folder)) {
     foreach(glob($updates_folder . '/*.php') as $filename) {
-        $update_scripts[basename($filename)] = $filename;
+        $script = basename($filename);
+        $script_name = pathinfo($script, PATHINFO_FILENAME);
+        $script_parts = preg_split('/[_-]/', $script_name, 2);
+        $timestamp = $script_parts[0] ?? '';
+
+        if(!preg_match('/^\d{14}$/', $timestamp)) {
+            continue;
+        }
+
+        if($package_initialized_timestamp === null || $timestamp <= $package_initialized_timestamp) {
+            continue;
+        }
+
+        $update_scripts[$script] = $filename;
     }
 }
 
