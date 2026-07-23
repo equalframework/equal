@@ -141,7 +141,7 @@ The result is then parsed with the current user (`user.*`). References to `env.*
 
 ## Header
 
-`header` controls standard actions, filters, exports, and compact layout.
+`header` controls standard actions, filters, exports, pagination, and compact layout.
 
 | Property | Type | Behavior |
 | --- | --- | --- |
@@ -149,6 +149,7 @@ The result is then parsed with the current user (`user.*`). References to `env.*
 | `selection` | `object` or `false` | Configures actions applicable to a selection. If `false`, selection is disabled and mode is forced to `view` for the affected lists. |
 | `filters.quicksearch` | `boolean` | Shows or hides quick search on `name`. Default: enabled when filters are visible. |
 | `layout` | `full` or `inline` | In `inline`, actions and controls are rendered compactly, especially for relational widgets. |
+| `pagination` | `full`, `compact`, or `none` | Controls list paginator rendering. `full` displays the complete paginator, `compact` displays a lighter paginator, and `none` hides the paginator. |
 | `advanced_search` | `object` or `false` | If `false`, disables advanced search. Otherwise, it is available for controllers different from `model_collect` and `core_model_collect`. |
 | `advanced_search.open` | `boolean` | Opens the advanced-search panel on load. |
 | `advanced_search.submit` | `auto` or `manual` | In advanced search, applies changes automatically or through a button. |
@@ -160,6 +161,7 @@ Example:
 {
   "header": {
     "layout": "inline",
+    "pagination": "compact",
     "filters": {
       "quicksearch": false
     },

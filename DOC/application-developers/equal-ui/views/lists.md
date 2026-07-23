@@ -28,6 +28,7 @@ List-specific header properties include:
 | `selection`       | [Selection](#selection) | Configuration for bulk actions available when items are selected |
 | `actions`         | object                  | Fine-grained control over action button visibility and behavior  |
 | `filters`         | object                  | Configuration for quick search and custom filter display         |
+| `pagination`      | `full`, `compact`, or `none` | Paginator display mode. Use `full` for the complete paginator, `compact` for the lighter paginator, or `none` to hide it |
 | `advanced_search` | `boolean` or object     | Show/hide and control the advanced search form                   |
 
 ### Selection
@@ -289,6 +290,28 @@ If a custom controller is specified (other than the default `core_model_collect`
   }
 }
 ```
+
+---
+
+### Pagination Display
+
+The `pagination` property controls how the list paginator is displayed in the header.
+
+```json
+{
+  "header": {
+    "pagination": "full"
+  }
+}
+```
+
+Accepted values are:
+
+| **VALUE** | **DESCRIPTION** |
+| --------- | --------------- |
+| `full`    | Displays the complete paginator |
+| `compact` | Displays a lighter paginator |
+| `none`    | Hides the paginator |
 
 ---
 
