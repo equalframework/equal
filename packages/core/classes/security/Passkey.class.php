@@ -15,10 +15,6 @@ class Passkey extends Model {
         return 'A user Passkey that allows password less authentication.';
     }
 
-    public function getTable(): string {
-        return 'core_passkey';
-    }
-
     public static function getColumns(): array {
         return [
 
