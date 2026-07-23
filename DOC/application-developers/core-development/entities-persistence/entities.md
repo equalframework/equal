@@ -141,7 +141,7 @@ This convention ensures a clear and controlled interface for exposing object dat
 | getRoles()           | Returns the list of [roles](../business-logic/actions.md#groups-vs-roles) explicitly associated with the entity.           |
 | getActions()         | Returns a list of available [actions](../business-logic/actions.md) that can be triggered on the entity.                 |
 | getPolicies()        | Returns the [access control policies](../security-access/access-control-lists.md) applicable to the entity. |
-| getOperationPolicies() | Returns a map of generic Collection operations with one or more policies the entity must comply with in order to be allowed.                                     |
+| getOperationPolicies() | Returns a map of secured generic read, update and delete operations with one or more policies the entity must comply with.                                     |
 | getFlags()           | Returns structural flags that describe transversal characteristics of the entity.                         |
 | getCapabilities()    | Returns structural CRUD capabilities for generic Collection operations.                                   |
 | getSchema()          | Returns the full schema of the entity, including system fields.                                           |
@@ -224,7 +224,7 @@ Business validity remains the responsibility of operation guards such as `canCre
 
 Capabilities must therefore be treated as a structural security boundary, not as a business permission system.
 
-Generic `Collection` operations evaluate capabilities before checking ACLs, operation policies and dynamic business guards.
+Generic `Collection` operations evaluate capabilities before checking ACLs, operation policies where applicable, and dynamic business guards.
 
 ```text
 Controller
@@ -235,7 +235,7 @@ Capabilities
     |
 AccessController / ACL / roles
     |
-Operation policies
+Operation policies, where applicable
     |
 Operation guards: canCreate(), canRead(), canUpdate(), canDelete()
     |
@@ -248,7 +248,7 @@ A user must satisfy all applicable layers:
 
 * the structural capability rule;
 * the effective authorization rules;
-* the operation policies;
+* the operation policies, where applicable;
 * the operation guards.
 
 If any layer denies the operation, the operation is rejected.
@@ -287,7 +287,7 @@ public static function getCapabilities(): array {
 
 This means that generic create, read, update and manage operations are structurally exposed, while generic delete is structurally blocked.
 
-It does not mean that every user can perform those operations. The effective authorization still depends on ACLs, operation policies and business guards.
+It does not mean that every user can perform those operations. The effective authorization still depends on ACLs, operation policies where applicable, and business guards.
 
 
 ### Capabilities Are Not Policies
@@ -363,7 +363,7 @@ Policies may be used by:
 
 ### Operation Policies
 
-Operation policies associate generic `Collection` operations with one or more policies.
+Operation policies associate generic secured `Collection` operations with one or more policies.
 
 Each entity can override:
 
@@ -371,17 +371,30 @@ Each entity can override:
 public static function getOperationPolicies(): array
 ```
 
-The method returns an array indexed by CRUD right constants:
+The method returns an array indexed by CRUD right constants.
+
+In the current `Collection` implementation, operation policies are evaluated for:
 
 ```php
-EQ_R_CREATE
 EQ_R_READ
 EQ_R_UPDATE
 EQ_R_DELETE
-EQ_R_MANAGE
 ```
 
-Example:
+`EQ_R_CREATE` and `EQ_R_MANAGE` may still appear in capabilities, ACLs or action checks, but they are not evaluated by `Collection::assertOperationPolicies()`.
+
+If an operation is not present in the map, no additional operation policy is checked for that operation.
+
+An operation rule can use one of these forms:
+
+| Rule form                  | Meaning                                                                                 |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| `true`                     | Allow the operation without an additional policy at this layer.                         |
+| `false`                    | Deny the operation at this layer.                                                       |
+| `['policy_a', 'policy_b']` | Allow the operation only if all listed policies are satisfied.                          |
+| `['*' => ...]`             | Define a scoped rule map. `*` is the default rule for the whole operation.              |
+
+For `EQ_R_UPDATE`, scoped rule maps may also use field names:
 
 ```php
 public static function getOperationPolicies(): array {
@@ -391,13 +404,25 @@ public static function getOperationPolicies(): array {
         ],
 
         EQ_R_UPDATE => [
-            'same_organization',
-            'accounting_period_open'
+            '*' => [
+                'same_organization'
+            ],
+
+            'name' => true,
+
+            'amount' => [
+                'same_organization',
+                'accounting_period_open'
+            ],
+
+            'internal_reference' => false
         ],
 
         EQ_R_DELETE => [
-            'same_organization',
-            'can_be_deleted'
+            '*' => [
+                'same_organization',
+                'can_be_deleted'
+            ]
         ]
     ];
 }
@@ -406,10 +431,19 @@ public static function getOperationPolicies(): array {
 In this example:
 
 * the generic read operation is allowed only if the `same_organization` policy is satisfied;
-* the generic update operation is allowed only if both `same_organization` and `accounting_period_open` are satisfied;
+* generic updates inherit the `*` rule and therefore require `same_organization`;
+* updating `name` does not require an additional operation policy beyond capabilities, ACLs and guards;
+* updating `amount` requires both `same_organization` and `accounting_period_open`;
+* updating `internal_reference` is denied by operation policy;
 * the generic delete operation is allowed only if both `same_organization` and `can_be_deleted` are satisfied.
 
-Operation policies are evaluated after capabilities and ACLs.
+For `EQ_R_UPDATE`, a field without an explicit rule inherits the `*` rule. If `*` is missing, the default is `true`.
+
+For `EQ_R_READ` and `EQ_R_DELETE`, a scoped rule map only uses the `*` rule. If `*` is missing, no operation policy is checked.
+
+Each policy name must refer to a policy declared by `getPolicies()`. `Collection` checks policies through `AccessController::isCompliant()` for the target class, target ids and current user. All listed policies must pass. If a policy returns inconsistencies, the operation is rejected.
+
+Operation policies are evaluated after capabilities and ACLs, and before operation guards such as `canRead()`, `canUpdate()` or `canDelete()`.
 
 They answer the following question:
 
@@ -791,7 +825,7 @@ For a generic operation:
 5. For `CREATE`, `READ`, `DELETE` and `MANAGE`, one matching context with `true` exposes the operation.
 6. For `UPDATE`, allowed fields are built from every matching context.
 7. ACLs are checked with `AccessController::isAllowed()`.
-8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for the requested operation.
+8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for the requested operation when supported by the secured `Collection` path (`READ`, `UPDATE`, `DELETE`).
 9. Field-level policies are evaluated when explicitly required by field descriptors.
 10. Validation is executed.
 11. Operation guards such as `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` are executed.
@@ -1009,7 +1043,7 @@ public static function getCapabilities(): array {
 }
 ```
 
-This means generic CRUD operations are structurally exposed. The effective permissions still depend on ACLs, operation policies and business guards.
+This means generic CRUD operations are structurally exposed. The effective permissions still depend on ACLs, operation policies where applicable, and business guards.
 
 
 #### Business Entity with Operation Policies
