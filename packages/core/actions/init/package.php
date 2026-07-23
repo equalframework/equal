@@ -530,7 +530,7 @@ else {
 
     /**
      * The list of installed package is maintained in the file /log/packages.json.
-     * It is stored as an associative array mapping package names with the latest moment they were initialized.
+     * It is stored as an associative array mapping package names with their first initialization timestamp.
      */
     $packages = [];
 
@@ -539,7 +539,10 @@ else {
         $packages = json_decode($json, true);
     }
 
-    $packages[$params['package']] = date('c');
+    if(!isset($packages[$params['package']])) {
+        $packages[$params['package']] = date('c');
+    }
+
     file_put_contents(EQ_BASEDIR."/log/packages.json", json_encode($packages, JSON_PRETTY_PRINT));
 
     // if script is running at top-level, it must run composer to install vendor dependencies
