@@ -563,5 +563,79 @@ namespace {
                         }
                     }
             ],
+        '5014' => [
+                'description' => 'Lifecycle consistency: ObjectManager::update ignores missing ids and can restore deleted records.',
+                'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+
+                        $alive_id = $om->create($class, ['string_short' => 'alive']);
+                        $soft_id = $om->create($class, ['string_short' => 'soft']);
+                        $hard_id = $om->create($class, ['string_short' => 'hard']);
+
+                        $om->delete($class, [$soft_id], false);
+                        $om->delete($class, [$hard_id], true);
+
+                        return [
+                            'alive_id' => $alive_id,
+                            'soft_id'  => $soft_id,
+                            'hard_id'  => $hard_id
+                        ];
+                    },
+                'act'         => function ($fixtures) {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+
+                        LifecycleProbe::resetLifecycleEvents();
+
+                        $result = $fixtures;
+                        $result['update'] = $om->update(
+                            $class,
+                            [$fixtures['alive_id'], $fixtures['soft_id'], $fixtures['hard_id']],
+                            ['deleted' => 0, 'string_short' => 'restored']
+                        );
+
+                        $objects = $om->read($class, [$fixtures['alive_id'], $fixtures['soft_id']], ['string_short', 'deleted']);
+
+                        $result['alive_value'] = $objects[$fixtures['alive_id']]['string_short'] ?? null;
+                        $result['alive_deleted'] = (bool) ($objects[$fixtures['alive_id']]['deleted'] ?? true);
+                        $result['soft_value'] = $objects[$fixtures['soft_id']]['string_short'] ?? null;
+                        $result['soft_deleted'] = (bool) ($objects[$fixtures['soft_id']]['deleted'] ?? true);
+                        $result['events'] = LifecycleProbe::getLifecycleEvents();
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        $events = $result['events'] ?? [];
+                        $expected_ids = [$result['alive_id'], $result['soft_id']];
+
+                        return ($result['alive_id'] ?? 0) > 0
+                            && ($result['soft_id'] ?? 0) > 0
+                            && ($result['hard_id'] ?? 0) > 0
+                            && ($result['update'] ?? null) === $expected_ids
+                            && ($result['alive_value'] ?? null) === 'restored'
+                            && ($result['alive_deleted'] ?? true) === false
+                            && ($result['soft_value'] ?? null) === 'restored'
+                            && ($result['soft_deleted'] ?? true) === false
+                            && count($events) === 2
+                            && ($events[0]['hook'] ?? null) === 'onbeforeupdate'
+                            && ($events[0]['ids'] ?? null) === $expected_ids
+                            && ($events[1]['hook'] ?? null) === 'onafterupdate'
+                            && ($events[1]['ids'] ?? null) === $expected_ids;
+                    },
+                'rollback'    => function($result) {
+                        $ids = [];
+                        if(($result['alive_id'] ?? 0) > 0) {
+                            $ids[] = $result['alive_id'];
+                        }
+                        if(($result['soft_id'] ?? 0) > 0) {
+                            $ids[] = $result['soft_id'];
+                        }
+
+                        if(count($ids)) {
+                            LifecycleProbe::ids($ids)->delete(true);
+                        }
+                    }
+            ],
     ];
 }

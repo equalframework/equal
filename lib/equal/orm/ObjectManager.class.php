@@ -1914,24 +1914,12 @@ class ObjectManager extends Service {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDbHandler();
 
-            // 1) pre-processing - $ids sanitization
+            // 1) pre-processing - $fields and $ids sanitization
 
             // cast fields to an array (passing a single field is accepted)
             if(!is_array($fields)) {
                 $fields = (array) $fields;
             }
-            // keep only valid objects identifiers
-            $ids = $this->sanitizeIdentifiers($ids);
-            // if no ids were specified, the result is an empty list (array)
-            if(empty($ids)) {
-                trigger_error("ORM::ignoring call with empty ids", EQ_REPORT_INFO);
-                return $res;
-            }
-            // ids that are left are the ones of the objects that will be written
-            $res = $ids;
-
-
-            // 2) pre-processing - $fields sanitization
 
             // get static instance (checks that given class exists)
             $object = $this->getStaticInstance($class);
@@ -1939,6 +1927,18 @@ class ObjectManager extends Service {
             $schema = $object->getSchema();
             // retrieve name of the DB table associated with the class
             $table_name = $this->getObjectTableName($class);
+
+            // ignore non-existing ids
+            $ids = $this->filterExistingIdentifiers($class, $ids);
+
+            if(empty($ids)) {
+                trigger_error("ORM::ignoring call with no existing ids", EQ_REPORT_INFO);
+                return [];
+            }
+
+            // ids that are left are the ones of the objects that will be written
+            $res = $ids;
+
             // remove unknown fields and prevent updating reserved fields (id, creator, created)
             $fields = array_filter($fields, function($field) use ($schema) {
                         return isset($schema[$field]) && !in_array($field, ['id', 'creator', 'created']);
@@ -1985,9 +1985,6 @@ class ObjectManager extends Service {
             $updated_ids = array_values(array_diff($ids, $instantiated_ids));
 
             $this->assertRequiredFields($class, $instantiated_ids, $fields, $schema, $lang);
-
-            // 3) make sure objects in the collection can be updated
-            // #memo - moved to Collection
 
 
             // 4) call 'onbeforeinstantiate' hook when objects are about to become instances
