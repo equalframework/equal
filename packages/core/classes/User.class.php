@@ -123,7 +123,7 @@ class User extends Model {
 
             'passkeys_ids' => [
                 'type'              => 'one2many',
-                'foreign_object'    => 'core\Passkey',
+                'foreign_object'    => 'core\security\Passkey',
                 'foreign_field'     => 'user_id',
                 'description'       => 'List of passkeys owned by the user.'
             ],

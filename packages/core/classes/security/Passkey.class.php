@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace core;
+namespace core\security;
 
 use equal\orm\Model;
 
@@ -13,6 +13,10 @@ class Passkey extends Model {
 
     public static function getDescription(): string {
         return 'A user Passkey that allows password less authentication.';
+    }
+
+    public function getTable(): string {
+        return 'core_passkey';
     }
 
     public static function getColumns(): array {

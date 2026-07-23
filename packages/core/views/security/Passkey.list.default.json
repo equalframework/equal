@@ -1,0 +1,28 @@
+{
+    "name": "Passkeys",
+    "description": "This view is intended for displaying existing passkeys.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "credential_id",
+                "width": "35%"
+            },
+            {
+                "type": "field",
+                "value": "fmt",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "signature_counter",
+                "width": "20%"
+            }
+        ]
+    }
+}

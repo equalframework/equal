@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\Passkey;
+use core\security\Passkey;
 use core\setting\Setting;
 use equal\auth\JWT;
 use lbuchs\WebAuthn\Binary\ByteBuffer;

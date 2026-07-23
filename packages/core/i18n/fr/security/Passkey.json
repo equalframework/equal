@@ -1,0 +1,42 @@
+{
+    "name": "Clé d'accès",
+    "plural": "Clés d'accès",
+    "description": "Les clés d'accès permettent aux utilisateurs de s'authentifier sans mot de passe.",
+    "model": {
+        "user_id": {
+            "label": "Utilisateur",
+            "description": "Utilisateur propriétaire de cette clé d'accès.",
+            "help": "Associe la clé d'accès à un compte utilisateur."
+        },
+        "credential_id": {
+            "label": "Identifiant de credential",
+            "description": "Identifiant du credential utilisateur.",
+            "help": "Le credential est stocké sous forme de chaîne hexadécimale."
+        },
+        "credential_public_key": {
+            "label": "Clé publique",
+            "description": "Clé publique du credential utilisateur.",
+            "help": "La clé publique est créée par l'authentificateur."
+        },
+        "signature_counter": {
+            "label": "Compteur de signature",
+            "description": "Compteur d'utilisation de l'authentificateur.",
+            "help": "Utilisé pour détecter les attaques par rejeu et les clés clonées."
+        },
+        "fmt": {
+            "label": "Format",
+            "description": "Format d'attestation utilisé par l'authentificateur.",
+            "help": "Les valeurs possibles incluent tpm, packed, fido-u2f, android-key et none."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulaire de clé d'accès",
+            "description": "Détails de la clé d'accès."
+        },
+        "list.default": {
+            "name": "Clés d'accès",
+            "description": "Liste des clés d'accès enregistrées."
+        }
+    }
+}
