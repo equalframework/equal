@@ -99,6 +99,9 @@ if(file_exists($packages_log_file)) {
     }
 }
 
+$executed = [];
+$skipped = [];
+
 $update_scripts = [];
 
 if(is_dir($updates_folder)) {
@@ -113,6 +116,7 @@ if(is_dir($updates_folder)) {
         }
 
         if($package_initialized_timestamp === null || $timestamp <= $package_initialized_timestamp) {
+            $skipped[] = $script;
             continue;
         }
 
@@ -120,12 +124,9 @@ if(is_dir($updates_folder)) {
     }
 }
 
-$executed = [];
-$skipped = [];
 
 foreach($update_scripts as $script => $filename) {
     if(isset($map_updates[$package][$script])) {
-        $skipped[] = $script;
         continue;
     }
 
