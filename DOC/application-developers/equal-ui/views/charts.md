@@ -264,6 +264,16 @@ In this example:
 
 When grouping by a `many2one` field, the controller reads both `id` and `name` from the related object. The related object ID is used as the internal group key, while the related object name is used as the display label.
 
+Some existing chart definitions use a direct field name as `group_by`, for example:
+
+```json
+{
+  "group_by": "parent_id"
+}
+```
+
+This is functionally a field grouping shortcut. Prefer the explicit `group_by: "field"` plus `field` form for new views unless nearby package conventions already use the shortcut.
+
 ## Date Range Filtering
 
 Date range filtering is controlled with:
@@ -695,5 +705,3 @@ The `type` property affects frontend rendering only. It is passed to Chart.js bu
 The `stacked` property is applied to the `x` and `y` scales for non-segment chart types.
 
 The current implementation does not expose full Chart.js configuration through the view schema. Only a limited subset of chart behavior is configurable through the chart view layout.
-
-
