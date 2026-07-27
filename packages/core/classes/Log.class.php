@@ -66,6 +66,13 @@ class Log extends Model {
         ];
     }
 
+    public function getIndexes(): array {
+        return [
+            ['object_class', 'object_id'],
+            ['user_id']
+        ];
+    }
+
     /**
      * This method is used to calculate the history of a given object
      *
