@@ -55,20 +55,12 @@ class Log extends Model {
     }
 
     /**
-     * Returns the unique fields of the model (for indexing).
-     * #memo - unity is checked through Collection
+     * Returns the composite indexes used in Collections.
      *
-     * @return string
      */
-    public function getUnique() {
-        return [
-            ['created', 'user_id', 'object_class', 'object_id'],
-        ];
-    }
-
     public function getIndexes(): array {
         return [
-            ['object_class', 'object_id'],
+            ['object_class', 'object_id', 'created'],
             ['user_id']
         ];
     }
