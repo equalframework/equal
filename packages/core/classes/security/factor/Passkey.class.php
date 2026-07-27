@@ -12,7 +12,7 @@ use core\security\AuthenticationFactor;
 class Passkey extends AuthenticationFactor {
 
     public static function getDescription(): string {
-        return 'A user Passkey that allows password less authentication.';
+        return 'A user Passkey that allows passwordless authentication.';
     }
 
     public static function getColumns(): array {
@@ -21,7 +21,7 @@ class Passkey extends AuthenticationFactor {
             'type' => [
                 'type'              => 'string',
                 'description'       => 'Type of authentication factor.',
-                'help'              => 'Identifies the technical mechanism used by the factor.',
+                'help'              => 'Technical mechanism used by the factor: blocked on `passkey` according to current class.',
                 'readonly'          => true,
                 'default'           => 'passkey'
             ],
