@@ -18,6 +18,7 @@ use lbuchs\WebAuthn\WebAuthn;
     'params'        => [
         'register_token' => [
             'type'          => 'string',
+            'usage'         => 'text/plain:2048',
             'description'   => 'Register token that contains the challenge and user information.',
             'required'      => true
         ],
@@ -28,11 +29,13 @@ use lbuchs\WebAuthn\WebAuthn;
         ],
         'client_data_json' => [
             'type'          => 'string',
+            'usage'         => 'text/plain:2048',
             'description'   => 'Client data given to create passkey, is encoded in base64.',
             'required'      => true
         ],
         'attestation_object' => [
             'type'          => 'string',
+            'usage'         => 'text/plain:8192',
             'description'   => 'Attestation object containing the new public key, is encoded in base64.',
             'required'      => true
         ]
