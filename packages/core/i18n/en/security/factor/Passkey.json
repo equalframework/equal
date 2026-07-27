@@ -1,0 +1,88 @@
+{
+    "name": "Passkey",
+    "plural": "Passkeys",
+    "description": "Passkeys allow users to authenticate without a password.",
+    "model": {
+        "user_id": {
+            "label": "User",
+            "description": "User who owns this authentication factor.",
+            "help": "Links the authentication factor to a user account."
+        },
+        "type": {
+            "label": "Type",
+            "description": "Type of authentication factor.",
+            "help": "Identifies the technical mechanism used by the factor.",
+            "selection": {
+                "passkey": "Passkey",
+                "totp": "TOTP",
+                "recovery_code": "Recovery code"
+            }
+        },
+        "label": {
+            "label": "Label",
+            "description": "User-facing label for this passkey.",
+            "help": "Helps the user distinguish several passkeys."
+        },
+        "status": {
+            "label": "Status",
+            "description": "Current status of this passkey.",
+            "help": "Controls whether the passkey can currently be used for authentication.",
+            "selection": {
+                "pending": "Pending",
+                "active": "Active",
+                "disabled": "Disabled",
+                "revoked": "Revoked"
+            }
+        },
+        "confirmed_at": {
+            "label": "Confirmed at",
+            "description": "Date and time when the passkey was confirmed.",
+            "help": "Empty until the passkey has been validated and activated."
+        },
+        "last_used_at": {
+            "label": "Last used at",
+            "description": "Date and time when the passkey was last used.",
+            "help": "Tracks the latest successful authentication using this passkey."
+        },
+        "revoked_at": {
+            "label": "Revoked at",
+            "description": "Date and time when the passkey was revoked.",
+            "help": "Empty until the passkey is permanently revoked."
+        },
+        "revoked_reason": {
+            "label": "Revocation reason",
+            "description": "Reason why the passkey was revoked.",
+            "help": "Stores an optional explanation for audit or support purposes."
+        },
+        "credential_id": {
+            "label": "Credential ID",
+            "description": "User credential identifier.",
+            "help": "The credential is stored as a hexadecimal string."
+        },
+        "credential_public_key": {
+            "label": "Public key",
+            "description": "User credential public key.",
+            "help": "The public key is created by the authenticator."
+        },
+        "signature_counter": {
+            "label": "Signature counter",
+            "description": "Authenticator usage counter.",
+            "help": "Used to detect replay attacks and cloned keys."
+        },
+        "fmt": {
+            "label": "Format",
+            "description": "Attestation format used by the authenticator.",
+            "help": "Possible values include tpm, packed, fido-u2f, android-key and none."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Passkey form",
+            "description": "Passkey details."
+        },
+        "list.default": {
+            "name": "Passkeys",
+            "description": "List of registered passkeys."
+        }
+    }
+}

@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\security\Passkey;
+use core\security\factor\Passkey;
 use core\setting\Setting;
 use core\setting\SettingValue;
 use equal\auth\JWT;
@@ -85,7 +85,10 @@ $client_data_json = base64_decode($params['client_data_json']);
 $authenticator_data = base64_decode($params['authenticator_data']);
 $signature = base64_decode($params['signature']);
 
-$passkey = Passkey::search(['credential_id', '=', (new ByteBuffer($credential_id))->getHex()])
+$passkey = Passkey::search([
+        ['type', '=', 'passkey'],
+        ['credential_id', '=', (new ByteBuffer($credential_id))->getHex()]
+    ])
     ->read([
         'user_id' => [
             'id',

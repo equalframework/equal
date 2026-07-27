@@ -1,0 +1,68 @@
+{
+    "name": "Facteur d'authentification",
+    "plural": "Facteurs d'authentification",
+    "description": "Les facteurs d'authentification sont des méthodes enregistrées pour un compte utilisateur.",
+    "model": {
+        "user_id": {
+            "label": "Utilisateur",
+            "description": "Utilisateur propriétaire de ce facteur d'authentification.",
+            "help": "Associe le facteur d'authentification à un compte utilisateur."
+        },
+        "type": {
+            "label": "Type",
+            "description": "Type de facteur d'authentification.",
+            "help": "Identifie le mécanisme technique utilisé par le facteur.",
+            "selection": {
+                "passkey": "Clé d'accès",
+                "totp": "TOTP",
+                "recovery_code": "Code de récupération"
+            }
+        },
+        "label": {
+            "label": "Libellé",
+            "description": "Libellé affiché à l'utilisateur.",
+            "help": "Aide l'utilisateur à distinguer plusieurs facteurs du même type."
+        },
+        "status": {
+            "label": "Statut",
+            "description": "Statut courant du facteur d'authentification.",
+            "help": "Détermine si le facteur peut actuellement être utilisé pour l'authentification.",
+            "selection": {
+                "pending": "En attente",
+                "active": "Actif",
+                "disabled": "Désactivé",
+                "revoked": "Révoqué"
+            }
+        },
+        "confirmed_at": {
+            "label": "Confirmé le",
+            "description": "Date et heure de confirmation du facteur d'authentification.",
+            "help": "Vide tant que le facteur n'a pas été validé et activé."
+        },
+        "last_used_at": {
+            "label": "Dernière utilisation le",
+            "description": "Date et heure de dernière utilisation du facteur.",
+            "help": "Trace la dernière authentification réussie avec ce facteur."
+        },
+        "revoked_at": {
+            "label": "Révoqué le",
+            "description": "Date et heure de révocation du facteur d'authentification.",
+            "help": "Vide tant que le facteur n'est pas révoqué définitivement."
+        },
+        "revoked_reason": {
+            "label": "Raison de révocation",
+            "description": "Raison pour laquelle le facteur d'authentification a été révoqué.",
+            "help": "Stocke une explication optionnelle pour l'audit ou le support."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulaire de facteur d'authentification",
+            "description": "Détails du facteur d'authentification."
+        },
+        "list.default": {
+            "name": "Facteurs d'authentification",
+            "description": "Liste des facteurs d'authentification enregistrés."
+        }
+    }
+}

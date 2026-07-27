@@ -5,11 +5,11 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace core\security;
+namespace core\security\factor;
 
-use equal\orm\Model;
+use core\security\AuthenticationFactor;
 
-class Passkey extends Model {
+class Passkey extends AuthenticationFactor {
 
     public static function getDescription(): string {
         return 'A user Passkey that allows password less authentication.';
@@ -18,12 +18,12 @@ class Passkey extends Model {
     public static function getColumns(): array {
         return [
 
-            'user_id' => [
-                'type'              => 'many2one',
-                'foreign_object'    => 'core\User',
-                'description'       => 'User who owns this passkey.',
-                'help'              => 'Links the passkey to a user account.',
-                'required'          => true
+            'type' => [
+                'type'              => 'string',
+                'description'       => 'Type of authentication factor.',
+                'help'              => 'Identifies the technical mechanism used by the factor.',
+                'readonly'          => true,
+                'default'           => 'passkey'
             ],
 
             'credential_id' => [
@@ -45,8 +45,7 @@ class Passkey extends Model {
                 'type'              => 'integer',
                 'description'       => 'Authenticator usage counter to prevent replay attacks.',
                 'help'              => 'It stays at 0 if the authenticator does not handle "signCount", else it\'s incremented by the authenticator at each successful authentication.',
-                'default'           => 0,
-                'min'               => 0
+                'default'           => 0
             ],
 
             'fmt' => [
@@ -57,14 +56,6 @@ class Passkey extends Model {
                 'required'          => true
             ]
 
-        ];
-    }
-
-    public function getUnique(): array {
-        return [
-            // #memo `credential_id` can be too big to be used as index
-            // ['user_id', 'credential_id']
-            ['user_id']
         ];
     }
 }

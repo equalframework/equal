@@ -1,0 +1,68 @@
+{
+    "name": "Authentication factor",
+    "plural": "Authentication factors",
+    "description": "Authentication factors are methods registered for a user account.",
+    "model": {
+        "user_id": {
+            "label": "User",
+            "description": "User who owns this authentication factor.",
+            "help": "Links the authentication factor to a user account."
+        },
+        "type": {
+            "label": "Type",
+            "description": "Type of authentication factor.",
+            "help": "Identifies the technical mechanism used by the factor.",
+            "selection": {
+                "passkey": "Passkey",
+                "totp": "TOTP",
+                "recovery_code": "Recovery code"
+            }
+        },
+        "label": {
+            "label": "Label",
+            "description": "User-facing label for the authentication factor.",
+            "help": "Helps the user distinguish several factors of the same type."
+        },
+        "status": {
+            "label": "Status",
+            "description": "Current status of the authentication factor.",
+            "help": "Controls whether the factor can currently be used for authentication.",
+            "selection": {
+                "pending": "Pending",
+                "active": "Active",
+                "disabled": "Disabled",
+                "revoked": "Revoked"
+            }
+        },
+        "confirmed_at": {
+            "label": "Confirmed at",
+            "description": "Date and time when the authentication factor was confirmed.",
+            "help": "Empty until the factor has been validated and activated."
+        },
+        "last_used_at": {
+            "label": "Last used at",
+            "description": "Date and time when the authentication factor was last used.",
+            "help": "Tracks the latest successful authentication using this factor."
+        },
+        "revoked_at": {
+            "label": "Revoked at",
+            "description": "Date and time when the authentication factor was revoked.",
+            "help": "Empty until the factor is permanently revoked."
+        },
+        "revoked_reason": {
+            "label": "Revocation reason",
+            "description": "Reason why the authentication factor was revoked.",
+            "help": "Stores an optional explanation for audit or support purposes."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Authentication factor form",
+            "description": "Authentication factor details."
+        },
+        "list.default": {
+            "name": "Authentication factors",
+            "description": "List of registered authentication factors."
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "name": "Authentication factors",
+    "description": "This view is intended for displaying registered authentication factors.",
+    "layout": {
+        "items": [
+            {
+                "type": "field",
+                "value": "user_id",
+                "width": "25%"
+            },
+            {
+                "type": "field",
+                "value": "type",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "label",
+                "width": "30%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "25%"
+            }
+        ]
+    }
+}

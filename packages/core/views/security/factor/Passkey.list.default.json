@@ -6,22 +6,27 @@
             {
                 "type": "field",
                 "value": "user_id",
-                "width": "25%"
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "label",
+                "width": "20%"
+            },
+            {
+                "type": "field",
+                "value": "status",
+                "width": "15%"
             },
             {
                 "type": "field",
                 "value": "credential_id",
-                "width": "35%"
+                "width": "30%"
             },
             {
                 "type": "field",
                 "value": "fmt",
-                "width": "20%"
-            },
-            {
-                "type": "field",
-                "value": "signature_counter",
-                "width": "20%"
+                "width": "15%"
             }
         ]
     }

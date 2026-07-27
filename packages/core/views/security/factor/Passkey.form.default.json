@@ -19,6 +19,16 @@
                                             },
                                             {
                                                 "type": "field",
+                                                "value": "label",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "status",
+                                                "width": "100%"
+                                            },
+                                            {
+                                                "type": "field",
                                                 "value": "credential_id",
                                                 "width": "100%"
                                             },

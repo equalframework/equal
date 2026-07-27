@@ -1,0 +1,88 @@
+{
+    "name": "Clé d'accès",
+    "plural": "Clés d'accès",
+    "description": "Les clés d'accès permettent aux utilisateurs de s'authentifier sans mot de passe.",
+    "model": {
+        "user_id": {
+            "label": "Utilisateur",
+            "description": "Utilisateur propriétaire de ce facteur d'authentification.",
+            "help": "Associe le facteur d'authentification à un compte utilisateur."
+        },
+        "type": {
+            "label": "Type",
+            "description": "Type de facteur d'authentification.",
+            "help": "Identifie le mécanisme technique utilisé par le facteur.",
+            "selection": {
+                "passkey": "Clé d'accès",
+                "totp": "TOTP",
+                "recovery_code": "Code de récupération"
+            }
+        },
+        "label": {
+            "label": "Libellé",
+            "description": "Libellé affiché à l'utilisateur pour cette clé d'accès.",
+            "help": "Aide l'utilisateur à distinguer plusieurs clés d'accès."
+        },
+        "status": {
+            "label": "Statut",
+            "description": "Statut courant de cette clé d'accès.",
+            "help": "Détermine si la clé d'accès peut actuellement être utilisée pour l'authentification.",
+            "selection": {
+                "pending": "En attente",
+                "active": "Actif",
+                "disabled": "Désactivé",
+                "revoked": "Révoqué"
+            }
+        },
+        "confirmed_at": {
+            "label": "Confirmée le",
+            "description": "Date et heure de confirmation de la clé d'accès.",
+            "help": "Vide tant que la clé d'accès n'a pas été validée et activée."
+        },
+        "last_used_at": {
+            "label": "Dernière utilisation le",
+            "description": "Date et heure de dernière utilisation de la clé d'accès.",
+            "help": "Trace la dernière authentification réussie avec cette clé d'accès."
+        },
+        "revoked_at": {
+            "label": "Révoquée le",
+            "description": "Date et heure de révocation de la clé d'accès.",
+            "help": "Vide tant que la clé d'accès n'est pas révoquée définitivement."
+        },
+        "revoked_reason": {
+            "label": "Raison de révocation",
+            "description": "Raison pour laquelle la clé d'accès a été révoquée.",
+            "help": "Stocke une explication optionnelle pour l'audit ou le support."
+        },
+        "credential_id": {
+            "label": "Identifiant de credential",
+            "description": "Identifiant du credential utilisateur.",
+            "help": "Le credential est stocké sous forme de chaîne hexadécimale."
+        },
+        "credential_public_key": {
+            "label": "Clé publique",
+            "description": "Clé publique du credential utilisateur.",
+            "help": "La clé publique est créée par l'authentificateur."
+        },
+        "signature_counter": {
+            "label": "Compteur de signature",
+            "description": "Compteur d'utilisation de l'authentificateur.",
+            "help": "Utilisé pour détecter les attaques par rejeu et les clés clonées."
+        },
+        "fmt": {
+            "label": "Format",
+            "description": "Format d'attestation utilisé par l'authentificateur.",
+            "help": "Les valeurs possibles incluent tpm, packed, fido-u2f, android-key et none."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulaire de clé d'accès",
+            "description": "Détails de la clé d'accès."
+        },
+        "list.default": {
+            "name": "Clés d'accès",
+            "description": "Liste des clés d'accès enregistrées."
+        }
+    }
+}

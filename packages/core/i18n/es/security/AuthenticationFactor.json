@@ -1,0 +1,68 @@
+{
+    "name": "Factor de autenticación",
+    "plural": "Factores de autenticación",
+    "description": "Los factores de autenticación son métodos registrados para una cuenta de usuario.",
+    "model": {
+        "user_id": {
+            "label": "Usuario",
+            "description": "Usuario propietario de este factor de autenticación.",
+            "help": "Vincula el factor de autenticación a una cuenta de usuario."
+        },
+        "type": {
+            "label": "Tipo",
+            "description": "Tipo de factor de autenticación.",
+            "help": "Identifica el mecanismo técnico utilizado por el factor.",
+            "selection": {
+                "passkey": "Clave de acceso",
+                "totp": "TOTP",
+                "recovery_code": "Código de recuperación"
+            }
+        },
+        "label": {
+            "label": "Etiqueta",
+            "description": "Etiqueta visible para el usuario del factor de autenticación.",
+            "help": "Ayuda al usuario a distinguir varios factores del mismo tipo."
+        },
+        "status": {
+            "label": "Estado",
+            "description": "Estado actual del factor de autenticación.",
+            "help": "Controla si el factor se puede utilizar actualmente para autenticarse.",
+            "selection": {
+                "pending": "Pendiente",
+                "active": "Activo",
+                "disabled": "Deshabilitado",
+                "revoked": "Revocado"
+            }
+        },
+        "confirmed_at": {
+            "label": "Confirmado el",
+            "description": "Fecha y hora en que se confirmó el factor de autenticación.",
+            "help": "Vacío hasta que el factor haya sido validado y activado."
+        },
+        "last_used_at": {
+            "label": "Último uso el",
+            "description": "Fecha y hora del último uso del factor de autenticación.",
+            "help": "Registra la última autenticación correcta con este factor."
+        },
+        "revoked_at": {
+            "label": "Revocado el",
+            "description": "Fecha y hora en que se revocó el factor de autenticación.",
+            "help": "Vacío hasta que el factor se revoque permanentemente."
+        },
+        "revoked_reason": {
+            "label": "Motivo de revocación",
+            "description": "Razón por la que se revocó el factor de autenticación.",
+            "help": "Almacena una explicación opcional para auditoría o soporte."
+        }
+    },
+    "view": {
+        "form.default": {
+            "name": "Formulario de factor de autenticación",
+            "description": "Detalles del factor de autenticación."
+        },
+        "list.default": {
+            "name": "Factores de autenticación",
+            "description": "Lista de factores de autenticación registrados."
+        }
+    }
+}

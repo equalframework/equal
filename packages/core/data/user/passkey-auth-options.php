@@ -6,7 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
-use core\security\Passkey;
+use core\security\factor\Passkey;
 use core\setting\Setting;
 use core\setting\SettingValue;
 use core\User;
@@ -93,7 +93,10 @@ $webAuthn = new WebAuthn($rp_name, $rp_id, $allowed_formats);
 $credential_ids = [];
 
 if(!empty($params['login'])) {
-    $passkeys = Passkey::search(['user_id', '=', $user['id']])
+    $passkeys = Passkey::search([
+            ['type', '=', 'passkey'],
+            ['user_id', '=', $user['id']]
+        ])
         ->read(['credential_id'])
         ->get(true);
 
