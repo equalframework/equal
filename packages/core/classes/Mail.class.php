@@ -84,6 +84,7 @@ class Mail extends Model {
 
             'response' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:1024',
                 'description'       => 'SMTP response returned at sending.',
                 'default'           => '',
                 'visible'           => ['status', '<>', 'pending'],
@@ -161,7 +162,7 @@ class Mail extends Model {
         }
         catch(\Exception $e) {
             trigger_error("PHP::Mail::send() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
-            self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+            self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => substr($e->getMessage(), 0, 1024)]);
             throw new \Exception($e->getMessage(), EQ_ERROR_UNKNOWN);
         }
 
@@ -278,7 +279,7 @@ class Mail extends Model {
                 trigger_error("APP::Mail::flush() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
                 // if the message is linked to a core\Mail object, update the latter's status
                 if(isset($message['id'])) {
-                    self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => $e->getMessage()]);
+                    self::id($message['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => substr($e->getMessage(), 0, 1024)]);
                 }
                 // #todo : add support for choosing what to do upon failure (retry, delete, notify)
             }
