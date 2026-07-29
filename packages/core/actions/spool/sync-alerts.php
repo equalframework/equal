@@ -5,7 +5,8 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-use core\Mail;
+
+use core\email\Email;
 
 [$params, $providers] = eQual::announce([
     'description' => "Monitor failed email deliveries and maintain related system alerts.",
@@ -35,7 +36,7 @@ use core\Mail;
 
 $now = time();
 
-$mails = Mail::search([
+$mails = Email::search([
         ['status', '=', 'failing'],
         ['created', '<', $now - 3600]
     ])
