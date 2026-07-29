@@ -36,11 +36,11 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Schema ID**: `urn:equal:json-schema:core:model.class`
 - **Usage**: Validate the JSON representation of ORM model class definitions
 - **Required fields**: `name`, `fields`
-- **Convert the PHP file** structure to JSON representation with `./equal.run --get=model_export --entity={EntityName}`
+- **Export the model schema** with controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
-  ./equal.run --get=model_export --entity={EntityName}
+  ./equal.run --get=core_model_schema --entity={EntityName}
   # then validate the returned JSON representation with core_json-validate.
   ```
 
@@ -209,7 +209,7 @@ Use this fallback only when no dedicated consistency controller exists.
 When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`. Do not embed full JSON directly in the command line.
 
 ### For PHP Files (Actions, Data Providers)
-1. Convert the PHP file structure to JSON representation using the appropriate php command (e.g., `model_export` for entities, `--announce=true` for actions/providers or `packageinfo` for packages)
+1. Convert the PHP file structure to JSON representation using the appropriate php command (e.g., `core_model_schema` for entities, `--announce=true` for actions/providers or `packageinfo` for packages)
 2. Call `core_json-validate` with the JSON representation
 
 ## When to Validate

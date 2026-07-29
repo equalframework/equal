@@ -12,7 +12,7 @@
 ## JSON Schema Validation
 
 - [ ] **Model class validation**:
-  - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
+  - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
   - Validate that JSON representation with schema ID `urn:equal:json-schema:core:model.class` and the package name where the entity was created
   - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned

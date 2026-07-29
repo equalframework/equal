@@ -32,7 +32,7 @@ If views, models or translation files were modified as part of the field update,
 
 - [ ] **Model class validation** (if class modified):
   - Use schema `urn:equal:json-schema:core:model.class`
-  - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through `./equal.run --get=model_export --package={package} --entity={EntityName}`
+  - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
   - Validate the returned JSON representation with `core_json-validate`:
     - `json` parameter: the JSON representation of the updated model class
     - `schema_id` parameter: `urn:equal:json-schema:core:model.class`
