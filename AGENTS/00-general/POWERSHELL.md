@@ -9,8 +9,9 @@ These rules apply whenever the agent runs commands from PowerShell.
   - `Get-Content -Encoding UTF8 path/to/file.json`
   - `Get-Content -Raw -Encoding UTF8 path/to/file.md`
 - Do not trust default `Get-Content` output for accented French text or Markdown headings; it may display mojibake if encoding is not explicit.
-- Validate JSON syntax locally with PowerShell before schema validation:
+- Validate JSON syntax locally with PowerShell before schema validation when troubleshooting JSON files:
   - `Get-Content -Raw -Encoding UTF8 path/to/file.json | ConvertFrom-Json | Out-Null`
+- This is a syntax-only check. It is not a substitute for eQual consistency controllers.
 
 ## Avoid fragile JSON escaping in CLI args
 
@@ -21,10 +22,11 @@ These rules apply whenever the agent runs commands from PowerShell.
   - Model translations: `php run.php --do=core_test_translation-consistency --entity=<Entity> --lang=<lang>`
   - Menu definitions: `php run.php --do=core_test_menu-consistency --package=<package> --menu_id=<app.position>`
   - Package route files: `php run.php --do=core_test_route-consistency --package=<package> --file=<priority-name.json>`
-- Use this pattern for direct schema validation with `core_json-validate`:
+  - Package manifests: `php run.php --do=core_test_manifest-consistency --package=<package>`
+- Use this pattern for direct schema validation with `core_json-validate` only when no dedicated consistency controller exists:
   - `$json = Get-Content -Raw -Encoding UTF8 path/to/file.json`
   - `php run.php --get=core_json-validate --json="$json" --schema_id=<schema> --package=<package> --strict=false`
-- Use compact JSON for direct schema validation:
+- Use compact JSON for direct schema validation only when no dedicated consistency controller exists:
   - `$json = Get-Content -Raw -Encoding UTF8 path/to/file.json | ConvertFrom-Json | ConvertTo-Json -Depth 100 -Compress`
   - `php run.php --get=core_json-validate --json="$json" --schema_id=<schema> --package=<package> --strict=false`
 - Use PowerShell's stop-parsing marker for inline PHP smoke tests that require exact nested quotes:
@@ -127,6 +129,7 @@ These rules apply whenever the agent runs commands from PowerShell.
 
 - For JSON syntax:
   - `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`
+  - This verifies syntax only; it does not verify eQual schema or cross-reference consistency.
 - For eQual schema validation, prefer the dedicated consistency controllers listed above.
 - When no dedicated controller exists, use UTF-8 variables:
   - `$json = Get-Content -Raw -Encoding UTF8 <file>`

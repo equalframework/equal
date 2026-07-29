@@ -1,15 +1,20 @@
-- Minimal form view reference:
+- Minimal form view file:
 ```json
-{ "layout": { "groups": [
-    {
-        "sections": [
+{
+    "name": "Default form",
+    "layout": {
+        "groups": [
             {
-                "rows": [
+                "sections": [
                     {
-                        "columns": [
+                        "rows": [
                             {
-                                "width": "100%",
-                                "items": []
+                                "columns": [
+                                    {
+                                        "width": "100%",
+                                        "items": []
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -17,12 +22,17 @@
             }
         ]
     }
-] } }
+}
 ```
 
-- Minimal list view reference:
+- Minimal list view file:
 ```json
-{ "layout": { "items": [] } }
+{
+    "name": "Default list",
+    "layout": {
+        "items": []
+    }
+}
 ```
 
 - Form section with explicit `id`:

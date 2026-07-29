@@ -18,21 +18,20 @@
 - [ ] If a `.class.php` file was modified and the configured database was missing, `config/config.json` was confirmed valid and `./equal.run --do=init_db` was run.
 - [ ] If a `.class.php` file was modified, the impacted package was reinitialized with `./equal.run --do=init_package --package={package} --force=true`.
 
-## JSON Schema Validation (when applicable)
+## Consistency and Metadata Validation (when applicable)
 
 If views, models or translation files were modified as part of the field update, validate (for specifics about validation procedures see `AGENTS/00-general/VALIDATION-SCHEMAS.md`) them:
 
-- [ ] **View schema validation** (if views modified):
-  - Form views: Use schema `urn:equal:json-schema:core:view.form`
-  - List views: Use schema `urn:equal:json-schema:core:view.list`
-  - Dashboard views: Use schema `urn:equal:json-schema:core:view.dashboard`
-  - Search views: Use schema `urn:equal:json-schema:core:view.search`
-  - Chart views: Use schema `urn:equal:json-schema:core:view.chart`
-  - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for procedures
+- [ ] **View consistency validation** (if views modified):
+  - For each modified form/list/search/chart view, run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id={type}.{name}`.
+  - For each modified dashboard view, run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=dashboard.{name}` or `php run.php --do=core_test_dashboard-consistency --entity={EntityName} --view_id=dashboard.{name}`.
+  - Do not read the full view JSON and pass it to `core_json-validate`; use the dedicated view consistency controller.
+  - See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for procedures and schema ID references.
 
 - [ ] **Model class validation** (if class modified):
   - Use schema `urn:equal:json-schema:core:model.class`
-  - Extract the field definitions from the updated `.class.php` file and convert to JSON representation through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
+  - Do not parse the updated `.class.php` file manually.
+  - Ask eQual to export the field definitions through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
   - Validate the returned JSON representation with `core_json-validate`:
     - `json` parameter: the JSON representation of the updated model class
     - `schema_id` parameter: `urn:equal:json-schema:core:model.class`

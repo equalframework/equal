@@ -20,9 +20,10 @@
 - [ ] Action/provider labels and user-visible errors are translated.
 - [ ] Obsolete field/view/i18n references were removed.
 
-## Schema Validation
+## Consistency and Schema Validation
 
-- [ ] All newly created JSON files have been validated against their respective schemas
+- [ ] All newly created JSON files have been validated through their dedicated eQual consistency controller when one exists.
+- [ ] Raw schema validation with `core_json-validate` was used only for files or metadata that have no dedicated consistency controller.
 - [ ] Refer to task-specific VALIDATION.md files for schema validation details
 - [ ] Refer to `AGENTS/00-general/VALIDATION-SCHEMAS.md` for schema IDs and procedures
 - [ ] Prefer dedicated consistency controllers instead of passing full JSON through CLI arguments:

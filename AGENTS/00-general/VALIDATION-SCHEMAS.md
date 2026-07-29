@@ -1,8 +1,10 @@
-# JSON Schema Validation for Agent-Created Content
+# eQual Consistency and Schema Validation for Agent-Created Content
 
 When agents create or modify content, they must validate the structure using available JSON schemas.
 
 Prefer dedicated consistency controllers whenever one exists. These controllers load the target file or view internally and call `json-validate` from PHP, which avoids fragile shell escaping for full JSON payloads.
+
+Do not manually extract, transform, or pass full JSON payloads for views, model translations, menus, routes, or manifests when a dedicated `core_test_*_consistency` controller exists.
 
 | Content type | Preferred controller |
 | --- | --- |
@@ -37,6 +39,7 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Validate the JSON representation of ORM model class definitions
 - **Required fields**: `name`, `fields`
 - **Export the model schema** with controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
+- **Do not parse the `.class.php` file manually**; let eQual build the model representation through `core_model_schema`.
 - **Validate** through `core_json-validate` with the JSON representation and schema ID
 - **Validation example**:
   ```
@@ -109,8 +112,9 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Validate action handler definitions (JSON representation of PHP action files)
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/actions/{path}/{action}.php`
-- **Get JSON representation**: Use `./equal.run --do={package}_{path}_{action} --announce=true` to extract the action metadata as JSON.
-- **Validate** through `core_json-validate` with the JSON representation and schema ID
+- **Get JSON representation**: Use `./equal.run --do={package}_{path}_{action} --announce=true` to have eQual return the action metadata as JSON.
+- **Validate** through `core_json-validate` with the returned metadata and schema ID.
+- **Exception note**: This direct `core_json-validate` flow is allowed because no dedicated consistency controller currently covers action announcement metadata. Do not parse the PHP file manually.
 - **Validation example**:
   ```
   ./equal.run --do={package}_{path}_{action} --announce=true
@@ -122,8 +126,9 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Usage**: Same as action handlers; data providers are validated as controller actions
 - **Required fields**: `type`, `name`, `package_name`
 - **File pattern**: `packages/{package}/data/{path}/{provider}.php`
-- **Get JSON representation**: Use `./equal.run --get={package}_{path}_{provider} --announce=true` to extract the provider metadata as JSON.
-- **Validate** through `core_json-validate` with the JSON representation and schema ID
+- **Get JSON representation**: Use `./equal.run --get={package}_{path}_{provider} --announce=true` to have eQual return the provider metadata as JSON.
+- **Validate** through `core_json-validate` with the returned metadata and schema ID.
+- **Exception note**: This direct `core_json-validate` flow is allowed because no dedicated consistency controller currently covers provider announcement metadata. Do not parse the PHP file manually.
 - **Validation example**:
   ```
   ./equal.run --get={package}_{path}_{provider} --announce=true
@@ -165,8 +170,8 @@ Use `--announce=true` to return the `eQual::announce()` metadata as JSON and sto
 - **Schema ID**: `urn:equal:json-schema:core:package.manifest`
 - **Usage**: Validate package manifest files
 - **File pattern**: `packages/{package}/manifest.json`
-- **Get JSON representation**: Use `./equal.run --get=packageinfo --package={package}` to get the manifest contents as JSON
-- **Validate** through `core_json-validate` with the JSON representation and schema ID
+- **Preferred validation**: Use `core_test_manifest-consistency`; it loads and validates the manifest internally.
+- **Fallback only**: Use `packageinfo` plus `core_json-validate` only when the dedicated consistency controller is unavailable.
 - **Validation example**:
   ```
   php run.php --do=core_test_manifest-consistency --package={package}
@@ -197,20 +202,23 @@ php run.php --do=core_test_route-consistency --package={package} --file={priorit
 php run.php --do=core_test_manifest-consistency --package={package}
 ```
 
-### For JSON Files
-Use this fallback only when no dedicated consistency controller exists.
+### Fallback for Raw JSON Files Without a Dedicated Controller
+Use this fallback only when no dedicated consistency controller exists. Do not use it for model views, dashboard views, model translations, menu definitions, route files, or package manifests.
 
-1. Read the created JSON file
+1. Read the created JSON file only because no consistency controller covers that file type.
 2. Run `./equal.run --get=core_json-validate` data action with:
    - `--json` parameter: file contents as JSON string
    - `--schema_id` parameter: appropriate schema from table above
    - `--strict=false` for lenient validation (allows missing optional fields)
 
-When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`. Do not embed full JSON directly in the command line.
+When running from PowerShell, first validate JSON syntax with `Get-Content -Raw -Encoding UTF8 <file> | ConvertFrom-Json | Out-Null`, then pass file contents through a UTF-8 variable as described in `AGENTS/00-general/POWERSHELL.md`. This local JSON syntax check is only troubleshooting support; it is not a substitute for eQual consistency validation. Do not embed full JSON directly in the command line.
 
-### For PHP Files (Actions, Data Providers)
-1. Convert the PHP file structure to JSON representation using the appropriate php command (e.g., `core_model_schema` for entities, `--announce=true` for actions/providers or `packageinfo` for packages)
-2. Call `core_json-validate` with the JSON representation
+### For PHP-Backed Metadata Without a Dedicated Controller
+1. Do not parse PHP files manually.
+2. Ask eQual for the metadata representation using the appropriate controller:
+   - `core_model_schema` for model classes.
+   - `--announce=true` for action handlers and data providers.
+3. Call `core_json-validate` with the returned JSON representation only when no dedicated consistency controller exists for that metadata.
 
 ## When to Validate
 

@@ -9,10 +9,11 @@
 - [ ] Relation fields target existing entities and valid target fields.
 - [ ] Computed/derived fields declare complete and valid dependencies.
 
-## JSON Schema Validation
+## Model Metadata Validation
 
 - [ ] **Model class validation**:
-  - Extract the ORM field definitions from the created `.class.php` file and convert to JSON representation through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
+  - Do not parse the created `.class.php` file manually.
+  - Ask eQual to export the ORM field definitions through controller `core_model_schema`: `./equal.run --get=core_model_schema --entity={EntityName}`
   - Validate that JSON representation with schema ID `urn:equal:json-schema:core:model.class` and the package name where the entity was created
   - Avoid embedding the JSON representation directly in a shell command; see `AGENTS/00-general/POWERSHELL.md` for PowerShell-safe handling
   - Confirm: no validation errors returned
@@ -21,11 +22,12 @@
 
 - [ ] Required default form and/or list views were created when the entity is user-facing.
 - [ ] Newly created views reference only existing fields.
-- [ ] **Form view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.form`
-- [ ] **List view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.list`
-- [ ] **Dashboard view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.dashboard`
-- [ ] **Search view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.search`
-- [ ] **Chart view schema validation** (if created): Use schema `urn:equal:json-schema:core:view.chart`
+- [ ] **Form view validation** (if created): Run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=form.{name}`.
+- [ ] **List view validation** (if created): Run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=list.{name}`.
+- [ ] **Dashboard view validation** (if created): Run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=dashboard.{name}` or `php run.php --do=core_test_dashboard-consistency --entity={EntityName} --view_id=dashboard.{name}`.
+- [ ] **Search view validation** (if created): Run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=search.{name}`.
+- [ ] **Chart view validation** (if created): Run `php run.php --do=core_test_view-consistency --entity={EntityName} --view_id=chart.{name}`.
+- [ ] Do not read the full view JSON and pass it to `core_json-validate`; use the dedicated view consistency controller.
 - [ ] See `AGENTS/00-general/VALIDATION-SCHEMAS.md` for detailed validation procedures
 
 ## Translation Validation
