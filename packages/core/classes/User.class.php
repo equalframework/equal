@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, eQual framework, 2010-2024
@@ -290,7 +290,7 @@ class User extends Model {
      * @param   $orm    Object  Instance of the ObjectManager Service
      * @param   $ids    array   List of User objects identifiers
      */
-    public static function onupdatePassword($orm, $ids, $values) {
+    public static function onupdatePassword($orm, $ids) {
         $values = $orm->read(self::getType(), $ids, ['password']);
         foreach($values as $id => $user) {
             if(substr($user['password'], 0, 4) != '$2y$') {
