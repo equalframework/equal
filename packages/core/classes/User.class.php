@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, eQual framework, 2010-2024
@@ -270,7 +270,14 @@ class User extends Model {
 
     public static function oncreate($self, $values) {
         if(isset($values['password'])) {
-            $self->update(['password' => self::computePasswordHash($values['password'])]);
+            $self->read(['state']);
+            foreach($self as $id => $user) {
+                $state = isset($values['state']) ? $values['state'] : $user['state'];
+                $self->update([
+                    'state'     => $state,
+                    'password'  => self::computePasswordHash($values['password'])
+                ]);
+            }
         }
     }
 
@@ -280,15 +287,14 @@ class User extends Model {
      * If not encrypted yet, password is hashed using CRYPT_BLOWFISH algorithm.
      * (This has to be done after password assign, in order to be able to validate the constraints set on password field.)
      *
-     * @param   $om     Object  Instance of the ObjectManager Service
+     * @param   $orm    Object  Instance of the ObjectManager Service
      * @param   $ids    array   List of User objects identifiers
-     * @param   $lang   string  Language for multilang fields
      */
-    public static function onupdatePassword($om, $ids, $values, $lang) {
-        $values = $om->read(self::getType(), $ids, ['password']);
+    public static function onupdatePassword($orm, $ids, $values) {
+        $values = $orm->read(self::getType(), $ids, ['password']);
         foreach($values as $id => $user) {
             if(substr($user['password'], 0, 4) != '$2y$') {
-                $om->update(self::getType(), $id, ['password' => self::computePasswordHash($user['password'])]);
+                $orm->update(self::getType(), $id, ['password' => self::computePasswordHash($user['password'])]);
             }
         }
     }
