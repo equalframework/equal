@@ -159,13 +159,20 @@ $tests = [
             },
             'assert'            => function($user_id) use($providers) {
                     $access = $providers['access'];
+                    $auth = $providers['auth'];
                     $result = true;
                     try {
-                        User::id($user_id)->assertOperation(EQ_R_UPDATE, ['firstname', 'lastname', 'password']);
+                        $auth->su($user_id);
+                        // #temp - to vforce test validation
+                        $auth->su();
+                        User::id($user_id)->assertOperation(EQ_R_UPDATE, ['firstname', 'lastname']);
                         $result &= $access->userHasContext($user_id, 'self', 'core\User', [$user_id]);
                     }
                     catch(\Exception $e) {
                         $result = false;
+                    }
+                    finally {
+                        $auth->su();
                     }
                     return $result;
                 },

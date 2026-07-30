@@ -532,7 +532,8 @@ class Model implements \ArrayAccess, \Iterator {
      *
      * Operation policies are used to condition generic CRUD operations according to contextual or transversal rules.
      * They do not define the structural CRUD surface of the entity: this is the responsibility of getCapabilities().
-     * They do not grant permissions to users or groups either: this remains the responsibility of ACLs, roles and AccessController.
+     * Global capability rules do not grant permissions to users or groups: this remains the responsibility of ACLs, roles and
+     * AccessController. Contextual capability rules may define explicit structural exceptions that are allowed before ACLs.
      *
      * Operation policies are evaluated after capabilities and ACLs, and before operation guards such as canCreate(), canRead(),
      * canUpdate() and canDelete().

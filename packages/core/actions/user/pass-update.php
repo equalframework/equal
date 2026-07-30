@@ -68,18 +68,25 @@ if($target_user_id <= 0) {
     $target_user_id = $user_id;
 }
 
-// update user instance (user always has write access on its own object)
-// #memo - User::onchangePassword method makes sure `password` is hashed
-$instance = User::id($target_user_id)
-    ->update([
-        'password' => $params['password']
-    ])
-    ->adapt('json')
-    ->first(true);
+// update target user using root account
+try {
+    $auth->su();
+
+    // #memo - User::onchangePassword method makes sure `password` is hashed
+    User::id($target_user_id)
+        ->update([
+            'password' => $params['password']
+        ])
+        ->adapt('json')
+        ->first(true);
+}
+finally {
+    $auth->su($user_id);
+}
 
 $response = $context->httpResponse();
 
-// if a token was provided, reply with new access tokens
+// if a token was provided, include a new access token in response
 if(strlen($params['token'])) {
     // generate a JWT access token
     $access_token  = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
