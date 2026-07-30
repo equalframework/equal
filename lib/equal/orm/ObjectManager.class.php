@@ -121,7 +121,7 @@ class ObjectManager extends Service {
         /* #deprecated - use binary */
         'file'          => array('like', 'ilike', '=', 'is', 'is not'),
         'binary'        => array('like', 'ilike', '=', 'is', 'is not'),
-        // #memo - for convenience, 'contains' is allowed for many2one field (in such case 'contains' operator means 'list contains *at least one* of the following ids')
+        // #memo - for convenience, 'contains' is allowed for many2one and many2many fields (in such case 'contains' operator means 'list contains *at least one* of the following ids')
         'many2one'      => array('is', 'is not', 'in', 'not in', '=', '<>', '<', '>', '<=', '>=', 'contains'),
         'one2many'      => array('contains'),
         'many2many'     => array('contains'),
