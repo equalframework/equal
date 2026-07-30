@@ -88,7 +88,7 @@ use equal\orm\Operation;
         'accept-origin' => '*',
         'cacheable'     => true,
         'cache-vary'    => ['uri'],
-        'expires'       => 30 * (60*60*24)
+        'expires'       => 60 * 5
     ],
     'providers'     => [ 'context', 'orm' ]
 ]);
