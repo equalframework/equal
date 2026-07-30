@@ -17,13 +17,13 @@ list($params, $providers) = eQual::announce([
             'required'      => true
         ],
         'redirect' => [
-            'description'   => 'Relative URL to redirect user to, after successful authentication.',
+            'description'   => 'Relative URL to redirect user to, after successful authentication. A reset token is appended to it.',
             'type'          => 'string',
             'usage'         => 'url',
-            'default'       => 'auth/#/signin'
+            'default'       => 'auth/#/reset'
         ]
     ],
-    'constants'     => ['BACKEND_URL'],
+    'constants'     => ['BACKEND_URL', 'AUTH_SECRET_KEY'],
     'access'        => [
         'visibility'        => 'public'
     ],
@@ -63,7 +63,9 @@ $om->update(User::getType(), $user['id'], ['validated' => true]);
 $response = $context->httpResponse();
 
 if(strlen($params['redirect'])) {
-    $url = rtrim(constant('BACKEND_URL'), '/').'/'.ltrim($params['redirect'], '/');
+    // Generate a reset token valid for 15 minutes, same as password recovery links.
+    $token = $auth->token($user['id'], 60 * 15);
+    $url = rtrim(constant('BACKEND_URL'), '/') . '/' . trim($params['redirect'], '/') . '/' . $token;
     header('Location: '.$url);
     exit();
 }
