@@ -8,7 +8,7 @@
 use core\User;
 
 // announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Validate a user subscription. This controller is meant to be requested through a link sent by email.",
     'params' 		=>	[
         'code' => [
@@ -35,22 +35,21 @@ list($params, $providers) = eQual::announce([
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
-
 // initialize local vars with inputs
-list($om, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+['orm' => $orm, 'context' => $context, 'auth' => $auth] = $providers;
 
-list($login, $password) = explode(':', base64_decode($params['code']));
+[$login, $password] = explode(':', base64_decode($params['code']));
 
 $auth->su();
 
 // received password is expected to be encrypted the same way it is stored
-$ids = $om->search('core\User', [['login', '=', $login]]);
+$ids = $orm->search('core\User', [['login', '=', $login]]);
 
 if(!count($ids)) {
     throw new Exception('invalid_request', EQ_ERROR_INVALID_USER);
 }
 
-$list = $om->read(User::getType(), $ids, ['id', 'login', 'password']);
+$list = $orm->read(User::getType(), $ids, ['id', 'login', 'password']);
 $user = reset($list);
 
 if(!password_verify($password, $user['password'])) {
@@ -58,7 +57,7 @@ if(!password_verify($password, $user['password'])) {
 }
 
 // mark user as validated (will update status according to USER_ACCOUNT_VALIDATION)
-$om->update(User::getType(), $user['id'], ['validated' => true]);
+$orm->update(User::getType(), $user['id'], ['validated' => true]);
 
 $response = $context->httpResponse();
 
@@ -66,7 +65,7 @@ if(strlen($params['redirect'])) {
     // Generate a reset token valid for 15 minutes, same as password recovery links.
     $token = $auth->token($user['id'], 60 * 15);
     $url = rtrim(constant('BACKEND_URL'), '/') . '/' . trim($params['redirect'], '/') . '/' . $token;
-    header('Location: '.$url);
+    header('Location: ' . $url);
     exit();
 }
 
