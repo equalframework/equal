@@ -122,7 +122,7 @@ class Operation {
                     return array_sum($operand);
             }
         }
-        else if(in_array($this->operator, self::$binary_operators)) {
+        elseif(in_array($this->operator, self::$binary_operators)) {
             $is_array = is_array(func_get_arg(0));
             $operand_a = (array) func_get_arg(0);
             $operand_b = (array) func_get_arg(1);

@@ -257,7 +257,7 @@ $labels_map = [];
 foreach($datasets as $index => $dataset) {
     $operation = $dataset['operation'];
 
-    $legends[$index] = (isset($dataset['label']))?$dataset['label']:'#value';
+    $legends[$index] = (isset($dataset['label'])) ? $dataset['label'] : '#value';
 
     $op = new Operation($operation);
 
@@ -277,12 +277,12 @@ foreach($datasets as $index => $dataset) {
                 $group_index = $getDateIndex($object[$range_field], $params['range_interval']);
                 $group_label = $group_index;
             }
-            else if(in_array($group_field_type, ['date', 'datetime'])) {
+            elseif(in_array($group_field_type, ['date', 'datetime'])) {
                 // #todo - check value of param 1
                 $group_index = date('Y-m-d', $object[$params['field']]);
                 $group_label = $group_index;
             }
-            else if($is_group_field_many2one) {
+            elseif($is_group_field_many2one) {
                 $group_index = $object[$params['field']]['id'] ?? null;
                 $group_label = $object[$params['field']]['name'] ?? $group_index;
             }
@@ -316,14 +316,14 @@ foreach($result as $date_index => $sets) {
     }
 }
 
-if($params['group_by'] == 'range') {
+if($params['group_by'] === 'range') {
     $result = [
         'labels'    => array_keys($results_map),
         'datasets'  => array_values($datasets),
         'legends'   => array_values($legends)
     ];
 }
-else if($params['group_by'] == 'field') {
+else if($params['group_by'] === 'field') {
     $result = [
         'labels'    => array_values($labels),
         'datasets'  => array_values($datasets),
@@ -331,7 +331,7 @@ else if($params['group_by'] == 'field') {
     ];
 }
 
-if($params['mode'] == 'grid') {
+if($params['mode'] === 'grid') {
     $res = [];
 
     if($params['group_by'] == 'range') {
