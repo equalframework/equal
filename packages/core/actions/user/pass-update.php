@@ -16,69 +16,74 @@ use core\User;
     ],
     'params'        => [
         'user_id' =>  [
-            'description'   => 'Identifier of the user to update (when not current user).',
-            'type'          => 'integer',
-            'default'       => 0
+            'description'       => 'Identifier of the user to update (when not current user).',
+            'type'              => 'many2one',
+            'foreign_object'    => 'identity\User',
+            'default'           => 0
         ],
         'token' => [
-            'type'          => 'string',
-            'description'   => 'access token in case of password recovery with email',
-            'default'      => ''
+            'type'              => 'string',
+            'description'       => 'access token in case of password recovery with email',
+            'default'           => ''
         ],
         'password' =>  [
-            'description'   => 'New password.',
-            'type'          => 'string',
-            'usage'         => 'password',
-            'required'      => true
+            'description'       => 'New password.',
+            'type'              => 'string',
+            'usage'             => 'password',
+            'required'          => true
         ],
         'confirm' =>  [
-            'description'   => 'Confirmation of the password.',
-            'type'          => 'string',
-            'usage'         => 'password',
-            'required'      => true
+            'description'       => 'Confirmation of the password.',
+            'type'              => 'string',
+            'usage'             => 'password',
+            'required'          => true
         ]
     ],
     'access' => [
         'visibility' => 'public'
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS'],
-    'providers'     => ['context', 'orm', 'auth']
+    'providers'     => ['context', 'orm', 'auth', 'access']
 ]);
 
-[$context, $orm, $auth] = [ $providers['context'], $providers['orm'], $providers['auth']];
+['context' => $context, 'orm' => $orm, 'auth' => $auth, 'access' => $access] = $providers;
 
 if(strcmp($params['password'], $params['confirm']) != 0) {
-    throw new Exception('password_confirm_mismatch', QN_ERROR_INVALID_PARAM);
+    throw new Exception('password_confirm_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
 if(strlen($params['token'])) {
-    // use received token to authenticate
     $user_id = $auth->userId($params['token']);
+
+    if(!$user_id) {
+        throw new Exception('invalid_token', EQ_ERROR_INVALID_USER);
+    }
+
+    $target_user_id = $user_id;
 }
 else {
     $user_id = $auth->userId();
+    $target_user_id = ($params['user_id']) ? $params['user_id'] : $user_id;
 }
 
-if(!$user_id) {
-    throw new \Exception("user_not_found", QN_ERROR_INVALID_USER);
+$targetUser = User::id($target_user_id)->first();
+
+if(!$targetUser) {
+    throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$target_user_id = $params['user_id'];
-if($target_user_id <= 0) {
-    $target_user_id = $user_id;
+if(!$user_id || ($target_user_id !== $user_id && !$access->hasRight(EQ_R_MANAGE, User::getType(), [$target_user_id]))) {
+    throw new Exception("restricted_operation", EQ_ERROR_NOT_ALLOWED);
 }
 
 // update target user using root account
 try {
     $auth->su();
-
     // #memo - User::onchangePassword method makes sure `password` is hashed
     User::id($target_user_id)
         ->update([
             'password' => $params['password']
-        ])
-        ->adapt('json')
-        ->first(true);
+        ]);
 }
 finally {
     $auth->su($user_id);
