@@ -234,7 +234,7 @@ class Mail extends \core\email\Email {
      * The Mail object is attached to an object, if provided ($object_class::$object_id).
      *
      */
-    private static function createMail(Email $email, string $object_class = '', int $object_id = 0): array {
+    protected static function createMail(Email $email, string $object_class = '', int $object_id = 0): array {
         $values = [
             'to'            => $email->to,
             'cc'            => implode(',', (array) $email->cc),
