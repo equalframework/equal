@@ -115,6 +115,7 @@ class Email extends Model {
                 'selection'         => [
                     'pending',
                     'failing',
+                    'processed',
                     'sent'
                 ],
                 'default'           => 'pending',
