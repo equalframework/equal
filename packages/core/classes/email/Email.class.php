@@ -12,6 +12,10 @@ use equal\orm\usages\UsageEmail;
 
 
 class Email extends Model {
+    
+    public function getTable() {
+        return 'core_mail';
+    }
 
     public static function getColumns() {
         return [
