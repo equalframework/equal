@@ -13,7 +13,7 @@ use equal\email\Email;
 
 class Mail extends \core\email\Email {
 
-    const MESSAGE_FOLDER = EQ_BASEDIR.'/spool';
+    const MESSAGE_FOLDER = EQ_BASEDIR . '/spool';
 
     /**
      * Queue a message in the email outbox (/spool).
@@ -72,7 +72,7 @@ class Mail extends \core\email\Email {
             self::id($mail['id'])->update(['status' => 'sent', 'response_status' => 250]);
         }
         catch(\Exception $e) {
-            trigger_error("PHP::Mail::send() failed: ".$e->getMessage(), EQ_REPORT_ERROR);
+            trigger_error("PHP::Mail::send() failed: " . $e->getMessage(), EQ_REPORT_ERROR);
             self::id($mail['id'])->update(['status' => 'failing', 'response_status' => 500, 'response' => substr($e->getMessage(), 0, 1024)]);
             throw new \Exception($e->getMessage(), EQ_ERROR_UNKNOWN);
         }
@@ -202,20 +202,20 @@ class Mail extends \core\email\Email {
         $queue = [];
         $files = scandir(self::MESSAGE_FOLDER) ?: [];
         foreach($files as $file) {
-            // skip special files
-            if(in_array($file, ['.', '..', '.gitkeep'])) {
+            // Skip hidden and special files
+            if($file !== '' && $file[0] === '.') {
                 continue;
             }
             // extract message details
-            $filename = self::MESSAGE_FOLDER.'/'.$file;
+            $filename = self::MESSAGE_FOLDER . '/' . $file;
             $data = file_get_contents($filename);
             if(!$data) {
-                // ignore reading errors
+                // silently ignore reading errors
                 continue;
             }
             $message = json_decode($data, true);
             if(!$message) {
-                // ignore invalid messages
+                // silently ignore invalid messages
                 continue;
             }
             // convert attachments' data attributes to binary values
