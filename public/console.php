@@ -12,6 +12,7 @@ define('DEFAULT_THREAD_LIMIT', 100);
 define('MAX_THREAD_LIMIT', 500);
 define('DEFAULT_LINE_LIMIT', 250);
 define('MAX_LINE_LIMIT', 1000);
+define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
 
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? basename($_GET['f']) : 'equal.log';
@@ -683,7 +684,7 @@ if(!$is_data_request) {
             const state = {
                 params: {},
                 quickLevels: [...QUICK_FILTER_LEVELS],
-                threadOffset: 0,
+                threadCursor: null,
                 hasMoreThreads: false,
                 requestId: 0,
                 loadingThreads: false
@@ -871,6 +872,8 @@ if(!$is_data_request) {
                 node.dataset.level = info.type;
                 node.dataset.threadId = thread.thread_id ?? "";
                 node.dataset.loaded = "false";
+                node.dataset.startOffset = thread.first_offset ?? "";
+                node.dataset.endOffset = thread.last_offset ?? "";
 
                 const title = document.createElement("div");
                 title.className = "thread-title";
@@ -1016,7 +1019,7 @@ if(!$is_data_request) {
             }
 
             async function loadThreads() {
-                if(state.loadingThreads || !state.hasMoreThreads && state.threadOffset > 0) {
+                if(state.loadingThreads || !state.hasMoreThreads && state.threadCursor !== null) {
                     return;
                 }
 
@@ -1026,11 +1029,14 @@ if(!$is_data_request) {
                 updateRootLoadMoreVisibility();
 
                 try {
-                    const data = await apiFetch("threads", {
+                    const params = {
                         ...state.params,
-                        offset: state.threadOffset,
                         limit: THREAD_PAGE_SIZE
-                    });
+                    };
+                    if(state.threadCursor !== null) {
+                        params.cursor = state.threadCursor;
+                    }
+                    const data = await apiFetch("threads", params);
 
                     if(requestId !== state.requestId) {
                         return;
@@ -1042,10 +1048,10 @@ if(!$is_data_request) {
                     }
                     document.getElementById("list").append(fragment);
                     applyQuickFilters();
-                    state.threadOffset = data.next_offset ?? state.threadOffset;
+                    state.threadCursor = data.next_cursor ?? null;
                     state.hasMoreThreads = !!data.has_more;
 
-                    if(state.threadOffset === 0 && !(data.items ?? []).length) {
+                    if(state.threadCursor === null && !(data.items ?? []).length) {
                         showFeedback("", true);
                     }
                 }
@@ -1074,12 +1080,17 @@ if(!$is_data_request) {
                 setLoading(true);
 
                 try {
-                    const data = await apiFetch("lines", {
+                    const params = {
                         ...state.params,
                         thread_id: threadNode.dataset.threadId,
                         offset: linesNode.dataset.offset || 0,
                         limit: LINE_PAGE_SIZE
-                    });
+                    };
+                    if(threadNode.dataset.startOffset !== "" && threadNode.dataset.endOffset !== "") {
+                        params.start_offset = threadNode.dataset.startOffset;
+                        params.end_offset = threadNode.dataset.endOffset;
+                    }
+                    const data = await apiFetch("lines", params);
 
                     if(requestId !== state.requestId) {
                         return;
@@ -1153,7 +1164,7 @@ if(!$is_data_request) {
 
             async function feed(params) {
                 state.params = params || {};
-                state.threadOffset = 0;
+                state.threadCursor = null;
                 state.hasMoreThreads = true;
                 state.requestId++;
                 document.getElementById("list").replaceChildren();
@@ -1372,15 +1383,35 @@ else {
     $response = [
         'items'       => [],
         'next_offset' => 0,
+        'next_cursor' => null,
         'has_more'    => false
     ];
 
     function console_int_param(string $name, int $default, int $max): int {
         $value = filter_input(INPUT_GET, $name, FILTER_VALIDATE_INT);
+        if(($value === false || $value === null) && isset($_GET[$name])) {
+            $value = filter_var($_GET[$name], FILTER_VALIDATE_INT);
+        }
         if($value === false || $value === null) {
             $value = $default;
         }
         return max(0, min($value, $max));
+    }
+
+    function console_optional_int_param(string $name): ?int {
+        if(!isset($_GET[$name]) || $_GET[$name] === '') {
+            return null;
+        }
+
+        $value = filter_input(INPUT_GET, $name, FILTER_VALIDATE_INT);
+        if($value === false || $value === null) {
+            $value = filter_var($_GET[$name], FILTER_VALIDATE_INT);
+        }
+        if($value === false || $value === null) {
+            return null;
+        }
+
+        return max(0, $value);
     }
 
     function console_list_param(string $name): array {
@@ -1435,6 +1466,82 @@ else {
         return true;
     }
 
+    function console_reverse_log_lines($f, int $filesize, int $min_offset, ?int $cursor): Generator {
+        $position = ($cursor !== null && $cursor > 0) ? min($cursor, $filesize) : $filesize;
+        $position = max($min_offset, $position);
+        $pending = '';
+
+        while($position > $min_offset) {
+            $read_size = min(constant('LOG_REVERSE_READ_BLOCK_BYTES'), $position - $min_offset);
+            if($read_size <= 0) {
+                break;
+            }
+
+            $chunk_start = $position - $read_size;
+            if(fseek($f, $chunk_start) !== 0) {
+                break;
+            }
+
+            $chunk = fread($f, $read_size);
+            if($chunk === false || $chunk === '') {
+                break;
+            }
+
+            $data = $chunk . $pending;
+            $parts = explode("\n", $data);
+            if($chunk_start > $min_offset) {
+                $partial = array_shift($parts);
+                $pending = $partial;
+                $base_offset = $chunk_start + strlen($partial) + 1;
+            }
+            else {
+                $pending = '';
+                $base_offset = $chunk_start;
+            }
+
+            $entries = [];
+            $current_offset = $base_offset;
+            $part_count = count($parts);
+            for($i = 0; $i < $part_count; ++$i) {
+                $raw = $parts[$i];
+                if($i === $part_count - 1 && $raw === '' && substr($data, -1) === "\n") {
+                    break;
+                }
+
+                $line_start_offset = $current_offset;
+                $line_payload_end_offset = $line_start_offset + strlen($raw);
+                $line_end_offset = $line_payload_end_offset + (($i < $part_count - 1) ? 1 : 0);
+
+                $entries[] = [
+                    'raw'          => $raw,
+                    'start_offset' => $line_start_offset,
+                    'end_offset'   => $line_end_offset
+                ];
+                $current_offset = $line_end_offset;
+            }
+
+            for($i = count($entries) - 1; $i >= 0; --$i) {
+                $raw = rtrim($entries[$i]['raw'], "\r");
+                if($raw === '') {
+                    continue;
+                }
+
+                $line = json_decode($raw, true);
+                if($line === null) {
+                    continue;
+                }
+
+                yield [
+                    'line'         => $line,
+                    'start_offset' => $entries[$i]['start_offset'],
+                    'end_offset'   => $entries[$i]['end_offset']
+                ];
+            }
+
+            $position = $chunk_start;
+        }
+    }
+
     if(file_exists('../log/' . $log_file)) {
 
         if(isset($_GET['empty-file']) && $_GET['empty-file'] === 'true') {
@@ -1453,30 +1560,38 @@ else {
 
         $filesize = filesize('../log/' . $log_file);
 
-        // limit processing to the tail of the log file to prevent overload
-        $max_read_bytes = constant('MAX_LOG_READ_BYTES');
-        $read_offset = 0;
-
-        if($filesize > $max_read_bytes) {
-            // start reading from the last MAX_LOG_READ_BYTES bytes
-            $read_offset = $filesize - $max_read_bytes;
-        }
-
         // read raw data from log file
         if($f = fopen('../log/'.$log_file, 'r')) {
+            // limit processing to the tail of the log file to prevent overload
+            $max_read_bytes = constant('MAX_LOG_READ_BYTES');
+            $read_offset = 0;
 
-            // move pointer if needed (tail behavior)
-            if($read_offset > 0) {
+            if($filesize > $max_read_bytes) {
+                // start reading from the last MAX_LOG_READ_BYTES bytes
+                $read_offset = $filesize - $max_read_bytes;
                 fseek($f, $read_offset);
 
                 // discard first partial line (we are likely in the middle of a line)
                 fgets($f);
+                $read_offset = ftell($f) ?: $read_offset;
             }
 
             // lines request (return lines matching filters within a given thread_id)
             if($api === 'lines') {
+                $start_offset = console_optional_int_param('start_offset');
+                $end_offset = console_optional_int_param('end_offset');
+                $read_until = null;
+
+                if($start_offset !== null && $end_offset !== null && $start_offset >= $read_offset && $start_offset < $end_offset && $end_offset <= $filesize) {
+                    fseek($f, $start_offset);
+                    $read_until = $end_offset;
+                }
+                else {
+                    fseek($f, $read_offset);
+                }
+
                 $skipped = 0;
-                while(($data = fgets($f)) !== false) {
+                while(($read_until === null || ftell($f) < $read_until) && ($data = fgets($f)) !== false) {
                     if(($line = json_decode($data,true)) === null) {
                         continue;
                     }
@@ -1504,67 +1619,87 @@ else {
             // threads request (return threads summary: lines count, max level, first time)
             else {
                 $map_threads = [];
-                // step-1 : load all threads_ids
-                while (($data = fgets($f)) !== false) {
-                    if(($line = json_decode($data,true)) === null) {
-                        continue;
-                    }
+                $thread_ids = [];
+                $ignored_threads = [];
+                $cursor = console_optional_int_param('cursor');
+                $thread_skip = $cursor === null ? $item_offset : 0;
+
+                foreach(console_reverse_log_lines($f, $filesize, $read_offset, $cursor) as $entry) {
+                    $line = $entry['line'];
                     if(!isset($line['thread_id'])) {
                         continue;
                     }
 
-                    $thread_id = $line['thread_id'];
+                    $thread_id = (string) $line['thread_id'];
                     if(!isset($map_threads[$thread_id])) {
                         $map_threads[$thread_id] = [
-                            'thread_id' => $thread_id,
-                            'lines'     => 0,
-                            'uri'       => '',
-                            'ip'        => '',
-                            'net_seen'  => false,
-                            'level'     => $line['level'] ?? 'SYSTEM',
-                            // threads will be sorted on timestamp using a map: we must avoid collisions
-                            'time'      => ($line['time'] ?? '').'.'.($line['mtime'] ?? '')
+                            'thread_id'    => $thread_id,
+                            'lines'        => 0,
+                            'uri'          => '',
+                            'ip'           => '',
+                            'net_seen'     => false,
+                            'level'        => $line['level'] ?? 'SYSTEM',
+                            'time'         => ($line['time'] ?? '').'.'.($line['mtime'] ?? ''),
+                            'first_offset' => $entry['start_offset'],
+                            'last_offset'  => $entry['end_offset']
                         ];
                     }
-                    elseif(console_level_rank($line['level'] ?? 'SYSTEM') < console_level_rank($map_threads[$thread_id]['level'])) {
-                        $map_threads[$thread_id]['level'] = $line['level'];
+                    else {
+                        $map_threads[$thread_id]['first_offset'] = min($map_threads[$thread_id]['first_offset'], $entry['start_offset']);
+                        $map_threads[$thread_id]['last_offset'] = max($map_threads[$thread_id]['last_offset'], $entry['end_offset']);
+
+                        if(console_level_rank($line['level'] ?? 'SYSTEM') < console_level_rank($map_threads[$thread_id]['level'])) {
+                            $map_threads[$thread_id]['level'] = $line['level'];
+                        }
                     }
 
                     if(!$map_threads[$thread_id]['net_seen'] && ($line['mode'] ?? '') === 'NET' && isset($line['message']) && is_string($line['message'])) {
-                        $map_threads[$thread_id]['net_seen'] = true;
                         $message = json_decode($line['message'], true);
-                        if(is_array($message) && isset($message['uri']) && is_scalar($message['uri'])) {
+                        if($map_threads[$thread_id]['uri'] === '' && is_array($message) && isset($message['uri']) && is_scalar($message['uri'])) {
                             $map_threads[$thread_id]['uri'] = preg_replace('/^https?:\/\/[^\/]+/i', '', (string) $message['uri']);
                         }
-                        if(is_array($message) && isset($message['ip']) && is_scalar($message['ip'])) {
+                        if($map_threads[$thread_id]['ip'] === '' && is_array($message) && isset($message['ip']) && is_scalar($message['ip'])) {
                             $map_threads[$thread_id]['ip'] = (string) $message['ip'];
                         }
+                        $map_threads[$thread_id]['net_seen'] = ($map_threads[$thread_id]['uri'] !== '' && $map_threads[$thread_id]['ip'] !== '');
                     }
 
                     if(console_line_matches($line, $query)) {
+                        if($map_threads[$thread_id]['lines'] === 0 && !isset($ignored_threads[$thread_id])) {
+                            if($thread_skip > 0) {
+                                $ignored_threads[$thread_id] = true;
+                                --$thread_skip;
+                                continue;
+                            }
+
+                            if(count($thread_ids) >= $limit) {
+                                $response['has_more'] = true;
+                                $response['next_cursor'] = $entry['end_offset'];
+                                break;
+                            }
+
+                            $thread_ids[] = $thread_id;
+                        }
+
+                        if(isset($ignored_threads[$thread_id])) {
+                            continue;
+                        }
                         ++$map_threads[$thread_id]['lines'];
                     }
                 }
-                // step-2 : keep only threads with matching lines
+
                 $threads = [];
-                foreach($map_threads as $thread) {
-                    if($thread['lines'] <= 0) {
+                foreach($thread_ids as $thread_id) {
+                    if(!isset($map_threads[$thread_id]) || $map_threads[$thread_id]['lines'] <= 0) {
                         continue;
                     }
+                    $thread = $map_threads[$thread_id];
                     unset($thread['net_seen']);
                     $threads[] = $thread;
                 }
-                usort($threads, function($a, $b) {
-                    return strcmp($b['time'], $a['time']);
-                });
 
-                $page = array_slice($threads, $item_offset, $limit + 1);
-                if(count($page) > $limit) {
-                    $response['has_more'] = true;
-                    array_pop($page);
-                }
-                $response['items'] = $page;
-                $response['next_offset'] = $item_offset + count($page);
+                $response['items'] = $threads;
+                $response['next_offset'] = $item_offset + count($threads);
             }
             fclose($f);
         }
