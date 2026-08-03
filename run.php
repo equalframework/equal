@@ -62,11 +62,12 @@ try {
     $request = $context->getHttpRequest();
     // retrieve current user
     $auth = Container::getInstance()->get('auth');
+    $ip_address = $request->getHeaders()->getIpAddress();
     // keep track of the access in the log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::" . json_encode([
             'type'      => 'auth',
             'user_id'   => $auth->userId(),
-            'ip'        => $request->getHeaders()->getIpAddress()
+            'ip'        => $ip_address
         ]));
     // get HTTP method of current request
     $method = $request->getMethod();
@@ -171,6 +172,7 @@ try {
     Reporter::errorHandler(EQ_REPORT_INFO, "NET::" . json_encode([
                 'method'    => $method,
                 'uri'       => (string) $uri,
+                'ip'        => (string) $ip_address,
                 'headers'   => $request->getHeaders(true),
                 'body'      => $request->getBody()
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)
