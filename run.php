@@ -64,9 +64,9 @@ try {
     $auth = Container::getInstance()->get('auth');
     // keep track of the access in the log
     Reporter::errorHandler(EQ_REPORT_SYSTEM, "AAA::" . json_encode([
-            'type'          => 'auth',
-            'user_id'       => $auth->userId(),
-            'ip_address'    => $request->getHeaders()->getIpAddress()
+            'type'      => 'auth',
+            'user_id'   => $auth->userId(),
+            'ip'        => $request->getHeaders()->getIpAddress()
         ]));
     // get HTTP method of current request
     $method = $request->getMethod();
@@ -257,9 +257,10 @@ catch(Throwable $e) {
         trigger_error("$mode::" . json_encode([
                 'method'    => $request_method,
                 'uri'       => ($request->getUri()) ? $request->getUri()->getPath() : '',
+                'ip'        => $request->getHeaders()->getIpAddress(),
                 'headers'   => $request_headers,
                 'status'    => $http_status,
-                'message'   => eq_error_name($error_code) . ": " . $msg
+                'error'     => eq_error_name($error_code) . ": " . $msg
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),
             ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR
         );

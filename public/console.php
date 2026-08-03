@@ -493,10 +493,17 @@ if(!$is_data_request) {
 
             div.thread div.thread-title span.thread-uri {
                 display: inline-block;
+                margin-left: 20px;
                 max-width: calc(100vw - 420px);
                 overflow: hidden;
                 text-overflow: ellipsis;
                 vertical-align: bottom;
+                white-space: nowrap;
+            }
+
+            div.thread div.thread-title span.thread-ip {
+                display: inline-block;
+                margin-left: 20px;
                 white-space: nowrap;
             }
 
@@ -880,6 +887,13 @@ if(!$is_data_request) {
                     lineCount.className = "thread-line-count";
                     lineCount.textContent = "" + thread.lines;
                     titleContent.append(document.createTextNode(" "), lineCount);
+                }
+                if(thread.ip) {
+                    const ip = document.createElement("span");
+                    ip.className = "thread-ip";
+                    ip.title = "Source IP";
+                    ip.textContent = thread.ip;
+                    titleContent.append(document.createTextNode(" "), ip);
                 }
                 if(thread.uri) {
                     const uri = document.createElement("span");
@@ -1501,6 +1515,8 @@ else {
                             'thread_id' => $thread_id,
                             'lines'     => 0,
                             'uri'       => '',
+                            'ip'        => '',
+                            'net_seen'  => false,
                             'level'     => $line['level'] ?? 'SYSTEM',
                             // threads will be sorted on timestamp using a map: we must avoid collisions
                             'time'      => ($line['time'] ?? '').'.'.($line['mtime'] ?? '')
@@ -1510,10 +1526,14 @@ else {
                         $map_threads[$thread_id]['level'] = $line['level'];
                     }
 
-                    if($map_threads[$thread_id]['uri'] === '' && ($line['mode'] ?? '') === 'NET' && isset($line['message']) && is_string($line['message'])) {
+                    if(!$map_threads[$thread_id]['net_seen'] && ($line['mode'] ?? '') === 'NET' && isset($line['message']) && is_string($line['message'])) {
+                        $map_threads[$thread_id]['net_seen'] = true;
                         $message = json_decode($line['message'], true);
                         if(is_array($message) && isset($message['uri']) && is_scalar($message['uri'])) {
                             $map_threads[$thread_id]['uri'] = (string) $message['uri'];
+                        }
+                        if(is_array($message) && isset($message['ip']) && is_scalar($message['ip'])) {
+                            $map_threads[$thread_id]['ip'] = (string) $message['ip'];
                         }
                     }
 
@@ -1527,6 +1547,7 @@ else {
                     if($thread['lines'] <= 0) {
                         continue;
                     }
+                    unset($thread['net_seen']);
                     $threads[] = $thread;
                 }
                 usort($threads, function($a, $b) {
