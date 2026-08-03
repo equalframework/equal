@@ -1510,8 +1510,11 @@ else {
                         $map_threads[$thread_id]['level'] = $line['level'];
                     }
 
-                    if($map_threads[$thread_id]['uri'] === '' && ($line['mode'] ?? '') === 'NET' && isset($line['uri']) && is_scalar($line['uri'])) {
-                        $map_threads[$thread_id]['uri'] = (string) $line['uri'];
+                    if($map_threads[$thread_id]['uri'] === '' && ($line['mode'] ?? '') === 'NET' && isset($line['message']) && is_string($line['message'])) {
+                        $message = json_decode($line['message'], true);
+                        if(is_array($message) && isset($message['uri']) && is_scalar($message['uri'])) {
+                            $map_threads[$thread_id]['uri'] = (string) $message['uri'];
+                        }
                     }
 
                     if(console_line_matches($line, $query)) {
