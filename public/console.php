@@ -506,10 +506,8 @@ if(!$is_data_request) {
             div.thread div.thread-title span.thread-ip {
                 display: inline-block;
                 margin-left: 20px;
-                max-width: 120px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                width: 120px;
+                text-align: right;
                 vertical-align: bottom;
             }
 
