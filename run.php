@@ -256,8 +256,8 @@ catch(Throwable $e) {
 
         trigger_error("$mode::" . json_encode([
                 'method'    => $request_method,
-                'uri'       => $request->getUri(),
-                'headers'   => $request->getHeaders(true),
+                'uri'       => ($request->getUri()) ? $request->getUri()->getPath() : '',
+                'headers'   => $request_headers,
                 'status'    => $http_status,
                 'message'   => eq_error_name($error_code) . ": " . $msg
             ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),
