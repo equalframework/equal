@@ -491,6 +491,15 @@ if(!$is_data_request) {
                 text-align: right;
             }
 
+            div.thread div.thread-title span.thread-uri {
+                display: inline-block;
+                max-width: calc(100vw - 420px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                vertical-align: bottom;
+                white-space: nowrap;
+            }
+
             div.thread i.icon {
                 display: inline-block;
                 text-align: center;
@@ -871,6 +880,13 @@ if(!$is_data_request) {
                     lineCount.className = "thread-line-count";
                     lineCount.textContent = "" + thread.lines;
                     titleContent.append(document.createTextNode(" "), lineCount);
+                }
+                if(thread.uri) {
+                    const uri = document.createElement("span");
+                    uri.className = "thread-uri";
+                    uri.title = thread.uri;
+                    uri.textContent = thread.uri;
+                    titleContent.append(document.createTextNode(" "), uri);
                 }
                 title.append(titleContent);
 
@@ -1484,6 +1500,7 @@ else {
                         $map_threads[$thread_id] = [
                             'thread_id' => $thread_id,
                             'lines'     => 0,
+                            'uri'       => '',
                             'level'     => $line['level'] ?? 'SYSTEM',
                             // threads will be sorted on timestamp using a map: we must avoid collisions
                             'time'      => ($line['time'] ?? '').'.'.($line['mtime'] ?? '')
@@ -1491,6 +1508,10 @@ else {
                     }
                     elseif(console_level_rank($line['level'] ?? 'SYSTEM') < console_level_rank($map_threads[$thread_id]['level'])) {
                         $map_threads[$thread_id]['level'] = $line['level'];
+                    }
+
+                    if($map_threads[$thread_id]['uri'] === '' && ($line['mode'] ?? '') === 'NET' && isset($line['uri']) && is_scalar($line['uri'])) {
+                        $map_threads[$thread_id]['uri'] = (string) $line['uri'];
                     }
 
                     if(console_line_matches($line, $query)) {
