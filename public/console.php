@@ -496,7 +496,7 @@ if(!$is_data_request) {
             div.thread div.thread-title span.thread-uri {
                 display: inline-block;
                 margin-left: 20px;
-                max-width: 400px;
+                max-width: calc(100vw - 700px);
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
