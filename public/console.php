@@ -487,8 +487,10 @@ if(!$is_data_request) {
 
             div.thread div.thread-title small.thread-line-count {
                 display: inline-block;
-                width: 50px;
+                margin-left: 20px;
+                width: 35px;
                 text-align: right;
+                vertical-align: bottom;
             }
 
             div.thread div.thread-title span.thread-uri {
@@ -497,8 +499,8 @@ if(!$is_data_request) {
                 max-width: 400px;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                vertical-align: bottom;
                 white-space: nowrap;
+                vertical-align: bottom;
             }
 
             div.thread div.thread-title span.thread-ip {
@@ -508,6 +510,7 @@ if(!$is_data_request) {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                vertical-align: bottom;
             }
 
             div.thread i.icon {
@@ -1533,7 +1536,7 @@ else {
                         $map_threads[$thread_id]['net_seen'] = true;
                         $message = json_decode($line['message'], true);
                         if(is_array($message) && isset($message['uri']) && is_scalar($message['uri'])) {
-                            $map_threads[$thread_id]['uri'] = (string) $message['uri'];
+                            $map_threads[$thread_id]['uri'] = preg_replace('/^https?:\/\/[^\/]+/i', '', (string) $message['uri']);
                         }
                         if(is_array($message) && isset($message['ip']) && is_scalar($message['ip'])) {
                             $map_threads[$thread_id]['ip'] = (string) $message['ip'];
