@@ -1429,21 +1429,21 @@ else {
 
     function console_level_rank($level): int {
         $ranks = [
-            'FATAL'       => 0,
-            'Fatal error' => 0,
-            'Parse error' => 0,
-            E_ERROR       => 0,
-            'ERROR'       => 1,
-            E_USER_ERROR  => 1,
-            'WARNING'     => 2,
-            E_USER_WARNING => 2,
-            'INFO'        => 3,
-            'NOTICE'      => 3,
-            E_USER_NOTICE => 3,
-            'DEBUG'       => 4,
-            E_USER_DEPRECATED => 4,
-            'SYSTEM'      => 5,
-            0             => 5
+            'FATAL'             => 0,
+            'Fatal error'       => 0,
+            'Parse error'       => 0,
+            E_ERROR             => 0,
+            'ERROR'             => 1,
+            E_USER_ERROR        => 1,
+            'WARNING'           => 2,
+            E_USER_WARNING      => 2,
+            'INFO'              => 3,
+            'NOTICE'            => 3,
+            E_USER_NOTICE       => 3,
+            'DEBUG'             => 4,
+            E_USER_DEPRECATED   => 4,
+            'SYSTEM'            => 5,
+            0                   => 5
         ];
         return array_key_exists($level, $ranks) ? $ranks[$level] : 6;
     }
