@@ -168,7 +168,7 @@ try {
     // 3) perform requested operation
 
     // store http info to access log
-    Reporter::errorHandler(EQ_REPORT_INFO, "NET::".json_encode([
+    Reporter::errorHandler(EQ_REPORT_INFO, "NET::" . json_encode([
                 'method'    => $method,
                 'uri'       => (string) $uri,
                 'headers'   => $request->getHeaders(true),
@@ -253,7 +253,16 @@ catch(Throwable $e) {
             403 => 'AAA',
             404 => 'NET',
         ][$http_status] ?? 'PHP';
-        trigger_error("$mode::{$request_method} {$request->getUri()} => $http_status " . eq_error_name($error_code) . ": " . $msg, ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR);
+
+        trigger_error("$mode::" . json_encode([
+                'method'    => $request_method,
+                'uri'       => $request->getUri(),
+                'headers'   => $request->getHeaders(true),
+                'status'    => $http_status,
+                'message'   => eq_error_name($error_code) . ": " . $msg
+            ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),
+            ($http_status < 500) ? EQ_REPORT_WARNING : EQ_REPORT_ERROR
+        );
     }
 
     // if run from CLI, ensure the prompt appears on a new line
