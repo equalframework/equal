@@ -380,7 +380,7 @@ if(!$is_data_request) {
             #header {
                 position: fixed;
                 top: 0;
-                height: 140px;
+                height: 142px;
                 width: 100%;
                 background: white;
                 z-index: 4;
