@@ -1434,8 +1434,8 @@ if(!$is_data_request) {
                 </div>
                 <div class="quick-view-actions">
                     <button id="quickLoadMoreThreads" class="material-icon-button" type="button" title="Load more" style="display: none;"><i class="fa fa-step-forward"></i></button>
-                    <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-arrow-circle-o-down"></i></a>
-                    <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-arrow-circle-o-up"></i></a>
+                    <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-arrow-down "></i></a>
+                    <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-arrow-up"></i></a>
                 </div>
             </div>
         </div>
