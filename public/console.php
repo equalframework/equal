@@ -505,6 +505,13 @@ if(!$is_data_request) {
                 background-color: #e1f0f5;
             }
 
+            div.thread.selected > div.thread-title {
+                position: sticky;
+                top: 140px;
+                z-index: 3;
+                background-color: #e1f0f5;
+            }
+
             div.thread div.thread-title div.text {
                 color: #4f4f4f;
             }
@@ -1238,6 +1245,18 @@ if(!$is_data_request) {
                 });
 
                 list.addEventListener("click", async function(event) {
+                    const selectedTitle = event.target.closest(".thread.selected > .thread-title");
+                    if(selectedTitle) {
+                        event.preventDefault();
+                        const thread = selectedTitle.closest(".thread");
+                        const selector = thread.querySelector("input.selector[data-action=\"toggle-thread\"]");
+                        if(selector) {
+                            selector.checked = false;
+                        }
+                        showAllThreads();
+                        return;
+                    }
+
                     const actionNode = event.target.closest("[data-action]");
                     if(!actionNode) {
                         return;
