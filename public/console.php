@@ -14,7 +14,9 @@ define('DEFAULT_LINE_LIMIT', 250);
 define('MAX_LINE_LIMIT', 1000);
 define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
 
-function console_basic_auth_credentials(): array {
+function console_require_basic_auth(): void {
+    $expected_pass = getenv('EQ_DB_PASS');
+
     $user = $_SERVER['PHP_AUTH_USER'] ?? null;
     $pass = $_SERVER['PHP_AUTH_PW'] ?? null;
 
@@ -27,13 +29,6 @@ function console_basic_auth_credentials(): array {
             }
         }
     }
-
-    return [$user, $pass];
-}
-
-function console_require_basic_auth(): void {
-    $expected_pass = getenv('EQ_DB_PASS');
-    [$user, $pass] = console_basic_auth_credentials();
 
     if($expected_pass !== false && $user === 'root' && is_string($pass) && hash_equals($expected_pass, $pass)) {
         return;
@@ -814,7 +809,9 @@ if(!$is_data_request) {
 
             function updateRootLoadMoreVisibility() {
                 const hasSelectedThread = !!document.querySelector("#list .thread.selected");
-                document.getElementById("loadMoreThreads").style.display = (state.hasMoreThreads && !hasSelectedThread) ? "inline-block" : "none";
+                const display = (state.hasMoreThreads && !hasSelectedThread) ? "inline-block" : "none";
+                document.getElementById("loadMoreThreads").style.display = display;
+                document.getElementById("quickLoadMoreThreads").style.display = display;
             }
 
             function getFormParams() {
@@ -1247,6 +1244,7 @@ if(!$is_data_request) {
                 });
 
                 document.getElementById("loadMoreThreads").addEventListener("click", loadThreads);
+                document.getElementById("quickLoadMoreThreads").addEventListener("click", loadThreads);
 
                 document.getElementById("quickFilters").addEventListener("click", function(event) {
                     const button = event.target.closest("button[data-level]");
@@ -1394,6 +1392,7 @@ if(!$is_data_request) {
                     <button id="btn-ERROR" class="btn btn-danger applied" type="button" data-level="ERROR">ERROR</button>
                 </div>
                 <div class="quick-view-actions">
+                    <button id="quickLoadMoreThreads" class="material-icon-button" type="button" title="Load more" style="display: none;"><i class="fa fa-plus-square-o"></i></button>
                     <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-long-arrow-down"></i></a>
                     <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-long-arrow-up"></i></a>
                 </div>
