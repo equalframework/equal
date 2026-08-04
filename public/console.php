@@ -14,6 +14,39 @@ define('DEFAULT_LINE_LIMIT', 250);
 define('MAX_LINE_LIMIT', 1000);
 define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
 
+function console_basic_auth_credentials(): array {
+    $user = $_SERVER['PHP_AUTH_USER'] ?? null;
+    $pass = $_SERVER['PHP_AUTH_PW'] ?? null;
+
+    if($user === null) {
+        $auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        if(stripos($auth_header, 'Basic ') === 0) {
+            $decoded = base64_decode(substr($auth_header, 6), true);
+            if($decoded !== false && strpos($decoded, ':') !== false) {
+                [$user, $pass] = explode(':', $decoded, 2);
+            }
+        }
+    }
+
+    return [$user, $pass];
+}
+
+function console_require_basic_auth(): void {
+    $expected_pass = getenv('EQ_DB_PASS');
+    [$user, $pass] = console_basic_auth_credentials();
+
+    if($expected_pass !== false && $user === 'root' && is_string($pass) && hash_equals($expected_pass, $pass)) {
+        return;
+    }
+
+    header('WWW-Authenticate: Basic realm="eQual console", charset="UTF-8"');
+    header('HTTP/1.0 401 Unauthorized');
+    exit;
+}
+
+// minimalist HTTP Basic auth (failures will increase fail2ban eq-login filter)
+console_require_basic_auth();
+
 // get log file, using variation from URL, if any
 $log_file = (isset($_GET['f']) && strlen($_GET['f'])) ? basename($_GET['f']) : 'equal.log';
 if(!preg_match('/^equal\.log(?:\.\d+)?$/', $log_file)) {
