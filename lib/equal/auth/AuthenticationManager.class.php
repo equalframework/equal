@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, eQual framework, 2010-2024
