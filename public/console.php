@@ -1176,14 +1176,22 @@ if(!$is_data_request) {
                 }
             }
 
-            function quickLoadMore() {
+            function scrollBottom() {
+                document.getElementById("end").scrollIntoView({block: "end"});
+            }
+
+            async function quickLoadMore() {
+                scrollBottom();
+                await new Promise(function(resolve) {
+                    requestAnimationFrame(resolve);
+                });
                 const selectedThread = document.querySelector("#list .thread.selected");
                 const loadLines = selectedThread ? selectedThread.querySelector("button.load-lines") : null;
                 if(loadLines) {
-                    loadLines.click();
+                    await loadThreadLines(selectedThread);
                     return;
                 }
-                loadThreads();
+                await loadThreads();
             }
 
             function showOnlySelectedThread(selectedThread) {
@@ -1425,9 +1433,9 @@ if(!$is_data_request) {
                     <button id="btn-ERROR" class="btn btn-danger applied" type="button" data-level="ERROR">ERROR</button>
                 </div>
                 <div class="quick-view-actions">
-                    <button id="quickLoadMoreThreads" class="material-icon-button" type="button" title="Load more" style="display: none;"><i class="fa fa-plus-square-o"></i></button>
-                    <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-long-arrow-down"></i></a>
-                    <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-long-arrow-up"></i></a>
+                    <button id="quickLoadMoreThreads" class="material-icon-button" type="button" title="Load more" style="display: none;"><i class="fa fa-step-forward"></i></button>
+                    <a href="#end" class="material-icon-button" title="Jump to bottom"><i class="fa fa-arrow-circle-o-down"></i></a>
+                    <a href="#start" class="material-icon-button" title="Jump to top"><i class="fa fa-arrow-circle-o-up"></i></a>
                 </div>
             </div>
         </div>
