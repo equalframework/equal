@@ -15,7 +15,23 @@ define('MAX_LINE_LIMIT', 1000);
 define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
 
 function console_require_basic_auth(): void {
-    $expected_pass = getenv('EQ_DB_PASS');
+    $config_file = '../config/config.json';
+
+    if(!file_exists($config_file)) {
+        return;
+    }
+
+    $config = json_decode(file_get_contents($config_file), true);
+    $env_mode = is_array($config) ? ($config['ENV_MODE'] ?? 'development') : 'development';
+
+    if($env_mode === 'development') {
+        return;
+    }
+
+    $expected_pass = getenv('EQ_HOST_PASS');
+    if($expected_pass === false || $expected_pass === '') {
+        $expected_pass = getenv('EQ_DB_PASS');
+    }
 
     $user = $_SERVER['PHP_AUTH_USER'] ?? null;
     $pass = $_SERVER['PHP_AUTH_PW'] ?? null;
@@ -39,7 +55,7 @@ function console_require_basic_auth(): void {
     exit;
 }
 
-// minimalist HTTP Basic auth (failures will increase fail2ban eq-login filter)
+// enforce minimalist HTTP Basic auth (failures will increase fail2ban eq-login filter)
 console_require_basic_auth();
 
 // get log file, using variation from URL, if any
