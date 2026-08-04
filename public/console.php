@@ -808,10 +808,13 @@ if(!$is_data_request) {
             }
 
             function updateRootLoadMoreVisibility() {
-                const hasSelectedThread = !!document.querySelector("#list .thread.selected");
-                const display = (state.hasMoreThreads && !hasSelectedThread) ? "inline-block" : "none";
-                document.getElementById("loadMoreThreads").style.display = display;
-                document.getElementById("quickLoadMoreThreads").style.display = display;
+                const selectedThread = document.querySelector("#list .thread.selected");
+                const rootDisplay = (state.hasMoreThreads && !selectedThread) ? "inline-block" : "none";
+                const quickDisplay = selectedThread
+                    ? (selectedThread.querySelector("button.load-lines") ? "inline-block" : "none")
+                    : rootDisplay;
+                document.getElementById("loadMoreThreads").style.display = rootDisplay;
+                document.getElementById("quickLoadMoreThreads").style.display = quickDisplay;
             }
 
             function getFormParams() {
@@ -1161,8 +1164,19 @@ if(!$is_data_request) {
                     if(requestId === state.requestId) {
                         linesNode.dataset.loading = "false";
                         setLoading(false);
+                        updateRootLoadMoreVisibility();
                     }
                 }
+            }
+
+            function quickLoadMore() {
+                const selectedThread = document.querySelector("#list .thread.selected");
+                const loadLines = selectedThread ? selectedThread.querySelector("button.load-lines") : null;
+                if(loadLines) {
+                    loadLines.click();
+                    return;
+                }
+                loadThreads();
             }
 
             function showOnlySelectedThread(selectedThread) {
@@ -1244,7 +1258,7 @@ if(!$is_data_request) {
                 });
 
                 document.getElementById("loadMoreThreads").addEventListener("click", loadThreads);
-                document.getElementById("quickLoadMoreThreads").addEventListener("click", loadThreads);
+                document.getElementById("quickLoadMoreThreads").addEventListener("click", quickLoadMore);
 
                 document.getElementById("quickFilters").addEventListener("click", function(event) {
                     const button = event.target.closest("button[data-level]");
