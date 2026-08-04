@@ -493,6 +493,7 @@ if(!$is_data_request) {
                 position: relative;
                 margin: 2px 0 2px 10px;
                 font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+                scroll-margin-top: 150px;
             }
 
             div.thread div.thread-title {
@@ -1180,6 +1181,12 @@ if(!$is_data_request) {
                 document.getElementById("end").scrollIntoView({block: "end"});
             }
 
+            function scrollThreadIntoView(thread) {
+                requestAnimationFrame(function() {
+                    thread.scrollIntoView({block: "start"});
+                });
+            }
+
             async function quickLoadMore() {
                 scrollBottom();
                 await new Promise(function(resolve) {
@@ -1262,6 +1269,7 @@ if(!$is_data_request) {
                             selector.checked = false;
                         }
                         showAllThreads();
+                        scrollThreadIntoView(thread);
                         return;
                     }
 
