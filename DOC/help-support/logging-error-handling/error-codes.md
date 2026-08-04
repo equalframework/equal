@@ -2,21 +2,63 @@
 
 ## Exception and Throwable
 
-eQual natively handles exceptions (or `Throwable` objects) as errors and generates the appropriate HTTP response accordingly.
+eQual uses standard PHP exceptions and does not define custom exception classes. It natively handles exceptions (or `Throwable` objects) as errors and generates the appropriate HTTP response accordingly.
 
-While it remains possible to use try/catch blocks, any "throwable" that is not explicitly handled by a try/catch block, will by handled by eQual. 
+An exception is generally thrown as follows:
 
-Internally, every raised error/exception is either handled in controllers, or caught by the `run()` method and is eventually turned into a HTTP error code.
-
-In order to generate an error Response, any controller may throw an Exception.
-
-```
-    throw new Exception('error_msg_id', EQ_ERROR_{CODE});
+```php
+throw new \Exception('capability_denied', EQ_ERROR_NOT_ALLOWED);
 ```
 
-The error codes are defined inside the `eq.lib.php` file.
+By convention:
 
-EQ_ERROR_{CODE}
+1. the first argument is always a string;
+2. the second argument is an eQual constant identifying the error category.
+
+The error constants are defined inside the `eq.lib.php` file.
+
+### Exception message
+
+The message provided as the first argument should be short, stable, and suitable for application-level processing.
+
+It may be:
+
+- a generic identifier, such as `capability_denied`;
+- a message intended for translation;
+- a serialized array when several parameters must be passed to the error-handling mechanism.
+
+Technical, internal, or sensitive information should not be included in this message.
+
+### Exception propagation
+
+While it remains possible to use `try/catch` blocks, any `Throwable` that is not explicitly handled interrupts the current eQual execution cycle.
+
+It then propagates to the main processing entry point, generally `run.php`, which catches it and automatically generates an HTTP response corresponding to the encountered error.
+
+The `Reporter` class defines specific handlers for:
+
+- PHP errors;
+- uncaught exceptions.
+
+This mechanism serves several purposes:
+
+- exposing as little technical information as possible to the client;
+- automatically returning the appropriate HTTP status code;
+- standardizing error responses;
+- facilitating message translation;
+- preserving the technical information required for diagnosis in the logs.
+
+In order to generate an error response, any controller may throw an `Exception`.
+
+```php
+throw new \Exception('error_msg_id', EQ_ERROR_{CODE});
+```
+
+The second argument allows eQual to map the exception to an HTTP status code.
+
+### Error constants
+
+Error constants use the `EQ_ERROR_{CODE}` naming convention.
 
 | **CONSTANT** &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; | **VALUE** | **HTTP** | **DESCRIPTION**                                                                                                                                        |
 | :------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -33,47 +75,102 @@ EQ_ERROR_{CODE}
 | `EQ_ERROR_INVALID_CONFIG`                                                                                                                    | -1024     | 500      | Server error : faulty configuration. Equivalent to  HTTP 'Internal Server Error'.                                                                      |
 
 
-
 Some checks are automatically performed based on context and configuration.
 If a check fails, an HTTP response is returned with an error status and a body holding an error descriptor.
 
-!!!Note Announcement property
+!!! note "Announcement property"
     When an error is raised inside a controller, if the `eQual::announce()` method is called in the invoked controller, in addition with the `error` property an additional `announcement` property is appended to the response to describe the expected format of the requests made to the controller.
+
+### Logging technical information
+
+The exception message returned to the client should remain generic. Information useful for diagnosis should be recorded separately in the logs.
+
+A recommended practice is therefore to associate an exception with a more detailed log entry:
+
+```php
+trigger_error(
+    "ORM::Capability denied {$operation} {$this->class}",
+    EQ_REPORT_ERROR
+);
+
+throw new \Exception(
+    'capability_denied',
+    EQ_ERROR_NOT_ALLOWED
+);
+```
+
+Calling `trigger_error()` with a supported reporting level such as `EQ_REPORT_ERROR` is equivalent to calling the reporter service directly:
+
+```php
+$reporter->error(
+    "ORM::Capability denied {$operation} {$this->class}"
+);
+```
+
+The first message contains the technical information required by the developer. The second remains sufficiently generic to be returned to the client.
+
+Log entries are never exposed in the public HTTP response.
+
+### Complete example
+
+```php
+if(!$this->hasCapability($operation)) {
+    trigger_error(
+        "ORM::Capability denied {$operation} {$this->class}",
+        EQ_REPORT_ERROR
+    );
+
+    throw new \Exception(
+        'capability_denied',
+        EQ_ERROR_NOT_ALLOWED
+    );
+}
+```
+
+In this example:
+
+- the log records the affected operation and class;
+- the client only receives the generic `capability_denied` message;
+- the `EQ_ERROR_NOT_ALLOWED` constant allows eQual to automatically determine the HTTP status code to return.
 
 
 ### Authorization Errors
 
-`NOT_ALLOWED` error is raised when a user is not authenticated or has not enough rights to perform the requested operation.
+`NOT_ALLOWED` error is raised when access-control rules or permissions deny the requested operation.
 
-All errors relating to authentication error, are returned with a HTTP 403 status.
+For the protected and private access checks shown below, eQual returns an HTTP 403 status.
 
-For a controller announced with protected access;
-```
+For a controller announced with protected access:
+```php
     'access' => [
         'visibility'        => 'protected',
     ]
 ```
 
 a call made by a non-authenticated user will result in:
+```json
 {
     "errors": {
         "NOT_ALLOWED": "protected_operation"
     }
 }
-
-
-For a controller announced with `private` access;
 ```
+
+
+For a controller announced with `private` access:
+```php
     'access' => [
         'visibility'        => 'private',
     ]
 ```
 
 a call from a non CLI context will result in:
+```json
 {
     "errors": {
         "NOT_ALLOWED": "private_operation"
     }
 }
+```
 
 ---

@@ -1,55 +1,119 @@
 # Debugging Tools & Console
 
-## Console
+## Purpose
 
-To help you with human-readable data, eQual comes with its own UI debug console (which simply reads the `EQ_error.log` located  in the `/log` directory).
+eQual provides two complementary sources of diagnostic information:
 
-> Note: `eq_error.log` provides information for each occurring event, so don't forget to delete that file from time to time if you don't want to end up with a huge logs. Especially if you're running a lot of tests.
+- the public HTTP response, which exposes a stable error category and a client-safe message;
+- the technical log, which records the context required to diagnose the issue.
 
-To access it from the browser: [http://equal.local/console.php](http://equal.local/console.php).
+The HTTP response should be used to understand the API-level failure. The log should be used to investigate the cause in the framework, controller, ORM, or configuration layer.
 
+## Log file
 
-There you can find information about your error, here is an **example** :
+System and error logs are written to:
 
-```bash
-01-05-2022 14:44:43+0.41235100 Warning **@** [`C:\wamp64\www\equal\lib\
-equal\orm\Collection.class.php:335`] **in** `equal\orm\Domain::toString()`
-: Undefined offset: 1
+```text
+./log/equal.log
 ```
 
+This file can grow quickly in development or during automated test runs. It should be archived, rotated, or cleared periodically according to the environment policy.
 
+Each log entry is written as JSON and may include:
 
-Another **example**, if I did the request :
+| Field | Description |
+| --- | --- |
+| `thread_id` | Identifier used to group log entries from the same execution thread. |
+| `time` / `mtime` | Timestamp and microsecond component. |
+| `level` | Severity, such as `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `FATAL`. |
+| `mode` | Source area, such as `PHP`, `ORM`, `NET`, or `AAA`. |
+| `class` / `function` | PHP class and function associated with the log entry when available. |
+| `file` / `line` | Source location associated with the entry. |
+| `message` | Technical diagnostic message. |
+| `stack` | Backtrace for warnings, errors, fatal errors, and uncaught exceptions when available. |
 
-```
-http://equal.local/?get=model_collect
-```
-
-The built-in responses, usually already give some information about the error :
+Example log entry:
 
 ```json
-"errors": {
-        "MISSING_PARAM": "entity"
+{
+    "thread_id": "44b1924d",
+    "time": "2026-07-08T22:01:43+00:00",
+    "mtime": "294898",
+    "level": "WARNING",
+    "mode": "ORM",
+    "class": "equal\\orm\\ObjectManager",
+    "function": "validate()",
+    "file": "C:\\DEV\\wamp64\\www\\equal\\lib\\equal\\orm\\Collection.class.php",
+    "line": 686,
+    "message": "given value (`foo`) for field `core\\test\\Test`::`datetime` violates constraint : Value is incompatible with type date. [\"foo\"]",
+    "stack": []
 }
 ```
 
-Each Controller tells explicitly which parameters are **required**:
+## HTTP console
+
+The debug console provides a browser interface for inspecting the log file:
+
+```text
+/console.php
+```
+
+For a local installation, it is commonly available at:
+
+```text
+http://equal.local/console.php
+```
+
+The HTTP console is only available when the environment is running in `development` mode. It should not be treated as a production monitoring interface.
+
+## Error responses
+
+When an exception reaches the main processing entry point, eQual converts it into a standardized HTTP response. The response body contains an `errors` object whose key is derived from the eQual error code.
+
+For example, a request missing the required `entity` parameter:
+
+```text
+http://equal.local/?get=model_collect
+```
+
+can return:
+
+```json
+{
+    "errors": {
+        "MISSING_PARAM": "entity"
+    }
+}
+```
+
+The response identifies the API-level failure. The corresponding log entry should be checked when the response does not provide enough information to diagnose the root cause.
+
+## Controller announcements
+
+Controllers declare their required parameters through `eQual::announce()`. When a controller is called without required parameters, eQual can return a structured error response and, when applicable, include announcement metadata describing the expected request format.
+
+For diagnostics:
+
+1. identify the controller being called;
+2. inspect its announcement to confirm required parameters and expected types;
+3. compare the request payload or query string with the announced contract;
+4. use `equal.log` to locate the technical source of the failure if the controller contract is valid.
+
+From PowerShell, controller announcements should be inspected through `run.php`, for example:
 
 ```bash
-01-06-2022 12:10:17+0.31526700 Warning @ [C:\wamp64\www\equal\run.php:185] in 
-{main}(): EQ_DEBUG_ORM::MISSING_PARAM - entity
+php run.php --get=model_collect --announce=true
 ```
 
-An entity is **missing**, if I do add one :
+## Configuration errors
 
-```
-http://equal.local/?get=model_collect&entity=core\User
-```
+Configuration errors are checked by the `announce()` function inside `eq.lib.php` and by the services initialized during the request lifecycle. Faulty configuration generally results in an HTTP 500 response.
 
-I will get a JSON-object with all the users. 
+When an HTTP 500 occurs during configuration or initialization:
 
-## Debugging Configuration Errors
-
-Configuration errors are checked by the `announce()` function inside `eq.lib.php`. If there is an issue with the configuration, the system will display an `Error 500`.
+1. check `./log/equal.log` for `ERROR` or `FATAL` entries;
+2. verify that the relevant constants are defined in the active configuration;
+3. confirm that required services can be instantiated;
+4. inspect the stack trace to identify the first failing file and line.
 
 ---

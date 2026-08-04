@@ -106,22 +106,54 @@ Each change can be displayed as an HTML block:
 
 ### Reporting
 
-The Reporter `lib/equal/error/Reporter.class.php` class focuses on system/error logs, which is different from the `Logger` that will keep track of application-level logs.
+The Reporter `lib/equal/error/Reporter.class.php` class focuses on system and error logs, which is different from the `Logger` that keeps track of application-level object changes in the database.
 
 Reporting is used to keep track of the following types of messages:
 
 - debug (can be used in any script, to check variables values);
--  warning (the action is done, but incomplete);
+- warning (the action is done, but incomplete);
 - error (the action can't be done);
 - and fatal errors (the system stops) messages.
 
-The logs are kept inside the `log` folder (CSV files) folder (and appear in [http://equal.local/console](http://equal.local/console)), they are written in a human readable way, to keep track easily.
+The `Reporter` registers handlers for PHP errors and uncaught exceptions. It writes technical diagnostics to `log/equal.log`, while the public HTTP response only receives the standardized error descriptor generated from the exception message and eQual error code.
 
-> The logs are brief, and could, in the future, be written in JSON, to add infos.
+For example:
 
-The logs content is written following the `core/Log.class.php` structure. They are just like any other object and may use any of their functions.
+```php
+trigger_error(
+    "ORM::Capability denied {$operation} {$this->class}",
+    EQ_REPORT_ERROR
+);
 
-For example, an other class could point at the log object ("log_id"), every time that object is subject to debug, warnings, errors and fatal errors.
+throw new \Exception(
+    'capability_denied',
+    EQ_ERROR_NOT_ALLOWED
+);
+```
+
+The log entry contains the technical context needed by developers. The exception message remains stable and generic enough to be returned to the client or translated.
+
+Calling `trigger_error()` with a supported reporting level such as `EQ_REPORT_ERROR` is equivalent to calling the reporter service directly:
+
+```php
+$reporter->error(
+    "ORM::Capability denied {$operation} {$this->class}"
+);
+```
+
+System and error logs can be accessed directly on the server or from the command line at:
+
+```text
+./log/equal.log
+```
+
+They can also be viewed through the HTTP console at:
+
+```text
+/console.php
+```
+
+The HTTP console is only available when the environment is running in `development` mode.
 
 > In the future, a timestamps journal could be enabled in the global `config.inc.php`, to keep track of the length of use of any eQual resources.
 
