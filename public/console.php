@@ -507,7 +507,7 @@ if(!$is_data_request) {
 
             div.thread.selected > div.thread-title {
                 position: sticky;
-                top: 140px;
+                top: 142px;
                 z-index: 3;
                 background-color: #e1f0f5;
             }
