@@ -17,11 +17,11 @@ define('LOG_REVERSE_READ_BLOCK_BYTES', 1024 * 1024);
 function console_require_basic_auth(): void {
     $config_file = '../config/config.json';
 
-    $env_mode = 'development';
+    $env_mode = 'production';
 
     if(file_exists($config_file)) {
         $config = json_decode(file_get_contents($config_file), true);
-        $env_mode = is_array($config) ? ($config['ENV_MODE'] ?? 'development') : 'development';
+        $env_mode = is_array($config) ? ($config['ENV_MODE'] ?? 'production') : 'production';
     }
 
     if($env_mode === 'development') {

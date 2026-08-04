@@ -290,7 +290,7 @@
         "type": "string",
         "description": "Possible values are: 'development', 'staging', 'production'",
         "instant": true,
-        "default": "development"
+        "default": "production"
     },
     "FILE_STORAGE_MODE": {
         "type": "string",

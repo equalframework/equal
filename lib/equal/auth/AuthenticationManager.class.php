@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
     Some Rights Reserved, eQual framework, 2010-2024
@@ -401,7 +401,8 @@ class AuthenticationManager extends Service {
 
         $errors = $orm->validate('core\User', [], ['login' => $login, 'password' => $password]);
         if(count($errors)) {
-            throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_PARAM);
+            // #memo - invalid provided password counts as an attempt and returns a HTTP 401
+            throw new \Exception('invalid_credentials', EQ_ERROR_INVALID_USER);
         }
 
         $ids = $orm->search('core\User', ['login', '=', $login]);
