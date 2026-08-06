@@ -605,7 +605,7 @@ namespace config {
              * @var \equal\auth\AuthenticationManager   $auth
              * @var \equal\error\Reporter               $reporter
              */
-            list($context, $auth, $reporter) = $container->get(['context', 'auth', 'report']);
+            [$context, $auth, $reporter] = $container->get(['context', 'auth', 'report']);
             // fetch body and method from HTTP request
             $request = $context->httpRequest();
             $body = (array) $request->body();
@@ -618,6 +618,9 @@ namespace config {
             // normalize $announcement array
             if(!isset($announcement['params'])) {
                 $announcement['params'] = [];
+            }
+            if(!is_array($announcement['params'])) {
+                throw new \Exception('invalid_params_type', EQ_ERROR_INVALID_CONFIG);
             }
 
             $operation = $context->get('operation');
