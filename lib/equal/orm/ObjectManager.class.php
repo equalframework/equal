@@ -588,9 +588,7 @@ class ObjectManager extends Service {
                 },
                 // 'multilang' is a particular case of simple field (or stored computed field)
                 'multilang'    =>    function($om, $ids, $fields) use ($schema, $class, $table_name, $lang) {
-                    $parts = explode('_', $table_name);
-                    $parts[] = ucfirst(array_pop($parts));
-                    $final_class = implode('\\', $parts);
+                    $final_class = self::getObjectRootClass($class);
 
                     $result = $om->db->getRecords(
                         (array) 'core_translation',
@@ -946,9 +944,7 @@ class ObjectManager extends Service {
             $store_fields = array(
             // 'multilang' is a particular case of simple field
             'multilang'    =>    function($om, $ids, $fields) use ($adapter, $auth, $schema, $class, $table_name, $lang) {
-                $parts = explode('_', $table_name);
-                $parts[] = ucfirst(array_pop($parts));
-                $final_class = implode('\\', $parts);
+                $final_class = self::getObjectRootClass($class);
 
                 $om->db->deleteRecords(
                     'core_translation',
@@ -3115,7 +3111,7 @@ class ObjectManager extends Service {
                                     $translation_table_alias = $add_table('core_translation');
                                     // add join conditions
                                     $conditions[$j][] = array($table_alias.'.id', '=', '`'.$translation_table_alias.'.object_id`');
-                                    $conditions[$j][] = array($translation_table_alias.'.object_class', '=', $class);
+                                    $conditions[$j][] = array($translation_table_alias.'.object_class', '=', self::getObjectRootClass($class));
                                     $conditions[$j][] = array($translation_table_alias.'.object_field', '=', $field);
                                     $field = $translation_table_alias.'.value';
                                 }
