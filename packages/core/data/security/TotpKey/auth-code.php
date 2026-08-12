@@ -70,7 +70,7 @@ $base32Decode = function(string $encoded): string {
  * Action
  */
 
-$totpkey = TotpKey::id($params['totpkey_id'])
+$totpkey = TotpKey::id($params['id'])
     ->read(['secret', 'algorithm', 'digits', 'period'])
     ->first();
 
