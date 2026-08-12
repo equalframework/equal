@@ -171,6 +171,9 @@ foreach($auth_factors as $auth_factor) {
     if($auth_factor['type'] === 'passkey') {
         $result['user_data']['has_passkey'] = true;
     }
+    if($auth_factor['type'] === 'totp') {
+        $result['user_data']['has_totpkey'] = true;
+    }
 }
 
 if($user['id'] === $auth_user_id) {
