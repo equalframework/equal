@@ -6,6 +6,7 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 
+use core\security\AuthenticationFactor;
 use core\setting\Setting;
 use core\setting\SettingValue;
 use core\User;
@@ -28,10 +29,14 @@ use core\User;
         'visibility'    => 'public'
     ],
     'constants'     => ['DEFAULT_LANG'],
-    'providers'     => ['context']
+    'providers'     => ['context', 'auth']
 ]);
 
-['context' => $context] = $providers;
+/**
+ * @var \equal\php\Context                  $context
+ * @var \equal\auth\AuthenticationManager   $auth
+ */
+['context' => $context, 'auth' => $auth] = $providers;
 
 /**
  * Methods
@@ -56,6 +61,8 @@ $cleanUpEmail = function(string $email): string {
  * Action
  */
 
+$auth_user_id = $auth->userId();
+
 // #memo - $params['login'] is either username or login (email address)
 $user_domain = ['username', '=', $params['login']];
 
@@ -71,45 +78,86 @@ if(is_null($user)) {
     throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
-$passkey_creation = Setting::get_value('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
+$allowed_methods = ['password'];
+$allowed_creations = [];
+$auth_method_data = [];
 
-$user_handle = Setting::get_value('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
+$auth_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled');
+if($auth_passkey_enabled) {
+    $allowed_methods[] = 'passkey';
 
-if(!$user_handle) {
-    // generate temporary anonymous user_handle
-    $user_handle = bin2hex(random_bytes(16));
+    $global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
+    $passkey_creation = Setting::get_value('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
+    
+    if($passkey_creation) {
+        $allowed_creations[] = 'passkey';
 
-    $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
-        ->read(['id'])
-        ->first();
-
-    if($setting) {
-        // make sure the handle is not already assigned
-        while(true) {
-            $values = SettingValue::search([
-                    ['setting_id', '=', $setting['id']],
-                    ['value', '=', $user_handle]]
-                )
-                ->get();
-
-            if(!count($values)) {
-                break;
-            }
+        $user_handle = Setting::get_value('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
+        if(!$user_handle) {
+            // generate temporary anonymous user_handle
             $user_handle = bin2hex(random_bytes(16));
+
+            $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+                ->read(['id'])
+                ->first();
+
+            if($setting) {
+                // make sure the handle is not already assigned
+                while(true) {
+                    $values = SettingValue::search([
+                            ['setting_id', '=', $setting['id']],
+                            ['value', '=', $user_handle]]
+                    )
+                        ->get();
+
+                    if(!count($values)) {
+                        break;
+                    }
+                    $user_handle = bin2hex(random_bytes(16));
+                }
+
+                Setting::set_value('core', 'security', 'passkey_user-handle', $user_handle, ['user_id' => $user['id']]);
+            }
         }
 
-        Setting::set_value('core', 'security', 'passkey_user-handle', $user_handle, ['user_id' => $user['id']]);
+        $auth_method_data['passkey'] = ['user_handle' => $user_handle];
     }
-
 }
 
-$context->httpResponse()
-        ->body([
-            'user_handle'               => $user_handle,
-            'username'                  => trim($params['login']),
-            'has_passkey'               => count($user['passkeys_ids']) > 0,
-            'passkey_creation'          => (bool) intval($passkey_creation)
-        ])
-        ->status(200)
-        ->send();
+$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
+if($totpkey_creation) {
+    $allowed_creations[] = 'totpkey';
+}
+
+$result = [
+    'username'          => trim($params['login']),
+    'allowed_methods'   => $allowed_methods,
+    'allowed_creations' => $allowed_creations,
+    'methods_data'      => $auth_method_data,
+    'user_data'         => [
+        'has_passkey' => false
+    ]
+];
+
+$auth_factors = AuthenticationFactor::search([
+    ['user_id', '=', $user['id']],
+    ['status', '=', 'active']
+])
+    ->read(['type', 'label'])
+    ->get(true);
+
+foreach($auth_factors as $auth_factor) {
+    if($auth_factor['type'] === 'passkey') {
+        $result['user_data']['has_passkey'] = true;
+    }
+}
+
+if($user['id'] === $auth_user_id) {
+    // add detailed factors only if user is authenticated
+    $result['user_data']['factors'] = $auth_factors;
+}
+
+$context
+    ->httpResponse()
+    ->body($result)
+    ->send();
