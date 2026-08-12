@@ -82,7 +82,7 @@ class TotpKey extends AuthenticationFactor {
                 'usage'             => 'url',
                 'description'       => 'The uri that define the creation of the totp for the user\'s authenticator application.',
                 'store'             => false,
-                'calc'              => 'calcTotpUri'
+                'function'          => 'calcTotpUri'
             ],
 
             'totp_qr_code_uri' => [
@@ -90,7 +90,7 @@ class TotpKey extends AuthenticationFactor {
                 'result_type'       => 'test',
                 'description'       => 'The qr code image uri for the user to scan and add the totp to its authenticator application.',
                 'store'             => false,
-                'calc'              => 'calcTotpQrCodeUri'
+                'function'          => 'calcTotpQrCodeUri'
             ]
 
         ];
