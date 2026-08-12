@@ -50,7 +50,7 @@ $totpkey = TotpKey::search([
     ['type', '=', 'totp'],
     ['status', '=', 'pending']
 ])
-    ->read([$res_fields])
+    ->read($res_fields)
     ->first(true);
 
 if(!$totpkey) {
@@ -68,7 +68,7 @@ if(!$totpkey) {
     }
 
     $totpkey = TotpKey::create($data)
-        ->read([$res_fields])
+        ->read($res_fields)
         ->first(true);
 }
 
