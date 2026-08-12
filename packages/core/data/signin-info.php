@@ -136,7 +136,7 @@ if($auth_passkey_enabled) {
             }
         }
 
-        $auth_method_data['passkey'] = ['user_handle' => $user_handle];
+        $auth_method_data['passkey']['user_handle'] = $user_handle;
     }
 }
 
