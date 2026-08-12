@@ -65,9 +65,9 @@ if($totpkey['status'] !== 'pending') {
     throw new Exception('cannot_validate_totpkey', EQ_ERROR_NOT_ALLOWED);
 }
 
-$auth_code = eQual::run('get', 'core_security_TotpKey_auth-code', ['id' => $totpkey['id']]);
+$res_auth_code = eQual::run('get', 'core_security_TotpKey_auth-code', ['id' => $totpkey['id']]);
 
-if($params['auth_code'] !== $auth_code) {
+if($params['auth_code'] !== $res_auth_code['auth_code']) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
