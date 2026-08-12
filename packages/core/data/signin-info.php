@@ -82,6 +82,22 @@ $allowed_methods = ['password'];
 $allowed_creations = [];
 $auth_method_data = [];
 
+/*
+    Password
+*/
+
+$global_auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
+$auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_auth_password_totp_required, ['user_id' => $user['id']]);
+
+if($auth_password_totp_required) {
+    $auth_method_data['password']['totp_required'] = true;
+}
+
+
+/*
+    Passkey
+*/
+
 $auth_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled');
 if($auth_passkey_enabled) {
     $allowed_methods[] = 'passkey';
@@ -123,6 +139,11 @@ if($auth_passkey_enabled) {
         $auth_method_data['passkey'] = ['user_handle' => $user_handle];
     }
 }
+
+
+/*
+    Totp key
+*/
 
 $totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
 if($totpkey_creation) {
