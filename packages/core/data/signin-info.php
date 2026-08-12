@@ -156,7 +156,8 @@ $result = [
     'allowed_creations' => $allowed_creations,
     'methods_data'      => $auth_method_data,
     'user_data'         => [
-        'has_passkey' => false
+        'has_passkey' => false,
+        'has_totpkey' => false
     ]
 ];
 
