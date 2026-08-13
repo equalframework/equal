@@ -80,6 +80,19 @@ if(!$user || !$user['validated']) {
 $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
 $totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
 
+if(!$totp_required) {
+    $totpkey = TotpKey::search([
+        ['user_id', '=', $user['id']],
+        ['type', '=', 'totp'],
+        ['status', '=', 'active']
+    ])
+        ->first();
+
+    if($totpkey) {
+        $totp_required = true;
+    }
+}
+
 if($totp_required) {
     $now = time();
     $auth_token = $auth->encodeToken([
