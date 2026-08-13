@@ -46,6 +46,72 @@ use core\User;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
+/**
+ * Methods
+ */
+
+$base32Decode = function(string $encoded): string {
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $encoded = strtoupper(rtrim($encoded, '='));
+    $buffer = 0;
+    $bitsLeft = 0;
+    $decoded = '';
+
+    foreach (str_split($encoded) as $character) {
+        $value = strpos($alphabet, $character);
+
+        if ($value === false) {
+            throw new InvalidArgumentException('Invalid Base32 secret');
+        }
+
+        $buffer = ($buffer << 5) | $value;
+        $bitsLeft += 5;
+
+        if ($bitsLeft >= 8) {
+            $bitsLeft -= 8;
+            $decoded .= chr(($buffer >> $bitsLeft) & 0xff);
+        }
+    }
+
+    return $decoded;
+};
+
+$getAuthCode = function($totpkey) use($base32Decode) {
+    $counter = intdiv(time(), $totpkey['period']);
+
+// Encode the counter as an unsigned 64-bit, big-endian integer.
+    $counterBytes = pack(
+        'N2',
+        ($counter >> 32) & 0xffffffff,
+        $counter & 0xffffffff
+    );
+
+    $hash = hash_hmac(
+        $totpkey['algorithm'],
+        $counterBytes,
+        $base32Decode($totpkey['secret']),
+        true
+    );
+
+    // Dynamic truncation defined by HOTP/TOTP.
+    $offset = ord($hash[strlen($hash) - 1]) & 0x0f;
+
+    $binaryCode =
+        ((ord($hash[$offset]) & 0x7f) << 24) |
+        ((ord($hash[$offset + 1]) & 0xff) << 16) |
+        ((ord($hash[$offset + 2]) & 0xff) << 8) |
+        (ord($hash[$offset + 3]) & 0xff);
+
+    $otp = $binaryCode % (10 ** $totpkey['digits']);
+
+    $auth_code = str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
+};
+
+
+/**
+ * Action
+ */
+
 // we might have received either a login (email) or a username
 
 // if provided login is an email address, attempt to resolve by login
@@ -107,11 +173,9 @@ if(!$totpkey) {
     throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
 }
 
-// authorize the internal protected provider with the user proven by the MFA challenge
-$auth->su($user['id']);
-$auth_code_res = eQual::run('get', 'core_security_TotpKey_auth-code', ['id' => $totpkey['id']]);
+$auth_code = $getAuthCode($totpkey);
 
-if(!isset($auth_code_res['auth_code']) || !hash_equals($auth_code_res['auth_code'], $params['auth_code'])) {
+if(!hash_equals($auth_code, $params['auth_code'])) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 

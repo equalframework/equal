@@ -72,6 +72,63 @@ $checkToken = function($auth_token) use($auth) {
     return $payload['sub'];
 };
 
+$base32Decode = function(string $encoded): string {
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $encoded = strtoupper(rtrim($encoded, '='));
+    $buffer = 0;
+    $bitsLeft = 0;
+    $decoded = '';
+
+    foreach (str_split($encoded) as $character) {
+        $value = strpos($alphabet, $character);
+
+        if ($value === false) {
+            throw new InvalidArgumentException('Invalid Base32 secret');
+        }
+
+        $buffer = ($buffer << 5) | $value;
+        $bitsLeft += 5;
+
+        if ($bitsLeft >= 8) {
+            $bitsLeft -= 8;
+            $decoded .= chr(($buffer >> $bitsLeft) & 0xff);
+        }
+    }
+
+    return $decoded;
+};
+
+$getAuthCode = function($totpkey) use($base32Decode) {
+    $counter = intdiv(time(), $totpkey['period']);
+
+// Encode the counter as an unsigned 64-bit, big-endian integer.
+    $counterBytes = pack(
+        'N2',
+        ($counter >> 32) & 0xffffffff,
+        $counter & 0xffffffff
+    );
+
+    $hash = hash_hmac(
+        $totpkey['algorithm'],
+        $counterBytes,
+        $base32Decode($totpkey['secret']),
+        true
+    );
+
+    // Dynamic truncation defined by HOTP/TOTP.
+    $offset = ord($hash[strlen($hash) - 1]) & 0x0f;
+
+    $binaryCode =
+        ((ord($hash[$offset]) & 0x7f) << 24) |
+        ((ord($hash[$offset + 1]) & 0xff) << 16) |
+        ((ord($hash[$offset + 2]) & 0xff) << 8) |
+        (ord($hash[$offset + 3]) & 0xff);
+
+    $otp = $binaryCode % (10 ** $totpkey['digits']);
+
+    $auth_code = str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
+};
+
 
 /**
  * Action
@@ -110,9 +167,9 @@ if($totpkey['status'] !== 'pending') {
     throw new Exception('cannot_validate_totpkey', EQ_ERROR_NOT_ALLOWED);
 }
 
-$res_auth_code = eQual::run('get', 'core_security_TotpKey_auth-code', ['id' => $totpkey['id']]);
+$auth_code = $getAuthCode($totpkey);
 
-if($params['auth_code'] !== $res_auth_code['auth_code']) {
+if(!hash_equals($auth_code, $params['auth_code'])) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
