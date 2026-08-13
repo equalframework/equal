@@ -22,6 +22,11 @@ use core\User;
             'type'              => 'string',
             'description'       => 'Code that was given by the user\'s authenticator application.',
             'required'          => true
+        ],
+        'auth_token' => [
+            'type'              => 'string',
+            'description'       => 'Temporary token that certify that the user\'s credentials where recently given.',
+            'help'              => 'Only needed if the authentication using totpkey is required for the user.'
         ]
     ],
     'response'      => [
@@ -30,7 +35,7 @@ use core\User;
         'accept-origin' => '*'
     ],
     'access'        => [
-        'visibility'    => 'protected'
+        'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
     ],
     'providers'     => ['context', 'auth']
 ]);
@@ -41,10 +46,48 @@ use core\User;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
+/**
+ * Methods
+ */
+
+$checkToken = function($auth_token) use($auth) {
+    $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
+    if($check === false || $check <= 0) {
+        throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    $token = $auth->decodeToken($auth_token);
+
+    $payload = $token['payload'] ?? null;
+    $now = time();
+
+    if($payload['type'] !== 'mfa_challenge' || $payload['amr'] !== 'pwd') {
+        throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
+        throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    return $payload['sub'];
+};
+
+
+/**
+ * Action
+ */
+
 $user_id = $auth->userId();
 
 if($user_id <= 0) {
-    throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
+    if(empty($params['auth_token'])) {
+        throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
+    }
+
+    $user_id = $checkToken($params['auth_token']);
+}
+elseif(!empty($params['auth_token'])) {
+    throw new Exception('auth_token_not_allowed', EQ_ERROR_INVALID_PARAM);
 }
 
 $user = User::id($user_id)->first();
@@ -73,6 +116,25 @@ if($params['auth_code'] !== $res_auth_code['auth_code']) {
 
 TotpKey::id($totpkey['id'])->update(['status' => 'active']);
 
+// generate a JWT access token
+$access_token = $auth->token(
+    // user identifier
+    $user['id'],
+    // validity of the token
+    constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+    // authentication method to register to AMR
+    [
+        'auth_type'  => 'totp',
+        'auth_level' => 2
+    ]
+);
+
 $context
     ->httpResponse()
+    ->cookie('access_token',  $access_token, [
+        'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        'httponly'  => true,
+        'secure'    => constant('AUTH_TOKEN_HTTPS')
+    ])
+    ->status(204)
     ->send();
