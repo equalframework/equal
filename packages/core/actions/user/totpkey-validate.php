@@ -96,6 +96,8 @@ if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
 }
 
+$auth->su($user['id']);
+
 $totpkey = TotpKey::id($params['totpkey_id'])
     ->read(['status'])
     ->first();

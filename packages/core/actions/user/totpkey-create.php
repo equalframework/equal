@@ -86,6 +86,8 @@ if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
 }
 
+$auth->su($user['id']);
+
 $res_fields = ['algorithm', 'digits', 'period', 'totp_uri', 'totp_qr_code_uri'];
 
 $totpkey = TotpKey::search([
