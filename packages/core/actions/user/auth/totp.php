@@ -76,8 +76,8 @@ $base32Decode = function(string $encoded): string {
     return $decoded;
 };
 
-$getAuthCode = function($totpkey) use($base32Decode) {
-    $counter = intdiv(time(), $totpkey['period']);
+$getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
+    $counter = intdiv($timestamp, $totpkey['period']);
 
 // Encode the counter as an unsigned 64-bit, big-endian integer.
     $counterBytes = pack(
@@ -179,9 +179,22 @@ if(!$totpkey) {
     throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
 }
 
-$auth_code = $getAuthCode($totpkey);
+$now = time();
+$auth_codes = [
+    $getAuthCode($totpkey, $now - $totpkey['period']),
+    $getAuthCode($totpkey, $now),
+    $getAuthCode($totpkey, $now + $totpkey['period'])
+];
 
-if(!hash_equals($auth_code, $params['auth_code'])) {
+$auth_code_valid = false;
+foreach($auth_codes as $auth_code) {
+    if(hash_equals($auth_code, $params['auth_code'])) {
+        $auth_code_valid = true;
+        break;
+    }
+}
+
+if(!$auth_code_valid) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
