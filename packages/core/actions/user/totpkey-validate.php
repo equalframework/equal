@@ -37,6 +37,7 @@ use core\User;
     'access'        => [
         'visibility'    => 'public' // #memo - allow access with temporary auth_token when MFA is required
     ],
+    'constants'     => ['AUTH_SECRET_KEY'],
     'providers'     => ['context', 'auth']
 ]);
 
@@ -51,7 +52,13 @@ use core\User;
  */
 
 $checkToken = function($auth_token) use($auth) {
-    $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
+    try {
+        $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
+    }
+    catch(Exception $e) {
+        $check = false;
+    }
+
     if($check === false || $check <= 0) {
         throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
     }

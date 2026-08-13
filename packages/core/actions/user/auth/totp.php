@@ -144,7 +144,13 @@ if(!$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
-$check = $auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'));
+try {
+    $check = $auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'));
+}
+catch(Exception $e) {
+    $check = false;
+}
+
 if($check === false || $check <= 0) {
     throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
 }
