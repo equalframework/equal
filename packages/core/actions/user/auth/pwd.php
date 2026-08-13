@@ -81,19 +81,6 @@ $global_totp_required = Setting::get_value('core', 'security', 'auth.password.to
 $totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
 
 if($totp_required) {
-    // create a temporary token to allow the MFA using totp
-    $totpkey = TotpKey::search([
-        ['user_id', '=', $user['id']],
-        ['type', '=', 'totp'],
-        ['status', '=', 'active']
-    ])
-        ->read(['id'])
-        ->first();
-
-    if(!$totpkey) {
-        throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
-    }
-
     $now = time();
     $auth_token = $auth->encodeToken([
         'type'  => 'mfa_challenge',
