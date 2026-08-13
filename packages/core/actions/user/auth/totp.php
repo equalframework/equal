@@ -188,7 +188,9 @@ if(!$totpkey) {
     throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
 }
 
-if($totpkey['failed_attempts'] >= 5) {
+$allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
+
+if($totpkey['failed_attempts'] >= $allowed_failed_attempts) {
     throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
 }
 
