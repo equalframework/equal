@@ -188,7 +188,7 @@ if(!$totpkey) {
     throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
 }
 
-if($totpkey['failed_attempts'] > 5) {
+if($totpkey['failed_attempts'] >= 5) {
     throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
 }
 
