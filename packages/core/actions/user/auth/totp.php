@@ -104,7 +104,7 @@ $getAuthCode = function($totpkey) use($base32Decode) {
 
     $otp = $binaryCode % (10 ** $totpkey['digits']);
 
-    $auth_code = str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
+    return str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
 };
 
 
@@ -133,7 +133,7 @@ else {
 
 // find the user related to the normalized login
 $user = User::search(['login', '=', $login])
-    ->read(['id', 'validated', 'allow_auth'])
+    ->read(['validated'])
     ->first(true);
 
 if(!$user) {

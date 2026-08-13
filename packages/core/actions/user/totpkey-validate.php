@@ -133,7 +133,7 @@ $getAuthCode = function($totpkey) use($base32Decode) {
 
     $otp = $binaryCode % (10 ** $totpkey['digits']);
 
-    $auth_code = str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
+    return str_pad((string) $otp, $totpkey['digits'], '0', STR_PAD_LEFT);
 };
 
 
