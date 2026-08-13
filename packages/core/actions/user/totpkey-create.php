@@ -15,7 +15,7 @@ use core\User;
     'params'        => [
         'auth_token' => [
             'type'              => 'string',
-            'description'       => 'Temporary token that certify that the user\'s credentials where recently given.',
+            'description'       => 'Temporary token that certifies that the user\'s credentials were recently given.',
             'help'              => 'Only needed if the authentication using totpkey is required for the user.'
         ]
     ],
