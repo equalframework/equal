@@ -155,7 +155,10 @@ if(!$user) {
 
 $auth->su($user['id']);
 
-$totpkey = TotpKey::id($params['totpkey_id'])
+$totpkey = TotpKey::search([
+    ['id', '=', $params['totpkey_id']],
+    ['user_id', '=', $user['id']]
+])
     ->read(['status'])
     ->first();
 
