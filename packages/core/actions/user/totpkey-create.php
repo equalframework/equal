@@ -93,6 +93,13 @@ if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
 }
 
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
+
+if(!$totp_enabled) {
+    throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
+}
+
 $auth->su($user['id']);
 
 $res_fields = ['algorithm', 'digits', 'period', 'totp_uri', 'totp_qr_code_uri'];

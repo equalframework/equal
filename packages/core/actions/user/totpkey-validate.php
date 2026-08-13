@@ -7,6 +7,7 @@
 */
 
 use core\security\factor\TotpKey;
+use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
@@ -158,6 +159,13 @@ $user = User::id($user_id)->first();
 
 if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
+}
+
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
+
+if(!$totp_enabled) {
+    throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
 }
 
 $auth->su($user['id']);

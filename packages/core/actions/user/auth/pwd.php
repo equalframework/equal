@@ -77,19 +77,25 @@ if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
-$global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
-$totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
+$totp_required = false;
 
-if(!$totp_required) {
-    $totpkey = TotpKey::search([
-        ['user_id', '=', $user['id']],
-        ['type', '=', 'totp'],
-        ['status', '=', 'active']
-    ])
-        ->first();
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
+if($totp_enabled) {
+    $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
+    $totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
+    if(!$totp_required) {
+        // check if user configured a totpkey even if it isn't required
+        $totpkey = TotpKey::search([
+            ['user_id', '=', $user['id']],
+            ['type', '=', 'totp'],
+            ['status', '=', 'active']
+        ])
+            ->first();
 
-    if($totpkey) {
-        $totp_required = true;
+        if($totpkey) {
+            $totp_required = true;
+        }
     }
 }
 
@@ -102,6 +108,19 @@ if($totp_required) {
         'iat'   => $now,
         'exp'   => $now + 300
     ]);
+
+    $totpkey = TotpKey::search([
+        ['user_id', '=', $user['id']],
+        ['type', '=', 'totp'],
+        ['status', '=', 'active']
+    ])
+        ->read(['failed_attempts'])
+        ->first();
+
+    if($totpkey && $totpkey['failed_attempts'] > 0) {
+        // if user has a totpkey reset the failed attempts counter
+        TotpKey::id($totpkey['id'])->update(['failed_attempts' => 0]);
+    }
 
     $context
         ->httpResponse()

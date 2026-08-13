@@ -7,6 +7,7 @@
 */
 
 use core\security\factor\TotpKey;
+use core\setting\Setting;
 use core\User;
 
 [$params, $providers] = eQual::announce([
@@ -144,6 +145,13 @@ if(!$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
+
+if(!$totp_enabled) {
+    throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
+}
+
 try {
     $check = $auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'));
 }
@@ -173,10 +181,15 @@ $totpkey = TotpKey::search([
     ['type', '=', 'totp'],
     ['status', '=', 'active']
 ])
+    ->read(['failed_attempts'])
     ->first();
 
 if(!$totpkey) {
     throw new Exception('totpkey_not_found', EQ_ERROR_NOT_ALLOWED);
+}
+
+if($totpkey['failed_attempts'] > 5) {
+    throw new Exception('allowed_failed_attempts_reached', EQ_ERROR_NOT_ALLOWED);
 }
 
 $now = time();
@@ -195,6 +208,10 @@ foreach($auth_codes as $auth_code) {
 }
 
 if(!$auth_code_valid) {
+    TotpKey::id($totpkey['id'])->update([
+        'failed_attempts' => $totpkey['failed_attempts'] + 1
+    ]);
+
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 

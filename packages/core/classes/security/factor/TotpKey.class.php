@@ -76,6 +76,12 @@ class TotpKey extends AuthenticationFactor {
                 'default'           => 30
             ],
 
+            'failed_attempts' => [
+                'type'              => 'integer',
+                'description'       => 'The quantity of failed authentication attempts since last time valid credentials were given by user',
+                'default'           => 0
+            ],
+
             'totp_uri' => [
                 'type'              => 'computed',
                 'result_type'       => 'string',
