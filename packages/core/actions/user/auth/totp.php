@@ -181,7 +181,7 @@ $totpkey = TotpKey::search([
     ['type', '=', 'totp'],
     ['status', '=', 'active']
 ])
-    ->read(['failed_attempts'])
+    ->read(['secret', 'algorithm', 'digits', 'period', 'failed_attempts'])
     ->first();
 
 if(!$totpkey) {
