@@ -198,6 +198,8 @@ if(!$auth_code_valid) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
+TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
+
 // generate a JWT access token
 $access_token = $auth->token(
     // user identifier
