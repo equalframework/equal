@@ -1,7 +1,7 @@
 <?php
 /*
     This file is part of the eQual framework <http://www.github.com/equalframework/equal>
-    Some Rights Reserved, eQual framework, 2010-2024
+    Some Rights Reserved, eQual framework, 2010-2026
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
@@ -14,7 +14,7 @@ use lbuchs\WebAuthn\Binary\ByteBuffer;
 use lbuchs\WebAuthn\WebAuthn;
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Authenticate a user using a passkey.',
+    'description'   => 'Attempts to log a user in using a passkey.',
     'params'        => [
         'auth_token' => [
             'type'          => 'string',
@@ -190,11 +190,12 @@ else {
         );
 }
 
-$context->httpResponse()
-        ->cookie('access_token',  $access_token, [
-            'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-            'httponly'  => true,
-            'secure'    => constant('AUTH_TOKEN_HTTPS')
-        ])
-        ->status(204)
-        ->send();
+$context
+    ->httpResponse()
+    ->cookie('access_token',  $access_token, [
+        'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        'httponly'  => true,
+        'secure'    => constant('AUTH_TOKEN_HTTPS')
+    ])
+    ->status(204)
+    ->send();
