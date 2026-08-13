@@ -196,7 +196,12 @@ if(!$auth_code_valid) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
-TotpKey::id($totpkey['id'])->transition('activate');
+try {
+    TotpKey::id($totpkey['id'])->transition('activate');
+}
+catch(Exception $e) {
+    throw new Exception('totpkey_activation_failed', EQ_ERROR_CONFLICT_OBJECT);
+}
 
 // generate a JWT access token
 $access_token = $auth->token(

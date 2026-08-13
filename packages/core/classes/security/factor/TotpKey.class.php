@@ -181,4 +181,64 @@ class TotpKey extends AuthenticationFactor {
 
         return $result;
     }
+
+    public static function policyActivatable($self): array {
+        $result = [];
+        $self->read(['user_id']);
+        foreach($self as $id => $totpkey) {
+            $user_has_active_totpkey = TotpKey::search([
+                ['id', '<>', $id],
+                ['type', '=', 'totp'],
+                ['status', '=', 'active'],
+                ['user_id', '=', $totpkey['user_id']]
+            ])
+                ->count() > 0;
+
+            if($user_has_active_totpkey) {
+                return ['user_id' => ['has_active' => "The object class must be configured to reverse the export."]];
+            }
+        }
+
+        return $result;
+    }
+
+    public static function getPolicies(): array {
+        return [
+            'activatable' => [
+                'description'   => "Checks if the export can be reversed.",
+                'function'      => 'policyActivatable'
+            ]
+        ];
+    }
+
+    public static function getWorkflow(): array {
+        return [
+            'pending' => [
+                'description'   => 'The factor was created but isn\'t valid yet.',
+                'transitions' => [
+                    'activate' => [
+                        'description'   => 'Activate the authentication factor, usually after its validation.',
+                        'status'        => 'active',
+                        'policies'      => ['activatable']
+                    ]
+                ]
+            ],
+            'active' => [
+                'revoke' => [
+                    'description'   => 'Revoke permanently the authentication factor.',
+                    'status'        => 'revoked'
+                ],
+                'disable' => [
+                    'description'   => 'Disable temporally the authentication factor.',
+                    'status'        => 'disabled'
+                ]
+            ],
+            'disabled' => [
+                'activate' => [
+                    'description'   => 'Re-activate the authentication factor.',
+                    'status'        => 'active'
+                ]
+            ]
+        ];
+    }
 }
