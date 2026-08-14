@@ -94,6 +94,11 @@ class AuthenticationManager extends Service {
      * @return  string              token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
     public function token(int $user_id = 0, int $validity = 0, array $auth_method = [], int $jti = 0) {
+        if(isset($auth_method['auth_level'])) {
+            // amr must be a list of all authentication methods
+            $auth_method = [$auth_method];
+        }
+
         $payload = [
             // internal user identifier (non-standard claim)
             'id'    => $user_id ?: $this->user_id,

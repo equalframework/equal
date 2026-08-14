@@ -219,18 +219,34 @@ if(!$auth_code_valid) {
 
 TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
 
-// generate a JWT access token
-$access_token = $auth->token(
-    // user identifier
-    $user['id'],
-    // validity of the token
-    constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-    // authentication method to register to AMR
-    [
-        'auth_type'  => 'totp',
-        'auth_level' => 2
-    ]
-);
+// totp auth could be an escalation: check if a token is already present (and not expired)
+$jwt = $auth->retrieveAccessToken();
+
+$auth_method = [
+    'auth_type'     => 'totp',
+    'auth_level'    => 2
+];
+
+if($jwt) {
+    // update existing access token
+    if(!isset($jwt['amr'])) {
+        $jwt['amr'] = [];
+    }
+    // append to existing auth methods
+    $jwt['amr'][] = $auth_method;
+    $access_token = $auth->encodeToken($jwt);
+}
+else {
+    // generate a JWT access token
+    $access_token = $auth->token(
+        // user identifier
+        $user['id'],
+        // validity of the token
+        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
+        // authentication method to register to AMR
+        $auth_method
+    );
+}
 
 $context
     ->httpResponse()
