@@ -104,6 +104,7 @@ $settings_en = [
     ['id' => 43, 'package' => 'core', 'code' => 'auth.totp.enabled',                 'title' => 'TOTP authentication enabled',                 'form_control' => 'toggle', 'section_id' => 3, 'description' => 'Allow users to authenticate with a time-based one-time password as an additional factor.', 'help' => 'Enable this setting before requiring TOTP authentication or allowing users to create TOTP keys.', 'type' => 'boolean'],
     ['id' => 44, 'package' => 'core', 'code' => 'auth.password.totp_required',       'title' => 'TOTP authentication required (MFA)',          'form_control' => 'toggle', 'section_id' => 3, 'description' => 'Require a valid TOTP code after successful password authentication.', 'help' => 'Before enabling this requirement, ensure affected users can enroll a TOTP key or have another account recovery method.', 'type' => 'boolean'],
     ['id' => 45, 'package' => 'core', 'code' => 'totpkey_creation',                  'title' => 'Propose TOTP key creation',                   'form_control' => 'toggle', 'section_id' => 3, 'description' => 'Allow users to enroll a TOTP key for multi-factor authentication.', 'help' => 'When enabled, eligible users can create and validate a TOTP key. Disabling it does not deactivate existing keys.', 'type' => 'boolean'],
+    ['id' => 46, 'package' => 'core', 'code' => 'auth.totp.allowed_failed_attempts', 'title' => 'TOTP allowed failed attempts',                'form_control' => 'input', 'section_id' => 3,  'description' => 'The quantity of attempts a user can make to enter the correct authentication code.', 'help' => 'By default 5 attempts are allowed.', 'type' => 'integer']
 ];
 
 $import_data('core\setting\Setting', [
@@ -153,7 +154,8 @@ $import_data('core\setting\Setting', [
         42 => ['title' => "Authentification par clé d'accès activée", 'description' => "Autoriser les utilisateurs à s'authentifier avec des clés d'accès enregistrées.", 'help' => "Désactivez ce paramètre pour retirer l'authentification par clé d'accès des méthodes de connexion proposées aux utilisateurs."],
         43 => ['title' => 'Authentification TOTP activée', 'description' => "Autoriser les utilisateurs à s'authentifier avec un mot de passe à usage unique basé sur le temps comme facteur supplémentaire.", 'help' => "Activez ce paramètre avant d'exiger l'authentification TOTP ou d'autoriser les utilisateurs à créer des clés TOTP."],
         44 => ['title' => 'Authentification TOTP requise (MFA)', 'description' => "Exiger un code TOTP valide après une authentification réussie par mot de passe.", 'help' => "Avant d'activer cette exigence, assurez-vous que les utilisateurs concernés peuvent enregistrer une clé TOTP ou disposent d'une autre méthode de récupération de compte."],
-        45 => ['title' => "Proposer la création d'une clé TOTP", 'description' => "Autoriser les utilisateurs à enregistrer une clé TOTP pour l'authentification multifacteur.", 'help' => "Lorsque ce paramètre est activé, les utilisateurs éligibles peuvent créer et valider une clé TOTP. Sa désactivation ne désactive pas les clés existantes."]
+        45 => ['title' => "Proposer la création d'une clé TOTP", 'description' => "Autoriser les utilisateurs à enregistrer une clé TOTP pour l'authentification multifacteur.", 'help' => "Lorsque ce paramètre est activé, les utilisateurs éligibles peuvent créer et valider une clé TOTP. Sa désactivation ne désactive pas les clés existantes."],
+        46 => ['title' => "TOTP nombre de tentatives autorisées", 'description' => "", 'help' => ""]
     ])
 ]);
 
