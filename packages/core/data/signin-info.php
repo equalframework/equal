@@ -105,7 +105,7 @@ if($auth_passkey_enabled) {
 
     $global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
     $passkey_creation = Setting::get_value('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
-    
+
     if($passkey_creation) {
         $allowed_creations[] = 'passkey';
 
