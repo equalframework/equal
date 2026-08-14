@@ -153,7 +153,9 @@ if($auth_password_totp_enabled) {
     $allowed_methods[] = 'totp';
 }
 
-$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
+$global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
+$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+
 if($totpkey_creation) {
     $allowed_creations[] = 'totpkey';
 }
