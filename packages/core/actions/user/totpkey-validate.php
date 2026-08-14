@@ -185,7 +185,7 @@ $totpkey = TotpKey::search([
     ['id', '=', $params['totpkey_id']],
     ['user_id', '=', $user['id']]
 ])
-    ->read(['status', 'algorithm', 'digits', 'period'])
+    ->read(['status', 'secret', 'algorithm', 'digits', 'period'])
     ->first();
 
 if(!$totpkey) {
