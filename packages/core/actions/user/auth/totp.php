@@ -13,15 +13,9 @@ use core\User;
 [$params, $providers] = eQual::announce([
     'description'	=>	"Attempts to log a user in.",
     'params' 		=>	[
-        'login'		=>	[
-            'description'   => "The user name, username or login.",
-            'type'          => 'string',
-            'required'      => true
-        ],
         'auth_token' =>  [
             'description'   => "The temporary token that proves the correct password was given.",
-            'type'          => 'string',
-            'required'      => true
+            'type'          => 'string'
         ],
         'auth_code' => [
             'description'   => "The code given by the user's authenticator application.",
@@ -50,6 +44,34 @@ use core\User;
 /**
  * Methods
  */
+
+$checkToken = function($auth_token) use($auth) {
+    try {
+        $check = $auth->verifyToken($auth_token, constant('AUTH_SECRET_KEY'));
+    }
+    catch(Exception $e) {
+        $check = false;
+    }
+
+    if($check === false || $check <= 0) {
+        throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    $token = $auth->decodeToken($auth_token);
+
+    $payload = $token['payload'] ?? null;
+    $now = time();
+
+    if($payload['type'] !== 'mfa_challenge' || $payload['amr'] !== 'pwd') {
+        throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
+        throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
+    }
+
+    return $payload['sub'];
+};
 
 $base32Decode = function(string $encoded): string {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -113,29 +135,24 @@ $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
  * Action
  */
 
-// we might have received either a login (email) or a username
+$user_id = $auth->userId();
 
-// if provided login is an email address, attempt to resolve by login
-if(strpos($params['login'], '@') > 0) {
-    // cleanup provided email (as login): strip heading and trailing spaces and remove recipient tag, if any
-    list($username, $domain) = explode('@', strtolower(trim($params['login'])));
-    $username .= '+';
-    $login = substr($username, 0, strpos($username, '+')).'@'.$domain;
-}
-// other format: attempt to resolve through username
-else {
-    // find a user that matches the given username (there should be only one)
-    $user = User::search(['username', '=', $params['login']])->read(['login'])->first();
-    if(!$user) {
-        throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
+$is_authenticated = true;
+if($user_id <= 0) {
+    $is_authenticated = false;
+    if(empty($params['auth_token'])) {
+        throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
-    $login = $user['login'];
+
+    $user_id = $checkToken($params['auth_token']);
+}
+elseif(!empty($params['auth_token'])) {
+    throw new Exception('auth_token_not_allowed', EQ_ERROR_INVALID_PARAM);
 }
 
-// find the user related to the normalized login
-$user = User::search(['login', '=', $login])
-    ->read(['validated'])
-    ->first(true);
+$user = User::id($user_id)
+    ->read(['validated', 'allow_auth'])
+    ->first();
 
 if(!$user) {
     throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
@@ -145,35 +162,19 @@ if(!$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
+if(!$user['allow_auth']) {
+    throw new Exception("not_allowed", EQ_ERROR_NOT_ALLOWED);
+}
+
+if(!$is_authenticated) {
+    $auth->su($user['id']);
+}
+
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
 $totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
 if(!$totp_enabled) {
     throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
-}
-
-try {
-    $check = $auth->verifyToken($params['auth_token'], constant('AUTH_SECRET_KEY'));
-}
-catch(Exception $e) {
-    $check = false;
-}
-
-if($check === false || $check <= 0) {
-    throw new Exception('invalid_token', EQ_ERROR_NOT_ALLOWED);
-}
-
-$token = $auth->decodeToken($params['auth_token']);
-
-$payload = $token['payload'] ?? null;
-$now = time();
-
-if($payload['type'] !== 'mfa_challenge' || $payload['amr'] !== 'pwd' || $payload['sub'] !== $user['id']) {
-    throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
-}
-
-if((int) $payload['iat'] > $now || (int) $payload['exp'] < $now) {
-    throw new Exception('expired_token', EQ_ERROR_INVALID_PARAM);
 }
 
 $totpkey = TotpKey::search([

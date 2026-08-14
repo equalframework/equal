@@ -144,7 +144,9 @@ $getAuthCode = function($totpkey, $timestamp) use($base32Decode) {
 
 $user_id = $auth->userId();
 
+$is_authenticated = true;
 if($user_id <= 0) {
+    $is_authenticated = false;
     if(empty($params['auth_token'])) {
         throw new Exception('user_unknown', EQ_ERROR_INVALID_USER);
     }
@@ -161,6 +163,10 @@ if(!$user) {
     throw new Exception('unexpected_error', EQ_ERROR_INVALID_USER);
 }
 
+if(!$is_authenticated) {
+    $auth->su($user['id']);
+}
+
 $global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
 $totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
 
@@ -168,7 +174,12 @@ if(!$totp_enabled) {
     throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
 }
 
-$auth->su($user['id']);
+$global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
+$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+
+if(!$totpkey_creation) {
+    throw new Exception("totpkey_creation_not_allowed", EQ_ERROR_NOT_ALLOWED);
+}
 
 $totpkey = TotpKey::search([
     ['id', '=', $params['totpkey_id']],
