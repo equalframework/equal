@@ -224,8 +224,10 @@ TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
 $jwt = $auth->retrieveAccessToken();
 
 $auth_method = [
-    'auth_type'     => 'totp',
-    'auth_level'    => 2
+    [
+        'auth_type'     => 'totp',
+        'auth_level'    => 2
+    ]
 ];
 
 if($jwt) {
@@ -245,7 +247,13 @@ else {
         // validity of the token
         constant('AUTH_ACCESS_TOKEN_VALIDITY'),
         // authentication method to register to AMR
-        $auth_method
+        [
+            [
+                'auth_type'     => 'pwd',
+                'auth_level'    => 1
+            ],
+            $auth_method
+        ]
     );
 }
 
