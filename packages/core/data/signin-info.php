@@ -7,6 +7,7 @@
 */
 
 use core\security\AuthenticationFactor;
+use core\security\factor\TotpKey;
 use core\setting\Setting;
 use core\setting\SettingValue;
 use core\User;
@@ -174,6 +175,12 @@ foreach($auth_factors as $auth_factor) {
     }
     if($auth_factor['type'] === 'totp') {
         $result['user_data']['has_totpkey'] = true;
+
+        $totpkey = TotpKey::id($auth_factor['id'])
+            ->read(['digits'])
+            ->first();
+
+        $result['methods_data']['totp']['digits'] = $totpkey['digits'];
     }
 }
 
