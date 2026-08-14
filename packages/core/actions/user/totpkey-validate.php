@@ -174,11 +174,16 @@ if(!$totp_enabled) {
     throw new Exception("totp_auth_disabled", EQ_ERROR_NOT_ALLOWED);
 }
 
-$global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
-$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+$global_auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
+$auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_auth_password_totp_required, ['user_id' => $user['id']]);
 
-if(!$totpkey_creation) {
-    throw new Exception("totpkey_creation_not_allowed", EQ_ERROR_NOT_ALLOWED);
+if(!$auth_password_totp_required) {
+    $global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
+    $totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+
+    if(!$totpkey_creation) {
+        throw new Exception("totpkey_creation_not_allowed", EQ_ERROR_NOT_ALLOWED);
+    }
 }
 
 $totpkey = TotpKey::search([
