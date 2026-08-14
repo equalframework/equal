@@ -218,7 +218,11 @@ if(!$auth_code_valid) {
     throw new Exception('auth_code_mismatch', EQ_ERROR_INVALID_PARAM);
 }
 
-TotpKey::id($totpkey['id'])->update(['last_used_at' => time()]);
+TotpKey::id($totpkey['id'])
+    ->update([
+        'last_used_at'      => time(),
+        'failed_attempts'   => 0
+    ]);
 
 // totp auth could be an escalation: check if a token is already present (and not expired)
 $jwt = $auth->retrieveAccessToken();
