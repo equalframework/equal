@@ -117,9 +117,8 @@ if($totp_required) {
         ->read(['failed_attempts'])
         ->first();
 
-    if($totpkey && $totpkey['failed_attempts'] > 0) {
-        // if user has a totpkey reset the failed attempts counter
-        TotpKey::id($totpkey['id'])->update(['failed_attempts' => 0]);
+    if($totpkey && $totpkey['failed_attempts'] >= 5) {
+        throw new Exception('failled_attempts_reached');
     }
 
     $context

@@ -78,7 +78,7 @@ class TotpKey extends AuthenticationFactor {
 
             'failed_attempts' => [
                 'type'              => 'integer',
-                'description'       => 'The quantity of failed authentication attempts since last time valid credentials were given by user',
+                'description'       => 'The quantity of failed authentication attempts since last time valid credentials were given by user.',
                 'default'           => 0
             ],
 
