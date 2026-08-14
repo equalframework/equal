@@ -117,7 +117,9 @@ if($totp_required) {
         ->read(['failed_attempts'])
         ->first();
 
-    if($totpkey && $totpkey['failed_attempts'] >= 5) {
+    $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
+
+    if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
         throw new Exception('failled_attempts_reached');
     }
 
