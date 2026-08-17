@@ -530,7 +530,7 @@ else {
 
     /**
      * The list of installed package is maintained in the file /log/packages.json.
-     * It is stored as an associative array mapping package names with their first initialization timestamp.
+     * It is stored as an associative array mapping package names with their last import timestamp.
      */
     $packages = [];
 
@@ -539,7 +539,7 @@ else {
         $packages = json_decode($json, true);
     }
 
-    if(!isset($packages[$params['package']])) {
+    if(!isset($packages[$params['package']]) || $params['import']) {
         $packages[$params['package']] = date('c');
     }
 
