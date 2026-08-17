@@ -206,6 +206,8 @@ These mechanisms are complementary and must not be used as substitutes for one a
 
 Capabilities define which generic CRUD operations are structurally exposed for an entity through `Collection`.
 
+`getCapabilities()` is only a restrictive mechanism: it can narrow or block the generic CRUD surface exposed by an entity, but it does not grant permissions by itself. Even when ACLs grant a right to a user or group, the entity can still explicitly refuse the corresponding generic operation through its capabilities.
+
 They answer the following question:
 
 > Is this generic operation structurally available for this entity?
