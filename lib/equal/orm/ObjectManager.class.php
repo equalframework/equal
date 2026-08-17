@@ -275,51 +275,60 @@ class ObjectManager extends Service {
      */
     private function getStaticInstance($class) {
         if(!isset($this->models[$class])) {
-            // if class is unknown, load the file containing the class declaration of the requested object
-            if(!class_exists($class, false)) {
+            try {
+                // if class is unknown, load the file containing the class declaration of the requested object
+                if(!class_exists($class, false)) {
 
-                $entity = new Entity($class);
-                $filename = $entity->getFullFilePath();
+                    $entity = new Entity($class);
+                    $filename = $entity->getFullFilePath();
 
-                if(!file_exists($filename)) {
-                    $parentEntity = $entity->getParent();
-                    if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
-                        $class_name = $entity->getName();
-                        $namespace = $entity->getNamespace();
-                        $parent = '\\'.$parentEntity->getFullName();
-                        eval("namespace $namespace {
-                            class $class_name extends $parent {}
-                        }");
+                    if(!file_exists($filename)) {
+                        $parentEntity = $entity->getParent();
+                        if($parentEntity && file_exists($parentEntity->getFullFilePath())) {
+                            $class_name = $entity->getName();
+                            $namespace = $entity->getNamespace();
+                            $parent = '\\'.$parentEntity->getFullName();
+                            eval("namespace $namespace {
+                                class $class_name extends $parent {}
+                            }");
+                        }
+                        else {
+                            throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
+                        }
                     }
                     else {
-                        throw new Exception("unknown model: '$class'", EQ_ERROR_UNKNOWN_OBJECT);
+                        // #todo - this should be tested in package-consistency controller
+                        $parts = explode('\\', $class);
+                        $class_name = array_pop($parts);
+                        $file_content = file_get_contents($filename);
+                        preg_match('/class(\s*)' . $class_name . '(.*)(\s*)\{/iU', $file_content, $matches);
+                        if(!isset($matches[1])) {
+                            throw new Exception("malformed class file for model '$class': class name do not match file name", EQ_ERROR_INVALID_CONFIG);
+                        }
+
+                        preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
+                        if(!isset($matches[1])) {
+                            throw new Exception("malformed class file for model '$class': parent class name not found in file", EQ_ERROR_INVALID_CONFIG);
+                        }
+
+                        if(!(include_once $filename)) {
+                            throw new Exception("unable to load '$filename' for model '$class': script inclusion failed", EQ_ERROR_UNKNOWN_OBJECT);
+                        }
                     }
+
                 }
-                else {
-                    // #todo - this should be tested in package-consistency controller
-                    $parts = explode('\\', $class);
-                    $class_name = array_pop($parts);
-                    $file_content = file_get_contents($filename);
-                    preg_match('/class(\s*)'.$class_name.'(.*)(\s*)\{/iU', $file_content, $matches);
-                    if(!isset($matches[1])) {
-                        throw new Exception("malformed class file for model '$class': class name do not match file name", EQ_ERROR_INVALID_CONFIG);
-                    }
-
-                    preg_match('/\bextends\b(.*)(\s*)\{/iU', $file_content, $matches);
-                    if(!isset($matches[1])) {
-                        throw new Exception("malformed class file for model '$class': parent class name not found in file", EQ_ERROR_INVALID_CONFIG);
-                    }
-
-                    if(!(include_once $filename)) {
-                        throw new Exception("unknown model: '$class'", EQ_ERROR_UNKNOWN_OBJECT);
-                    }
+                if(!class_exists($class, false)) {
+                    throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
                 }
-
+                $this->models[$class] = new $class();
             }
-            if(!class_exists($class, false)) {
-                throw new Exception("unknown model (check file syntax): '$class'", EQ_ERROR_UNKNOWN_OBJECT);
+            catch(Exception $e) {
+                if($e->getMessage() != "unknown_model") {
+                    // #memo - method `getModel()`is registered as autoload handler, but an unknown_model Exception is not necessarily an error (for external dependencies)
+                    trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
+                }
+                throw new Exception("unknown_model", EQ_ERROR_UNKNOWN_OBJECT);
             }
-            $this->models[$class] = new $class();
         }
         return $this->models[$class];
     }
@@ -337,7 +346,6 @@ class ObjectManager extends Service {
             $result = strtolower($object->getTable());
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
             return $e->getCode();
         }
         return $result;
@@ -1431,7 +1439,6 @@ class ObjectManager extends Service {
         }
         catch(Exception $e) {
             // #memo - another autoload handler might be registered, so no exception must be raised here
-            trigger_error('ORM::'.$e->getMessage(), EQ_REPORT_ERROR);
         }
         return $model;
     }
