@@ -1911,6 +1911,94 @@ class ObjectManager extends Service {
     }
 
     /**
+     * Instantiates existing draft objects without replaying draft changes.
+     *
+     * This method performs the explicit `draft` to `instance` state transition. It does not
+     * rebuild the draft update history, does not trigger field `onupdate` callbacks, and only
+     * invokes `onafterinstantiate` after the state change.
+     *
+     * @param   string    $class        Class of the objects to instantiate.
+     * @param   mixed     $ids          Identifier(s) of the object(s) to instantiate.
+     * @param   string    $lang         Language under which fields have to be checked.
+     *
+     * @return  int|int[] Returns an array of instantiated ids, or an error identifier in case an error occurred.
+     */
+    public function instantiate($class, $ids=null, $lang=null) {
+        $res = [];
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
+
+        try {
+            // get DB handler (init DB connection if necessary)
+            $this->getDbHandler();
+
+            // get static instance (checks that given class exists)
+            $object = $this->getStaticInstance($class);
+            $schema = $object->getSchema();
+            $table_name = $this->getObjectTableName($class);
+
+            // ignore non-existing ids
+            $ids = $this->filterExistingIdentifiers($class, $ids);
+
+            if(empty($ids)) {
+                trigger_error("ORM::ignoring call with no existing ids", EQ_REPORT_INFO);
+                return [];
+            }
+
+            $objects = $this->read($class, $ids, ['state'], $lang);
+            if(!is_array($objects)) {
+                throw new Exception('unable_to_read_object_state', $objects);
+            }
+
+            foreach($ids as $oid) {
+                if(($objects[$oid]['state'] ?? null) !== 'draft') {
+                    throw new Exception('object_not_draft', EQ_ERROR_INVALID_PARAM);
+                }
+            }
+
+            $event_values = ['state' => 'instance'];
+
+            $this->assertRequiredFields($class, $ids, $event_values, $schema, $lang);
+
+            $errors = $this->validate($class, $ids, [], true);
+            if(count($errors)) {
+                $error_code = (int) array_key_first($errors);
+                throw new Exception(serialize($errors[$error_code]), $error_code);
+            }
+
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $values = [
+                'state'    => 'instance',
+                'modified' => time(),
+                'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
+            ];
+
+            foreach($ids as $oid) {
+                foreach($values as $field => $value) {
+                    $this->cache[$table_name][$oid][constant('DEFAULT_LANG')][$field] = $value;
+                }
+            }
+
+            $this->store($class, $ids, array_keys($values), $lang);
+
+            $res = $ids;
+
+            if(($this->enabled_events & self::EVENTS_CLASS_ONAFTERINSTANTIATE) === self::EVENTS_CLASS_ONAFTERINSTANTIATE) {
+                if(method_exists($class, 'onafterinstantiate')) {
+                    $this->callonce($class, 'onafterinstantiate', $ids, $event_values, $lang);
+                }
+            }
+        }
+        catch(Exception $e) {
+            trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
+            $res = $e->getCode();
+        }
+
+        return $res;
+    }
+
+    /**
      * Writes specified fields of selected objects without lifecycle callbacks or implicit state transition.
      *
      * @param   string    $class        Class of the objects to write.

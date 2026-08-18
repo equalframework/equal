@@ -637,5 +637,55 @@ namespace {
                         }
                     }
             ],
+        '5015' => [
+                'description' => 'Lifecycle: ObjectManager::instantiate promotes draft without replaying draft writes.',
+                'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+
+                        return $om->draft(LifecycleProbe::getType());
+                    },
+                'act'         => function ($id) {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+
+                        $om->write($class, [$id], ['string_short' => 'inst']);
+                        LifecycleProbe::resetLifecycleEvents();
+
+                        $result = [
+                            'id'          => $id,
+                            'instantiate' => $om->instantiate($class, [$id])
+                        ];
+
+                        $test = LifecycleProbe::id($id)
+                            ->read(['state', 'string_short'])
+                            ->first();
+
+                        $result['state'] = $test['state'] ?? null;
+                        $result['string_short'] = $test['string_short'] ?? null;
+                        $result['events'] = LifecycleProbe::getLifecycleEvents();
+
+                        return $result;
+                    },
+                'assert'      => function($result) {
+                        $events = $result['events'] ?? [];
+
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['instantiate'] ?? null) === [$result['id']]
+                            && ($result['state'] ?? null) === 'instance'
+                            && ($result['string_short'] ?? null) === 'inst'
+                            && count($events) === 1
+                            && ($events[0]['hook'] ?? null) === 'onafterinstantiate'
+                            && ($events[0]['ids'] ?? null) === [$result['id']]
+                            && ($events[0]['self_ids'] ?? null) === [$result['id']]
+                            && ($events[0]['values']['state'] ?? null) === 'instance'
+                            && !array_key_exists('string_short', $events[0]['values'] ?? []);
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
     ];
 }
