@@ -548,26 +548,20 @@ class ObjectManager extends Service {
             // get DB handler (init DB connection if necessary)
             $db = $this->getDbHandler();
             $map_valid_ids = [];
-            $table_name = $this->getObjectTableName($class);
             // get all records at once
-            $result = $db->getRecords($table_name, 'id', $ids);
+            $result = $db->getRecords($this->getObjectTableName($class), 'id', $ids);
             // store all found ids in an array
             while($row = $db->fetchArray($result)) {
-                $id = (int) $row['id'];
-                $map_valid_ids[$id] = true;
+                $map_valid_ids[(int) $row['id']] = true;
             }
-            foreach($ids as $i => $id) {
-                if(!isset($map_valid_ids[$id])) {
-                    unset($ids[$i]);
-                }
-            }
+            $ids = array_filter($ids, fn($id) => isset($map_valid_ids[$id]));
         }
         catch(\Exception $e) {
             // unexpected error (DB connection)
         }
-
         return $ids;
     }
+
     /**
      * Load given fields from specified class into the cache
      *
@@ -1889,11 +1883,110 @@ class ObjectManager extends Service {
     }
 
     /**
-     * Alias for update()
-     * @deprecated
+     * Creates a new draft object of given class and, if given, assigns values to targeted fields.
+     *
+     * This method creates a persistent ORM object that remains in draft state and does not trigger
+     * lifecycle callbacks.
+     *
+     * @param  string       $class        Class of the object to create.
+     * @param  array        $fields       Associative array mapping each field to its assigned value.
+     * @param  string       $lang         Language in which to store multilang fields.
+     *
+     * @return integer      Identifier of the newly created object, or a negative error code.
      */
-    public function write($class, $ids=null, $fields=null, $lang=null, $create=false) {
-        return $this->update($class, $ids, $fields, $lang, $create);
+    public function draft($class, $fields=[], $lang=null) {
+        if(!is_array($fields)) {
+            $fields = (array) $fields;
+        }
+
+        $fields['state'] = 'draft';
+
+        $previous_events = $this->disableEvents(self::EVENTS_ALL);
+        try {
+            return $this->create($class, $fields, $lang);
+        }
+        finally {
+            $this->enabled_events = $previous_events;
+        }
+    }
+
+    /**
+     * Writes specified fields of selected objects without lifecycle callbacks or implicit state transition.
+     *
+     * @param   string    $class        Class of the objects to write.
+     * @param   mixed     $ids          Identifier(s) of the object(s) to update.
+     * @param   mixed     $fields       Array mapping fields names with values to assign.
+     * @param   string    $lang         Language under which fields have to be stored.
+     *
+     * @return  int|int[] Returns an array of updated ids, or an error identifier in case an error occurred.
+     */
+    public function write($class, $ids=null, $fields=null, $lang=null) {
+        // init result
+        $res = [];
+        $lang = ($lang) ? $lang : constant('DEFAULT_LANG');
+
+        try {
+            // get DB handler (init DB connection if necessary)
+            $this->getDbHandler();
+
+            // cast fields to an array (passing a single field is accepted)
+            if(!is_array($fields)) {
+                $fields = (array) $fields;
+            }
+
+            // get static instance (checks that given class exists)
+            $object = $this->getStaticInstance($class);
+            // retrieve schema
+            $schema = $object->getSchema();
+            // retrieve name of the DB table associated with the class
+            $table_name = $this->getObjectTableName($class);
+
+            // ignore non-existing ids
+            $ids = $this->filterExistingIdentifiers($class, $ids);
+
+            if(empty($ids)) {
+                trigger_error("ORM::ignoring call with no existing ids", EQ_REPORT_INFO);
+                return [];
+            }
+
+            // ids that are left are the ones of the objects that will be written
+            $res = $ids;
+
+            // remove unknown fields and prevent updating reserved fields (id, creator, created, state)
+            $fields = array_filter(
+                $fields,
+                fn($name) => isset($schema[$name]) && !in_array($name, ['id', 'creator', 'created', 'state'], true),
+                ARRAY_FILTER_USE_KEY
+            );
+
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
+            $fields['modified'] = time();
+            $fields['modifier'] = $auth->userId() ?: EQ_ROOT_USER_ID;
+
+            // update internal buffer with given values
+            foreach($ids as $oid) {
+                foreach($fields as $field => $value) {
+                    // assign cache to object values
+                    $target_lang = $lang;
+                    if($lang != constant('DEFAULT_LANG') && (!isset($schema[$field]['multilang']) || !$schema[$field]['multilang'])) {
+                        // field is not multilang: make sure to assign the default lang
+                        $target_lang = constant('DEFAULT_LANG');
+                    }
+                    $this->cache[$table_name][$oid][$target_lang][$field] = $value;
+                }
+            }
+
+            // write selected fields to DB
+            $this->store($class, $ids, array_keys($fields), $lang);
+        }
+        catch(Exception $e) {
+            trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
+            $res = $e->getCode();
+        }
+
+        return $res;
     }
 
     /**
@@ -1939,7 +2032,7 @@ class ObjectManager extends Service {
                 return [];
             }
 
-            // ids that are left are the ones of the objects that will be written
+            // remaining ids are the ones of the objects that will be written
             $res = $ids;
 
             // remove unknown fields and prevent updating reserved fields (id, creator, created)
@@ -1952,6 +2045,23 @@ class ObjectManager extends Service {
             // determine the target state for this write cycle
             // #memo - by convention, writing an object makes it an instance unless state is explicitly set
             $target_state = array_key_exists('state', $fields) ? $fields['state'] : 'instance';
+
+            // #memo - once instantiated, an object cannot be set back to draft through `update()`
+            if(!$create && $target_state === 'draft') {
+                $objects = $this->read($class, $ids, ['state'], $lang);
+
+                if(is_array($objects) && count($objects)) {
+                    $ids = array_values(array_filter($ids, function($oid) use($objects) {
+                        return isset($objects[$oid]) && ($objects[$oid]['state'] ?? null) === 'draft';
+                    }));
+
+                    if(empty($ids)) {
+                        return [];
+                    }
+
+                    $res = $ids;
+                }
+            }
 
             // ensure that implicit target state is actually stored (this also matters during create(), if state was not present in $fields)
             if(!array_key_exists('state', $fields)) {
@@ -2442,11 +2552,113 @@ class ObjectManager extends Service {
 
 
     /**
-     * Alias for delete()
-     * @deprecated
+     * Removes objects directly without lifecycle callbacks.
+     *
+     * This is the explicit technical variant of delete() and performs a hard deletion.
+     *
+     * @param   string  $class          Class of the object to remove.
+     * @param   array   $ids            Array of ids of the objects to remove.
+     *
+     * @return  integer|array   Returns a list of removed ids, or an error identifier in case an error occurred.
      */
-    public function remove($class, $ids, $permanent=false) {
-        return $this->delete($class, $ids, $permanent);
+    public function remove($class, $ids) {
+        $res = [];
+
+        try {
+            // get DB handler (init DB connection if necessary)
+            $db = $this->getDbHandler();
+
+            // keep only valid objects identifiers
+            $ids = $this->sanitizeIdentifiers($ids);
+            if(empty($ids)) {
+                return $res;
+            }
+
+            $res = $ids;
+
+            // retrieve targeted Model
+            $model = $this->getStaticInstance($class);
+            $schema = $model->getSchema();
+            $table_name = $this->getObjectTableName($class);
+
+            // remove binaries and clean relations
+            foreach($schema as $field => $def) {
+                if(!in_array($def['type'], ['binary', 'one2many', 'many2many'])) {
+                    continue;
+                }
+                switch($def['type']) {
+                    case 'binary':
+                        if(constant('FILE_STORAGE_MODE') == 'FS') {
+                            // retrieve unique name  `package/class/field/oid.lang`
+                            $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
+                            foreach($ids as $oid) {
+                                $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid));
+                                // remove binary for all langs
+                                foreach(glob("$filename.*") as $filename) {
+                                    if(!unlink($filename)) {
+                                        throw new \Exception("cannot_remove_file");
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 'one2many':
+                        if(isset($def['foreign_object']) && isset($def['foreign_field'])) {
+                            $rel_ids = [];
+                            $rel_res = $this->read($class, $ids, $field);
+                            if(!is_array($rel_res) || count($rel_res) <= 0) {
+                                break;
+                            }
+                            array_map(function ($item) use($field, &$rel_ids) { $rel_ids = array_merge($rel_ids, $item[$field]);}, $rel_res);
+
+                            $rel_schema = $this->getObjectSchema($def['foreign_object']);
+                            switch($rel_schema[$def['foreign_field']]['ondelete'] ?? null) {
+                                case 'cascade':
+                                    $this->remove($def['foreign_object'], $rel_ids);
+                                    break;
+                                case 'null':
+                                    $this->write($def['foreign_object'], $rel_ids, [$def['foreign_field'] => null]);
+                                    break;
+                            }
+                        }
+                        break;
+                    case 'many2many':
+                        // delete * from $def['rel_table'] where $def['rel_local_key'] in $ids
+                        $this->db->deleteRecords(
+                            $def['rel_table'],
+                            $ids,
+                            null,
+                            $schema[$field]['rel_local_key']
+                        );
+                        break;
+                }
+            }
+
+            // delete targeted objects
+            $db->deleteRecords($table_name, $ids);
+
+            // remove translations, if any
+            $this->db->deleteRecords(
+                    'core_translation',
+                    $ids, [
+                        [
+                            ['object_class', '=', $class]
+                        ]
+                    ],
+                    'object_id'
+                );
+
+            // remove objects from cache
+            foreach($ids as $oid) {
+                unset($this->cache[$table_name][$oid]);
+            }
+        }
+        catch(Exception $e) {
+            trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
+            $this->last_error = $e->getMessage();
+            $res = $e->getCode();
+        }
+        return $res;
     }
 
 
@@ -2460,6 +2672,10 @@ class ObjectManager extends Service {
      * @return  integer|array   Returns a list of ids of deleted objects, or an error identifier in case an error occurred.
      */
     public function delete($class, $ids, $permanent=false) {
+        if($permanent) {
+            return $this->remove($class, $ids);
+        }
+
         $res = [];
 
         try {
@@ -2510,6 +2726,8 @@ class ObjectManager extends Service {
                     case 'binary':
                         if(constant('FILE_STORAGE_MODE') == 'FS') {
                             // retrieve unique name  `package/class/field/oid.lang`
+                            // #memo - no actual unlink with soft delete
+                            /*
                             $path = realpath(EQ_BASEDIR) . '/bin/' . sprintf("%s/%s", str_replace('_', '/', $table_name), $field);
                             foreach($ids as $oid) {
                                 $filename = $path . '/' . FSManipulator::getSegmentedPath(sprintf("%011d", $oid));
@@ -2520,6 +2738,7 @@ class ObjectManager extends Service {
                                     }
                                 }
                             }
+                            */
                         }
                         break;
                     case 'one2many':
@@ -2539,7 +2758,7 @@ class ObjectManager extends Service {
                                 if($call_res < 0) {
                                     switch($rel_schema[$def['foreign_field']]['ondelete']) {
                                         case 'cascade':
-                                            $this->delete($def['foreign_object'], $rel_ids, $permanent);
+                                            $this->delete($def['foreign_object'], $rel_ids);
                                             break;
                                         case 'null':
                                             $this->update($def['foreign_object'], $rel_ids, [$def['foreign_field'] => null]);
@@ -2565,39 +2784,19 @@ class ObjectManager extends Service {
 
             }
 
-            // 5) remove object
+            // 5) mark objects as deleted
+            /** @var \equal\data\adapt\DataAdapterProvider $dap */
+            $dap = $this->container->get('adapt');
+            /** @var \equal\data\adapt\DataAdapter $adapter */
+            $adapter = $dap->get('sql');
+            /** @var \equal\auth\AuthenticationManager */
+            $auth = $this->container->get('auth');
 
-            // soft deletion
-            if (!$permanent) {
-                /** @var \equal\data\adapt\DataAdapterProvider $dap */
-                $dap = $this->container->get('adapt');
-                /** @var \equal\data\adapt\DataAdapter $adapter */
-                $adapter = $dap->get('sql');
-                /** @var \equal\auth\AuthenticationManager */
-                $auth = $this->container->get('auth');
-
-                $db->setRecords($table_name, $ids, [
-                    'deleted'  => 1,
-                    'modified' => $adapter->adaptOut(time(), 'datetime'),
-                    'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
-                ]);
-            }
-            // hard deletion
-            else {
-                // delete targeted objects
-                $db->deleteRecords($table_name, $ids);
-
-                // remove translations, if any
-                $this->db->deleteRecords(
-                        'core_translation',
-                        $ids, [
-                            [
-                                ['object_class', '=', $class]
-                            ]
-                        ],
-                        'object_id'
-                    );
-            }
+            $db->setRecords($table_name, $ids, [
+                'deleted'  => 1,
+                'modified' => $adapter->adaptOut(time(), 'datetime'),
+                'modifier' => $auth->userId() ?: EQ_ROOT_USER_ID
+            ]);
 
             // remove objects from cache
             foreach($ids as $oid) {
@@ -2612,7 +2811,7 @@ class ObjectManager extends Service {
             }
         }
         catch(Exception $e) {
-            trigger_error("ORM::".$e->getMessage(), EQ_REPORT_ERROR);
+            trigger_error("ORM::" . $e->getMessage(), EQ_REPORT_ERROR);
             $this->last_error = $e->getMessage();
             $res = $e->getCode();
         }
