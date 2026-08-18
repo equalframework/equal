@@ -44,9 +44,9 @@ class HttpRequest extends HttpMessage {
                     $host = $host_parts[0];
                     // check Host header for a port number (see RFC2616)
                     // @link https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23
-                    $port = isset($host_parts[1])?trim($host_parts[1]):80;
-                    $scheme = ($port==443)?'https':'http';
-                    $uri = $scheme.'://'.$host.':'.$port.$uri;
+                    $port = isset($host_parts[1]) ? trim($host_parts[1]) : 80;
+                    $scheme = ($port == 443) ? 'https' : 'http';
+                    $uri = $scheme . '://' . $host . ':' . $port . $uri;
                     $this->setUri($uri);
                 }
             }
@@ -56,7 +56,7 @@ class HttpRequest extends HttpMessage {
             }
 
             if(!HttpUri::isValid($uri)) {
-                throw new \Exception('invalid URI :'.$uri, QN_ERROR_UNKNOWN);
+                throw new \Exception('invalid_uri', EQ_ERROR_UNKNOWN);
             }
         }
         // 3) retrieve method
@@ -176,7 +176,7 @@ class HttpRequest extends HttpMessage {
                     "PHP::Unable to send HTTP request to `{$uri}` : " . ($error['message'] ?? ''),
                     EQ_REPORT_ERROR
                 );
-                throw new \Exception('failed_sending_http_request', QN_ERROR_UNKNOWN);
+                throw new \Exception('failed_sending_http_request', EQ_ERROR_UNKNOWN);
             }
 
             $response_status = '';
