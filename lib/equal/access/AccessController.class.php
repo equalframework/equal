@@ -447,7 +447,7 @@ class AccessController extends Service {
                     }
                     if(!$acl['rights']) {
                         // remove ACL if empty (no right granted)
-                        $orm->remove(Permission::getType(), $acl_id, true);
+                        $orm->remove(Permission::getType(), $acl_id);
                     }
                     else {
                         // update ACL with new permissions

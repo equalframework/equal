@@ -57,7 +57,7 @@ $tests = [
                 'test'              =>  function (){
                                             $res = [];
                                             $om = ObjectManager::getInstance();
-                                            $objects = $om->read('core\User', [QN_ROOT_USER_ID], array('id', 'language','firstname','lastname'));
+                                            $objects = $om->read('core\User', [EQ_ROOT_USER_ID], array('id', 'language','firstname','lastname'));
                                             foreach($objects as $oid => $object) {
                                                 $res[$oid] = $object->toArray();
                                             }
@@ -78,7 +78,7 @@ $tests = [
                     'test'              =>  function (){
                                                 $res = [];
                                                 $om = ObjectManager::getInstance();
-                                                $objects = $om->read('core\User', QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                $objects = $om->read('core\User', EQ_ROOT_USER_ID, array('language','firstname','lastname'));
                                                 foreach($objects as $oid => $object) {
                                                     $res[$oid] = $object->toArray();
                                                 }
@@ -98,7 +98,7 @@ $tests = [
                     'test'              =>  function (){
                                                 $res = [];
                                                 $om = ObjectManager::getInstance();
-                                                $objects = $om->read('core\User', (string) QN_ROOT_USER_ID, array('language','firstname','lastname'));
+                                                $objects = $om->read('core\User', (string) EQ_ROOT_USER_ID, array('language','firstname','lastname'));
                                                 foreach($objects as $oid => $object) {
                                                     $res[$oid] = $object->toArray();
                                                 }
@@ -129,7 +129,7 @@ $tests = [
                     'test'              =>  function () {
                                                 $res = [];
                                                 $om = ObjectManager::getInstance();
-                                                $objects = $om->read('core\User', array(0, QN_ROOT_USER_ID), array('language','firstname','lastname'));
+                                                $objects = $om->read('core\User', array(0, EQ_ROOT_USER_ID), array('language','firstname','lastname'));
                                                 foreach($objects as $oid => $object) {
                                                     $res[$oid] = $object->toArray();
                                                 }
@@ -168,7 +168,7 @@ $tests = [
     '2130' => array(
                     'description'       =>  "Call ObjectManager::read some non-existing object from non-existing class.",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  QN_ERROR_UNKNOWN_OBJECT,
+                    'expected'          =>  EQ_ERROR_UNKNOWN_OBJECT,
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->read('core\Foo', array('1'), array('bar'));
@@ -273,7 +273,7 @@ $tests = [
                     'act'               =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 $dummy_user_id = $om->search('core\User', ['login', '=', 'dummy@example.com']);
-                                                return $om->remove('core\User', $dummy_user_id, true);
+                                                return $om->remove('core\User', $dummy_user_id);
                                             }
                     ),
 
@@ -292,7 +292,7 @@ $tests = [
     '2502' => array(
                     'description'       =>  "Search an object with invalid clause 'ilike' (non-existing field).",
                     'return'            =>  array('integer', 'array'),
-                    'expected'          =>  QN_ERROR_INVALID_PARAM,
+                    'expected'          =>  EQ_ERROR_INVALID_PARAM,
                     'test'              =>  function () {
                                                 $om = ObjectManager::getInstance();
                                                 return $om->search('core\Group', array(array(array('badname', 'ilike', '%Default%'))));
@@ -340,8 +340,8 @@ $tests = [
                                                 }
 
                                                 $om = ObjectManager::getInstance();
-                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
-                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids']);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
                                             },
                     ),
     '2520' => array(
@@ -391,8 +391,8 @@ $tests = [
                                                 }
 
                                                 $om = ObjectManager::getInstance();
-                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
-                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids']);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
                                             }
                     ),
     '2530' => array(
@@ -437,14 +437,14 @@ $tests = [
                                                 }
 
                                                 $om = ObjectManager::getInstance();
-                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids'], true);
-                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids'], true);
+                                                $om->remove(Test1Model::getType(), $result['fixtures']['test1_ids']);
+                                                $om->remove(TestModel::getType(), $result['fixtures']['test_ids']);
                                             }
                     ),
 
     // calls related to authentication
     '2610' => array(
-                    'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return QN_ROOT_USER_ID.",
+                    'description'       =>  "Authenticate: return the identifier of a given user: called with CLI, should return EQ_ROOT_USER_ID.",
                     'return'            =>  array('integer'),
                     'expected'          =>  EQ_ROOT_USER_ID,
                     'test'              =>  function () use($providers) {
@@ -453,7 +453,7 @@ $tests = [
                                                     $values = $providers['auth']->userId();
                                                 }
                                                 catch(Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_INVALID_PARAM, QN_ERROR_INVALID_USER
+                                                    // possible raised Exception codes : EQ_ERROR_INVALID_PARAM, EQ_ERROR_INVALID_USER
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -467,14 +467,14 @@ $tests = [
                                                 try {
                                                     $providers['auth']->authenticate('user@equal.local', 'safe_pass');
                                                     // grant READ operation on all classes
-                                                    $providers['access']->grant(QN_R_READ);
+                                                    $providers['access']->grant(EQ_R_READ);
 
                                                     $values = User::search([['groups_ids', 'contains', [1, 2, 3]]])
                                                           ->read(['id', 'login'])
                                                           ->get();
                                                 }
                                                 catch(Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -504,7 +504,7 @@ $tests = [
                                                             ->get();
                                                 }
                                                 catch(Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -543,7 +543,7 @@ $tests = [
                                                               ->get();
                                                 }
                                                 catch(\Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -565,7 +565,7 @@ $tests = [
                                                               ->get(true);
                                                 }
                                                 catch(\Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -583,11 +583,11 @@ $tests = [
                     'return'            =>  array('integer', 'array'),
                     'arrange'           =>  function() use($providers) {
                                                 try {
-                                                    $providers['access']->grant(QN_R_CREATE|QN_R_DELETE);
+                                                    $providers['access']->grant(EQ_R_CREATE | EQ_R_DELETE);
                                                     $values = User::create(['login' => 'test@equal.run', 'password' => 'test1234'])->ids();
                                                 }
                                                 catch(\Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;
@@ -595,8 +595,8 @@ $tests = [
                     'rollback'          =>  function() use($providers) {
                                                 $om = $providers['orm'];
                                                 $ids = $om->search('core\User', [['login', '=', 'test@equal.run']]);
-                                                $om->remove('core\User', $ids, true);
-                                                $providers['access']->revoke(QN_R_CREATE|QN_R_DELETE);
+                                                $om->remove('core\User', $ids);
+                                                $providers['access']->revoke(EQ_R_CREATE | EQ_R_DELETE);
                                             },
                     'act'               =>  function () {
                                                 try {
@@ -605,7 +605,7 @@ $tests = [
                                                               ->first(true);
                                                 }
                                                 catch(\Exception $e) {
-                                                    // possible raised Exception codes : QN_ERROR_NOT_ALLOWED
+                                                    // possible raised Exception codes : EQ_ERROR_NOT_ALLOWED
                                                     $values = $e->getCode();
                                                 }
                                                 return $values;

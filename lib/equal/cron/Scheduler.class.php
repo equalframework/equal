@@ -225,7 +225,7 @@ class Scheduler extends Service {
         $orm = $this->container->get('orm');
         $tasks_ids = $orm->search('core\Task', ['name', '=', $name]);
         if(is_array($tasks_ids) && count($tasks_ids)) {
-            return $orm->remove('core\Task', $tasks_ids, true);
+            return $orm->remove('core\Task', $tasks_ids);
         }
         return EQ_ERROR_UNKNOWN_OBJECT;
     }
