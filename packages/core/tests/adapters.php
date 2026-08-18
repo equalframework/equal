@@ -26,6 +26,7 @@ use equal\data\adapt\adapters\json\{
     DataAdapterJsonInteger,
     DataAdapterJsonReal
 };
+use equal\data\adapt\adapters\sql\DataAdapterSqlText;
 use equal\orm\UsageFactory;
 
 global $test;
@@ -165,6 +166,17 @@ $tests = [
                 },
             'assert'        =>  function($adapter) {
                     return ($adapter instanceof DataAdapterJsonReal);
+                }
+        ],
+    '3104' => [
+            'description'   =>  "DataAdapterProvider: DataAdatper retrieval - sql/password",
+            'act'           =>  function () {
+                    $dap = new DataAdapterProviderSql();
+                    $adapter = $dap->get('password');
+                    return $adapter;
+                },
+            'assert'        =>  function($adapter) {
+                    return ($adapter instanceof DataAdapterSqlText);
                 }
         ],
 
@@ -525,6 +537,37 @@ $tests = [
                 },
             'assert'        =>  function($result) {
                     return ($result === ['a', 'b', 'c' => 'ok']);
+                }
+        ],
+    '4111' => [
+            'description'   =>  "SQL adapter OUT - password hashes clear value",
+            'arrange'       =>  function () {
+                    return new DataAdapterSqlText();
+                },
+            'act'           =>  function ($sqlAdapter) {
+                    return $sqlAdapter->adaptOut('secure_password', 'password');
+                },
+            'assert'        =>  function($result) {
+                    return (substr($result, 0, 4) === '$2y$' && password_verify('secure_password', $result));
+                }
+        ],
+    '4112' => [
+            'description'   =>  "SQL adapter OUT - password keeps encrypted value",
+            'arrange'       =>  function () {
+                    return [
+                        new DataAdapterSqlText(),
+                        password_hash('secure_password', PASSWORD_BCRYPT)
+                    ];
+                },
+            'act'           =>  function ($params) {
+                    [$sqlAdapter, $hash] = $params;
+                    return [
+                        $hash,
+                        $sqlAdapter->adaptOut($hash, 'password')
+                    ];
+                },
+            'assert'        =>  function($result) {
+                    return ($result[1] === $result[0]);
                 }
         ]
 ];

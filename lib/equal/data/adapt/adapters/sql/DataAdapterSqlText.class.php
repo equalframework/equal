@@ -8,6 +8,8 @@
 namespace equal\data\adapt\adapters\sql;
 
 use equal\data\adapt\DataAdapter;
+use equal\orm\UsageFactory;
+use equal\orm\usages\Usage;
 
 class DataAdapterSqlText implements DataAdapter {
 
@@ -53,7 +55,18 @@ class DataAdapterSqlText implements DataAdapter {
         if(is_null($value)) {
             return null;
         }
-        return (string) $value;
+        if(!($usage instanceof Usage)) {
+            $usage = UsageFactory::create((string) $usage);
+        }
+        $result = (string) $value;
+        switch($usage->getType()) {
+            case 'password':
+                if(substr($result, 0, 4) != '$2y$') {
+                    $result = password_hash($result, PASSWORD_BCRYPT);
+                }
+                break;
+        }
+        return $result;
     }
 
 }
