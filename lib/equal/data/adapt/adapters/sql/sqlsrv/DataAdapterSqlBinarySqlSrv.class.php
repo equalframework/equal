@@ -20,7 +20,7 @@ class DataAdapterSqlBinarySqlSrv extends DataAdapterSqlBinary {
     }
 
     public function castOutType($usage=null): string {
-        return 'BLOB';
+        return 'varbinary(max)';
     }
 
 }
