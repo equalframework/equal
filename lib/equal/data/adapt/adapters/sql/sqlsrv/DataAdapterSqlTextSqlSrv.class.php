@@ -34,7 +34,7 @@ class DataAdapterSqlTextSqlSrv extends DataAdapterSqlText {
                 $type = 'nvarchar(max)';
             }
             else {
-                $type = 'nvarchar('.min($length, 1).')';
+                $type = 'nvarchar(' . max($length, 1).')';
             }
         }
 
