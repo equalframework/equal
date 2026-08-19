@@ -169,6 +169,12 @@ class HttpRequest extends HttpMessage {
                     $context
                 );
 
+            // #deprecated PHP 8.5: $http_response_header is deprecated
+            // #compat PHP < 8.4: keep support for older PHP versions
+            if(function_exists('http_get_last_response_headers')) {
+                $http_response_header = \http_get_last_response_headers();
+            }
+
             // build HTTP response object
             if(!isset($http_response_header) || !is_array($http_response_header)) {
                 $error = error_get_last();
