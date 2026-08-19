@@ -9,47 +9,47 @@ namespace equal\data\adapt;
 
 use equal\orm\UsageFactory;
 
-class DataAdapterProviderSqlMySql implements AdapterProvider {
+class DataAdapterProviderSqlSqlSrv implements AdapterProvider {
     const CONFIG = [
         // keys match the name of the supported UsageTypes
         'number' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'boolean'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBoolean',
-            'natural'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'integer'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'real'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlReal'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlIntegerSqlSrv',
+            'boolean'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlBooleanSqlSrv',
+            'natural'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlIntegerSqlSrv',
+            'integer'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlIntegerSqlSrv',
+            'real'          => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlRealSqlSrv'
         ],
         'amount' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlReal'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlRealSqlSrv'
         ],
         'text'      => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
         ],
         'password' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlText'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTextSqlSrv'
         ],
         'time' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlTime'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlTimeSqlSrv'
         ],
         'datetime' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlDateTimeSqlSrv'
         ],
         'date' => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlDate',
-            'plain'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlDate',
-            'datetime'      => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
-            'time'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlDateTime',
-            'year'          => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger',
-            'month'         => 'equal\data\adapt\adapters\sql\DataAdapterSqlInteger'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlDateSqlSrv',
+            'plain'         => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlDateSqlSrv',
+            'datetime'      => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlDateTimeSqlSrv',
+            'time'          => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlDateTimeSqlSrv',
+            'year'          => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlIntegerSqlSrv',
+            'month'         => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlIntegerSqlSrv'
         ],
         'image'     => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBinary'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlBinarySqlSrv'
         ],
         'binary'    => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlBinary'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlBinarySqlSrv'
         ],
         'array'     => [
-            'default'       => 'equal\data\adapt\adapters\sql\DataAdapterSqlArray'
+            'default'       => 'equal\data\adapt\adapters\sql\sqlsrv\DataAdapterSqlArraySqlSrv'
         ]
     ];
 

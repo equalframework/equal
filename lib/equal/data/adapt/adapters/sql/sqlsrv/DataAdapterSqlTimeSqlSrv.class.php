@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace equal\data\adapt\adapters\sql\sqlite;
+namespace equal\data\adapt\adapters\sql\sqlsrv;
 
 use equal\data\adapt\adapters\sql\DataAdapterSqlTime;
 
