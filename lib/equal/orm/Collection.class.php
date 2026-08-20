@@ -325,7 +325,7 @@ class Collection implements \Iterator, \Countable {
      * Setter - initialize the Collection with a list of identifiers (that are mapped with empty objects).
      * Note: neither ids validity not user rights are checked at this point (will be within subsequent CRUD calls).
      *
-     * @param array optional if given, sets current objects array, if not returns current ids
+     * @param array     Optional. If given, sets current objects array, if not returns current ids
      *
      * @return Collection|array  The setter version returns the Collection as a map of identifiers with empty object. The getter version returns an array with all objects identifiers in the Collection.
      */
@@ -405,7 +405,7 @@ class Collection implements \Iterator, \Countable {
      *   - fields unknown to the given class.
      *
      * @param   array   $fields         Associative array mapping field names with their values.
-     * @param   string  $operation      Targeted CRUD operation. If set to 'create', system fields are discarded.
+     * @param   string  $operation      Targeted operation ('create', 'draft', 'write', or 'update').
      *
      * @return  array   Filtered array containing known fields names only.
      */
@@ -419,6 +419,15 @@ class Collection implements \Iterator, \Countable {
                 // discard special fields (except `id` and `state`)
                 $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','deleted']);
                 // #memo - all fields are allowed at creation (do not drop readonly)
+            }
+            elseif($operation == 'draft') {
+                // discard special fields (except `id`); state is forced to `draft`
+                $allowed_fields = array_diff($allowed_fields, ['creator','created','modifier','modified','deleted','state']);
+                // #memo - all fields are allowed at draft creation (do not drop readonly)
+            }
+            elseif($operation == 'write') {
+                // discard fields that cannot be written through ObjectManager::write()
+                $allowed_fields = array_diff($allowed_fields, ['id','creator','created','state']);
             }
             elseif($operation == 'update') {
                 // discard readonly fields
@@ -984,6 +993,60 @@ class Collection implements \Iterator, \Countable {
         return $this;
     }
 
+    /**
+     * Creates a new draft Object.
+     *
+     * This method delegates to ObjectManager::draft(), which creates a persistent
+     * draft without lifecycle callbacks.
+     *
+     * @param   array   $values   Associative array mapping fields and values.
+     * @param   string  $lang     Language for multilang fields.
+     *
+     * @return  Collection  Returns the current Collection.
+     */
+    public function draft(array $values=null, $lang=null) {
+        $user_id = $this->am->userId();
+
+        // 1) sanitize and retrieve necessary values
+        if($values === null) {
+            $values = [];
+        }
+
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_creation_map', EQ_ERROR_INVALID_PARAM);
+            }
+        });
+
+        $values = $this->sanitizeFields($values, 'draft');
+
+        // retrieve targeted fields names
+        $fields = array_keys($values);
+
+        $this
+            ->assertCapabilities(EQ_R_CREATE)
+            ->assertAccessControl(EQ_R_CREATE, $fields);
+
+        // set current user as creator and modifier
+        $values['creator'] = $user_id;
+        $values['modifier'] = $user_id;
+
+        $id = $this->orm->draft($this->class, $values, ($lang) ? $lang : $this->lang);
+
+        if($id <= 0) {
+            trigger_error("ORM::unexpected error when drafting {$this->class} object:" . $this->orm->getLastError(), EQ_REPORT_INFO);
+            throw new \Exception('draft_failed', $id);
+        }
+
+        // log action (if enabled)
+        $this->logger->log($user_id, 'create', $this->class, $id, $values);
+
+        // put new object in current collection
+        $this->id($id)->read(['id']);
+
+        return $this;
+    }
+
     public function call($method_name, $values=[]) {
         $result = [];
 
@@ -1064,159 +1127,272 @@ class Collection implements \Iterator, \Countable {
      * @return Collection   Returns the current collection.
      */
     public function read($fields, $lang=null) {
+        if(count($this->objects) <= 0) {
+            return $this;
+        }
 
-        if(count($this->objects)) {
-            if(!is_array($fields)) {
-                trigger_error("ORM::received non-array `\$fields` when reading `{$this->class}`: casting to array", EQ_REPORT_WARNING);
-                // force argument into an array (single field name is accepted; if empty array is given: load all fields)
-                $fields = (array) $fields;
+        if(!is_array($fields)) {
+            trigger_error("ORM::received non-array `\$fields` when reading `{$this->class}`: casting to array", EQ_REPORT_WARNING);
+            // force argument into an array (single field name is accepted; if empty array is given: load all fields)
+            $fields = (array) $fields;
+        }
+
+        $schema = $this->model->getSchema();
+
+        // 1) drop invalid fields and build sub-request array
+        $allowed_fields = array_keys($schema);
+
+        // build a list of direct field to load (i.e. "object attributes")
+        $requested_fields = [];
+
+        // 'id'         : we might access an object directly by giving its `id`.
+        // 'state'      : the state of the object is provided for concurrency control (check that a draft object is not instantiated twice).
+        // 'deleted'    : since some objects might have been soft-deleted, we need to load the `deleted` state in order to know if object needs to be in the result set or not.
+        // 'modified'   : the last update timestamp is always provided. At update, if `modified` is provided, it is compared to the current timestamp to detect concurrent changes.
+        // #memo - we cannot add 'name' by default since it might be (an alias to) a computed field (that could lead to a circular dependency)
+        $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
+
+        foreach($fields as $key => $val ) {
+            // handle array notation
+            $field = (!is_numeric($key)) ? $key : $val;
+            // check fields validity (and silently drop invalid fields)
+            if(!in_array($field, $allowed_fields)) {
+                unset($fields[$key]);
+                continue;
             }
+            else {
+                $requested_fields[] = $field;
+            }
+        }
 
-            $schema = $this->model->getSchema();
+        foreach($mandatory_fields as $field) {
+            if(!in_array($field, $requested_fields)) {
+                $requested_fields[] = $field;
+            }
+        }
 
-            // 1) drop invalid fields and build sub-request array
-            $allowed_fields = array_keys($schema);
+        // retrieve targeted identifiers (remove null entries)
+        $ids = $this->ids();
 
-            // build a list of direct field to load (i.e. "object attributes")
-            $requested_fields = [];
+        $this
+            ->assertCapabilities(EQ_R_READ, $requested_fields, $ids)
+            ->assertAccessControl(EQ_R_READ, $requested_fields, $ids)
+            ->assertOperationPolicies(EQ_R_READ, $requested_fields, $ids)
+            ->assertLifecycle(EQ_R_READ, $requested_fields);
 
-            // 'id'         : we might access an object directly by giving its `id`.
-            // 'state'      : the state of the object is provided for concurrency control (check that a draft object is not instantiated twice).
-            // 'deleted'    : since some objects might have been soft-deleted, we need to load the `deleted` state in order to know if object needs to be in the result set or not.
-            // 'modified'   : the last update timestamp is always provided. At update, if `modified` is provided, it is compared to the current timestamp to detect concurrent changes.
-            // #memo - we cannot add 'name' by default since it might be (an alias to) a computed field (that could lead to a circular dependency)
-            $mandatory_fields = ['id', /*'name',*/ 'state', 'deleted', 'modified'];
+        // 3) read values
+        $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
+        // $res is an error code, something prevented to fetch requested fields
+        if($res < 0) {
+            throw new \Exception($this->class.'::'.implode(',', $fields), $res);
+        }
 
-            foreach($fields as $key => $val ) {
-                // handle array notation
-                $field = (!is_numeric($key)) ? $key : $val;
-                // check fields validity (and silently drop invalid fields)
-                if(!in_array($field, $allowed_fields)) {
-                    unset($fields[$key]);
-                    continue;
+        // 4) remove deleted items, if `deleted` field was not explicitly requested
+        if(!in_array('deleted', $fields)) {
+            foreach($res as $id => $object) {
+                if($object['deleted']) {
+                    // remove the object from the result set
+                    // when read operation is performed after a search, this situation should not occur
+                    unset($res[$id]);
                 }
                 else {
-                    $requested_fields[] = $field;
-                }
-            }
-
-            foreach($mandatory_fields as $field) {
-                if(!in_array($field, $requested_fields)) {
-                    $requested_fields[] = $field;
-                }
-            }
-
-            // retrieve targeted identifiers (remove null entries)
-            $ids = $this->ids();
-
-            $this
-                ->assertCapabilities(EQ_R_READ, $requested_fields, $ids)
-                ->assertAccessControl(EQ_R_READ, $requested_fields, $ids)
-                ->assertOperationPolicies(EQ_R_READ, $requested_fields, $ids)
-                ->assertLifecycle(EQ_R_READ, $requested_fields);
-
-            // 3) read values
-            $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
-            // $res is an error code, something prevented to fetch requested fields
-            if($res < 0) {
-                throw new \Exception($this->class.'::'.implode(',', $fields), $res);
-            }
-
-            // 4) remove deleted items, if `deleted` field was not explicitly requested
-            if(!in_array('deleted', $fields)) {
-                foreach($res as $id => $object) {
-                    if($object['deleted']) {
-                        // remove the object from the result set
-                        // when read operation is performed after a search, this situation should not occur
-                        unset($res[$id]);
-                    }
-                    else {
-                        unset($res[$id]['deleted']);
-                    }
-                }
-            }
-
-            // withdraw invalid objects from collection (id not matching an actual object)
-            foreach(array_diff(array_keys($this->objects), array_keys($res)) as $invalid_id) {
-                unset($this->objects[$invalid_id]);
-            }
-
-            // merge retrieved values with current collection (overwrite if already present)
-            foreach($res as $id => $object) {
-                foreach($object as $field => $value) {
-                    $this->objects[$id][$field] = $value;
-                }
-            }
-
-            // 5) recursively load sub-fields, if any
-            foreach($fields as $field => $subfields) {
-                // discard direct fields
-                if(is_numeric($field)) {
-                    continue;
-                }
-                // accept both array or single value as subfields
-                $subfields = (array) $subfields;
-                // #memo - using Field object guarantees support for `alias` and `computed` fields
-                $targetField = $this->model->getField($field);
-                if(!$targetField) {
-                    continue;
-                }
-                $target = $targetField->getDescriptor();
-
-                if(!in_array($target['result_type'], ['one2many', 'many2one', 'many2many'])) {
-                    continue;
-                }
-
-                $subdomain = [];
-                $subparams = [];
-
-                if(isset($target['order'])) {
-                    $subparams['sort'] = [$target['order'] => (isset($target['sort'])) ? $target['sort'] : 'asc'];
-                }
-
-                foreach($subfields as $key => $val) {
-                    if($key === '@domain') {
-                        $subdomain = (array) $val;
-                        unset($subfields[$key]);
-                        continue;
-                    }
-                    if(in_array($key, ['@sort', '@limit', '@start'], true)) {
-                        $subparams[substr($key, 1)] = $val;
-                        unset($subfields[$key]);
-                        continue;
-                    }
-                }
-
-                if(!count($subfields)) {
-                    if($target['result_type'] !== 'many2one') {
-                        foreach($this->objects as $id => $object) {
-                            $searchDomain = new Domain($subdomain);
-                            $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
-                            $this->objects[$id][$field] = $this->orm->search($target['foreign_object'], $searchDomain->toArray());
-                        }
-                    }
-                    continue;
-                }
-
-                // recursively load and assign retrieved values to the objects they relate to
-                foreach($this->objects as $id => $object) {
-                    $searchDomain = new Domain($subdomain);
-                    $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
-
-                    /** @var Collection */
-                    $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
-
-                    if($target['result_type'] === 'many2one') {
-                        // many2one might be either null or a Model object (which might contain sub-collections)
-                        $this->objects[$id][$field] = $children->first();
-                    }
-                    else {
-                        // one2many & many2many are Collection objects
-                        $this->objects[$id][$field] = $children;
-                    }
+                    unset($res[$id]['deleted']);
                 }
             }
         }
+
+        // withdraw invalid objects from collection (id not matching an actual object)
+        foreach(array_diff(array_keys($this->objects), array_keys($res)) as $invalid_id) {
+            unset($this->objects[$invalid_id]);
+        }
+
+        // merge retrieved values with current collection (overwrite if already present)
+        foreach($res as $id => $object) {
+            foreach($object as $field => $value) {
+                $this->objects[$id][$field] = $value;
+            }
+        }
+
+        // 5) recursively load sub-fields, if any
+        foreach($fields as $field => $subfields) {
+            // discard direct fields
+            if(is_numeric($field)) {
+                continue;
+            }
+            // accept both array or single value as subfields
+            $subfields = (array) $subfields;
+            // #memo - using Field object guarantees support for `alias` and `computed` fields
+            $targetField = $this->model->getField($field);
+            if(!$targetField) {
+                continue;
+            }
+            $target = $targetField->getDescriptor();
+
+            if(!in_array($target['result_type'], ['one2many', 'many2one', 'many2many'])) {
+                continue;
+            }
+
+            $subdomain = [];
+            $subparams = [];
+
+            if(isset($target['order'])) {
+                $subparams['sort'] = [$target['order'] => (isset($target['sort'])) ? $target['sort'] : 'asc'];
+            }
+
+            foreach($subfields as $key => $val) {
+                if($key === '@domain') {
+                    $subdomain = (array) $val;
+                    unset($subfields[$key]);
+                    continue;
+                }
+                if(in_array($key, ['@sort', '@limit', '@start'], true)) {
+                    $subparams[substr($key, 1)] = $val;
+                    unset($subfields[$key]);
+                    continue;
+                }
+            }
+
+            if(!count($subfields)) {
+                if($target['result_type'] !== 'many2one') {
+                    foreach($this->objects as $id => $object) {
+                        $searchDomain = new Domain($subdomain);
+                        $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
+                        $this->objects[$id][$field] = $this->orm->search($target['foreign_object'], $searchDomain->toArray());
+                    }
+                }
+                continue;
+            }
+
+            // recursively load and assign retrieved values to the objects they relate to
+            foreach($this->objects as $id => $object) {
+                $searchDomain = new Domain($subdomain);
+                $searchDomain->merge(new Domain([ 'id', 'in', $this->objects[$id][$field] ?? [] ]));
+
+                /** @var Collection */
+                $children = $target['foreign_object']::search($searchDomain->toArray(), $subparams)->read($subfields, $lang ?? $this->lang);
+
+                if($target['result_type'] === 'many2one') {
+                    // many2one might be either null or a Model object (which might contain sub-collections)
+                    $this->objects[$id][$field] = $children->first();
+                }
+                else {
+                    // one2many & many2many are Collection objects
+                    $this->objects[$id][$field] = $children;
+                }
+            }
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * Instantiates the draft objects present in the current Collection.
+     *
+     * This method delegates to ObjectManager::instantiate(), which performs the
+     * explicit draft-to-instance state transition without replaying draft writes.
+     *
+     * @param   string      $lang     Language under which fields have to be checked.
+     *
+     * @return  Collection  returns the current instance (allowing calls chaining)
+     */
+    public function instantiate($lang=null) {
+        if(count($this->objects) <= 0) {
+            return $this;
+        }
+
+        $user_id = $this->am->userId();
+
+        $this
+            ->assertCapabilities(EQ_R_CREATE)
+            ->assertAccessControl(EQ_R_CREATE);
+
+        $ids = $this->ids();
+
+        $res = $this->orm->instantiate($this->class, $ids, ($lang) ? $lang : $this->lang);
+
+        if(is_int($res) && $res < 0) {
+            trigger_error("ORM::unexpected error when instantiating {$this->class} objects:" . $this->orm->getLastError(), EQ_REPORT_INFO);
+            throw new \Exception('instantiate_failed', $res);
+        }
+
+        foreach($ids as $id) {
+            // log action (if enabled)
+            $this->logger->log($user_id, 'instantiate', $this->class, $id, []);
+        }
+
+        // put new object in current collection
+        $this->ids($ids)->read(['id']);
+
+        return $this;
+    }
+
+
+    /**
+     * Writes specified fields of selected objects without lifecycle callbacks or
+     * implicit state transition.
+     *
+     * @param   array       $values   Associative array mapping fields and values.
+     * @param   string      $lang     Language for multilang fields.
+     *
+     * @return  Collection  returns the current instance (allowing calls chaining)
+     */
+    public function write(array $values=null, $lang=null) {
+        if(count($this->objects) <= 0) {
+            return $this;
+        }
+
+        $user_id = $this->am->userId();
+
+        if($values === null) {
+            $values = [];
+        }
+
+        array_walk($values, function ($_, $key) {
+            if(!is_string($key) || $key === '') {
+                throw new \Exception('invalid_update_map', EQ_ERROR_INVALID_PARAM);
+            }
+        });
+
+        // retrieve targeted identifiers
+        $ids = $this->ids();
+
+        $values = $this->sanitizeFields($values, 'write');
+
+        // retrieve targeted fields names
+        $fields = array_keys($values);
+
+        if(!count($fields)) {
+            return $this;
+        }
+
+        // 2) assert Capabilities & ACL
+        $this
+            ->assertCapabilities(EQ_R_UPDATE, $fields, $ids)
+            ->assertAccessControl(EQ_R_UPDATE, $fields, $ids)
+            ->assertOperationPolicies(EQ_R_UPDATE, $fields, $ids);
+
+        // by convention, update operation sets modifier as current user
+        $values['modifier'] = $user_id;
+
+        // update objects
+        $res = $this->orm->write($this->class, $ids, $values, ($lang) ? $lang : $this->lang);
+
+        if(is_int($res) && $res < 0) {
+            trigger_error("ORM::unexpected error when writing {$this->class} objects:".$this->orm->getLastError(), EQ_REPORT_INFO);
+            throw new \Exception('write_failed', $res);
+        }
+
+        foreach($ids as $id) {
+            // log action (if enabled)
+            $this->logger->log($user_id, 'write', $this->class, $id, $values);
+            // store updated objects in current collection
+            $this->objects[$id]['id'] = $id;
+            foreach($values as $field => $value) {
+                $this->objects[$id][$field] = $value;
+            }
+        }
+
         return $this;
     }
 
@@ -1296,13 +1472,13 @@ class Collection implements \Iterator, \Countable {
             $values['state'] = 'instance';
         }
 
-        foreach($ids as $oid) {
+        foreach($ids as $id) {
             // log action (if enabled)
-            $this->logger->log($user_id, 'update', $this->class, $oid, $values);
+            $this->logger->log($user_id, 'update', $this->class, $id, $values);
             // store updated objects in current collection
-            $this->objects[$oid]['id'] = $oid;
+            $this->objects[$id]['id'] = $id;
             foreach($values as $field => $value) {
-                $this->objects[$oid][$field] = $value;
+                $this->objects[$id][$field] = $value;
             }
         }
 
