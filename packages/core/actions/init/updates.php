@@ -63,7 +63,7 @@ if(!isset($map_updates[$package]) || !is_array($map_updates[$package])) {
     $map_updates[$package] = [];
 }
 
-$package_initialized_timestamp = null;
+$package_initialized_datetime = null;
 
 if(file_exists($packages_log_file)) {
     $json = file_get_contents($packages_log_file);
@@ -95,7 +95,7 @@ if(file_exists($packages_log_file)) {
             throw new Exception('invalid_package_init_date', EQ_ERROR_INVALID_CONFIG);
         }
 
-        $package_initialized_timestamp = $matches[1] . $matches[2] . $matches[3] . $matches[4] . $matches[5] . $matches[6];
+        $package_initialized_datetime = $matches[1] . $matches[2] . $matches[3] . $matches[4] . $matches[5] . $matches[6];
     }
 }
 
@@ -109,13 +109,17 @@ if(is_dir($updates_folder)) {
         $script = basename($filename);
         $script_name = pathinfo($script, PATHINFO_FILENAME);
         $script_parts = preg_split('/[_-]/', $script_name, 2);
-        $timestamp = $script_parts[0] ?? '';
+        $datetime = $script_parts[0] ?? '';
 
-        if(!preg_match('/^\d{14}$/', $timestamp)) {
+        if(preg_match('/^\d{8}$/', $datetime)) {
+            $datetime .= '000000';
+        }
+
+        if(!preg_match('/^\d{14}$/', $datetime)) {
             continue;
         }
 
-        if($package_initialized_timestamp === null || $timestamp <= $package_initialized_timestamp) {
+        if($package_initialized_datetime === null || $datetime <= $package_initialized_datetime) {
             $skipped[] = $script;
             continue;
         }
