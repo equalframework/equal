@@ -1906,7 +1906,7 @@ class ObjectManager extends Service {
             return $this->create($class, $fields, $lang);
         }
         finally {
-            $this->enabled_events = $previous_events;
+            $this->enableEvents($previous_events);
         }
     }
 
