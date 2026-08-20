@@ -7,7 +7,7 @@
 */
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Execute pending package update scripts from packages/{package}/updates.',
+    'description'   => 'Execute pending package update scripts from packages/{package}/init/updates.',
     'params'        => [
         'package' => [
             'description'   => 'Package whose pending update scripts must be executed.',
@@ -40,7 +40,7 @@ if(!in_array($params['package'], $packages, true)) {
 }
 
 $package = $params['package'];
-$updates_folder = EQ_BASEDIR . "/packages/{$package}/updates";
+$updates_folder = EQ_BASEDIR . "/packages/{$package}/init/updates";
 $updates_log_file = EQ_BASEDIR . '/log/updates.json';
 $packages_log_file = EQ_BASEDIR . '/log/packages.json';
 $map_updates = [];
@@ -61,6 +61,16 @@ if(file_exists($updates_log_file)) {
 
 if(!isset($map_updates[$package]) || !is_array($map_updates[$package])) {
     $map_updates[$package] = [];
+}
+
+$updates_log_folder = dirname($updates_log_file);
+
+if(!is_dir($updates_log_folder) || !is_writable($updates_log_folder)) {
+    throw new Exception('log_dir_not_accessible', EQ_ERROR_INVALID_CONFIG);
+}
+
+if(file_exists($updates_log_file) && !is_writable($updates_log_file)) {
+    throw new Exception('log_file_not_accessible', EQ_ERROR_INVALID_CONFIG);
 }
 
 $package_initialized_datetime = null;
@@ -119,30 +129,31 @@ if(is_dir($updates_folder)) {
             continue;
         }
 
-        if($package_initialized_datetime === null || $datetime <= $package_initialized_datetime) {
+        if(
+            $package_initialized_datetime === null
+            || $datetime <= $package_initialized_datetime
+            || array_key_exists($script, $map_updates[$package])
+            || in_array($script, $map_updates[$package], true)
+        ) {
             $skipped[] = $script;
             continue;
         }
 
-        $update_scripts[$script] = $filename;
+        $update_scripts[] = [
+            'datetime'  => $datetime,
+            'script'    => $script,
+            'filename'  => $filename
+        ];
     }
 }
 
+usort($update_scripts, static function($a, $b) {
+    return [$a['datetime'], $a['script']] <=> [$b['datetime'], $b['script']];
+});
 
-foreach($update_scripts as $script => $filename) {
-    if(isset($map_updates[$package][$script])) {
-        continue;
-    }
-
-    $updates_log_folder = dirname($updates_log_file);
-
-    if(!is_dir($updates_log_folder) || !is_writable($updates_log_folder)) {
-        throw new Exception('log_dir_not_accessible', EQ_ERROR_INVALID_CONFIG);
-    }
-
-    if(file_exists($updates_log_file) && !is_writable($updates_log_file)) {
-        throw new Exception('log_file_not_accessible', EQ_ERROR_INVALID_CONFIG);
-    }
+foreach($update_scripts as $update_script) {
+    $script = $update_script['script'];
+    $filename = $update_script['filename'];
 
     include_once $filename;
 
