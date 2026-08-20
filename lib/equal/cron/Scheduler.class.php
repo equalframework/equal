@@ -42,6 +42,28 @@ class Scheduler extends Service {
     }
 
     /**
+     * Checks if a system process exists.
+     *
+     * @return bool|null Returns null when the current platform cannot check the PID.
+     */
+    protected static function computeProcessPresence($pid) {
+        if($pid <= 0) {
+            return false;
+        }
+
+        if(function_exists('posix_kill')) {
+            if(@posix_kill($pid, 0)) {
+                return true;
+            }
+
+            $eperm = defined('POSIX_EPERM') ? constant('POSIX_EPERM') : 1;
+            return function_exists('posix_get_last_error') && posix_get_last_error() === $eperm;
+        }
+
+        return null;
+    }
+
+    /**
      * Runs a batch of scheduled tasks.
      *
      * At each call we check all active tasks and execute the ones having the `moment` field (timestamp) overdue.
@@ -74,8 +96,8 @@ class Scheduler extends Service {
         $res = $orm->read('core\Task', $running_tasks_ids, ['last_run', 'pid']);
         if(is_array($res)) {
             foreach($res as $task_id => $task) {
-                if($now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
-                    // #todo - check if related PID is running and matches
+                $pid_exists = self::computeProcessPresence($task['pid']);
+                if($pid_exists === false || $now - $task['last_run'] > constant('TASK_EXECUTION_TIMEOUT')) {
                     $orm->update('core\Task', $task_id, ['status' => 'idle']);
                 }
             }
