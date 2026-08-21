@@ -53,6 +53,29 @@ class Reporter extends Service {
         error_reporting($this->debug_level);
         set_error_handler(__NAMESPACE__."\Reporter::errorHandler");
         set_exception_handler(__NAMESPACE__."\Reporter::uncaughtExceptionHandler");
+        register_shutdown_function(__NAMESPACE__."\Reporter::shutdownHandler");
+    }
+
+    public static function shutdownHandler() {
+        $error = error_get_last();
+
+        if(!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+            return;
+        }
+
+        $instance = self::getInstance();
+
+        $instance->log(
+            EQ_REPORT_FATAL,
+            $error['message'],
+            [
+                'class'    => '',
+                'function' => '[shutdown]',
+                'file'     => $error['file'],
+                'line'     => $error['line'],
+                'stack'    => []
+            ]
+        );
     }
 
     /**
