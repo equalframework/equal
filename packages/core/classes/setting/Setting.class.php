@@ -321,7 +321,7 @@ class Setting extends Model {
 
         // complete domain with missing keys, if any
         $selector_keys = static::getSelectorKeys();
-        foreach ($selector_keys as $field) {
+        foreach($selector_keys as $field) {
             if(!array_key_exists($field, $selector)) {
                 $domain[] = [$field, 'is', null];
             }
@@ -335,7 +335,11 @@ class Setting extends Model {
         }
 
         // return id of single match, or null in case of ambiguity
-        return count($setting_values_ids) === 1 ? current($setting_values_ids) : null;
+        if(count($setting_values_ids) > 1) {
+            trigger_error("APP::ambiguity detected for values of setting {$setting_id} with given selector " . serialize($selector), EQ_REPORT_INFO);
+        }
+
+        return count($setting_values_ids) >= 1 ? current($setting_values_ids) : null;
     }
 
     /**
