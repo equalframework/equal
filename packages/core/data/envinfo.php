@@ -26,6 +26,7 @@ list( $params, $providers ) = eQual::announce([
     ],
     'constants'   => [
         "ENV_MODE",
+        "DEFAULT_LANG",
         "APP_DEFAULT_LANG",
         "L10N_LOCALE",
         "ORG_NAME",
@@ -48,6 +49,7 @@ $envinfo = [
     "parent_domain"         => parse_url(constant('BACKEND_URL'), PHP_URL_HOST),
     "backend_url"           => constant('BACKEND_URL'),
     "rest_api_url"          => constant('REST_API_URL'),
+    "lang_default"          => constant('DEFAULT_LANG'),
     "lang"                  => constant('APP_DEFAULT_LANG'),
     "locale"                => constant('L10N_LOCALE'),
     "company_name"          => constant('ORG_NAME'),
