@@ -12,7 +12,8 @@
         "dompdf/dompdf": "~3.0.0",
         "lbuchs/webauthn": "2.0.0",
         "opis/json-schema": "2.4.*",
-        "nikic/php-parser": "4.15.4"
+        "nikic/php-parser": "4.15.4",
+        "endroid/qr-code": "^4.3"
     },
     "requires_php8": {
         "swiftmailer/swiftmailer": "~6.2.0",

@@ -93,4 +93,90 @@ class AuthenticationFactor extends Model {
             ['status']
         ];
     }
+
+    public static function getPolicies(): array {
+        return [
+            'activatable' => [
+                'description'   => "Checks if the factor can be activated.",
+                'function'      => 'policyActivatable'
+            ],
+            'disablable' => [
+                'description'   => "Checks if the factor can be disabled.",
+                'function'      => 'policyDisablable'
+            ],
+            'revocable' => [
+                'description'   => "Checks if the factor can be revoked.",
+                'function'      => 'policyRevocable'
+            ]
+        ];
+    }
+
+    protected static function policyActivatable($self): array {
+        // to overwrite in child classes if necessary
+        return [];
+    }
+
+    protected static function policyDisablable($self): array {
+        // to overwrite in child classes if necessary
+        return [];
+    }
+
+    protected static function policyRevocable($self): array {
+        // to overwrite in child classes if necessary
+        return [];
+    }
+
+    public static function getWorkflow(): array {
+        return [
+            'pending' => [
+                'description'   => 'The factor was created but isn\'t active yet.',
+                'transitions' => [
+                    'activate' => [
+                        'description'   => 'Activate the authentication factor, usually after its validation.',
+                        'status'        => 'active',
+                        'policies'      => ['activatable'],
+                        'onafter'       => 'onafterActivate'
+                    ]
+                ]
+            ],
+            'active' => [
+                'description' => 'The factor can be used as authentication method.',
+                'transitions' => [
+                    'revoke' => [
+                        'description'   => 'Revoke permanently the authentication factor.',
+                        'status'        => 'revoked',
+                        'onafter'       => 'onafterRevoke',
+                        'policies'      => ['revocable']
+                    ],
+                    'disable' => [
+                        'description'   => 'Disable temporally the authentication factor.',
+                        'status'        => 'disabled',
+                        'policies'      => ['disablable']
+                    ]
+                ]
+            ],
+            'disabled' => [
+                'description' => 'The factor is temporally disabled and cannot be used to authenticate.',
+                'transitions' => [
+                    'activate' => [
+                        'description'   => 'Re-activate the authentication factor.',
+                        'status'        => 'active',
+                        'policies'      => ['activatable'],
+                        'onafter'       => 'onafterActivate'
+                    ]
+                ]
+            ],
+            'revoked' => [
+                'description' => 'The factor is permanently disabled.'
+            ]
+        ];
+    }
+
+    protected static function onafterActivate($self) {
+        $self->update(['confirmed_at' => time()]);
+    }
+
+    protected static function onafterRevoke($self) {
+        $self->update(['revoked_at' => time()]);
+    }
 }

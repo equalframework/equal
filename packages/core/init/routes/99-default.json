@@ -5,6 +5,12 @@
             "operation": "?do=core_user_auth_pwd"
         }
     },
+    "/auth/totp": {
+        "POST": {
+            "description": "Attempt to authenticate user with authentication code, at this point the credentials have already been validated.",
+            "operation": "?do=core_user_auth_totp"
+        }
+    },
     "/users": {
         "GET": {
             "description": "Search Users",

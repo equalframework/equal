@@ -5,41 +5,42 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+
+use core\security\factor\TotpKey;
+use core\setting\Setting;
 use core\User;
 
-// announce script and fetch parameters values
-list($params, $providers) = eQual::announce([
+[$params, $providers] = eQual::announce([
     'description'	=>	"Attempts to log a user in.",
     'params' 		=>	[
         'login'		=>	[
-            'description'   => "user name",
+            'description'   => "The user name, username or login.",
             'type'          => 'string',
             'required'      => true
         ],
         'password' =>  [
-            'description'   => "user password",
+            'description'   => "The user login.",
             'type'          => 'string',
             'required'      => true
         ]
     ],
-    'access'      => [
-        'visibility' => 'public'
+    'access'        => [
+        'visibility'    => 'public'
     ],
     'response'      => [
-        'content-type'      => 'application/json',
-        'charset'           => 'utf-8',
-        'accept-origin'     => '*'
+        'content-type'  => 'application/json',
+        'charset'       => 'utf-8',
+        'accept-origin' => '*'
     ],
-    'providers'     => ['context', 'auth', 'orm'],
-    'constants'     => ['BACKEND_URL', 'AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
+    'providers'     => ['context', 'auth'],
+    'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY', 'AUTH_TOKEN_HTTPS']
 ]);
 
 /**
  * @var equal\php\Context                   $context
- * @var equal\orm\ObjectManager             $om
  * @var equal\auth\AuthenticationManager    $auth
  */
-['context' => $context, 'orm' => $om, 'auth' => $auth] = $providers;
+['context' => $context, 'auth' => $auth] = $providers;
 
 // we might have received either a login (email) or a username
 
@@ -76,8 +77,63 @@ if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", EQ_ERROR_NOT_ALLOWED);
 }
 
-// generate a JWT access token
-$access_token = $auth->token(
+$totp_required = false;
+
+$global_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled');
+$totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_totp_enabled, ['user_id' => $user['id']]);
+if($totp_enabled) {
+    $global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
+    $totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']]);
+    if(!$totp_required) {
+        // check if user configured a totpkey even if it isn't required
+        $totpkey = TotpKey::search([
+            ['user_id', '=', $user['id']],
+            ['type', '=', 'totp'],
+            ['status', '=', 'active']
+        ])
+            ->first();
+
+        if($totpkey) {
+            $totp_required = true;
+        }
+    }
+}
+
+if($totp_required) {
+    $now = time();
+    $auth_token = $auth->encodeToken([
+        'type'  => 'mfa_challenge',
+        'amr'   => 'pwd',
+        'sub'   => $user['id'],
+        'iat'   => $now,
+        'exp'   => $now + 300
+    ]);
+
+    $totpkey = TotpKey::search([
+        ['user_id', '=', $user['id']],
+        ['type', '=', 'totp'],
+        ['status', '=', 'active']
+    ])
+        ->read(['failed_attempts'])
+        ->first();
+
+    $allowed_failed_attempts = Setting::get_value('core', 'security', 'auth.totp.allowed_failed_attempts', 5);
+
+    if($totpkey && $totpkey['failed_attempts'] >= $allowed_failed_attempts) {
+        throw new Exception('failled_attempts_reached');
+    }
+
+    $context
+        ->httpResponse()
+        ->body([
+            'mfa_required'  => true,
+            'auth_token'    => $auth_token
+        ])
+        ->send();
+}
+else {
+    // generate a JWT access token
+    $access_token = $auth->token(
         // user identifier
         $user_id,
         // validity of the token
@@ -89,7 +145,8 @@ $access_token = $auth->token(
         ]
     );
 
-$context->httpResponse()
+    $context
+        ->httpResponse()
         ->cookie('access_token',  $access_token, [
             'expires'   => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY'),
             'httponly'  => true,
@@ -97,3 +154,4 @@ $context->httpResponse()
         ])
         ->status(204)
         ->send();
+}
