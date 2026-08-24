@@ -54,14 +54,14 @@ if(constant('FILE_STORAGE_MODE') == 'FS') {
     ];
 }
 
-$uid = 0;
+$gid = 0;
 
 $username = constant('HTTP_PROCESS_USERNAME');
 
 // get UID of a user by its name
 $output = [];
 $result_code = 0;
-exec("id -u \"$username\" 2>&1", $output, $result_code);
+exec("id -g \"$username\" 2>&1", $output, $result_code);
 
 if($result_code !== 0 && PHP_OS_FAMILY != 'Windows') {
     throw new Exception(serialize(['uid_unavailable' => implode("\n", $output)]), EQ_ERROR_UNKNOWN);
@@ -70,10 +70,10 @@ if($result_code !== 0 && PHP_OS_FAMILY != 'Windows') {
 $output = (array) $output;
 
 if(count($output)) {
-    $uid = intval(reset($output));
+    $gid = intval(reset($output));
 }
 
-if(!$uid && PHP_OS_FAMILY != 'Windows') {
+if(!$gid && PHP_OS_FAMILY != 'Windows') {
     throw new Exception(serialize(['unknown_user' => $username]), EQ_ERROR_INVALID_CONFIG);
 }
 
@@ -92,7 +92,7 @@ foreach($paths as $item) {
         throw new Exception(serialize(['missing_mandatory_folder' => "$path not found"]), EQ_ERROR_UNKNOWN);
     }
 
-    chgrp($path, $uid);
+    chgrp($path, $gid);
 
     $perms = fileperms($path);
 
