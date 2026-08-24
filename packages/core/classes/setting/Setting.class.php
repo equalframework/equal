@@ -145,7 +145,8 @@ class Setting extends Model {
                 'foreign_object'    => 'core\setting\SettingValue',
                 'foreign_field'     => 'setting_id',
                 'sort'              => 'asc',
-                'order'             => 'user_id',
+                // #memo - cannot sort on user_id since it potentially links to null (which prevents join condition for retrieving name)
+                // 'order'             => 'user_id',
                 'description'       => 'List of values related to the setting.',
                 'visible'           => ['is_sequence', '=', false]
             ],
