@@ -32,18 +32,46 @@ eQual is a complete open-source low-code web-based framework, designed to effici
 </p>
 
 
-eQual offers a native Low-Code approach, based on the definition of the application logic and components (rather than on code or the language used).
+eQual offers a native Low-Code approach, based on the definition of the application logic and components (rather than on code or the language used). 
 
-Data is modeled via entities, to which a large part of the application logic is associated (workflow, roles, events, actions, policies), which are manipulated by the ORM, with which it is possible to interact using CQRS controllers.
+Data is modeled via entities, to which a large part of the application logic is associated (workflow, roles, events, actions, policies), which are manipulated by the ORM, with which it is possible to interact using CQRS controllers. 
 
-In turn, the Controllers can be invoked via an API.
+In turn, the Controllers can be invoked via an API. 
 
-eQual offers tools that allow the visual consultation and editing of the different components, in turn in the form of relational diagrams, and entity, workflow, view, menu, and translation editors.
+eQual offers tools that allow the visual consultation and editing of the different components, in turn in the form of relational diagrams, and entity, workflow, view, menu, and translation editors. 
 
-It also has a rendering engine that allows views and menus to be assembled in order to define a complete application.
+It also has a rendering engine that allows views and menus to be assembled in order to define a complete application. 
 
 This mechanism enables eQual to generate an application without writing a single line of code, providing both a user interface and an API that can be connected to any external service.
 
+
+## Vision
+
+As applications grow, frameworks naturally tend to accumulate features, dependencies and assumptions. What starts as a convenient common foundation can progressively become harder to understand, reuse extend, or contribute to without knowing the whole system. 
+
+eQual's vision is to keep the benefits of an integrated framework while avoiding unnecessary coupling: recurring technical concerns should be clearly separated, built around well-defined responsibilities, and made reusable beyond the framework itself. 
+
+eQual aims to evolve toward a modular architecture in which reusable building blocks can be used either as part of the complete framework or independently. 
+
+The goal is not to split the project into a large collection of repositories, but to clearly separate concerns and dependencies. Generic components should progressively be isolated into a dedicated `equal-lib` repository, while the main `equal` repository remains the application framework built on top of those components. 
+
+A component should be defined by its architectural boundaries rather than by its Git repository. Components such as HTTP handling, database access, caching, filesystem access, logging, or other generic services should remain focused, documented, testable, and independent from the framework whenever possible. 
+
+The dependency direction should remain simple:
+
+```
+equal
+  ↓
+equal-lib
+```
+
+`equal-lib` must not depend on the eQual framework. This makes its components reusable in standalone PHP projects while allowing eQual itself to rely on the same public building blocks. 
+
+Interfaces and contracts are central to this approach. Components should depend on stable abstractions rather than on specific implementations, allowing alternative implementations to coexist and be contributed independently. 
+
+This architecture is also intended to make community participation easier. Contributors should be able to start with a very focused change — documentation, tests, a component improvement, an adapter, or a new implementation — without first having to understand the entire framework. More experienced contributors can progressively participate in contracts, architecture, and core framework development. 
+
+This is a progressive architectural direction rather than a description of the current implementation. Existing features and APIs are expected to evolve incrementally toward these boundaries while preserving compatibility whenever possible. 
 
 
 ## Features
