@@ -1,0 +1,2109 @@
+[
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "numbers.thousands_separator",
+        "title": "Thousands separator",
+        "form_control": "select",
+        "description": "Character to use as thousands separator",
+        "help": "Thousands separator char (e.g. '.', ',', ' ').",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Séparateur de milliers",
+                "description": "Caractère de séparation de milliers",
+                "help": "Caractère de séparation de milliers (e.g. '.', ',', ' ')."
+            }
+        },
+        "choices": [
+            {
+                "name": "comma",
+                "value": ",",
+                "translations": {
+                    "fr": {
+                        "name": "virgule"
+                    }
+                }
+            },
+            {
+                "name": "point",
+                "value": ".",
+                "translations": {
+                    "fr": {
+                        "name": "point"
+                    }
+                }
+            }
+        ],
+        "value": ","
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "currency.symbol_position",
+        "title": "Currency symbol position",
+        "form_control": "select",
+        "description": "Position of the currency symbol relative to its value.",
+        "help": "Position of the currency symbol relative to its value ('before', 'after', 'decimal_separator').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Position de devise",
+                "description": "Position du symbole de monnaie par rapport à sa valeur",
+                "help": "Position du symbole de monnaie par rapport à sa valeur ('before', 'after', 'decimal_separator')."
+            }
+        },
+        "choices": [
+            {
+                "name": "before",
+                "value": "before",
+                "translations": {
+                    "fr": {
+                        "name": "avant"
+                    }
+                }
+            },
+            {
+                "name": "after",
+                "value": "after",
+                "translations": {
+                    "fr": {
+                        "name": "après"
+                    }
+                }
+            }
+        ],
+        "value": "after"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "currency.decimal_precision",
+        "title": "Number of decimal digits (Price)",
+        "form_control": "select",
+        "description": "Number of decimal digits for prices.",
+        "help": "Number of decimal digits to store for fields of usage 'Price'.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Nombre de décimales (Prix)",
+                "description": "Nombre de décimales pour les prix",
+                "help": "Nombre de décimales à conserver pour les champs à usage 'Price'."
+            }
+        },
+        "choices": [
+            {
+                "name": "1",
+                "value": "1",
+                "translations": {
+                    "fr": {
+                        "name": "1"
+                    }
+                }
+            },
+            {
+                "name": "2",
+                "value": "2",
+                "translations": {
+                    "fr": {
+                        "name": "2"
+                    }
+                }
+            },
+            {
+                "name": "3",
+                "value": "3",
+                "translations": {
+                    "fr": {
+                        "name": "3"
+                    }
+                }
+            }
+        ],
+        "value": "2"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "numbers.decimal_separator",
+        "title": "Decimal separator",
+        "form_control": "select",
+        "description": "Decimal separator (e.g. '.', ',')",
+        "help": "Character to use for separating integer and decimal parts of floating numbers (e.g. '.', ',').",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Séparateur de décimales",
+                "description": "Séparateur de décimales (e.g. '.', ',')",
+                "help": "Caractère de séparation entre les parties entière et décimale (e.g. '.', ',')."
+            }
+        },
+        "choices": [
+            {
+                "name": "comma",
+                "value": ",",
+                "translations": {
+                    "fr": {
+                        "name": "virgule"
+                    }
+                }
+            },
+            {
+                "name": "point",
+                "value": ".",
+                "translations": {
+                    "fr": {
+                        "name": "point"
+                    }
+                }
+            }
+        ],
+        "value": "."
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "numbers.decimal_precision",
+        "title": "Number of decimal digits",
+        "form_control": "select",
+        "description": "Number of decimal digits",
+        "help": "Number of decimal digits to store for fields of type 'float'.",
+        "type": "integer",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Nombre de décimales",
+                "description": "Nombre de décimales",
+                "help": "Nombre de décimales à conserver pour les champs de type 'float'."
+            }
+        },
+        "choices": [
+            {
+                "name": "1",
+                "value": "1",
+                "translations": {
+                    "fr": {
+                        "name": "1"
+                    }
+                }
+            },
+            {
+                "name": "2",
+                "value": "2",
+                "translations": {
+                    "fr": {
+                        "name": "2"
+                    }
+                }
+            },
+            {
+                "name": "3",
+                "value": "3",
+                "translations": {
+                    "fr": {
+                        "name": "3"
+                    }
+                }
+            }
+        ],
+        "value": "2"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "date_format",
+        "title": "Date format",
+        "form_control": "select",
+        "description": "Date format",
+        "help": "Format to use for displaying dates.",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Format de date",
+                "description": "Format de date",
+                "help": "Format pour l'affichage des dates."
+            }
+        },
+        "choices": [
+            {
+                "name": "d/m/Y",
+                "value": "d/m/Y",
+                "translations": {
+                    "fr": {
+                        "name": "d/m/Y"
+                    }
+                }
+            },
+            {
+                "name": "Y-m-d",
+                "value": "Y-m-d",
+                "translations": {
+                    "fr": {
+                        "name": "Y-m-d"
+                    }
+                }
+            },
+            {
+                "name": "m/d/Y",
+                "value": "m/d/Y",
+                "translations": {
+                    "fr": {
+                        "name": "m/d/Y"
+                    }
+                }
+            }
+        ],
+        "value": "d/m/Y"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "time_format",
+        "title": "Time format",
+        "form_control": "select",
+        "description": "Format for times.",
+        "help": "Format to use for displaying times and time parts of dates.",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Format des heures",
+                "description": "Format des heures",
+                "help": "Format pour l'affichage des heures."
+            }
+        },
+        "choices": [
+            {
+                "name": "H:i",
+                "value": "H:i",
+                "translations": {
+                    "fr": {
+                        "name": "H:i"
+                    }
+                }
+            }
+        ],
+        "value": "H:i"
+    },
+    {
+        "package": "core",
+        "section": "main",
+        "code": "company.id",
+        "title": "Company",
+        "form_control": "select",
+        "description": "Main company of installation.",
+        "help": "Identifier of the main company of the current installation.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Organisation",
+                "description": "Organisation de l'installation",
+                "help": "Identifiant de l'organisation principale pour l'installation courante."
+            }
+        },
+        "choices": [
+            {
+                "name": "1",
+                "value": "1",
+                "translations": {
+                    "fr": {
+                        "name": "1"
+                    }
+                }
+            }
+        ],
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "main",
+        "code": "formats.paper",
+        "title": "Paper format",
+        "form_control": "select",
+        "description": "Default size for paper documents",
+        "help": "Default size for paper documents (e.g. 'A4', 'legal_US', 'letter_US').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Format du papier",
+                "description": "Taille papier par défaut",
+                "help": "Taille papier par défaut (e.g. 'A4', 'legal_US', 'letter_US')."
+            }
+        },
+        "choices": [
+            {
+                "name": "21.59 x 27.74",
+                "value": "US",
+                "translations": {
+                    "fr": {
+                        "name": "21,59 x 27,74"
+                    }
+                }
+            },
+            {
+                "name": "21 x 29.7",
+                "value": "A4",
+                "translations": {
+                    "fr": {
+                        "name": "21 x 29,7"
+                    }
+                }
+            },
+            {
+                "name": "29.7 x 41.99",
+                "value": "A3",
+                "translations": {
+                    "fr": {
+                        "name": "29,7 x 41,99"
+                    }
+                }
+            },
+            {
+                "name": "14,8 x 21",
+                "value": "A5",
+                "translations": {
+                    "fr": {
+                        "name": "14,8 x 21"
+                    }
+                }
+            }
+        ],
+        "value": "A4"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "account_creation",
+        "title": "Account creation",
+        "form_control": "toggle",
+        "description": "Allow accounts creation",
+        "help": "Allow visitors to create a user account.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Création de compte",
+                "description": "Autoriser la création de compte",
+                "help": "Autoriser les visiteurs à créer un compte utilisateur."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "import",
+        "title": "Import",
+        "form_control": "toggle",
+        "description": "Allow import",
+        "help": "Allow users to import data from files (CSV/XLS/XLSX/ODS).",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Importer",
+                "description": "Autoriser l'importation",
+                "help": "Autoriser les utilisateurs à importer des données depuis des fichiers (CSV/XLS/XLSX/ODS)."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "export",
+        "title": "Export",
+        "form_control": "toggle",
+        "description": "Allow export",
+        "help": "Allow users to export data by downloading files (CSV/XLS/PDF).",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Exporter",
+                "description": "Autoriser l'exportation",
+                "help": "Autoriser les utilisateurs à exporter des données vers des fichiers (CSV/XLS/PDF)."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "currency",
+        "title": "Currency",
+        "form_control": "select",
+        "description": "Prices currency",
+        "help": "Currency to use for fields of usage 'Price' (ISO 4217).",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Devise",
+                "description": "Devise des prix",
+                "help": "Devise à utiliser pour les champs à usage 'Price' (ISO 4217)."
+            }
+        },
+        "choices": [
+            {
+                "name": "USD",
+                "value": "$",
+                "translations": {
+                    "fr": {
+                        "name": "USD"
+                    }
+                }
+            },
+            {
+                "name": "EUR",
+                "value": "€",
+                "translations": {
+                    "fr": {
+                        "name": "EUR"
+                    }
+                }
+            }
+        ],
+        "value": "€"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "length",
+        "title": "Length",
+        "form_control": "select",
+        "description": "Length unit",
+        "help": "Default unit for length measures.",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Longueur",
+                "description": "Unité de longueur",
+                "help": "Unité par défaut pour les mesures de longueur."
+            }
+        },
+        "choices": [
+            {
+                "name": "meter",
+                "value": "m",
+                "translations": {
+                    "fr": {
+                        "name": "mètre"
+                    }
+                }
+            }
+        ],
+        "value": "m"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "weight",
+        "title": "Weight",
+        "form_control": "select",
+        "description": "Weight unit",
+        "help": "Default unit for weight measures (e.g. 'kg' kilogram, 'lb' pound).",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Poids",
+                "description": "Unité de poids",
+                "help": "Unité par défaut pour les mesures de poids (e.g. 'kg' kilogram, 'lb' pound)."
+            }
+        },
+        "choices": [
+            {
+                "name": "kilograms",
+                "value": "kg",
+                "translations": {
+                    "fr": {
+                        "name": "kilogramme"
+                    }
+                }
+            }
+        ],
+        "value": "kg"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "volume",
+        "title": "Volume",
+        "form_control": "select",
+        "description": "Volume unit",
+        "help": "Default unit for volume measures (e.g. 'm3' cubic meter, 'ft3' cubic foot).",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Volume",
+                "description": "Unité de volume",
+                "help": "Unité par défaut pour les unités de volume (e.g. 'm3' cubic meter, 'ft3' cubic foot)."
+            }
+        },
+        "choices": [
+            {
+                "name": "cubic meter",
+                "value": "m3",
+                "translations": {
+                    "fr": {
+                        "name": "mètre cube"
+                    }
+                }
+            }
+        ],
+        "value": "m3"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "surface",
+        "title": "Surface",
+        "form_control": "select",
+        "description": "Surface unit",
+        "help": "Default unit for surface measures (e.g. 'm2' square meter, 'ft2' square foot).",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Surface",
+                "description": "Unité de surface",
+                "help": "Unité par défaut pour les unités de surface (e.g. 'm2' square meter, 'ft2' square foot)."
+            }
+        },
+        "choices": [
+            {
+                "name": "square meter",
+                "value": "m2",
+                "translations": {
+                    "fr": {
+                        "name": "mètre carré"
+                    }
+                }
+            }
+        ],
+        "value": "m2"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "time_zone",
+        "title": "Time zone",
+        "form_control": "select",
+        "description": "Time zone on which dates are based.",
+        "help": "Default timezone to be used at application level.",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Fuseau horaire",
+                "description": "Fuseau horaire sur lequel baser les dates.",
+                "help": "Fuseau horaire par défaut à utiliser au niveau de l'application."
+            }
+        },
+        "choices": [
+            {
+                "name": "Europe/Amsterdam",
+                "value": "Europe/Amsterdam"
+            },
+            {
+                "name": "Europe/Andorra",
+                "value": "Europe/Andorra"
+            },
+            {
+                "name": "Europe/Athens",
+                "value": "Europe/Athens"
+            },
+            {
+                "name": "Europe/Belfast",
+                "value": "Europe/Belfast"
+            },
+            {
+                "name": "Europe/Belgrade",
+                "value": "Europe/Belgrade"
+            },
+            {
+                "name": "Europe/Berlin",
+                "value": "Europe/Berlin"
+            },
+            {
+                "name": "Europe/Bratislava",
+                "value": "Europe/Bratislava"
+            },
+            {
+                "name": "Europe/Brussels",
+                "value": "Europe/Brussels"
+            },
+            {
+                "name": "Europe/Bucharest",
+                "value": "Europe/Bucharest"
+            },
+            {
+                "name": "Europe/Budapest",
+                "value": "Europe/Budapest"
+            },
+            {
+                "name": "Europe/Busingen",
+                "value": "Europe/Busingen"
+            },
+            {
+                "name": "Europe/Chisinau",
+                "value": "Europe/Chisinau"
+            },
+            {
+                "name": "Europe/Copenhagen",
+                "value": "Europe/Copenhagen"
+            },
+            {
+                "name": "Europe/Dublin",
+                "value": "Europe/Dublin"
+            },
+            {
+                "name": "Europe/Gibraltar",
+                "value": "Europe/Gibraltar"
+            },
+            {
+                "name": "Europe/Guernsey",
+                "value": "Europe/Guernsey"
+            },
+            {
+                "name": "Europe/Helsinki",
+                "value": "Europe/Helsinki"
+            },
+            {
+                "name": "Europe/Isle of Man",
+                "value": "Europe/Isle_of_Man"
+            },
+            {
+                "name": "Europe/Istanbul",
+                "value": "Europe/Istanbul"
+            },
+            {
+                "name": "Europe/Jersey",
+                "value": "Europe/Jersey"
+            },
+            {
+                "name": "Europe/Kaliningrad",
+                "value": "Europe/Kaliningrad"
+            },
+            {
+                "name": "Europe/Kiev",
+                "value": "Europe/Kiev"
+            },
+            {
+                "name": "Europe/Lisbon",
+                "value": "Europe/Lisbon"
+            },
+            {
+                "name": "Europe/Ljubljana",
+                "value": "Europe/Ljubljana"
+            },
+            {
+                "name": "Europe/London",
+                "value": "Europe/London"
+            },
+            {
+                "name": "Europe/Luxembourg",
+                "value": "Europe/Luxembourg"
+            },
+            {
+                "name": "Europe/Madrid",
+                "value": "Europe/Madrid"
+            },
+            {
+                "name": "Europe/Malta",
+                "value": "Europe/Malta"
+            },
+            {
+                "name": "Europe/Mariehamn",
+                "value": "Europe/Mariehamn"
+            },
+            {
+                "name": "Europe/Minsk",
+                "value": "Europe/Minsk"
+            },
+            {
+                "name": "Europe/Monaco",
+                "value": "Europe/Monaco"
+            },
+            {
+                "name": "Europe/Moscow",
+                "value": "Europe/Moscow"
+            },
+            {
+                "name": "Europe/Nicosia",
+                "value": "Europe/Nicosia"
+            },
+            {
+                "name": "Europe/Oslo",
+                "value": "Europe/Oslo"
+            },
+            {
+                "name": "Europe/Paris",
+                "value": "Europe/Paris"
+            },
+            {
+                "name": "Europe/Podgorica",
+                "value": "Europe/Podgorica"
+            },
+            {
+                "name": "Europe/Prague",
+                "value": "Europe/Prague"
+            },
+            {
+                "name": "Europe/Riga",
+                "value": "Europe/Riga"
+            },
+            {
+                "name": "Europe/Rome",
+                "value": "Europe/Rome"
+            },
+            {
+                "name": "Europe/Samara",
+                "value": "Europe/Samara"
+            },
+            {
+                "name": "Europe/San Marino",
+                "value": "Europe/San_Marino"
+            },
+            {
+                "name": "Europe/Sarajevo",
+                "value": "Europe/Sarajevo"
+            },
+            {
+                "name": "Europe/Simferopol",
+                "value": "Europe/Simferopol"
+            },
+            {
+                "name": "Europe/Skopje",
+                "value": "Europe/Skopje"
+            },
+            {
+                "name": "Europe/Sofia",
+                "value": "Europe/Sofia"
+            },
+            {
+                "name": "Europe/Stockholm",
+                "value": "Europe/Stockholm"
+            },
+            {
+                "name": "Europe/Tallinn",
+                "value": "Europe/Tallinn"
+            },
+            {
+                "name": "Europe/Tirane",
+                "value": "Europe/Tirane"
+            },
+            {
+                "name": "Europe/Tiraspol",
+                "value": "Europe/Tiraspol"
+            },
+            {
+                "name": "Europe/Uzhgorod",
+                "value": "Europe/Uzhgorod"
+            },
+            {
+                "name": "Europe/Vaduz",
+                "value": "Europe/Vaduz"
+            },
+            {
+                "name": "Europe/Vatican",
+                "value": "Europe/Vatican"
+            },
+            {
+                "name": "Europe/Vienna",
+                "value": "Europe/Vienna"
+            },
+            {
+                "name": "Europe/Vilnius",
+                "value": "Europe/Vilnius"
+            },
+            {
+                "name": "Europe/Volgograd",
+                "value": "Europe/Volgograd"
+            },
+            {
+                "name": "Europe/Warsaw",
+                "value": "Europe/Warsaw"
+            },
+            {
+                "name": "Europe/Zagreb",
+                "value": "Europe/Zagreb"
+            },
+            {
+                "name": "Europe/Zaporozhye",
+                "value": "Europe/Zaporozhye"
+            },
+            {
+                "name": "Europe/Zurich",
+                "value": "Europe/Zurich"
+            }
+        ],
+        "value": "Europe/Brussels"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_creation",
+        "title": "Propose passkey creation",
+        "form_control": "toggle",
+        "description": "Propose passkey creation after login using password.",
+        "help": "Only proposes if the user hasn't any passkey yet.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Proposer la création de la première clé d'accès",
+                "description": "Proposer la création de la première clé d'accès après la connexion avec un mot de passe.",
+                "help": "Proposé uniquement si l'utilisateur n'a pas encore de clé d'accès."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_rp_id",
+        "title": "Passkey relying party id",
+        "form_control": "input",
+        "description": "The domain or unique identifier for the relying party.",
+        "help": "Enter the domain or identifier used by the relying party. This is typically a domain name (e.g. example.com).",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Passkey relying party id",
+                "description": "Le domaine ou identifiant unique du relying party.",
+                "help": "Entrez le domaine ou l'identifiant utilisé par le relying party. Il s'agit généralement d'un nom de domaine (ex. : example.com)."
+            }
+        },
+        "value": "equal.local"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_rp_name",
+        "title": "Passkey relying party name",
+        "form_control": "input",
+        "description": "The name of the relying party.",
+        "help": "Enter the full name of the relying party. This is usually the name of the website or application (e.g., Example Inc.).",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Passkey relying party name",
+                "description": "Le nom du relying party.",
+                "help": "Entrez le nom complet du relying party. Il s'agit généralement du nom du site web ou de l'application (ex. : Exemple Inc.)."
+            }
+        },
+        "value": "eQual App"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_android-key",
+        "title": "Passkey format android-key",
+        "form_control": "toggle",
+        "description": "Enable or disable support for Android Key passkey format.",
+        "help": "Toggle this option if you want to allow passkeys to be verified using Android Key attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Format de clé d'accès Android-Key",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Android Key.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation Android Key."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_android-safetynet",
+        "title": "Passkey format android-safetynet",
+        "form_control": "toggle",
+        "description": "Enable or disable support for Android SafetyNet passkey format.",
+        "help": "Toggle this option to allow passkeys verified using Android SafetyNet attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Format de clé d'accès Android-SafetyNet",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Android SafetyNet.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation Android SafetyNet."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_apple",
+        "title": "Passkey format apple",
+        "form_control": "toggle",
+        "description": "Enable or disable support for Apple's passkey format.",
+        "help": "Toggle this option if you want to allow passkeys verified through Apple attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey format Apple",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès d'Apple.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation d'Apple."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_fido-u2f",
+        "title": "Passkey format fido-u2f",
+        "form_control": "toggle",
+        "description": "Enable or disable support for FIDO U2F passkey format.",
+        "help": "Toggle this option to allow passkeys verified using the FIDO U2F standard.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey format FIDO U2F",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès FIDO U2F.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via la norme FIDO U2F."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_none",
+        "title": "Passkey format none",
+        "form_control": "toggle",
+        "description": "Enable or disable support for passkeys without attestation format.",
+        "help": "Toggle this option to allow passkeys that do not require formal attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey aucun format",
+                "description": "Activer ou désactiver la prise en charge d'une clé d'accès sans format d'attestation.",
+                "help": "Activez cette option pour permettre l'utilisation de clés d'accès sans attestation formelle."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_packed",
+        "title": "Passkey format packed",
+        "form_control": "toggle",
+        "description": "Enable or disable support for packed passkey format.",
+        "help": "Toggle this option to allow passkeys using the packed format for attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey format Packed",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès Packed.",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès utilisant le format Packed."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_format_tpm",
+        "title": "Passkey format tpm",
+        "form_control": "toggle",
+        "description": "Enable or disable support for TPM (Trusted Platform Module) passkey format.",
+        "help": "Toggle this option to allow passkeys verified through TPM attestation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey format TPM",
+                "description": "Activer ou désactiver la prise en charge du format de clé d'accès TPM (Trusted Platform Module).",
+                "help": "Activez cette option pour permettre la vérification des clés d'accès via l'attestation TPM."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_user_verification",
+        "title": "Passkey user verification",
+        "form_control": "select",
+        "description": "Select the level of user verification required during passkey authentication.",
+        "help": "Options: 'required' forces user verification (e.g., via biometrics or PIN), 'preferred' uses it if available, and 'discouraged' skips user verification.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Passkey vérification utilisateur",
+                "description": "Sélectionnez le niveau de vérification de l'utilisateur requis pendant l'authentification par clé d'accès.",
+                "help": "Options : 'obligatoire' impose la vérification de l'utilisateur (ex. via biométrie ou code PIN), 'préféré' l'utilise si disponible, et 'découragé' évite la vérification de l'utilisateur."
+            }
+        },
+        "choices": [
+            {
+                "name": "required",
+                "value": "required",
+                "translations": {
+                    "fr": {
+                        "name": "requise"
+                    }
+                }
+            },
+            {
+                "name": "preferred",
+                "value": "preferred",
+                "translations": {
+                    "fr": {
+                        "name": "préférée"
+                    }
+                }
+            },
+            {
+                "name": "discouraged",
+                "value": "discouraged",
+                "translations": {
+                    "fr": {
+                        "name": "découragée"
+                    }
+                }
+            }
+        ],
+        "value": "preferred"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_cross_platform",
+        "title": "Passkey cross platform",
+        "form_control": "select",
+        "description": "Choose the usage mode for passkeys across platforms.",
+        "help": "Options: 'all' for all types of passkeys, 'only cross-platform' for passkeys stored on external connected devices, or 'only platform' for passkeys limited to the device itself.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Passkey cross platform",
+                "description": "Sélectionnez le mode d'utilisation des clés d'acccès sur différentes plateformes.",
+                "help": "Options : 'all' pour tous les types de clés de sécurité, 'only cross-platform' pour les clés d'accès stockées sur des appareils externes connectés, ou 'only platform' pour les clés d'accès limitées à l'appareil lui-même."
+            }
+        },
+        "choices": [
+            {
+                "name": "all",
+                "value": "all",
+                "translations": {
+                    "fr": {
+                        "name": "all"
+                    }
+                }
+            },
+            {
+                "name": "only cross platform",
+                "value": "cross-platform",
+                "translations": {
+                    "fr": {
+                        "name": "seulement cross platform"
+                    }
+                }
+            },
+            {
+                "name": "only platform",
+                "value": "platform",
+                "translations": {
+                    "fr": {
+                        "name": "seulement platform"
+                    }
+                }
+            }
+        ],
+        "value": "all"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_authenticator_usb",
+        "title": "Passkey authenticator USB",
+        "form_control": "toggle",
+        "description": "Enable or disable the use of USB-based authenticators for passkey authentication.",
+        "help": "Toggle this option to allow or restrict the use of USB devices for passkey authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey authenticator USB",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs USB pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils USB pour l'authentification par clé d'accès."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_authenticator_nfc",
+        "title": "Passkey authenticator NFC",
+        "form_control": "toggle",
+        "description": "Enable or disable the use of NFC-based authenticators for passkey authentication.",
+        "help": "Toggle this option to allow or restrict the use of NFC-enabled devices for passkey authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey authenticator NFC",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs NFC pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils compatibles NFC pour l'authentification par clé d'accès."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_authenticator_ble",
+        "title": "Passkey authenticator BLE",
+        "form_control": "toggle",
+        "description": "Enable or disable the use of Bluetooth Low Energy (BLE) authenticators for passkey authentication.",
+        "help": "Toggle this option to allow or restrict the use of BLE devices for passkey authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey authenticator BLE",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs Bluetooth Low Energy (BLE) pour l'authentification par clé d'accès.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'appareils BLE pour l'authentification par clé d'accès."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_authenticator_hybrid",
+        "title": "Passkey authenticator hybrid",
+        "form_control": "toggle",
+        "description": "Enable or disable the use of hybrid authenticators that utilize multiple communication methods.",
+        "help": "Toggle this option to allow or restrict the use of hybrid authenticators for passkey authentication.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey authenticator hybrid",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs hybrides qui utilisent plusieurs méthodes de communication.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation d'authentificateurs hybrides pour l'authentification par clé d'accès."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_authenticator_internal",
+        "title": "Passkey authenticator internal",
+        "form_control": "toggle",
+        "description": "Enable or disable the use of internal authenticators built into devices, such as fingerprint scanners.",
+        "help": "Toggle this option to allow or restrict the use of internal authentication methods on devices.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Passkey authenticator internal",
+                "description": "Activer ou désactiver l'utilisation d'authentificateurs internes intégrés aux appareils, tels que les scanners d'empreintes digitales.",
+                "help": "Activez cette option pour autoriser ou restreindre l'utilisation de méthodes d'authentification internes sur les appareils."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "passkey_user-handle",
+        "title": "Mapping for user-specific anonymous user_handle",
+        "form_control": "input",
+        "description": "User handle for passkey authentication.",
+        "help": "Holds a temporary user_handle as a nonce for each user, used for mapping a current WebAuthn session with an existing user.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Mapping user_handle anonyme par utilisateur",
+                "description": "User handle pour l'authentification par clé d'accès.",
+                "help": "Stocke un user_handle temporaire comme nonce pour chaque utilisateur, utilisé pour associer une session WebAuthn courante à un utilisateur existant."
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "time_encoding",
+        "title": "Time encoding",
+        "form_control": "select",
+        "description": "How time values are exchanged between front end and back end.",
+        "help": "Use 'frontend' when the UI adjusts values using the browser time zone and sends UTC. Use 'backend' when the backend interprets raw values in its own time zone.",
+        "type": "string",
+        "is_deprecated": true,
+        "translations": {
+            "fr": {
+                "title": "Encodage de l'heure",
+                "description": "Mode d'échange des heures entre le front-end et le back-end.",
+                "help": "Utilisez 'frontend' lorsque l'UI ajuste les valeurs selon le fuseau du navigateur et envoie l'UTC. Utilisez 'backend' lorsque le back-end interprète les valeurs brutes dans son propre fuseau."
+            }
+        },
+        "choices": [
+            {
+                "name": "frontend",
+                "value": "frontend",
+                "translations": {
+                    "fr": {
+                        "name": "front-end"
+                    }
+                }
+            },
+            {
+                "name": "backend",
+                "value": "backend",
+                "translations": {
+                    "fr": {
+                        "name": "back-end"
+                    }
+                }
+            }
+        ],
+        "value": "frontend"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "impersonation.allowed",
+        "title": "Impersonation allowed",
+        "form_control": "toggle",
+        "description": "Allow the user to impersonate another user.",
+        "help": "This user-scoped setting controls whether the authenticated user can start impersonation.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Impersonation autorisée",
+                "description": "Autorise l'utilisateur à impersoner un autre utilisateur.",
+                "help": "Ce paramètre propre à l'utilisateur contrôle si l'utilisateur authentifié peut démarrer une impersonation."
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "impersonation.enabled",
+        "title": "Impersonation enabled",
+        "form_control": "toggle",
+        "description": "Current impersonation state for the authenticated user.",
+        "help": "When disabled, no impersonation is applied even if a target user is configured.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Impersonation active",
+                "description": "État courant de l'impersonation pour l'utilisateur authentifié.",
+                "help": "Si ce paramètre est désactivé, aucune impersonation n'est appliquée même si un utilisateur cible est configuré."
+            }
+        },
+        "value": "1"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "impersonation.user_id",
+        "title": "Impersonation target user",
+        "form_control": "input",
+        "description": "Target user identifier for impersonation.",
+        "help": "Stores the user identifier that should be resolved while impersonation is active.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Utilisateur cible de l'impersonation",
+                "description": "Identifiant de l'utilisateur cible pour l'impersonation.",
+                "help": "Stocke l'identifiant utilisateur à résoudre lorsque l'impersonation est active."
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "impersonation.expiry",
+        "title": "Impersonation expiry",
+        "form_control": "input",
+        "description": "Expiration timestamp for active impersonation.",
+        "help": "Stores the Unix timestamp after which impersonation is no longer valid.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Expiration de l'impersonation",
+                "description": "Timestamp d'expiration de l'impersonation active.",
+                "help": "Stocke le timestamp Unix après lequel l'impersonation n'est plus valide."
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.passkey.enabled",
+        "title": "Passkey authentication enabled",
+        "form_control": "toggle",
+        "description": "Allow users to authenticate with registered passkeys.",
+        "help": "Disable this setting to remove passkey authentication from the sign-in methods offered to users.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Authentification par clé d'accès activée",
+                "description": "Autoriser les utilisateurs à s'authentifier avec des clés d'accès enregistrées.",
+                "help": "Désactivez ce paramètre pour retirer l'authentification par clé d'accès des méthodes de connexion proposées aux utilisateurs."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.totp.enabled",
+        "title": "TOTP authentication enabled",
+        "form_control": "toggle",
+        "description": "Allow users to authenticate with a time-based one-time password as an additional factor.",
+        "help": "Enable this setting before requiring TOTP authentication or allowing users to create TOTP keys.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Authentification TOTP activée",
+                "description": "Autoriser les utilisateurs à s'authentifier avec un mot de passe à usage unique basé sur le temps comme facteur supplémentaire.",
+                "help": "Activez ce paramètre avant d'exiger l'authentification TOTP ou d'autoriser les utilisateurs à créer des clés TOTP."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.password.totp_required",
+        "title": "TOTP authentication required (MFA)",
+        "form_control": "toggle",
+        "description": "Require a valid TOTP code after successful password authentication.",
+        "help": "Before enabling this requirement, ensure affected users can enroll a TOTP key or have another account recovery method.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Authentification TOTP requise (MFA)",
+                "description": "Exiger un code TOTP valide après une authentification réussie par mot de passe.",
+                "help": "Avant d'activer cette exigence, assurez-vous que les utilisateurs concernés peuvent enregistrer une clé TOTP ou disposent d'une autre méthode de récupération de compte."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "totpkey_creation",
+        "title": "Propose TOTP key creation",
+        "form_control": "toggle",
+        "description": "Allow users to enroll a TOTP key for multi-factor authentication.",
+        "help": "When enabled, eligible users can create and validate a TOTP key. Disabling it does not deactivate existing keys.",
+        "type": "boolean",
+        "translations": {
+            "fr": {
+                "title": "Proposer la création d'une clé TOTP",
+                "description": "Autoriser les utilisateurs à enregistrer une clé TOTP pour l'authentification multifacteur.",
+                "help": "Lorsque ce paramètre est activé, les utilisateurs éligibles peuvent créer et valider une clé TOTP. Sa désactivation ne désactive pas les clés existantes."
+            }
+        },
+        "value": "0"
+    },
+    {
+        "package": "core",
+        "section": "security",
+        "code": "auth.totp.allowed_failed_attempts",
+        "title": "TOTP allowed failed attempts",
+        "form_control": "input",
+        "description": "The quantity of attempts a user can make to enter the correct authentication code.",
+        "help": "By default 5 attempts are allowed.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "TOTP nombre de tentatives autorisées",
+                "description": "",
+                "help": ""
+            }
+        }
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "number.thousands_separator",
+        "title": "Thousands separator",
+        "form_control": "select",
+        "description": "Character to use as thousands separator.",
+        "help": "Thousands separator character (e.g. '.', ',', ' ').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Séparateur de milliers",
+                "description": "Caractère utilisé comme séparateur de milliers.",
+                "help": "Caractère de séparation des milliers (e.g. '.', ',', ' ')."
+            }
+        },
+        "choices": [
+            {
+                "name": "comma",
+                "value": ",",
+                "translations": {
+                    "fr": {
+                        "name": "virgule"
+                    }
+                }
+            },
+            {
+                "name": "point",
+                "value": ".",
+                "translations": {
+                    "fr": {
+                        "name": "point"
+                    }
+                }
+            }
+        ],
+        "value": ","
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "number.decimal_separator",
+        "title": "Decimal separator",
+        "form_control": "select",
+        "description": "Character to use as decimal separator.",
+        "help": "Character separating the integer and decimal parts of a number (e.g. '.', ',').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Séparateur décimal",
+                "description": "Caractère utilisé comme séparateur décimal.",
+                "help": "Caractère séparant les parties entière et décimale d'un nombre (e.g. '.', ',')."
+            }
+        },
+        "choices": [
+            {
+                "name": "comma",
+                "value": ",",
+                "translations": {
+                    "fr": {
+                        "name": "virgule"
+                    }
+                }
+            },
+            {
+                "name": "point",
+                "value": ".",
+                "translations": {
+                    "fr": {
+                        "name": "point"
+                    }
+                }
+            }
+        ],
+        "value": "."
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "number.decimal_precision",
+        "title": "Number of decimal digits",
+        "form_control": "select",
+        "description": "Number of decimal digits for generic numbers.",
+        "help": "Number of decimal digits to store for fields of type 'float'.",
+        "type": "integer",
+        "translations": {
+            "fr": {
+                "title": "Nombre de décimales",
+                "description": "Nombre de décimales pour les nombres génériques.",
+                "help": "Nombre de décimales à conserver pour les champs de type 'float'."
+            }
+        },
+        "choices": [
+            {
+                "name": "1",
+                "value": "1",
+                "translations": {
+                    "fr": {
+                        "name": "1"
+                    }
+                }
+            },
+            {
+                "name": "2",
+                "value": "2",
+                "translations": {
+                    "fr": {
+                        "name": "2"
+                    }
+                }
+            },
+            {
+                "name": "3",
+                "value": "3",
+                "translations": {
+                    "fr": {
+                        "name": "3"
+                    }
+                }
+            }
+        ],
+        "value": "2"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "date.format",
+        "title": "Date format",
+        "form_control": "select",
+        "description": "Format used to display dates.",
+        "help": "PHP date format used to display dates.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Format de date",
+                "description": "Format utilisé pour l'affichage des dates.",
+                "help": "Format de date PHP utilisé pour l'affichage des dates."
+            }
+        },
+        "choices": [
+            {
+                "name": "d/m/Y",
+                "value": "d/m/Y",
+                "translations": {
+                    "fr": {
+                        "name": "d/m/Y"
+                    }
+                }
+            },
+            {
+                "name": "Y-m-d",
+                "value": "Y-m-d",
+                "translations": {
+                    "fr": {
+                        "name": "Y-m-d"
+                    }
+                }
+            },
+            {
+                "name": "m/d/Y",
+                "value": "m/d/Y",
+                "translations": {
+                    "fr": {
+                        "name": "m/d/Y"
+                    }
+                }
+            }
+        ],
+        "value": "d/m/Y"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "time.format",
+        "title": "Time format",
+        "form_control": "select",
+        "description": "Format used to display times.",
+        "help": "PHP date format used to display times and time parts of dates.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Format de l'heure",
+                "description": "Format utilisé pour l'affichage des heures.",
+                "help": "Format de date PHP utilisé pour l'affichage des heures et des parties horaires des dates."
+            }
+        },
+        "choices": [
+            {
+                "name": "H:i",
+                "value": "H:i",
+                "translations": {
+                    "fr": {
+                        "name": "H:i"
+                    }
+                }
+            }
+        ],
+        "value": "H:i"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "time.zone",
+        "title": "Time zone",
+        "form_control": "select",
+        "description": "Time zone on which dates are based.",
+        "help": "Default time zone used at application level.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Fuseau horaire",
+                "description": "Fuseau horaire sur lequel les dates sont basées.",
+                "help": "Fuseau horaire utilisé par défaut au niveau de l'application."
+            }
+        },
+        "choices": [
+            {
+                "name": "Europe/Amsterdam",
+                "value": "Europe/Amsterdam"
+            },
+            {
+                "name": "Europe/Andorra",
+                "value": "Europe/Andorra"
+            },
+            {
+                "name": "Europe/Athens",
+                "value": "Europe/Athens"
+            },
+            {
+                "name": "Europe/Belfast",
+                "value": "Europe/Belfast"
+            },
+            {
+                "name": "Europe/Belgrade",
+                "value": "Europe/Belgrade"
+            },
+            {
+                "name": "Europe/Berlin",
+                "value": "Europe/Berlin"
+            },
+            {
+                "name": "Europe/Bratislava",
+                "value": "Europe/Bratislava"
+            },
+            {
+                "name": "Europe/Brussels",
+                "value": "Europe/Brussels"
+            },
+            {
+                "name": "Europe/Bucharest",
+                "value": "Europe/Bucharest"
+            },
+            {
+                "name": "Europe/Budapest",
+                "value": "Europe/Budapest"
+            },
+            {
+                "name": "Europe/Busingen",
+                "value": "Europe/Busingen"
+            },
+            {
+                "name": "Europe/Chisinau",
+                "value": "Europe/Chisinau"
+            },
+            {
+                "name": "Europe/Copenhagen",
+                "value": "Europe/Copenhagen"
+            },
+            {
+                "name": "Europe/Dublin",
+                "value": "Europe/Dublin"
+            },
+            {
+                "name": "Europe/Gibraltar",
+                "value": "Europe/Gibraltar"
+            },
+            {
+                "name": "Europe/Guernsey",
+                "value": "Europe/Guernsey"
+            },
+            {
+                "name": "Europe/Helsinki",
+                "value": "Europe/Helsinki"
+            },
+            {
+                "name": "Europe/Isle of Man",
+                "value": "Europe/Isle_of_Man"
+            },
+            {
+                "name": "Europe/Istanbul",
+                "value": "Europe/Istanbul"
+            },
+            {
+                "name": "Europe/Jersey",
+                "value": "Europe/Jersey"
+            },
+            {
+                "name": "Europe/Kaliningrad",
+                "value": "Europe/Kaliningrad"
+            },
+            {
+                "name": "Europe/Kiev",
+                "value": "Europe/Kiev"
+            },
+            {
+                "name": "Europe/Lisbon",
+                "value": "Europe/Lisbon"
+            },
+            {
+                "name": "Europe/Ljubljana",
+                "value": "Europe/Ljubljana"
+            },
+            {
+                "name": "Europe/London",
+                "value": "Europe/London"
+            },
+            {
+                "name": "Europe/Luxembourg",
+                "value": "Europe/Luxembourg"
+            },
+            {
+                "name": "Europe/Madrid",
+                "value": "Europe/Madrid"
+            },
+            {
+                "name": "Europe/Malta",
+                "value": "Europe/Malta"
+            },
+            {
+                "name": "Europe/Mariehamn",
+                "value": "Europe/Mariehamn"
+            },
+            {
+                "name": "Europe/Minsk",
+                "value": "Europe/Minsk"
+            },
+            {
+                "name": "Europe/Monaco",
+                "value": "Europe/Monaco"
+            },
+            {
+                "name": "Europe/Moscow",
+                "value": "Europe/Moscow"
+            },
+            {
+                "name": "Europe/Nicosia",
+                "value": "Europe/Nicosia"
+            },
+            {
+                "name": "Europe/Oslo",
+                "value": "Europe/Oslo"
+            },
+            {
+                "name": "Europe/Paris",
+                "value": "Europe/Paris"
+            },
+            {
+                "name": "Europe/Podgorica",
+                "value": "Europe/Podgorica"
+            },
+            {
+                "name": "Europe/Prague",
+                "value": "Europe/Prague"
+            },
+            {
+                "name": "Europe/Riga",
+                "value": "Europe/Riga"
+            },
+            {
+                "name": "Europe/Rome",
+                "value": "Europe/Rome"
+            },
+            {
+                "name": "Europe/Samara",
+                "value": "Europe/Samara"
+            },
+            {
+                "name": "Europe/San Marino",
+                "value": "Europe/San_Marino"
+            },
+            {
+                "name": "Europe/Sarajevo",
+                "value": "Europe/Sarajevo"
+            },
+            {
+                "name": "Europe/Simferopol",
+                "value": "Europe/Simferopol"
+            },
+            {
+                "name": "Europe/Skopje",
+                "value": "Europe/Skopje"
+            },
+            {
+                "name": "Europe/Sofia",
+                "value": "Europe/Sofia"
+            },
+            {
+                "name": "Europe/Stockholm",
+                "value": "Europe/Stockholm"
+            },
+            {
+                "name": "Europe/Tallinn",
+                "value": "Europe/Tallinn"
+            },
+            {
+                "name": "Europe/Tirane",
+                "value": "Europe/Tirane"
+            },
+            {
+                "name": "Europe/Tiraspol",
+                "value": "Europe/Tiraspol"
+            },
+            {
+                "name": "Europe/Uzhgorod",
+                "value": "Europe/Uzhgorod"
+            },
+            {
+                "name": "Europe/Vaduz",
+                "value": "Europe/Vaduz"
+            },
+            {
+                "name": "Europe/Vatican",
+                "value": "Europe/Vatican"
+            },
+            {
+                "name": "Europe/Vienna",
+                "value": "Europe/Vienna"
+            },
+            {
+                "name": "Europe/Vilnius",
+                "value": "Europe/Vilnius"
+            },
+            {
+                "name": "Europe/Volgograd",
+                "value": "Europe/Volgograd"
+            },
+            {
+                "name": "Europe/Warsaw",
+                "value": "Europe/Warsaw"
+            },
+            {
+                "name": "Europe/Zagreb",
+                "value": "Europe/Zagreb"
+            },
+            {
+                "name": "Europe/Zaporozhye",
+                "value": "Europe/Zaporozhye"
+            },
+            {
+                "name": "Europe/Zurich",
+                "value": "Europe/Zurich"
+            }
+        ],
+        "value": "Europe/Brussels"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "currency.code",
+        "title": "Currency code",
+        "form_control": "select",
+        "description": "ISO 4217 currency code used for prices.",
+        "help": "Currency code used for fields of usage 'Price' (e.g. 'EUR', 'USD').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Code de devise",
+                "description": "Code de devise ISO 4217 utilisé pour les prix.",
+                "help": "Code de devise utilisé pour les champs à usage 'Price' (e.g. 'EUR', 'USD')."
+            }
+        },
+        "choices": [
+            {
+                "name": "USD",
+                "value": "USD",
+                "translations": {
+                    "fr": {
+                        "name": "USD"
+                    }
+                }
+            },
+            {
+                "name": "EUR",
+                "value": "EUR",
+                "translations": {
+                    "fr": {
+                        "name": "EUR"
+                    }
+                }
+            }
+        ],
+        "value": "EUR"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "currency.symbol",
+        "title": "Currency symbol",
+        "form_control": "select",
+        "description": "Currency symbol used to display prices.",
+        "help": "Currency symbol used for fields of usage 'Price' (e.g. '€', '$').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Symbole de devise",
+                "description": "Symbole de devise utilisé pour l'affichage des prix.",
+                "help": "Symbole de devise utilisé pour les champs à usage 'Price' (e.g. '€', '$')."
+            }
+        },
+        "choices": [
+            {
+                "name": "USD",
+                "value": "$",
+                "translations": {
+                    "fr": {
+                        "name": "USD"
+                    }
+                }
+            },
+            {
+                "name": "EUR",
+                "value": "€",
+                "translations": {
+                    "fr": {
+                        "name": "EUR"
+                    }
+                }
+            }
+        ],
+        "value": "€"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "unit.length",
+        "title": "Length unit",
+        "form_control": "select",
+        "description": "Default unit for length measures.",
+        "help": "Default unit for length measures.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Unité de longueur",
+                "description": "Unité par défaut pour les mesures de longueur.",
+                "help": "Unité par défaut pour les mesures de longueur."
+            }
+        },
+        "choices": [
+            {
+                "name": "meter",
+                "value": "m",
+                "translations": {
+                    "fr": {
+                        "name": "mètre"
+                    }
+                }
+            }
+        ],
+        "value": "m"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "unit.weight",
+        "title": "Weight unit",
+        "form_control": "select",
+        "description": "Default unit for weight measures.",
+        "help": "Default unit for weight measures (e.g. 'kg', 'lb').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Unité de poids",
+                "description": "Unité par défaut pour les mesures de poids.",
+                "help": "Unité par défaut pour les mesures de poids (e.g. 'kg', 'lb')."
+            }
+        },
+        "choices": [
+            {
+                "name": "kilograms",
+                "value": "kg",
+                "translations": {
+                    "fr": {
+                        "name": "kilogramme"
+                    }
+                }
+            }
+        ],
+        "value": "kg"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "unit.volume",
+        "title": "Volume unit",
+        "form_control": "select",
+        "description": "Default unit for volume measures.",
+        "help": "Default unit for volume measures (e.g. 'm3', 'ft3').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Unité de volume",
+                "description": "Unité par défaut pour les mesures de volume.",
+                "help": "Unité par défaut pour les mesures de volume (e.g. 'm3', 'ft3')."
+            }
+        },
+        "choices": [
+            {
+                "name": "cubic meter",
+                "value": "m3",
+                "translations": {
+                    "fr": {
+                        "name": "mètre cube"
+                    }
+                }
+            }
+        ],
+        "value": "m3"
+    },
+    {
+        "package": "core",
+        "section": "locale",
+        "code": "unit.surface",
+        "title": "Surface unit",
+        "form_control": "select",
+        "description": "Default unit for surface measures.",
+        "help": "Default unit for surface measures (e.g. 'm2', 'ft2').",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Unité de surface",
+                "description": "Unité par défaut pour les mesures de surface.",
+                "help": "Unité par défaut pour les mesures de surface (e.g. 'm2', 'ft2')."
+            }
+        },
+        "choices": [
+            {
+                "name": "square meter",
+                "value": "m2",
+                "translations": {
+                    "fr": {
+                        "name": "mètre carré"
+                    }
+                }
+            }
+        ],
+        "value": "m2"
+    },
+    {
+        "package": "core",
+        "section": "system",
+        "code": "time.encoding",
+        "title": "Time encoding",
+        "form_control": "select",
+        "description": "How time values are exchanged between front end and back end.",
+        "help": "Use 'frontend' when the UI adjusts values using the browser time zone and sends UTC. Use 'backend' when the backend interprets raw values in its own time zone.",
+        "type": "string",
+        "translations": {
+            "fr": {
+                "title": "Encodage de l'heure",
+                "description": "Mode d'échange des heures entre le front-end et le back-end.",
+                "help": "Utilisez 'frontend' lorsque l'UI ajuste les valeurs selon le fuseau du navigateur et envoie l'UTC. Utilisez 'backend' lorsque le back-end interprète les valeurs brutes dans son propre fuseau."
+            }
+        },
+        "choices": [
+            {
+                "name": "frontend",
+                "value": "frontend",
+                "translations": {
+                    "fr": {
+                        "name": "front-end"
+                    }
+                }
+            },
+            {
+                "name": "backend",
+                "value": "backend",
+                "translations": {
+                    "fr": {
+                        "name": "back-end"
+                    }
+                }
+            }
+        ],
+        "value": "frontend"
+    }
+]
