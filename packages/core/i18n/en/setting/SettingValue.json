@@ -8,6 +8,11 @@
             "description": "Setting identifier.",
             "help": ""
         },
+        "is_deprecated": {
+            "label": "Deprecated",
+            "description": "Indicates that the related setting is deprecated.",
+            "help": "Use the canonical replacement for new integrations."
+        },
         "setting_id": {
             "label": "Setting",
             "description": "Setting value.",

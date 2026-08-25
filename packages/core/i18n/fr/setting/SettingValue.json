@@ -8,6 +8,11 @@
             "description": "Identifiant du paramètre.",
             "help": ""
         },
+        "is_deprecated": {
+            "label": "Obsolète",
+            "description": "Indique que le paramètre associé est obsolète.",
+            "help": "Utilisez le paramètre de remplacement pour les nouvelles intégrations."
+        },
         "setting_id": {
             "label": "Paramètre",
             "description": "Paramètre auquel est attaché la valeur.",

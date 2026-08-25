@@ -8,6 +8,11 @@
             "description": "Identificador de la configuración.",
             "help": ""
         },
+        "is_deprecated": {
+            "label": "Obsoleta",
+            "description": "Indica que la configuración relacionada está obsoleta.",
+            "help": "Utilice la configuración de reemplazo para las nuevas integraciones."
+        },
         "setting_id": {
             "label": "Configuración",
             "description": "Configuración al que se adjunta el valor.",

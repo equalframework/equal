@@ -32,13 +32,23 @@ class SettingValue extends Model {
                 'instant'           => true
             ],
 
+            'is_deprecated' => [
+                'type'              => 'computed',
+                'result_type'       => 'boolean',
+                'description'       => 'Marks the value as belonging to a deprecated setting.',
+                'relation'          => ['setting_id' => 'is_deprecated'],
+                'store'             => true,
+                'readonly'          => true,
+                'instant'           => true
+            ],
+
             'setting_id' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\setting\Setting',
                 'description'       => 'Setting the value relates to.',
                 'ondelete'          => 'cascade',
                 'required'          => true,
-                'dependents'        => ['name']
+                'dependents'        => ['name', 'is_deprecated']
             ],
 
             'user_id' => [
