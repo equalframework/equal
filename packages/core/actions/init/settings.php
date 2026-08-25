@@ -289,6 +289,17 @@ foreach($settings_definitions as $definition) {
 
     if(isset($existing_setting_keys[$setting_key])) {
         $setting_id = $existing_setting_keys[$setting_key];
+        $setting_value_ids = SettingValue::search([
+            ['setting_id', '=', $setting_id]
+        ], ['limit' => 1])->ids();
+        if(!count($setting_value_ids)) {
+            Setting::assert_value(
+                $definition['package'],
+                $definition['section'],
+                $definition['code'],
+                $definition['value'] ?? null
+            );
+        }
         $sync_missing_translations(
             Setting::class,
             $setting_id,
