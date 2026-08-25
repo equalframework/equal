@@ -110,7 +110,6 @@ class Model implements \ArrayAccess, \Iterator {
 
         // set fields to default values
         $this->setDefaults($values);
-
     }
 
     private function buildSchema() {
@@ -211,11 +210,9 @@ class Model implements \ArrayAccess, \Iterator {
         return $this->values;
     }
 
-
     /**
      * Magic properties
      */
-
     public function __get($field) {
         return $this->values[$field];
     }
@@ -224,11 +221,9 @@ class Model implements \ArrayAccess, \Iterator {
         $this->values[$field] = $value;
     }
 
-
     /**
      * ArrayAccess methods
      */
-
     public function offsetSet($field, $value): void {
         if (!is_null($field)) {
             $this->values[$field] = $value;
@@ -248,6 +243,7 @@ class Model implements \ArrayAccess, \Iterator {
 
     /**
      * @return mixed
+     * #compat
      * #[\ReturnTypeWillChange]
      */
     public function offsetGet($field)/*: mixed*/ {
@@ -263,17 +259,16 @@ class Model implements \ArrayAccess, \Iterator {
         return isset($this->values[$field]) ? $this->values[$field] : null;
     }
 
-
     /**
      * Iterator methods
      */
-
     public function rewind(): void {
         reset($this->values);
     }
 
     /**
      * @return mixed
+     * #compat
      * #[\ReturnTypeWillChange]
      */
     public function current()/*: mixed*/ {
@@ -293,7 +288,6 @@ class Model implements \ArrayAccess, \Iterator {
         $res = ($key !== null && $key !== false);
         return $res;
     }
-
 
     /**
      * Returns a list of constant names that the entity expects to be available.
