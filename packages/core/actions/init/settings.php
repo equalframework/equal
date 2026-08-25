@@ -12,7 +12,7 @@ use core\setting\SettingSequence;
 use core\setting\SettingValue;
 
 [$params, $providers] = eQual::announce([
-    'description' => 'Create core settings, translations, and choices that are missing from the current installation.',
+    'description' => 'Create core setting sections, settings, translations, and choices that are missing from the current installation.',
     'params'      => [],
     'response'    => [
         'content-type'  => 'application/json',
@@ -50,10 +50,62 @@ if(
     throw new Exception('settings_definition_file_invalid', EQ_ERROR_INVALID_CONFIG);
 }
 
+$setting_sections_file = EQ_BASEDIR . '/packages/core/init/data/scripts/setting-sections.json';
+if(!is_file($setting_sections_file)) {
+    throw new Exception('setting_sections_definition_file_missing', EQ_ERROR_INVALID_CONFIG);
+}
+
+$setting_sections_json = file_get_contents($setting_sections_file);
+if($setting_sections_json === false) {
+    throw new Exception('setting_sections_definition_file_unreadable', EQ_ERROR_INVALID_CONFIG);
+}
+
+$setting_sections_definitions = json_decode($setting_sections_json, true);
+if(
+    !is_array($setting_sections_definitions)
+    || $setting_sections_definitions !== array_values($setting_sections_definitions)
+    || json_last_error() !== JSON_ERROR_NONE
+) {
+    throw new Exception('setting_sections_definition_file_invalid', EQ_ERROR_INVALID_CONFIG);
+}
+
+foreach($setting_sections_definitions as $definition) {
+    if(
+        !is_array($definition)
+        || !isset($definition['code'])
+        || !is_string($definition['code'])
+        || $definition['code'] === ''
+        || (isset($definition['translations']) && !is_array($definition['translations']))
+    ) {
+        throw new Exception('setting_section_definition_invalid', EQ_ERROR_INVALID_CONFIG);
+    }
+}
+
 $section_ids = [];
 $sections = SettingSection::search([])->read(['code'])->get();
 foreach($sections as $section_id => $section) {
     $section_ids[$section['code']] = $section_id;
+}
+
+$created_sections = [];
+foreach($setting_sections_definitions as $definition) {
+    $section_code = $definition['code'];
+    if(isset($section_ids[$section_code])) {
+        continue;
+    }
+
+    $translations = $definition['translations'] ?? [];
+    unset($definition['translations']);
+
+    $section = SettingSection::create($definition, 'en')->first();
+    $section_id = $section['id'];
+
+    foreach($translations as $lang => $translation) {
+        SettingSection::id($section_id)->update($translation, $lang);
+    }
+
+    $section_ids[$section_code] = $section_id;
+    $created_sections[] = $section_code;
 }
 
 $existing_setting_keys = [];
@@ -261,6 +313,7 @@ foreach($settings_definitions as $definition) {
 $context
     ->httpResponse()
     ->body([
+        'created_sections'   => $created_sections,
         'created'            => $created,
         'existing'           => $existing,
         'ignored_deprecated' => $ignored_deprecated

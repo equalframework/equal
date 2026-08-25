@@ -1,0 +1,158 @@
+[
+    {
+        "id": 1,
+        "code": "locale",
+        "name": "Locale",
+        "description": "Regional settings",
+        "translations": {
+            "fr": {
+                "name": "Locale",
+                "description": "Paramètres régionaux"
+            }
+        }
+    },
+    {
+        "id": 2,
+        "code": "main",
+        "name": "Main",
+        "description": "Deprecated - use `organization`",
+        "translations": {
+            "fr": {
+                "name": "Général",
+                "description": "Paramètres généraux et de formats"
+            }
+        }
+    },
+    {
+        "id": 3,
+        "code": "security",
+        "name": "Security",
+        "description": "Security settings",
+        "translations": {
+            "fr": {
+                "name": "Sécurité",
+                "description": "Paramètres de sécurité"
+            }
+        }
+    },
+    {
+        "id": 4,
+        "code": "default",
+        "name": "Default",
+        "description": "Default values",
+        "translations": {
+            "fr": {
+                "name": "Défaut",
+                "description": "Valeurs d'assignation par défaut."
+            }
+        }
+    },
+    {
+        "id": 5,
+        "code": "accounting",
+        "name": "Accounting",
+        "description": "Accounting (not only financial)",
+        "translations": {
+            "fr": {
+                "name": "Comptabilité",
+                "description": "Comptabilité et suivi des flux"
+            }
+        }
+    },
+    {
+        "id": 11,
+        "code": "analytics",
+        "name": "Analytics",
+        "description": "Reporting & Analytics",
+        "translations": {
+            "fr": {
+                "name": "Analyse",
+                "description": "Statistiques, rapports et indicateurs"
+            }
+        }
+    },
+    {
+        "id": 12,
+        "code": "features",
+        "name": "Features",
+        "description": "Customization & UI",
+        "translations": {
+            "fr": {
+                "name": "Fonctionnalités",
+                "description": "Personnalisation, UI et libellés"
+            }
+        }
+    },
+    {
+        "id": 13,
+        "code": "storage",
+        "name": "Storage",
+        "description": "Storage & Data",
+        "translations": {
+            "fr": {
+                "name": "Stockage",
+                "description": "Stockage, fichiers et quotas"
+            }
+        }
+    },
+    {
+        "id": 14,
+        "code": "integration",
+        "name": "Integration",
+        "description": "Integrations & Connectors",
+        "translations": {
+            "fr": {
+                "name": "Intégration",
+                "description": "Connecteurs, API et interconnexions"
+            }
+        }
+    },
+    {
+        "id": 15,
+        "code": "system",
+        "name": "System",
+        "description": "Technical & Maintenance",
+        "translations": {
+            "fr": {
+                "name": "Système",
+                "description": "Paramètres techniques et maintenance"
+            }
+        }
+    },
+    {
+        "id": 16,
+        "code": "workflow",
+        "name": "Workflow",
+        "description": "Business Logic & Processes",
+        "translations": {
+            "fr": {
+                "name": "Workflow",
+                "description": "Statuts, transitions et automatisations"
+            }
+        }
+    },
+    {
+        "id": 17,
+        "code": "schedule",
+        "name": "Schedule",
+        "description": "Scheduling & Time Config",
+        "translations": {
+            "fr": {
+                "name": "Planification",
+                "description": "Horaires, calendriers et tâches planifiées"
+            }
+        }
+    },
+    {
+        "id": 18,
+        "code": "organization",
+        "name": "Organization",
+        "description": "Structure & Organization",
+        "translations": {
+            "fr": {
+                "name": "Organisation",
+                "description": "Structure, départements et périodes internes"
+            }
+        }
+    }
+]
