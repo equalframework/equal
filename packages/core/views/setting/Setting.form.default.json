@@ -78,6 +78,11 @@
                                                 "type": "field",
                                                 "value": "is_sequence",
                                                 "width": "50%"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "value": "is_deprecated",
+                                                "width": "50%"
                                             }
                                         ]
                                     }

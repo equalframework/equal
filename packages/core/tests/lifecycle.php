@@ -687,5 +687,57 @@ namespace {
                         }
                     }
             ],
+
+        '5016' => [
+                'description' => 'Lifecycle: Collection::draft/write/instantiate delegates to ObjectManager low-level operations.',
+                'arrange'     => function () {
+                        $test = LifecycleProbe::draft()
+                            ->first();
+
+                        return $test['id'];
+                    },
+                'act'         => function ($id) {
+                        $collection = LifecycleProbe::id($id);
+
+                        LifecycleProbe::resetLifecycleEvents();
+                        $collection->write(['string_short' => 'collection']);
+                        $write_events = LifecycleProbe::getLifecycleEvents();
+
+                        LifecycleProbe::resetLifecycleEvents();
+                        $collection->instantiate();
+
+                        $test = LifecycleProbe::id($id)
+                            ->read(['state', 'string_short'])
+                            ->first();
+
+                        return [
+                            'id'           => $id,
+                            'state'        => $test['state'] ?? null,
+                            'string_short' => $test['string_short'] ?? null,
+                            'write_events' => $write_events,
+                            'events'       => LifecycleProbe::getLifecycleEvents()
+                        ];
+                    },
+                'assert'      => function($result) {
+                        $events = $result['events'] ?? [];
+
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['state'] ?? null) === 'instance'
+                            && ($result['string_short'] ?? null) === 'collection'
+                            && count($result['write_events'] ?? []) === 0
+                            && count($events) === 1
+                            && ($events[0]['hook'] ?? null) === 'onafterinstantiate'
+                            && ($events[0]['ids'] ?? null) === [$result['id']]
+                            && ($events[0]['self_ids'] ?? null) === [$result['id']]
+                            && ($events[0]['values']['state'] ?? null) === 'instance'
+                            && !array_key_exists('string_short', $events[0]['values'] ?? []);
+                    },
+                'rollback'    => function($result) {
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
     ];
 }
