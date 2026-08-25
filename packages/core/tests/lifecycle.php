@@ -700,7 +700,7 @@ namespace {
                         $collection = LifecycleProbe::id($id);
 
                         LifecycleProbe::resetLifecycleEvents();
-                        $collection->write(['string_short' => 'collection']);
+                        $collection->write(['string_short' => 'lowlevel']);
                         $write_events = LifecycleProbe::getLifecycleEvents();
 
                         LifecycleProbe::resetLifecycleEvents();
@@ -723,7 +723,7 @@ namespace {
 
                         return ($result['id'] ?? 0) > 0
                             && ($result['state'] ?? null) === 'instance'
-                            && ($result['string_short'] ?? null) === 'collection'
+                            && ($result['string_short'] ?? null) === 'lowlevel'
                             && count($result['write_events'] ?? []) === 0
                             && count($events) === 1
                             && ($events[0]['hook'] ?? null) === 'onafterinstantiate'
