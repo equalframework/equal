@@ -1,3 +1,16 @@
+###############################################################################
+# Image: PHP 8.3 + Apache for eQual framework
+#
+# Validation environment:
+# - Host OS        : Ubuntu 24.04.1 LTS
+# - Docker Engine  : 27.5.1
+# - eQual version  : dev-2.0
+# - Build date     : 2025-12-17
+#
+# Notes:
+# - This image is intended for production-like environments
+# - Apache + mod_php is used intentionally (no php-fpm)
+###############################################################################
 FROM php:8.3-apache
 LABEL   Description="Debian with Apache and PHP + opcache with eQual dependencies" \
 		Maintainer="Cedric Francoys <cedricfrancoys@gmail.com>" \
@@ -12,12 +25,23 @@ RUN apt-get update && apt-get install -y \
 	wget
 COPY ./mpm_prefork.conf /etc/apache2/mods-available/
 COPY ./000-default.conf /etc/apache2/sites-available/
+
 # install sqlsrv drivers
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-RUN curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/microsoft.gpg > /dev/null
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] \
+https://packages.microsoft.com/debian/12/prod bookworm main" \
+> /etc/apt/sources.list.d/microsoft-prod.list
+
 RUN apt-get update
-RUN ACCEPT_EULA=Y apt-get -y --no-install-recommends install msodbcsql17 odbcinst=2.3.7 odbcinst1debian2=2.3.7 unixodbc-dev=2.3.7 unixodbc=2.3.7
+
+RUN ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
+    msodbcsql17 \
+    unixodbc \
+    unixodbc-dev
 RUN pecl install sqlsrv pdo_sqlsrv
+
 # install required PHP extensions
 RUN set -ex; \
 		\
@@ -41,7 +65,7 @@ RUN set -ex; \
 		docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
 		docker-php-ext-configure intl; \
 		docker-php-ext-install -j$(nproc) gd; \
-		docker-php-ext-install opcache dom mbstring zip dom intl; \
+		docker-php-ext-install opcache dom mbstring zip dom intl ftp; \
 		docker-php-ext-install mysqli; \
 		docker-php-ext-enable sqlsrv pdo_sqlsrv mbstring; \
 		\
@@ -56,6 +80,7 @@ RUN set -ex; \
 				| xargs -rt apt-mark manual; \
 		\
 		rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
+
 # set recommended PHP.ini settings
 RUN { \
 		echo 'opcache.memory_consumption=256'; \
@@ -65,6 +90,12 @@ RUN { \
 		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
+# dedicated directory for dynamically installed binaries
+# (allows to keep binaries installed by eQual across container restarts)
+RUN mkdir -p /opt/bin
+ENV PATH="/opt/bin:${PATH}"
+
+# enable required Apache mods
 RUN a2enmod rewrite expires
 
 VOLUME /var/www/html
