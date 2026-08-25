@@ -1,17 +1,17 @@
 ###############################################################################
-# Image: PHP 8.3 + Apache for eQual framework
+# Image: PHP 8.5 + Apache Debian 12 Bookworm
 #
 # Validation environment:
 # - Host OS        : Ubuntu 24.04.1 LTS
 # - Docker Engine  : 27.5.1
-# - eQual version  : dev-2.0
-# - Build date     : 2025-12-17
+# - eQual version  : 2.0.1
+# - Build date     : 2026-08-19
 #
 # Notes:
 # - This image is intended for production-like environments
 # - Apache + mod_php is used intentionally (no php-fpm)
 ###############################################################################
-FROM php:8.3-apache
+FROM php:8.5-apache-bookworm
 LABEL   Description="Debian with Apache and PHP + opcache with eQual dependencies" \
 		Maintainer="Cedric Francoys <cedricfrancoys@gmail.com>" \
 		License="Apache License 2.0" \
@@ -28,8 +28,8 @@ COPY ./000-default.conf /etc/apache2/sites-available/
 
 # install sqlsrv drivers
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
-    | gpg --dearmor \
-    | tee /usr/share/keyrings/microsoft.gpg > /dev/null
+	| gpg --dearmor \
+	| tee /usr/share/keyrings/microsoft.gpg > /dev/null
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] \
 https://packages.microsoft.com/debian/12/prod bookworm main" \
 > /etc/apt/sources.list.d/microsoft-prod.list
@@ -37,9 +37,9 @@ https://packages.microsoft.com/debian/12/prod bookworm main" \
 RUN apt-get update
 
 RUN ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
-    msodbcsql17 \
-    unixodbc \
-    unixodbc-dev
+	msodbcsql17 \
+	unixodbc \
+	unixodbc-dev
 RUN pecl install sqlsrv pdo_sqlsrv
 
 # install required PHP extensions
@@ -57,17 +57,19 @@ RUN set -ex; \
 				libwebp-dev \
 				libzip-dev \
 				libicu-dev \
-				libonig-dev \
 				zip \
 				unzip \
 		; \
 		\
 		docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
 		docker-php-ext-configure intl; \
-		docker-php-ext-install -j$(nproc) gd; \
-		docker-php-ext-install opcache dom mbstring zip dom intl ftp; \
-		docker-php-ext-install mysqli; \
-		docker-php-ext-enable sqlsrv pdo_sqlsrv mbstring; \
+		docker-php-ext-install -j"$(nproc)" \
+			gd \
+			zip \
+			intl \
+			ftp \
+			mysqli; \
+		docker-php-ext-enable sqlsrv pdo_sqlsrv; \
 		\
 		apt-mark auto '.*' > /dev/null; \
 		apt-mark manual $savedAptMark; \
