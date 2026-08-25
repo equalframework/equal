@@ -53,6 +53,11 @@
             "description": "Tipo de la configuración.",
             "help": ""
         },
+        "is_deprecated": {
+            "label": "Obsoleta",
+            "description": "Indica que la configuración se conserva por compatibilidad con las integraciones existentes.",
+            "help": "Utilice la configuración canónica de reemplazo para las nuevas integraciones."
+        },
         "is_multilang": {
             "label": "Es multilingüe",
             "description": " Marcar ajuste como traducible",

@@ -49,6 +49,11 @@
             },
             "description": "Setting type.",
             "help": ""
+        },
+        "is_deprecated": {
+            "label": "Deprecated",
+            "description": "Indicates that the setting is retained for backward compatibility.",
+            "help": "Use the canonical replacement for new integrations."
         }
     },
     "view": {

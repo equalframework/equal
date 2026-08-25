@@ -100,6 +100,13 @@ class Setting extends Model {
                 'default'           => false
             ],
 
+            'is_deprecated' => [
+                'type'              => 'boolean',
+                'description'       => 'Marks the setting as deprecated and retained for backward compatibility.',
+                'help'              => 'Use the canonical replacement for new integrations.',
+                'default'           => false
+            ],
+
             'type' => [
                 'type'              => 'string',
                 'selection'         => [

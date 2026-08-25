@@ -54,6 +54,11 @@
                 "string": "chaîne de caractères",
                 "many2one": "relation"
             }
+        },
+        "is_deprecated": {
+            "label": "Obsolète",
+            "description": "Indique que le paramètre est conservé pour assurer la compatibilité avec les intégrations existantes.",
+            "help": "Utilisez le paramètre canonique de remplacement pour les nouvelles intégrations."
         }
     },
     "view": {
