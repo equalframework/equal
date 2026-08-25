@@ -15,14 +15,70 @@ eQual uses **JWT (JSON Web Tokens)** for authentication. Tokens are exchanged as
 {
   "id": "...",
   "exp": 1672531200,
-  "amr": [
+  "amr": ["pwd", "otp"],
+  "auth": [
     {
-      "auth_type": "passkey",
-      "exp": 1672534800
+      "method": "pwd",
+      "level": 1,
+      "exp": 1672552800
+    },
+    {
+      "method": "otp",
+      "level": 2,
+      "exp": 1672530300
     }
   ]
 }
 ```
+
+The standard `amr` claim lists the authentication methods used as string references. The private eQual `auth` claim stores the detailed authentication state used to calculate the current assurance level.
+
+Each `auth` entry contains:
+
+| Property | Description |
+| :------- | :---------- |
+| `method` | Authentication method used. |
+| `level`  | Assurance level granted by this authentication in eQual. |
+| `exp`    | Unix timestamp until which this authentication contributes to the effective level. |
+
+The level is contextual: it is the level granted by the authentication event in eQual, not an intrinsic universal property of the method.
+
+### Temporary Authentication Levels
+
+The effective authentication level is the highest level among non-expired `auth` entries:
+
+```php
+$level = 0;
+foreach($auth as $authentication) {
+    if($authentication['exp'] >= time()) {
+        $level = max($level, $authentication['level']);
+    }
+}
+```
+
+This enables step-up authentication without ending the underlying session. For example, a password can grant level 1 for several hours while an OTP grants level 2 for only a few minutes. When the OTP entry expires, the effective level automatically falls back to 1.
+
+JWT expiration and authentication expiration are independent:
+
+* JWT `exp` determines whether the token itself can be used.
+* `auth[].exp` determines whether one authentication still contributes to the current level.
+
+Renewing a JWT does not extend the expiration of its authentication entries.
+
+For now, authentication entries use `AUTH_ACCESS_TOKEN_VALIDITY`. Method-specific durations can be introduced when their policies are defined.
+
+### Requiring an Authentication Level
+
+Protected controllers can require a minimum effective level in their access announcement:
+
+```php
+'access' => [
+    'visibility' => 'protected',
+    'level'      => 2
+]
+```
+
+If the current effective level is lower, the request is rejected with `insufficient_auth_level` so the client can initiate step-up authentication. The former `access.auth_level` property remains supported as a compatibility alias.
 
 ## Authentication Levels
 

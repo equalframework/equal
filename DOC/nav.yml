@@ -15,7 +15,7 @@
         - 'Concepts & Services':
               - 'Programming Paradigm': 'application-developers/core-development/concepts/programming-paradigm.md'
               - 'Services': 'application-developers/core-development/concepts/services.md'
-              - 'Settings': 'application-developers/core-development/concepts/settings.md'
+              - 'Settings & Classification': 'application-developers/core-development/concepts/settings.md'
         - 'Entities & Persistence':
               - 'Entities Overview': 'application-developers/core-development/entities-persistence/entities.md'
               - 'Fields': 'application-developers/core-development/entities-persistence/fields.md'
