@@ -1,6 +1,5 @@
 [
     {
-        "id": 1,
         "code": "locale",
         "name": "Locale",
         "description": "Regional settings",
@@ -12,7 +11,6 @@
         }
     },
     {
-        "id": 2,
         "code": "main",
         "name": "Main",
         "description": "Deprecated - use `organization`",
@@ -24,7 +22,6 @@
         }
     },
     {
-        "id": 3,
         "code": "security",
         "name": "Security",
         "description": "Security settings",
@@ -36,7 +33,6 @@
         }
     },
     {
-        "id": 4,
         "code": "default",
         "name": "Default",
         "description": "Default values",
@@ -48,19 +44,6 @@
         }
     },
     {
-        "id": 5,
-        "code": "accounting",
-        "name": "Accounting",
-        "description": "Accounting (not only financial)",
-        "translations": {
-            "fr": {
-                "name": "Comptabilité",
-                "description": "Comptabilité et suivi des flux"
-            }
-        }
-    },
-    {
-        "id": 11,
         "code": "analytics",
         "name": "Analytics",
         "description": "Reporting & Analytics",
@@ -72,7 +55,6 @@
         }
     },
     {
-        "id": 12,
         "code": "features",
         "name": "Features",
         "description": "Customization & UI",
@@ -84,7 +66,6 @@
         }
     },
     {
-        "id": 13,
         "code": "storage",
         "name": "Storage",
         "description": "Storage & Data",
@@ -96,7 +77,6 @@
         }
     },
     {
-        "id": 14,
         "code": "integration",
         "name": "Integration",
         "description": "Integrations & Connectors",
@@ -108,7 +88,6 @@
         }
     },
     {
-        "id": 15,
         "code": "system",
         "name": "System",
         "description": "Technical & Maintenance",
@@ -120,7 +99,6 @@
         }
     },
     {
-        "id": 16,
         "code": "workflow",
         "name": "Workflow",
         "description": "Business Logic & Processes",
@@ -132,7 +110,6 @@
         }
     },
     {
-        "id": 17,
         "code": "schedule",
         "name": "Schedule",
         "description": "Scheduling & Time Config",
@@ -140,18 +117,6 @@
             "fr": {
                 "name": "Planification",
                 "description": "Horaires, calendriers et tâches planifiées"
-            }
-        }
-    },
-    {
-        "id": 18,
-        "code": "organization",
-        "name": "Organization",
-        "description": "Structure & Organization",
-        "translations": {
-            "fr": {
-                "name": "Organisation",
-                "description": "Structure, départements et périodes internes"
             }
         }
     }

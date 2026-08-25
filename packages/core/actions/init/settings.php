@@ -95,7 +95,7 @@ foreach($setting_sections_definitions as $definition) {
     }
 
     $translations = $definition['translations'] ?? [];
-    unset($definition['translations']);
+    unset($definition['translations'], $definition['id']);
 
     $section = SettingSection::create($definition, 'en')->first();
     $section_id = $section['id'];
