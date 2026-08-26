@@ -79,7 +79,7 @@ if(is_null($user)) {
     throw new Exception("user_not_found", EQ_ERROR_INVALID_USER);
 }
 
-$allowed_methods = ['password'];
+$allowed_methods = ['pwd'];
 $allowed_creations = [];
 $auth_method_data = [];
 
@@ -90,55 +90,51 @@ $auth_method_data = [];
 $global_auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
 $auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_auth_password_totp_required, ['user_id' => $user['id']]);
 
-if($auth_password_totp_required) {
-    $auth_method_data['password']['totp_required'] = true;
-}
-
-
 /*
     Passkey
 */
 
-$auth_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled');
+$global_auth_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled');
+$auth_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled', $global_auth_passkey_enabled, ['user_id' => $user['id']]);
 if($auth_passkey_enabled) {
     $allowed_methods[] = 'passkey';
 
-    $global_passkey_creation = Setting::get_value('core', 'security', 'passkey_creation');
-    $passkey_creation = Setting::get_value('core', 'security', 'passkey_creation', $global_passkey_creation, ['user_id' => $user['id']]);
+    $global_passkey_creation = Setting::get_value('core', 'security', 'auth.passkey.creation');
+    $passkey_creation = Setting::get_value('core', 'security', 'auth.passkey.creation', $global_passkey_creation, ['user_id' => $user['id']]);
 
     if($passkey_creation) {
         $allowed_creations[] = 'passkey';
-
-        $user_handle = Setting::get_value('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
-        if(!$user_handle) {
-            // generate temporary anonymous user_handle
-            $user_handle = bin2hex(random_bytes(16));
-
-            $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
-                ->read(['id'])
-                ->first();
-
-            if($setting) {
-                // make sure the handle is not already assigned
-                while(true) {
-                    $values = SettingValue::search([
-                            ['setting_id', '=', $setting['id']],
-                            ['value', '=', $user_handle]]
-                    )
-                        ->get();
-
-                    if(!count($values)) {
-                        break;
-                    }
-                    $user_handle = bin2hex(random_bytes(16));
-                }
-
-                Setting::set_value('core', 'security', 'passkey_user-handle', $user_handle, ['user_id' => $user['id']]);
-            }
-        }
-
-        $auth_method_data['passkey']['user_handle'] = $user_handle;
     }
+
+    $user_handle = Setting::get_value('core', 'security', 'passkey_user-handle', null, ['user_id' => $user['id']]);
+    if(!$user_handle) {
+        // generate temporary anonymous user_handle
+        $user_handle = bin2hex(random_bytes(16));
+
+        $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
+            ->read(['id'])
+            ->first();
+
+        if($setting) {
+            // make sure the handle is not already assigned
+            while(true) {
+                $values = SettingValue::search([
+                        ['setting_id', '=', $setting['id']],
+                        ['value', '=', $user_handle]]
+                )
+                    ->get();
+
+                if(!count($values)) {
+                    break;
+                }
+                $user_handle = bin2hex(random_bytes(16));
+            }
+
+            Setting::set_value('core', 'security', 'passkey_user-handle', $user_handle, ['user_id' => $user['id']]);
+        }
+    }
+
+    $auth_method_data['passkey']['user_handle'] = $user_handle;
 }
 
 
@@ -150,13 +146,16 @@ $global_auth_password_totp_enabled = Setting::get_value('core', 'security', 'aut
 $auth_password_totp_enabled = Setting::get_value('core', 'security', 'auth.totp.enabled', $global_auth_password_totp_enabled, ['user_id' => $user['id']]);
 
 if($auth_password_totp_enabled) {
-    $allowed_methods[] = 'totp';
+    $auth_method_data['otp']['enabled'] = true;
+    if($auth_password_totp_required) {
+        $auth_method_data['pwd']['otp_required'] = true;
+    }
 }
 
-$global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
-$totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+$global_totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation');
+$totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation', $global_totpkey_creation, ['user_id' => $user['id']]);
 
-if($totpkey_creation) {
+if($auth_password_totp_enabled && ($totpkey_creation || $auth_password_totp_required)) {
     $allowed_creations[] = 'totpkey';
 }
 
@@ -189,7 +188,7 @@ foreach($auth_factors as $auth_factor) {
             ->read(['digits'])
             ->first();
 
-        $result['methods_data']['totp']['digits'] = $totpkey['digits'];
+        $result['methods_data']['otp']['digits'] = $totpkey['digits'];
     }
 }
 

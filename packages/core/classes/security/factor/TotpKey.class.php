@@ -144,7 +144,7 @@ class TotpKey extends AuthenticationFactor {
         $issuer = parse_url(constant('BACKEND_URL'), PHP_URL_HOST);
 
         $result = [];
-        $self->read(['status', 'secret', 'user_id' => ['login']]);
+        $self->read(['status', 'secret', 'algorithm', 'digits', 'period', 'user_id' => ['login']]);
         foreach($self as $id => $totp_key) {
             if($totp_key['status'] !== 'pending') {
                 // #memo - the uri should only be available before activation
@@ -156,9 +156,9 @@ class TotpKey extends AuthenticationFactor {
             $http_params = [
                 'secret'    => $totp_key['secret'],
                 'issuer'    => $issuer,
-                'algorithm' => 'SHA1',
-                'digits'    => 6,
-                'period'    => 30
+                'algorithm' => $totp_key['algorithm'],
+                'digits'    => $totp_key['digits'],
+                'period'    => $totp_key['period']
             ];
             $query = http_build_query($http_params, '', '&', PHP_QUERY_RFC3986);
 
