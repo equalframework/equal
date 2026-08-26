@@ -105,6 +105,18 @@
           "type": "array",
           "items": {"type": "integer"},
           "description": "Required users for access"
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Minimum effective authentication level required for access"
+        },
+        "auth_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Deprecated alias for the minimum effective authentication level"
         }
       },
       "description": "Access control rules"
