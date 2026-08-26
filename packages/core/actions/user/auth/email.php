@@ -66,18 +66,23 @@ if(!$user['allow_auth']) {
     throw new Exception("authentication_not_allowed", EQ_ERROR_NOT_ALLOWED);
 }
 
-// generate a JWT access token
-$access_token = $auth->token(
-        // user identifier
-        $user['id'],
-        // validity of the token
-        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        // authentication method to register to AMR
-        [
-            'auth_type'  => 'email',
-            'auth_level' => 1
-        ]
-    );
+$auth_method = [
+    'method'    => 'email',
+    'level'     => 1,
+    'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+];
+
+$jwt = $auth->retrieveAccessToken();
+if($jwt && (int) $jwt['id'] !== (int) $user['id']) {
+    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+}
+
+if($jwt) {
+    $access_token = $auth->addAuthMethod($auth_method);
+}
+else {
+    $access_token = $auth->token($user['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
+}
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [

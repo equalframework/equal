@@ -906,24 +906,11 @@ namespace config {
                         }
                     }
                 }
-                // check auth level (1: AAL1, 2: AAL2, 3: AAL3)
-                if(isset($announcement['access']['auth_level'])) {
-                    $jwt = $auth->retrieveAccessToken();
-                    if(!isset($jwt['amr'])) {
-                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
-                    }
-
-                    $allowed = false;
-                    foreach($jwt['amr'] as $amr) {
-                        if($amr['auth_level'] >= $announcement['access']['auth_level']) {
-                            $allowed = true;
-                            break;
-                        }
-                    }
-
-                    if(!$allowed) {
-                        throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
-                    }
+                // check the current effective authentication level (1: AAL1, 2: AAL2, 3: AAL3)
+                // #memo - `auth_level` is kept as a legacy alias for controller announcements
+                $required_auth_level = $announcement['access']['level'] ?? $announcement['access']['auth_level'] ?? null;
+                if(!is_null($required_auth_level) && $auth->getAuthLevel() < (int) $required_auth_level) {
+                    throw new \Exception('insufficient_auth_level', EQ_ERROR_NOT_ALLOWED);
                 }
             }
 

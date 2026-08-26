@@ -23,6 +23,9 @@ use equal\http\HttpRequest;
         ]
     ],
     'constants'     => ['AUTH_ACCESS_TOKEN_VALIDITY'],
+    'access'        => [
+        'visibility'    => 'public'
+    ],
     'response'      => [
         'content-type'      => 'application/json',
         'charset'           => 'utf-8',
@@ -31,13 +34,12 @@ use equal\http\HttpRequest;
     'providers'     => ['context', 'orm', 'auth']
 ]);
 
-// initalise local vars with inputs
-list($orm, $context, $auth) = [ $providers['orm'], $providers['context'], $providers['auth'] ];
+// initialize local vars with inputs
+[$orm, $context, $auth] = [ $providers['orm'], $providers['context'], $providers['auth'] ];
 
-list($result, $error_message_ids) = [true, []];
+[$result, $error_message_ids] = [true, []];
 
-list($action_name, $network_name, $network_token) = [
-    'resiway_user_auth',
+[$network_name, $network_token] = [
     $params['network_name'],
     $params['network_token']
 ];
@@ -53,12 +55,12 @@ case 'facebook':
                 ])
                 ->send();
     if(!is_null($response->get('error'))) {
-        throw new Exception("user_invalid_auth", QN_ERROR_NOT_ALLOWED);
+        throw new Exception("user_invalid_auth", EQ_ERROR_NOT_ALLOWED);
     }
     $data = $response->getBody();
     $id = $data['id'];
     $account_type = 'facebook';
-    list($login, $firstname, $lastname) = [$data['email'], $data['first_name'], $data['last_name']];
+    [$login, $firstname, $lastname] = [$data['email'], $data['first_name'], $data['last_name']];
     break;
 case 'google':
     $oauthRequest = new HttpRequest('/userinfo/v2/me', ['Host' => 'www.googleapis.com:443']);
@@ -67,22 +69,27 @@ case 'google':
                     'access_token' => $network_token
                 ])->send();
     if(!is_null($response->get('error'))) {
-        throw new Exception("user_invalid_auth", QN_ERROR_NOT_ALLOWED);
+        throw new Exception("user_invalid_auth", EQ_ERROR_NOT_ALLOWED);
     }
     $data = $response->getBody();
     $account_type = 'google';
-    list($login, $firstname, $lastname) = [$data['email'], $data['given_name'], $data['family_name']];
+    [$login, $firstname, $lastname] = [$data['email'], $data['given_name'], $data['family_name']];
     break;
 default:
-    throw new Exception("user_invalid_network", QN_ERROR_INVALID_PARAM);
+    throw new Exception("user_invalid_network", EQ_ERROR_INVALID_PARAM);
 }
 
+$login = strtolower(trim($login));
+
+if(!filter_var($login, FILTER_VALIDATE_EMAIL)) {
+    throw new Exception('oauth_invalid_email', EQ_ERROR_INVALID_USER);
+}
 
 // check if an account has already been created for this email address
-$ids = $orm->search('core\User', ['login', '=',  $context->httpRequest()->get('login')]);
+$ids = $orm->search('core\User', ['login', '=',  $login]);
 
 if($ids < 0) {
-    throw new Exception("action_failed", QN_ERROR_UNKNOWN);
+    throw new Exception("action_failed", EQ_ERROR_UNKNOWN);
 }
 
 // an account with this email address already exists
@@ -124,15 +131,30 @@ else {
     $user_id = $auth->userId();
 }
 
-if($user_id <= 0) throw new Exception("action_failed", QN_ERROR_UNKNOWN);
+if($user_id <= 0) throw new Exception("action_failed", EQ_ERROR_UNKNOWN);
 
 // update user data
 $orm->update('core\User', $user_id, [
     'validated'      => true
 ]);
 
-// generate access_token
-$access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'));
+$auth_method = [
+    'method'    => 'fed',
+    'level'     => 1,
+    'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+];
+
+$jwt = $auth->retrieveAccessToken();
+if($jwt && (int) $jwt['id'] !== (int) $user_id) {
+    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+}
+
+if($jwt) {
+    $access_token = $auth->addAuthMethod($auth_method);
+}
+else {
+    $access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
+}
 
 $context->httpResponse()
         // store token in cookie

@@ -103,7 +103,7 @@ if($totp_required) {
     $now = time();
     $auth_token = $auth->encodeToken([
         'type'  => 'mfa_challenge',
-        'amr'   => 'pwd',
+        'amr'   => ['pwd'],
         'sub'   => $user['id'],
         'iat'   => $now,
         'exp'   => $now + 300
@@ -132,18 +132,23 @@ if($totp_required) {
         ->send();
 }
 else {
-    // generate a JWT access token
-    $access_token = $auth->token(
-        // user identifier
-        $user_id,
-        // validity of the token
-        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        // authentication method to register to AMR
-        [
-            'auth_type'  => 'pwd',
-            'auth_level' => 1
-        ]
-    );
+    $auth_method = [
+        'method'    => 'pwd',
+        'level'     => 1,
+        'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+    ];
+
+    $jwt = $auth->retrieveAccessToken();
+    if($jwt && (int) $jwt['id'] !== (int) $user_id) {
+        throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+    }
+
+    if($jwt) {
+        $access_token = $auth->addAuthMethod($auth_method);
+    }
+    else {
+        $access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
+    }
 
     $context
         ->httpResponse()

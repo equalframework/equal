@@ -5,6 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
+use core\setting\Setting;
 use core\User;
 
 // announce script and fetch parameters values
@@ -74,18 +75,28 @@ if(!$user || !$user['validated']) {
     throw new Exception("user_not_validated", QN_ERROR_NOT_ALLOWED);
 }
 
-// generate a JWT access token
-$access_token = $auth->token(
-        // user identifier
-        $user_id,
-        // validity of the token
-        constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-        // authentication method to register to AMR
-        [
-            'auth_type'  => 'pwd',
-            'auth_level' => 1
-        ]
-    );
+$global_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required');
+if(Setting::get_value('core', 'security', 'auth.password.totp_required', $global_totp_required, ['user_id' => $user['id']])) {
+    throw new Exception('totp_required', EQ_ERROR_NOT_ALLOWED);
+}
+
+$auth_method = [
+    'method'    => 'pwd',
+    'level'     => 1,
+    'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+];
+
+$jwt = $auth->retrieveAccessToken();
+if($jwt && (int) $jwt['id'] !== (int) $user_id) {
+    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+}
+
+if($jwt) {
+    $access_token = $auth->addAuthMethod($auth_method);
+}
+else {
+    $access_token = $auth->token($user_id, constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
+}
 
 $context->httpResponse()
         ->cookie('access_token',  $access_token, [

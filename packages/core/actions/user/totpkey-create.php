@@ -58,7 +58,8 @@ $checkToken = function($auth_token) use($auth) {
     $payload = $token['payload'] ?? null;
     $now = time();
 
-    if($payload['type'] !== 'mfa_challenge' || $payload['amr'] !== 'pwd') {
+    $amr = $payload['amr'] ?? null;
+    if($payload['type'] !== 'mfa_challenge' || ($amr !== ['pwd'] && $amr !== 'pwd')) {
         throw new Exception('invalid_token', EQ_ERROR_INVALID_PARAM);
     }
 
@@ -110,8 +111,8 @@ $global_auth_password_totp_required = Setting::get_value('core', 'security', 'au
 $auth_password_totp_required = Setting::get_value('core', 'security', 'auth.password.totp_required', $global_auth_password_totp_required, ['user_id' => $user['id']]);
 
 if(!$auth_password_totp_required) {
-    $global_totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation');
-    $totpkey_creation = Setting::get_value('core', 'security', 'totpkey_creation', $global_totpkey_creation, ['user_id' => $user['id']]);
+    $global_totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation');
+    $totpkey_creation = Setting::get_value('core', 'security', 'auth.totp.creation', $global_totpkey_creation, ['user_id' => $user['id']]);
 
     if(!$totpkey_creation) {
         throw new Exception("totpkey_creation_not_allowed", EQ_ERROR_NOT_ALLOWED);

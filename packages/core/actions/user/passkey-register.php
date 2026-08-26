@@ -58,14 +58,14 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
-$rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
-$user_verification = Setting::get_value('core', 'security', 'passkey_user_verification', 'preferred');
+$rp_id = Setting::get_value('core', 'security', 'auth.passkey.rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
+$rp_name = Setting::get_value('core', 'security', 'auth.passkey.rp_name', constant('APP_NAME'));
+$user_verification = Setting::get_value('core', 'security', 'auth.passkey.user_verification', 'preferred');
 
 $passkey_formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
 foreach($passkey_formats as $format) {
-    $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
+    $is_format_allowed = Setting::get_value('core', 'security', "auth.passkey.format.$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
     }

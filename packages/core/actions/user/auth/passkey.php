@@ -70,13 +70,13 @@ use lbuchs\WebAuthn\WebAuthn;
  */
 ['context' => $context, 'auth' => $auth] = $providers;
 
-$rp_id = Setting::get_value('core', 'security', 'passkey_rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
-$rp_name = Setting::get_value('core', 'security', 'passkey_rp_name', constant('APP_NAME'));
+$rp_id = Setting::get_value('core', 'security', 'auth.passkey.rp_id', parse_url(constant('BACKEND_URL'), PHP_URL_HOST));
+$rp_name = Setting::get_value('core', 'security', 'auth.passkey.rp_name', constant('APP_NAME'));
 
 $passkey_formats = ['android-key', 'android-safetynet', 'apple', 'fido-u2f', 'none', 'packed', 'tpm'];
 $allowed_formats = [];
 foreach($passkey_formats as $format) {
-    $is_format_allowed = Setting::get_value('core', 'security', "passkey_format_$format", true);
+    $is_format_allowed = Setting::get_value('core', 'security', "auth.passkey.format.$format", true);
     if($is_format_allowed) {
         $allowed_formats[] = $format;
     }
@@ -99,7 +99,8 @@ $passkey = Passkey::search([
             'id',
             'login',
             'username',
-            'validated'
+            'validated',
+            'allow_auth'
         ],
         'credential_public_key',
         'signature_counter',
@@ -117,6 +118,17 @@ if(is_null($passkey['user_id'])) {
 
 if(!$passkey['user_id']['validated']) {
     throw new Exception('user_not_validated', EQ_ERROR_NOT_ALLOWED);
+}
+
+if(!$passkey['user_id']['allow_auth']) {
+    throw new Exception('authentication_not_allowed', EQ_ERROR_NOT_ALLOWED);
+}
+
+$global_passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled');
+$passkey_enabled = Setting::get_value('core', 'security', 'auth.passkey.enabled', $global_passkey_enabled, ['user_id' => $passkey['user_id']['id']]);
+
+if(!$passkey_enabled) {
+    throw new Exception('passkey_auth_disabled', EQ_ERROR_NOT_ALLOWED);
 }
 
 $setting = Setting::search(['name', '=', 'core.security.passkey_user-handle'])
@@ -160,34 +172,25 @@ if($sign_count && $sign_count != $passkey['signature_counter']) {
         ->update(['signature_counter' => $sign_count]);
 }
 
-// passkey auth could be an escalation: check if a token is already present (and not expired)
-$jwt = $auth->retrieveAccessToken();
-
-// #todo - set auth_level based on $passkey['fmt'] (could be 2 or 3)
+// #todo - set the authentication level and AMR method based on $passkey['fmt'] (could be level 2 or 3)
 $auth_method = [
-        'auth_type'     => 'passkey',
-        'auth_level'    => 2
-    ];
+    'method'    => 'passkey',
+    'level'     => 2,
+    'exp'       => time() + constant('AUTH_ACCESS_TOKEN_VALIDITY')
+];
+
+$jwt = $auth->retrieveAccessToken();
+if($jwt && (int) $jwt['id'] !== (int) $passkey['user_id']['id']) {
+    throw new Exception('authenticated_user_mismatch', EQ_ERROR_NOT_ALLOWED);
+}
 
 if($jwt) {
-    // update existing access token
-    if(!isset($jwt['amr'])) {
-        $jwt['amr'] = [];
-    }
-    // append to existing auth methods
-    $jwt['amr'][] = $auth_method;
-    $access_token = $auth->encodeToken($jwt);
+    // update the authentication state without extending the JWT lifetime
+    $access_token = $auth->addAuthMethod($auth_method);
 }
 else {
     // generate new access token
-    $access_token = $auth->token(
-            // user identifier
-            $passkey['user_id']['id'],
-            // validity of the token
-            constant('AUTH_ACCESS_TOKEN_VALIDITY'),
-            // authentication method to register to AMR
-            $auth_method
-        );
+    $access_token = $auth->token($passkey['user_id']['id'], constant('AUTH_ACCESS_TOKEN_VALIDITY'), $auth_method);
 }
 
 $context

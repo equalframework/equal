@@ -58,20 +58,25 @@ class AuthenticationManager extends Service {
     }
 
     /**
-     * Returns the authentication level of the current user based on the given JWT token.
-     * This method checks the 'amr' (Authentication Methods Reference) in JWT to determine the authentication level (1: AAL1, 2: AAL2, 3: AAL3).
-     * If the token is not provided, it attempts to retrieve the current user's token. Default authentication level is 1.
+     * Returns the highest non-expired authentication level granted by the current JWT token.
+     *
+     * Basic authentication has level 1. A missing JWT authentication state has level 0.
      */
     public function getAuthLevel($token = null) {
-        $result = 1;
         $jwt = $this->retrieveAccessToken($token);
-        if($jwt && isset($jwt['amr']) && is_array($jwt['amr'])) {
-            foreach($jwt['amr'] as $auth_method) {
-                if(isset($auth_method['auth_level']) && $auth_method['auth_level'] > $result) {
-                    $result = $auth_method['auth_level'];
-                }
+
+        if(!$jwt) {
+            return is_null($token) && $this->authenticated_user_id > 0 ? 1 : 0;
+        }
+
+        $result = 0;
+        $now = time();
+        foreach($jwt['auth'] ?? [] as $authentication) {
+            if($authentication['exp'] >= $now && $authentication['level'] > $result) {
+                $result = $authentication['level'];
             }
         }
+
         return $result;
     }
 
@@ -81,7 +86,8 @@ class AuthenticationManager extends Service {
      * The JWT access token is built on a payload holding:
      *   - id  : the user identifier
      *   - sub : the user identifier
-     *   - amr : Authentication Methods Reference
+     *   - amr : standard Authentication Methods References as a list of strings
+     *   - auth: detailed eQual authentication state (`method`, `level`, `exp`)
      *   - iat : the datetime (timestamp) at which the token was issued
      *   - trk : is the token tracked or not
      *   - exp : (optional) the datetime (timestamp) at which the token expires
@@ -89,14 +95,15 @@ class AuthenticationManager extends Service {
      *
      * @param   int $user_id        identifier of the user for whom a token is requested
      * @param   int $validity       validity duration in seconds
-     * @param   array $auth_method  authentication method to describe how the user was authenticated (e.g. password, MFA, etc.)
+     * @param   array $auth_method  single authentication descriptor
      * @param   int $jti            id of the AccessToken to track it (non-tracked tokens are stateless)
      * @return  string              token using JWT format (https://tools.ietf.org/html/rfc7519)
      */
     public function token(int $user_id = 0, int $validity = 0, array $auth_method = [], int $jti = 0) {
-        if(isset($auth_method['auth_level'])) {
-            // amr must be a list of all authentication methods
-            $auth_method = [$auth_method];
+        $issued_at = time();
+        $token_expiry = $validity ? $issued_at + $validity : PHP_INT_MAX;
+        if($auth_method && (!isset($auth_method['method'], $auth_method['level'], $auth_method['exp']) || !is_string($auth_method['method']) || !is_int($auth_method['level']) || !is_int($auth_method['exp']))) {
+            throw new \Exception('invalid_authentication', EQ_ERROR_INVALID_PARAM);
         }
 
         $payload = [
@@ -106,11 +113,14 @@ class AuthenticationManager extends Service {
             // subject of the token (standard JWT claim) - represents the authenticated user
             'sub'   => $user_id ?: $this->user_id,
 
-            // Authentication Methods References (standard OpenID Connect claim) - describes how the user was authenticated (e.g. password, MFA, etc.)
-            'amr'   => $auth_method,
+            // Authentication Methods References (standard OpenID Connect claim)
+            'amr'   => $auth_method ? [$auth_method['method']] : [],
+
+            // Detailed authentication state (private eQual claim)
+            'auth'  => $auth_method ? [$auth_method] : [],
 
             // Issued At (standard JWT claim) - timestamp when the token was generated
-            'iat'   => time(),
+            'iat'   => $issued_at,
 
             // Tracking flag (non-standard claim) - Indicates whether the token is tracked server-side (e.g. stored in DB)
             // If true, the token can be revoked (blacklist check required)
@@ -119,13 +129,42 @@ class AuthenticationManager extends Service {
         ];
         // handle expiry
         if($validity) {
-            $payload['exp'] = time() + $validity;
+            $payload['exp'] = $token_expiry;
         }
         // handle token id for tracking
         if($jti > 0) {
             $payload['jti'] = $jti;
         }
         return $this->encodeToken($payload);
+    }
+
+    /**
+     * Add or refresh an authentication on the current JWT without extending its lifetime.
+     *
+     */
+    public function addAuthMethod(array $auth_method, $jwt = null): string {
+        $jwt = $this->retrieveAccessToken($jwt);
+        if(is_null($jwt)) {
+            throw new \Exception('unable_to_retrieve_access_token');
+        }
+
+        if(!isset($auth_method['method'], $auth_method['level'], $auth_method['exp']) || !is_string($auth_method['method']) || !is_int($auth_method['level']) || !is_int($auth_method['exp'])) {
+            throw new \Exception('invalid_auth_method', EQ_ERROR_INVALID_PARAM);
+        }
+
+        $authentications = $jwt['auth'] ?? [];
+
+        foreach($authentications as $index => $existing_auth_method) {
+            if($existing_auth_method['method'] === $auth_method['method']) {
+                unset($authentications[$index]);
+            }
+        }
+        $authentications[] = $auth_method;
+
+        $jwt['auth'] = array_values($authentications);
+        $jwt['amr'] = array_column($jwt['auth'], 'method');
+
+        return $this->encodeToken($jwt);
     }
 
     /**
@@ -142,10 +181,12 @@ class AuthenticationManager extends Service {
             throw new \Exception('unable_to_retrieve_access_token');
         }
 
+        $authentications = $jwt['auth'] ?? [];
         $payload = [
             'id'    => $jwt['id'],
             'sub'   => $jwt['sub'] ?? $jwt['id'],
-            'amr'   => $jwt['amr'] ?? [],
+            'amr'   => array_column($authentications, 'method'),
+            'auth'  => $authentications,
             'iat'   => time(),
             'trk'   => $jwt['trk'] ?? false,
             'exp'   => time() + $validity
@@ -195,7 +236,14 @@ class AuthenticationManager extends Service {
                 'expiry'    => ($validity) ? (time() + $validity) : null
             ])
             ->first();
-        return $this->token($user_id, $validity, [], $accessToken['id']);
+
+        $auth_method = [
+            'method'    => 'token',
+            'level'     => 1,
+            'exp'       => $validity ? time() + $validity : PHP_INT_MAX
+        ];
+
+        return $this->token($user_id, $validity, $auth_method, $accessToken['id']);
     }
 
     public function decodeToken($jwt) {
@@ -236,7 +284,7 @@ class AuthenticationManager extends Service {
      *
      * @param string $jwt   The JSON Web Token (JWT) string to decode. If not provided, the function will attempt to extract the token from the HTTP request.
      *
-     * @return array|null   Decoded, non-expired access token payload as an associative array mapping 'id', 'exp' & 'amr' (@see `token()` method).
+     * @return array|null   Decoded, non-expired access token payload, including standard `amr` and private `auth` claims (@see `token()` method).
      */
     public function retrieveAccessToken($jwt = null) {
 

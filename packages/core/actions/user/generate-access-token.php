@@ -63,12 +63,18 @@ if(is_null($user)) {
 $validity = 0;
 if(!$params['no_expiry']) {
     $validity = constant('AUTH_ACCESS_TOKEN_VALIDITY');
-    if($params['duration'] > 0) {
-        $validity = $params['duration'];
+    if($params['validity_duration'] > 0) {
+        $validity = $params['validity_duration'];
     }
 }
 
-$access_token = $auth->token($user['id'], $validity, ['auth_type'  => 'token', 'auth_level' => 1]);
+$auth_method = [
+    'method'    => 'token',
+    'level'     => 1,
+    'exp'       => $validity ? time() + $validity : PHP_INT_MAX
+];
+
+$access_token = $auth->token($user['id'], $validity, $auth_method);
 
 $context->httpResponse()
         ->status(200)
