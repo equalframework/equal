@@ -14,7 +14,7 @@ class JWT {
      * @param 	string      $jwt    The JSON Web Token to decode.
      *
      * @return 	array      	A map holding JWT header, payload, and signature
-     * @throws 	Exception
+     * @throws 	\Exception
      *
      * @uses self::urlSafeBase64Decode
      */
@@ -81,12 +81,11 @@ class JWT {
         return implode('.', $parts);
     }
 
-
     public static function verify($msg, $sig, $key, $alg) {
         $res = 0;
         // for algo to support, @see https://tools.ietf.org/html/rfc7518#section-3
         if( in_array($alg, ['HS256', 'HS384', 'HS512']) ) {
-            if ($sig == self::sign($msg, $key, $alg)) {
+            if(hash_equals($sig, self::sign($msg, $key, $alg))) {
                 $res = 1;
             }
         }
@@ -118,7 +117,7 @@ class JWT {
      * @param string $method The signing algorithm. Supported algorithms are 'HS256', 'HS384' and 'HS512'.
      *
      * @return string    An encrypted message
-     * @throws Exception Unsupported algorithm was specified
+     * @throws \Exception Unsupported algorithm was specified
      */
     private static function sign($msg, $key, $method = 'HS256') {
         $methods = [
