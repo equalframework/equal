@@ -732,6 +732,7 @@ if(!$is_data_request) {
             const THREAD_PAGE_SIZE = 200;
             const LINE_PAGE_SIZE = 250;
             const QUICK_FILTER_LEVELS = ["SYSTEM", "DEBUG", "INFO", "WARNING", "ERROR"];
+            const ALERT_LEVELS = ["WARNING", "ERROR", "FATAL"];
 
             const state = {
                 params: {},
@@ -905,6 +906,11 @@ if(!$is_data_request) {
                     }
                     else if(!checked.length) {
                         valueNode.textContent = "None";
+                    }
+                    else if(inputs.some(function(input) { return input.name === "level"; })
+                        && checked.length === ALERT_LEVELS.length
+                        && checked.every(function(input) { return ALERT_LEVELS.includes(input.value); })) {
+                        valueNode.textContent = "Alerts only";
                     }
                     else {
                         valueNode.textContent = checked.map(function(input) { return input.value; }).join(", ");
@@ -1336,9 +1342,10 @@ if(!$is_data_request) {
                         return;
                     }
                     const select = option.closest(".checkbox-select");
-                    const checked = option.dataset.select === "all";
+                    const selection = option.dataset.select;
                     for(const input of select.querySelectorAll("input[type=\"checkbox\"]")) {
-                        input.checked = checked;
+                        input.checked = selection === "all"
+                            || (selection === "alerts" && ALERT_LEVELS.includes(input.value));
                     }
                     syncCheckboxSelects();
                 });
@@ -1392,8 +1399,9 @@ if(!$is_data_request) {
                         <button class="checkbox-select-trigger" type="button"><span class="checkbox-select-value">All</span></button>
                         <label>Levels</label>
                         <div class="checkbox-select-menu">
-                            <button class="checkbox-select-option" type="button" data-select="all">Select all</button>
-                            <button class="checkbox-select-option" type="button" data-select="none">Select none</button>
+                            <button class="checkbox-select-option" type="button" data-select="all">All</button>
+                            <button class="checkbox-select-option" type="button" data-select="none">None</button>
+                            <button class="checkbox-select-option" type="button" data-select="alerts">Alerts only</button>
                             <div class="checkbox-select-separator"></div>
                             <label><input type="checkbox" name="level" value="SYSTEM" checked> SYSTEM</label>
                             <label><input type="checkbox" name="level" value="DEBUG" checked> DEBUG</label>
