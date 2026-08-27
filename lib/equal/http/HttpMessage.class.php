@@ -813,14 +813,15 @@ class HttpMessage {
                         ++$map_children_names[$childName];
                     }
                     foreach( $objChildren as $childName => $child ) {
+                        $childLocalName = $childName;
                         if( !empty($ns) ) {
-                            $childName = $ns.':'.$childName;
+                            $childName = $ns . ':' . $childName;
                         }
                         $res = self::xmlToArray($child);
                         if($count_children > 1 && $res['has_children']) {
                             $children[] = $res;
                         }
-                        elseif($map_children_names[$childName] > 1) {
+                        elseif($map_children_names[$childLocalName] > 1) {
                             $children[] = $res;
                         }
                         else {
