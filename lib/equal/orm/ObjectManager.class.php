@@ -1716,9 +1716,9 @@ class ObjectManager extends Service {
     /**
      * Creates a new instance of given class and, if given, assigns values to targeted fields.
      *
-     * Upon creation, the object remains in 'draft' state until it has been written:
-     * - if $fields is empty, a draft object is created with fields set to default values defined by the class Model;
-     * - if $field contains some values, object is created and its state is set to 'instance', unless `state` is explicitly set (@see write method).
+     * Upon creation, the object is immediately written with the provided values and the default values defined by the Model class.
+     * Unless `state` is explicitly set, the object is created in the 'instance' state and the instantiate lifecycle hooks are triggered.
+     * To keep the newly created object in the 'draft' state, `state` must explicitly be set to 'draft'.
      *
      *
      * @param  string       $class        Class of the object to create.
