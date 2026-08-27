@@ -1,75 +1,26 @@
 # Authentication
 
-Authentication in eQual ensures secure and scalable user identification. This section covers the key aspects of authentication, including token management, assurance levels, and supported methods.
+eQual separates three concerns:
 
-## Access Token Management
+* an **authentication method** validates a proof such as a password, a TOTP code, or a passkey assertion;
+* an **access token** carries the authenticated user and the assurance obtained from successful methods;
+* a controller's **access announcement** states whether a user must be authenticated and, optionally, the minimum authentication level required.
 
-eQual uses **JWT (JSON Web Tokens)** for authentication. Tokens are exchanged as `HttpOnly` cookies and have a validity period defined by the `AUTH_ACCESS_TOKEN_VALIDITY` parameter. Each valid session token extends its validity upon user activity.
+Application code normally declares the required access level and lets the framework interpret the token. It should not inspect JWT claims or assign an authentication level itself.
 
-!!! tip "CLI Authentication"
-    In the [Command-Line Interface (CLI)](../../how-tos-references/api-cli.md) context, the user is identified as `root` with full privileges, bypassing authentication mechanisms.
+For the token format, method replacement rules, factor model, and extension checklist, see [Authentication internals](../../../community/internal-architecture/authentication.md).
 
-### Token Example
+## Protecting an App Controller
 
-```json
-{
-  "id": "...",
-  "exp": 1672531200,
-  "amr": ["pwd", "otp"],
-  "auth": [
-    {
-      "method": "pwd",
-      "level": 1,
-      "exp": 1672552800
-    },
-    {
-      "method": "otp",
-      "level": 2,
-      "exp": 1672530300
-    }
-  ]
-}
-```
-
-The standard `amr` claim lists the authentication methods used as string references. The private eQual `auth` claim stores the detailed authentication state used to calculate the current assurance level.
-
-Each `auth` entry contains:
-
-| Property | Description |
-| :------- | :---------- |
-| `method` | Authentication method used. |
-| `level`  | Assurance level granted by this authentication in eQual. |
-| `exp`    | Unix timestamp until which this authentication contributes to the effective level. |
-
-The level is contextual: it is the level granted by the authentication event in eQual, not an intrinsic universal property of the method.
-
-### Temporary Authentication Levels
-
-The effective authentication level is the highest level among non-expired `auth` entries:
+Controllers are protected by default when no visibility is announced. Make the requirement explicit when the controller handles authenticated data:
 
 ```php
-$level = 0;
-foreach($auth as $authentication) {
-    if($authentication['exp'] >= time()) {
-        $level = max($level, $authentication['level']);
-    }
-}
+'access' => [
+    'visibility' => 'protected'
+]
 ```
 
-This enables step-up authentication without ending the underlying session. For example, a password can grant level 1 for several hours while an OTP grants level 2 for only a few minutes. When the OTP entry expires, the effective level automatically falls back to 1.
-
-JWT expiration and authentication expiration are independent:
-
-* JWT `exp` determines whether the token itself can be used.
-* `auth[].exp` determines whether one authentication still contributes to the current level.
-
-Renewing a JWT does not extend the expiration of its authentication entries.
-
-For now, authentication entries use `AUTH_ACCESS_TOKEN_VALIDITY`. Method-specific durations can be introduced when their policies are defined.
-
-### Requiring an Authentication Level
-
-Protected controllers can require a minimum effective level in their access announcement:
+Add `level` when the operation requires stronger, recent authentication:
 
 ```php
 'access' => [
@@ -78,48 +29,78 @@ Protected controllers can require a minimum effective level in their access anno
 ]
 ```
 
-If the current effective level is lower, the request is rejected with `insufficient_auth_level` so the client can initiate step-up authentication. The former `access.auth_level` property remains supported as a compatibility alias.
+The framework resolves the user, evaluates the security policy and access restrictions, then compares the required level with the effective level calculated by `AuthenticationManager`.
+
+If the level is insufficient, the controller is not executed and eQual raises `insufficient_auth_level`. The client can then start an additional authentication and retry the original operation. `auth_level` is still accepted as a deprecated alias of `level`.
+
+!!! warning "Do not read `amr` in an App controller"
+    The presence of a method in a token does not mean that it is still valid or that it grants a particular level. Authentication entries can expire independently. Use the controller access contract; framework-level code can use `AuthenticationManager::getAuthLevel()`.
 
 ## Authentication Levels
 
-eQual supports three **Authentication Assurance Levels (AALs)**. These levels allow the system to enforce stricter security requirements based on the sensitivity of the resource being accessed.
+The level is the confidence granted to the current session by eQual policy. It is contextual and is not an intrinsic, universal property of a method or authenticator.
 
-| Level    | Description                                               | Methods                                                            |
-| :------- | :-------------------------------------------------------- | :----------------------------------------------------------------- |
-| **AAL1** | **Basic**: Single-factor authentication.                  | `pwd`, `email`, `sms`, `pin`                                       |
-| **AAL2** | **Moderate**: Multi-Factor Authentication (MFA) required. | `otp`, `smsotp`, `push`, `qrcode`, `passkey` (Software)            |
-| **AAL3** | **High**: MFA with hardware or biometric factors.         | `hwk`, `fingerprint`, `face`, `eye`, `voice`, `passkey` (Hardware) |
+| Level | Intended use | Current built-in examples |
+| :---- | :----------- | :------------------------ |
+| `0` | No currently valid authentication entry. A renewed session token can still identify a user at this level. | Expired authentication entries. |
+| `1` | Basic authentication. | Password, email nonce, federated login, tracked access token, HTTP Basic authentication. |
+| `2` | Enhanced authentication or step-up. | TOTP and passkey. |
+| `3` | Reserved for policies requiring stronger verified guarantees. | No built-in authentication controller currently grants level 3. |
 
-## Supported Authentication Methods
+Two level-1 methods do not automatically produce level 2. The effective level is the highest level granted by a non-expired authentication event. The authentication controller that has verified the proof assigns that event's level according to framework policy.
 
-The framework supports a variety of authentication methods to suit different security and usability needs:
+## Built-in Methods
 
-| **Method**    | **Description**                                                      |
-| ------------- | -------------------------------------------------------------------- |
-| `pwd`         | Traditional password authentication.                                 |
-| `email`       | One-time code or unique link sent via email.                         |
-| `sms`         | Code sent via SMS to the user's registered number.                   |
-| `pin`         | Short numeric code defined by the user.                              |
-| `otp`         | One-time password generated by an app or device.                     |
-| `smsotp`      | OTP sent via SMS.                                                    |
-| `push`        | Push notification for approval via a trusted device.                 |
-| `qrcode`      | QR code scanned by a trusted application.                            |
-| `hwk`         | Secure hardware key (e.g., YubiKey).                                 |
-| `fingerprint` | Biometric authentication using fingerprints.                         |
-| `face`        | Biometric authentication using facial recognition.                   |
-| `eye`         | Biometric authentication using iris or eye scans.                    |
-| `voice`       | Biometric authentication using voice recognition.                    |
-| `sc`          | Smartcard-based authentication requiring a specific reader.          |
-| `passkey`     | Password-less authentication using FIDO2/WebAuthn cryptographic keys. |
+The following method references are currently issued by core controllers:
 
-## Multi-Factor Authentication (MFA)
+| Reference | Method | Granted level | Notes |
+| :-------- | :----- | :------------ | :---- |
+| `pwd` | Password | `1` | Can open a session. When TOTP is required, successful password verification produces a short-lived MFA challenge instead of an access token. |
+| `email` | Signed email nonce | `1` | Can open a session or refresh the same method on an existing session. |
+| `fed` | Legacy Facebook or Google OAuth integration | `1` | This is a direct legacy integration, not yet a generic provider model. |
+| `token` | Stored access token | `1` | Tracked server-side and revocable. Intended for explicit API access-token workflows. |
+| `passkey` | WebAuthn passkey | `2` | Can open a passwordless session or strengthen an existing session. See [Passkeys](passkeys.md). |
+| `otp` | TOTP code | `2` | Used after the password MFA challenge, during enrollment validation, or to strengthen an existing session. |
 
-**Multi-Factor Authentication (MFA)** enhances security by requiring additional verification steps beyond a simple password. Supported strategies include:
+HTTP Basic authentication is also recognized when no usable JWT is found. It authenticates the request at level 1 but does not create an access token.
 
-* **Email Authentication**: Sends a validation email for session escalation.
-  
-* **Passkeys**: Uses **FIDO2/WebAuthn** cryptographic keys for secure, password-less authentication.
+Names such as SMS OTP, recovery codes, generic OIDC/SAML providers, and hardware-specific level-3 methods are extension targets; they must not be presented to users as built-in capabilities until their controllers and policies exist.
 
-For detailed information on configuring and using passkeys, please refer to the [Passkeys documentation](./passkeys.md).
+## Sign-In and Step-Up
 
----
+The built-in sign-in UI follows this general sequence:
+
+1. `core_signin-info` receives a login and returns the methods and factor creations available for that user under the current settings.
+2. The selected method validates its own proof.
+3. On success, the backend creates an access token or adds the method to the existing token for the same user.
+4. The token is returned as the `access_token` `HttpOnly` cookie.
+5. Protected controllers resolve the user and, when `access.level` is present, enforce the effective level.
+
+`core_signin-info` exposes `allowed_methods`, `allowed_creations`, method-specific data, and whether active passkey or TOTP factors exist. Detailed factor records are returned only when the requested account is the current resolved user.
+
+During step-up, the additional method updates the authentication state without extending the JWT lifetime. The client must keep the new `access_token` cookie and retry the operation that required the higher level.
+
+## TOTP Configuration
+
+TOTP support is disabled by default and uses user-overridable settings in the `core.security` section.
+
+| Setting | Purpose |
+| :------ | :------ |
+| `auth.totp.enabled` | Enables TOTP authentication. Enable this before requiring it or allowing enrollment. |
+| `auth.password.totp_required` | Requires a TOTP after successful password verification. |
+| `auth.totp.creation` | Allows eligible users to enroll a TOTP key. |
+| `auth.totp.algorithm` | Hash algorithm used by new keys: `SHA1`, `SHA256`, or `SHA512`. |
+| `auth.totp.digits` | Code length: 6 or 8 digits. |
+| `auth.totp.period` | Generation period in seconds, commonly 30. |
+| `auth.totp.allowed_failed_attempts` | Maximum failed validations before the key is blocked from further attempts; the controller defaults to 5. |
+
+Enabling `auth.password.totp_required` without an enrollment or recovery path can lock affected users out. A TOTP key starts as `pending`, becomes usable only after validation, and is then represented as an active authentication factor.
+
+## Access Token Transport and Lifetime
+
+Browser sessions use a signed JWT in an `HttpOnly` `access_token` cookie. API clients can send the same JWT in `Authorization: Bearer <token>` when no cookie is present.
+
+`AUTH_ACCESS_TOKEN_VALIDITY` controls the usual access-token validity. Calling `core_userinfo` renews the JWT lifetime, but does not renew the expiration of the authentication events already recorded in it. Consequently, a session may remain authenticated while its effective level falls from 2 to 1, or eventually to 0, until the user authenticates again.
+
+!!! tip "CLI authentication"
+    In the [Command-Line Interface](../../how-tos-references/api-cli.md), eQual resolves the user as `root` and bypasses HTTP authentication and controller access checks. Do not use CLI behavior to validate an HTTP authentication flow.

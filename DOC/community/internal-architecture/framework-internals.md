@@ -93,6 +93,8 @@ eQual provides several built-in services to handle common tasks such as authenti
 | `route`    | **`equal\route\Router`**<br />Handles routing.                                   |
 | `spool`    | **`equal\email\EmailSpooler`**<br />Manages email spooling.                      |
 
+For the authentication service's JWT contract, assurance calculation, factor model, and extension invariants, see [Authentication internals](authentication.md).
+
 !!! note "Orm Service"
     The `orm` service can be accessed without a database connection, unlike the `auth` service, which requires user objects.
 

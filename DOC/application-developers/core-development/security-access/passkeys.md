@@ -1,151 +1,89 @@
 # Passkey Authentication
 
-Passkey authentication enhances security and user convenience by allowing users to log in using cryptographic keys instead of passwords. This approach mitigates risks associated with password theft, such as phishing and brute-force attacks.
+Passkeys provide passwordless authentication through the Web Authentication (WebAuthn) standard. The authenticator keeps the private key; eQual stores the credential identifier, public key, signature counter, and attestation format in a user-owned `Passkey` authentication factor.
 
-Passkeys rely on the **Web Authentication (WebAuthn)** standard and can be securely stored on devices (software authenticators) or external hardware tokens (hardware authenticators). They integrate seamlessly with [Multi-Factor Authentication (MFA)](authentication.md#multi-factor-authentication-mfa).
+A passkey can open a new session or strengthen an existing session for the same user. The current core controller records the `passkey` method at authentication level 2.
 
 ## Configuration
 
 ### Prerequisites
 
-* **HTTPS**: Passkey authentication deals with sensitive cryptographic data and requires a secure context (HTTPS).
-    * _Exception_: `localhost` is permitted by browsers via HTTP for development purposes.
-* **Settings**: The feature is disabled by default. You must enable `core.security.passkey_creation` in your configuration to activate it.
+* WebAuthn requires a secure HTTPS context. Browsers allow `http://localhost` as a development exception.
+* `core.security.auth.passkey.enabled` must be enabled to offer passkey authentication.
+* `core.security.auth.passkey.creation` separately controls whether users may be offered passkey enrollment.
 
-### Settings Reference
+Settings can be overridden per user. The current setting codes are:
 
-The following settings configure the behavior of the passkey registration and authentication processes.
+| Setting | Purpose |
+| :------ | :------ |
+| `auth.passkey.enabled` | Offer authentication with registered passkeys. |
+| `auth.passkey.creation` | Offer enrollment to eligible users. |
+| `auth.passkey.rp_id` | WebAuthn Relying Party domain, for example `app.example.com`. |
+| `auth.passkey.rp_name` | Human-readable Relying Party name displayed by the authenticator. |
+| `auth.passkey.user_verification` | `required`, `preferred`, or `discouraged`. |
+| `auth.passkey.cross_platform` | Allow all authenticators, only cross-platform authenticators, or only platform authenticators. |
+| `auth.passkey.format.<format>` | Allow an attestation format such as `android-key`, `android-safetynet`, `apple`, `fido-u2f`, `none`, `packed`, or `tpm`. |
+| `auth.passkey.authenticator.<transport>` | Allow `usb`, `nfc`, `ble`, `hybrid`, or `internal` authenticator transports. |
 
-* **Propose passkey creation**: Toggles the prompt offering users the ability to create a passkey after a successful password login.
-* **Relying Party ID (RP ID)**: The domain name acting as the unique identifier for the application (e.g., `localhost` or `my-app.org`).
-* **Relying Party Name**: A user-friendly name displayed to the user during the browser prompt (e.g., "MyApp" or "SecureBank").
-* **Passkey Format Enable**: Controls which Attestation formats are supported (e.g., `android-key`, `apple`, `fido-u2f`, `packed`, `tpm`).
-* **User Verification**: Determines if the authenticator must verify the user (e.g., via PIN or biometrics).
-    * `required`: Verification is mandatory.
-    * `preferred`: Verification is requested but not blocked if unavailable.
-    * `discouraged`: User verification is skipped.
-* **Cross-Platform**: Controls support for roaming authenticators vs platform authenticators.
-    * `all`: Allows both platform-specific and cross-platform devices.
-    * `cross-platform`: Prioritizes external keys (e.g., USB security keys).
-    * `platform`: Restricts usage to the current device (e.g., Touch ID).
+The older flat setting names such as `passkey_creation` and `passkey_rp_id` are deprecated. Use the `auth.passkey.*` names in new code and configuration.
 
----
+## Sign-In Discovery
 
-## Workflows
+`core_signin-info` returns the passkey method only when it is enabled for the identified user. It also supplies the anonymous `user_handle` used by the WebAuthn option controllers and indicates whether the user already has an active passkey factor.
 
-### Sign-In Overview
+Detailed factor records are disclosed only when the account being queried is the current resolved user.
 
-The sign-in process adapts dynamically based on whether the user has a registered passkey.
+## Registration Workflow
 
-1.  **Identification**: The user enters their login (email or username).
-2.  **Detection**: The system checks if the user has any registered passkeys.
-    *   **Existing Passkey**: The system proposes passkey authentication as the primary method.
-    *   **No Passkey**: The system requests the password.
-3.  **Completion**: Upon successful validation, the user is authenticated. If they authenticated with a password and passkeys are enabled, they may be prompted to register one for future use.
+Registration requires an authenticated session:
 
-<center><img src="/_assets/uml/passkey_sign_in_workflow.png" /></center>
+1. Obtain the user's `user_handle` from `core_signin-info`.
+2. Call `core_user_passkey-register-options` with that handle.
+3. Keep the returned `register_token` and convert the encoded binary option values to `ArrayBuffer`.
+4. Call `navigator.credentials.create(options)`.
+5. Send the result to `core_user_passkey-register` with:
+    * `register_token`;
+    * `transports`;
+    * `client_data_json` as Base64;
+    * `attestation_object` as Base64.
 
-### Registration Workflow (User without a passkey)
-
-If a user identifies themselves, authenticates with a password, and has not yet set up a passkey:
-
-1.  **Prompt**: The system suggests creating a passkey.
-2.  **Action**:
-    *   **Register**: The backend generates a challenge. The user's device signs it, and the credential is stored.
-    *   **Ignore**: The user skips registration for this session.
-    *   **Ignore Permanently**: The user opts out, and the system will not prompt them again.
+The backend verifies the challenge and attestation, then creates an active `core\security\factor\Passkey` linked to the user. Several passkeys can be associated with one user and distinguished by their labels and credential identifiers.
 
 <center><img src="/_assets/uml/passkey_register.png" /></center>
 
-This logic corresponds to the controller `user_passkey-register-options`, which provides the challenge, followed by the action `user_passkey-register` to verify and store the credential.
+## Authentication Workflow
 
-### Authentication Workflow (User with a passkey)
+Authentication can start without an existing session:
 
-If the user identifies themselves and has a registered passkey:
+1. Obtain the anonymous `user_handle` from `core_signin-info`.
+2. Call `core_user_passkey-auth-options` with that handle.
+3. Keep the returned `auth_token` and convert the encoded binary option values to `ArrayBuffer`.
+4. Call `navigator.credentials.get(options)`.
+5. POST the assertion to `/auth/passkey`, which routes to `core_user_auth_passkey`, with:
+    * `auth_token`;
+    * `credential_id` from `rawId`, as Base64;
+    * `client_data_json` as Base64;
+    * `authenticator_data` as Base64;
+    * `signature` as Base64;
+    * `user_handle` as Base64 when returned by the authenticator.
 
-1.  **Prompt**: The system automatically offers passkey authentication.
-2.  **Action**:
-    *   **Use Passkey**: The backend generates an authentication challenge (`user_passkey-auth-options`). The device signs it. The backend verifies the signature (`user_passkey-auth`) and issues an [Access Token](authentication.md#access-token-management).
-    *   **Switch to Password**: The user can choose to fallback to password authentication (e.g., if the specific device containing the passkey is unavailable).
+The backend verifies the challenge, origin/Relying Party data, credential status, public-key signature, and signature counter. It then creates a level-2 access token or adds the passkey authentication to the existing token. An existing token for another user is rejected with `authenticated_user_mismatch`.
+
+`core_user_passkey-auth` is a deprecated compatibility controller. New integrations should use `core_user_auth_passkey` or the `/auth/passkey` route.
 
 <center><img src="/_assets/uml/passkey_authentication.png" /></center>
 
----
+## Browser Integration Notes
 
-## Architecture & Controllers
+Two conversion helpers are usually required:
 
-The Passkey implementation involves specific Controllers in the core `auth` package acting as the Relying Party.
+* a recursive converter from eQual's `=?BINARY?B?...?=` wrappers to `ArrayBuffer` before calling WebAuthn;
+* an `ArrayBuffer`-to-Base64 converter for the JSON request sent back to eQual.
 
-### Data Controllers (GET)
+Keep `register_token` and `auth_token` unchanged between the options request and the final action. These are signed challenge tokens, not access tokens. The current passkey challenge payloads do not contain an explicit expiration; core integrations should treat them as single-flow values and avoid persisting them.
 
-*   **`user_passkey-register-options`**: Prepares the data required for the browser's credential creation API.
-    *   **Returns**: Challenge, User Handle, RP details, supported capabilities (formats, verification).
-*   **`user_passkey-auth-options`**: Prepares the data required for the browser's credential request API.
-    *   **Returns**: List of allowed Credential IDs for the user, Challenge.
+## Assurance Policy
 
-### Action Controllers (POST)
+The current passkey controller always grants level 2 after successful WebAuthn verification. Although attestation formats and authenticator properties may support a future distinction between levels 2 and 3, that mapping is not implemented today. App code must therefore not infer a level from `fmt`, transport, biometrics, or the `passkey` method name.
 
-*   **`user_passkey-register`**: Finalizes the credential creation.
-    *   **Logic**: Verifies that the challenge is correctly signed by the authenticator and stores the public key and credential ID.
-*   **`user_passkey-auth`**: Performs the login.
-    *   **Logic**: Verifies the challenge signature against the stored public key for the selected credential. Returns an authentication cookie on success.
-
-### Browser Integration Example (WebAuthn)
-
-The following client-side flow can be used to integrate passkeys with the controllers above.
-
-#### 1) Registration (create a passkey)
-
-1. Request creation options from `core_user_passkey-register-options` with user credentials.
-2. Extract and keep `register_token` for final verification.
-3. Convert binary markers (`=?BINARY?B?...?=`) returned by the backend into `ArrayBuffer`.
-4. Call `navigator.credentials.create(options)`.
-5. Send the resulting attestation payload to `core_user_passkey-register`:
-    * `register_token`
-    * `transports`
-    * `client_data_json` (Base64)
-    * `attestation_object` (Base64)
-
-#### 2) Authentication (use a passkey)
-
-1. Request authentication options from `core_user_passkey-auth-options` with the user login.
-2. Extract and keep `auth_token` for final verification.
-3. Convert binary markers (`=?BINARY?B?...?=`) into `ArrayBuffer`.
-4. Call `navigator.credentials.get(options)`.
-5. Send the resulting assertion payload to `core_user_passkey-auth`:
-    * `auth_token`
-    * `credential_id` (from `rawId`, Base64)
-    * `client_data_json` (Base64)
-    * `authenticator_data` (Base64)
-    * `signature` (Base64)
-    * `user_handle` (Base64, optional)
-
-#### 3) Required utility conversions
-
-In JavaScript, two utility helpers are typically required:
-
-* `recursiveBase64StrToArrayBuffer(obj)`: walks through the options payload and converts backend binary wrappers into `ArrayBuffer` before calling WebAuthn APIs.
-* `arrayBufferToBase64(buffer)`: converts WebAuthn binary responses to Base64 for JSON transport.
-
-#### 4) Practical notes
-
-* Use `https://` in production. In development, `localhost` is a browser exception allowing HTTP.
-* Keep `register_token` and `auth_token` untouched between options and final POST requests.
-* JSON payload field names are expected exactly as listed above by the matching passkey controllers.
-
-## Authenticators and Assurance Levels
-
-Different authenticators provide different levels of security assurance. eQual maps these formats to [Authentication Assurance Levels (AALs)](./authentication.md#authentication-levels) as follows:
-
-| Format              | Description                              | Level      | Justification                                                               |
-| :------------------ | :--------------------------------------- | :--------- | :-------------------------------------------------------------------------- |
-| `android-key`       | Android hardware-backed key (TrustZone). | **AAL2/3** | Considered AAL3 if secure enclave is verified; otherwise AAL2.              |
-| `android-safetynet` | Software-based validation on Android.    | **AAL2**   | Provides reasonable guarantees without requiring dedicated secure hardware. |
-| `apple`             | Apple Secure Enclave (Touch ID/Face ID). | **AAL2/3** | AAL3 when biometric verification is used; AAL2 otherwise.                   |
-| `fido-u2f`          | Dedicated hardware keys (e.g., YubiKey). | **AAL3**   | Meets AAL3 requirements with phishing-resistant hardware.                   |
-| `tpm`               | Trusted Platform Module (TPM).           | **AAL3**   | ensures hardware-based resistance to key cloning.                           |
-| `none`              | No attestation or unknown origin.        | **AAL1**   | Minimal guarantees on the authentication method.                            |
-
-Common Passkey Managers supported include Apple (iCloud Keychain), Bitwarden, Google Account, and Microsoft Hello.
-
----
+Use [`access.level`](authentication.md#protecting-an-app-controller) to state the required assurance and let `AuthenticationManager` evaluate the session. Core contributors can find the factor and token contracts in [Authentication internals](../../../community/internal-architecture/authentication.md).

@@ -58,6 +58,7 @@ The `access` property defines the security context required to execute the contr
 | `visibility` | The visibility level: `'public'` (anonymous), `'protected'` (authenticated), or `'private'` (internal). |
 | `groups`     | An array of group names allowed to access the controller.                                               |
 | `users`      | An array of specific user IDs allowed to access the controller.                                         |
+| `level`      | Optional minimum effective authentication level, from 1 to 3.                                          |
 
 **Examples:**
 
@@ -70,7 +71,15 @@ The `access` property defines the security context required to execute the contr
   'visibility' => 'protected',
   'groups'     => ['sales.bookings.users']
 ]
+
+// Protected operation requiring step-up authentication
+'access' => [
+  'visibility' => 'protected',
+  'level'      => 2
+]
 ```
+
+If the current level is lower than `level`, eQual raises `insufficient_auth_level` before executing the controller. See [Authentication](../security-access/authentication.md#protecting-an-app-controller). `auth_level` remains accepted as a deprecated compatibility alias.
 
 ### `response`
 Defines the output format and CORS policy.

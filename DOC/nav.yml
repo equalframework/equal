@@ -114,6 +114,7 @@
         - 'Tests & coverage': 'community/contribution-guide/tests-coverage.md'
     - 'Internal Architecture':
         - 'Framework internals': 'community/internal-architecture/framework-internals.md'
+        - 'Authentication internals': 'community/internal-architecture/authentication.md'
 - 'Help & Support':
     - 'Troubleshooting & Diagnostics': 
         - 'Common issues': 'help-support/troubleshooting-diagnostic/common-issues.md'

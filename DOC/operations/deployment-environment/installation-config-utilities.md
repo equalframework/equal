@@ -116,7 +116,10 @@ use \Swift_Mailer as Swift_Mailer;
 
 ### Enabling Passkey Authentication
 
-- Passkey authentication is disabled by default. Enable the setting `core.security.passkey_creation` to activate it.
+- Passkey authentication is disabled by default. Enable `core.security.auth.passkey.enabled` to offer authentication with existing passkeys.
+- Enable `core.security.auth.passkey.creation` separately when users should be allowed to enroll new passkeys.
 - To test passkey authentication in development mode, use the `localhost` hostname instead of `equal.local`. Note that passkey authentication in a browser requires HTTPS protocol, but `localhost` is an exception that allows HTTP.
+
+See the [Passkey configuration reference](../../application-developers/core-development/security-access/passkeys.md#configuration) for Relying Party, attestation, user-verification, and authenticator settings.
 
 ---
