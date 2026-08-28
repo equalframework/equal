@@ -1724,7 +1724,7 @@ class ObjectManager extends Service {
      * @param  string       $class        Class of the object to create.
      * @param  array        $fields       Associative array mapping each field to its assigned value.
      * @param  string       $lang         Language in which to store multilang fields.
-     * @param  boolean      $use_draft    If set to false, disables the re-use of outdated drafts (objects created but not saved afterward).
+     * @param  boolean      $use_draft    If set to false, disables the re-use of outdated drafts (objects created as draft but not instantiated afterward).
      *
      * @return integer      The result is an identifier of the newly created object or, in case of error, the code of the error that was raised (by convention, error codes are negative integers).
      */
