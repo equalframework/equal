@@ -154,6 +154,8 @@ The `state` field describes the **technical lifecycle** of an object, independen
 
 This field is managed internally by the framework and is essential for filtering, safety checks, and data lifecycle management.
 
+The entity definition describes the logical rules that normally govern this lifecycle, and `Collection` enforces them for user-facing operations. They do not make persistence technically impossible: trusted code can use the privileged `ObjectManager` path for controlled system operations. See [Entity Lifecycle and Technical Persistence](../../entities-persistence/entities.md#entity-lifecycle-and-technical-persistence) and the [operation lifecycle contract](../../entities-persistence/entities.md#lifecycle-contract-by-operation).
+
 ### `status`: Business Workflow
 
 The `status` field expresses the **functional or business logic progression** of an object. It models the steps of a business workflow specific to the object type (e.g., orders, publications, approvals).

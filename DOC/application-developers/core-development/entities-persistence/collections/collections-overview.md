@@ -4,6 +4,16 @@ Collections are widely used throughout the eQual framework to simplify the manip
 
 In eQual, a collection is a series of partial objects (the ORM loads only requested fields) on which one or more CRUD operations can be applied. Using collections enables method chaining, making code in controllers shorter and easier to read.
 
+## Lifecycle-Aware and Explicit Technical Operations
+
+The formal distinction is behavioral:
+
+* `create()`, `read()`, `update()` and `delete()` call `assertLifecycle()` and therefore invoke their matching `can...()` entity guard;
+* `draft()`, `write()` and `instantiate()` do not call `assertLifecycle()`; `remove()` is only available as a privileged `ObjectManager` operation;
+* each method separately defines whether `state` changes implicitly, explicitly or remains unchanged.
+
+`CRUD` and `DWIR` can help remember the current method names, but they are only informal acronyms—not framework operation categories. See the [complete lifecycle contract](../entities.md#lifecycle-contract-by-operation).
+
 ## Key Features of Collections
 
 - **Bulk Operations**: Perform operations on multiple objects simultaneously.

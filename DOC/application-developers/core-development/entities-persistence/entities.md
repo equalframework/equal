@@ -175,6 +175,48 @@ Private methods can still be invoked internally within the class, including from
 
 
 
+## Entity Lifecycle and Technical Persistence
+
+An entity definition is a **logical contract**, not a physical barrier around its database table. The entity class defines how an object is expected to evolve through:
+
+* its schema, required fields, constraints and unique keys;
+* its structural CRUD capabilities;
+* its ACL and operation policies;
+* its business-validity guards (`canCreate()`, `canRead()`, `canUpdate()`, `canDelete()`);
+* its actions, workflow transitions and lifecycle callbacks.
+
+For user-facing `create`, `read`, `update` and `delete` operations, `Collection` interprets and enforces this contract before delegating persistence to `ObjectManager`. Explicit technical lifecycle calls use a shorter path:
+
+```text
+Lifecycle-aware Collection request
+    → Collection
+        → capabilities, ACLs and policies
+        → data validation when applicable
+        → canCreate / canRead / canUpdate / canDelete
+        → ObjectManager
+            → database
+
+Explicit draft / write / instantiate
+    → Collection
+        → declared structural and access checks
+        → matching ObjectManager lifecycle primitive
+            → database
+
+Trusted technical code
+    → ObjectManager
+        → database
+```
+
+Consequently, a rule such as `getCapabilities()[EQ_R_UPDATE] = false` or an error returned by `canUpdate()` prevents a generic `Collection::update()`; it does **not** make the stored record technically immutable. Trusted framework code can still use `ObjectManager` for a migration, synchronization, repair, dedicated action or other controlled system operation.
+
+This technical path is deliberate. It lets the framework perform changes that do not represent a user-requested business operation. The caller then owns the authorization and business checks that `Collection` would normally provide.
+
+“Technically possible” does not mean “guaranteed to succeed” or “free of every rule.” Database constraints, schema adaptation, valid identifiers and the invariants implemented by the selected `ObjectManager` method still apply. For example, `instantiate()` checks the draft before changing its technical state, whereas `write()` deliberately avoids data validation and callbacks.
+
+In this context, **technical lifecycle** refers to the framework-level `state` (`draft`, `instance`, `archive`), persistence steps and callbacks. It is distinct from the entity's domain-specific business workflow, usually represented by `status`; see [Object Lifecycle vs Business Workflow](../business-logic/workflows/workflows.md#object-lifecycle-vs-business-workflow).
+
+
+
 ## Entity-Level Access Control
 
 eQual separates structural exposure, authorization, contextual access rules, business validity and persistence.
@@ -829,8 +871,8 @@ For a generic operation:
 7. ACLs are checked with `AccessController::isAllowed()`.
 8. Operation policies returned by `Model::getOperationPolicies()` are evaluated for the requested operation when supported by the secured `Collection` path (`READ`, `UPDATE`, `DELETE`).
 9. Field-level policies are evaluated when explicitly required by field descriptors.
-10. Validation is executed.
-11. Operation guards such as `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` are executed.
+10. For `CREATE` and `UPDATE`, data validation is executed when applicable. `READ` and `DELETE` do not validate field values.
+11. The matching CRUD operation guard (`canCreate()`, `canRead()`, `canUpdate()` or `canDelete()`) is executed.
 12. The operation is delegated to `ObjectManager`.
 
 Capabilities, ACLs, policies and guards are complementary:
@@ -873,6 +915,37 @@ It is responsible for:
 * applying low-level workflow transitions.
 
 `ObjectManager` does not perform user authorization checks by design. Code handling user input should not call low-level `ObjectManager` CRUD methods directly unless authorization has already been explicitly checked.
+
+
+### Lifecycle Contract by Operation
+
+`CRUD` (`create`, `read`, `update`, `delete`) and `DWIR` (`draft`, `write`, `instantiate`, `remove`) are only informal mnemonics. They are not framework concepts, formal API categories or guarantees by themselves.
+
+The actual distinction is defined by two parts of the operation contract:
+
+1. whether the `Collection` method calls `assertLifecycle()` and therefore executes the matching entity guard;
+2. whether the operation changes the technical `state` implicitly, changes it explicitly, or preserves it.
+
+| Call            | `assertLifecycle()` in `Collection` | Technical-state contract |
+| --------------- | ----------------------------------- | ------------------------ |
+| `create()`      | Yes → `canCreate()`                 | If `state` is omitted, the new object becomes an `instance`; an explicit `state: draft` keeps it as a draft. |
+| `read()`        | Yes → `canRead()`                   | Preserves `state`. |
+| `update()`      | Yes → `canUpdate()`                 | Targets `instance` when `state` is omitted. Updating a draft therefore instantiates it unless `state: draft` is explicit. An instance cannot be returned to draft through `update()`. |
+| `delete()`      | Yes → `canDelete()`                 | Does not change `state`: by default it sets `deleted`; permanent deletion delegates to `remove()`. |
+| `draft()`       | No                                  | Explicitly creates the object with `state: draft`. |
+| `write()`       | No                                  | Preserves `state`; this method cannot write the `state` field. |
+| `instantiate()` | No                                  | Explicitly changes `draft` to `instance` after its required-field and uniqueness checks. |
+| `remove()`      | Not exposed by `Collection`         | Performs no state transition; it permanently removes the record. |
+
+This `assertLifecycle()` check is specifically the call to the entity's `canCreate()`, `canRead()`, `canUpdate()` or `canDelete()` method. It is distinct from field validation based on types, usages, constraints, required fields and unique keys.
+
+The mnemonic is still useful: the four similarly named `Collection` methods currently call `assertLifecycle()`, while the letters D-W-I-R recall the explicit technical operations that do not. The implementation contract above—not the acronym—is authoritative.
+
+Absence of `assertLifecycle()` does not mean “no checks at all.” The `Collection` methods `draft()`, `write()` and `instantiate()` still apply their declared capabilities and ACL checks; `write()` also applies update operation policies. Their validation and callbacks remain method-specific. A refresh performed after an operation may also execute the normal `read()` contract, but it does not add a creation or update lifecycle guard to that operation.
+
+`remove()` is intentionally only a low-level `ObjectManager` primitive. Use it only when permanent removal without `canDelete()` and deletion callbacks is explicitly intended.
+
+The decisive boundary is therefore the actual contract of the called method and the layer on which it is called. A direct `ObjectManager` call is a privileged technical operation and never passes through `Collection::assertLifecycle()`.
 
 Preferred user-facing pattern:
 

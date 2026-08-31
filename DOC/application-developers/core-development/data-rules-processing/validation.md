@@ -1,8 +1,27 @@
 # Validation
 
-Validation ensures that data provided by users matches the field requirements defined in object schemas. The ObjectManager provider's `validate()` function performs this check during CREATE and UPDATE operations, as well as when [controllers](../controllers-routing/controllers.md) are invoked with parameters.
+Validation ensures that data provided by users matches the field requirements defined in object schemas. For entity operations, `Collection` requests `ObjectManager::validate()` during `create()` and `update()`. The explicit `instantiate()` lifecycle operation also checks a draft's required fields and uniqueness before it becomes an instance. Controller parameters are validated separately when [controllers](../controllers-routing/controllers.md) are invoked.
 
 The eQual framework treats both entity classes and Controllers as structured definitions: their fields (provided by `getColumns()` and `params` respectively) are validated using the same logic.
+
+## Validation by Operation
+
+Do not confuse **data validation** with the CRUD **business-validity guards** `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()`.
+
+The informal mnemonics **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`) can help remember the current mapping, but they are not formal operation categories. Validation, `assertLifecycle()` and automatic `state` changes are separate parts of each method's contract:
+
+| Call | Data validation | Business-validity guard through `Collection` |
+| ---- | --------------- | -------------------------------------------- |
+| `create()` | Supplied values and uniqueness are validated; required fields are checked before instantiation. | `canCreate()` |
+| `read()` | None. | `canRead()` |
+| `update()` | Supplied values and uniqueness are validated; required fields are checked when a draft becomes an instance. | `canUpdate()` |
+| `delete()` | None. | `canDelete()` |
+| `draft()` | None; incomplete values are allowed. | None. |
+| `write()` | None. | None. |
+| `instantiate()` | Required fields and uniqueness are checked. | None. |
+| `remove()` | None. | None; this low-level operation is not exposed by `Collection`. |
+
+For the `assertLifecycle()` mapping and state-transition contract, see [Lifecycle Contract by Operation](../entities-persistence/entities.md#lifecycle-contract-by-operation).
 
 ---
 

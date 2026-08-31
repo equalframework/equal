@@ -98,6 +98,7 @@ script:
   - php run.php --do=test_db-connectivity
   - php run.php --do=init_db
   - php run.php --do=init_package --package=core
+  - php run.php --do=init_package --package=test
   - php run.php --do=test_package --package=core
 ```
 
@@ -118,6 +119,7 @@ pipelines:
           - php run.php --do=test_db-connectivity
           - php run.php --do=init_db
           - php run.php --do=init_package --package=core
+          - php run.php --do=init_package --package=test
           - php run.php --do=test_package --package=core
 ```
 
@@ -141,6 +143,7 @@ jobs:
       - run: php run.php --do=test_db-connectivity
       - run: php run.php --do=init_db
       - run: php run.php --do=init_package --package=core
+      - run: php run.php --do=init_package --package=test
       - run: php run.php --do=test_package --package=core
 ```
 
@@ -168,5 +171,6 @@ jobs:
       - run: php run.php --do=test_fs-consistency
       - run: php run.php --do=test_db-connectivity
       - run: php run.php --do=init_package --package=core
+      - run: php run.php --do=init_package --package=test
 
 ---

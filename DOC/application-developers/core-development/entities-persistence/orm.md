@@ -4,11 +4,27 @@ eQual comes with an Object-Relational Mapper (ORM) that greatly eases interactio
 
 The ORM service is dedicated to low-level operations on entities. It handles all tasks related to object search and manipulation, offering an abstract layer for DBMS queries.
 
-It primarily allows for searching, retrieving, and modifying lists of objects (Model). Operations performed by the ORM are not subject to constraints related to application logic consistency, user permissions, event handling, field calculation, or entity relationship consistency.
+Controllers normally manipulate entities through `Collection`, the secured façade that applies capabilities, ACLs, operation policies, business-validity guards and data validation where applicable. Direct `ObjectManager` calls are privileged: they do not perform user authorization or call the CRUD guards `canCreate()`, `canRead()`, `canUpdate()` and `canDelete()`.
 
-All checks (permissions, workflow, data validation, etc.) are exclusively handled via Collections.
+!!! important "Logical restriction is not technical immutability"
+    Rules declared by an entity govern the secured `Collection` path. They can refuse a user-facing operation without making the underlying record impossible to modify. Trusted code can still perform a direct technical operation through `ObjectManager`, but must provide the authorization and business checks appropriate to its use case. Database constraints and method-specific invariants still apply.
 
-Controllers mostly require high-level manipulations (including data conversion, validation, and permission checks) and therefore use Collections.
+The operation contract matters along two independent axes: whether `Collection` calls `assertLifecycle()`, and whether the operation changes `state` implicitly, explicitly or not at all.
+
+The acronyms **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`) can be used as informal memory aids for the current method mapping. They are not formal operation families. The authoritative behavior is the contract of each method.
+
+The explicit technical primitives have different lifecycle semantics:
+
+* `draft()` creates an incomplete persistent object without lifecycle callbacks or data validation;
+* `write()` persists fields without data validation, callbacks or an implicit state transition;
+* `instantiate()` validates the draft's required fields and uniqueness, changes its state to `instance`, and then invokes `onafterinstantiate()`;
+* `remove()` permanently deletes records without `canDelete()` or deletion callbacks.
+
+The `Collection` methods `create()`, `read()`, `update()` and `delete()` call `assertLifecycle()` with their matching operation. `draft()`, `write()` and `instantiate()` do not. Those three methods still enforce their declared structural and access checks. Calling methods directly on `ObjectManager` bypasses the secured façade entirely, and `remove()` is only exposed at that low level.
+
+See [Lifecycle Contract by Operation](entities.md#lifecycle-contract-by-operation) for the operation-by-operation comparison, including automatic and explicit state changes.
+
+For the broader lifecycle model—entity contract, secured façade and privileged persistence—see [Entity Lifecycle and Technical Persistence](entities.md#entity-lifecycle-and-technical-persistence).
 
 However, direct use of the ORM in controllers (or entity event handlers) is permitted (as is the use of the DBManipulator service), but it should be done with caution as it poses a potential security risk. Additionally, controllers that inject the ORM service generate a warning during package integrity checks.
 
@@ -16,9 +32,9 @@ Furthermore, there are no logs at this level and no user concept (if fields do n
 
 The ORM implements methods allowing to:
 
-- **create**, **update**, or **delete** one or more objects (based on the ID field)
-- **retrieve** a single entity or a list of entities (both based on the ID field)
-- **retrieve** a list of IDs of entities that match some criteria
+- run `create`, `read`, `update` and `delete` operations;
+- run the explicit technical lifecycle operations `draft`, `write`, `instantiate` and `remove`;
+- retrieve a list of IDs matching search criteria.
 
 ---
 

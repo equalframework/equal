@@ -16,9 +16,9 @@ The `run.php` script acts as a router to handle custom routes and native DO, GET
 
 #### ObjectManager Methods
 
-The `ObjectManager` service provides low-level methods for interacting with entities in the database. These methods allow you to create, search, read, update, and delete objects, offering a powerful abstraction over raw database queries ([see](../../operations/database-storage/data-manipulation-utilities.md)).
+The `ObjectManager` service provides low-level methods for interacting with entities in the database. In addition to search, its operation names can be remembered informally as **CRUD** (`create`, `read`, `update`, `delete`) and **DWIR** (`draft`, `write`, `instantiate`, `remove`). These acronyms are only mnemonics, not formal API categories. The methods offer a powerful abstraction over raw database queries ([see](../../operations/database-storage/data-manipulation-utilities.md)).
 
-These methods are primarily used for backend operations and are not subject to application-level constraints like permissions, workflows, or validations. However, they are essential for building controllers and performing advanced data manipulations.
+These methods are primarily used for trusted backend operations. Direct `ObjectManager` calls do not apply `Collection` permissions or pass through `Collection::assertLifecycle()`. Data validation and state changes depend on the selected method: notably, `draft()` forces `state: draft`, `write()` preserves `state`, and `instantiate()` checks and explicitly promotes a draft to `instance`. For the complete comparison, see [Lifecycle Contract by Operation](../core-development/entities-persistence/entities.md#lifecycle-contract-by-operation).
 
 ##### `create`
 
@@ -33,6 +33,14 @@ Creates a new instance of a given class and assigns values to its fields.
  * @return int Identifier of the newly created object or error code.
  */
 function create($entity, $fields, $lang = null, $use_draft = true)
+```
+
+##### `draft`
+
+Creates a persistent draft without data validation or lifecycle callbacks.
+
+```php
+function draft($class, $fields = [], $lang = null)
 ```
 
 
@@ -67,6 +75,22 @@ Fetches specified field values for selected objects.
 function read($class, $ids, $fields, $lang = null)
 ```
 
+##### `instantiate`
+
+Checks and promotes existing drafts to the `instance` state without replaying their draft writes.
+
+```php
+function instantiate($class, $ids = null, $lang = null)
+```
+
+##### `write`
+
+Writes fields without data validation, lifecycle callbacks or an implicit state transition.
+
+```php
+function write($class, $ids = null, $fields = null, $lang = null)
+```
+
 ##### `update`
 
 Updates specified fields of selected objects.
@@ -94,6 +118,14 @@ Deletes objects permanently or marks them as deleted.
  * @return array|int Deleted object IDs or error code.
  */
 function delete($class, $ids, $permanent = false)
+```
+
+##### `remove`
+
+Permanently removes objects without CRUD business-validity guards or deletion callbacks.
+
+```php
+function remove($class, $ids)
 ```
 
 ##### `validate`
