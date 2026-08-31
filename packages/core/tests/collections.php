@@ -9,6 +9,7 @@ use equal\orm\ObjectManager;
 use equal\http\HttpRequest;
 use core\User;
 use core\Group;
+use core\setting\Setting;
 
 $providers = eQual::inject(['context', 'orm', 'auth', 'access']);
 
@@ -49,6 +50,19 @@ $tests = [
                 },
             'assert'            =>  function($result) {
                     return $result === null;
+                }
+        ],
+    '40103' => [
+            'description'       =>  "Expand a one2many relation ordered by a nullable many2one field.",
+            'act'               =>  function () {
+                    $setting = Setting::id(1)
+                        ->read(['setting_values_ids' => ['id', 'name']])
+                        ->first();
+
+                    return $setting['setting_values_ids']->ids();
+                },
+            'assert'            =>  function($result) {
+                    return in_array(1, $result, true);
                 }
         ]
 ];
