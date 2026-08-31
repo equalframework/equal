@@ -8,6 +8,28 @@
 namespace equal\orm;
 
 class Collection implements \Iterator, \Countable {
+    /**
+     * Default contract applied to Collection operations.
+     *
+     * | Contract          | Description |
+     * | ----------------- | ----------- |
+     * | capabilities      | Checks whether the entity structurally exposes the requested operation and fields. |
+     * | permissions       | Checks whether the current user has the required ACL and role-based rights. |
+     * | operation_rules   | Applies operation policies and CRUD guards such as canCreate(), canRead(), canUpdate(), and canDelete(). |
+     * | validation        | Validates values against types, usages, constraints, required fields, and unique keys. |
+     * | lifecycle         | Applies the implicit technical-state changes associated with the operation. |
+     * | events            | Triggers the entity-level and field-level callbacks associated with the operation. |
+     */
+    private const DEFAULT_CONTRACT = [
+        'capabilities'    => true,
+        'permissions'     => true,
+        'operation_rules' => true,
+        'validation'      => true,
+        'lifecycle'       => true,
+        'events'          => true,
+    ];
+
+    private $contract;
 
     /** @var \equal\services\Container */
     private $container;
@@ -73,6 +95,8 @@ class Collection implements \Iterator, \Countable {
 
         // assign private members
         $this->class = $class;
+
+        $this->contract = self::DEFAULT_CONTRACT;
 
         $this->container = $container;
 
@@ -284,6 +308,21 @@ class Collection implements \Iterator, \Countable {
      */
     public function toArray() {
         return $this->get(true);
+    }
+
+    public function withContract(array $contract): self {
+        foreach($contract as $name => $value) {
+            if(!array_key_exists($name, $this->contract)) {
+                throw new \Exception('unknown_contract', EQ_ERROR_INVALID_PARAM);
+            }
+
+            if(!is_bool($value)) {
+                throw new \Exception('invalid_contract', EQ_ERROR_INVALID_PARAM);
+            }
+            $this->contract[$name] = $value;
+        }
+
+        return $this;
     }
 
     /**
@@ -527,7 +566,7 @@ class Collection implements \Iterator, \Countable {
      *
      * @throws \Exception
      */
-    private function assertLifecycle(int $operation, array $values=[]): self {
+    private function assertOperationGuards(int $operation, array $values=[]): self {
         static $map_hooks = [
             EQ_R_CREATE => 'cancreate',
             EQ_R_READ   => 'canread',
@@ -914,7 +953,7 @@ class Collection implements \Iterator, \Countable {
             // validate : check unique keys
             $this->validate($values, [], true);
 
-            $this->assertLifecycle(EQ_R_CREATE, $values);
+            $this->assertOperationGuards(EQ_R_CREATE, $values);
 
             // create the clone
             $new_id = $this->orm->clone($this->class, $id, $values, $lang);
@@ -976,7 +1015,7 @@ class Collection implements \Iterator, \Countable {
         // #memo - we must check unique constraints at creation, but allow unique fields left to null (not set yet) in order to be able to create several draft objects
         $this->validate($values, [], true);
 
-        $this->assertLifecycle(EQ_R_CREATE, $values);
+        $this->assertOperationGuards(EQ_R_CREATE, $values);
 
         // 4) create the new object
         $id = $this->orm->create($this->class, $values, ($lang) ? $lang : $this->lang);
@@ -1178,7 +1217,7 @@ class Collection implements \Iterator, \Countable {
             ->assertCapabilities(EQ_R_READ, $requested_fields, $ids)
             ->assertAccessControl(EQ_R_READ, $requested_fields, $ids)
             ->assertOperationPolicies(EQ_R_READ, $requested_fields, $ids)
-            ->assertLifecycle(EQ_R_READ, $requested_fields);
+            ->assertOperationGuards(EQ_R_READ, $requested_fields);
 
         // 3) read values
         $res = $this->orm->read($this->class, $ids, $requested_fields, $lang ?? $this->lang);
@@ -1457,7 +1496,7 @@ class Collection implements \Iterator, \Countable {
         // if object is about to become an instance (still draft), check required fields (otherwise, partial update is allowed)
         $this->validate($values, $ids, true);
 
-        $this->assertLifecycle(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
+        $this->assertOperationGuards(EQ_R_UPDATE, array_diff_key($values, Model::getSpecialColumns()));
 
         // 4) update objects
         // #memo - unless explicitly assigned to another value than 'draft', update operation sets state to 'instance'
@@ -1521,7 +1560,7 @@ class Collection implements \Iterator, \Countable {
                 ->assertCapabilities(EQ_R_DELETE, [], $ids)
                 ->assertAccessControl(EQ_R_DELETE, [], $ids)
                 ->assertOperationPolicies(EQ_R_DELETE, [], $ids)
-                ->assertLifecycle(EQ_R_DELETE);
+                ->assertOperationGuards(EQ_R_DELETE);
 
             // 3) delete objects
             $res = $this->orm->delete($this->class, $ids, $permanent);
@@ -1683,7 +1722,7 @@ class Collection implements \Iterator, \Countable {
             ->assertOperationPolicies($operation, $field_names, $ids);
 
         if($is_value_map) {
-            $this->assertLifecycle($operation, $values);
+            $this->assertOperationGuards($operation, $values);
         }
 
         return $this;
