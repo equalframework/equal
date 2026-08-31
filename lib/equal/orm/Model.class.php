@@ -311,24 +311,29 @@ class Model implements \ArrayAccess, \Iterator {
                 'type'              => 'integer',
                 'readonly'          => true
             ],
+            'model' => [
+                'type'              => 'string',
+                'readonly'          => true,
+                'default'           => static::class
+            ],
             'creator' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'default'           => QN_ROOT_USER_ID
+                'default'           => EQ_ROOT_USER_ID
             ],
             'created' => [
                 'type'              => 'datetime',
-                'default'           => function() { return time(); },
+                'default'           => fn() => time(),
                 'readonly'          => true
             ],
             'modifier' => [
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\User',
-                'default'           => QN_ROOT_USER_ID
+                'default'           => EQ_ROOT_USER_ID
             ],
             'modified' => [
                 'type'              => 'datetime',
-                'default'           => function() { return time(); },
+                'default'           => fn() => time(),
                 'readonly'          => true
             ],
             // #memo - when set to true, modifier points to the user who deleted the object and modified is the time of the deletion
@@ -353,7 +358,7 @@ class Model implements \ArrayAccess, \Iterator {
      * @return string
      */
     public static function getType() {
-        return get_called_class();
+        return static::class;
     }
 
     /**
@@ -676,6 +681,18 @@ class Model implements \ArrayAccess, \Iterator {
         return ((static::getFlags() & $flag) === $flag);
     }
 
+    public static function hasOwnFlag(int $flag): bool {
+        $class = static::class;
+
+        $method = new \ReflectionMethod($class, 'getFlags');
+
+        if($method->getDeclaringClass()->getName() !== $class) {
+            return false;
+        }
+
+        return ((static::getFlags() & $flag) === $flag);
+    }
+
     public static function getFlags(): int {
         return 0;
     }
@@ -702,19 +719,33 @@ class Model implements \ArrayAccess, \Iterator {
     }
 
     /**
-     * Return the name of the DB table to be used for storing objects of current class.
-     * This method can be overridden by children classes to allow polymorphism at class level.
+     * Returns the DB table used for storing objects of the current class.
      *
-     * @return string   Returns the name of the SQL table relating the the entity.
+     * By default, models share the table of the first class inheriting directly
+     * from Model. A child class declaring EQ_FLAG_OWN_TABLE starts a new
+     * storage hierarchy and uses its own table.
+     *
+     * @return string
      */
     public function getTable() {
-        $parent = get_parent_class($this);
+
         $entity = get_class($this);
 
-        // class uses its parent class name, unless it directly inherits from root Model class (equal\orm\Model)
-        while($parent != __CLASS__) {
+        while(true) {
+
+            $parent = get_parent_class($entity);
+
+            // class directly inherits from root Model class (equal\orm\Model)
+            if(!$parent || $parent === __CLASS__) {
+                break;
+            }
+
+            // explicit storage boundary
+            if($entity::hasOwnFlag(EQ_FLAG_OWN_TABLE)) {
+                break;
+            }
+
             $entity = $parent;
-            $parent = get_parent_class($parent);
         }
 
         return strtolower(str_replace('\\', '_', $entity));
@@ -735,7 +766,8 @@ class Model implements \ArrayAccess, \Iterator {
                 return call_user_func_array([$collection, $name], $arguments);
             }
             else {
-                throw new \Exception("call to non-existing (or non-accessible) method `$name` on Collection class", QN_ERROR_INVALID_PARAM);
+                trigger_error("ORM::call to non-existing (or non-accessible) method `$name` on Collection class", EQ_REPORT_ERROR);
+                throw new \Exception("unknown_method", EQ_ERROR_INVALID_PARAM);
             }
         }
         return null;
