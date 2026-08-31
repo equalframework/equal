@@ -45,8 +45,14 @@
             },
             {
                 "type": "field",
+                "value": "is_deprecated",
+                "width": "10%",
+                "sortable": true
+            },
+            {
+                "type": "field",
                 "value": "description",
-                "width": "25%"
+                "width": "15%"
             }
         ]
     }
