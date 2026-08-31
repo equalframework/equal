@@ -6,7 +6,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace core\test;
+namespace test;
 
 use equal\orm\Model;
 
@@ -18,7 +18,7 @@ use equal\orm\Model;
 class Test extends Model
 {
     public static function getDescription() {
-        return "This Class is defined for testing purpose, and is intended to be used in testing units of the core package.";
+        return "Test-only model used by the framework integration suites.";
     }
 
     public static function getColumns()
@@ -46,7 +46,7 @@ class Test extends Model
 
             'tests1_ids' => [
                 'type'              => 'one2many',
-                'foreign_object'    => 'core\test\Test1',
+                'foreign_object'    => 'test\Test1',
                 'foreign_field'     => 'test_id'
             ],
 

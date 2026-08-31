@@ -6,18 +6,18 @@
     Licensed under GNU LGPL 3 license <http://www.gnu.org/licenses/>
 */
 list($params, $providers) = eQual::announce([
-    'description'   => 'Returns the sum of two values.',
+    'description'   => 'Returns the division of two values.',
     'params'        => [
-        'first_value' => [
-            'description'   => 'First value',
+        'numerator' => [
+            'description'   => 'Numerator',
             'type'          => 'integer',
-            'usage'     => 'numeric/integer',
+            'usage'         => 'numeric/integer',
             'required'      => true
         ],
-        'second_value' => [
-            'description'   => 'Second value',
+        'denominator' => [
+            'description'   => 'Denominator',
             'type'          => 'integer',
-            'usage'     => 'numeric/integer',
+            'usage'         => 'numeric/integer',
             'required'      => true
         ]
     ],
@@ -27,19 +27,23 @@ list($params, $providers) = eQual::announce([
         'accept-origin'     => '*',
         'schema' => [
             'type'          => 'integer',
-            'usage'     => 'numeric/integer',
+            'usage'          => 'numeric/integer',
             'qty'       => 'one'
         ]
     ],
     'access'        => [
-        'visibility'        => 'public',
+        'visibility'        => 'private',
     ],
     'providers'     => ['context']
 ]);
 
 list($context) = [$providers['context']];
 
-$result = $params['first_value'] + $params['second_value'];
+$result = 0;
+
+if ($params['denominator'] != 0) {
+    $result = intdiv($params['numerator'], $params['denominator']);
+}
 
 $context->httpResponse()
     ->body($result)

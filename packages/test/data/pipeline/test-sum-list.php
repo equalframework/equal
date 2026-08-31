@@ -25,7 +25,7 @@ list($params, $providers) = eQual::announce([
         ]
     ],
     'access'        => [
-        'visibility'        => 'public',
+        'visibility'        => 'private',
     ],
     'providers'     => ['context']
 ]);

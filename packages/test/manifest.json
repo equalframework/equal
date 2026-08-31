@@ -1,0 +1,17 @@
+{
+    "name": "test",
+    "description": "Test-only fixtures, controllers, and integration suites for eQual CI/CD pipelines.",
+    "version": "1.0.0",
+    "license": "GPL-3.0",
+    "authors": [
+        "Cedric Francoys"
+    ],
+    "tags": [
+        "equal",
+        "testing",
+        "ci"
+    ],
+    "depends_on": [
+        "core"
+    ]
+}

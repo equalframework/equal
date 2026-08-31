@@ -6,92 +6,12 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 
-namespace core\test {
-
-    if(!class_exists('core\test\LifecycleProbe', false)) {
-        class LifecycleProbe extends Test {
-
-            private static $lifecycle_events = [];
-
-            public static function resetLifecycleEvents() {
-                self::$lifecycle_events = [];
-            }
-
-            public static function getLifecycleEvents() {
-                return self::$lifecycle_events;
-            }
-
-            private static function recordLifecycleEvent($hook, $self, $ids, $values) {
-                self::$lifecycle_events[] = [
-                    'hook'     => $hook,
-                    'ids'      => array_values($ids),
-                    'self_ids' => array_values($self->ids()),
-                    'values'   => array_intersect_key($values, array_flip(['state', 'string_short']))
-                ];
-            }
-
-            public static function oncreate($self, $ids, $values) {
-                self::recordLifecycleEvent('oncreate', $self, $ids, $values);
-            }
-
-            public static function onafterinstantiate($self, $ids, $values) {
-                self::recordLifecycleEvent('onafterinstantiate', $self, $ids, $values);
-            }
-
-            public static function onbeforeinstantiate($self, $ids, $values) {
-                self::recordLifecycleEvent('onbeforeinstantiate', $self, $ids, $values);
-            }
-
-            public static function onbeforeupdate($self, $ids, $values) {
-                self::recordLifecycleEvent('onbeforeupdate', $self, $ids, $values);
-            }
-
-            public static function onafterupdate($self, $ids, $values) {
-                self::recordLifecycleEvent('onafterupdate', $self, $ids, $values);
-            }
-        }
-    }
-
-    if(!class_exists('core\test\LifecycleConsistencyProbe', false)) {
-        class LifecycleConsistencyProbe extends Test {
-
-            public static function getColumns() {
-                return [
-                    'string_short' => [
-                        'type'       => 'string',
-                        'usage'      => 'text/plain:9',
-                        'required'   => true,
-                        'unique'     => true,
-                        'dependents' => ['tests1_ids' => ['test']]
-                    ]
-                ];
-            }
-        }
-    }
-
-    if(!class_exists('core\test\LifecycleReadonlyRequiredProbe', false)) {
-        class LifecycleReadonlyRequiredProbe extends Test {
-
-            public static function getColumns() {
-                return [
-                    'string_short' => [
-                        'type'     => 'string',
-                        'usage'    => 'text/plain:9',
-                        'required' => true,
-                        'readonly' => true
-                    ]
-                ];
-            }
-        }
-    }
-}
-
 namespace {
 
-    use core\test\LifecycleConsistencyProbe;
-    use core\test\LifecycleReadonlyRequiredProbe;
-    use core\test\LifecycleProbe;
-    use core\test\Test;
+    use test\LifecycleConsistencyProbe;
+    use test\LifecycleReadonlyRequiredProbe;
+    use test\LifecycleProbe;
+    use test\Test;
     use equal\orm\ObjectManager;
 
     $tests = [
