@@ -248,6 +248,16 @@ foreach($classes as $class) {
                 }
             }
         }
+        // add default index used by ORM searches
+        $index_fields = ['model', 'state', 'deleted', 'id'];
+        if(empty(array_diff($index_fields, array_keys($schema)))) {
+            $index_name = $db->getCompositeIndexName($index_fields);
+
+            if(!isset($map_processed_indexes[$table][$index_name])) {
+                $result[] = $db->getQueryAddCompositeIndex($table, $index_fields);
+                $map_processed_indexes[$table][$index_name] = true;
+            }
+        }
     }
 }
 
