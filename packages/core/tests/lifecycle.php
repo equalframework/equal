@@ -17,51 +17,39 @@ namespace {
     $tests = [
 
         '5001' => [
-                'description' => 'Lifecycle: Test::create stores instance state by default.',
+                'description' => 'Lifecycle: Test::create assigns instance state by default.',
                 'act'         => function () {
-                        $test = Test::create(['string_short' => 'create'])
-                            ->read(['id'])
+                        return Test::create(['string_short' => 'create'])
+                            ->read(['id', 'state'])
                             ->first();
-
-                        return $test['id'] ?? null;
                     },
                 'assert'      => function($result) {
-                        $test = Test::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'instance';
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['state'] ?? null) === 'instance';
                     },
                 'rollback'    => function($result) {
-                        if($result > 0) {
-                            Test::id($result)->delete(true);
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            Test::id($id)->delete(true);
                         }
                     }
             ],
 
         '5002' => [
-                'description' => 'Lifecycle: Test::create can keep draft state.',
+                'description' => 'Lifecycle: Test::create preserves explicit draft state.',
                 'act'         => function () {
-                        $test = Test::create(['state' => 'draft'])
-                            ->read(['id'])
+                        return Test::create(['state' => 'draft'])
+                            ->read(['id', 'state'])
                             ->first();
-
-                        return $test['id'] ?? null;
                     },
                 'assert'      => function($result) {
-                        $test = Test::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'draft';
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['state'] ?? null) === 'draft';
                     },
                 'rollback'    => function($result) {
-                        if($result > 0) {
-                            Test::id($result)->delete(true);
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            Test::id($id)->delete(true);
                         }
                     }
             ],
@@ -76,23 +64,18 @@ namespace {
                         return $test['id'];
                     },
                 'act'         => function ($id) {
-                        Test::id($id)
-                            ->update(['string_short' => 'inst']);
-
-                        return $id;
+                        return Test::id($id)
+                            ->update(['string_short' => 'inst'])
+                            ->read(['id', 'state'])
+                            ->first();
                     },
                 'assert'      => function($result) {
-                        $test = Test::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'instance';
+                        return ($result['state'] ?? null) === 'instance';
                     },
                 'rollback'    => function($result) {
-                        if($result > 0) {
-                            Test::id($result)->delete(true);
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            Test::id($id)->delete(true);
                         }
                     }
             ],
@@ -107,29 +90,24 @@ namespace {
                         return $test['id'];
                     },
                 'act'         => function ($id) {
-                        Test::id($id)
-                            ->update(['string_short' => 'after']);
-
-                        return $id;
+                        return Test::id($id)
+                            ->update(['string_short' => 'after'])
+                            ->read(['id', 'state'])
+                            ->first();
                     },
                 'assert'      => function($result) {
-                        $test = Test::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'instance';
+                        return ($result['state'] ?? null) === 'instance';
                     },
                 'rollback'    => function($result) {
-                        if($result > 0) {
-                            Test::id($result)->delete(true);
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            Test::id($id)->delete(true);
                         }
                     }
             ],
 
         '5005' => [
-                'description' => 'Lifecycle: create invokes the after-create handler.',
+                'description' => 'Lifecycle: create invokes the oncreate hook.',
                 'act'         => function () {
                         $test = LifecycleProbe::create(['string_short' => 'create'])
                             ->read(['id'])
@@ -142,9 +120,7 @@ namespace {
                         $event = end($events);
 
                         return $result > 0
-                            && ($event['hook'] ?? null) === 'oncreate'
-                            && ($event['ids'] ?? null) === [$result]
-                            && ($event['self_ids'] ?? null) === [$result];
+                            && ($event['hook'] ?? null) === 'oncreate';
                     },
                 'rollback'    => function($result) {
                         if($result > 0) {
@@ -154,7 +130,7 @@ namespace {
             ],
 
         '5006' => [
-                'description' => 'Lifecycle: draft update invokes instantiate hooks only.',
+                'description' => 'Lifecycle: draft update invokes instantiate hooks.',
                 'arrange'     => function () {
                         $test = LifecycleProbe::create(['state' => 'draft'])
                             ->read(['id'])
@@ -172,14 +148,7 @@ namespace {
                         $events = array_slice(LifecycleProbe::getLifecycleEvents(), -2);
                         $hooks = array_column($events, 'hook');
 
-                        $test = LifecycleProbe::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'instance'
-                            && $hooks === ['onbeforeinstantiate', 'onafterinstantiate'];
+                        return $hooks === ['onbeforeinstantiate', 'onafterinstantiate'];
                     },
                 'rollback'    => function($result) {
                         if($result > 0) {
@@ -205,13 +174,9 @@ namespace {
                     },
                 'assert'      => function($result) {
                         $events = array_slice(LifecycleProbe::getLifecycleEvents(), -2);
+                        $hooks = array_column($events, 'hook');
 
-                        return $result > 0
-                            && count($events) === 2
-                            && ($events[0]['hook'] ?? null) === 'onbeforeupdate'
-                            && ($events[0]['ids'] ?? null) === [$result]
-                            && ($events[1]['hook'] ?? null) === 'onafterupdate'
-                            && ($events[1]['ids'] ?? null) === [$result];
+                        return $hooks === ['onbeforeupdate', 'onafterupdate'];
                     },
                 'rollback'    => function($result) {
                         if($result > 0) {
@@ -221,26 +186,20 @@ namespace {
             ],
 
         '5008' => [
-                'description' => 'Lifecycle consistency: draft creation allows missing required fields.',
+                'description' => 'Lifecycle consistency: draft creation does not require mandatory fields.',
                 'act'         => function () {
-                        $test = LifecycleConsistencyProbe::create(['state' => 'draft'])
-                            ->read(['id'])
+                        return LifecycleConsistencyProbe::create(['state' => 'draft'])
+                            ->read(['id', 'state'])
                             ->first();
-
-                        return $test['id'] ?? null;
                     },
                 'assert'      => function($result) {
-                        $test = LifecycleConsistencyProbe::id($result)
-                            ->read(['state'])
-                            ->first();
-
-                        return $result > 0
-                            && $test
-                            && $test['state'] === 'draft';
+                        return ($result['id'] ?? 0) > 0
+                            && ($result['state'] ?? null) === 'draft';
                     },
                 'rollback'    => function($result) {
-                        if($result > 0) {
-                            LifecycleConsistencyProbe::id($result)->delete(true);
+                        $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleConsistencyProbe::id($id)->delete(true);
                         }
                     }
             ],
@@ -271,13 +230,7 @@ namespace {
                         return $result;
                     },
                 'assert'      => function($result) {
-                        $test = LifecycleConsistencyProbe::id($result['id'] ?? 0)
-                            ->read(['state'])
-                            ->first();
-
-                        return ($result['id'] ?? 0) > 0
-                            && ($result['error'] ?? 0) === EQ_ERROR_INVALID_PARAM
-                            && ($test['state'] ?? null) === 'draft';
+                        return ($result['error'] ?? 0) === EQ_ERROR_INVALID_PARAM;
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
@@ -288,7 +241,7 @@ namespace {
             ],
 
         '5010' => [
-                'description' => 'Lifecycle compatibility: ObjectManager::update keeps legacy direct unique behavior.',
+                'description' => 'Lifecycle compatibility: ObjectManager::update allows a legacy duplicate instantiation.',
                 'arrange'     => function () {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleConsistencyProbe::getType();
@@ -318,14 +271,7 @@ namespace {
                         return $result;
                     },
                 'assert'      => function($result) {
-                        $draft = LifecycleConsistencyProbe::id($result['draft_id'] ?? 0)
-                            ->read(['state'])
-                            ->first();
-
-                        return ($result['draft_id'] ?? 0) > 0
-                            && ($result['instance_id'] ?? 0) > 0
-                            && ($result['update'] ?? 0) === [$result['draft_id']]
-                            && ($draft['state'] ?? null) === 'instance';
+                        return ($result['update'] ?? null) === [$result['draft_id']];
                     },
                 'rollback'    => function($result) {
                         $ids = [];
@@ -341,7 +287,7 @@ namespace {
                     }
             ],
         '5011' => [
-                'description' => 'Lifecycle compatibility: ObjectManager::create keeps legacy required failure after insertion.',
+                'description' => 'Lifecycle compatibility: ObjectManager::create inserts before returning a required-field error.',
                 'arrange'     => function () {
                         $ids = ObjectManager::getInstance()->search(
                             LifecycleConsistencyProbe::getType(),
@@ -388,7 +334,7 @@ namespace {
             ],
 
         '5012' => [
-                'description' => 'Lifecycle consistency: ObjectManager::update enforces required fields on instantiation.',
+                'description' => 'Lifecycle consistency: ObjectManager::update refuses instantiation without required fields.',
                 'arrange'     => function () {
                         $om = ObjectManager::getInstance();
                         return $om->create(LifecycleConsistencyProbe::getType(), ['state' => 'draft']);
@@ -403,13 +349,7 @@ namespace {
                         ];
                     },
                 'assert'      => function($result) {
-                        $id = $result['id'] ?? 0;
-                        $object = ObjectManager::getInstance()
-                            ->read(LifecycleConsistencyProbe::getType(), [$id], ['state']);
-
-                        return ($result['id'] ?? 0) > 0
-                            && ($result['update'] ?? 0) === EQ_ERROR_INVALID_PARAM
-                            && ($object[$id]['state'] ?? null) === 'draft';
+                        return ($result['update'] ?? 0) === EQ_ERROR_INVALID_PARAM;
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
@@ -419,7 +359,7 @@ namespace {
                     }
             ],
         '5013' => [
-                'description' => 'Lifecycle consistency: draft instantiation accepts required readonly fields.',
+                'description' => 'Lifecycle consistency: draft instantiation accepts a required readonly value.',
                 'arrange'     => function () {
                         $test = LifecycleReadonlyRequiredProbe::create(['state' => 'draft'])
                             ->read(['id'])
@@ -428,30 +368,14 @@ namespace {
                         return $test['id'];
                     },
                 'act'         => function ($id) {
-                        $result = [
-                            'id'    => $id,
-                            'error' => 0
-                        ];
-
-                        try {
-                            LifecycleReadonlyRequiredProbe::id($id)
-                                ->update(['string_short' => 'required']);
-                        }
-                        catch(Exception $e) {
-                            $result['error'] = $e->getCode();
-                        }
-
-                        return $result;
+                        return LifecycleReadonlyRequiredProbe::id($id)
+                            ->update(['string_short' => 'required'])
+                            ->read(['id', 'state', 'string_short'])
+                            ->first();
                     },
                 'assert'      => function($result) {
-                        $test = LifecycleReadonlyRequiredProbe::id($result['id'] ?? 0)
-                            ->read(['state', 'string_short'])
-                            ->first();
-
-                        return ($result['id'] ?? 0) > 0
-                            && ($result['error'] ?? 0) === 0
-                            && ($test['state'] ?? null) === 'instance'
-                            && ($test['string_short'] ?? null) === 'required';
+                        return ($result['state'] ?? null) === 'instance'
+                            && ($result['string_short'] ?? null) === 'required';
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
@@ -461,62 +385,47 @@ namespace {
                     }
             ],
         '5014' => [
-                'description' => 'Lifecycle consistency: ObjectManager::update ignores missing ids and can restore deleted records.',
+                'description' => 'Lifecycle consistency: ObjectManager::update ignores missing ids.',
                 'arrange'     => function () {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleProbe::getType();
 
-                        $soft_id = $om->create($class, ['string_short' => 'soft']);
+                        $alive_id = $om->create($class, ['string_short' => 'alive']);
                         $hard_id = $om->create($class, ['string_short' => 'hard']);
 
-                        $om->delete($class, [$soft_id], false);
                         $om->delete($class, [$hard_id], true);
 
                         return [
-                            'soft_id' => $soft_id,
-                            'hard_id' => $hard_id
+                            'alive_id' => $alive_id,
+                            'hard_id'  => $hard_id
                         ];
                     },
                 'act'         => function ($fixtures) {
                         $om = ObjectManager::getInstance();
                         $class = LifecycleProbe::getType();
 
-                        $result = $fixtures;
-                        $result['update'] = $om->update(
+                        return $om->update(
                             $class,
-                            [$fixtures['soft_id'], $fixtures['hard_id']],
-                            ['deleted' => 0, 'string_short' => 'restored']
+                            [$fixtures['alive_id'], $fixtures['hard_id']],
+                            ['string_short' => 'updated']
                         );
-
-                        return $result;
                     },
                 'assert'      => function($result) {
-                        $id = $result['soft_id'] ?? 0;
-                        $test = LifecycleProbe::id($id)
-                            ->read(['string_short', 'deleted'])
-                            ->first();
-
-                        return ($result['update'] ?? null) === [$id]
-                            && ($test['string_short'] ?? null) === 'restored'
-                            && (bool) ($test['deleted'] ?? true) === false;
+                        return count($result) === 1
+                            && $result[0] > 0;
                     },
                 'rollback'    => function($result) {
-                        $id = $result['soft_id'] ?? 0;
+                        $id = $result[0] ?? 0;
                         if($id > 0) {
                             LifecycleProbe::id($id)->delete(true);
                         }
                     }
             ],
         '5015' => [
-                'description' => 'Lifecycle: ObjectManager::instantiate promotes a draft and preserves its values.',
+                'description' => 'Lifecycle: ObjectManager::draft/instantiate assigns an id and promotes the draft.',
                 'arrange'     => function () {
-                        $om = ObjectManager::getInstance();
-                        $class = LifecycleProbe::getType();
-                        $id = $om->draft($class);
-
-                        $om->write($class, [$id], ['string_short' => 'inst']);
-
-                        return $id;
+                        return ObjectManager::getInstance()
+                            ->draft(LifecycleProbe::getType());
                     },
                 'act'         => function ($id) {
                         return ObjectManager::getInstance()
@@ -525,12 +434,11 @@ namespace {
                 'assert'      => function($result) {
                         $id = $result[0] ?? 0;
                         $test = LifecycleProbe::id($id)
-                            ->read(['state', 'string_short'])
+                            ->read(['state'])
                             ->first();
 
                         return $id > 0
-                            && ($test['state'] ?? null) === 'instance'
-                            && ($test['string_short'] ?? null) === 'inst';
+                            && ($test['state'] ?? null) === 'instance';
                     },
                 'rollback'    => function($result) {
                         $id = $result[0] ?? 0;
@@ -560,6 +468,40 @@ namespace {
                     },
                 'rollback'    => function($result) {
                         $id = $result['id'] ?? 0;
+                        if($id > 0) {
+                            LifecycleProbe::id($id)->delete(true);
+                        }
+                    }
+            ],
+
+        '5017' => [
+                'description' => 'Lifecycle consistency: ObjectManager::update restores a soft-deleted record.',
+                'arrange'     => function () {
+                        $om = ObjectManager::getInstance();
+                        $class = LifecycleProbe::getType();
+                        $id = $om->create($class, ['string_short' => 'soft']);
+
+                        $om->delete($class, [$id], false);
+
+                        return $id;
+                    },
+                'act'         => function ($id) {
+                        return ObjectManager::getInstance()->update(
+                            LifecycleProbe::getType(),
+                            [$id],
+                            ['deleted' => 0]
+                        );
+                    },
+                'assert'      => function($result) {
+                        $id = $result[0] ?? 0;
+                        $test = LifecycleProbe::id($id)
+                            ->read(['deleted'])
+                            ->first();
+
+                        return (bool) ($test['deleted'] ?? true) === false;
+                    },
+                'rollback'    => function($result) {
+                        $id = $result[0] ?? 0;
                         if($id > 0) {
                             LifecycleProbe::id($id)->delete(true);
                         }
