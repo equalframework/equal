@@ -179,6 +179,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
 
     foreach($discovered_tables as $table => $descriptor) {
         $configured_table = $configured_migration['tables'][$table] ?? [];
+        $is_unambiguous = count($descriptor['classes']) === 1;
         $field = is_string($configured_table['field'] ?? null) ? $configured_table['field'] : '';
         $model_values = is_array($configured_table['models'] ?? null) ? $configured_table['models'] : [];
         $errors = [];
@@ -192,7 +193,12 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
             $columns = $db->getTableColumns($table);
         }
 
-        if(!strlen($field)) {
+        if($is_unambiguous) {
+            $class = array_key_first($descriptor['classes']);
+            $field = '';
+            $model_values = [$class => []];
+        }
+        elseif(!strlen($field)) {
             $errors[] = 'missing_discriminator_field';
         }
         elseif(!in_array($field, $columns, true)) {
@@ -285,7 +291,7 @@ if($params['phase'] === 'discover') {
 }
 elseif($params['phase'] === 'backfill') {
     $not_ready_tables = [];
-    foreach($analysis['tables'] as $table => $descriptor) {
+foreach($analysis['tables'] as $table => $descriptor) {
         if(!$descriptor['ready']) {
             $not_ready_tables[$table] = $descriptor['errors'];
         }
@@ -320,9 +326,16 @@ elseif($params['phase'] === 'backfill') {
                 'type' => $type,
                 'null' => true
             ]));
-        }
+    }
 
-        $updated_rows = 0;
+    $updated_rows = 0;
+    $is_unambiguous = count($descriptor['classes']) === 1;
+    if($is_unambiguous) {
+        $class = reset($descriptor['classes']);
+        $db->setRecords($table, null, ['model' => $class]);
+        $updated_rows += $db->getAffectedRows();
+    }
+    else {
         foreach($descriptor['models'] as $class => $values) {
             $non_null_values = [];
             $has_null = false;
@@ -354,21 +367,31 @@ elseif($params['phase'] === 'backfill') {
                 $updated_rows += $db->getAffectedRows();
             }
         }
+    }
 
-        $expected_models = [];
+    $expected_models = [];
+    if(!$is_unambiguous) {
         foreach($descriptor['models'] as $class => $values) {
             foreach($values as $value) {
                 $expected_models[$normalizeValue($value)] = $class;
             }
         }
+    }
 
-        $verified_rows = 0;
-        $invalid_rows = [];
-        $result = $db->getRecords($table, ['id', $descriptor['field'], 'model']);
-        while($row = $db->fetchArray($result)) {
+    $verified_rows = 0;
+    $invalid_rows = [];
+    $verification_fields = ['id', 'model'];
+    if(!$is_unambiguous) {
+        $verification_fields[] = $descriptor['field'];
+    }
+    $result = $db->getRecords($table, $verification_fields);
+    while($row = $db->fetchArray($result)) {
+        $expected_model = reset($descriptor['classes']);
+        if(!$is_unambiguous) {
             $value = array_key_exists($descriptor['field'], $row) ? $row[$descriptor['field']] : null;
             $expected_model = $expected_models[$normalizeValue($value)] ?? null;
-            if(is_null($expected_model) || ($row['model'] ?? null) !== $expected_model) {
+        }
+        if(is_null($expected_model) || ($row['model'] ?? null) !== $expected_model) {
                 if(count($invalid_rows) < 20) {
                     $invalid_rows[] = $row['id'];
                 }
