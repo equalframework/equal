@@ -361,6 +361,10 @@ class Model implements \ArrayAccess, \Iterator {
         return static::class;
     }
 
+    final public static function getSlug(): string {
+        return strtolower(str_replace('\\', '_', static::class));
+    }
+
     /**
      * Gets the Model readable name (meant for UI).
      * This method is meant to be overridden by children classes to define their own name.
