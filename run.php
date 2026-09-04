@@ -157,6 +157,9 @@ try {
         $route = [
             'operation' => Router::normalizeOperation('?' . http_build_query((array) $request->body()))
         ];
+        if(php_sapi_name() === 'cli' && !isset($route['operation']['type'])) {
+            throw new Exception(serialize(['no_operation_requested' => 'Expected one of --do, --get, or --show.']), EQ_ERROR_MISSING_PARAM);
+        }
         // if no route is specified in the URI, check for DEFAULT_PACKAGE constant (which might be defined in root `config.json`)
         if(!isset($route['operation']['name'])) {
             if(defined('DEFAULT_PACKAGE')) {
