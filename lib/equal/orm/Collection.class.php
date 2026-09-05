@@ -8,28 +8,6 @@
 namespace equal\orm;
 
 class Collection implements \Iterator, \Countable {
-    /**
-     * Default contract applied to Collection operations.
-     *
-     * | Contract          | Description |
-     * | ----------------- | ----------- |
-     * | capabilities      | Checks whether the entity structurally exposes the requested operation and fields. |
-     * | permissions       | Checks whether the current user has the required ACL and role-based rights. |
-     * | operation_rules   | Applies operation policies and CRUD guards such as canCreate(), canRead(), canUpdate(), and canDelete(). |
-     * | validation        | Validates values against types, usages, constraints, required fields, and unique keys. |
-     * | lifecycle         | Applies the implicit technical-state changes associated with the operation. |
-     * | events            | Triggers the entity-level and field-level callbacks associated with the operation. |
-     */
-    private const DEFAULT_CONTRACT = [
-        'capabilities'    => true,
-        'permissions'     => true,
-        'operation_rules' => true,
-        'validation'      => true,
-        'lifecycle'       => true,
-        'events'          => true,
-    ];
-
-    private $contract;
 
     /** @var \equal\services\Container */
     private $container;
@@ -95,8 +73,6 @@ class Collection implements \Iterator, \Countable {
 
         // assign private members
         $this->class = $class;
-
-        $this->contract = self::DEFAULT_CONTRACT;
 
         $this->container = $container;
 
@@ -308,21 +284,6 @@ class Collection implements \Iterator, \Countable {
      */
     public function toArray() {
         return $this->get(true);
-    }
-
-    public function withContract(array $contract): self {
-        foreach($contract as $name => $value) {
-            if(!array_key_exists($name, $this->contract)) {
-                throw new \Exception('unknown_contract', EQ_ERROR_INVALID_PARAM);
-            }
-
-            if(!is_bool($value)) {
-                throw new \Exception('invalid_contract', EQ_ERROR_INVALID_PARAM);
-            }
-            $this->contract[$name] = $value;
-        }
-
-        return $this;
     }
 
     /**
