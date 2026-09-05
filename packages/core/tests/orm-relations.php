@@ -6,9 +6,9 @@
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
 use equal\orm\ObjectManager;
-use test\Test as TestModel;
-use test\Test1 as Test1Model;
-use test\TestOne2manyForeignKey;
+use core\test\Test as TestModel;
+use core\test\Test1 as Test1Model;
+use core\test\TestOne2manyForeignKey;
 
 $tests = [
 

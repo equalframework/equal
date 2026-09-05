@@ -8,10 +8,10 @@
 
 namespace {
 
-    use test\LifecycleConsistencyProbe;
-    use test\LifecycleReadonlyRequiredProbe;
-    use test\LifecycleProbe;
-    use test\Test;
+    use core\test\LifecycleConsistencyProbe;
+    use core\test\LifecycleReadonlyRequiredProbe;
+    use core\test\LifecycleProbe;
+    use core\test\Test;
     use equal\orm\ObjectManager;
 
     $tests = [

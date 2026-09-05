@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace test;
+namespace core\test;
 
 class TestOne2manyForeignKey extends Test
 {
@@ -13,7 +13,7 @@ class TestOne2manyForeignKey extends Test
         return [
             'tests1_by_test_id_ids' => [
                 'type'           => 'one2many',
-                'foreign_object' => 'test\Test1',
+                'foreign_object' => 'core\test\Test1',
                 'foreign_field'  => 'test_id',
                 'foreign_key'    => 'test_id'
             ]

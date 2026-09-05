@@ -5,7 +5,7 @@
     Original author(s): Cedric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace test;
+namespace core\test;
 
 class LifecycleReadonlyRequiredProbe extends Test
 {

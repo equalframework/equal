@@ -5,7 +5,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-use test\Test;
+use core\test\Test;
 
 $tests = [
 

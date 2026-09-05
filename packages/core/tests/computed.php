@@ -12,11 +12,11 @@ $tests = [
             'description'   =>  "Checking dependents chaining with computed field of related object.",
             'act'           =>  function () {
                     $result = [];
-                    $test = test\Test::create(['string_short' => 'test 0'])->read(['id'])->first();
-                    $test1 = test\Test1::create(['test_id' => $test['id']])->read(['id', 'test'])->first();
+                    $test = core\test\Test::create(['string_short' => 'test 0'])->read(['id'])->first();
+                    $test1 = core\test\Test1::create(['test_id' => $test['id']])->read(['id', 'test'])->first();
                     $result[] = $test1['test'];
-                    test\Test::id($test['id'])->update(['string_short' => 'test 1']);
-                    $test1 = test\Test1::id($test1['id'])->read(['test'])->first();
+                    core\test\Test::id($test['id'])->update(['string_short' => 'test 1']);
+                    $test1 = core\test\Test1::id($test1['id'])->read(['test'])->first();
                     $result[] = $test1['test'];
                     return $result;
                 },

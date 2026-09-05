@@ -6,7 +6,7 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
-namespace test;
+namespace core\test;
 
 use equal\orm\Model;
 
@@ -24,7 +24,7 @@ class Test1 extends Model
 
             'test_id' => [
                 'type'              => 'many2one',
-                'foreign_object'    => 'test\Test'
+                'foreign_object'    => 'core\test\Test'
             ],
         ];
     }
