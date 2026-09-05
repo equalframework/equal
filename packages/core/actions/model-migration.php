@@ -10,7 +10,7 @@ use equal\data\adapt\DataAdapterProviderSql;
 use equal\db\DBConnector;
 
 [$params, $providers] = eQual::announce([
-    'description'   => 'Discover ORM models using a non-default table and backfill their model discriminator.',
+    'description'   => 'Discover ORM model-table mappings, then validate an edited migration file and backfill model discriminators.',
     'params'        => [
         'phase' => [
             'description'   => 'Migration phase to execute.',
@@ -175,16 +175,41 @@ $discoverModels = static function($orm): array {
 $analyze = static function(array $configured_migration) use($db, $discoverModels, $normalizeValue, $orm): array {
     $known_tables = array_fill_keys($db->getTables(), true);
     $discovered_tables = $discoverModels($orm);
-    $migration = ['tables' => []];
+    $migration = [
+        'instructions' => [
+            'models' => 'Replace every null value with an array. Use an empty array for a single-class table; for a shared table, list the discriminator values assigned to each class.',
+            'field'  => 'For a shared table, set field to the column containing the discriminator values.'
+        ],
+        'ready'  => true,
+        'tables' => []
+    ];
 
     foreach($discovered_tables as $table => $descriptor) {
         $configured_table = $configured_migration['tables'][$table] ?? [];
         $is_unambiguous = count($descriptor['classes']) === 1;
-        $field = is_string($configured_table['field'] ?? null) ? $configured_table['field'] : '';
-        $model_values = is_array($configured_table['models'] ?? null) ? $configured_table['models'] : [];
         $errors = [];
         $columns = [];
         $observed_values = [];
+
+        if(!is_array($configured_table)) {
+            $configured_table = [];
+            $errors[] = 'invalid_table_configuration';
+        }
+
+        $field = is_string($configured_table['field'] ?? null) ? $configured_table['field'] : '';
+        $configured_models = $configured_table['models'] ?? [];
+        if(!is_array($configured_models)) {
+            $configured_models = [];
+            $errors[] = 'invalid_models_configuration';
+        }
+
+        $model_values = $configured_models;
+        foreach($descriptor['classes'] as $class => $unused) {
+            if(!array_key_exists($class, $model_values)) {
+                $model_values[$class] = null;
+            }
+        }
+        ksort($model_values);
 
         if(!isset($known_tables[$table])) {
             $errors[] = 'missing_table';
@@ -193,10 +218,40 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
             $columns = $db->getTableColumns($table);
         }
 
+        $mapped_values = [];
+        foreach($model_values as $class => $values) {
+            if(!isset($descriptor['classes'][$class])) {
+                $errors[] = 'unknown_model:'.$class;
+                continue;
+            }
+            if(is_null($values)) {
+                $errors[] = 'missing_model_configuration:'.$class;
+                continue;
+            }
+            if(!is_array($values)) {
+                $errors[] = 'invalid_model_values:'.$class;
+                continue;
+            }
+            if($is_unambiguous && count($values)) {
+                $errors[] = 'unexpected_discriminator_values:'.$class;
+                continue;
+            }
+            foreach($values as $value) {
+                if(!is_scalar($value) && !is_null($value)) {
+                    $errors[] = 'invalid_discriminator_value:'.$class;
+                    continue;
+                }
+                $key = $normalizeValue($value);
+                if(isset($mapped_values[$key])) {
+                    $errors[] = 'duplicate_discriminator_value:'.json_encode($value);
+                    continue;
+                }
+                $mapped_values[$key] = $class;
+            }
+        }
+
         if($is_unambiguous) {
-            $class = array_key_first($descriptor['classes']);
             $field = '';
-            $model_values = [$class => []];
         }
         elseif(!strlen($field)) {
             $errors[] = 'missing_discriminator_field';
@@ -218,30 +273,6 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
             ksort($counts);
             $observed_values = array_values($counts);
 
-            $mapped_values = [];
-            foreach($model_values as $class => $values) {
-                if(!isset($descriptor['classes'][$class])) {
-                    $errors[] = 'unknown_model:'.$class;
-                    continue;
-                }
-                if(!is_array($values)) {
-                    $errors[] = 'invalid_model_values:'.$class;
-                    continue;
-                }
-                foreach($values as $value) {
-                    if(!is_scalar($value) && !is_null($value)) {
-                        $errors[] = 'invalid_discriminator_value:'.$class;
-                        continue;
-                    }
-                    $key = $normalizeValue($value);
-                    if(isset($mapped_values[$key])) {
-                        $errors[] = 'duplicate_discriminator_value:'.json_encode($value);
-                        continue;
-                    }
-                    $mapped_values[$key] = $class;
-                }
-            }
-
             foreach($observed_values as $observed) {
                 if(!isset($mapped_values[$normalizeValue($observed['value'])])) {
                     $errors[] = 'unmapped_discriminator_value:'.json_encode($observed['value']);
@@ -259,6 +290,9 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
             'ready'           => !count($errors),
             'errors'          => $errors
         ];
+        if(count($errors)) {
+            $migration['ready'] = false;
+        }
     }
 
     return [$migration, $discovered_tables];
@@ -290,8 +324,11 @@ if($params['phase'] === 'discover') {
     exit(0);
 }
 elseif($params['phase'] === 'backfill') {
+    // Keep the migration file as the source of truth for both configuration and analysis.
+    $writeMigration($migration_file, $analysis);
+
     $not_ready_tables = [];
-foreach($analysis['tables'] as $table => $descriptor) {
+    foreach($analysis['tables'] as $table => $descriptor) {
         if(!$descriptor['ready']) {
             $not_ready_tables[$table] = $descriptor['errors'];
         }
@@ -302,6 +339,7 @@ foreach($analysis['tables'] as $table => $descriptor) {
 
     $dap = new DataAdapterProviderSql();
     $summary = [];
+    $columns_to_add = [];
 
     foreach($analysis['tables'] as $table => $descriptor) {
         $columns = $descriptor['columns'];
@@ -322,76 +360,82 @@ foreach($analysis['tables'] as $table => $descriptor) {
                 throw new Exception('unresolved_sql_type', EQ_ERROR_INVALID_CONFIG);
             }
 
-            $db->sendQuery($db->getQueryAddColumn($table, 'model', [
+            $columns_to_add[$table] = [
                 'type' => $type,
                 'null' => true
-            ]));
-    }
-
-    $updated_rows = 0;
-    $is_unambiguous = count($descriptor['classes']) === 1;
-    if($is_unambiguous) {
-        $class = reset($descriptor['classes']);
-        $db->setRecords($table, null, ['model' => $class]);
-        $updated_rows += $db->getAffectedRows();
-    }
-    else {
-        foreach($descriptor['models'] as $class => $values) {
-            $non_null_values = [];
-            $has_null = false;
-            foreach($values as $value) {
-                if(is_null($value)) {
-                    $has_null = true;
-                }
-                else {
-                    $non_null_values[] = $value;
-                }
-            }
-
-            if(count($non_null_values)) {
-                $db->setRecords(
-                    $table,
-                    null,
-                    ['model' => $class],
-                    [[[$descriptor['field'], 'in', $non_null_values]]]
-                );
-                $updated_rows += $db->getAffectedRows();
-            }
-            if($has_null) {
-                $db->setRecords(
-                    $table,
-                    null,
-                    ['model' => $class],
-                    [[[$descriptor['field'], 'is', null]]]
-                );
-                $updated_rows += $db->getAffectedRows();
-            }
+            ];
         }
     }
 
-    $expected_models = [];
-    if(!$is_unambiguous) {
-        foreach($descriptor['models'] as $class => $values) {
-            foreach($values as $value) {
-                $expected_models[$normalizeValue($value)] = $class;
-            }
-        }
+    foreach($columns_to_add as $table => $definition) {
+        $db->sendQuery($db->getQueryAddColumn($table, 'model', $definition));
     }
 
-    $verified_rows = 0;
-    $invalid_rows = [];
-    $verification_fields = ['id', 'model'];
-    if(!$is_unambiguous) {
-        $verification_fields[] = $descriptor['field'];
-    }
-    $result = $db->getRecords($table, $verification_fields);
-    while($row = $db->fetchArray($result)) {
-        $expected_model = reset($descriptor['classes']);
+    foreach($analysis['tables'] as $table => $descriptor) {
+        $updated_rows = 0;
+        $is_unambiguous = count($descriptor['classes']) === 1;
+        if($is_unambiguous) {
+            $class = reset($descriptor['classes']);
+            $db->setRecords($table, null, ['model' => $class]);
+            $updated_rows += $db->getAffectedRows();
+        }
+        else {
+            foreach($descriptor['models'] as $class => $values) {
+                $non_null_values = [];
+                $has_null = false;
+                foreach($values as $value) {
+                    if(is_null($value)) {
+                        $has_null = true;
+                    }
+                    else {
+                        $non_null_values[] = $value;
+                    }
+                }
+
+                if(count($non_null_values)) {
+                    $db->setRecords(
+                        $table,
+                        null,
+                        ['model' => $class],
+                        [[[$descriptor['field'], 'in', $non_null_values]]]
+                    );
+                    $updated_rows += $db->getAffectedRows();
+                }
+                if($has_null) {
+                    $db->setRecords(
+                        $table,
+                        null,
+                        ['model' => $class],
+                        [[[$descriptor['field'], 'is', null]]]
+                    );
+                    $updated_rows += $db->getAffectedRows();
+                }
+            }
+        }
+
+        $expected_models = [];
         if(!$is_unambiguous) {
-            $value = array_key_exists($descriptor['field'], $row) ? $row[$descriptor['field']] : null;
-            $expected_model = $expected_models[$normalizeValue($value)] ?? null;
+            foreach($descriptor['models'] as $class => $values) {
+                foreach($values as $value) {
+                    $expected_models[$normalizeValue($value)] = $class;
+                }
+            }
         }
-        if(is_null($expected_model) || ($row['model'] ?? null) !== $expected_model) {
+
+        $verified_rows = 0;
+        $invalid_rows = [];
+        $verification_fields = ['id', 'model'];
+        if(!$is_unambiguous) {
+            $verification_fields[] = $descriptor['field'];
+        }
+        $result = $db->getRecords($table, $verification_fields);
+        while($row = $db->fetchArray($result)) {
+            $expected_model = reset($descriptor['classes']);
+            if(!$is_unambiguous) {
+                $value = array_key_exists($descriptor['field'], $row) ? $row[$descriptor['field']] : null;
+                $expected_model = $expected_models[$normalizeValue($value)] ?? null;
+            }
+            if(is_null($expected_model) || ($row['model'] ?? null) !== $expected_model) {
                 if(count($invalid_rows) < 20) {
                     $invalid_rows[] = $row['id'];
                 }
