@@ -63,8 +63,6 @@ jobs:
       - run: php run.php --do=init_db
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
-      # initialize test-only ORM fixtures used by the core test suites
-      - run: php run.php --do=init_package --package=test --force=true
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
@@ -100,8 +98,6 @@ jobs:
       - run: php run.php --do=init_db
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
-      # initialize test-only ORM fixtures used by the core test suites
-      - run: php run.php --do=init_package --package=test --force=true
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
@@ -137,8 +133,6 @@ jobs:
       - run: php run.php --do=init_db
       # initialize database with demo data
       - run: php run.php --do=init_package --package=core --import=true
-      # initialize test-only ORM fixtures used by the core test suites
-      - run: php run.php --do=init_package --package=test --force=true
       # run test units
       - run: php run.php --do=test_package --package=core
       # export logs on failure
