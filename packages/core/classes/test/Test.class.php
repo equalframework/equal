@@ -50,6 +50,15 @@ class Test extends Model
                 'foreign_field'     => 'test_id'
             ],
 
+            'tests1_m2m_ids' => [
+                'type'              => 'many2many',
+                'foreign_object'    => 'core\test\Test1',
+                'foreign_field'     => 'tests_m2m_ids',
+                'rel_table'         => 'core_test_rel_test_test1',
+                'rel_local_key'     => 'test_id',
+                'rel_foreign_key'   => 'test1_id'
+            ],
+
         ];
     }
 }

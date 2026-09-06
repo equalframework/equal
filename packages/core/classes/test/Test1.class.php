@@ -26,6 +26,15 @@ class Test1 extends Model
                 'type'              => 'many2one',
                 'foreign_object'    => 'core\test\Test'
             ],
+
+            'tests_m2m_ids' => [
+                'type'              => 'many2many',
+                'foreign_object'    => 'core\test\Test',
+                'foreign_field'     => 'tests1_m2m_ids',
+                'rel_table'         => 'core_test_rel_test_test1',
+                'rel_local_key'     => 'test1_id',
+                'rel_foreign_key'   => 'test_id'
+            ],
         ];
     }
 
