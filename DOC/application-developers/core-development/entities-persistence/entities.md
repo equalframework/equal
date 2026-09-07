@@ -589,16 +589,15 @@ requires_mfa
 
 ### Entity Flags
 
-Flags describe structural characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility, auditing, instantiation rules or table mapping.
+Flags describe effective, inherited characteristics of an entity and can alter framework behavior such as generic CRUD exposure, public API visibility, auditing or instantiation rules. Table mapping and model discrimination are independent from flags.
 
 The current entity flags are defined in `eq.lib.php`:
 
 ```php
-define('EQ_FLAG_SYSTEM',     1);  // entity is part of the framework core or security model
-define('EQ_FLAG_PRIVATE',    2);  // entity must not be exposed publicly through generic APIs or external integrations
-define('EQ_FLAG_ABSTRACT',   4);  // entity is a non-instantiable base model intended only for inheritance
-define('EQ_FLAG_AUDIT',      8);  // entity changes should be tracked through Change entries and audit mechanisms
-define('EQ_FLAG_OWN_TABLE', 16);  // entity uses a dedicated table instead of sharing the parent table
+define('EQ_FLAG_SYSTEM',   1);  // entity is part of the framework core or security model
+define('EQ_FLAG_PRIVATE',  2);  // entity must not be exposed publicly through generic APIs or external integrations
+define('EQ_FLAG_ABSTRACT', 4);  // entity is a non-instantiable base model intended only for inheritance
+define('EQ_FLAG_AUDIT',    8);  // entity changes should be tracked through Log and Change entries
 ```
 
 Each entity can override `getFlags()`:
@@ -616,6 +615,20 @@ public static function hasFlag(int $flag): bool {
     return ((static::getFlags() & $flag) === $flag);
 }
 ```
+
+Table storage and logical model scope are declared separately:
+
+```php
+public function getTable(): string {
+    return static::getSlug(self::class);
+}
+
+public static function getModelScope(): ?string {
+    return static::class; // exact discriminator, or null for the full table
+}
+```
+
+By default, a hierarchy shares the table of its first class below `Model`. That root has no model scope; each descendant is restricted to its exact class. A class that only extends behavior must explicitly return the scope of the persistent model it represents.
 
 Flags and capabilities are related but distinct:
 
