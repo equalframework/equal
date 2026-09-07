@@ -145,26 +145,19 @@ $discoverModels = static function($orm): array {
                 throw new Exception('unresolved_model_table', EQ_ERROR_INVALID_CONFIG);
             }
 
-            $slug = strtolower(str_replace('\\', '_', $type));
             if(!isset($tables[$table])) {
                 $tables[$table] = [
-                    'candidate' => false,
                     'classes'   => [],
                     'models'    => []
                 ];
             }
 
-            $tables[$table]['candidate'] = $tables[$table]['candidate'] || $slug !== $table;
             $tables[$table]['classes'][$type] = true;
             $tables[$table]['models'][$type] = $model;
         }
     }
 
     foreach($tables as $table => $descriptor) {
-        if(!$descriptor['candidate']) {
-            unset($tables[$table]);
-            continue;
-        }
         ksort($tables[$table]['classes']);
     }
     ksort($tables);
@@ -369,6 +362,12 @@ elseif($params['phase'] === 'backfill') {
 
     foreach($columns_to_add as $table => $definition) {
         $db->sendQuery($db->getQueryAddColumn($table, 'model', $definition));
+
+        $indexed_fields = ['model', 'state', 'deleted', 'id'];
+        $existing_fields = $analysis['tables'][$table]['columns'];
+        if(empty(array_diff(['state', 'deleted', 'id'], $existing_fields))) {
+            $db->sendQuery($db->getQueryAddCompositeIndex($table, $indexed_fields));
+        }
     }
 
     foreach($analysis['tables'] as $table => $descriptor) {
