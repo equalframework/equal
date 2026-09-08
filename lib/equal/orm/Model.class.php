@@ -313,8 +313,9 @@ class Model implements \ArrayAccess, \Iterator {
             ],
             'model' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:200',
                 'readonly'          => true,
-                'default'           => static::class
+                'default'           => static::getModelScope() ?? static::class
             ],
             'creator' => [
                 'type'              => 'many2one',
@@ -344,6 +345,7 @@ class Model implements \ArrayAccess, \Iterator {
             // system related state of the object
             'state' => [
                 'type'              => 'string',
+                'usage'             => 'text/plain:25',
                 'selection'         => ['draft', 'instance', 'archive'],
                 'default'           => 'instance'
             ]
@@ -361,8 +363,33 @@ class Model implements \ArrayAccess, \Iterator {
         return static::class;
     }
 
-    final public static function getSlug(): string {
-        return strtolower(str_replace('\\', '_', static::class));
+    /**
+     * Converts a model class name to its conventional SQL identifier.
+     */
+    final public static function getSlug(?string $class=null): string {
+        return strtolower(str_replace('\\', '_', $class ?? static::class));
+    }
+
+    /**
+     * Returns the model discriminator used to scope ORM operations.
+     *
+     * The discriminator corresponds to the value stored in the `model` field and is used to distinguish concrete models sharing the same table.
+     * The first entity in an inheritance hierarchy has no discriminator scope
+     * and therefore operates on the full underlying table. Child entities are scoped to records whose `model` value matches their discriminator.
+     * Child classes may override this method to reuse another model discriminator or to disable model filtering by returning null.
+     *
+     * @return string|null Fully qualified model class used as discriminator, or null when no model restriction applies.
+     */
+    public static function getModelScope(): ?string {
+        $parent = get_parent_class(static::class);
+
+        // first entity of hierarchy: full table
+        if(!$parent || $parent === __CLASS__) {
+            return null;
+        }
+
+        // sub-type: only own records
+        return static::class;
     }
 
     /**
@@ -685,18 +712,6 @@ class Model implements \ArrayAccess, \Iterator {
         return ((static::getFlags() & $flag) === $flag);
     }
 
-    public static function hasOwnFlag(int $flag): bool {
-        $class = static::class;
-
-        $method = new \ReflectionMethod($class, 'getFlags');
-
-        if($method->getDeclaringClass()->getName() !== $class) {
-            return false;
-        }
-
-        return ((static::getFlags() & $flag) === $flag);
-    }
-
     public static function getFlags(): int {
         return 0;
     }
@@ -726,33 +741,28 @@ class Model implements \ArrayAccess, \Iterator {
      * Returns the DB table used for storing objects of the current class.
      *
      * By default, models share the table of the first class inheriting directly
-     * from Model. A child class declaring EQ_FLAG_OWN_TABLE starts a new
-     * storage hierarchy and uses its own table.
+     * from Model. A child class may override this method to define a new storage
+     * boundary; descendants inherit that table unless they override it again.
      *
      * @return string
      */
     public function getTable() {
 
-        $entity = get_class($this);
+        $entity = static::class;
 
         while(true) {
 
             $parent = get_parent_class($entity);
 
-            // class directly inherits from root Model class (equal\orm\Model)
+            // first entity directly inheriting from root Model
             if(!$parent || $parent === __CLASS__) {
-                break;
-            }
-
-            // explicit storage boundary
-            if($entity::hasOwnFlag(EQ_FLAG_OWN_TABLE)) {
                 break;
             }
 
             $entity = $parent;
         }
 
-        return strtolower(str_replace('\\', '_', $entity));
+        return static::getSlug($entity);
     }
 
     /**
