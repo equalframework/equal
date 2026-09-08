@@ -5,14 +5,16 @@
     Original author(s): Cédric FRANCOYS
     Licensed under GNU GPL 3 license <http://www.gnu.org/licenses/>
 */
+
 namespace core;
 
 use equal\orm\Model;
 
 class Log extends Model {
 
-    public static function getColumns() {
+    public static function getColumns(): array {
         return [
+
             'date' => [
                 'type'              => 'datetime',
                 'description'       => 'Date and time of the log entry creation.'
@@ -40,6 +42,13 @@ class Log extends Model {
             'object_id' => [
                 'type'              => 'integer',
                 'description'       => "Identifier of the targeted object (of given class)."
+            ],
+
+            'changes_ids' => [
+                'type'              => 'one2many',
+                'foreign_object'    => 'core\Change',
+                'foreign_field'     => 'log_id',
+                'description'       => "List of old and new values that represent the changes applied on the object."
             ],
 
             'history' => [
@@ -192,5 +201,4 @@ class Log extends Model {
 
         return $result;
     }
-
 }
