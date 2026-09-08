@@ -9,6 +9,6 @@
 use core\Change;
 use core\Log;
 
-$oldest_log = Log::search([], ['sort' => ['id' => 'asc']])->first();
+$oldest_log = Log::search([], ['limit' => 1, 'sort' => ['id' => 'asc']])->first();
 
 Change::search(['log_id', '<', $oldest_log['id']])->delete(true);
