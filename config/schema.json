@@ -298,20 +298,17 @@
         "instant": true,
         "default": "DB"
     },
-    "HTTP_TRUSTED_HEADERS": {
-        "type": "array",
-        "usage": "text/plain[]",
-        "description": "Specific HTTP headers that are used to pass information from a proxy or load balancer to the backend server.",
-        "help": "This setting must be used with caution. In particular, the X-Forwarded-For header can only be considered reliable when used in a controlled or secure environment. In other contexts (open or unsecured), it could be spoofed and should not be trusted.",
+    "HTTP_ERROR_PAGE_404": {
+        "type": "string",
+        "description": "Package we'll try to access if nothing is specified in the url (typically while accessing root URL).",
         "instant": true,
-        "default": []
+        "default": "/404.html"
     },
-    "HTTP_TRUSTED_PROXIES": {
-        "type": "array",
-        "usage": "ipv4/ddn[]",
-        "description": "Specific proxy servers or load balancers that an application or server is configured to trust when handling incoming request.",
+    "HTTP_PROCESS_USERNAME": {
+        "type": "string",
+        "description": "Username used by the HTTP service (for rights checks).",
         "instant": true,
-        "default": []
+        "default": "www-data"
     },
     "HTTP_REQUEST_TIMEOUT": {
         "type": "integer",
@@ -326,11 +323,20 @@
         "instant": true,
         "default": true
     },
-    "HTTP_PROCESS_USERNAME": {
-        "type": "string",
-        "description": "Username used by the HTTP service (for rights checks).",
+    "HTTP_TRUSTED_HEADERS": {
+        "type": "array",
+        "usage": "text/plain[]",
+        "description": "Specific HTTP headers that are used to pass information from a proxy or load balancer to the backend server.",
+        "help": "This setting must be used with caution. In particular, the X-Forwarded-For header can only be considered reliable when used in a controlled or secure environment. In other contexts (open or unsecured), it could be spoofed and should not be trusted.",
         "instant": true,
-        "default": "www-data"
+        "default": []
+    },
+    "HTTP_TRUSTED_PROXIES": {
+        "type": "array",
+        "usage": "ipv4/ddn[]",
+        "description": "Specific proxy servers or load balancers that an application or server is configured to trust when handling incoming request.",
+        "instant": true,
+        "default": []
     },
     "L10N_TIMEZONE": {
         "type": "string",

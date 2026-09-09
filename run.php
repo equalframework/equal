@@ -224,8 +224,17 @@ catch(Throwable $e) {
             $http_allow_headers = 'Content-Type';
         }
         // redirect to custom location defined for this code, if any
-        if(defined('HTTP_REDIRECT_'.$http_status)) {
-            header('Location: '.constant('HTTP_REDIRECT_'.$http_status));
+        if(PHP_SAPI !== 'cli'
+            && in_array($request_method, ['GET', 'HEAD'], true)
+            && strpos($request_headers['Accept'] ?? '', 'text/html') !== false
+            && defined($key = 'HTTP_ERROR_PAGE_' . $http_status)
+            && is_file($file = EQ_BASEDIR . '/public/' . ltrim(constant($key), '/\\'))
+            && is_readable($file)
+        ) {
+            header('Content-Type: text/html; charset=UTF-8', true, $http_status);
+            if($request_method !== 'HEAD') {
+                readfile($file);
+            }
             exit(0);
         }
         $msg = $e->getMessage();
