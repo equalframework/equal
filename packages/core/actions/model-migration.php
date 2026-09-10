@@ -65,6 +65,31 @@ $normalizeValue = static function($value): string {
     return 'scalar:'.(string) $value;
 };
 
+$countTableRows = static function($db, string $table): int {
+    $quote = static function(string $identifier): string {
+        $parts = explode('.', $identifier);
+        foreach($parts as &$part) {
+            if(constant('DB_DBMS') === 'SQLSRV') {
+                $part = '['.str_replace(']', ']]', $part).']';
+            }
+            else {
+                $part = '`'.str_replace('`', '``', $part).'`';
+            }
+        }
+        unset($part);
+
+        return implode('.', $parts);
+    };
+
+    $result = $db->sendQuery('SELECT COUNT(*) AS row_count FROM '.$quote($table));
+    $row = $db->fetchArray($result);
+    if(!is_array($row) || !array_key_exists('row_count', $row)) {
+        throw new Exception('unresolved_table_row_count', EQ_ERROR_UNKNOWN);
+    }
+
+    return (int) $row['row_count'];
+};
+
 $loadMigration = static function(string $file, bool $required = false): array {
     if(!file_exists($file)) {
         if($required) {
@@ -169,13 +194,14 @@ $discoverModels = static function($orm): array {
     return $tables;
 };
 
-$analyze = static function(array $configured_migration) use($db, $discoverModels, $normalizeValue, $orm): array {
+$analyze = static function(array $configured_migration) use($countTableRows, $db, $discoverModels, $normalizeValue, $orm): array {
     $known_tables = array_fill_keys($db->getTables(), true);
     $discovered_tables = $discoverModels($orm);
     $migration = [
         'instructions' => [
-            'models' => 'For each shared table, list the discriminator values assigned to each class. Leave an empty array when no value is assigned to a class.',
-            'field'  => 'For a shared table, set field to the column containing the discriminator values.'
+            'models'    => 'For each shared table, list the discriminator values assigned to each class. Leave an empty array when no value is assigned to a class.',
+            'field'     => 'For a shared table, set field to the column containing the discriminator values.',
+            'row_count' => 'Number of rows currently stored in the shared table.'
         ],
         'ready'  => true,
         'tables' => []
@@ -186,6 +212,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
         $errors = [];
         $columns = [];
         $observed_values = [];
+        $row_count = null;
 
         if(!is_array($configured_table)) {
             $configured_table = [];
@@ -212,6 +239,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
         }
         else {
             $columns = $db->getTableColumns($table);
+            $row_count = $countTableRows($db, $table);
         }
 
         $mapped_values = [];
@@ -269,6 +297,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
         $migration['tables'][$table] = [
             'classes'         => array_keys($descriptor['classes']),
             'columns'         => array_values($columns),
+            'row_count'       => $row_count,
             'field'           => $field,
             'observed_values' => $observed_values,
             'models'          => count($model_values) ? $model_values : (object) [],
