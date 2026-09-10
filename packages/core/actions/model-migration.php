@@ -158,6 +158,10 @@ $discoverModels = static function($orm): array {
     }
 
     foreach($tables as $table => $descriptor) {
+        if(count($descriptor['classes']) <= 1) {
+            unset($tables[$table]);
+            continue;
+        }
         ksort($tables[$table]['classes']);
     }
     ksort($tables);
@@ -170,7 +174,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
     $discovered_tables = $discoverModels($orm);
     $migration = [
         'instructions' => [
-            'models' => 'Replace every null value with an array. Use an empty array for a single-class table; for a shared table, list the discriminator values assigned to each class.',
+            'models' => 'For each shared table, list the discriminator values assigned to each class. Leave an empty array when no value is assigned to a class.',
             'field'  => 'For a shared table, set field to the column containing the discriminator values.'
         ],
         'ready'  => true,
@@ -179,7 +183,6 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
 
     foreach($discovered_tables as $table => $descriptor) {
         $configured_table = $configured_migration['tables'][$table] ?? [];
-        $is_unambiguous = count($descriptor['classes']) === 1;
         $errors = [];
         $columns = [];
         $observed_values = [];
@@ -198,8 +201,8 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
 
         $model_values = $configured_models;
         foreach($descriptor['classes'] as $class => $unused) {
-            if(!array_key_exists($class, $model_values)) {
-                $model_values[$class] = null;
+            if(!array_key_exists($class, $model_values) || is_null($model_values[$class])) {
+                $model_values[$class] = [];
             }
         }
         ksort($model_values);
@@ -217,16 +220,8 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
                 $errors[] = 'unknown_model:'.$class;
                 continue;
             }
-            if(is_null($values)) {
-                $errors[] = 'missing_model_configuration:'.$class;
-                continue;
-            }
             if(!is_array($values)) {
                 $errors[] = 'invalid_model_values:'.$class;
-                continue;
-            }
-            if($is_unambiguous && count($values)) {
-                $errors[] = 'unexpected_discriminator_values:'.$class;
                 continue;
             }
             foreach($values as $value) {
@@ -243,10 +238,7 @@ $analyze = static function(array $configured_migration) use($db, $discoverModels
             }
         }
 
-        if($is_unambiguous) {
-            $field = '';
-        }
-        elseif(!strlen($field)) {
+        if(!strlen($field)) {
             $errors[] = 'missing_discriminator_field';
         }
         elseif(!in_array($field, $columns, true)) {
